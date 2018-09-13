@@ -1,0 +1,309 @@
+﻿tile.npcRedstoneBlock.name=Rödstens Block
+tile.npcCarpentyBench.name=Snickeri Bänk
+
+gui.deleteConfirm=Är du säker att du vill ta bort denn här NPCn?
+
+menu.inventory=Utrustning
+menu.quests=Uppdrag
+menu.display=Visa
+menu.stats=Statistik
+menu.advanced=Avancerat
+menu.global=Globalt
+menu.delete=Ta bort
+
+bank.slot=Lucka
+bank.unlock=Låsa upp
+bank.upgrade=Uppgradera
+bank.upgradeCosts=Kostar att uppgradera
+bank.unlockCosts=Kostart att låsa upp
+
+follower.waiting=Väntar
+follower.following=Följer
+follower.hire=Hyr
+follower.health=Hälsa
+follower.daysleft=Dagar kvar
+follower.lastday=Sista dagen
+follower.day=Dag
+follower.days=Dagar
+follower.hireText=Tack för att du hyr mig för
+follower.farewellText=Mina dagar är över. Farväl 
+
+transporter.travel=Res
+transporter.unlock1=Transpotera till
+transporter.unlock2=är nu upplåst
+
+quest.complete=Komplett
+quest.turnin=Du kan nu lösa in uppdraget
+quest.start=Starta nytt uppdrag
+
+item.npcWand.name=Npc Stav
+item.npcCloner.name=Npc Klonare
+item.npcSpawner.name=Mob Skapare
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Violin
+item.npcViolinBow.name=Violin Båge
+item.npcHarp.name=Harpa
+item.npcGuitar.name=Gitarr
+
+item.npcCoinWooden.name=Trä Mynt
+item.npcCoinStone.name=Sten Mynt
+item.npcCoinBronze.name=Brons Mynt
+item.npcCoinIron.name=Järn Mynt
+item.npcCoinGold.name=Guld Mynt
+item.npcCoinDiamond.name=Diamant Mynt
+item.npcCoinEmerald.name=Smarags Mynt
+
+item.npcWoodenGun.name=Trä Pistol
+item.npcStoneGun.name=Sten Pistol
+item.npcIronGun.name=Järn Pistol
+item.npcGoldGun.name=Guld Pistol
+item.npcDiamondGun.name=Diamant Pistol
+item.npcBronzeGun.name=Brons Pistol
+item.npcEmeraldGun.name=Smaragd Pistol
+item.npcMachineGun.name=Maskin Gevär
+
+item.npcWoodenBullet.name=Trä Skott
+item.npcStoneBullet.name=Sten Skott
+item.npcIronBullet.name=Järm Skott
+item.npcGoldenBullet.name=Guld Skott
+item.npcDiamondBullet.name=Diamant Skott
+item.npcBronzeBullet.name=Brons Skott
+item.npcEmeraldBullet.name=Smaragd Skott
+item.npcBlackBullet.name=Svart Skott
+
+item.npcWoodenTrident.name=Trä Treudd
+item.npcStoneTrident.name=Sten Treudd
+item.npcIronTrident.name=Järn Treudd
+item.npcGoldTrident.name=Guld Treudd
+item.npcDiamondTrident.name=Diamant Treudd
+item.npcBronzeTrident.name=Brons Treudd
+item.npcEmeraldTrident.name=Smaragd Treudd
+item.npcCursedTrident.name=Förbannad Treudd
+
+item.npcNatureSpell.name=Natur Stav
+item.npcArcaneSpell.name=Hemlig Stav
+item.npcLightningSpell.name=Blixt Stav
+item.npcIceSpell.name=Is Stav
+item.npcFireSpell.name=Eld Stav
+item.npcDarkSpell.name=Mörk Stav
+item.npcHolySpell.name=Helig Stav
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Omvänd Kunai
+item.npcShuriken.name=Shurik
+item.npcGiantShuriken.name=Stor Shurik
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Golf Klubba
+item.npcMagicWand.name=Magisk Stav
+item.npcChickenSword.name=Kyckling Svärd
+item.npcHandCuffs.name=Handklovar
+item.npcHammer.name=Hammare
+item.npcBaseballBat.name=Baseballträ
+item.npcLeadPipe.name=Blyrör
+item.npcCleaver.name=Köttyxa
+item.npcSaber.name=Saber
+item.npcHockeyStick.name=Hocky Klubba
+item.npcSledgeHammer.name=Slägga
+item.npcBrokenBottle.name=Trasig Flaska
+item.npcCombatKnive.name=Bekämpa Kniv
+item.npcLighter.name=Tändare
+item.npcBatton.name=Slagträ
+item.npcGunChainsaw.name=MotorsågsPistol
+item.npcRapier.name=Värja
+item.npcCrowbar.name=Kofot
+item.npcPipeWrench.name=Rörtång
+item.npcWrench.name=Skiftnyckel
+item.npcSwissArmyKnife.name=Schweiziska armékniv
+
+item.npcWoodenShield.name=Rund Trä Sköld
+item.npcStoneShield.name=Rund Sten Sköld
+item.npcIronShield.name=Rund Järn Sköld
+item.npcGoldenShield.name=Rund Guld Sköld
+item.npcDiaShield.name=Rund Diamant Sköld
+item.npcBronzeShield.name=Rund Brons Sköld
+item.npcEmeraldShield.name=Rund Smaragd Sköld
+item.npcFullWoodenShield.name=Trä Sköld
+item.npcFullStoneShield.name=Sten Sköld
+item.npcFullIronShield.name=Järn Sköld
+item.npcFullGoldenShield.name=Guld Sköld
+item.npcFullDiaShield.name=Diamant Sköld
+item.npcFullBronzeShield.name=Brons Sköld
+item.npcFullEmeraldShield.name=Smaragd Sköld
+
+item.npcTowerShield.name=Stål Torns Sköld
+item.npcCryscentShield.name=Stål Cryscent Sköld
+item.npcScutumShield.name=Stål Scutum Sköld
+item.npcHeaterShield.name=Stål Heater Sköld
+
+item.npcWoodenSpear.name=Trä Spjut
+item.npcStoneSpear.name=Sten Spjut
+item.npcIronSpear.name=Järn Spjut
+item.npcGoldenSpear.name=Guld Spjut
+item.npcDiamondSpear.name=Diamant Spjut
+item.npcBronzeSpear.name=Brons Spjut
+item.npcEmeraldSpear.name=Smaragd Spjut
+
+item.npcWoodenBattleAxe.name=Trä Strits Yxa
+item.npcStoneBattleAxe.name=Sten Strits Yxa
+item.npcIronBattleAxe.name=Järn Strits Yxa
+item.npcGoldenBattleAxe.name=Guld Strits Yxa
+item.npcDiamondBattleAxe.name=Diamant Srtits Yxa
+item.npcBronzeBattleAxe.name=Brons Strits Yxa
+item.npcEmeraldBattleAxe.name=Smaragd Strits Yxa
+
+item.npcWoodenMace.name=Trä Spikklubba
+item.npcStoneMace.name=Sten Spikklubba
+item.npcIronMace.name=Järn Spikklubba
+item.npcGoldenMace.name=Guld Spikklubba
+item.npcDiamondMace.name=Diamant Spikklubba
+item.npcBronzeMace.name=Brons Spikklubba
+item.npcEmeraldMace.name=Smaragd Spikklubba
+
+item.npcWoodenDagger.name=Trä Dolk
+item.npcStoneDagger.name=Sten Dolk
+item.npcIronDagger.name=Järn Dolk
+item.npcGoldenDagger.name=Guld Dolk
+item.npcDiamondDagger.name=Diamant Dolk
+item.npcBronzeDagger.name=Brons Dolk
+item.npcEmeraldDagger.name=Smaragd Dolk
+item.npcWoodenReversedDagger.name=Omvänd Trä Dolk
+item.npcStoneReversedDagger.name=Omvänd Sten Dolk
+item.npcIronReversedDagger.name=Omvänd Järn Dolk
+item.npcGoldenReversedDagger.name=Omvänd Guld Dolk
+item.npcDiamondReversedDagger.name=Omvänd Diamant Dolk
+item.npcBronzeReversedDagger.name=Omvänd Brons Dolk
+item.npcEmeraldReversedDagger.name=Omvänd Smaragd Dolk
+
+item.npcWoodenStaff.name=Trä Stav
+item.npcStoneStaff.name=Sten Stav
+item.npcIronStaff.name=Järn Stav
+item.npcGoldenStaff.name=Guld Stav
+item.npcDiamondStaff.name=Diamant Stav
+item.npcBronzeStaff.name=Brons Stav
+item.npcEmeraldStaff.name=Smaragd Stav
+item.npcElementalStaff.name=Elemtal Stav
+
+item.npcWoodenScythe.name=Trä Lie
+item.npcStoneScythe.name=Sten Lie
+item.npcIronScythe.name=Järn Lie
+item.npcGoldenScythe.name=Guld Lie
+item.npcBronzeScythe.name=Brons Lie
+item.npcDiamondScythe.name=Diamant Lie
+item.npcEmeraldScythe.name=Smaragd Lie
+
+item.npcWoodenGlaive.name=Trä Glav
+item.npcStoneGlaive.name=Sten Glav
+item.npcIronGlaive.name=Järn Glav
+item.npcGoldenGlaive.name=Guld Glav
+item.npcDiamondGlaive.name=Diamant Glav
+item.npcBronzeGlaive.name=Brons Glav
+item.npcEmeraldGlaive.name=Smaragd Glav
+
+item.npcCowleatherHead.name=Koläder Hjälm
+item.npcCowleatherChest.name=Koläder Harnesk
+item.npcCowleatherLegs.name=Koläder Byxor
+item.npcCowleatherBoots.name=Koläder Skor
+
+item.npcNanorumHead.name=Nanorum Hjälm
+item.npcNanorumChest.name=Nanorum Harnesk
+item.npcNanorumLegs.name=Nanorum Byxor
+item.npcNanorumBoots.name=Nanorum Stövlar
+
+item.npcTacticalHead.name=Tactical Helmet
+item.npcTacticalChest.name=Tactical Vest
+
+item.npcFullLeatherHead.name=Full Leather Helmet
+item.npcFullLeatherChest.name=Full Leather ChestPlate
+
+item.npcFullIronHead.name=Full Iron Helmet
+item.npcFullIronChest.name=Full Iron ChestPlate
+
+item.npcFullGoldHead.name=Full Gold Helmet
+item.npcFullGoldChest.name=Full Gold ChestPlate
+
+item.npcFullDiamondHead.name=Full Diamond Helmet
+item.npcFullDiamondChest.name=Full Diamond ChestPlate
+
+item.npcFullBronzeHead.name=Full Bronze Helmet
+item.npcFullBronzeChest.name=Full Bronze ChestPlate
+item.npcFullBronzeLeggings.name=Full Bronze Leggings
+item.npcFullBronzeBoots.name=Full Bronze Boots
+
+item.npcFullWoodenHead.name=Full Wooden Helmet
+item.npcFullWoodenChest.name=Full Wooden ChestPlate
+item.npcFullWoodenLeggings.name=Full Wooden Leggings
+item.npcFullWoodenBoots.name=Full Wooden Boots
+
+item.npcTuxedoChest.name=Tuxedo Chest
+item.npcTuxedoPants.name=Tuxedo Pants
+item.npcTuxedoBottom.name=Tuxedo Trenchcoat
+
+item.npcWizardHead.name=Wizard Head
+item.npcWizardChest.name=Wizard Chest
+item.npcWizardPants.name=Wizard Leggings
+
+item.npcAssassinHead.name=Assassins Helmet
+item.npcAssassinChest.name=Assassins ChestPlate
+item.npcAssassinLeggings.name=Assassins Leggings
+item.npcAssassinBoots.name=Assassins Boots
+
+item.npcSoldierHead.name=Soldier Helmet
+item.npcSoldierChest.name=Soldier ChestPlate
+item.npcSoldierLegs.name=Soldier Leggings
+item.npcSoldierBottom.name=Soldier Trenchcoat
+
+item.npcX407Head.name=X407 Prototype Helmet
+item.npcX407Chest.name=X407 Prototype ChestPlate
+item.npcX407Legs.name=X407 Prototype Leggings
+item.npcX407Boots.name=X407 Prototype Boots
+
+item.npcCommissarHead.name=Commissar Helmet
+item.npcCommissarChest.name=Commissar ChestPlate
+item.npcCommissarLegs.name=Commissar Leggings
+item.npcCommissarBottom.name=Commissar Trenchcoat
+
+item.npcInfantryHelmet.name=Infantry Helmet
+item.npcOfficerChest.name=Officer ChestPlate
+
+item.npcCrown.name=Crown
+item.npcCrown2.name=Crown
+
+item.npcNinjaHead.name=Ninja Head
+item.npcNinjaChest.name=Ninja Chest
+item.npcNinjaPants.name=Ninja Leggings
+
+item.npcFullEmeraldHead.name=Full Emerald Helmet
+item.npcFullEmeraldChest.name=Full Emerald ChestPlate
+item.npcFullEmeraldLeggings.name=Full Emerald Leggings
+item.npcFullEmeraldBoots.name=Full Emerald Boots
+
+item.npcOrb.name=Orb
+item.npcBrokenOrb.name=BrokenOrb
+item.npcMana.name=Mana
+
+item.npcNinjaClaw.name=Ninja Claw
+item.npcSteelClaw.name=Steel Claw
+item.npcBearClaw.name=Bear Claw
+item.npcKatar.name=Katar
+
+item.npcLetter.name=Letter
+item.npcPlans.name=Plans
+item.npcSatchel.name=Satchel
+item.npcBag.name=Bag
+item.npcCrystal.name=Crystal
+item.npcSeveredEar.name=Severed Ear
+item.npcPhone.name=Phone
+item.npcBanditMask.name=Bandit Mask
+item.npcBrokenArrow.name=Broken Arrow
+item.npcEarthElement.name=Earth Element
+item.npcWaterElement.name=Water Element
+item.npcFireElement.name=Fire Element
+item.npcAirElement.name=Air Element
+item.npcCarKey.name=Car Key
+item.npcKey.name=Key
+item.npcPendant.name=Pendant
+item.npcBlueprint.name=Blueprint
+item.npcRing.name=Ring

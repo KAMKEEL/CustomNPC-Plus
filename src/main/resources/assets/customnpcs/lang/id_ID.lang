@@ -1,0 +1,318 @@
+tile.npcRedstoneBlock.name=Blok Batu Merah
+tile.npcCarpentyBench.name=Bangku Tukang Kayu
+tile.npcBloodBlock.name=Blok Darah
+
+gui.deleteConfirm=Yakin ingin menghapus npc ini?
+
+menu.inventory=Persediaan
+menu.quests=Tugas
+menu.display=Tampilan
+menu.stats=Stats
+menu.advanced=Lanjutan
+menu.global=Global
+menu.delete=Hapus
+
+bank.slot=Slot
+bank.unlock=Buka
+bank.upgrade=Upgrade
+bank.upgradeCosts=Biaya untuk upgrade
+bank.unlockCosts=Biaya untuk membuka
+
+follower.waiting=Tunggu
+follower.following=Mengikuti
+follower.hire=Rekrut
+follower.health=Nyawa
+follower.daysleft=Hari lagi
+follower.lastday=Hari terakhir
+follower.day=Hari
+follower.days=Hari
+follower.hireText=Terima kasih telah merekrutku untuk
+follower.farewellText=Hariku denganmu telah usai. Selamat tinggal
+
+transporter.travel=Travel
+transporter.unlock1=Pindah ke
+transporter.unlock2=Sekarang tersedia
+
+quest.complete=Selesai
+quest.turnin=Sekarang kau bisa mengambil hadiahnya
+quest.start=Mulai tugas baru
+
+item.npcWand.name=Tongkat Npc
+item.npcCloner.name=Pengganda Npc
+item.npcSpawner.name=Spawner Mob
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Biola
+item.npcViolinBow.name=Tongkat Biola
+item.npcHarp.name=Harpa
+item.npcGuitar.name=Gitar
+
+item.npcCoinWooden.name=Koin Kayu
+item.npcCoinStone.name=Koin Batu
+item.npcCoinBronze.name=Koin Perak
+item.npcCoinIron.name=Koin Besi
+item.npcCoinGold.name=Koin Emas
+item.npcCoinDiamond.name=Koin Berlian
+item.npcCoinEmerald.name=Koin Zamrud
+
+item.npcWoodenGun.name=Pistol Kayu
+item.npcStoneGun.name=Pistol Batu
+item.npcIronGun.name=Pistol Besi
+item.npcGoldGun.name=Pistol Emas
+item.npcDiamondGun.name=Pistol Berlian
+item.npcBronzeGun.name=Pistol Perunggu
+item.npcEmeraldGun.name=Pistol Zamrud
+item.npcMachineGun.name=Senapan Mesin
+
+item.npcWoodenBullet.name=Peluru Kayu
+item.npcStoneBullet.name=Peluru Batu
+item.npcIronBullet.name=Peluru Besi
+item.npcGoldenBullet.name=Peluru Emas
+item.npcDiamondBullet.name=Peluru Berlian
+item.npcBronzeBullet.name=Peluru Perunggu
+item.npcEmeraldBullet.name=Peluru Zamrud
+item.npcBlackBullet.name=Peluru Hitam
+
+item.npcWoodenTrident.name=Trisula Kayu
+item.npcStoneTrident.name=Trisula Batu
+item.npcIronTrident.name=Trisula Besi
+item.npcGoldTrident.name=Trisula Emas
+item.npcDiamondTrident.name=Trisula Berlian
+item.npcBronzeTrident.name=Trisula Perunggu
+item.npcEmeraldTrident.name=Trisula Zamrud
+item.npcCursedTrident.name=Trisula Terkutuk
+
+item.npcNatureSpell.name=Sihir Alam
+item.npcArcaneSpell.name=Sihir Batin
+item.npcLightningSpell.name=Sihir Petir
+item.npcIceSpell.name=Sihir Es
+item.npcFireSpell.name=Sihir Api
+item.npcDarkSpell.name=Sihir Kegelapan
+item.npcHolySpell.name=Sihir Suci
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Kunai Terbalik
+item.npcShuriken.name=Shuriken
+item.npcGiantShuriken.name=Shuriken Besar
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Tongkat Golf
+item.npcMagicWand.name=Tongkat Sihir
+item.npcChickenSword.name=Pedang Ayam
+item.npcHandCuffs.name=Borgol
+item.npcHammer.name=Palu
+item.npcBaseballBat.name=Tongkat Baseball
+item.npcLeadPipe.name=Pipa
+item.npcCleaver.name=Golok
+item.npcSaber.name=Pedang Saber
+item.npcHockeyStick.name=Tongkat Hockey
+item.npcSledgeHammer.name=Palu Besar
+item.npcBrokenBottle.name=Botol Rusak
+item.npcCombatKnive.name=Pisau Tarung
+item.npcLighter.name=Korek
+item.npcBatton.name=Tongkat Polisi
+item.npcGunChainsaw.name=Senapan Gergaji
+item.npcRapier.name=Pedang Tipis
+item.npcCrowbar.name=Linggis
+item.npcPipeWrench.name=Kunci pipa
+item.npcWrench.name=Kunci inggris
+item.npcSwissArmyKnife.name=Swiss Army Knife
+
+item.npcWoodenShield.name=Perisai Kayu Bulat
+item.npcStoneShield.name=Perisai Batu Bulat
+item.npcIronShield.name=Perisai Besi Bulat
+item.npcGoldenShield.name=Perisai Emas Bulat
+item.npcDiaShield.name=Perisai Berlian Bulat
+item.npcBronzeShield.name=Perisai Perunggu Bulat
+item.npcEmeraldShield.name=Perisai Zamrud Bulat
+item.npcFullWoodenShield.name=Perisai Kayu
+item.npcFullStoneShield.name=Perisai Batu
+item.npcFullIronShield.name=Perisai Besi
+item.npcFullGoldenShield.name=Perisai Emas
+item.npcFullDiaShield.name=Perisai Berlian
+item.npcFullBronzeShield.name=Perisai Perunggu
+item.npcFullEmeraldShield.name=Perisai Zamrud
+
+item.npcTowerShield.name=Perisai Tower Baja
+item.npcCryscentShield.name=Perisai Cryscent Baja
+item.npcScutumShield.name=Perisai Scutum Baja
+item.npcHeaterShield.name=Perisai Heater Baja
+
+item.npcWoodenSpear.name=Tombak Kayu
+item.npcStoneSpear.name=Tombak Batu
+item.npcIronSpear.name=Tombak Besi
+item.npcGoldenSpear.name=Tombak Emas
+item.npcDiamondSpear.name=Tombak Berlian
+item.npcBronzeSpear.name=Tombak Perunggu
+item.npcEmeraldSpear.name=Tombak Zamrud
+
+item.npcWoodenBattleAxe.name=Kapak Perang Kayu
+item.npcStoneBattleAxe.name=Kapak Perang Batu
+item.npcIronBattleAxe.name=Kapak Perang Besi
+item.npcGoldenBattleAxe.name=Kapak Perang Emas
+item.npcDiamondBattleAxe.name=Kapak Perang Berlian
+item.npcBronzeBattleAxe.name=Kapak Perang Perunggu
+item.npcEmeraldBattleAxe.name=Kapak Perang Zamrud
+
+item.npcWoodenMace.name=Gada Kayu
+item.npcStoneMace.name=Gada Batu
+item.npcIronMace.name=Gada Besi
+item.npcGoldenMace.name=Gada Emas
+item.npcDiamondMace.name=Gada Berlian
+item.npcBronzeMace.name=Gada Perunggu
+item.npcEmeraldMace.name=Gada Zamrud
+
+item.npcWoodenDagger.name=Pisau Belati Kayu
+item.npcStoneDagger.name=Pisau Belati Batu
+item.npcIronDagger.name=Pisau Belati Besi
+item.npcGoldenDagger.name=Pisau Belati Emas
+item.npcDiamondDagger.name=Pisau Belati Berlian
+item.npcBronzeDagger.name=Pisau Belati Perunggu
+item.npcEmeraldDagger.name=Pisau Belati Zamrud
+item.npcWoodenReversedDagger.name=Pisau Belati Kayu Terbalik
+item.npcStoneReversedDagger.name=Pisau Belati Batu Terbalik
+item.npcIronReversedDagger.name=Pisau Belati Besi Terbalik
+item.npcGoldenReversedDagger.name=Pisau Belati Emas Terbalik
+item.npcDiamondReversedDagger.name=Pisau Belati Berlian Terbalik
+item.npcBronzeReversedDagger.name=Pisau Belati Perunggu Terbalik
+item.npcEmeraldReversedDagger.name=Pisau Belati Zamrud Terbalik
+
+item.npcWoodenStaff.name=Tongkat Kayu
+item.npcStoneStaff.name=Tongkat Batu
+item.npcIronStaff.name=Tongkat Besi
+item.npcGoldenStaff.name=Tongkat Emas
+item.npcDiamondStaff.name=Tongkat Berlian
+item.npcBronzeStaff.name=Tongkat Perunggu
+item.npcEmeraldStaff.name=Tongkat Zamrud
+item.npcElementalStaff.name=Tongkat Elemental
+
+item.npcWoodenScythe.name=Sabit Kayu
+item.npcStoneScythe.name=Sabit Batu
+item.npcIronScythe.name=Sabit Besi
+item.npcGoldenScythe.name=Sabit Emas
+item.npcBronzeScythe.name=Sabit Perunggu
+item.npcDiamondScythe.name=Sabit Berlian
+item.npcEmeraldScythe.name=Sabit Zamrud
+
+item.npcWoodenGlaive.name=Pedang Kayu
+item.npcStoneGlaive.name=Pedang Batu
+item.npcIronGlaive.name=Pedang Besi
+item.npcGoldenGlaive.name=Pedang Emas
+item.npcDiamondGlaive.name=Pedang Berlian
+item.npcBronzeGlaive.name=Pedang Perunggu
+item.npcEmeraldGlaive.name=Pedang Zamrud
+
+item.npcCowleatherHead.name=Topi Kulit Sapi
+item.npcCowleatherChest.name=Baju Kulit Sapi
+item.npcCowleatherLegs.name=Celana Kulit Sapi
+item.npcCowleatherBoots.name=Sepatu Kulit Sapi
+
+item.npcNanorumHead.name=Helm Nanorum
+item.npcNanorumChest.name=Baju Nanorum
+item.npcNanorumLegs.name=Celana Nanorum
+item.npcNanorumBoots.name=Sepatu Nanorum
+
+item.npcTacticalHead.name=Helm Taktis
+item.npcTacticalChest.name=Rompi Taktis
+
+item.npcFullLeatherHead.name=Helm Kulit
+item.npcFullLeatherChest.name=Baju Kulit
+
+item.npcFullIronHead.name=Helm Besi
+item.npcFullIronChest.name=Baju Besi
+
+item.npcFullGoldHead.name=Helm Emas
+item.npcFullGoldChest.name=Baju Emas
+
+item.npcFullDiamondHead.name=Helm Berlian
+item.npcFullDiamondChest.name=Baju Berlian
+
+item.npcFullBronzeHead.name=Helm Perunggu
+item.npcFullBronzeChest.name=Baju Perunggu
+item.npcFullBronzeLeggings.name=Celana Perunggu
+item.npcFullBronzeBoots.name=Sepatu Perunggu
+
+item.npcFullWoodenHead.name=Helm Kayu
+item.npcFullWoodenChest.name=Baju Kayu
+item.npcFullWoodenLeggings.name=Celana Kayu
+item.npcFullWoodenBoots.name=Sepatu Kayu
+
+item.npcTuxedoChest.name=Baju Tuxedo
+item.npcTuxedoPants.name=Celana Tuxedo
+item.npcTuxedoBottom.name=Jas Tuxedo
+
+item.npcWizardHead.name=Topi Penyihir
+item.npcWizardChest.name=Baju Penyihir
+item.npcWizardPants.name=Celana Penyihir
+
+item.npcAssassinHead.name=Helm Assassin
+item.npcAssassinChest.name=Baju Assassin
+item.npcAssassinLeggings.name=Celana Assassin
+item.npcAssassinBoots.name=Sepatu Assassin
+
+item.npcSoldierHead.name=Helm Tentara
+item.npcSoldierChest.name=Seragam Tentara
+item.npcSoldierLegs.name=Celana Tentara
+item.npcSoldierBottom.name=Jas Tentara
+
+item.npcX407Head.name=Helm X407 Prototype 
+item.npcX407Chest.name=Baju X407 Prototype
+item.npcX407Legs.name=Celana X407 Prototype
+item.npcX407Boots.name=Sepatu X407 Prototype
+
+item.npcCommissarHead.name=Topi Komisaris
+item.npcCommissarChest.name=Baju Komisaris
+item.npcCommissarLegs.name=Celana Komisaris
+item.npcCommissarBottom.name=Jas Komisaris
+
+item.npcInfantryHelmet.name=Helm Infantri
+item.npcOfficerChest.name=Topi Petugas
+
+item.npcCrown.name=Mahkota
+item.npcCrown2.name=Mahkota
+
+item.npcNinjaHead.name=Masker Ninja
+item.npcNinjaChest.name=Baju Ninja
+item.npcNinjaPants.name=Celana Ninja
+
+item.npcFullEmeraldHead.name=Helm Zamrud
+item.npcFullEmeraldChest.name=Baju Zamrud
+item.npcFullEmeraldLeggings.name=Celana Zamrud
+item.npcFullEmeraldBoots.name=Sepatu Zamrud
+
+item.npcOrb.name=Orb
+item.npcBrokenOrb.name=Orb Rusak
+item.npcMana.name=Mana
+
+item.npcNinjaClaw.name=Cakar Ninja
+item.npcSteelClaw.name=Cakar Baja
+item.npcBearClaw.name=Cakar Beruang
+item.npcKatar.name=Katar
+
+item.npcLetter.name=Surat
+item.npcPlans.name=Rencana
+item.npcSatchel.name=Tas
+item.npcBag.name=Tas
+item.npcCrystal.name=Kristal
+item.npcSeveredEar.name=Telinga Putus
+item.npcPhone.name=HandPhone
+item.npcBanditMask.name=Masker Bandit
+item.npcBrokenArrow.name=Panah Rusah
+item.npcEarthElement.name=Elemen Tanah
+item.npcWaterElement.name=Elemen Air
+item.npcFireElement.name=Elemen Api
+item.npcAirElement.name=Elemen Udara
+item.npcCarKey.name=Kunci Mobil
+item.npcKey.name=Kunci
+item.npcPendant.name=Medali
+item.npcBlueprint.name=Cetak Biru
+item.npcRing.name=Cincin
+
+item.npcSkull.name=Tengkorak
+item.npcBronzeIngot.name=Perunggu Batangan
+item.npcSaphire.name=Permata Sapphir
+item.npcAmethyst.name=Permata Amethyst
+item.npcRuby.name=Permata Rubi
+
+

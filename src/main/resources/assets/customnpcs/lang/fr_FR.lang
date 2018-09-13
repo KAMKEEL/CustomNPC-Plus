@@ -1,0 +1,542 @@
+itemGroup.cnpcs=Outils CustomNpcs
+itemGroup.cnpcsw=Armes CustomNpcs
+itemGroup.cnpcsa=Armures CustomNpcs
+itemGroup.cnpcsm=Divers CustomNpcs
+
+tile.npcRedstoneBlock.name=Bloc de Redstone
+tile.npcCarpentyBench.name=Banc de menuiserie
+tile.npcBloodBlock.name=Bloc de Sang
+
+gui.deleteConfirm="Êtes-vous sûr de vouloir effacer ce PNJ ?"
+gui.add=Ajouter
+gui.remove=Retirer
+gui.edit=Editer
+gui.name=Nom
+gui.color=Couleur
+gui.none=Aucun
+gui.time=Temps
+gui.title=Titre
+gui.categories=Catégories
+gui.close=Fermer
+gui.disabled=Désactiver
+gui.increase=Diminuer
+gui.decrease=Augmenter
+gui.day=Jour
+gui.night=Nuit
+gui.constant=Constant
+gui.accelerate=Accéléré
+gui.small=Petit
+gui.medium=Moyen
+gui.large=Grand
+gui.type=Type
+gui.always=Toujours
+gui.untilclose=Jusqu'à Fermeture
+gui.ignoreDamage=Ignore dégâts
+gui.save=Sauvegarder
+gui.retaliate=Riposte
+gui.panic=Panique
+gui.retreat=Retraite
+gui.nothing=Rien
+gui.break=Casse
+gui.open=Ouvre
+gui.darkness=Nocturne
+gui.sunlight=Diurne
+gui.whenavailable=Quand prêt
+gui.engagedistance=Distance d'aggro
+gui.currentFolder=Dossier courant
+gui.play=Jouer
+gui.selectSound=Choisir le son
+
+remote.title=Pnj proche
+remote.reset=Reset
+remote.tp=Tp à
+remote.resetall=Tout reset
+remote.freeze=Geler Pnj
+
+spawner.entities=Entités
+spawner.clones=Clones
+spawner.mobspawner=MobSpawner
+
+display.model=Modèle
+display.show=Montrer
+display.hide=Cacher
+display.showAttacking=Montrer en Combat
+display.size=Taille
+display.texture=Modèle
+display.textureCape=Cape
+display.textureOverlay=Regard
+display.player=Joueur
+display.selectTexture=Choisir
+display.livingAnimation=Est Animè
+display.tint=Couleur de teinte
+
+inv.minExp=Min Exp
+inv.maxExp=Max Exp
+inv.npcInventory=Inventaire Pnj
+inv.inventory=Inventaire
+inv.dropChance=Chance de loot
+
+availability.options=Options Disponibilité
+availability.always=Toujours
+availability.after=Après
+availability.before=Avant
+availability.available=Disponible
+availability.whenactive=Quand Actif
+availability.whennotactive=Quand Non-Actif
+availability.selectquest=Choix Quêtes
+availability.selectdialog=Choix Dialogue
+availability.selectfaction=Choix Faction
+availability.daytime=Journée
+availability.wholeday=toujours
+availability.night=Durant la nuit
+availability.day=Durant le jour
+availability.is=est
+availability.isnot=n'est pas
+
+stats.health=Santé
+stats.aggro=Portée d'Aggro
+stats.meleeproperties=Propriétés Mélée
+stats.rangedproperties=Propriétés Portée
+stats.projectileproperties=Type de Projectile
+stats.meleestrength=Force Mélée
+stats.meleerange=Distance Mélée
+stats.meleespeed=Vitesse Mélée
+stats.accuracy=Précision(%)
+stats.rangedrange=RangedRange
+stats.burstspeed=FireRate
+stats.firedelay=FireDelay
+stats.delayvariance=Délai Variant
+stats.burstcount=Nombre de cycle
+stats.walkspeed=Vitesse de Marche
+stats.chargespeed=Vitesse de Charge
+stats.meleeeffect=Effet(s)
+stats.respawn=Respawn
+stats.deadbody=CacherCadavre
+stats.fireimmune=Immunisé au Feu
+stats.candrown=Peut se Noyer
+stats.firesound:=SoundFX
+stats.creaturetype=Type de Créature
+stats.normal=Normal
+stats.undead=Non-Mort
+stats.arthropod=Arthropodes
+stats.nofalldamage=Pas  de dégâts de Chute
+stats.meleeproperties=Options Mélée
+stats.rangedproperties=Options Distance
+stats.burninsun=Brule Au Soleil
+stats.amplify=Amplifie
+stats.regenhealth=Se regénère
+
+stats.size=Taille
+stats.speed=Vitesse
+stats.glows=Brillance
+stats.hasgravity=Gravité
+stats.explosive=Explosion
+stats.rangedeffect=Effet
+stats.trail=Trainée
+stats.spin=Pivote
+stats.stick=Colle
+stats.regular=Régulier
+stats.amplified=Amplifié
+
+ai.standing=Attend
+ai.wandering=Errant
+ai.movingpath=Se Déplace
+ai.looping=En boucle
+ai.backtracking=Marche Arrière
+ai.tacticalvariant=Variante tactique
+
+aitactics.rush=Se ruer
+aitactics.stagger=Se faufiler
+aitactics.orbit=Encercler
+aitactics.ambush=Embusquer
+aitactics.stalk=Traquer
+
+advanced.idlesound=Quand vivant
+advanced.angersound=Quand furieux
+advanced.hurtsound=Quand blessé
+advanced.deathsound=Quand mort
+advanced.stepsound=Quand marche
+
+ai.enemyresponse:=Présence hostile
+ai.door:=Ouvre les portes
+ai.avoidwater:=Evite l'eau
+ai.return:=Retour au début
+ai.swim:=Peut nager
+ai.shelter:=Cherche refuge
+ai.leapattarget:=Bondit sur cible
+ai.clearlos:=Doit voir
+ai.indirect:=S'enflamme indirect.
+ai.rangemelee:=Utilise distance d'attaque
+
+faction.hostiles=Hostiles
+faction.unfriendly=Inamical
+faction.neutral=Neutre
+faction.friendly=Amical
+faction.points=Points
+faction.ondeath=A la mort
+faction.hidden=Caché
+faction.default=Défaut
+faction.attackHostile=Attaquer les factions hostiles
+faction.defend=Defendre les membres de la faction
+faction.nostanding=Vous n'avez pas de classement sur aucune faction
+faction.options=Options de Faction
+faction.increasepoints=Réputation %s augmentée de %s points
+faction.decreasepoints=Réputation %s diminuée de %s points
+
+menu.inventory=Inventaire
+menu.quests=Quêtes
+menu.display=Affichage
+menu.stats=Stats
+menu.factions=Factions
+menu.ai=IA
+menu.advanced=Avancé
+menu.global=Global
+menu.delete=Effacer
+menu.role=Role
+
+global.banks=Banques
+global.factions=Factions
+global.dialogs=Dialogues
+global.quests=Quêtes
+global.transport=Transport
+global.playerdata=Données Joueurs
+global.recipes=Recettes
+
+bank.slot=Onglet
+bank.unlock=Débloquer
+bank.upgrade=Améliorer
+bank.upgradeCosts=Coût d'Amélioration
+bank.unlockCosts=Coût de Débloquage
+
+follower.waiting=Attendre
+follower.following=Suivre
+follower.hire=Embaucher
+follower.health=Santé
+follower.daysleft=Jours restants
+follower.lastday=Dernier Jour
+follower.day=Jour
+follower.days=Jours
+follower.hireText=Merci de m'embaucher
+follower.farewellText=Ma vie pour votre protection  
+
+transporter.travel=Voyager
+transporter.unlock1=Transport vers
+transporter.unlock2=est débloqué
+
+dialog.dialog=Dialogue
+dialog.dialogs=Dialogues
+dialog.options=Options de Dialogue
+dialog.dialogtext=Texte Dialogue
+dialog.editoption=Editer Option de Dialogue
+dialog.optiontype=type d'Option
+dialog.selectoption=Choisir Option
+dialog.quitoption=Option de sortie
+dialog.option=Option du dialogue
+dialog.roleoption=Option du rôle
+dialogcommandoption=Option des commandes
+
+quest.quest=Quête
+quest.quests=Quêtes
+quest.item=Quête d'Objet
+quest.kill=Quête de Meurtre
+quest.dialog=Quête de Dialogue
+quest.completedtext=Texte d'Achèvement
+quest.questlogtext=Texte de quête
+quest.complete=Terminer
+quest.turnin=Vous pouvez maintenant rendre la quête
+quest.start=Début de la quête
+quest.reward=Récompense
+quest.repeatable=Répétable
+quest.daily=Journalière
+quest.weekly=Hebdomadaire
+quest.instant=Terminer en instantané
+quest.npc=Terminer par Pnj
+
+item.npcWand.name=Baguette de Pnj
+item.npcCloner.name=Cloneur de Pnj
+item.npcSpawner.name=Mob Spawner
+item.npcMovingPath.name=Traceur de Pnj
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Violion
+item.npcViolinBow.name=Archet de Violion
+item.npcHarp.name=Harpe
+item.npcGuitar.name=Guitare
+
+item.npcCoinWooden.name=Pièce en Bois
+item.npcCoinStone.name=Pièce en Pierre
+item.npcCoinBronze.name=Pièce en Bronze
+item.npcCoinIron.name=Pièce en Fer
+item.npcCoinGold.name=Pièce en Or
+item.npcCoinDiamond.name=Pièce en Diamand
+item.npcCoinEmerald.name=Pièce en Emeraude
+
+item.npcWoodenGun.name=Pistolet en Bois
+item.npcStoneGun.name=Pistolet en Pierre
+item.npcIronGun.name=Pistolet en Fer
+item.npcGoldGun.name=Pistolet en Or
+item.npcDiamondGun.name=Pistolet en Diamand
+item.npcBronzeGun.name=Pistolet en 
+item.npcEmeraldGun.name=Pistolet en Emeraude
+item.npcMachineGun.name=Mitrailleuse
+
+item.npcWoodenBullet.name=Balle en Bois
+item.npcStoneBullet.name=Balle en Pierre
+item.npcIronBullet.name=Fer Bullet
+item.npcGoldBullet.name=Balle en Or
+item.npcDiamondBullet.name=Balle en Diamand
+item.npcBronzeBullet.name=Balle en Bronze
+item.npcEmeraldBullet.name=Balle en Emeraude
+item.npcBlackBullet.name=Balle Noire
+
+item.npcWoodenTrident.name=Trident en Bois
+item.npcStoneTrident.name=Trident en Pierre
+item.npcIronTrident.name=Trident en Fer
+item.npcGoldTrident.name=Trident en Or
+item.npcDiamondTrident.name=Trident en Diamand
+item.npcBronzeTrident.name=Trident en Bronze
+item.npcEmeraldTrident.name=Trident en Emeraude
+item.npcCursedTrident.name=Trident Maudit
+
+item.npcNatureSpell.name=Sort de Nature
+item.npcArcaneSpell.name=Sort d'Arcane
+item.npcLightningSpell.name=Sort de Lumière
+item.npcIceSpell.name=Sort de Glace
+item.npcFireSpell.name=Sort de Feu
+item.npcDarkSpell.name=Sort d'Ombre
+item.npcHolySpell.name=Sort de Sacré
+
+item.npcKunai.name=Kunaï
+item.npcReverseKunai.name=Kunaï Inversé
+item.npcShuriken.name=Shuriken
+item.npcGiantShuriken.name=Shuriken Géant
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Club de Golf
+item.npcMagicWand.name=Baguette Magique
+item.npcChickenSword.name=Epée Poulet
+item.npcHandCuffs.name=Menottes
+item.npcHammer.name=Marteau
+item.npcBaseballBat.name=Ba	tte de Baseball
+item.npcLeadPipe.name=Tuyau en Plomb
+item.npcCleaver.name=Couperet
+item.npcSaber.name=Sabre
+item.npcHockeyStick.name=Crosse de Hockey
+item.npcSledgeHammer.name=Marteau de Forgeron
+item.npcBrokenBottle.name=Bouteille Cassée
+item.npcCombatKnive.name=Couteau de Combat
+item.npcLighter.name=Briquet
+item.npcBatton.name=Batte
+item.npcGunChainsaw.name=Taille-Haie
+item.npcRapier.name=Rapière
+item.npcCrowbar.name=Pied de Biche
+item.npcPipeWrench.name=Clé àPipe
+item.npcWrench.name=Clé
+item.npcSwissArmyKnife.name=Couteau Suisse
+
+item.npcWoodenShield.name=Bouclier Rond en Bois
+item.npcStoneShield.name=Bouclier Rond en Pierre
+item.npcIronShield.name=Bouclier Rond en Fer
+item.npcGoldShield.name=Bouclier Rond en Or
+item.npcDiaShield.name=Bouclier Rond en Diamand
+item.npcBronzeShield.name=Bouclier Rond en Bronze
+item.npcEmeraldShield.name=Bouclier Rond en Emeraude
+item.npcFullWoodenShield.name=Bouclier en Bois
+item.npcFullStoneShield.name=Bouclier en Pierre
+item.npcFullIronShield.name=Bouclier en Fer
+item.npcFullGoldShield.name=Bouclier en Or
+item.npcFullDiaShield.name=Bouclier en Diamand
+item.npcFullBronzeShield.name=Bouclier en Bronze
+item.npcFullEmeraldShield.name=Bouclier en Emeraude
+
+item.npcTowerShield.name=Bouclier d'Acier Rempart
+item.npcCryscentShield.name=Bouclier d'Acier Hurlant
+item.npcScutumShield.name=Bouclier d'Acier Scutum
+item.npcHeaterShield.name=Bouclier d'Acier Brûlant
+
+item.npcWoodenSpear.name=Lance en Bois
+item.npcStoneSpear.name=Lance en Pierre
+item.npcIronSpear.name=Lance en Fer
+item.npcGoldSpear.name=Lance en Or
+item.npcDiamondSpear.name=Diamand
+item.npcBronzeSpear.name=Lance en Bronze
+item.npcEmeraldSpear.name=Lance en Emeraude
+
+item.npcWoodenBattleAxe.name=Hache de bataille en Bois
+item.npcStoneBattleAxe.name=Hache de bataille en Pierre
+item.npcIronBattleAxe.name=Hache de bataille en Fer
+item.npcGoldBattleAxe.name=Hache de bataille en Or
+item.npcDiamondBattleAxe.name=Hache de bataille en Diamand
+item.npcBronzeBattleAxe.name=Hache de bataille en Bronze
+item.npcEmeraldBattleAxe.name=Hache de bataille en Emeraude
+
+item.npcWoodenMace.name=Masse en Bois
+item.npcStoneMace.name=Masse en Pierre
+item.npcIronMace.name=Masse en Fer
+item.npcGoldMace.name=Masse en Or
+item.npcDiamondMace.name=Masse en Diamand
+item.npcBronzeMace.name=Masse en Bronze
+item.npcEmeraldMace.name=Masse en Emeraude
+
+item.npcWoodenDagger.name=Dague en Bois
+item.npcStoneDagger.name=Dague en Pierre
+item.npcIronDagger.name=Dague en Fer
+item.npcGoldDagger.name=Dague en Or
+item.npcDiamondDagger.name=Dague en Diamand
+item.npcBronzeDagger.name=Dague en Bronze
+item.npcEmeraldDagger.name=Dague en Emeraude
+item.npcWoodenReversedDagger.name=Dague Inversée en Bois
+item.npcStoneReversedDagger.name=Dague Inversée en Pierre
+item.npcIronReversedDagger.name=Dague Inversée en Fer
+item.npcGoldReversedDagger.name=Dague Inversée en Or
+item.npcDiamondReversedDagger.name=Dague Inversée en Diamand
+item.npcBronzeReversedDagger.name=Dague Inversée en Bronze
+item.npcEmeraldReversedDagger.name=Dague Inversée en Emeraude
+
+item.npcWoodenStaff.name=Crosse en Bois
+item.npcStoneStaff.name=Crosse en Pierre
+item.npcIronStaff.name=Crosse en Fer
+item.npcGoldStaff.name=Crosse en Or
+item.npcDiamondStaff.name=Crosse en Diamand
+item.npcBronzeStaff.name=Crosse en Bronze
+item.npcEmeraldStaff.name=Crosse en Emeraude
+item.npcElementalStaff.name=Crosse Elémentaire
+
+item.npcWoodenScythe.name=Faux en Bois
+item.npcStoneScythe.name=Faux en Pierre
+item.npcIronScythe.name=Faux en Fer
+item.npcGoldScythe.name=Faux en Or
+item.npcBronzeScythe.name=Faux en Bronze
+item.npcDiamondScythe.name=Faux en Diamand
+item.npcEmeraldScythe.name=Faux en Emeraude
+
+item.npcWoodenGlaive.name=Glaive en Bois
+item.npcStoneGlaive.name=Glaive en Pierre
+item.npcIronGlaive.name=Glaive en Fer
+item.npcGoldGlaive.name=Glaive en Or
+item.npcDiamondGlaive.name=Glaive en Diamand
+item.npcBronzeGlaive.name=Glaive en Bronze
+item.npcEmeraldGlaive.name=Glaive en Emeraude
+
+item.npcCowleatherHead.name=Casque en Cuir de Vache
+item.npcCowleatherChest.name=Torse en Cuir de Vache
+item.npcCowleatherLegs.name=Jambières en Cuir de Vache
+item.npcCowleatherBottes.name=Bottes en Cuir de Vache
+
+item.npcNanorumHead.name=Casque Nanorum
+item.npcNanorumChest.name=Torse Nanorum
+item.npcNanorumLegs.name=Jambières Nanorum
+item.npcNanorumBottes.name=Bottes Nanorum
+
+item.npcTacticalHead.name=Casque Tactique
+item.npcTacticalChest.name=Veste Tactique
+
+item.npcFullLeatherHead.name=Casque en Cuir Lourd
+item.npcFullLeatherChest.name=Torse en Cuir Lourd
+
+item.npcFullIronHead.name=Casque en Fer Lourd
+item.npcFullIronChest.name=Torse en Fer Lourd
+
+item.npcFullGoldHead.name=Casque en Or Lourd
+item.npcFullGoldChest.name=Torse en Or Lourd
+
+item.npcFullDiamondHead.name=Casque en Diamand Lourd
+item.npcFullDiamondChest.name=Torse en Diamand Lourd
+
+item.npcFullBronzeHead.name=Casque en Bronze Lourd
+item.npcFullBronzeChest.name=Torse en Bronze Lourd
+item.npcFullBronzeJambières.name=Jambières en Bronze Lourd
+item.npcFullBronzeBottes.name=Bottes en Bronze Lourd
+
+item.npcFullWoodenHead.name=Casque en Bois Lourd
+item.npcFullWoodenChest.name=Torse en Bois Lourd
+item.npcFullWoodenJambières.name=Jambières en Bois Lourd
+item.npcFullWoodenBottes.name=Bottes en Bois Lourd
+
+item.npcTuxedoChest.name=Veste Tuxedo
+item.npcTuxedoPants.name=Pantalon Tuxedo
+item.npcTuxedoBottom.name=Rangers Tuxedo
+
+item.npcWizardHead.name=Chapeau de Sorcier
+item.npcWizardChest.name=Robe de Sorcier
+item.npcWizardPants.name=Jambières de Sorcier
+
+item.npcAssassinHead.name=Casque d'Assassin
+item.npcAssassinChest.name=Torse d'Assassin
+item.npcAssassinJambières.name=Jambières d'Assassin
+item.npcAssassinBottes.name=Bottes d'Assassin
+
+item.npcSoldierHead.name=Casque de Soldat
+item.npcSoldierChest.name=Torse de Soldat
+item.npcSoldierLegs.name=Jambières de Soldat
+item.npcSoldierBottom.name=Rangers de Soldat
+
+item.npcX407Head.name=X407 Casque Prototype X407 
+item.npcX407Chest.name=Torse Prototype X407
+item.npcX407Legs.name=Jambières Prototype X407
+item.npcX407Bottes.name=Bottes Prototype X407
+
+item.npcCommissarHead.name=Casque de Comissaire
+item.npcCommissarChest.name=Torse de Comissaire
+item.npcCommissarLegs.name=Jambières de Comissaire
+item.npcCommissarBottom.name=Rangers de Comissaire
+
+item.npcInfantryCasque.name=Casque d'Infantrie
+item.npcOfficerCasque.name=Torse d'Officier
+
+item.npcCrown.name=Couronne
+item.npcCrown2.name=Couronne
+
+item.npcNinjaHead.name=Head de Ninja
+item.npcNinjaChest.name=Torse de Ninja
+item.npcNinjaPants.name=Jambières de Ninja
+
+item.npcFullEmeraldHead.name=Emeraude Lourd Casque en Emeraude Lourd
+item.npcFullEmeraldChest.name=Torse en Emeraude Lourd
+item.npcFullEmeraldJambières.name=Jambières en Emeraude Lourdes
+item.npcFullEmeraldBottes.name=Bottes en Emeraude Lourdes
+
+item.npcOrb.name=Orbe
+item.npcBrokenOrb.name=Orbe Cassé
+item.npcMana.name=Mana
+
+item.npcNinjaClaw.name=Griffe de Ninja
+item.npcSteelClaw.name=Griffe d'Acier
+item.npcBearClaw.name=Griffe de Souffrance
+item.npcKatar.name=Katar
+
+item.npcLetter.name=Lettre
+item.npcPlans.name=Plans
+item.npcSatchel.name=Saccoche
+item.npcBag.name=Sac
+item.npcCrystal.name=Cristal
+item.npcSeveredEar.name=Oreille Coupée
+item.npcPhone.name=Téléphone
+item.npcBanditMask.name=Masque Bandit
+item.npcBrokenArrow.name=Flèche Cassée
+item.npcEarthElement.name=Elément de Terre
+item.npcWaterElement.name=Elément d'Eau
+item.npcFireElement.name=Elément de Feu
+item.npcAirElement.name=Elément d'Air
+item.npcCarKey.name=Clé de Voiture
+item.npcKey.name=Clé
+item.npcKey2.name=Clé
+item.npcPendant.name=Pendantif
+item.npcBlueprint.name=Plan
+item.npcRing.name=Anneau
+
+item.npcSkull.name=Crâne
+item.npcBronzeIngot.name=Lingot de Bronze
+item.npcSaphire.name=Saphire
+item.npcAmethyst.name=Améthyste
+item.npcRuby.name=Rubis
+
+item.npcMacuahuitl.name=Macuahuitl
+item.npcBoStaff.name=Bo Staff
+item.npcSaiBlade.name=Lame Sai
+item.npcCrossbow.name=Arbalète
+item.npcCrossBolt.name=Carreau d'Arbalète
+item.npcSlingshot.name=Lance-Pièrre
+item.npcMusket.name=Mousquet
+item.npcExcalibur.name=Excalibur

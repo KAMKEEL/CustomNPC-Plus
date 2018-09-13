@@ -1,0 +1,498 @@
+itemGroup.cnpcs=CustomNpcs Ferramentas
+itemGroup.cnpcsw=CustomNpcs Armas
+itemGroup.cnpcsa=CustomNpcs Armaduras
+itemGroup.cnpcsm=CustomNpcs Diversos
+
+tile.npcRedstoneBlock.name=Bloco de Redstone
+tile.npcCarpentyBench.name=Mesa de Carpintaria 
+tile.npcBloodBlock.name=Bloco de Sangue
+
+gui.deleteConfirm=Tem certeza que quer deletar este npc?
+gui.add=Adicionar
+gui.remove=Remover
+gui.edit=Editar
+gui.name=Nome
+gui.color=Cor
+gui.none=Nenhum
+gui.time=Tempo
+gui.title=Título
+gui.categories=Categorias
+gui.close=Fechar
+gui.disabled=Desativado
+gui.increase=Aumentar
+gui.decrease=Diminuir
+gui.day=Dia
+gui.night=Noite
+gui.constant=Constante
+gui.accelerate=Acelerar
+gui.small=Pequeno
+gui.medium=Médio
+gui.large=Grqande
+gui.type=Tipo
+gui.always=Sempre
+gui.untilclose=AtéFechar
+gui.ignoreDamage=Ignorar dano
+
+display.model=Modelo
+display.show=Mostrar
+display.hide=Esconder
+display.showAttacking=Mostrar quando atacar
+display.size=                          Tamanho
+display.texture=Textura
+display.textureCape=Textura Capa
+display.player=Jogador
+display.selectTexture=Escolher Textura
+display.livingAnimation=Tem animação de vida
+display.tint=Cor da tinta
+
+inv.minExp=Exp Min
+inv.maxExp=Exp Max
+inv.npcInventory=Inventário NPC
+inv.inventory=Inventário
+inv.dropChance=Chance de Cair
+
+availability.options=Opções de Disponibilidade
+availability.always=Sempre
+availability.after=Depois
+availability.before=Antes
+availability.available=Disponível
+availability.whenactive=Enquando Ativo
+availability.whennotactive=Enquanto Não Ativa
+availability.selectquest=Selecionar Missão
+availability.selectdialog=Selecionar Diálogo
+availability.selectfaction=Selecionar Facção
+availability.daytime=De Dia
+availability.wholeday=Dia Inteiro
+availability.night=Durante a Noite
+availability.day=Durante o Dia
+availability.is=É
+availability.isnot=Não é
+
+stats.health=Saúde
+stats.aggro=Distância de Ira
+stats.meleeproperties=Propriedades Perto
+stats.rangedproperties=Propriedades Longe
+stats.projectileproperties=Tipo De Projétil
+stats.meleestrength=Força de Perto
+stats.meleerange=Alcance Perto
+stats.meleespeed=Veloc. de Perto
+stats.accuracy=Precisão(%)
+stats.rangedrange=Alcance Longe
+stats.burstspeed=Veloc. Rajada
+stats.firedelay=Atraso de Fogo
+stats.delayvariance=VariaçãoAtraso
+stats.burstcount=Quant. Rajada
+stats.walkspeed=Veloc. do Andar
+stats.chargespeed=Veloc.Correndo
+stats.meleeeffect=Efeito(s)
+stats.respawn=Renascer
+stats.deadbody=Esconder Corpo Morto
+stats.fireimmune=Imune à Fogo
+stats.candrown=Pode Afogar
+stats.firesound:=SomFX
+stats.creaturetype=Tipo de Criatura
+stats.normal=Normal
+stats.undead=Morto-Vivo
+stats.arthropod=Artrópode
+stats.nofalldamage=SemDanoQueda
+stats.meleeproperties=Opções de Perto
+stats.rangedproperties=Opções de Longe
+stats.burninsun=Queima no Sol
+stats.amplify=Amplificado
+
+stats.size=Tamanho
+stats.speed=Velocidade
+stats.glows=Brilha
+stats.hasgravity=Gravidade
+stats.explosive=Explode
+stats.rangedeffect=Efeito
+stats.trail=TipoTrajeto
+stats.spin=Girar
+stats.stick=Vara
+stats.regular=Sem Amp
+stats.amplified=Amp
+
+ai.standing=Em Pé
+ai.wandering=Ambulante
+ai.movingpath=Seguindo Trajeto
+ai.looping=Andando em Círculos
+ai.backtracking=Voltando
+
+ai.enemyresponse:=Ao ver Inimigo
+ai.door:=ReaçãoPortas
+ai.avoidwater:=Evita Água
+ai.return:=Volta ao Começo
+ai.swim:=Pode Nadar
+ai.shelter:=ProcurarAbrigo
+ai.leapattarget:=Pular no Alvo
+ai.clearlos:=Deve ver Alvo
+ai.indirect:=PodeDispararIndireto
+ai.rangemelee:=Usa ataque de Longe
+
+faction.hostiles=Facções Hostis
+faction.unfriendly=Inamigável
+faction.neutral=Neutra
+faction.friendly=Amigável
+faction.points=Pontos
+faction.ondeath=Na morte
+faction.hidden=Escondida
+faction.default=Padrão
+faction.attackHostile=Ataca facções hostis
+faction.defend=Defende membros da facção
+faction.nostanding=Você não está em nenhuma facção
+faction.options=Opções de Facções
+faction.increasepoints=Facção %s melhorada em %s pontos
+faction.decreasepoints=Facção %s piorada em %s pontos
+
+menu.inventory=Inventário
+menu.quests=Missões
+menu.display=Exibição
+menu.stats=Estát.
+menu.factions=Facções
+menu.ai=Inteligência
+menu.advanced=Avançado
+menu.global=Global
+menu.delete=Deletar
+menu.role=Função
+
+global.banks=Bancos
+global.factions=Facções
+global.dialogs=Diálogos
+global.quests=Missões
+global.transport=Transporte
+global.playerdata=Dados do Jogador
+global.recipes=Receita
+
+bank.slot=Abertura
+bank.unlock=Destravar
+bank.upgrade=Melhorar
+bank.upgradeCosts=Custo da Melhoria
+bank.unlockCosts=Custo do Desbloq.
+
+follower.waiting=Esperando
+follower.following=Seguindo
+follower.hire=Contratar
+follower.health=Saúde
+follower.daysleft=Dias restantes
+follower.lastday=Último dia
+follower.day=Dia
+follower.days=Dias
+follower.hireText=Obrigado por me contratar por
+follower.farewellText=Meus dias com você acabaram. Adeus.
+
+transporter.travel=Viagem
+transporter.unlock1=Transporte para
+transporter.unlock2=está desbloqueado agora
+
+dialog.dialog=Diálogo
+dialog.dialogs=Diálogos
+dialog.options=Opções de Diálogo
+dialog.dialogtext=Texto de Diálogo
+dialog.editoption=Editar Opção de Diálogo
+dialog.optiontype=Tipo de Opção
+
+quest.quest=Missão
+quest.quests=Missões
+quest.item=Missão de Item
+quest.kill=Missão de Matar
+quest.dialog=Missão de Diálogo
+quest.completedtext=Texto Completo
+quest.questlogtext=Diário de Missão
+quest.complete=Completa
+quest.turnin=Você agora pode entregar a missão
+quest.start=Nova missão iniciada
+quest.reward=Recompensa
+quest.repeatable=Repetível
+quest.daily=Diária
+quest.weekly=Semanal
+quest.instant=Completa Imediata
+quest.npc=Complete pelo NPC
+
+item.npcWand.name=Varinha Npc
+item.npcCloner.name=Clonador Npc
+item.npcSpawner.name=Gerador de Monstros
+item.npcMovingPath.name=Guardador Npc
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Violino
+item.npcViolinBow.name=Arco de Violino
+item.npcHarp.name=Harpa
+item.npcGuitar.name=Violão
+
+item.npcCoinWooden.name=Moeda de Madeira
+item.npcCoinStone.name=Moeda de Pedra
+item.npcCoinBronze.name=Moeda de Bronze
+item.npcCoinIron.name=Moeda de Ferro
+item.npcCoinGold.name=Moeda de Ouro
+item.npcCoinDiamond.name=Moeda de Diamante
+item.npcCoinEmerald.name=Moeda de Esmeralda
+
+item.npcWoodenGun.name=Arma de Madeira
+item.npcStoneGun.name=Arma de Pedra
+item.npcIronGun.name=Arma de Ferro
+item.npcGoldGun.name=Arma de Ouro
+item.npcDiamondGun.name=Arma de Diamante
+item.npcBronzeGun.name=Arma de Bronze
+item.npcEmeraldGun.name=Arma de Esmeralda
+item.npcMachineGun.name=Metraladora
+
+item.npcWoodenBullet.name=Bala de Madeira
+item.npcStoneBullet.name=Bala de Pedra
+item.npcIronBullet.name=Bala de Ferro
+item.npcGoldenBullet.name=Bala de Ouro
+item.npcDiamondBullet.name=Bala de Diamante
+item.npcBronzeBullet.name=Bala de Bronze
+item.npcEmeraldBullet.name=Bala de Esmeralda
+item.npcBlackBullet.name=Bala Negra
+
+item.npcWoodenTrident.name=Tridente de Madeira
+item.npcStoneTrident.name=Tridente de Pedra
+item.npcIronTrident.name=Tridente de Ferro
+item.npcGoldTrident.name=Tridente de Ouro
+item.npcDiamondTrident.name=Tridente de Diamante
+item.npcBronzeTrident.name=Tridente de Bronze
+item.npcEmeraldTrident.name=Tridente de Esmeralda
+item.npcCursedTrident.name=Tridente Amaldiçoado
+
+item.npcNatureSpell.name=Magia da Natureza
+item.npcArcaneSpell.name=Magia Misteriosa
+item.npcLightningSpell.name=Magia do Raio
+item.npcIceSpell.name=Magia de Gelo
+item.npcFireSpell.name=Magia de Fogo
+item.npcDarkSpell.name=Magia Negra
+item.npcHolySpell.name=Magia Sagrada
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Kunai Revertida
+item.npcShuriken.name=Shuriken
+item.npcGiantShuriken.name=Shuriken Gigante
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Taco de Golfe
+item.npcMagicWand.name=Varinha Mágica
+item.npcChickenSword.name=Espada de Galinha
+item.npcHandCuffs.name=Algemas
+item.npcHammer.name=Martelo
+item.npcBaseballBat.name=Taco de Basebol
+item.npcLeadPipe.name=Cano
+item.npcCleaver.name=Cutelo
+item.npcSaber.name=Sabre
+item.npcHockeyStick.name=Taco de Hóquei
+item.npcSledgeHammer.name=Marreta
+item.npcBrokenBottle.name=Garrafa Quebrada
+item.npcCombatKnive.name=Faca de Combate
+item.npcLighter.name=Binga
+item.npcBatton.name=Bastão
+item.npcGunChainsaw.name=Arma-Motoserra
+item.npcRapier.name=Espadim
+item.npcCrowbar.name=Pé-de-Cabra
+item.npcPipeWrench.name=Chave de Tubos
+item.npcWrench.name=Chave Inglesa
+item.npcSwissArmyKnife.name=Canivete Suíço
+
+item.npcWoodenShield.name=Escudo Redondo de Madeira
+item.npcStoneShield.name=Escudo Redondo de Pedra
+item.npcIronShield.name=Escudo Redondo de Ferro
+item.npcGoldenShield.name=Escudo Redondo de Ouro
+item.npcDiaShield.name=Escudo Redondo de Diamante
+item.npcBronzeShield.name=Escudo Redondo de Bronze
+item.npcEmeraldShield.name=Escudo Redondo de Esmeralda
+item.npcFullWoodenShield.name=Escudo de Madeira
+item.npcFullStoneShield.name=Escudo de Pedra
+item.npcFullIronShield.name=Escudo de Ferro
+item.npcFullGoldenShield.name=Escudo de Ouro
+item.npcFullDiaShield.name=Escudo de Diamante
+item.npcFullBronzeShield.name=Escudo de Bronze
+item.npcFullEmeraldShield.name=Escudo de Esmeralda
+
+item.npcTowerShield.name=Escudo de Defesa de Aço
+item.npcCryscentShield.name=Grande Escudo de Aço
+item.npcScutumShield.name=Escudete de Aço
+item.npcHeaterShield.name=Escudo de Aço Aquecedor
+
+item.npcWoodenSpear.name=Wooden Spear
+item.npcStoneSpear.name=Stone Spear
+item.npcIronSpear.name=Iron Spear
+item.npcGoldenSpear.name=Golden Spear
+item.npcDiamondSpear.name=Diamond Spear
+item.npcBronzeSpear.name=Bronze Spear
+item.npcEmeraldSpear.name=Emerald Spear
+
+item.npcWoodenBattleAxe.name=Machado de Batalha de Madeira
+item.npcStoneBattleAxe.name=Machado de Batalha de Pedra
+item.npcIronBattleAxe.name=Machado de Batalha de Ferro
+item.npcGoldenBattleAxe.name=Machado de Batalha de Ouro
+item.npcDiamondBattleAxe.name=Machado de Batalha de Diamante
+item.npcBronzeBattleAxe.name=Machado de Batalha de Bronze
+item.npcEmeraldBattleAxe.name=Machado de Batalha de Esmeralda
+
+item.npcWoodenMace.name=Clava de Madeira
+item.npcStoneMace.name=Clava de Pedra
+item.npcIronMace.name=Clava de Ferro
+item.npcGoldenMace.name=Clava de Ouro
+item.npcDiamondMace.name=Clava de Diamante
+item.npcBronzeMace.name=Clava de Bronze
+item.npcEmeraldMace.name=Clava de Esmeralda
+
+item.npcWoodenDagger.name=Adaga de Madeira
+item.npcStoneDagger.name=Adaga de Pedra
+item.npcIronDagger.name=Adaga de Ferro
+item.npcGoldenDagger.name=Adaga de Ouro
+item.npcDiamondDagger.name=Adaga de Diamante
+item.npcBronzeDagger.name=Adaga de Bronze
+item.npcEmeraldDagger.name=Adaga de Esmeralda
+item.npcWoodenReversedDagger.name=Adaga de Madeira Revertida
+item.npcStoneReversedDagger.name=Adaga de Pedra Revertida
+item.npcIronReversedDagger.name=Adaga de Ferro Revertida
+item.npcGoldenReversedDagger.name=Adaga de Ouro Revertida
+item.npcDiamondReversedDagger.name=Adaga de Diamante Revertida
+item.npcBronzeReversedDagger.name=Adaga de Bronze Revertida
+item.npcEmeraldReversedDagger.name=Adaga de Esmeralda Revertida
+
+item.npcWoodenStaff.name=Báculo de Madeira
+item.npcStoneStaff.name=Báculo de Pedra
+item.npcIronStaff.name=Báculo de Ferro
+item.npcGoldenStaff.name=Báculo de Ouro
+item.npcDiamondStaff.name=Báculo de Diamante
+item.npcBronzeStaff.name=Báculo de Bronze
+item.npcEmeraldStaff.name=Báculo de Esmeralda
+item.npcElementalStaff.name=Báculo Elementar
+
+item.npcWoodenScythe.name=Foice de Madeira
+item.npcStoneScythe.name=Foice de Pedra
+item.npcIronScythe.name=Foice de Ferro
+item.npcGoldenScythe.name=Foice de Ouro
+item.npcBronzeScythe.name=Foice de Bronze
+item.npcDiamondScythe.name=Foice de Diamante
+item.npcEmeraldScythe.name=Foice de Esmeralda
+
+item.npcWoodenGlaive.name=Arco Plano de Madeira
+item.npcStoneGlaive.name=Arco Plano de Pedra
+item.npcIronGlaive.name=Arco Plano de Ferro
+item.npcGoldenGlaive.name=Arco Plano de Ouro
+item.npcDiamondGlaive.name=Arco Plano de Diamante
+item.npcBronzeGlaive.name=Arco Plano de Bronze
+item.npcEmeraldGlaive.name=Arco Plano de Esmeralda
+
+item.npcCowleatherHead.name=Elmo de Couro de Vaca
+item.npcCowleatherChest.name=Peitoral de Couro de Vaca
+item.npcCowleatherLegs.name=Calça de Couro de Vaca
+item.npcCowleatherBoots.name=Botas de Couro de Vaca
+
+item.npcNanorumHead.name=Elmo Nanorum
+item.npcNanorumChest.name=Peitoral Nanorum
+item.npcNanorumLegs.name=Calças Nanorum
+item.npcNanorumBoots.name=Botas Nanorum
+
+item.npcTacticalHead.name=Capacete Tático
+item.npcTacticalChest.name=Colete Tático
+
+item.npcFullLeatherHead.name=Elmo Completo de Couro
+item.npcFullLeatherChest.name=Peitoral Completo de Couro
+
+item.npcFullIronHead.name=Elmo Completo de Ferro
+item.npcFullIronChest.name=Peitoral Completo de Ferro
+
+item.npcFullGoldHead.name=Elmo Completo de Ouro
+item.npcFullGoldChest.name=Peitoral Completo de Ouro
+
+item.npcFullDiamondHead.name=Elmo Completo de Diamante
+item.npcFullDiamondChest.name=Peitoral Completo de Diamante
+
+item.npcFullBronzeHead.name=Elmo Completo de Bronze
+item.npcFullBronzeChest.name=Peitoral Completo de Bronze
+item.npcFullBronzeLeggings.name=Calças Reforçadas de Bronze
+item.npcFullBronzeBoots.name=Botas Reforçadas de Bronze
+
+item.npcFullWoodenHead.name=Elmo Completo de Madeira
+item.npcFullWoodenChest.name=Peitoral Completo de Madeira
+item.npcFullWoodenLeggings.name=Calças Reforçadas de Madeira
+item.npcFullWoodenBoots.name=Botas Reforçadas de Madeira
+
+item.npcTuxedoChest.name=Roupa de Smoking
+item.npcTuxedoPants.name=Calças de Smoking
+item.npcTuxedoBottom.name=Revestimento de Smoking
+
+item.npcWizardHead.name=Capuz de Bruxo
+item.npcWizardChest.name=Roupa de Bruxo
+item.npcWizardPants.name=Calça de Bruxo
+
+item.npcAssassinHead.name=Capuz de Assassino
+item.npcAssassinChest.name=Roupas de Assassino
+item.npcAssassinLeggings.name=Calças de Assassino
+item.npcAssassinBoots.name=Botas de Assassino
+
+item.npcSoldierHead.name=Capacete de Soldado
+item.npcSoldierChest.name=Peitoral de Soldado
+item.npcSoldierLegs.name=Calça de Soldado
+item.npcSoldierBottom.name=Revestimento de Soldado
+
+item.npcX407Head.name=Capacete do Protótipo X407
+item.npcX407Chest.name=Peitoral do Protótipo X407
+item.npcX407Legs.name=Calças do Protótipo X407
+item.npcX407Boots.name=Botas do Protótipo X407
+
+item.npcCommissarHead.name=Boina de Comissário
+item.npcCommissarChest.name=Terno de Comissário
+item.npcCommissarLegs.name=Calças de Comissário
+item.npcCommissarBottom.name=Rvestimento de Comissário
+
+item.npcInfantryHelmet.name=Capacete de Infantaria
+item.npcOfficerChest.name=Colete de Oficial
+
+item.npcCrown.name=Coroa
+item.npcCrown2.name=Coroa
+
+item.npcNinjaHead.name=Máscara de Ninja
+item.npcNinjaChest.name=Roupas de Ninja
+item.npcNinjaPants.name=Calças de Ninja
+
+item.npcFullEmeraldHead.name=Elmo Completo de Esmeralda
+item.npcFullEmeraldChest.name=Peitoral Completo de Esmeralda
+Commissar Trenchcoatitem.npcFullEmeraldLeggings.name=Calças Reforçadas de Esmeralda
+item.npcFullEmeraldBoots.name=Botas Reforçadas de Esmeralda
+
+item.npcOrb.name=Esfera
+item.npcBrokenOrb.name=Esfera Quebrada
+item.npcMana.name=Mana
+
+item.npcNinjaClaw.name=Garra Ninja
+item.npcSteelClaw.name=Garra de Aço
+item.npcBearClaw.name=Garra de Urso
+item.npcKatar.name=Katar
+
+item.npcLetter.name=Carta
+item.npcPlans.name=Planos
+item.npcSatchel.name=Sacola
+item.npcBag.name=Mochila
+item.npcCrystal.name=Cristal
+item.npcSeveredEar.name=Orelha Decepada
+item.npcPhone.name=Celular
+item.npcBanditMask.name=Máscara de Bandido
+item.npcBrokenArrow.name=Flecha Quebrada
+item.npcEarthElement.name=Elemento de Terra
+item.npcWaterElement.name=Elemento de Água
+item.npcFireElement.name=Elemento de Fogo
+item.npcAirElement.name=Elemento de Ar
+item.npcCarKey.name=Chave do Carro
+item.npcKey.name=Chave
+item.npcKey2.name=Chave
+item.npcPendant.name=Pingente
+item.npcBlueprint.name=Diagrama
+item.npcRing.name=Anel
+
+item.npcSkull.name=Caveira
+item.npcBronzeIngot.name=Barra de Bronze
+item.npcSaphire.name=Safira
+item.npcAmethyst.name=Ametista
+item.npcRuby.name=Rubi
+
+item.npcMacuahuitl.name=Macuahuitl
+item.npcBoStaff.name=Bastão Bo
+item.npcSaiBlade.name=Lâmina Sai
+item.npcCrossbow.name=Besta
+item.npcCrossBolt.name=Flecha de Besta
+item.npcSlingshot.name=Estilingue
+item.npcMusket.name=Mosquete
+item.npcExcalibur.name=Excalibur

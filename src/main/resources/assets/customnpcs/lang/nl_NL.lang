@@ -1,0 +1,233 @@
+﻿tile.npcRedstoneBlock.name=Blok uit Rode Stenen
+tile.npcAnvilBlock.name=Aambeeld
+
+item.npcWand.name=Npc Toverstaf
+item.npcCloner.name=Npc Kloner
+item.npcSpawner.name=Mob Spawner
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Viool
+item.npcViolinBow.name=Strijkstok
+item.npcHarp.name=Harp
+item.npcGuitar.name=Gitaar
+
+item.npcCoinWooden.name=Houten Munt
+item.npcCoinStone.name=Stenen Munt
+item.npcCoinBronze.name=Bronzen Munt
+item.npcCoinIron.name=Ijzeren Munt
+item.npcCoinGold.name=Gouden Munt
+item.npcCoinDiamond.name=Diamanten Munt
+item.npcCoinEmerald.name=Smaragden Munt
+
+item.npcWoodenGun.name=Houten Geweer
+item.npcStoneGun.name=Stenen Geweer
+item.npcIronGun.name=Ijzeren Geweer
+item.npcGoldGun.name=Gouden Geweer
+item.npcDiamondGun.name=Diamanten Geweer
+item.npcBronzeGun.name=Bronzen Geweer
+item.npcEmeraldGun.name=Smaragden Geweer
+item.npcMachineGun.name=Machine Geweer
+
+item.npcWoodenBullet.name=Houten Kogel
+item.npcStoneBullet.name=Stenen Kogel
+item.npcIronBullet.name=Ijzeren Kogel
+item.npcGoldenBullet.name=Gouden Kogel
+item.npcDiamondBullet.name=Diamanten Kogel
+item.npcBronzeBullet.name=Bronzen Kogel
+item.npcEmeraldBullet.name=Smaragden Kogel
+item.npcBlackBullet.name=Zwarte Kogel
+
+item.npcWoodenTrident.name=Houten Drietand
+item.npcStoneTrident.name=Stenen Drietand
+item.npcIronTrident.name=Ijzeren Drietand
+item.npcGoldTrident.name=Gouden Drietand
+item.npcDiamondTrident.name=Diamanten Drietand
+item.npcBronzeTrident.name=Bronzen Drietand
+item.npcEmeraldTrident.name=Smaragden Drietand
+item.npcCursedTrident.name=Vervloekte Drietand
+
+item.npcNatureSpell.name=Natuur Toverspreuk
+item.npcArcaneSpell.name=Magische Toverspreuk
+item.npcLightningSpell.name=Bliksem Toverspreuk
+item.npcIceSpell.name=Ijs Toverspreuk
+item.npcFireSpell.name=Vuur Toverspreuk
+item.npcDarkSpell.name=Donkere Toverspreuk
+item.npcHolySpell.name=Heilige Toverspreuk
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Omgekeerde Kunai
+item.npcShuriken.name=Shuriken
+item.npcGiantShuriken.name=Grote Shuriken
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Golfstok
+item.npcMagicWand.name=Magische Toverstaf
+item.npcChickenSword.name=Zwaard der Kippen
+item.npcHandCuffs.name=Handboeien
+item.npcHammer.name=Hamer
+item.npcBaseballBat.name=Honkballknuppel
+item.npcLeadPipe.name=Loden Pijp
+item.npcCleaver.name=Slagers Mes
+item.npcSaber.name=Sabel
+item.npcHockeyStick.name=Hockeystick
+item.npcSledgeHammer.name=Slaghamer
+item.npcBrokenBottle.name=Gebroken Fles
+item.npcCombatKnive.name=Vechtersmes
+item.npcLighter.name=Aansteker
+item.npcBatton.name=Speld
+item.npcGunChainsaw.name=Kettingzaag Geweer
+item.npcRapier.name=Dolk
+item.npcCrowbar.name=Koevoet
+item.npcWrench.name=Moersleutel
+item.npcSwissArmyKnife.name=Zwitsers zakmes
+
+item.npcWoodenShield.name=Rond Houten Schild
+item.npcStoneShield.name=Rond Stenen Schild
+item.npcIronShield.name=Rond Ijzeren Schild
+item.npcGoldenShield.name=Rond Gouden Schild
+item.npcDiaShield.name=Rond Diamanten Schild
+item.npcBronzeShield.name=Rond Bronzen Schild
+item.npcFullWoodenShield.name=Houten Schild
+item.npcFullStoneShield.name=Stenen Schild
+item.npcFullIronShield.name=Ijzeren Schild
+item.npcFullGoldenShield.name=Gouden Schild
+item.npcFullDiaShield.name=Diamanten Schild
+item.npcFullBronzeShield.name=Bronzen Schild
+item.npcTowerShield.name=Ijzeren Toren Schild
+item.npcCryscentShield.name=Staal Cryscent Schild
+item.npcScutumShield.name=Staal Scutum Schild
+item.npcHeaterShield.name=Staal Heater Schild
+
+item.npcWoodenSpear.name=Houten Speer
+item.npcStoneSpear.name=Stenen Speer
+item.npcIronSpear.name=Ijzeren Speer
+item.npcGoldenSpear.name=Gouden Speer
+item.npcDiamondSpear.name=Diamanten Speer
+item.npcBronzeSpear.name=Bronzen Speer
+item.npcEmeraldSpear.name=Smaragden Speer
+
+item.npcWoodenBattleAxe.name=Houten Gevechtsbijl
+item.npcStoneBattleAxe.name=Stenen Gevechtsbijl
+item.npcIronBattleAxe.name=Ijzeren Gevechtsbijl
+item.npcGoldenBattleAxe.name=Gouden Gevechtsbijl
+item.npcDiamondBattleAxe.name=Diamanten Gevechtsbijl
+item.npcBronzeBattleAxe.name=Bronzen Gevechtsbijl
+item.npcEmeraldBattleAxe.name=Smaragden Gevechtsbijl
+
+item.npcWoodenMace.name=Houten Knots
+item.npcStoneMace.name=Stenen Knots
+item.npcIronMace.name=Ijzeren Knots
+item.npcGoldenMace.name=Gouden Knots
+item.npcDiamondMace.name=Diamanten Knots
+item.npcBronzeMace.name=Bronzen Knots
+item.npcEmeraldMace.name=Smaragden Knots
+
+item.npcWoodenDagger.name=Houten Dolk
+item.npcStoneDagger.name=Stenen Dolk
+item.npcIronDagger.name=Ijzeren Dolk
+item.npcGoldenDagger.name=Gouden Dolk
+item.npcDiamondDagger.name=Diamanten Dolk
+item.npcBronzeDagger.name=Bronzen Dolk
+item.npcEmeraldDagger.name=Smaragden Dolk
+item.npcWoodenReversedDagger.name=Omgekeerde Houten Dolk
+item.npcStoneReversedDagger.name=Omgekeerde Stenen Dolk
+item.npcIronReversedDagger.name=Omgekeerde Ijzeren Dolk
+item.npcGoldenReversedDagger.name=Omgekeerde Gouden Dolk
+item.npcDiamondReversedDagger.name=Omgekeerde Diamanten Dolk
+item.npcBronzeReversedDagger.name=Omgekeerde Bronzen Dolk
+item.npcEmeraldReversedDagger.name=Omgekeerde Smaragden Dolk
+
+item.npcWoodenStaff.name=Houten Staf
+item.npcIronStaff.name=Ijzeren Staf
+item.npcGoldenStaff.name=Gouden Staf
+item.npcDiamondStaff.name=Diamanten Staf
+item.npcElementalStaff.name=Staf der Elementen
+
+item.npcWoodenScythe.name=Houten Zeis
+item.npcStoneScythe.name=Stenen Zeis
+item.npcIronScythe.name=Ijzeren Zeis
+item.npcGoldenScythe.name=Gouden Zeis
+item.npcDiamondScythe.name=Diamanten Zeis
+item.npcEmeraldScythe.name=Smaragden Zeis
+
+item.npcWoodenGlaive.name=Houten Lans
+item.npcStoneGlaive.name=Stenen Lans
+item.npcIronGlaive.name=Ijzeren Lans
+item.npcGoldenGlaive.name=Gouden Lans
+item.npcDiamondGlaive.name=Diamanten Lans
+item.npcBronzeGlaive.name=Bronzen Lans
+item.npcEmeraldGlaive.name=Smaragden Lans
+
+item.npcCowleatherHead.name=Koeienlere Helm
+item.npcCowleatherChest.name=Koeienlere Borstbescherming
+item.npcCowleatherLegs.name=Koeienlere Broek
+item.npcCowleatherBoots.name=Koeienlere Schoenen
+
+item.npcNanorumHead.name=Nanorum Helm
+item.npcNanorumChest.name=Nanorum Borstbescherming
+item.npcNanorumLegs.name=Nanorum Broek
+item.npcNanorumBoots.name=Nanorum Schoenen
+
+item.npcTacticalHead.name=Tactische Helm
+item.npcTacticalChest.name=Tactische Vest
+
+item.npcFullIronHead.name=Volledig Leren Helm
+item.npcFullIronChest.name=Volledig Leren Borstbescherming
+
+item.npcFullIronHead.name=Volledig Ijzeren Helm
+item.npcFullIronChest.name=Volledig Ijzeren Borstbescherming
+
+item.npcFullGoldHead.name=Volledig Gouden Helm
+item.npcFullGoldChest.name=Volledig Gouden Borstbescherming
+
+item.npcFullDiamondHead.name=Volledig Diamanten Helm
+item.npcFullDiamondChest.name=Volledig Diamanten Borstbescherming
+
+item.npcFullBronzeHead.name=Volledig Bronzen Helm
+item.npcFullBronzeChest.name=Volledig Bronzen Borstbescherming
+item.npcFullBronzeLeggings.name=Volledig Bronzen Broek
+item.npcFullBronzeBoots.name=Volledig Bronzen Schoenen
+
+item.npcFullWoodenHead.name=Volledig Houten Helm
+item.npcFullWoodenChest.name=Volledig Houten Borstbescherming
+item.npcFullWoodenLeggings.name=Volledig Houten Broek
+item.npcFullWoodenBoots.name=Volledig Houten Schoenen
+
+item.npcTuxedoChest.name=Schique Vest
+item.npcTuxedoPants.name=Schique Broek
+item.npcTuxedoBottom.name=Schique Trenchcoat
+
+item.npcWizardHead.name=Tovenaars Hoed
+item.npcWizardChest.name=Tovenaars Borst
+item.npcWizardPants.name=Tovenaars Broek
+
+item.npcAssassinHead.name=Huurmoordenaars Helm
+item.npcAssassinChest.name=Huurmoordenaars Borstpantser
+item.npcAssassinLeggings.name=Huurmoordenaars Broek
+item.npcAssassinBoots.name=Huurmoordenaars Schoenen
+
+item.npcSoldierHead.name=Soldaaten Helm
+item.npcSoldierChest.name=Soldaaten Borstbescherming
+item.npcSoldierLegs.name=Soldaaten Broek
+item.npcSoldierBottom.name=Soldaaten Trenchcoat
+
+item.npcX407Head.name=X407 Prototype Helm
+item.npcX407Chest.name=X407 Prototype Borstpantser
+item.npcX407Legs.name=X407 Prototype Broek
+item.npcX407Boots.name=X407 Prototype Schoenen
+
+item.npcCommissarHead.name=Commissaris Helm
+item.npcCommissarChest.name=Commissaris Borstpantser
+item.npcCommissarLegs.name=Commissaris Broek
+item.npcCommissarBottom.name=Commissaris Trenchcoat
+
+item.npcInfantryHelmet.name=Infanterie Helm
+item.npcOfficerChest.name=Officier Borstpantser
+
+item.npcCrown.name=Kroon
+item.npcCrown2.name=Kroon
+
+item.npcNinjaHead.name=Ninja Helm
+item.npcNinjaChest.name=Ninja Borst
+item.npcNinjaPants.name=Ninja Broek

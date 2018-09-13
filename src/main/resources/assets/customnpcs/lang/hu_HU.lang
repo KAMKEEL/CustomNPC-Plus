@@ -1,0 +1,542 @@
+itemGroup.cnpcs=CustomNpcs Eszközök
+itemGroup.cnpcsw=CustomNpcs Fegyverek
+itemGroup.cnpcsa=CustomNpcs Páncél
+itemGroup.cnpcsm=CustomNpcs Egyéb
+
+tile.npcRedstoneBlock.name=Vöröskő Blokk
+tile.npcCarpentyBench.name=Asztalos Pad
+tile.npcBloodBlock.name=Vér Blokk
+
+gui.deleteConfirm=Tényleg le akarod törölni az NPC-t?
+gui.add=Hozzáad
+gui.remove=Töröl
+gui.save=Mentés
+gui.name=Név
+gui.color=Szín
+gui.none=Semmi
+gui.time=Idő
+gui.title=Cím
+gui.categories=Kategóriák
+gui.close=Bezár
+gui.disabled=Kikapcsolva
+gui.increase=Növel
+gui.decrease=Csökkent
+gui.day=Nap
+gui.night=Éj
+gui.constant=Állandó
+gui.accelerate=Gyorsul
+gui.small=Kicsi
+gui.medium=Közepes
+gui.large=Nagy
+gui.type=Típus
+gui.retaliate=Megtorló
+gui.panic=Pánikoló
+gui.retreat=Visszavonuló
+gui.nothing=Semmi
+gui.break=Betöri
+gui.open=Kinyitja
+gui.darkness=Sötétség
+gui.sunlight=Napfény
+gui.always=Mindig
+gui.untilclose=Bezárásig
+gui.whenavailable=Ha készenáll
+gui.ignoreDamage=Törhetetlen
+gui.engagedistance=Harctávolság
+gui.currentFolder=Helyi mappa
+gui.play=Lejátszás
+gui.selectSound=Hang lejátszása
+
+remote.title=Közeli Npc-k
+remote.reset=Visszaállít
+remote.tp=Tp
+remote.resetall=Mind Visszaállít
+remote.freeze=NPC-lefagyasztása
+
+spawner.entities=Entitások
+spawner.clones=Klónok
+spawner.mobspawner=MobSpawner
+
+display.model=Model
+display.show=Mutat
+display.hide=Elrejt
+display.showAttacking=Támadásnál mutat
+display.size=Méret
+display.texture=Textúra
+display.textureCape=Köpeny Textúra
+display.textureOverlay=Textúra Színezet
+display.player=Játékos
+display.selectTexture=Textúra
+display.livingAnimation=Élő animáció
+display.tint=Árnyalat
+
+inv.minExp=Min Exp
+inv.maxExp=Max Exp
+inv.npcInventory=NPC felszerelés
+inv.inventory=Felszerelés
+inv.dropChance=Dobási Esély
+
+availability.options=Elérhetőség opciók
+availability.always=Mindig
+availability.after=Utána
+availability.before=Előtte
+availability.available=Elérhetőség
+availability.whenactive=Ha aktív
+availability.whennotactive=Ha nem aktív
+availability.selectquest=Küldetést kiválaszt
+availability.selectdialog=Párbeszéd kiválaszt
+availability.selectfaction=Csoportok kiválaszt
+availability.daytime=Nappal
+availability.wholeday=Egész nap
+availability.night=Este
+availability.day=Nap
+availability.is=Létezik
+availability.isnot=Nemlétezik
+
+stats.health=Élet
+stats.aggro=AggroRange
+stats.meleeproperties=Közelharc Opciók
+stats.rangedproperties=Távolsági Opciók
+stats.projectileproperties=Lövedéktípus
+stats.meleestrength=Közelharc erő
+stats.meleerange=Közelharc táv
+stats.meleespeed=Közelharc sebesség
+stats.accuracy=Pontosság(%)
+stats.rangedrange=Távolsági táv
+stats.burstspeed=Tüzelési táv
+stats.firedelay=Tüzelési késleltetés
+stats.delayvariance=Késleltetés eltérés
+stats.burstcount=Robbanás számossága
+stats.walkspeed=Séta sebesség
+stats.meleeeffect=Hatás(s)
+stats.respawn=Újjáéledés
+stats.deadbody=Holttest elrejtése
+stats.fireimmune=Tűzálló
+stats.candrown=Fulladó
+stats.firesound:=HangFX
+stats.creaturetype=Lénytípus
+stats.normal=Normal
+stats.undead=Élőholt
+stats.arthropod=Ízeltlábú
+stats.nofalldamage=Nincs esési sebzés
+stats.meleeproperties=Közelharci Opciók
+stats.rangedproperties=Távolsági Opciók
+stats.burninsun=Napon ég
+stats.amplify=Erősít
+stats.melee=Közelharc
+stats.regenhealth=Regeneráció
+
+stats.size=Méret
+stats.speed=Sebesség
+stats.glows=Ragyogás
+stats.hasgravity=Van gravitáció
+stats.explosive=Robbanó
+stats.rangedeffect=TávHatás
+stats.trail=Nyomtípus
+stats.spin=Pörgés
+stats.stick=Bot
+stats.regular=Átlagos
+stats.amplified=Erősített
+
+ai.standing=Álló
+ai.wandering=Vándorló
+ai.movingpath=Útvonal
+ai.looping=Ismétlés
+ai.backtracking=Nyomkövetés
+
+ai.enemyresponse=Ellenség észlelésekor
+ai.door=Ajtót kezel
+ai.avoidwater=Vizet elkerül
+ai.return=Visszatér a Starthoz
+ai.swim=Úszik
+ai.shelter=Megvéd
+ai.leapattarget=Ráugrik
+ai.sprint=Rohanhat
+ai.clearlos=Látnia kell a célt
+ai.indirect=Közvetetten lőhet
+ai.rangemelee=Lő
+ai.tacticalvariant=Taktikai változat
+
+aitactics.rush=Rohan
+aitactics.stagger=Kitér
+aitactics.orbit=Körbevesz
+aitactics.ambush=Lesben áll
+aitactics.stalk=Lopakodik
+
+advanced.idlesound=Tétlen hangja
+advanced.angersound=Mérges hangja
+advanced.hurtsound=Sebződés hangja
+advanced.deathsound=Halál hangja
+advanced.stepsound=Lépés hangja
+
+faction.hostiles=Ellenséges Csoportok
+faction.unfriendly=Ellenséges
+faction.neutral=Semleges
+faction.friendly=Barátságos
+faction.points=Pont
+faction.ondeath=Halál esetén
+faction.hidden=Rejtett
+faction.default=Alapbeállítás
+faction.attackHostile=Ellenséges csoportokat támad
+faction.defend=Csoport tagokat megvéd
+faction.nostanding=Nincs semmilyen kapcsolatod
+faction.options=Csoport beállítások
+faction.increasepoints=Csoport %s növekedett %s ponttal
+faction.decreasepoints=Csoport %s csökkent %s ponttal
+
+menu.inventory=Felszerelés
+menu.quests=Küldetések
+menu.display=Kijelzés
+menu.stats=Státusz
+menu.factions=Csoportok
+menu.ai=AI
+menu.advanced=Haladó
+menu.global=Globális
+menu.role=Szerep
+
+global.banks=Bankok
+global.factions=Csoportok
+global.dialogs=Dialógusok
+global.quests=Küldetések
+global.transport=Utazás
+global.playerdata=Játékos adat
+global.recipes=Receptek
+
+bank.slot=Hely
+bank.unlock=Megvesz
+bank.upgrade=Fejleszt
+bank.upgradeCosts=Fejlesztéshez kell
+bank.unlockCosts=Megvételhez kell
+
+follower.waiting=Várakozik
+follower.following=Követ
+follower.hire=Felfogad
+follower.health=Élet
+follower.daysleft=Hátralévő napok
+follower.lastday=Utolsó nap
+follower.day=Nap
+follower.days=Napok
+follower.hireText=Kösz hogy felfogadtál
+follower.farewellText=A veled töltött napjaimnak vége. Viszlát!
+
+transporter.travel=Utazik
+transporter.unlock1=Szállítva
+transporter.unlock2=mostmár kinyitva
+
+dialog.dialog=Dialógus
+dialog.dialogs=Dialógusok
+dialog.options=Dialógus Opciók
+dialog.dialogtext=Dialógus Szöveg
+dialog.editoption=Dialógus Szerkesztése
+dialog.optiontype=Opció típus
+dialog.selectoption=Kiválaszt Opció
+dialog.quitoption=Kilép Opció
+dialog.option=Dialógus Opció
+dialog.roleoption=Szerep Opció
+dialogcommandoption=Parancs Opció
+
+quest.quest=Küldetés
+quest.quests=Küldetések
+quest.item=Tárgy Küldetés
+quest.kill=Harc Küldetés
+quest.dialog=Szöveg Küldetés
+quest.completedtext=Befejezett szöveg
+quest.questlogtext=Küldetésnapló szöveg
+quest.complete=Kész
+quest.turnin=Mostmár befejezheted a küldetést
+quest.start=Új küldetés elkezdve
+quest.reward=Jutalom
+quest.repeatable=Ismétlődő
+quest.daily=Naponta
+quest.weekly=Heti
+quest.instant=Azonnal kész
+quest.npc=Npc által kész
+quest.next=Következő Küldetés
+
+item.npcWand.name=Npc Bot
+item.npcCloner.name=Npc Klónozó
+item.npcSpawner.name=Mob Spawner
+item.npcMovingPath.name=Npc Útválasztó
+
+item.npcBanjo.name=Citera
+item.npcViolin.name=Hegedű
+item.npcViolinBow.name=Hegedű vonó
+item.npcHarp.name=Hárfa
+item.npcGuitar.name=Gitár
+
+item.npcCoinWooden.name=Fa Érme
+item.npcCoinStone.name=Kő Érme
+item.npcCoinBronze.name=Bronz Érme
+item.npcCoinIron.name=Vas Érme
+item.npcCoinGold.name=Arany Érme
+item.npcCoinDiamond.name=Gyémánt Érme
+item.npcCoinEmerald.name=Drágakő Érme
+
+item.npcWoodenGun.name=Fa Pisztoly
+item.npcStoneGun.name=Kő Pisztoly
+item.npcIronGun.name=Vas Pisztoly
+item.npcGoldGun.name=Arany Pisztoly
+item.npcDiamondGun.name=Gyémánt Pisztoly
+item.npcBronzeGun.name=Bronz Pisztoly
+item.npcEmeraldGun.name=Drágakő Pisztoly
+item.npcMachineGun.name=Géppuska
+
+item.npcWoodenBullet.name=Fa Töltény
+item.npcStoneBullet.name=Kő Töltény
+item.npcIronBullet.name=Vas Töltény
+item.npcGoldenBullet.name=Arany Töltény
+item.npcDiamondBullet.name=Gyémánt Töltény
+item.npcBronzeBullet.name=Bronz Töltény
+item.npcEmeraldBullet.name=Drágakő Töltény
+item.npcBlackBullet.name=Fekete Töltény
+
+item.npcWoodenTrident.name=Fa Szigony
+item.npcStoneTrident.name=Kő Szigony
+item.npcIronTrident.name=Vas Szigony
+item.npcGoldTrident.name=Arany Szigony
+item.npcDiamondTrident.name=Gyémánt Szigony
+item.npcBronzeTrident.name=Bronz Szigony
+item.npcEmeraldTrident.name=Drágakő Szigony
+item.npcCursedTrident.name=Elátkozott Szigony
+
+item.npcNatureSpell.name=Természet Varázslat
+item.npcArcaneSpell.name=Misztikus Varázslat
+item.npcLightningSpell.name=Villám Varázslat
+item.npcIceSpell.name=Jég Varázslat
+item.npcFireSpell.name=Tűz Varázslat
+item.npcDarkSpell.name=Sötét Varázslat
+item.npcHolySpell.name=Szent Varázslat
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Fordított Kunai
+item.npcShuriken.name=Shuriken
+item.npcGiantShuriken.name=Óriás Shuriken
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Golfütő
+item.npcMagicWand.name=Varázspálca
+item.npcChickenSword.name=Csibe kard
+item.npcHandCuffs.name=Bilincs
+item.npcHammer.name=Kalapács
+item.npcBaseballBat.name=Baseball ütő
+item.npcLeadPipe.name=Cső
+item.npcCleaver.name=Bárd
+item.npcSaber.name=Szabja
+item.npcHockeyStick.name=Hokiütő
+item.npcSledgeHammer.name=Pöröly
+item.npcBrokenBottle.name=Törött Üveg
+item.npcCombatKnive.name=Harci Kés
+item.npcLighter.name=Öngyújtó
+item.npcBatton.name=Gumibot
+item.npcGunChainsaw.name=Láncfűrészpuska
+item.npcRapier.name=Vívótőr
+item.npcCrowbar.name=Feszítővas
+item.npcPipeWrench.name=Csőfogó
+item.npcWrench.name=Csavarkulcs
+item.npcSwissArmyKnife.name=Svájci bicska
+
+item.npcWoodenShield.name=Kerek Fa Pajzs
+item.npcStoneShield.name=Kerek Kő Pajzs
+item.npcIronShield.name=Kerek Vas Pajzs
+item.npcGoldenShield.name=Kerek Arany Pajzs
+item.npcDiaShield.name=Kerek Gyémánt Pajzs
+item.npcBronzeShield.name=Kerek Bronz Pajzs
+item.npcEmeraldShield.name=Kerek Drágakő Pajzs
+item.npcFullWoodenShield.name=Fa Pajzs
+item.npcFullStoneShield.name=Kő Pajzs
+item.npcFullIronShield.name=Vas Pajzs
+item.npcFullGoldenShield.name=Arany Pajzs
+item.npcFullDiaShield.name=Gyémánt Pajzs
+item.npcFullBronzeShield.name=Bronz Pajzs
+item.npcFullEmeraldShield.name=Drágakő Pajzs
+
+item.npcTowerShield.name=Fém Hosszú Pajzs
+item.npcCryscentShield.name=Fém Félhold Pajzs
+item.npcScutumShield.name=Fém Csillag Pajzs
+item.npcHeaterShield.name=Fém Szögletes Pajzs
+
+item.npcWoodenSpear.name=Fa Lándzsa
+item.npcStoneSpear.name=Kő Lándzsa
+item.npcIronSpear.name=Vas Lándzsa
+item.npcGoldenSpear.name=Arany Lándzsa
+item.npcDiamondSpear.name=Gyémánt Lándzsa
+item.npcBronzeSpear.name=Bronz Lándzsa
+item.npcEmeraldSpear.name=Drágakő Lándzsa
+
+item.npcWoodenBattleAxe.name=Fa Harci Balta
+item.npcStoneBattleAxe.name=Kő Harci Balta
+item.npcIronBattleAxe.name=Vas Harci Balta
+item.npcGoldenBattleAxe.name=Arany Harci Balta
+item.npcDiamondBattleAxe.name=Gyémánt Harci Balta
+item.npcBronzeBattleAxe.name=Bronz Harci Balta
+item.npcEmeraldBattleAxe.name=Drágakő Harci Balta
+
+item.npcWoodenMace.name=Fa Buzogány
+item.npcStoneMace.name=Kő Buzogány
+item.npcIronMace.name=Vas Buzogány
+item.npcGoldenMace.name=Arany Buzogány
+item.npcDiamondMace.name=Gyémánt Buzogány
+item.npcBronzeMace.name=Bronz Buzogány
+item.npcEmeraldMace.name=Drágakő Buzogány
+
+item.npcWoodenDagger.name=Fa Tőr
+item.npcStoneDagger.name=Kő Tőr
+item.npcIronDagger.name=Vas Tőr
+item.npcGoldenDagger.name=Arany Tőr
+item.npcDiamondDagger.name=Gyémánt Tőr
+item.npcBronzeDagger.name=Bronz Tőr
+item.npcEmeraldDagger.name=Drágakő Tőr
+item.npcWoodenReversedDagger.name=Fordított Fa Tőr
+item.npcStoneReversedDagger.name=Fordított Kő Tőr
+item.npcIronReversedDagger.name=Fordított Vas Tőr
+item.npcGoldenReversedDagger.name=Fordított Arany Tőr
+item.npcDiamondReversedDagger.name=Fordított Gyémánt Tőr
+item.npcBronzeReversedDagger.name=Fordított Bronz Tőr
+item.npcEmeraldReversedDagger.name=Fordított Drágakő Tőr
+
+item.npcWoodenStaff.name=Fa Bot
+item.npcStoneStaff.name=Kő Bot
+item.npcIronStaff.name=Vas Bot
+item.npcGoldenStaff.name=Arany Bot
+item.npcDiamondStaff.name=Gyémánt Bot
+item.npcBronzeStaff.name=Bronz Bot
+item.npcEmeraldStaff.name=Drágakő Bot
+item.npcElementalStaff.name=Elemental Bot
+
+item.npcWoodenScythe.name=Fa Kasza
+item.npcStoneScythe.name=Kő Kasza
+item.npcIronScythe.name=Vas Kasza
+item.npcGoldenScythe.name=Arany Kasza
+item.npcBronzeScythe.name=Bronz Kasza
+item.npcDiamondScythe.name=Gyémánt Kasza
+item.npcEmeraldScythe.name=Drágakő Kasza
+
+item.npcWoodenGlaive.name=Fa Penge
+item.npcStoneGlaive.name=Kő Penge
+item.npcIronGlaive.name=Vas Penge
+item.npcGoldenGlaive.name=Arany Penge
+item.npcDiamondGlaive.name=Gyémánt Penge
+item.npcBronzeGlaive.name=Bronz Penge
+item.npcEmeraldGlaive.name=Drágakő Penge
+
+item.npcCowleatherHead.name=Marhabőr Sisak
+item.npcCowleatherChest.name=Marhabőr Mellvért
+item.npcCowleatherLegs.name=Marhabőr Lábszárvédő
+item.npcCowleatherBoots.name=Marhabőr Cipő
+
+item.npcNanorumHead.name=Nanorum Sisak
+item.npcNanorumChest.name=Nanorum Mellvért
+item.npcNanorumLegs.name=Nanorum Lábszárvédő
+item.npcNanorumBoots.name=Nanorum Csizma
+
+item.npcTacticalHead.name=Taktikai Sisak
+item.npcTacticalChest.name=Taktikai Mellény
+
+item.npcFullLeatherHead.name=Teljes Leather Sisak
+item.npcFullLeatherChest.name=Teljes Leather Mellvért
+
+item.npcFullIronHead.name=Teljes Vas Sisak
+item.npcFullIronChest.name=Teljes Vas Mellvért
+
+item.npcFullGoldHead.name=Teljes Arany Sisak
+item.npcFullGoldChest.name=Teljes Arany Mellvért
+
+item.npcFullDiamondHead.name=Teljes Gyémánt Sisak
+item.npcFullDiamondChest.name=Teljes Gyémánt Mellvért
+
+item.npcFullBronzeHead.name=Teljes Bronz Sisak
+item.npcFullBronzeChest.name=Teljes Bronz Mellvért
+item.npcFullBronzeLeggings.name=Teljes Bronz Lábszárvédő
+item.npcFullBronzeBoots.name=Teljes Bronz Csizma
+
+item.npcFullWoodenHead.name=Teljes Fa Sisak
+item.npcFullWoodenChest.name=Teljes Fa Mellvért
+item.npcFullWoodenLeggings.name=Teljes Fa Lábszárvédő
+item.npcFullWoodenBoots.name=Teljes Fa Csizma
+
+item.npcTuxedoChest.name=Szmoking Öltöny
+item.npcTuxedoPants.name=Szmoking Nadrág
+item.npcTuxedoBottom.name=Szmoking Alsó
+
+item.npcWizardHead.name=Varázsló Head
+item.npcWizardChest.name=Varázsló Chest
+item.npcWizardPants.name=Varázsló Lábszárvédő
+
+item.npcAssassinHead.name=Bérgyilkos Sisak
+item.npcAssassinChest.name=Bérgyilkos Mellvért
+item.npcAssassinLeggings.name=Bérgyilkos Lábszárvédő
+item.npcAssassinBoots.name=Bérgyilkos Csizma
+
+item.npcSoldierHead.name=Katona Sisak
+item.npcSoldierChest.name=Katona Mellvért
+item.npcSoldierLegs.name=Katona Lábszárvédő
+item.npcSoldierBottom.name=Katona Surranó
+
+item.npcX407Head.name=X407 Prototípus Sisak
+item.npcX407Chest.name=X407 Prototípus Mellvért
+item.npcX407Legs.name=X407 Prototípus Lábszárvédő
+item.npcX407Boots.name=X407 Prototípus Csizma
+
+item.npcCommissarHead.name=Tiszti Kalap
+item.npcCommissarChest.name=Tiszti Zubbony
+item.npcCommissarLegs.name=Tiszti Nadrág
+item.npcCommissarBottom.name=Tiszti Surranó
+
+item.npcInfantryHelmet.name=Gyalogos Sisak
+item.npcOfficerChest.name=Tiszt Mellvért
+
+item.npcCrown.name=Korona
+item.npcCrown2.name=Korona
+
+item.npcNinjaHead.name=Nindzsa Fejfedő
+item.npcNinjaChest.name=Nindzsa Mellvért
+item.npcNinjaPants.name=Nindzsa Lábszárvédő
+
+item.npcFullEmeraldHead.name=Teljes Drágakő Sisak
+item.npcFullEmeraldChest.name=Teljes Drágakő Mellvért
+item.npcFullEmeraldLeggings.name=Teljes Drágakő Lábszárvédő
+item.npcFullEmeraldBoots.name=Teljes Drágakő Csizma
+
+item.npcOrb.name=Gömb
+item.npcBrokenOrb.name=Törött Gömb
+item.npcMana.name=Mana
+
+item.npcNinjaClaw.name=Ninja Karom
+item.npcSteelClaw.name=Fém Karom
+item.npcBearClaw.name=Medve Karom
+item.npcKatar.name=Katar
+
+item.npcLetter.name=Levél
+item.npcPlans.name=Tervek
+item.npcSatchel.name=Táska
+item.npcBag.name=Csomag
+item.npcCrystal.name=Kristály
+item.npcSeveredEar.name=Levágott Fül
+item.npcPhone.name=Telefon
+item.npcBanditMask.name=Bandita Maszk
+item.npcBrokenArrow.name=Törött Nyíl
+item.npcEarthElement.name=Föld Elem
+item.npcWaterElement.name=Víz Elem
+item.npcFireElement.name=Tűz Elem
+item.npcAirElement.name=Levegő Elem
+item.npcCarKey.name=Kocsikulcs
+item.npcKey.name=Kulcs
+item.npcKey2.name=Kulcs
+item.npcPendant.name=Nyakék
+item.npcBlueprint.name=Kéknyomtatvány
+item.npcRing.name=Gyűrű
+
+item.npcSkull.name=Koponya
+item.npcBronzeIngot.name=Bronzrúd
+item.npcSaphire.name=Zafír
+item.npcAmethyst.name=Ametiszt
+item.npcRuby.name=Rubin
+
+item.npcMacuahuitl.name=Macuahuitl;
+item.npcBoStaff.name=Bo bot;
+item.npcSaiBlade.name=Sai penge;
+item.npcCrossbow.name=Számszeríj
+item.npcCrossBolt.name=Tüske
+item.npcSlingshot.name=Csúzli
+item.npcMusket.name=Muskéta
+item.npcExcalibur.name=Excalibur

@@ -1,0 +1,93 @@
+<html>
+<body>
+<p></p>
+<p>
+<table>
+  <tr>
+    <th>Hook</th>
+    <th>Params</th>
+    <th>Description<br></th>
+    <th>Cancelable</th>
+  </tr>
+  <tr>
+    <td>Init</td>
+    <td>event(ScriptEvent), world, npc</td>
+    <td>Called when the npc spawns or respawns</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Update</td>
+    <td>event(ScriptEvent), world, npc</td>
+    <td>Called as update tick (once every 10 ticks)<br></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Interact</td>
+    <td>event(ScriptEvent), world, npc, player</td>
+    <td>Called when a player interacts with the npc</td>
+    <td>yes</td>
+  </tr>
+  <tr>
+    <td>Dialog</td>
+    <td>event(ScriptEvent), world, npc, player, dialog</td>
+    <td>Called when a player opens a dialog from the npc</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>DialogClosed</td>
+    <td>event(ScriptEvent), world, npc, player, dialog, option</td>
+    <td>Called when a player selects a dialog option or closes a dialog<br></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Damaged</td>
+    <td>event(ScriptEventDamaged), world, npc</td>
+    <td>Called when an npc gets attacked. Can be cancelled</td>
+    <td>yes<br></td>
+  </tr>
+  <tr>
+    <td>Killed</td>
+    <td>event(ScriptEventKilled), world, npc</td>
+    <td>Called when an npc gets killed</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Attack</td>
+    <td>event(ScriptEventAttack), world, npc</td>
+    <td>Called when an npc is going to attack</td>
+    <td>yes</td>
+  </tr>
+  <tr>
+    <td>Target</td>
+    <td>event(ScriptEventTarget), world, npc</td>
+    <td>Called when an npc targets something</td>
+    <td>yes</td>
+  </tr>
+  <tr>
+    <td>TargetLost</td>
+    <td>event(ScriptEventTarget), world, npc<br></td>
+    <td>Called when an npc looses his target<br></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Kills</td>
+    <td>event(ScriptEvent), world, npc, target<br></td>
+    <td>Called when an npc kills something<br></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Role</td>
+    <td>event(ScriptEventRole), world, npc, player<br></td>
+    <td>Called by some roles<br></td>
+    <td>some</td>
+  </tr>
+  <tr>
+    <td>Collide</td>
+    <td>event(ScriptEvent), world, npc, entity</td>
+    <td>Called when an npc collides with an entity<br></td>
+    <td></td>
+  </tr>
+</table>
+ </p>
+</body>
+</html>

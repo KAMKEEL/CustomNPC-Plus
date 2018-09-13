@@ -1,0 +1,796 @@
+itemGroup.cnpcs=CustomNpcs 도구
+itemGroup.cnpcsw=CustomNpcs 무기
+itemGroup.cnpcsa=CustomNpcs 갑옷
+itemGroup.cnpcsb=CustomNpcs 블럭
+itemGroup.cnpcsm=CustomNpcs 기타
+
+tile.npcRedstoneBlock.name=레드스톤 블럭
+tile.npcCarpentyBench.name=목공예 작업대
+tile.npcBloodBlock.name=피 블럭
+tile.npcMailbox.name=메일함
+tile.npcLocationBlock.name=위치 퀘스트 블럭
+tile.npcBanner.name=배너
+tile.npcWallBanner.name=벽 배너
+tile.npcChair.name=의자
+tile.npcCrate.name=나무상자
+tile.npcTallLamp.name=스탠드 램프
+tile.npcWeaponRack.name=무기선반
+tile.npcCouchWool.name=양모 소파
+tile.npcTable.name=나무 테이블
+tile.npcCouchWood.name=나무 소파
+tile.npcLamp.name=램프
+tile.npcCandle.name=촛불
+tile.npcStool.name=낮은 의자
+tile.npcBorder.name=이동제한 블럭
+tile.npcBigSign.name=큰 표지판
+tile.npcBarrel.name=배럴
+tile.npcShelf.name=선반
+tile.npcSign.name=표지판
+tile.npcTombstone.name=비석
+tile.npcCampfire.name=캠프파이어
+tile.npcBeam.name=빔프레임
+tile.npcPedestal.name=칼 받침
+tile.npcPlaceholder_0.name=자리표시자
+tile.npcPlaceholder_1.name=자리표시자
+tile.npcPlaceholder_2.name=자리표시자
+tile.npcPlaceholder_3.name=자리표시자
+tile.npcPlaceholder_4.name=자리표시자
+tile.npcPlaceholder_5.name=자리표시자
+tile.npcPlaceholder_6.name=자리표시자
+tile.npcPlaceholder_7.name=자리표시자
+tile.npcPlaceholder_8.name=자리표시자
+tile.npcPlaceholder_9.name=자리표시자
+tile.npcPlaceholder_10.name=자리표시자
+tile.npcPlaceholder_11.name=자리표시자
+tile.npcPlaceholder_12.name=자리표시자
+tile.npcPlaceholder_13.name=자리표시자
+tile.npcPlaceholder_14.name=자리표시자
+tile.npcPlaceholder_15.name=자리표시자
+
+gui.delete=삭제하시겠습니까?
+gui.add=추가
+gui.remove=삭제
+gui.save=저장
+gui.name=이름
+gui.color=색상
+gui.none=없음
+gui.time=시간
+gui.title=제목
+gui.categories=카테고리
+gui.close=닫기
+gui.disabled=비활성화
+gui.increase=증가
+gui.decrease=감소
+gui.day=낮
+gui.night=밤
+gui.constant=일정
+gui.accelerate=가속
+gui.small=작은
+gui.medium=중간
+gui.large=큰
+gui.type=타입
+gui.retaliate=보복
+gui.panic=혼란
+gui.retreat=후퇴
+gui.nothing=무반응
+gui.break=부수다
+gui.open=열기
+gui.darkness=어둠
+gui.sunlight=햇빛
+gui.always=항상
+gui.untilclose=근접할때까지
+gui.whenavailable=이동사격
+gui.ignoreDamage=손상 무시
+gui.minrange=최소 사거리
+gui.engagedistance=인지 범위
+gui.orbitdistance=궤도 범위
+gui.fightifthisclose=전투 종료 범위
+gui.ambushdistance=매복 범위
+gui.whendistant=원거리의 경우
+gui.whenhidden=숨은 경우
+gui.currentFolder=현재 폴더
+gui.play=플레이
+gui.selectSound=소리 선택
+gui.selectnpc=Npc 선택
+gui.select=선택 
+gui.range=범위
+gui.name=이름
+gui.partly=부분적
+gui.copy=복사
+gui.clear=지우기
+gui.done=완료
+gui.paste=붙여넣기
+gui.settings=설정
+gui.enabled=사용
+gui.website=웹사이트
+gui.text=텍스트
+gui.detailed=자세한
+gui.server=서버
+
+remote.title=근처 NPC들
+remote.reset=초기화
+remote.tp=NPC로 이동
+remote.resetall=전체 초기화
+remote.freeze=NPC들 동결
+
+spawner.entities=독립체
+spawner.clones=클론
+spawner.mobspawner=몹스포너
+spawner.mount=탑승
+spawner.mountplayer=유저 탑승
+
+spawner.diesafter=소환물 사망시 사망
+spawner.posoffset=위치 오프셋
+spawner.type=스폰 유형
+spawner.all=전부
+spawner.random=랜덤
+spawner.one=차례로
+spawner.despawn=대상이 사라지면 소환물 소멸
+
+mailbox.name=메일함
+mailbox.sender=보낸사람
+mailbox.read=읽기
+mailbox.timesend=%s 전에
+mailbox.day=일
+mailbox.days=일
+mailbox.hour=시간
+mailbox.hours=시간
+mailbox.minute=분
+mailbox.minutes=분
+mailbox.username=유저이름
+mailbox.subject=제목
+mailbox.send=보내기
+mailbox.write=메시지 쓰기
+mailbox.succes=%s에게 성공적으로 메일을 보냈습니다.
+mailbox.errorUsername=알수없는 유저이름
+mailbox.errorSubject=제목을 입력해주십시오.
+mailbox.setup=메일 설정
+
+
+display.model=모델
+display.show=보임
+display.hide=숨김
+display.showAttacking=공격시 보임
+display.size=크기
+display.texture=택스쳐
+display.cape=망토
+display.overlay=오버레이
+display.player=유저
+display.selectTexture=택스쳐 선택
+display.livingAnimation=생활 애니메시션
+display.visible=보임
+display.bossbar=보스체력바
+
+inv.minExp=최소 경험치
+inv.maxExp=최대 경험치
+inv.npcInventory=NPC 인벤토리
+inv.inventory=인벤토리
+inv.dropChance=드랍확률
+
+availability.options=가능성 설정
+availability.always=항상
+availability.after=이후
+availability.before=이전
+availability.available=유효한
+availability.whenactive=활성화
+availability.whennotactive=비활성화
+availability.selectquest=퀘스트 선택
+availability.selectdialog=대화 선택
+availability.selectfaction=파벌 선택
+availability.daytime=시간
+availability.wholeday=하루종일
+availability.night=밤에만
+availability.day=낮에만
+availability.is=맞다
+availability.isnot=아니다
+availability.minlevel=제한레벨
+availability.name=가능성
+availability.areaNotAvailble=이 길을 지나갈 수 없습니다.
+availability.permission=이 작업을 수행 할 수 있는 권한이 없습니다.
+availability.editIcon=10초동안 당신은 우클릭으로 아이콘을 설정할 수 있습니다.
+
+spawning.availableBiomes=사용가능한 바이옴
+spawning.spawningBiomes=스폰가능한 바이옴
+spawning.biomes=바이옴
+spawning.weightedChance=치우친 확률
+
+role.name=역할
+role.none=역할 없음
+role.trader=상인
+role.follower=수행원
+role.bank=은행
+role.transporter=텔레포터
+role.mailman=우체부
+role.marketname=연결된 마켓 이름
+
+trader.insufficient=소지품 부족
+
+job.name=직업
+job.none=직업 없음
+job.bard=바드
+job.guard=가드
+job.healer=힐러
+job.bard=바드
+job.itemgiver=기부자
+job.boss=보스
+job.spawner=소환사
+job.conversation=대화
+job.chunkloader=청크 로더
+
+
+stats.health=체력
+stats.aggro=어그로 범위
+stats.meleeproperties=근접전투 속성
+stats.rangedproperties=원거리전투 속성
+stats.projectileproperties=발사체 유형
+stats.meleestrength=근접전투 강도
+stats.meleerange=근접공격 범위
+stats.meleespeed=근접공격 속도
+stats.accuracy=정확도(%)
+stats.rangedrange=원거리 범위
+stats.burstspeed=발사 속도
+stats.mindelay=최소 딜레이
+stats.maxdelay=최대 딜레이
+stats.burstcount=연발횟수
+stats.shotcount=발사횟수
+stats.walkspeed=걷는 속도
+stats.meleeeffect=효과(s)
+stats.respawn=리스폰
+stats.deadbody=시체 숨기기
+stats.fireimmune=화재 면역
+stats.candrown=익사
+stats.firesound:=소리설정
+stats.creaturetype=생명체 유형
+stats.normal=일반
+stats.undead=언데드
+stats.arthropod=절지동물
+stats.nofalldamage=낙하데미지
+stats.meleeproperties=근접옵션
+stats.rangedproperties=원거리옵션
+stats.burninsun=낮에불탐
+stats.amplify=증폭
+stats.melee=근접
+stats.regenhealth=체력리젠
+stats.combatregen=전투중 체력리젠
+stats.naturallydespawns=자연적으로 사망
+
+stats.size=크기
+stats.speed=속도
+stats.glows=빛남
+stats.noglow=빛나지않음
+stats.hasgravity=중력
+stats.explosive=폭발
+stats.rangedeffect=효과
+stats.trail=흔적 유형
+stats.spin=회전
+stats.stick=관통
+stats.regular=증폭안함
+stats.amplified=증폭
+
+ai.standing=제자리
+ai.wandering=걷다
+ai.movingpath=이동경로
+ai.looping=반복
+ai.backtracking=역행
+ai.enemyresponse=적발견시
+ai.door=문 상호작용
+ai.avoidwater=물을 피함
+ai.return=제자리로돌아옴
+ai.swim=수영가능
+ai.shelter=선호쉼터
+ai.leapattarget=대상에게 도약
+ai.sprint=달리기가능
+ai.clearlos=대상고정
+ai.indirect=간접사격
+ai.rangemelee=원거리공격 사용
+ai.tacticalvariant=전술 변경
+ai.cobwebAffected=거미줄 영향
+ai.movement=이동설정
+
+aitactics.rush=돌진
+aitactics.stagger=회피
+aitactics.orbit=포위
+aitactics.hitandrun=치고빠지기
+aitactics.ambush=매복
+aitactics.stalk=은밀히접근
+
+advanced.idlesound=생활소리
+advanced.angersound=화난소리
+advanced.hurtsound=피격소리
+advanced.deathsound=사망소리
+advanced.stepsound=걷는소리
+advanced.sounds=소리설정
+advanced.lines=대화설정
+advanced.night=밤 설정
+advanced.editingmode=편집모드
+advanced.loadday=낮 불러오기
+advanced.loadnight=밤 불러오기
+advanced.haspitch=음높이
+
+faction.hostiles=적대 파벌
+faction.unfriendly=적대
+faction.neutral=중립
+faction.friendly=친밀
+faction.points=영향력
+faction.ondeath=사망시
+faction.hidden=숨겨진
+faction.default=기본
+faction.attackHostile=적대파벌 공격
+faction.defend=같은파벌 도움
+faction.nostanding=You have no standings with any faction
+faction.options=파벌 옵션
+faction.increasepoints=파벌 %s 의 대한 %s 영향력 증가
+faction.decreasepoints=파벌 %s 의 대한 %s 영향력 감소
+faction.attacked=몬스터에게 공격받음
+
+menu.inventory=인벤토리
+menu.display=디스플레이
+menu.stats=스탯
+menu.factions=파벌
+menu.ai=인공지능
+menu.advanced=부가기능
+menu.global=글로벌
+menu.role=역할
+menu.delete=삭제
+
+follower.waiting=대기
+follower.following=동행
+follower.hire=고용
+follower.health=체력
+follower.daysleft=남은 날
+follower.lastday=마지막 날
+follower.day=일
+follower.days=일
+follower.hireText=저를 고용 주셔서 감사합니다.
+follower.farewellText=당신과 함께 있어서 즐거웠어.
+
+transporter.travel=이동
+transporter.unlock=이동지점 [%s] 등록되었습니다.
+transporter.discovered=발견후 가능
+transporter.start=처음부터 가능
+transporter.interaction=상호작용후 가능
+
+quest.complete=완료
+quest.turnin=퀘스트를 다시 할 수 있습니다.
+quest.start=새로운 퀘스트를 시작하였습니다.
+
+global.banks=은행
+global.transport=텔레포트
+global.playerdata=유저데이터
+global.recipes=제작법
+global.naturalspawn=자연스론
+
+bank.slot=슬롯
+bank.unlock=잠금 해제
+bank.upgrade=확장
+bank.upgradeCosts=확장 비용
+bank.unlockCosts=잠금 해제 비용
+
+conversation.delay=지연시간
+conversation.line=대화내용
+
+bard.jukebox=주크박스 재생
+bard.background=배경음 재생
+bard.ondistance=음악on 거리
+bard.offdistance=음악off 거리
+bard.hasoff=음악Off거리설정
+
+dialog.dialog=대화
+dialog.dialogs=대화문
+dialog.options=대화 옵션
+dialog.dialogtext=대화 텍스트
+dialog.editoption=대화 옵션 편집
+dialog.optiontype=옵션 타입
+dialog.selectoption=옵션 선택
+dialog.quitoption=옵션 종료
+dialog.option=대화 옵션
+dialog.roleoption=역할 옵션
+dialog.commandoption=커맨드 옵션
+dialog.commandoptionplayer="@dp" 를 사용하여 이용 유저를 대상으로 정합니다.
+
+quest.quest=퀘스트
+quest.quests=퀘스트
+quest.item=아이템
+quest.kill=처치
+quest.areakill=지역 처치
+quest.dialog=대화
+quest.location=위치
+quest.completedtext=완료 텍스트
+quest.questlogtext=퀘스트일지 텍스트
+quest.complete=완료
+quest.reward=보상
+quest.repeatable=반복
+quest.mcdaily=마크 매일
+quest.mcweekly=마크 매주
+quest.rldaily=현실 매일
+quest.rlweekly=현실 매주
+quest.instant=즉시 완료
+quest.npc=Npc에게 방문
+quest.next=다음 퀘스트
+quest.found=발견
+quest.notfound=찾을수없음
+quest.completed=퀘스트 완료
+quest.newquest=새로운 퀘스트
+quest.noquests=진행중인 퀘스트가 없습니다.
+quest.completewith= %s 에게 가시오.
+quest.randomitem=랜덤아이템
+quest.exp=경험치
+quest.takeitems=퀘스트템 회수
+quest.objectives=목표
+
+script.init=초기화
+script.interact=상호작용
+script.update=업데이트
+script.console=콘솔
+script.language=언어
+script.damaged=데미지
+script.killed=사망
+script.attack=공격
+script.target=대상
+script.availableScripts=가능한 스크립트
+script.loadedScripts=불러온 스크립트
+
+item.npcWand.name=Npc 완드
+item.npcMobCloner.name=Mob 복사기
+item.npcMovingPath.name=Npc 이동위치
+item.npcMounter.name=탑승
+item.npcTeleporter.name=텔레포트
+item.npcScripter.name=스크립터
+
+item.npcBanjo.name=밴조
+item.npcViolin.name=바이올린
+item.npcViolinBow.name=바이올린 활
+item.npcHarp.name=하프
+item.npcGuitar.name=기타
+item.npcFrenchHorn.name=프렌치 호른
+item.npcOcarina.name=오카리나
+item.npcClarinet.name=클라리넷
+
+item.npcCoinWooden.name=나무동전
+item.npcCoinStone.name=돌동전
+item.npcCoinBronze.name=구리동전
+item.npcCoinIron.name=철동전
+item.npcCoinGold.name=금동전
+item.npcCoinDiamond.name=다이아몬드동전
+item.npcCoinEmerald.name=에메랄드동전
+
+item.npcWoodenGun.name=나무 총
+item.npcStoneGun.name=돌 총
+item.npcIronGun.name=은 총
+item.npcGoldGun.name=금 총
+item.npcDiamondGun.name=다이아몬드 총
+item.npcBronzeGun.name=브론즈 총
+item.npcEmeraldGun.name=에메랄드 총
+item.npcMachineGun.name=머신건
+
+item.npcWoodenBullet.name=나무 총알
+item.npcStoneBullet.name=돌 총알
+item.npcIronBullet.name=철 총알
+item.npcGoldenBullet.name=금 총알
+item.npcDiamondBullet.name=다이아몬드 총알
+item.npcBronzeBullet.name=브론즈 총알
+item.npcEmeraldBullet.name=에메랄드 총알
+item.npcBlackBullet.name=검은 총알
+
+item.npcWoodenTrident.name=나무 삼지창
+item.npcStoneTrident.name=돌 삼지창
+item.npcIronTrident.name=철 삼지창
+item.npcGoldTrident.name=금 삼지창
+item.npcDiamondTrident.name=다이아몬드 삼지창
+item.npcBronzeTrident.name=브론즈 삼지창
+item.npcEmeraldTrident.name=에메랄드 삼지창
+item.npcCursedTrident.name=저주받은 삼지창
+item.npcDemonicTrident.name=데모닉 삼지창
+item.npcFrostTrident.name=얼어붙은 삼지창
+
+item.npcNatureSpell.name=자연 마법
+item.npcArcaneSpell.name=비전 마법
+item.npcLightningSpell.name=전격 마법
+item.npcIceSpell.name=빙계 마법
+item.npcFireSpell.name=화염 마법
+item.npcDarkSpell.name=암흑 마법
+item.npcHolySpell.name=신성 마법
+
+item.npcKunai.name=수리검
+item.npcReverseKunai.name=리버스 수리검
+item.npcShuriken.name=표창
+item.npcGiantShuriken.name=거대한 표창
+item.npcKatana.name=카타나
+item.npcKukri.name=쿠크리
+
+item.npcGolfClub.name=골프 클럽
+item.npcMagicWand.name=마술봉
+item.npcChickenSword.name=닭검
+item.npcHandCuffs.name=수갑
+item.npcHammer.name=망치
+item.npcBaseballBat.name=야구방망이
+item.npcLeadPipe.name=연관
+item.npcCleaver.name=큰 식칼
+item.npcSaber.name=사브르
+item.npcHockeyStick.name=하키 스틱
+item.npcSledgeHammer.name=큰 해머
+item.npcBrokenBottle.name=부서진 병
+item.npcCombatKnive.name=컴뱃 나이프
+item.npcLighter.name=라이터
+item.npcBatton.name=Batton
+item.npcGunChainsaw.name=전기톱 총
+item.npcRapier.name=양날칼
+item.npcCrowbar.name=쇠지렛대
+item.npcPipeWrench.name=파이프 렌치
+item.npcWrench.name=렌치
+item.npcSwissArmyKnife.name=스위스 군용 나이프
+item.npcLeafBlade.name=나뭇잎 검
+
+item.npcWoodenShield.name=둥근 나무 방패
+item.npcStoneShield.name=둥근 돌 방패
+item.npcIronShield.name=둥근 철 방패
+item.npcGoldenShield.name=둥근 금 방패
+item.npcDiaShield.name=둥근 다이아몬드 방패
+item.npcBronzeShield.name=둥근 브론즈 방패
+item.npcEmeraldShield.name=둥근 에메랄드 방패
+item.npcFullWoodenShield.name=나무 방패
+item.npcFullStoneShield.name=돌 방패
+item.npcFullIronShield.name=철 방패
+item.npcFullGoldenShield.name=금 방패
+item.npcFullDiaShield.name=다이아몬드 방패
+item.npcFullBronzeShield.name=브론즈 방패
+item.npcFullEmeraldShield.name=에메랄드 방패
+item.npcDemonicShield.name=데모닉 방패
+item.npcFrostShield.name=얼어붙은 방패
+
+item.npcTowerShield.name=강철 타워 방패
+item.npcCryscentShield.name=강철 물결 방패
+item.npcScutumShield.name=강철 사각 방패
+item.npcHeaterShield.name=강철 기사 방패
+
+item.npcWoodenSpear.name=나무 스피어
+item.npcStoneSpear.name=돌 스피어
+item.npcIronSpear.name=철 스피어
+item.npcGoldenSpear.name=금 스피어
+item.npcDiamondSpear.name=다이아몬드 스피어
+item.npcBronzeSpear.name=브론즈 스피어
+item.npcEmeraldSpear.name=에메랄드 스피어
+item.npcDemonicSpear.name=데모닉 스피어
+item.npcFrostSpear.name=얼어붙은 스피어
+
+item.npcWoodenBattleAxe.name=나무 배틀액스
+item.npcStoneBattleAxe.name=돌 배틀액스
+item.npcIronBattleAxe.name=철 배틀액스
+item.npcGoldenBattleAxe.name=금 배틀액스
+item.npcDiamondBattleAxe.name=다이아몬드 배틀액스
+item.npcBronzeBattleAxe.name=브론즈 배틀액스
+item.npcEmeraldBattleAxe.name=에메랄드 배틀액스
+item.npcDemonicBattleAxe.name=데모닉 배틀액스
+item.npcFrostBattleAxe.name=얼어붙은 배틀액스
+
+item.npcWoodenMace.name=나무 메이스
+item.npcStoneMace.name=돌 메이스
+item.npcIronMace.name=철 메이스
+item.npcGoldenMace.name=금 메이스
+item.npcDiamondMace.name=다이아몬드 메이스
+item.npcBronzeMace.name=브론즈 메이스
+item.npcEmeraldMace.name=에메랄드 메이스
+item.npcDemonicMace.name=데모닉 메이스
+item.npcFrostMace.name=얼어붙은 메이스
+
+item.npcWoodenDagger.name=나무 대거
+item.npcStoneDagger.name=돌 대거
+item.npcIronDagger.name=철 대거
+item.npcGoldenDagger.name=금 대거
+item.npcDiamondDagger.name=다이아몬드 대거
+item.npcBronzeDagger.name=브론즈 대거
+item.npcEmeraldDagger.name=에메랄드 대거
+item.npcDemonicDagger.name=데모닉 대거
+item.npcFrostDagger.name=얼어붙은 대거
+item.npcWoodenReversedDagger.name=리버스 나무 대거
+item.npcStoneReversedDagger.name=리버스 돌 대거
+item.npcIronReversedDagger.name=리버스 철 대거
+item.npcGoldenReversedDagger.name=리버스 금 대거
+item.npcDiamondReversedDagger.name=리버스 다이아몬드 대거
+item.npcBronzeReversedDagger.name=리버스 브론즈 대거
+item.npcEmeraldReversedDagger.name=리버스 에메랄드 대거
+item.npcDemonicReversedDagger.name=리버스 데모닉 대거
+item.npcFrostReversedDagger.name=리버스 얼어붙은 대거
+
+item.npcWoodenStaff.name=나무 스태프
+item.npcStoneStaff.name=돌 스태프
+item.npcIronStaff.name=철 스태프
+item.npcGoldenStaff.name=금 스태프
+item.npcDiamondStaff.name=다이아몬드 스태프
+item.npcBronzeStaff.name=브론즈 스태프
+item.npcEmeraldStaff.name=에메랄드 스태프
+item.npcElementalStaff.name=엘리멘탈 스태프
+item.npcDemonicStaff.name=데모닉 스태프
+item.npcFrostStaff.name=얼어붙은 스태프
+
+item.npcWoodenScythe.name=나무 낫
+item.npcStoneScythe.name=돌 낫
+item.npcIronScythe.name=철 낫
+item.npcGoldenScythe.name=금 낫
+item.npcBronzeScythe.name=브론즈 낫
+item.npcDiamondScythe.name=다이아몬드 낫
+item.npcEmeraldScythe.name=에메랄드 낫
+item.npcDemonicScythe.name=데모닉 낫
+item.npcFrostScythe.name=얼어붙은 낫
+
+item.npcWoodenWarhammer.name=나무 전쟁망치
+item.npcStoneWarhammer.name=돌 전쟁망치
+item.npcIronWarhammer.name=강철 전쟁망치
+item.npcGoldenWarhammer.name=금 전쟁망치
+item.npcDiamondWarhammer.name=다이아 전쟁망치
+item.npcBronzeWarhammer.name=브론즈 전쟁망치
+item.npcEmeraldWarhammer.name=에메랄드 전쟁망치
+item.npcCursedWarhammer.name=저주 전쟁망치
+item.npcDemonicWarhammer.name=데모닉 전쟁망치
+item.npcFrostWarhammer.name=얼어붙은 전쟁망치
+
+item.npcWoodenGlaive.name=나무 양날검
+item.npcStoneGlaive.name=돌 양날검
+item.npcIronGlaive.name=철 양날검
+item.npcGoldenGlaive.name=금 양날검
+item.npcDiamondGlaive.name=다이아몬드 양날검
+item.npcBronzeGlaive.name=브론즈 양날검
+item.npcEmeraldGlaive.name=에메랄드 양날검
+item.npcDemonicGlaive.name=데모닉 양날검
+item.npcFrostGlaive.name=얼어붙은 양날검
+
+item.npcCowleatherHead.name=소가죽 헬멧
+item.npcCowleatherChest.name=소가죽 갑옷
+item.npcCowleatherLegs.name=소가죽 레깅스
+item.npcCowleatherBoots.name=소가죽 신발
+
+item.npcNanorumHead.name=드워프 헬멧
+item.npcNanorumChest.name=드워프 갑옷
+item.npcNanorumLegs.name=드워프 레깅스
+item.npcNanorumBoots.name=드워프 신발
+
+item.npcTacticalHead.name=방탄 헬멧
+item.npcTacticalChest.name=방탄 조끼
+
+item.npcFullLeatherHead.name=촘촘한 가죽 헬멧
+item.npcFullLeatherChest.name=촘촘한 가죽 갑옷
+
+item.npcFullIronHead.name=촘촘한 철 헬멧
+item.npcFullIronChest.name=촘촘한 철 갑옷
+
+item.npcFullGoldHead.name=촘촘한 금 헬멧
+item.npcFullGoldChest.name=촘촘한 금 갑옷
+
+item.npcFullDiamondHead.name=촘촘한 다이아몬드 헬멧
+item.npcFullDiamondChest.name=촘촘한 다이아몬드 갑옷
+
+item.npcFullBronzeHead.name=촘촘한 브론즈 헬멧
+item.npcFullBronzeChest.name=촘촘한 브론즈 갑옷
+item.npcFullBronzeLeggings.name=촘촘한 브론즈 레깅스
+item.npcFullBronzeBoots.name=촘촘한 브론즈 신발
+
+item.npcFullWoodenHead.name=촘촘한 나무 헬멧
+item.npcFullWoodenChest.name=촘촘한 나무 갑옷
+item.npcFullWoodenLeggings.name=촘촘한 나무 레깅스
+item.npcFullWoodenBoots.name=촘촘한 나무 신발
+
+item.npcTuxedoChest.name=턱시도 상의
+item.npcTuxedoPants.name=턱시도 하의
+item.npcTuxedoBottom.name=턱시도 트렌치 코트
+
+item.npcWizardHead.name=마법사 모자
+item.npcWizardChest.name=마법사 상의
+item.npcWizardPants.name=마법사 레깅스
+
+item.npcAssassinHead.name=어쌔신 헬멧
+item.npcAssassinChest.name=어쌔신 갑옷
+item.npcAssassinLeggings.name=어쌔신 레깅스
+item.npcAssassinBoots.name=어쌔신 신발
+
+item.npcSoldierHead.name=병사 헬멧
+item.npcSoldierChest.name=병사 갑옷
+item.npcSoldierLegs.name=병사 레깅스
+item.npcSoldierBottom.name=병사 트렌치 코트
+
+item.npcX407Head.name=X407 프로토타입 헬멧
+item.npcX407Chest.name=X407 프로토타입 갑옷
+item.npcX407Legs.name=X407 프로토타입 레깅스
+item.npcX407Boots.name=X407 프로토타입 신발
+
+item.npcCommissarHead.name=공산당 헬멧
+item.npcCommissarChest.name=공산당 갑옷
+item.npcCommissarLegs.name=공산당 레깅스
+item.npcCommissarBottom.name=공산당 트렌치 코트
+
+item.npcInfantryHelmet.name=보병 헬멧
+item.npcOfficerChest.name=장교 갑옷
+
+item.npcCrown.name=금왕관
+item.npcCrown2.name=보석왕관
+
+item.npcNinjaHead.name=닌자 모자
+item.npcNinjaChest.name=닌자 상의
+item.npcNinjaPants.name=닌자 레깅스
+
+item.npcFullEmeraldHead.name=촘촘한 에메랄드 헬멧
+item.npcFullEmeraldChest.name=촘촘한 에메랄드 갑옷
+item.npcFullEmeraldLeggings.name=촘촘한 에메랄드 레깅스
+item.npcFullEmeraldBoots.name=촘촘한 에메랄드 신발
+
+item.npcOrb.name=보주
+item.npcBrokenOrb.name=부서진 보주
+item.npcMana.name=마나
+
+item.npcNinjaClaw.name=닌자 갈퀴
+item.npcSteelClaw.name=강철 갈퀴
+item.npcBearClaw.name=Bear 갈퀴
+item.npcKatar.name=카타르
+
+item.npcLetter.name=편지
+item.npcPlans.name=밀서
+item.npcSatchel.name=책가방
+item.npcBag.name=가방
+item.npcCrystal.name=크리스탈
+item.npcSeveredEar.name=잘린 귀
+item.npcPhone.name=휴대폰
+item.npcBanditMask.name=강도 마스크
+item.npcBrokenArrow.name=부서진 화살
+item.npcEarthElement.name=흙 원소
+item.npcWaterElement.name=물 원소
+item.npcFireElement.name=불 원소
+item.npcAirElement.name=공기 원소
+item.npcCarKey.name=자동차 열쇠
+item.npcKey.name=열쇠
+item.npcPendant.name=팬던트
+item.npcBlueprint.name=청사진
+item.npcRing.name=반지
+
+item.npcSkull.name=해골
+item.npcBronzeIngot.name=브론즈 주괴
+item.npcDemonicIngot.name=데모닉 주괴
+item.npcSaphire.name=사파이어
+item.npcAmethyst.name=자수정
+item.npcRuby.name=루비
+
+item.npcMacuahuitl.name=마쿠마휘틀
+item.npcBoStaff.name=지팡이
+item.npcSaiBlade.name=사이블레이드
+item.npcCrossbow.name=석궁
+item.npcCrossBolt.name=석궁 블릿
+item.npcSlingshot.name=새총
+item.npcMusket.name=소총
+item.npcExcalibur.name=엑스칼리버
+item.npcBronzeSword.name=브론즈 검
+item.npcEmeraldSword.name=에메랄드 검
+item.npcDemonicSword.name=데모닉 검
+item.npcFrostSword.name=얼어붙은 검
+
+item.npcAncientCoin.name=고대 동전
+item.npcAncientScroll.name=고대 스크롤
+item.npcArtifact.name=아티팩트
+item.npcLocket.name=목걸이
+item.npcSilk.name=실크
+item.npcStatuette.name=조각상
+item.npcTablet.name=정제
+
+item.npcWoodenBroadsword.name=나무 대검
+item.npcStoneBroadsword.name=돈 대검
+item.npcIronBroadsword.name=철 대검
+item.npcGoldenBroadsword.name=금 대검
+item.npcDiamondBroadsword.name=다이아 대검
+item.npcBronzeBroadsword.name=브론즈 대검
+item.npcEmeraldBroadsword.name=에메랄드 대검
+item.npcCursedBroadsword.name=저주받은 대검
+item.npcDemonicBroadsword.name=데모닉 대검
+item.npcFrostBroadsword.name=얼어붙은 대검
+
+item.npcWoodenHalberd.name=나무 할버드
+item.npcStoneHalberd.name=돈 할버드
+item.npcIronHalberd.name=철 할버드
+item.npcGoldenHalberd.name=금 할버드
+item.npcDiamondHalberd.name=다이아 할버드
+item.npcBronzeHalberd.name=브론즈 할버드
+item.npcEmeraldHalberd.name=에메랄드 할버드
+item.npcCursedHalberd.name=저주받은 할버드
+item.npcDemonicHalberd.name=데모닉 할버드
+item.npcFrostHalberd.name=얼어붙은 할버드
+
+enchantment.damage=데미지
+enchantment.confusion=혼란
+enchantment.infinite=무한
+enchantment.poison=독

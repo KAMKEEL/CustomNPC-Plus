@@ -1,0 +1,17 @@
+[
+{
+  "modid": "customnpcs",
+  "name": "CustomNpcs",
+  "version": "1.7.10",
+  "mcversion": "1.7.10",
+  "description": "The Custom Npcs mod lets you create your own npcs and lets you customize them how you want",
+  "credits": "A lot of people, see the list at the forum",
+  "logoFile": "customnpcs:textures/gui/logo.png",
+  "url": "http://tinyurl.com/customnpcs",
+  "updateUrl": "",
+  "authorList": ["Noppes", "DarkSignal(AI)", "Foxz(Commands)"],
+  "parent":"",
+  "screenshots": [],
+  "dependencies": []
+}
+]

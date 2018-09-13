@@ -1,0 +1,870 @@
+customnpcs.defaultTextColor=404040
+
+entity.CustomNpc.name=Custom Npc
+
+itemGroup.cnpcs=CustomNpcs Werkzeuge
+itemGroup.cnpcsw=CustomNpcs Waffen
+itemGroup.cnpcsa=CustomNpcs Rüstung
+itemGroup.cnpcsb=CustomNpcs Blöcke
+itemGroup.cnpcsm=CustomNpcs Verschiedenes
+
+tile.npcRedstoneBlock.name=Redstone Block
+tile.npcCarpentyBench.name=Werkbank
+tile.npcBloodBlock.name=Blut Block
+tile.npcMailbox.name=Mail-Box
+tile.npcLocationBlock.name=Location Quest Block
+tile.npcBanner.name=Fahne
+tile.npcWallBanner.name=Wand Fahne
+tile.npcChair.name=Stuhl
+tile.npcCrate.name=Kiste
+tile.npcTallLamp.name=Stehlampe
+tile.npcWeaponRack.name=Waffenregal
+tile.npcCouchWool.name=Sofa
+tile.npcTable.name=Holztisch
+tile.npcCouchWood.name=Holzsofa
+tile.npcLamp.name=Lampe
+tile.npcCandle.name=Kerze
+tile.npcStool.name=Hocker
+tile.npcBorder.name=Grenzblock
+tile.npcBigSign.name=Großes Schild
+tile.npcBarrel.name=Fass
+tile.npcShelf.name=Regal
+tile.npcSign.name=Schild
+tile.npcTombstone.name=Grabstein
+tile.npcCampfire.name=Lagerfeuer
+tile.npcBeam.name=Holz Strahl
+tile.npcPedestal.name=Sockel
+tile.npcPlaceholder_0.name=Platzhalter
+tile.npcPlaceholder_1.name=Platzhalter
+tile.npcPlaceholder_2.name=Platzhalter
+tile.npcPlaceholder_3.name=Platzhalter
+tile.npcPlaceholder_4.name=Platzhalter
+tile.npcPlaceholder_5.name=Platzhalter
+tile.npcPlaceholder_6.name=Platzhalter
+tile.npcPlaceholder_7.name=Platzhalter
+tile.npcPlaceholder_8.name=Platzhalter
+tile.npcPlaceholder_9.name=Platzhalter
+tile.npcPlaceholder_10.name=Platzhalter
+tile.npcPlaceholder_11.name=Platzhalter
+tile.npcPlaceholder_12.name=Platzhalter
+tile.npcPlaceholder_13.name=Platzhalter
+tile.npcPlaceholder_14.name=Platzhalter
+tile.npcPlaceholder_15.name=Platzhalter
+
+gui.delete=Sind Sie sicher das sie diesen NPC löschen möchten?
+gui.add=Hinzufügen
+gui.remove=Entfernen
+gui.save=Speichern
+gui.name=Name
+gui.color=Farbe
+gui.none=Nichts
+gui.time=Zeit
+gui.title=Titel
+gui.categories=Kategorie
+gui.close=Schließen
+gui.disabled=Aus
+gui.increase=Erhöhen
+gui.decrease=Verringern
+gui.day=Tag
+gui.night=Nacht
+gui.constant=Konstant
+gui.accelerate=Beschleunigen
+gui.small=Klein
+gui.medium=Mittel
+gui.large=Groß
+gui.type=Typ
+gui.retaliate=Normal
+gui.panic=Panik
+gui.retreat=Rückzug
+gui.nothing=Nichts
+gui.break=Pause
+gui.open=Offen
+gui.darkness=Dunkelheit
+gui.sunlight=Sonnenlicht
+gui.always=Immer
+gui.untilclose=bis Schließen
+gui.whenavailable=Unterwegs
+gui.ignoreDamage=Schaden ignorieren
+gui.minrange=Min. Bereich
+gui.engagedistance=Engage Entfernung
+gui.orbitdistance=Orbit Entfernung
+gui.fightifthisclose=Kämpfen, wenn diese schließen
+gui.ambushdistance=Ambush Entfernung
+gui.whendistant=Wenn Distant
+gui.whenhidden=Wenn Versteckt
+gui.currentFolder=Aktueller Ordner
+gui.play=Play
+gui.selectSound=Wähle Sound
+gui.selectnpc=Wähle NPC
+gui.select=Wähle
+gui.range=Entfernung
+gui.name=Name
+gui.partly=Geist
+gui.copy=Kopie
+gui.clear=Löschen
+gui.done=Fertig
+gui.paste=Einfügen
+gui.settings=Einstellungen
+gui.enabled=Aktiviert
+gui.website=Webseite
+gui.text=Text
+gui.detailed=Detailliert
+gui.server=Server
+gui.showmore=Zeig mehr
+gui.update=Update
+
+remote.title=In der Nähe NPCs
+remote.reset=Reset
+remote.tp=Tp zu
+remote.resetall=Alle Resetten
+remote.freeze=NPCs einfrieren
+
+spawner.entities=Unternehmen
+spawner.clones=Klone
+spawner.mobspawner=MobSpawner
+spawner.mount=Geritten von...
+spawner.mountplayer=Geritten von selbst
+
+spawner.diesafter=Stirbt, nachdem Laiche sterben
+spawner.posoffset=Position Offset
+spawner.type=Spawn Typ
+spawner.all=Alle
+spawner.random=Zufall
+spawner.one=Nacheinander
+spawner.despawn=Despawnt die Spawns am Ziel
+
+mailbox.name=Mail-Box
+mailbox.sender=Sender
+mailbox.read=Lesen
+mailbox.timesend=vor %s 
+mailbox.day=Tag
+mailbox.days=Tage
+mailbox.hour=Stunde
+mailbox.hours=Stunden
+mailbox.minute=Minute
+mailbox.minutes=Minuten
+mailbox.username=User-Name
+mailbox.subject=Thema
+mailbox.send=Schicken
+mailbox.write=Mail schreiben
+mailbox.succes=Erfolgreich an %s geschickt
+mailbox.errorUsername=Unbekannter User-Name
+mailbox.errorSubject=Gegenstand kann nicht leer sein
+mailbox.setup=Setup-Mail
+
+display.model=Model
+display.show=Zeigen
+display.hide=Verstecken
+display.showAttacking=Beim Angriff zeigen
+display.size=Größe
+display.texture=Texture
+display.cape=Umhang
+display.overlay=Auflage
+display.player=Spieler
+display.selectTexture=Wähle Texture
+display.livingAnimation=Lebende Animation
+display.visible=Sichtbar
+display.bossbar=Boss-Lebensanzeige
+display.url=Url
+
+inv.minExp=Min. Xp
+inv.maxExp=Max. Xp
+inv.npcInventory=NPC Inventar
+inv.inventory=Inventar
+inv.dropChance=Drop chance
+
+availability.options=Verfügbarkeit Optionen
+availability.always=Immer
+availability.after=Danach
+availability.before=Vorher
+availability.available=Verfügbar
+availability.whenactive=Wenn Aktiv
+availability.whennotactive=Wenn Inaktiv
+availability.selectquest=Wähle Quest
+availability.selectdialog=Wähle Dialog
+availability.selectfaction=Wähle Fraktion
+availability.daytime=Tageszeit
+availability.wholeday=Den ganzen Tag
+availability.night=Nachtsüber
+availability.day=Tagsüber
+availability.is=ist
+availability.isnot=ist nicht
+availability.minlevel=XP Level
+availability.name=Verfügbarkeit
+availability.areaNotAvailble=Sie können auf diese Weise nicht weitergehen
+availability.permission=Du hast keine Rechte um dies zu tun
+availability.editIcon=Für die nächsten 10 Sekunden können Sie ein beliebiges Item, mit der rechten Maustaste einfügen
+
+spawning.availableBiomes=Erhätliche Biome
+spawning.spawningBiomes=Spawning Biome
+spawning.biomes=Biome
+spawning.weightedChance=Chance
+
+role.name=Rolle
+role.none=Keine Rolle
+role.trader=Händler
+role.follower=Verfolger
+role.bank=Bank
+role.transporter=Transporter
+role.mailman=Mailman
+role.marketname=Verlinkter Händler Name
+role.companion=Begleiter
+
+trader.insufficient=Du hast nicht, was er will!
+trader.sufficient=ausreichende Geld
+
+job.name=Job
+job.none=Kein Job
+job.bard=Bard
+job.guard=Guard
+job.healer=Heiler
+job.bard=Sänger
+job.itemgiver=Item Geber
+job.boss=Boss
+job.spawner=Spawner
+job.conversation=Gespräch
+job.chunkloader=Chunk Loader
+job.puppet=Puppe
+
+stats.health=Leben
+stats.aggro=Agro Reichweite
+stats.meleeproperties=Nahkampf Eigenschaften
+stats.rangedproperties=Reichweite Eigenschaften
+stats.projectileproperties=Projektil Typ
+stats.meleestrength=Stärke
+stats.meleerange=Reichweite
+stats.meleespeed=Geschwindigkeit
+stats.accuracy=Genauigkeit (%)
+stats.rangedrange=Reichweite
+stats.burstspeed=Feuerrate
+stats.mindelay=Min Verzögerung
+stats.maxdelay=Max Verzögerung
+stats.burstcount=Sprengungsradius
+stats.shotcount=Shot Count
+stats.walkspeed=Geh Geschwindigkeit
+stats.meleeeffect=Effekte
+stats.respawn=Wiederbelebeung
+stats.deadbody=Verstecke toten Körper
+stats.fireimmune=Feuerimmunität
+stats.candrown=Kann ertrinken
+stats.firesound:=SoundFX
+stats.creaturetype=Kreaturen Typ
+stats.normal=Normal
+stats.undead=Untot
+stats.arthropod=Gliederfüßler
+stats.nofalldamage=Kein Fallschaden
+stats.meleeproperties=Nahkampf Optionen
+stats.rangedproperties=Fernkampf Optionen
+stats.burninsun=Verbrennt in der Sonne
+stats.amplify=Stärkung
+stats.melee=Nahkampf
+stats.regenhealth=Leben Regenerieren
+stats.combatregen=In Kampf Regenerieren
+stats.naturallydespawns=Naturally Despawn
+
+stats.size=Größe
+stats.speed=Speed
+stats.glows=Glüht
+stats.noglow=Glüht nicht
+stats.hasgravity=Physik
+stats.explosive=Explodiert
+stats.rangedeffect=Effekt
+stats.trail=Spur Typ
+stats.spin=Drehen
+stats.stick=Sticks
+stats.regular=No Amp
+stats.amplified=Amp
+stats.explosion=Explosion
+
+ai.standing=Stehend
+ai.wandering=Wandert
+ai.movingpath=Weg abgehen
+ai.looping=Schleife ablaufen
+ai.backtracking=Zurückgehen
+ai.enemyresponse=Gegner gefunden
+ai.door=Tür (Pause: Zerstören)
+ai.avoidwater=Meidet Wasser
+ai.return=Zurück zum Anfang
+ai.swim=Kann schwimmen
+ai.shelter=Flüchtet vor
+ai.leapattarget=Sprung Angriff
+ai.sprint=Kann Sprinten
+ai.clearlos=MussDasZielSehen
+ai.indirect=Feuert indirekt
+ai.rangemelee=EinsatzbereichAngriff
+ai.tacticalvariant=taktische Variante
+ai.cobwebAffected=LangsamInNetz
+ai.movement=Bewegung
+
+aitactics.rush=Rush
+aitactics.stagger=Ausweichen
+aitactics.orbit=umzingeln
+aitactics.hitandrun=Hit&Run
+aitactics.ambush=Hinterhalt
+aitactics.stalk=Stalk
+
+advanced.idlesound=LivingSound
+advanced.angersound=AngrySound
+advanced.hurtsound=HurtSound
+advanced.deathsound=DeathSound
+advanced.stepsound=StepSound
+advanced.sounds=Sounds
+advanced.lines=Sprüche
+advanced.night=Nacht
+advanced.editingmode=EditingMode
+advanced.loadday=Tag NPC laden
+advanced.loadnight=Nacht NPC laden
+advanced.haspitch=hat Pech
+
+faction.hostiles=Feindliche Fraktionen
+faction.unfriendly=Unfreundlich
+faction.neutral=Neutral
+faction.friendly=Freundlich
+faction.points=Punkte
+faction.ondeath=Beim Tod
+faction.hidden=Versteckt
+faction.default=Voreinstellung
+faction.attackHostile=Feindlich Fraktionen angreifen
+faction.defend=Verteidige Fraktionsmitglieder
+faction.nostanding=Ihr steht zu keiner Fraktion
+faction.options=Fraktion
+faction.increasepoints=Fraktion % wurde um % erhöht
+faction.decreasepoints=Fraktion % wurde um % verringert
+faction.attacked=MobsGreifenAn
+
+menu.inventory=Inventar
+menu.display=Aussehen
+menu.stats=Werte
+menu.factions=Fraktionen
+menu.ai=AI
+menu.advanced=Erweitert
+menu.global=Global
+menu.role=Rolle
+
+global.banks=Banks
+global.transport=Transport
+global.playerdata=PlayerData
+global.recipes=Rezepte
+global.naturalspawn=Natural Spawns
+
+bank.slot=Slot
+bank.unlock=Freischalten
+bank.upgrade=Erweitern
+bank.upgradeCosts=Kosten für Erweiterung
+bank.unlockCosts=Kosten für Freischalten
+
+follower.waiting=Warten
+follower.following=Folgen
+follower.hire=Anheuern
+follower.health=Leben
+follower.daysleft=verbleibende Tage
+follower.lastday=Letzter Tag
+follower.day=Tag
+follower.days=Tage
+follower.hireText=Danke, das du mich angeheuert hast.Ich folge dir für
+follower.farewellText=Meine Tage mit dir sind vorrüber. Machs gut!
+follower.infiniteDays=Unendlich Tage
+follower.guiDisabled=Gui deaktivieren
+
+transporter.travel=Reisen
+transporter.unlock=Transport zu %s ist nun freigeschaltet
+transporter.discovered=Verfügbar, wenn entdeckt
+transporter.start=Von Anfang an verfügbar
+transporter.interaction=Erhältlich nach Wechselwirkung
+
+conversation.delay=Delay
+conversation.line=Text
+
+bard.jukebox=Play an Jukebox
+bard.background=Play in Hintergrund
+bard.ondistance=On Distance
+bard.offdistance=Off Distance
+bard.hasoff=Has Off Distance
+
+dialog.dialog=Dialog
+dialog.dialogs=Dialogs
+dialog.options=Dialog Optionen
+dialog.dialogtext=Dialog Text
+dialog.editoption=Bearbeite Dialog Optionen
+dialog.optiontype=Option Typ
+dialog.selectoption=Wähle Optionen
+dialog.quitoption=Optionen verlassen
+dialog.option=Dialog Optionen
+dialog.roleoption=Rolle Optionen
+dialog.commandoption=Kommand Optionen
+dialog.commandoptionplayer=Benutze "@dp" für den Namen der mit den NPC spricht
+dialog.hideNPC=Verstecke NPC
+dialog.showWheel=Zeige Dialog Rad
+
+quest.quest=Quest
+quest.quests=Quests
+quest.item=Item
+quest.kill=Tötungs Quest
+quest.areakill=Area Tötungs Quest
+quest.dialog=Dialog
+quest.location=Location
+quest.completedtext=Abgeschlossener Text
+quest.questlogtext=Questlog text
+quest.complete=Abschließen
+quest.reward=Belohnung
+quest.repeatable=Wiederholbar
+quest.mcdaily=MC Täglich
+quest.mcweekly=MC Wöchentlich
+quest.rldaily=RL Täglich
+quest.rlweekly=RL Täglich
+quest.instant=Sofort Abgeschlossen
+quest.npc=Abgeschlossen bei npc
+quest.next=Nächste Quest
+quest.found=Gefunden
+quest.notfound=Nicht gefunden
+quest.completed=Quest abgeschlossen
+quest.newquest=Neue Quest
+quest.noquests=Du hast keine Quest angenommen
+quest.completewith=Abgeschlossen mit %s
+quest.randomitem=Zufalls Item
+quest.exp=XP
+quest.takeitems=Nimmt die Items
+quest.objectives=Ziele
+
+script.init=Drin
+script.interact=interagieren
+script.update=Update
+script.console=Konsole
+script.language=Sprache
+script.damaged=Schaden
+script.killed=Sterben
+script.attack=Angriff
+script.target=Ziel
+script.availableScripts=erhältlich Scripts
+script.loadedScripts=Lädt Scripts
+script.collide=kollidieren
+
+item.npcWand.name=Npc Zauberstab
+item.npcMobCloner.name=Npc Kloner
+item.npcMovingPath.name=Npc Pather
+item.npcMounter.name=Npc Reiter
+item.npcTeleporter.name=Teleporter
+item.npcScripter.name=Npc Scripter
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Violine
+item.npcViolinBow.name=Geige
+item.npcHarp.name=Harfe
+item.npcGuitar.name=Gitarre
+item.npcFrenchHorn.name=Französisches Horn
+item.npcOcarina.name=Ocarina
+item.npcClarinet.name=Klarinette
+
+item.npcCoinWooden.name=Holzmünze
+item.npcCoinStone.name=Steinmünze
+item.npcCoinBronze.name=Bronzemünze
+item.npcCoinIron.name=Eisenmünze
+item.npcCoinGold.name=Goldmünze
+item.npcCoinDiamond.name=Diamantmünze
+item.npcCoinEmerald.name=Smaragtmünze
+
+item.npcWoodenGun.name=Holzpistole
+item.npcStoneGun.name=Steinpistole
+item.npcIronGun.name=Eisenpistole
+item.npcGoldGun.name=Goldpistole
+item.npcDiamondGun.name=Diamantpistole
+item.npcBronzeGun.name=Bronzepistole
+item.npcEmeraldGun.name=Smaragdpistole
+item.npcMachineGun.name=Maschinengewehr
+
+item.npcWoodenBullet.name=Holzkugel
+item.npcStoneBullet.name=Steinkugel
+item.npcIronBullet.name=Eisenkugel
+item.npcGoldenBullet.name=Goldkugel
+item.npcDiamondBullet.name=Diamantkugel
+item.npcBronzeBullet.name=Bronzekugel
+item.npcEmeraldBullet.name=Smaragdkugel
+item.npcBlackBullet.name=schwarze Kugel
+
+item.npcWoodenTrident.name=Holzdreizack
+item.npcStoneTrident.name=Holzdreizack
+item.npcIronTrident.name=Eisendreizack
+item.npcGoldTrident.name=Golddreizack
+item.npcDiamondTrident.name=Diamantdreizack
+item.npcBronzeTrident.name=Bronzedreizack
+item.npcEmeraldTrident.name=Smaragddreizack
+item.npcCursedTrident.name=Verfluchter Dreizack
+item.npcDemonicTrident.name=Demonen Dreizack
+item.npcFrostTrident.name=Eis Dreizack
+
+item.npcNatureSpell.name=Naturzauber
+item.npcArcaneSpell.name=Arkaner Zauber
+item.npcLightningSpell.name=Blitzzauber
+item.npcIceSpell.name=Eiszauber
+item.npcFireSpell.name=Feuerzauber
+item.npcDarkSpell.name=Dunkler Zauber
+item.npcHolySpell.name=Heiliger Zauber
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Umgedrehtes Kunai
+item.npcShuriken.name=Wurfstern
+item.npcGiantShuriken.name=Riesiger Wurfstern
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Golfschläger
+item.npcMagicWand.name=Zauberstab
+item.npcChickenSword.name=Hühnchenschwert
+item.npcHandCuffs.name=Handschellen
+item.npcHammer.name=Hammer
+item.npcBaseballBat.name=Baseballschläger
+item.npcLeadPipe.name=Blasrohr
+item.npcCleaver.name=Hackbeil
+item.npcSaber.name=Säbel
+item.npcHockeyStick.name=Hockeyschläger
+item.npcSledgeHammer.name=Schlachthammer
+item.npcBrokenBottle.name=zerbrochene Flasche
+item.npcCombatKnive.name=Kampfmesser
+item.npcLighter.name=Feuerzeug
+item.npcBatton.name=Schlagstock
+item.npcGunChainsaw.name=Kettensägenpistole
+item.npcRapier.name=Rapier
+item.npcCrowbar.name=Brecheisen
+item.npcPipeWrench.name=Rohrzange
+item.npcWrench.name=Schraubenschlüssel
+item.npcSwissArmyKnife.name=Schweizer Taschenmesser
+item.npcLeafBlade.name=Spreite
+
+item.npcWoodenShield.name=Rundes Holz Schild
+item.npcStoneShield.name=Rundes Stein Schild
+item.npcIronShield.name=Rundes Eisen Schild
+item.npcGoldenShield.name=Rundes Gold Schild
+item.npcDiaShield.name=Rundes Diamant Schild
+item.npcBronzeShield.name=Rundes Bronze Schild
+item.npcEmeraldShield.name=Rundes Smaragd Schild
+item.npcDemonicShield.name=Rundes Demonen Schild
+item.npcFrostShield.name=Rundes Eis Schild
+item.npcFullWoodenShield.name=Holz Schild
+item.npcFullStoneShield.name=Stein Schild
+item.npcFullIronShield.name=Eisen Schild
+item.npcFullGoldenShield.name=Gold Schild
+item.npcFullDiaShield.name=Diamant Schild
+item.npcFullBronzeShield.name=Bronze Schild
+item.npcFullEmeraldShield.name=Smaragd
+
+item.npcTowerShield.name=stählerner Turmschild
+item.npcCryscentShield.name=stählerner Halbmondschild
+item.npcScutumShield.name=stählerner Scutumschild
+item.npcHeaterShield.name=stählerner Heaterschild
+
+item.npcWoodenSpear.name=Holzspeer
+item.npcStoneSpear.name=Steinspeer
+item.npcIronSpear.name=Eisenspeer
+item.npcGoldenSpear.name=Goldspeer
+item.npcDiamondSpear.name=Diamantspeer
+item.npcBronzeSpear.name=Bronzespeer
+item.npcEmeraldSpear.name=Smaragdspeer
+item.npcDemonicSpear.name=Demonenspeer
+item.npcFrostSpear.name=Eisspeer
+
+item.npcWoodenBattleAxe.name=Holzkampfaxt
+item.npcStoneBattleAxe.name=Steinkampfaxt
+item.npcIronBattleAxe.name=Eisenkampfaxt
+item.npcGoldenBattleAxe.name=Goldkampfaxt
+item.npcDiamondBattleAxe.name=Diamantkampfaxt
+item.npcBronzeBattleAxe.name=Bronzekampfaxt
+item.npcEmeraldBattleAxe.name=Smaragdkampfaxt
+item.npcDemonicBattleAxe.name=Demonenkampfaxt
+item.npcFrostBattleAxe.name=Eiskampfaxt
+
+item.npcWoodenMace.name=Holzkeule
+item.npcStoneMace.name=Steinkeule
+item.npcIronMace.name=Eisenkeule
+item.npcGoldenMace.name=Goldkeule
+item.npcDiamondMace.name=Diamantkeule
+item.npcBronzeMace.name=Bronzekeule
+item.npcEmeraldMace.name=Smaragdkeule
+item.npcDemonicMace.name=Demonenkeule
+item.npcFrostMace.name=Eiskeule
+
+item.npcWoodenDagger.name=Holzmesser
+item.npcStoneDagger.name=Steinmesser
+item.npcIronDagger.name=Eisenmesser
+item.npcGoldenDagger.name=Goldmesser
+item.npcDiamondDagger.name=Diamantmesser
+item.npcBronzeDagger.name=Bronzemesser
+item.npcEmeraldDagger.name=Smaragdmesser
+item.npcDemonicDagger.name=Demonenmesser
+item.npcFrostDagger.name=Eismesser
+item.npcWoodenReversedDagger.name=Umgedrehtes Holzmesser
+item.npcStoneReversedDagger.name=Umgedrehtes Steinmesser
+item.npcIronReversedDagger.name=Umgedrehtes Eisenmesser
+item.npcGoldenReversedDagger.name=Umgedrehtes Goldmesser
+item.npcDiamondReversedDagger.name=Umgedrehtes Diamantmesser
+item.npcBronzeReversedDagger.name=Umgedrehtes Bronzemesser
+item.npcEmeraldReversedDagger.name=Umgedrehtes Smaragdmesser
+item.npcDemonicReversedDagger.name=Umgedrehtes Demonenmesser
+item.npcFrostReversedDagger.name=Umgedrehtes Eismesser
+
+item.npcWoodenStaff.name=Holzstab
+item.npcStoneStaff.name=Steinstab
+item.npcIronStaff.name=Eisenstab
+item.npcGoldenStaff.name=Goldstab
+item.npcDiamondStaff.name=Diamantstab
+item.npcBronzeStaff.name=Bronzestab
+item.npcEmeraldStaff.name=Smaragdstab
+item.npcElementalStaff.name=Elementarstab
+item.npcDemonicStaff.name=Demonenstab
+item.npcFrostStaff.name=Eisstab
+
+item.npcWoodenScythe.name=Holzsense
+item.npcStoneScythe.name=Steinsense
+item.npcIronScythe.name=Eisensense
+item.npcGoldenScythe.name=Goldsense
+item.npcBronzeScythe.name=Bronzesense
+item.npcDiamondScythe.name=Diamantsense
+item.npcEmeraldScythe.name=Smaragdsense
+item.npcDemonicScythe.name=Demonensense
+item.npcFrostScythe.name=Eissense
+
+item.npcWoodenGlaive.name=Holzglefe
+item.npcStoneGlaive.name=Steinglefe
+item.npcIronGlaive.name=Eisenglefe
+item.npcGoldenGlaive.name=Goldglefe
+item.npcDiamondGlaive.name=Diamantglefe
+item.npcBronzeGlaive.name=Bronzeglefe
+item.npcEmeraldGlaive.name=Smaragdglefe
+item.npcDemonicGlaive.name=Demonenglefe
+item.npcFrostGlaive.name=Eisglefe
+
+item.npcCowleatherHead.name=Kuhlederhelm
+item.npcCowleatherChest.name=Kuhlederharnisch
+item.npcCowleatherLegs.name=Kuhlederbeinschienen
+item.npcCowleatherBoots.name=Kuhlederstiefel
+
+item.npcNanorumHead.name=Nanorumhelm
+item.npcNanorumChest.name=Nanorumharnisch
+item.npcNanorumLegs.name=Nanorumbeinschienen
+item.npcNanorumBoots.name=Nanorumstiefel
+
+item.npcTacticalHead.name=Taktischer Helm
+item.npcTacticalChest.name=Taktische Weste
+
+item.npcFullLeatherHead.name=Volllederhelm
+item.npcFullLeatherChest.name=Volllederharnisch
+
+item.npcFullIronHead.name=Volleisenhelm
+item.npcFullIronChest.name=Volleisenharnisch
+
+item.npcFullGoldHead.name=Vollgoldhelm
+item.npcFullGoldChest.name=Vollgoldharnisch
+
+item.npcFullDiamondHead.name=Volldiamanthelm
+item.npcFullDiamondChest.name=Volldiamantharnisch
+
+item.npcFullBronzeHead.name=Vollbronzehelm
+item.npcFullBronzeChest.name=Vollbronzeharnisch
+item.npcFullBronzeLeggings.name=Vollbronzebeinschienen
+item.npcFullBronzeBoots.name=Vollbronzestiefel
+
+item.npcFullWoodenHead.name=Vollholzhelm
+item.npcFullWoodenChest.name=Vollholzharnisch
+item.npcFullWoodenLeggings.name=Vollholzbeinschienen
+item.npcFullWoodenBoots.name=Vollholzstiefel
+
+item.npcTuxedoChest.name=Smokinghemd
+item.npcTuxedoPants.name=Smokinghose
+item.npcTuxedoBottom.name=Smokingmantel
+
+item.npcWizardHead.name=Zauberhut
+item.npcWizardChest.name=Zaubererrobe
+item.npcWizardPants.name=Zaubererhose
+
+item.npcAssassinHead.name=Assassinenhelm
+item.npcAssassinChest.name=Assassinenharnisch
+item.npcAssassinLeggings.name=Assassins Leggings
+item.npcAssassinBoots.name=Assassinenstiefel
+
+item.npcSoldierHead.name=Soldatenhelm
+item.npcSoldierChest.name=Soldatenschutzweste
+item.npcSoldierLegs.name=Soldatenstiefel
+item.npcSoldierBottom.name=Soldatenmantel
+
+item.npcX407Head.name=X407 Prototyphelm
+item.npcX407Chest.name=X407 Prototypbrustpanzer
+item.npcX407Legs.name=X407 Prototypbeinschienen
+item.npcX407Boots.name=X407 Prototypstiefel
+
+item.npcCommissarHead.name=Kommisarmütze
+item.npcCommissarChest.name=Kommissaruniformbrust
+item.npcCommissarLegs.name=Kommissarhose
+item.npcCommissarBottom.name=Kommissarmantel
+
+item.npcInfantryHelmet.name=Infantriehelm
+item.npcOfficerChest.name=Offiziersuniform
+
+item.npcCrown.name=Krone
+item.npcCrown2.name=Krone
+item.npcPaperCrown.name=Papier Krone
+
+item.npcNinjaHead.name=Ninjahelm
+item.npcNinjaChest.name=Ninjaharnisch
+item.npcNinjaPants.name=Ninjabeinschienen
+
+item.npcFullEmeraldHead.name=Vollsmaragdhelm
+item.npcFullEmeraldChest.name=Vollsmaragdharnisch
+item.npcFullEmeraldLeggings.name=Vollsmaragdbeinschienen
+item.npcFullEmeraldBoots.name=Vollsmaragdstiefel
+
+item.npcOrb.name=Kugel
+item.npcBrokenOrb.name=Zerbrochene Kugel
+item.npcMana.name=Mana
+
+item.npcNinjaClaw.name=Ninjaklaue
+item.npcSteelClaw.name=Stahlklaue
+item.npcBearClaw.name=Bärenklaue
+item.npcKatar.name=Katar
+
+item.npcLetter.name=Brief
+item.npcPlans.name=Pläne
+item.npcSatchel.name=Beutel
+item.npcBag.name=Tasche
+item.npcCrystal.name=Kristall
+item.npcSeveredEar.name=Abgeschlagenes Ohr
+item.npcPhone.name=Handy
+item.npcBanditMask.name=Banditenmaske
+item.npcBrokenArrow.name=Zerbrochener Pfeil
+item.npcEarthElement.name=Erdelement
+item.npcWaterElement.name=Wasserelement
+item.npcFireElement.name=Feuerelement
+item.npcAirElement.name=Luftelement
+item.npcCarKey.name=Autoschlüssel
+item.npcKey.name=Schlüssel
+item.npcKey2.name=Schlüssel
+item.npcPendant.name=Anhänger
+item.npcBlueprint.name=Entwurf
+item.npcRing.name=Ring
+
+item.npcSkull.name=Totenkopf
+item.npcSaphire.name=Saphir
+item.npcAmethyst.name=Amethyst
+item.npcRuby.name=Rubin
+item.npcBronzeIngot.name=Bronzebarren
+item.npcDemonicIngot.name=Demonenbarren
+
+item.npcMacuahuitl.name=Obsidianschwert
+item.npcBoStaff.name=Bo Stab
+item.npcSaiBlade.name=Sai Klinge
+item.npcCrossbow.name=Armbrust
+item.npcCrossBolt.name=Armbrust Bolzen
+item.npcSlingshot.name=Steinschleuder
+item.npcMusket.name=Muskete
+item.npcExcalibur.name=Exkalibur 
+
+item.npcBronzeSword.name=Bronze Schwert
+item.npcEmeraldSword.name=Smaragd Schwert
+item.npcDemonicSword.name=Demonen Schwert
+item.npcFrostSword.name=Eis Schwert
+
+item.npcAncientCoin.name=Alte Münze
+item.npcAncientScroll.name=Alte Schriftrolle
+item.npcArtifact.name=Artefakt
+item.npcLocket.name=Medaillon
+item.npcSilk.name=Seide
+item.npcStatuette.name=Statue
+item.npcTablet.name=Tablette
+
+item.npcWoodenHalberd.name=Holz Hellebarde
+item.npcStoneHalberd.name=Stein Hellebarde
+item.npcIronHalberd.name=Eisen Hellebarde
+item.npcGoldenHalberd.name=Gold Hellebarde
+item.npcDiamondHalberd.name=Diamant Hellebarde
+item.npcBronzeHalberd.name=Bronze Hellebarde
+item.npcEmeraldHalberd.name=Smaragd Hellebarde
+item.npcCursedHalberd.name=Verfluchte Hellebarde
+item.npcDemonicHalberd.name=Demonen Hellebarde
+item.npcFrostHalberd.name=Eis Hellebarde
+
+item.npcWoodenWarhammer.name=Holz Kampfhammer
+item.npcStoneWarhammer.name=Stein Kampfhammer
+item.npcIronWarhammer.name=Eisen Kampfhammer
+item.npcGoldenWarhammer.name=Gold Kampfhammer
+item.npcDiamondWarhammer.name=Diamant Kampfhammer
+item.npcBronzeWarhammer.name=Bronze Kampfhammer
+item.npcEmeraldWarhammer.name=Smaragd Kampfhammer
+item.npcCursedWarhammer.name=Verfluchter Kampfhammer
+item.npcDemonicWarhammer.name=Demonen Kampfhammer
+item.npcFrostWarhammer.name=Eis Kampfhammer
+
+item.npcChainSkirt.name=Kettenrock
+item.npcLeatherSkirt.name=Lederrock
+item.npcGoldSkirt.name=Goldrock
+item.npcIronSkirt.name=Eisenrock
+item.npcDiamondSkirt.name=Diamantrock
+
+enchantment.damage=Schaden
+enchantment.confusion=Verwirrung
+enchantment.infinite=Unendlichkeit
+enchantment.poison=Gift
+
+item.npcWoodenBroadsword.name=Breites Holz Schwert
+item.npcStoneBroadsword.name=Breites Stein Schwert
+item.npcIronBroadsword.name=Breites Eisen Schwert
+item.npcGoldenBroadsword.name=Breites Gold Schwert
+item.npcDiamondBroadsword.name=Breites Diamant Schwert
+item.npcBronzeBroadsword.name=Breites Bronze Schwert
+item.npcEmeraldBroadsword.name=Breites Smaragd Schwert
+item.npcCursedBroadsword.name=Breites verfluchtes Schwert
+item.npcDemonicBroadsword.name=Breites Demonen Schwert
+item.npcFrostBroadsword.name=Breites Eis Schwert
+
+movement.name=Bewegung
+movement.type=Bewegungs Typ
+movement.wanderinteract=Interagieren Sie mit NPCs
+movement.sitting=Sitzend
+movement.lying=Liegend
+movement.sneaking=Gebückt
+movement.dancing=Tanzend
+movement.aiming=Arme hoch
+movement.animation=Animation
+movement.rotation=Drehung
+movement.body=Körper
+movement.manual=Manual
+movement.stalking=Stalking
+movement.stalking=Stalking
+movement.head=Kopf
+movement.pauses=mit Pausen
+movement.stopinteract=Stopp bei Interact
+movement.crawling=Kriechen
+movement.hug=Umarmen
+
+item.npcSoulstoneEmpty.name=Seelenstein Leer
+item.npcSoulstoneFilled.name=Seelenstein Voll
+
+model.head=Kopf
+model.rarm=R. Arm
+model.larm=L. Arm
+model.arms=Arme
+model.body=Körper
+model.lleg=L. Bein
+model.rleg=R. Bein
+model.legs=Beine
+model.scale=Umfang
+model.load=Model Laden
+model.save=Model Speichern
+
+puppet.standing=Stehen
+puppet.walking=beim Gehen
+puppet.attacking=beim Angriff
+
+guard.creepers=Creeper angreifen
+guard.animals=Tiere angreifen
+guard.mobs=Monster angreifen
+guard.currentTargets=Aktuelle Ziele
+guard.availableTargets=Verfügbaren Ziele
+guard.specifictargets=Spezifische Ziele
+
+companion.baby=Baby
+companion.child=Kind
+companion.teenager=Jugendlich
+companion.adult=Erwachsen
+companion.fullgrown=Voll gewachsen
+companion.age=Alter
+companion.stage=Bühne
+
+#German by DewTix

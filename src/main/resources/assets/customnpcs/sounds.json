@@ -1,0 +1,382 @@
+{
+  "gun.empty": {
+    "category": "player",
+    "sounds": ["gun/empty"]
+  },
+  "gun.ak47.load": {
+    "category": "player",
+    "sounds": ["gun/ak47chamberround"]
+  },
+  "gun.pistol.shot": {
+    "category": "player",
+    "sounds": ["gun/pistolshot"]
+  },
+  "gun.pistol.trigger": {
+    "category": "player",
+    "sounds": ["gun/pistoltrigger"]
+  },
+  "magic.charge": {
+    "category": "player",
+    "sounds": ["magic/charge"]
+  },
+  "magic.shot": {
+    "category": "player",
+    "sounds": ["magic/shot"]
+  },
+  "misc.old_explode": {
+    "category": "player",
+    "sounds": ["misc/old_explode"]
+  },
+  "misc.swosh": {
+    "category": "player",
+    "sounds": ["misc/swosh"]
+  },
+  "songs.excalibur": {
+    "category": "player",
+    "sounds": [{"name": "songs/Failboat103 - Excalibuuur", "stream": true}]
+  },
+  "songs.kyleb_7by8": {
+    "category": "player",
+    "sounds": [{"name": "songs/TheKyleb - 7 by 8", "stream": true}]
+  },
+  "songs.kyleb_bard": {
+    "category": "player",
+    "sounds": [{"name": "songs/TheKyleb - Bard", "stream": true}]
+  },
+  "human.female.evil.attack": {
+    "category": "player",
+    "sounds": ["human/female/evil/Attack 1","human/female/evil/Attack 2"]
+  },
+  "human.female.evil.death": {
+    "category": "player",
+    "sounds": ["human/female/evil/Death 1","human/female/evil/Death 2"]
+  },
+  "human.female.evil.hurt": {
+    "category": "player",
+    "sounds": ["human/female/evil/Hurt 1","human/female/evil/Hurt 2"]
+  },
+  "human.female.evil.what_do_you_need": {
+    "category": "player",
+    "sounds": ["human/female/evil/What Do You Need"]
+  },
+  "human.female.evil.what_do_you_want": {
+    "category": "player",
+    "sounds": ["human/female/evil/What Do You Want"]
+  },
+  "human.female.evil.yes": {
+    "category": "player",
+    "sounds": ["human/female/evil/Yes"]
+  },
+  "human.female.evil.never_defeat_me": {
+    "category": "player",
+    "sounds": ["human/female/evil/You Will Never Defeat Me"]
+  },
+  "human.female.heroic.attack": {
+    "category": "player",
+    "sounds": ["human/female/heroic/Attack 1","human/female/heroic/Attack 2"]
+  },
+  "human.female.heroic.death": {
+    "category": "player",
+    "sounds": ["human/female/heroic/Death 1","human/female/heroic/Death 2"]
+  },
+  "human.female.heroic.hurt": {
+    "category": "player",
+    "sounds": ["human/female/heroic/Hurt 1","human/female/heroic/Hurt 2"]
+  },
+  "human.female.heroic.honor_and_glory": {
+    "category": "player",
+    "sounds": ["human/female/heroic/For Honor and Glory"]
+  },
+  "human.female.heroic.cleanse_scourge": {
+    "category": "player",
+    "sounds": ["human/female/heroic/I Shall Cleanse This Scourge"]
+  },
+  "human.female.heroic.never_fall": {
+    "category": "player",
+    "sounds": ["human/female/heroic/I Will Never Fall"]
+  },
+  "human.female.heroic.justice_served": {
+    "category": "player",
+    "sounds": ["human/female/heroic/Justice Served"]
+  },
+  "human.female.heroic.be_cleansed": {
+    "category": "player",
+    "sounds": ["human/female/heroic/Thou Shall Be Cleansed"]
+  },
+  "human.female.heroic.not_much_time": {
+    "category": "player",
+    "sounds": ["human/female/heroic/We Don't Have Much Time"]
+  },
+  "human.female.villager.attack": {
+    "category": "player",
+    "sounds": ["human/female/villager/Attack 1","human/female/villager/Attack 2"]
+  },
+  "human.female.villager.death": {
+    "category": "player",
+    "sounds": ["human/female/villager/Death 1","human/female/villager/Death 2"]
+  },
+  "human.female.villager.hurt": {
+    "category": "player",
+    "sounds": ["human/female/villager/Hurt 1","human/female/villager/Hurt 2"]
+  },
+  "human.female.villager.good_day": {
+    "category": "player",
+    "sounds": ["human/female/villager/Good Day"]
+  },
+  "human.female.villager.heh": {
+    "category": "player",
+    "sounds": ["human/female/villager/Heh"]
+  },
+  "human.female.villager.help": {
+    "category": "player",
+    "sounds": ["human/female/villager/Help"]
+  },
+  "human.female.villager.hm": {
+    "category": "player",
+    "sounds": ["human/female/villager/Hm"]
+  },
+  "human.female.villager.uhuh": {
+    "category": "player",
+    "sounds": ["human/female/villager/Uhuh"]
+  },
+  "human.female.villager.what_brings_you_here": {
+    "category": "player",
+    "sounds": ["human/female/villager/What Brings You Here"]
+  },
+  "human.female.villager.what_do_you_need": {
+    "category": "player",
+    "sounds": ["human/female/villager/What Do You Need"]
+  },
+  "human.female.villager.trade": {
+    "category": "player",
+    "sounds": ["human/female/villager/Would You Like To Trade"]
+  },
+  "human.female.villager.yes": {
+    "category": "player",
+    "sounds": ["human/female/villager/Yes"]
+  },
+  "human.girl.evil.attack": {
+    "category": "player",
+    "sounds": ["human/girl/evil/Attack 1","human/girl/evil/Attack 2"]
+  },
+  "human.girl.evil.death": {
+    "category": "player",
+    "sounds": ["human/girl/evil/Death 1","human/girl/evil/Death 2"]
+  },
+  "human.girl.evil.hurt": {
+    "category": "player",
+    "sounds": ["human/girl/evil/Hurt 1","human/girl/evil/Hurt 2"]
+  },
+  "human.girl.evil.what_do_you_need": {
+    "category": "player",
+    "sounds": ["human/girl/evil/What Do You Need"]
+  },
+  "human.girl.evil.what_do_you_want": {
+    "category": "player",
+    "sounds": ["human/girl/evil/What Do You Want"]
+  },
+  "human.girl.evil.yes": {
+    "category": "player",
+    "sounds": ["human/girl/evil/Yes"]
+  },
+  "human.girl.evil.never_defeat_me": {
+    "category": "player",
+    "sounds": ["human/girl/evil/You Will Never Defeat Me"]
+  },
+  "human.girl.heroic.attack": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/Attack 1","human/girl/heroic/Attack 2"]
+  },
+  "human.girl.heroic.death": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/Death 1","human/girl/heroic/Death 2"]
+  },
+  "human.girl.heroic.hurt": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/Hurt 1","human/girl/heroic/Hurt 2"]
+  },
+  "human.girl.heroic.honor_and_glory": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/For Honor and Glory"]
+  },
+  "human.girl.heroic.cleanse_scourge": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/I Shall Cleanse This Scourge"]
+  },
+  "human.girl.heroic.never_fall": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/I Will Never Fall"]
+  },
+  "human.girl.heroic.justice_served": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/Justice Served"]
+  },
+  "human.girl.heroic.be_cleansed": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/Thou Shall Be Cleansed"]
+  },
+  "human.girl.heroic.not_much_time": {
+    "category": "player",
+    "sounds": ["human/girl/heroic/We Don't Have Much Time"]
+  },
+  "human.girl.villager.attack": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Attack 1","human/girl/villager/Attack 2"]
+  },
+  "human.girl.villager.death": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Death 1","human/girl/villager/Death 2"]
+  },
+  "human.girl.villager.hurt": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Hurt 1","human/girl/villager/Hurt 2"]
+  },
+  "human.girl.villager.good_day": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Good Day"]
+  },
+  "human.girl.villager.heh": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Heh"]
+  },
+  "human.girl.villager.help": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Help"]
+  },
+  "human.girl.villager.hm": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Hm"]
+  },
+  "human.girl.villager.uhuh": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Uhuh"]
+  },
+  "human.girl.villager.what_brings_you_here": {
+    "category": "player",
+    "sounds": ["human/girl/villager/What Brings You Here"]
+  },
+  "human.girl.villager.what_do_you_need": {
+    "category": "player",
+    "sounds": ["human/girl/villager/What Do You Need"]
+  },
+  "human.girl.villager.trade": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Would You Like To Trade"]
+  },
+  "human.girl.villager.yes": {
+    "category": "player",
+    "sounds": ["human/girl/villager/Yes"]
+  },
+  "human.male.evil.attack": {
+    "category": "player",
+    "sounds": ["human/male/evil/Attack 1","human/male/evil/Attack 2"]
+  },
+  "human.male.evil.death": {
+    "category": "player",
+    "sounds": ["human/male/evil/Death 1","human/male/evil/Death 2"]
+  },
+  "human.male.evil.hurt": {
+    "category": "player",
+    "sounds": ["human/male/evil/Hurt 1","human/male/evil/Hurt 2"]
+  },
+  "human.male.evil.what_do_you_need": {
+    "category": "player",
+    "sounds": ["human/male/evil/What Do You Need"]
+  },
+  "human.male.evil.what_do_you_want": {
+    "category": "player",
+    "sounds": ["human/male/evil/What Do You Want"]
+  },
+  "human.male.evil.yes": {
+    "category": "player",
+    "sounds": ["human/male/evil/Yes"]
+  },
+  "human.male.evil.never_defeat_me": {
+    "category": "player",
+    "sounds": ["human/male/evil/You Will Never Defeat Me"]
+  },
+  "human.male.heroic.attack": {
+    "category": "player",
+    "sounds": ["human/male/heroic/Attack 1","human/male/heroic/Attack 2"]
+  },
+  "human.male.heroic.death": {
+    "category": "player",
+    "sounds": ["human/male/heroic/Death 1","human/male/heroic/Death 2"]
+  },
+  "human.male.heroic.hurt": {
+    "category": "player",
+    "sounds": ["human/male/heroic/Hurt 1","human/male/heroic/Hurt 2"]
+  },
+  "human.male.heroic.honor_and_glory": {
+    "category": "player",
+    "sounds": ["human/male/heroic/For Honor and Glory"]
+  },
+  "human.male.heroic.cleanse_scourge": {
+    "category": "player",
+    "sounds": ["human/male/heroic/I Shall Cleanse This Scourge"]
+  },
+  "human.male.heroic.never_fall": {
+    "category": "player",
+    "sounds": ["human/male/heroic/I Will Never Fall"]
+  },
+  "human.male.heroic.justice_served": {
+    "category": "player",
+    "sounds": ["human/male/heroic/Justice Served"]
+  },
+  "human.male.heroic.be_cleansed": {
+    "category": "player",
+    "sounds": ["human/male/heroic/Thou Shall Be Cleansed"]
+  },
+  "human.male.heroic.not_much_time": {
+    "category": "player",
+    "sounds": ["human/male/heroic/We Don't Have Much Time"]
+  },
+  "human.male.villager.attack": {
+    "category": "player",
+    "sounds": ["human/male/villager/Attack 1","human/male/villager/Attack 2"]
+  },
+  "human.male.villager.death": {
+    "category": "player",
+    "sounds": ["human/male/villager/Death 1","human/male/villager/Death 2"]
+  },
+  "human.male.villager.hurt": {
+    "category": "player",
+    "sounds": ["human/male/villager/Hurt 1","human/male/villager/Hurt 2"]
+  },
+  "human.male.villager.good_day": {
+    "category": "player",
+    "sounds": ["human/male/villager/Good Day"]
+  },
+  "human.male.villager.heh": {
+    "category": "player",
+    "sounds": ["human/male/villager/Heh"]
+  },
+  "human.male.villager.help": {
+    "category": "player",
+    "sounds": ["human/male/villager/Help"]
+  },
+  "human.male.villager.hm": {
+    "category": "player",
+    "sounds": ["human/male/villager/Hm"]
+  },
+  "human.male.villager.uhuh": {
+    "category": "player",
+    "sounds": ["human/male/villager/Uhuh"]
+  },
+  "human.male.villager.what_brings_you_here": {
+    "category": "player",
+    "sounds": ["human/male/villager/What Brings You Here"]
+  },
+  "human.male.villager.what_do_you_need": {
+    "category": "player",
+    "sounds": ["human/male/villager/What Do You Need"]
+  },
+  "human.male.villager.trade": {
+    "category": "player",
+    "sounds": ["human/male/villager/Would You Like To Trade"]
+  },
+  "human.male.villager.yes": {
+    "category": "player",
+    "sounds": ["human/male/villager/Yes"]
+  }
+}

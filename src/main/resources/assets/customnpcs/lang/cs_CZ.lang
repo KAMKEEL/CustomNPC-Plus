@@ -1,0 +1,440 @@
+itemGroup.cnpcs=CustomNpcs Nástroje 
+itemGroup.cnpcsw=CustomNpcs Zbraně 
+itemGroup.cnpcsa=CustomNpcs Armor 
+itemGroup.cnpcsm=CustomNpcs Různé 
+
+tile.npcRedstoneBlock.name=Ruditový blok 
+tile.npcCarpentyBench.name=Carpenty Bench 
+tile.npcBloodBlock.name=Blok krve
+
+gui.deleteConfirm=Jste si jisti, že chcete smazat toto NPC? 
+gui.add=Přidat 
+gui.remove=Odstranit 
+gui.edit=Edit 
+gui.name=Název 
+gui.color=Barva 
+gui.none=Nic 
+gui.time=Čas 
+gui.title=Název 
+gui.categories=Kategorie 
+gui.close=Zavřít 
+gui.disabled=Zakázáno 
+gui.increase=Zvýšení 
+gui.decrease=Snížení 
+gui.day=Den 
+gui.night=Noc 
+gui.constant=Konstantní 
+gui.accelerate=Urychlení 
+gui.small=Malé 
+gui.medium=Střední 
+gui.large=Velké 
+gui.type=Typ 
+gui.always=Vždy 
+gui.untilclose=UntilClose 
+gui.ignoreDamage=Ignorovat poškození 
+
+display.model=Model 
+display.show=Zobrazit 
+display.hide=Skrýt 
+display.showAttacking=Zobrazit při útoku 
+display.size=Velikost 
+display.texture=Textura 
+display.textureCape=Textura kápě 
+display.player=Player 
+display.selectTexture=Vyberte texturu 
+display.livingAnimation=Animace života 
+display.tint=Barevný odstín 
+
+inv.minExp=Min Exp 
+inv.maxExp=Max Exp 
+inv.npcInventory=NPC inventář 
+inv.inventory=Inventář 
+inv.dropChance=Šance na drop 
+
+availability.options=Možnosti 
+availability.always=Vždy 
+availability.after=Po 
+availability.before=Před 
+availability.available=K dispozici 
+availability.whenactive=Je-li aktivní 
+availability.whennotactive=Není-li aktivní 
+availability.selectquest=Vyberte Quest 
+availability.selectdialog=Vyberte dialog
+availability.selectfaction=Vyberte frakci 
+availability.daytime=Denní 
+availability.wholeday=Celý den 
+availability.night=Během noci 
+availability.day=Během dne 
+availability.is=Je 
+availability.isnot=Není 
+
+stats.health=Zdraví 
+stats.aggro=AggroRange 
+stats.meleeproperties=Melee vlastnosti
+stats.rangedproperties=Range vlastnosti
+stats.projectileproperties=VLastnosti projektilu 
+stats.meleestrength=Síla melee 
+stats.meleerange=Síla range 
+stats.meleespeed=Rychlost melee 
+stats.accuracy=Přesnost (%) 
+stats.rangedrange=Range vzdálenost 
+stats.burstspeed=Rychlost útoku 
+stats.firedelay=Zpoždění útoku 
+stats.delayvariance=Odchylka zpoždění 
+stats.burstcount=BurstCount 
+stats.walkspeed=Rychlsot chůze 
+stats.chargespeed=Rychlost charge 
+stats.meleeeffect=Effect (s) 
+stats.respawn=Respawn 
+stats.deadbody=Schovat mrtvolu 
+stats.fireimmune=Imuní na střely 
+stats.candrown=CanDrown 
+stats.firesound:=SoundFX 
+stats.creaturetype=Ty kreatury 
+stats.normal=Normální 
+stats.undead=Nemrtvý 
+stats.arthropod=Arthropod
+stats.nofalldamage=Žádný pádový dmg 
+stats.meleeproperties=Nastavení melee 
+stats.rangedproperties=Nastavení range 
+stats.burninsun=BurnsInSun 
+stats.amplify=Amplified 
+
+stats.size=Velikost 
+stats.speed=Rychlost 
+stats.glows=Svítí 
+stats.hasgravity=HasGravity 
+stats.explosive=Exploduje 
+stats.rangedeffect=Effect 
+stats.trail=TrailType 
+stats.spin=Roztočení 
+stats.stick=Tyčinky 
+stats.regular=Ne Amp 
+stats.amplified=Amp 
+
+ai.standing=Stojící 
+ai.wandering=Toulající 
+ai.movingpath=Cesta chůze
+ai.looping=Smyčka 
+ai.backtracking=Backtracking 
+
+ai.enemyresponse:=OnFoundEnemy 
+ai.door:=DoorInteract 
+ai.avoidwater:=AvoidsWater 
+ai.return:=ReturnToStart 
+ai.swim:=CanSwim 
+ai.shelter:=SeekShelter 
+ai.leapattarget:=LeapAtTarget 
+ai.clearlos:=MustSeeTarget 
+ai.indirect:=CanFireIndirect 
+ai.rangemelee:=UseRangeAttack 
+
+faction.hostiles=Nepřátelská frakce 
+faction.unfriendly=Nepřátelská 
+faction.neutral=Neutrální 
+faction.friendly=Přátelská 
+faction.points=Body 
+faction.ondeath=OnDeath 
+faction.hidden=Schován 
+faction.default=Výchozí 
+faction.attackHostile=Útok nepřátelské frakce 
+faction.defend=Obrana členů frakce 
+faction.nostanding=Nemáte žádnou interakci s jakoukoli frakcí 
+faction.options=Možnosti frakce
+faction.increasepoints=Frakce %s zvýšeno o %s bodů
+faction.decreasepoints=Frakce %s sníženo o %s bodů
+
+menu.inventory=Invetář 
+menu.quests=Úkoly 
+menu.display=Zobrazit 
+menu.stats=Statistiky 
+menu.factions=Frakce 
+menu.ai=AI 
+menu.advanced=Pokročilé 
+menu.global=Globální 
+menu.delete=Vymazat 
+menu.role=Role 
+
+global.banks=Banky 
+global.factions=Frakce 
+global.dialogs=Dialogy 
+global.quests=Úkoly 
+global.transport=Transport 
+global.playerdata=PlayerData 
+global.recipes=Recipes 
+
+bank.slot=Slot 
+bank.unlock=Odemknout 
+bank.upgrade=Upgrade 
+bank.upgradeCosts=Náklady k upgradu 
+bank.unlockCosts=Náklady k odemčení 
+
+ank.slot=Slot
+bank.unlock=Odemknout
+bank.upgrade=Vylepšit
+bank.upgradeCosts=Vylepšení stojí
+bank.unlockCosts=Odemčení stojí
+
+follower.waiting=Čekat
+follower.following=Sledovat
+follower.hire=Najmout 
+follower.health=Zdraví
+follower.daysleft=Zbývá dnů
+follower.lastday=Poslední den
+follower.day=Den
+follower.days=Dny
+follower.hireText=Díky, že sis mě pronajal.
+follower.farewellText=Naše cesty se zde rozchází. Sbohem, příteli.
+
+transporter.travel=Travel 
+transporter.unlock1=Travel do 
+transporter.unlock2=je nyní odemčený 
+
+dialog.dialog=Dialog 
+dialog.dialogs=Dialogy 
+dialog.options=Dialog Možnosti 
+dialog.dialogtext=Dialog Text 
+dialog.editoption=Upravit dialogový typ
+dialog.optiontype=Volba typu 
+
+quest.quest=Úkol 
+quest.quests=Úkoly 
+quest.item=Předmětový úkol 
+quest.kill=Úkol na zabití
+quest.dialog=Úkol na dialog
+quest.completedtext=Text při dokončení
+quest.questlogtext=Text v deníku
+quest.complete=Hotovo 
+quest.turnin=Teď lze dokončit úkol 
+quest.start=Spuštěn nový úkol 
+quest.reward=Odměna 
+quest.repeatable=Opakovatelné 
+quest.daily=Denní 
+quest.weekly=Týdně 
+quest.instant=Okamžité dokončení 
+quest.npc=Dokočení NPC
+
+item.npcWand.name=Npc hůlka
+item.npcCloner.name=Npc cloner
+item.npcSpawner.name=Mob spawner
+
+item.npcBanjo.name=Banjo
+item.npcViolin.name=Housle
+item.npcViolinBow.name=Houslový smyčec
+item.npcHarp.name=Harfa
+item.npcGuitar.name=Kytara
+
+item.npcCoinWooden.name=Dřevěná mince
+item.npcCoinStone.name=Kamennná mince
+item.npcCoinBronze.name=Bronzová mince
+item.npcCoinIron.name=Železná mince
+item.npcCoinGold.name=Zlatá mince
+item.npcCoinDiamond.name=Diamantová mince
+item.npcCoinEmerald.name=Emeraldová mince
+
+item.npcWoodenGun.name=Dřevěná pistole
+item.npcStoneGun.name=Kamenná pistole
+item.npcIronGun.name=Železná pistole
+item.npcGoldGun.name=Zlatá pistole
+item.npcDiamondGun.name=Diamantová pistole
+item.npcBronzeGun.name=Bronzová pistole
+item.npcEmeraldGun.name=Emeraldová pistole
+item.npcMachineGun.name=Kulomet
+
+item.npcWoodenBullet.name=Dřevěná kulka
+item.npcStoneBullet.name=Kamenná kulka
+item.npcIronBullet.name=Železná kulka
+item.npcGoldenBullet.name=Zlatá kulka
+item.npcDiamondBullet.name=Diamantová kulka
+item.npcBronzeBullet.name=Bronzová kulka
+item.npcBlackBullet.name=Černá kulka
+item.npcEmeraldBullet.name=Emeraldová kulka
+
+item.npcWoodenTrident.name=Dřevěný trojzubec
+item.npcStoneTrident.name=Kamenný trojzubec
+item.npcIronTrident.name=Železný trojzubec
+item.npcGoldTrident.name=Zlatý trojzubec
+item.npcDiamondTrident.name=Diamantový trojzubec
+item.npcBronzeTrident.name=Bronzový trojzubec
+item.npcEmeraldTrident.name=Emeraldový trojzubec
+item.npcCursedTrident.name=Prokletý trojzubec
+
+item.npcNatureSpell.name=Přírodní kouzlo
+item.npcArcaneSpell.name=Arcane kouzlo
+item.npcLightningSpell.name=Bleskové kouzlo
+item.npcIceSpell.name=Ledové kouzlo
+item.npcFireSpell.name=Ohnivé kouzlo
+item.npcDarkSpell.name=Temné kouzlo
+item.npcHolySpell.name=Svaté kouzlo
+
+item.npcKunai.name=Kunai
+item.npcReverseKunai.name=Obrácená kunai
+item.npcShuriken.name=Shuriken
+item.npcGiantShuriken.name=Velký Shuriken
+item.npcKatana.name=Katana
+item.npcKukri.name=Kukri
+
+item.npcGolfClub.name=Golfová hůl
+item.npcMagicWand.name=Magická hůlka
+item.npcChickenSword.name=Slepičí meč
+item.npcHandCuffs.name=Želízka
+item.npcHammer.name=Kladivo
+item.npcBaseballBat.name=Baseballová čepice
+item.npcLeadPipe.name=Olověná dýmka
+item.npcCleaver.name=Sekáček
+item.npcSaber.name=Šavle
+item.npcHockeyStick.name=Hokejka
+item.npcSledgeHammer.name=Perlík
+item.npcBrokenBottle.name=Rozbitá láhev
+item.npcCombatKnive.name=Bojový nůž
+item.npcLighter.name=Zapalovač
+item.npcBatton.name=Obušek
+item.npcGunChainsaw.name=Řetězová pila
+item.npcRapier.name=Rapír
+item.npcCrowbar.name=Sochor
+item.npcWrench.name=Hasák
+item.npcSwissArmyKnife.name=Švýcarský nůž
+
+item.npcWoodenShield.name=Dřevěný Štít
+item.npcStoneShield.name=Kamenný Štít
+item.npcIronShield.name=Železný Štít
+item.npcGoldenShield.name=Zlatý Štít
+item.npcDiaShield.name=Diamantový Štít
+item.npcBronzeShield.name=Bronzový Štít
+item.npcFullWoodenShield.name=Velký Dřevěný Štít
+item.npcFullStoneShield.name=Velký Kamenný Štít
+item.npcFullIronShield.name=Velký Železný Štít
+item.npcFullGoldenShield.name=Velký Zlatý Štít
+item.npcFullDiaShield.name=Velký Diamantový Štít
+item.npcFullBronzeShield.name=Velký Bronzový Štít
+item.npcTowerShield.name=Věžovitý šťít z oceli
+item.npcCryscentShield.name=Ocelový cryscent šťít
+item.npcScutumShield.name=Ocelový scutum šťít
+item.npcHeaterShield.name=Ocelový heater šťít
+
+item.npcWoodenSpear.name=Dřevěné kopí
+item.npcStoneSpear.name=Kamenné kopí
+item.npcIronSpear.name=Železné kopí
+item.npcGoldenSpear.name=Zlaté kopí
+item.npcDiamondSpear.name=Diamantové kopí
+item.npcBronzeSpear.name=Bronzové kopí
+item.npcEmeraldSpear.name=Emeraldové kopí
+
+item.npcWoodenBattleAxe.name=Dřevěná válečná sekera
+item.npcStoneBattleAxe.name=Kamenná válečná sekera
+item.npcIronBattleAxe.name=Železná válečná sekera
+item.npcGoldenBattleAxe.name=Zlatá válečná sekera
+item.npcDiamondBattleAxe.name=Diamantová válečná sekera
+item.npcBronzeBattleAxe.name=Bronzová válečná sekera
+item.npcEmeraldBattleAxe.name=Emeraldová válečná sekera
+
+item.npcWoodenMace.name=Dřevěný palcát
+item.npcStoneMace.name=Kamenný palcát
+item.npcIronMace.name=Železný palcát
+item.npcGoldenMace.name=Zlatý palcát
+item.npcDiamondMace.name=Diamantový palcát
+item.npcBronzeMace.name=Bronzový palcát
+item.npcEmeraldMace.name=Emeraldový palcát
+
+item.npcWoodenDagger.name=Dřevěná dýka
+item.npcStoneDagger.name=Kamenná dýka
+item.npcIronDagger.name=Železná dýka
+item.npcGoldenDagger.name=Zlatá dýka
+item.npcDiamondDagger.name=Diamantová dýka
+item.npcBronzeDagger.name=Bronzová dýka
+item.npcEmeraldDagger.name=Emeraldová dýka
+item.npcDeadlyDiamondDagger.name=Vražedná Diamond dýka
+item.npcWoodenReversedDagger.name=Obrácená dřevěná dýka
+item.npcStoneReversedDagger.name=Obrácená kamenná dýka
+item.npcIronReversedDagger.name=Obrácená železná dýka
+item.npcGoldenReversedDagger.name=Obrácená zlatá dýka
+item.npcDiamondReversedDagger.name=Obrácená diamantová dýka
+item.npcBronzeReversedDagger.name=Obrácená bronzová dýka
+item.npcEmeraldReversedDagger.name=Obrácená emeraldová dýka
+
+item.npcWoodenStaff.name=Dřevěná hůl
+item.npcIronStaff.name=Železná hůl
+item.npcGoldenStaff.name=Zlatá hůl
+item.npcDiamondStaff.name=Diamantová hůl
+item.npcElementalStaff.name=Elemental hůl
+
+item.npcWoodenScythe.name=Dřevěná kosa
+item.npcStoneScythe.name=Kamenná kosa
+item.npcIronScythe.name=Železná kosa
+item.npcGoldenScythe.name=Zlatá kosa
+item.npcEmeraldScythe.name=Emeraldová kosa
+item.npcDiamondScythe.name=Diamantová kosa
+
+item.npcWoodenGlaive.name=Dřevěná glaive
+item.npcStoneGlaive.name=Kamenná glaive
+item.npcIronGlaive.name=Železná glaive
+item.npcGoldenGlaive.name=Zlatá glaive
+item.npcDiamondGlaive.name=Diamantová glaive
+item.npcBronzeGlaive.name=Bronzová glaive
+item.npcEmeraldGlaive.name=Emeraldový glaive
+
+item.npcCowleatherHead.name=Helma z kravské kůže
+item.npcCowleatherChest.name=Brnění z kravské kůže
+item.npcCowleatherLegs.name=Kalhoty z kravské kůže
+item.npcCowleatherBoots.name=Boty z kravské kůže
+
+item.npcNanorumHead.name=Trpasličí helma
+item.npcNanorumChest.name=Trpasličí brnění
+item.npcNanorumLegs.name=Trpasličí kalhoty
+item.npcNanorumBoots.name=Trpasličí Boots
+
+item.npcTacticalHead.name=Taktická helma
+item.npcTacticalChest.name=Taktická vesta
+
+item.npcFullIronHead.name=Lepší železná helma
+item.npcFullIronChest.name=Lepší železné brnění
+
+item.npcFullGoldHead.name=Lepší zlatá helma
+item.npcFullGoldChest.name=Lepší zlaté brnění
+
+item.npcFullDiamondHead.name=Lepší diamantová helma
+item.npcFullDiamondChest.name=Lepší diamantové brnění
+
+item.npcFullBronzeHead.name=Lepší brozová helma
+item.npcFullBronzeChest.name=Lepší bronzové brnění
+item.npcFullBronzeLeggings.name=Lepší bronzové kalhoty
+item.npcFullBronzeBoots.name=Lepší bronzové boty
+
+item.npcFullWoodenHead.name=Lepší dřevěná helma
+item.npcFullWoodenChest.name=Lepší dřevěné brnění
+item.npcFullWoodenLeggings.name=Lepší dřevěné kalhoty
+item.npcFullWoodenBoots.name=Lepší dřevěné boty
+
+item.npcTuxedoChest.name=Tuxedo brnění
+item.npcTuxedoPants.name=Tuxedo kalhoty
+item.npcTuxedoBottom.name=Tuxedo plášť
+
+item.npcWizardHead.name=Kouzelnická čapka
+item.npcWizardChest.name=Kouzelnické brnění
+item.npcWizardPants.name=Kouzelnické kalhoty
+
+item.npcAssassinHead.name=Přilba zabijáka
+item.npcAssassinChest.name=Brnění zabijáka
+item.npcAssassinLeggings.name=Kalhoty zabijáka
+item.npcAssassinBoots.name=Boty zabijáka
+
+item.npcSoldierHead.name=Vojenská helma
+item.npcSoldierChest.name=Vojenské brnění
+item.npcSoldierLegs.name=Vojenské kalhoty
+item.npcSoldierBottom.name=Vojenský kabát
+
+item.npcX407Head.name=X407 Prototyp helmy
+item.npcX407Chest.name=X407 Prototyp brnění
+item.npcX407Legs.name=X407 Prototyp kalhot
+item.npcX407Boots.name=X407 Prototyp bot
+
+item.npcCommissarHead.name=Komisařovo helma
+item.npcCommissarChest.name=Komisařovo brnění
+item.npcCommissarLegs.name=Komisařovo kalhoty
+item.npcCommissarBottom.name=Komisařovo boty
+
+item.npcInfantryHelmet.name=Armádní helma
+item.npcOfficerHelmet.name=důstojnické brnění 
+
+item.npcCrown.name=Koruna
+item.npcCrown2.name=Koruna
