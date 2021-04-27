@@ -1,0 +1,9 @@
+# Personal Directory and Files
+
+.gradle
+.idea
+build
+eclipse
+.classpath
+.project
+
