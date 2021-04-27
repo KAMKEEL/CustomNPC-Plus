@@ -43,15 +43,7 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.enchants.EnchantInterface;
-import noppes.npcs.entity.EntityChairMount;
-import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.entity.EntityMagicProjectile;
-import noppes.npcs.entity.EntityNPCGolem;
-import noppes.npcs.entity.EntityNpcCrystal;
-import noppes.npcs.entity.EntityNpcDragon;
-import noppes.npcs.entity.EntityNpcPony;
-import noppes.npcs.entity.EntityNpcSlime;
-import noppes.npcs.entity.EntityProjectile;
+import noppes.npcs.entity.*;
 import noppes.npcs.entity.old.EntityNPCDwarfFemale;
 import noppes.npcs.entity.old.EntityNPCDwarfMale;
 import noppes.npcs.entity.old.EntityNPCElfFemale;
@@ -210,6 +202,8 @@ public class CustomNpcs {
         registerNpc(EntityNPCEnderman.class, "npcEnderman");
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
+        registerNpc(EntityNPC64x64.class, "CustomNpc64");
+
 
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);

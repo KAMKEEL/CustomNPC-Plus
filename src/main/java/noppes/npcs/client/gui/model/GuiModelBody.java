@@ -11,10 +11,12 @@ import noppes.npcs.entity.EntityCustomNpc;
 public class GuiModelBody extends GuiModelInterface{
 
 	private GuiScreen parent;
-	private final String[] arrWing = new String[]{"gui.no","Player","Type1","Type2","Type3"};
+	private final String[] arrWing = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6","Type7","Type8","Type9",
+            "Type10","Type11","Type12","Type13"};
 	private final String[] arrBreasts = new String[]{"gui.no","Type1","Type2","Type3"};
 	private final String[] arrParticles = new String[]{"gui.no","Player","Type1","Type2", "Rainbow"};
-	private final String[] arrfins = new String[]{"gui.no","Player","Type1"};
+	private final String[] arrfins = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6"};
+	private final String[] arrskirt = new String[]{"gui.no","Player","Type1"};
 	
 	public GuiModelBody(GuiScreen parent, EntityCustomNpc npc){
 		super(npc);
@@ -47,14 +49,47 @@ public class GuiModelBody extends GuiModelInterface{
 		if(fin != null)
 			addButton(new GuiNpcButton(13, guiLeft + 122, y, 40, 20, fin.getColor()));
 
+		ModelPartData skirt = playerdata.getPartData("skirt");
+		addButton(new GuiNpcButton(4, guiLeft + 50, y += 22, 70, 20, arrskirt, getSkirtindex(skirt)));
+		addLabel(new GuiNpcLabel(4, "Skirt", guiLeft, y + 5, 0xFFFFFF));
+		if(skirt != null)
+			addButton(new GuiNpcButton(14, guiLeft + 122, y, 40, 20, skirt.getColor()));
     }
 
 
     private int getFinIndex(ModelPartData fin) {
-    	if(fin == null)
-    		return 0;
-		return fin.playerTexture?1:2;
+        if(fin == null)
+            return 0;
+        if(fin.type == 0){
+            if(fin.playerTexture)
+            return 1;
+            if(fin.texture.contains("1"))
+                return 2;
+            if(fin.texture.contains("2"))
+                return 3;
+            if(fin.texture.contains("3"))
+                return 4;
+            if(fin.texture.contains("4"))
+                return 5;
+            if(fin.texture.contains("5"))
+                return 6;
+            if(fin.texture.contains("6"))
+                return 7;
+        }
+        return 0;
 	}
+
+    private int getSkirtindex(ModelPartData skirt) {
+        if (skirt == null)
+            return 0;
+        if (skirt.type == 0) {
+            if (skirt.playerTexture)
+                return 1;
+            if (skirt.texture.contains("1"))
+                return 2;
+        }
+        return 0;
+    }
 
 	private int getParticleIndex(ModelPartData particles) {
     	if(particles == null)
@@ -110,18 +145,43 @@ public class GuiModelBody extends GuiModelInterface{
     		initGui();
     	}
     	if(button.id == 3){
-    		int value = button.getValue();
-    		if(value == 0)
-    			playerdata.removePart("fin");
-    		else{
-    			ModelPartData particles = playerdata.getOrCreatePart("fin");
-	    		if(value == 1)
-	    			particles.setTexture("", 0);
-	    		if(value == 2)
-	    			particles.setTexture("fin/fin1", 0);
-    		}
-    		initGui();
+			int value = button.getValue();
+			if(value == 0)
+				playerdata.removePart("fin");
+			else{
+				ModelPartData particles = playerdata.getOrCreatePart("fin");
+				if(value == 1)
+					particles.setTexture("", 0);
+				if(value == 2)
+					particles.setTexture("fin/fin1", 0);
+				if(value == 3)
+					particles.setTexture("fin/fin2", 0);
+				if(value == 4)
+					particles.setTexture("fin/fin3", 0);
+				if(value == 5)
+					particles.setTexture("fin/fin4", 0);
+				if(value == 6)
+					particles.setTexture("fin/fin5", 0);
+                if(value == 7)
+                    particles.setTexture("fin/fin6", 0);
+
+			}
+			initGui();
     	}
+
+		if(button.id == 4){
+			int value = button.getValue();
+			if(value == 0)
+				playerdata.removePart("skirt");
+			else{
+				ModelPartData particles = playerdata.getOrCreatePart("skirt");
+				if(value == 1)
+					particles.setTexture("", 0);
+				if(value == 2)
+					particles.setTexture("skirt/skirt1", 0);
+			}
+			initGui();
+		}
 
     	if(button.id == 11){
     		this.mc.displayGuiScreen(new GuiModelColor(this, playerdata.getPartData("wings"), npc));
@@ -132,6 +192,9 @@ public class GuiModelBody extends GuiModelInterface{
     	if(button.id == 13){
     		this.mc.displayGuiScreen(new GuiModelColor(this, playerdata.getPartData("fin"), npc));
     	}
+        if(button.id == 14){
+            this.mc.displayGuiScreen(new GuiModelColor(this, playerdata.getPartData("skirt"), npc));
+        }
     }
     
     @Override

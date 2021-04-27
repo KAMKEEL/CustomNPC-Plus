@@ -152,4 +152,18 @@ public class DataDisplay {
 			return false;
 		return showName == 0 || (showName == 2 && npc.isAttacking());
 	}
+
+	public String getSkinTexture(){
+		return texture;
+	}
+
+	public void setSkinTexture(String texture){
+		if(this.texture.equals(texture))
+			return;
+		this.texture = texture;
+		npc.textureLocation = null;
+		skinType = 0;
+		npc.updateClient = true;
+	}
+
 }

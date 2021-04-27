@@ -39,7 +39,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
     
 	public GuiNpcMobSpawner(int i, int j, int k) {
 		super();
-        xSize = 256;
+        xSize = 384;
 
         posX = i;
         posY = j;
@@ -56,7 +56,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
         
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0);
-	        scroll.setSize(165, 188);
+	        scroll.setSize(293, 188);
         }
         else
         	scroll.clear();
@@ -64,7 +64,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
         scroll.guiTop = guiTop + 26;
         addScroll(scroll);
         
-    	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 165, 20, search));
+    	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 293, 20, search));
 
         GuiMenuTopButton button;
         addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
@@ -74,28 +74,38 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
         addTopButton(button = new GuiMenuTopButton(5, button, "gui.server"));
         button.active = showingClones == 2;
         
-        addButton(new GuiNpcButton(1, guiLeft + 170, guiTop + 6, 82, 20, "item.monsterPlacer.name"));
+        addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 82, 20, "item.monsterPlacer.name"));
         
-        addButton(new GuiNpcButton(2, guiLeft + 170, guiTop + 100, 82, 20, "spawner.mobspawner"));
+        addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 100, 82, 20, "spawner.mobspawner"));
         
         if(showingClones == 0 || showingClones == 2){
-        	addSideButton(new GuiMenuSideButton(21,guiLeft - 69, this.guiTop + 2, 70,22, "Tab 1"));
-        	addSideButton(new GuiMenuSideButton(22,guiLeft - 69, this.guiTop + 23, 70,22, "Tab 2"));
-        	addSideButton(new GuiMenuSideButton(23,guiLeft - 69, this.guiTop + 44, 70,22, "Tab 3"));
-        	addSideButton(new GuiMenuSideButton(24,guiLeft - 69, this.guiTop + 65, 70,22, "Tab 4"));
-        	addSideButton(new GuiMenuSideButton(25,guiLeft - 69, this.guiTop + 86, 70,22, "Tab 5"));
-        	addSideButton(new GuiMenuSideButton(26,guiLeft - 69, this.guiTop + 107, 70,22, "Tab 6"));
-        	addSideButton(new GuiMenuSideButton(27,guiLeft - 69, this.guiTop + 128, 70,22, "Tab 7"));
-        	addSideButton(new GuiMenuSideButton(28,guiLeft - 69, this.guiTop + 149, 70,22, "Tab 8"));
-        	addSideButton(new GuiMenuSideButton(29,guiLeft - 69, this.guiTop + 170, 70,22, "Tab 9"));
-        	
-            addButton(new GuiNpcButton(6, guiLeft + 170, guiTop + 30, 82, 20, "gui.remove"));
-        	
+
+			addSideButton(new GuiMenuSideButton(21,guiLeft - 90, this.guiTop + 2, 90,22, "1"));
+			addSideButton(new GuiMenuSideButton(22,guiLeft - 90, this.guiTop + 23, 90,22, "2"));
+			addSideButton(new GuiMenuSideButton(23,guiLeft - 90, this.guiTop + 44, 90,22, "3"));
+			addSideButton(new GuiMenuSideButton(24,guiLeft - 90, this.guiTop + 65, 90,22, "4"));
+			addSideButton(new GuiMenuSideButton(25,guiLeft - 90, this.guiTop + 86, 90,22, "5"));
+			addSideButton(new GuiMenuSideButton(26,guiLeft - 90, this.guiTop + 107, 45,22, "6"));
+			addSideButton(new GuiMenuSideButton(27,guiLeft - 45, this.guiTop + 107, 45,22, "7"));
+			addSideButton(new GuiMenuSideButton(28,guiLeft - 90, this.guiTop + 128, 45,22, "8"));
+			addSideButton(new GuiMenuSideButton(29,guiLeft - 45, this.guiTop + 128, 45,22, "9"));
+			addSideButton(new GuiMenuSideButton(30,guiLeft - 90, this.guiTop + 149, 45,22, "10"));
+			addSideButton(new GuiMenuSideButton(31,guiLeft - 45, this.guiTop + 149, 45,22, "11"));
+			addSideButton(new GuiMenuSideButton(32,guiLeft - 90, this.guiTop + 170, 45,22, "12"));
+			addSideButton(new GuiMenuSideButton(33,guiLeft - 45, this.guiTop + 170, 45,22, "13"));
+			addSideButton(new GuiMenuSideButton(34,guiLeft - 90, this.guiTop + 191, 45,22, "14"));
+			addSideButton(new GuiMenuSideButton(35,guiLeft - 45, this.guiTop + 191, 45,22, "15"));
+
+
+
+			addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 82, 20, "gui.remove"));
+
         	getSideButton(20 + activeTab).active = true;
         	showClones();
         }
-        else
+        else{
         	showEntities();
+        }
     }
 
 	private void showEntities() {
@@ -119,7 +129,6 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 			Client.sendData(EnumPacketServer.CloneList, activeTab);
 			return;
 		}
-        
         ArrayList<String> list = new ArrayList<String>();
         this.list = ClientCloneController.Instance.getClones(activeTab);
         scroll.setList(getSearchList());

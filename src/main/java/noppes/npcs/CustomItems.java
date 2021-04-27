@@ -749,7 +749,7 @@ public class CustomItems {
 			armor = new ItemNpcArmor(26922, armorEmerald,1,"fullemerald").setUnlocalizedName("npcFullEmeraldChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldChest");
 			armor = new ItemNpcArmor(26923, armorEmerald,2,"fullemerald").setUnlocalizedName("npcFullEmeraldLeggings").setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldLeggings");
 			armor = new ItemNpcArmor(26924, armorEmerald,3,"fullemerald").setUnlocalizedName("npcFullEmeraldBoots").setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldBoots");
-	
+
 			armor = new ItemNpcArmor(26880,ArmorMaterial.CLOTH,0,"fullwood").setUnlocalizedName("npcFullWoodenHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenHead");
 			armor = new ItemNpcArmor(26881,ArmorMaterial.CLOTH,1,"fullwood").setUnlocalizedName("npcFullWoodenChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenChest");
 			armor = new ItemNpcArmor(26882,ArmorMaterial.CLOTH,2,"fullwood").setUnlocalizedName("npcFullWoodenLeggings").setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenLeggings");

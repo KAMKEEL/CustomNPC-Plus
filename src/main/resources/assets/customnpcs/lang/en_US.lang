@@ -126,6 +126,9 @@ remote.freeze=Freeze NPCs
 
 spawner.entities=Entities
 spawner.clones=Clones
+spawner.clones2=Clones 2
+spawner.clones3=Clones 3
+spawner.clones4=Clones 4
 spawner.mobspawner=MobSpawner
 spawner.mount=Mount by
 spawner.mountplayer=Player mounts

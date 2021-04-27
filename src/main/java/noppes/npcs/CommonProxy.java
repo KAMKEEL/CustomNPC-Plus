@@ -32,9 +32,9 @@ import noppes.npcs.entity.EntityNPCInterface;
 import cpw.mods.fml.common.network.IGuiHandler;
 
 public class CommonProxy implements IGuiHandler {
-	
+
 	public boolean newVersionAvailable = false;
-	public int revision = 4;
+	public int revision = 1;
 
 	public void load() {
 		CustomNpcs.Channel.register(new PacketHandlerServer());

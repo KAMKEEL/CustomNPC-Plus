@@ -12,7 +12,7 @@ public class GuiModelLegs extends GuiModelInterface{
 
 	private GuiScreen parent;
 	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid","Digitigrade"};
-	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel"};
+	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent"};
 	public GuiModelLegs(GuiScreen parent, EntityCustomNpc npc){
 		super(npc);
 		this.parent = parent;
@@ -46,22 +46,26 @@ public class GuiModelLegs extends GuiModelInterface{
 	}
 
 	private int getTailIndex(ModelPartData data){
-    	if(data == null)
-    		return 0;
-    	if(data.playerTexture && data.type == 0)
-    		return 1;
-    	if(data.type == 0 && data.texture.contains("tail1"))
-    		return 3;
-    	if(data.type == 0 && data.texture.contains("tail2"))
-    		return 4;
-    	if(data.playerTexture && data.type == 1)
-    		return 2;
-    	if(data.type == 1)
-    		return 6;
-    	if(data.type == 2)
-    		return 5;
-    	if(data.type == 3)
-    		return 7;
+		if(data == null)
+			return 0;
+		if(data.playerTexture && data.type == 0)
+			return 1;
+		if(data.type == 0 && data.texture.contains("tail1"))
+			return 3;
+		if(data.type == 0 && data.texture.contains("tail2"))
+			return 4;
+		if(data.playerTexture && data.type == 1)
+			return 2;
+		if(data.type == 1)
+			return 6;
+		if(data.type == 2)
+			return 5;
+		if(data.type == 3)
+			return 7;
+		if(data.type == 4)
+			return 8;
+		if(data.type == 5)
+			return 9;
     	
     	return 0;
     }
@@ -94,30 +98,34 @@ public class GuiModelLegs extends GuiModelInterface{
 
     	}
 
-    	if(button.id == 2){
+		if(button.id == 2){
 			int value = button.getValue();
-    		if(value == 0)
-    			playerdata.removePart("tail");
-    		else{
-    			ModelPartData data = playerdata.getOrCreatePart("tail");
-    			if(value == 1)
-    				data.setTexture("", 0);
-    			if(value == 2)
-    				data.setTexture("", 1);
-    			if(value == 3)
-    				data.setTexture("tail/tail1", 0);
-    			if(value == 4)
-    				data.setTexture("tail/tail2", 0);
-    			if(value == 5)
-    				data.setTexture("tail/horse1", 2);	
-    			if(value == 6)
-    				data.setTexture("tail/dragon1", 1);		
-    			if(value == 7)
-    				data.setTexture("tail/squirrel1", 3);		
-    		
-    		}
-    		initGui();
-    	}
+			if(value == 0)
+				playerdata.removePart("tail");
+			else{
+				ModelPartData data = playerdata.getOrCreatePart("tail");
+				if(value == 1)
+					data.setTexture("", 0);
+				if(value == 2)
+					data.setTexture("", 1);
+				if(value == 3)
+					data.setTexture("tail/tail1", 0);
+				if(value == 4)
+					data.setTexture("tail/tail2", 0);
+				if(value == 5)
+					data.setTexture("tail/horse1", 2);
+				if(value == 6)
+					data.setTexture("tail/dragon1", 1);
+				if(value == 7)
+					data.setTexture("tail/squirrel1", 3);
+				if(value == 8)
+					data.setTexture("tail/fin1", 4);
+				if(value == 9)
+					data.setTexture("tail/rodent1", 5);
+
+			}
+			initGui();
+		}
     	if(button.id == 11){
     		this.mc.displayGuiScreen(new GuiModelColor(this, playerdata.legParts, npc));
     	}

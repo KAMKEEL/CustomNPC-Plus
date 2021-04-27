@@ -105,19 +105,8 @@ import noppes.npcs.client.gui.roles.GuiNpcFollowerSetup;
 import noppes.npcs.client.gui.roles.GuiNpcItemGiver;
 import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
-import noppes.npcs.client.model.ModelNPCGolem;
-import noppes.npcs.client.model.ModelNpcCrystal;
-import noppes.npcs.client.model.ModelNpcDragon;
-import noppes.npcs.client.model.ModelNpcSlime;
-import noppes.npcs.client.model.ModelSkirtArmor;
-import noppes.npcs.client.renderer.NpcItemRenderer;
-import noppes.npcs.client.renderer.RenderCustomNpc;
-import noppes.npcs.client.renderer.RenderNPCHumanMale;
-import noppes.npcs.client.renderer.RenderNPCPony;
-import noppes.npcs.client.renderer.RenderNpcCrystal;
-import noppes.npcs.client.renderer.RenderNpcDragon;
-import noppes.npcs.client.renderer.RenderNpcSlime;
-import noppes.npcs.client.renderer.RenderProjectile;
+import noppes.npcs.client.model.*;
+import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -161,14 +150,7 @@ import noppes.npcs.containers.ContainerNPCTraderSetup;
 import noppes.npcs.containers.ContainerNpcItemGiver;
 import noppes.npcs.containers.ContainerNpcQuestReward;
 import noppes.npcs.containers.ContainerNpcQuestTypeItem;
-import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.entity.EntityNPCGolem;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.entity.EntityNpcCrystal;
-import noppes.npcs.entity.EntityNpcDragon;
-import noppes.npcs.entity.EntityNpcPony;
-import noppes.npcs.entity.EntityNpcSlime;
-import noppes.npcs.entity.EntityProjectile;
+import noppes.npcs.entity.*;
 
 import org.lwjgl.input.Keyboard;
 
@@ -199,6 +181,7 @@ public class ClientProxy extends CommonProxy {
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcSlime.class, new RenderNpcSlime(new ModelNpcSlime(16), new ModelNpcSlime(0), 0.25F));
 		RenderingRegistry.registerEntityRenderingHandler(EntityProjectile.class, new RenderProjectile());
 		RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
+		RenderingRegistry.registerEntityRenderingHandler(EntityNPC64x64.class, new RenderCustomNpc(1));
 		RenderingRegistry.registerEntityRenderingHandler(EntityNPCGolem.class, new RenderNPCHumanMale(
 				new ModelNPCGolem(0), new ModelNPCGolem(1F), new ModelNPCGolem(0.5F)));
 		FMLCommonHandler.instance().bus().register(new ClientTickHandler());

@@ -44,7 +44,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		
 
 		addLabel(new GuiNpcLabel(1, "Tab", guiLeft + 10, guiTop + 50));
-		addButton(new GuiNpcButton(2, guiLeft + 40, guiTop + 45, 20, 20, new String[]{"1","2","3","4","5","6","7","8","9"}, tab - 1));
+		addButton(new GuiNpcButton(2, guiLeft + 40, guiTop + 45, 20, 20, new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"}, tab - 1));
 
 		addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 95, new String[]{"Client side", "Server side"}, serverSide?1:0));
 		

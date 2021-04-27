@@ -13,7 +13,7 @@ public class ModelFin extends ModelPartInterface {
 	
 	public ModelFin(ModelMPM base) {
 		super(base);
-		model = new Model2DRenderer(base, 56, 20, 8, 12, 64, 32);
+		model = new Model2DRenderer(base, 48, 8, 16, 24, 64, 32);
 		model.setRotationPoint(-0.5F, 12, 10);
 		model.setScale(0.74f);
 		model.rotateAngleY = (float)Math.PI / 2;

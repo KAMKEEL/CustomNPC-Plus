@@ -13,6 +13,7 @@ public class ModelSnout extends ModelPartInterface {
 	private ModelRenderer medium;
 	private ModelRenderer large;
 	private ModelRenderer bunny;
+	private ModelRenderer beak;
 	
 	public ModelSnout(ModelMPM base) {
 		super(base);
@@ -41,6 +42,10 @@ public class ModelSnout extends ModelPartInterface {
 		tooth.addBox(2F, 3f, 0F, 2, 1, 1);
 		tooth.setRotationPoint(0F, 0F, 0F);
 		bunny.addChild(tooth);
+
+		beak = new ModelDuckBeak(base);
+		beak.setRotationPoint(0, 0, -4F);
+		this.addChild(beak);
 	}
 
 	@Override
@@ -64,6 +69,7 @@ public class ModelSnout extends ModelPartInterface {
 		medium.isHidden = config.type != 1;
 		large.isHidden = config.type != 2;
 		bunny.isHidden = config.type != 3;
+		beak.isHidden = config.type != 4;
 		
 		if(!config.playerTexture){
 			location = config.getResource();

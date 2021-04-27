@@ -23,6 +23,14 @@ public class GuiNpcSlider extends GuiButton {
 		if(parent instanceof ISliderListener)
 			listener = (ISliderListener) parent;
 	}
+
+    public GuiNpcSlider(GuiScreen parent, int id, int xPos, int yPos,  int width, int height, String displayString, float sliderValue) {
+        super(id, xPos, yPos, width, height, NoppesStringUtils.translate(displayString));
+        this.id = id;
+        this.sliderValue = sliderValue;
+        if(parent instanceof ISliderListener)
+            listener = (ISliderListener) parent;
+    }
 	
 	public GuiNpcSlider(GuiScreen parent, int id, int xPos, int yPos, float sliderValue) {
 		this(parent, id, xPos, yPos, "", sliderValue);

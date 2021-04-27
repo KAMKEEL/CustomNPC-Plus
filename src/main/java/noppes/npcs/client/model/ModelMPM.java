@@ -32,6 +32,8 @@ import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
+import noppes.npcs.client.model.part.ModelHorns;
+import noppes.npcs.client.model.part.ModelSkirt;
 
 import org.lwjgl.opengl.GL11;
 
@@ -44,6 +46,8 @@ public class ModelMPM extends ModelNPCMale{
 	private ModelPartInterface snout;
 	private ModelPartInterface ears;
 	private ModelPartInterface fin;
+    private ModelPartInterface skirt;
+	private ModelPartInterface horns;
 
 	private ModelPartInterface clawsR;
 	private ModelPartInterface clawsL;
@@ -94,40 +98,26 @@ public class ModelMPM extends ModelNPCMale{
 		
 		headwear = new ModelHeadwear(this);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg);
-		
-		breasts = new ModelBreasts(this);
-		this.bipedBody.addChild(breasts);
-		if(!isArmor){
-			ears = new ModelEars(this);
-			this.bipedHead.addChild(ears);
-			
-			mohawk = new ModelMohawk(this);
-			this.bipedHead.addChild(mohawk);
-			
-			hair = new ModelHair(this);
-			this.bipedHead.addChild(hair);
-			
-			beard = new ModelBeard(this);
-			this.bipedHead.addChild(beard);
-	
-			snout = new ModelSnout(this);
-			this.bipedHead.addChild(snout);
-			
-			tail = new ModelTail(this);
-			
-			wings = new ModelWings(this);
-			this.bipedBody.addChild(wings);
-			
-			fin = new ModelFin(this);
-			this.bipedBody.addChild(fin);
-			
-			clawsL = new ModelClaws(this, false);
-			this.bipedLeftArm.addChild(clawsL);
 
-			clawsR = new ModelClaws(this, true);
-			this.bipedRightArm.addChild(clawsR);
-		}
-	}
+        this.bipedBody.addChild(breasts = new ModelBreasts(this));
+        if(!isArmor){
+            this.bipedHead.addChild(ears = new ModelEars(this));
+            this.bipedHead.addChild(mohawk = new ModelMohawk(this));
+            this.bipedHead.addChild(hair = new ModelHair(this));
+            this.bipedHead.addChild(beard = new ModelBeard(this));
+            this.bipedHead.addChild(snout = new ModelSnout(this));
+            this.bipedHead.addChild(horns = new ModelHorns(this));
+
+            tail = new ModelTail(this);
+
+            this.bipedBody.addChild(wings = new ModelWings(this));
+            this.bipedBody.addChild(skirt = new ModelSkirt(this));
+            this.bipedBody.addChild(fin = new ModelFin(this));
+
+            this.bipedLeftArm.addChild(clawsL = new ModelClaws(this, false));
+            this.bipedRightArm.addChild(clawsR = new ModelClaws(this, true));
+        }
+    }
 	
 	private void setPlayerData(EntityCustomNpc entity){
 		if(!isArmor){
@@ -141,6 +131,8 @@ public class ModelMPM extends ModelNPCMale{
 			ears.setData(entity.modelData, entity);
 			clawsL.setData(entity.modelData, entity);
 			clawsR.setData(entity.modelData, entity);
+            skirt.setData(entity.modelData, entity);
+            horns.setData(entity.modelData, entity);
 		}
 		breasts.setData(entity.modelData, entity);
 		legs.setData(entity);
@@ -263,6 +255,7 @@ public class ModelMPM extends ModelNPCMale{
 	    	beard.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 	    	wings.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 	    	tail.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            skirt.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 		}
     	legs.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
     	

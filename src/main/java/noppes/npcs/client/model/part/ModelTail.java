@@ -15,6 +15,8 @@ import noppes.npcs.client.model.part.tails.ModelSquirrelTail;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.client.model.part.tails.ModelRodentTail;
+import noppes.npcs.client.model.part.tails.ModelTailFin;
 
 import org.lwjgl.opengl.GL11;
 
@@ -26,6 +28,8 @@ public class ModelTail extends ModelScaleRenderer {
 	private ModelRenderer dragon;
 	private ModelRenderer squirrel;
 	private ModelRenderer horse;
+	private ModelRenderer fin;
+	private ModelRenderer rodent;
 	
 	private int color = 0xFFFFFF;
 	
@@ -68,6 +72,9 @@ public class ModelTail extends ModelScaleRenderer {
 		this.addChild(dragon = new ModelDragonTail(base));
 
 		this.addChild(squirrel = new ModelSquirrelTail(base));
+
+		this.addChild(fin = new ModelTailFin(base));
+		this.addChild(rodent = new ModelRodentTail(base));
 	}
 
 	public void setData(EntityCustomNpc entity) {
@@ -118,6 +125,8 @@ public class ModelTail extends ModelScaleRenderer {
 		dragon.isHidden = config.type != 1;
 		horse.isHidden = config.type != 2;
 		squirrel.isHidden = config.type != 3;
+        fin.isHidden = config.type != 4;
+        rodent.isHidden = config.type != 5;
 		if(!config.playerTexture){
 			location = config.getResource();
 		}

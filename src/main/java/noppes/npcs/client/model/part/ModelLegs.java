@@ -12,6 +12,7 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.part.legs.ModelDigitigradeLegs;
 import noppes.npcs.client.model.part.legs.ModelMermaidLegs;
+import noppes.npcs.client.model.part.legs.ModelMermaidLegs2;
 import noppes.npcs.client.model.part.legs.ModelNagaLegs;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
@@ -27,6 +28,7 @@ public class ModelLegs extends ModelScaleRenderer{
 	private ModelNagaLegs naga;
 	private ModelDigitigradeLegs digitigrade;
 	private ModelMermaidLegs mermaid;
+	private ModelMermaidLegs2 mermaid2;
 
 	private ModelRenderer spiderLeg1;
     private ModelRenderer spiderLeg2;
@@ -200,7 +202,9 @@ public class ModelLegs extends ModelScaleRenderer{
         this.addChild(naga);
 
 		mermaid = new ModelMermaidLegs(base);
-        this.addChild(mermaid);
+
+		mermaid2 = new ModelMermaidLegs2(base);
+		this.addChild(mermaid2);
         
         digitigrade = new ModelDigitigradeLegs(base);
         this.addChild(digitigrade);
@@ -297,8 +301,17 @@ public class ModelLegs extends ModelScaleRenderer{
 			naga.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 		}
 		else if(part.type == 4){
-			mermaid.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-		}
+            mermaid.isRiding = base.isRiding;
+            mermaid.isSleeping = base.isSleeping(entity);
+            mermaid.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
+            mermaid.isSneaking = base.isSneak;
+            mermaid2.isRiding = base.isRiding;
+            mermaid2.isSleeping = base.isSleeping(entity);
+            mermaid2.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
+            mermaid2.isSneaking = base.isSneak;
+            mermaid.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            mermaid2.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+        }
 		else if(part.type == 5){
 			digitigrade.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 		}
@@ -314,7 +327,7 @@ public class ModelLegs extends ModelScaleRenderer{
 			return;
 		GL11.glPushMatrix();
 		if(part.type == 4)
-			part.playerTexture = !entity.isInWater();
+			part.playerTexture = false;
 		if(!base.isArmor){
 			if(!part.playerTexture){
 				ClientProxy.bindTexture(part.getResource());
@@ -325,18 +338,19 @@ public class ModelLegs extends ModelScaleRenderer{
 	            base.currentlyPlayerTexture = true;
 			}
 		}
-		if(part.type == 0 || part.type == 4 && !entity.isInWater()){
-			leg1.setConfig(config, x, y, z);
-			leg1.render(par1);
-			leg2.setConfig(config, -x, y, z);
-			leg2.render(par1);
-		}
+        if(part.type == 0){
+            leg1.setConfig(config, x, y, z);
+            leg1.render(par1);
+            leg2.setConfig(config, -x, y, z);
+            leg2.render(par1);
+        }
 
 		if(!base.isArmor){
 			naga.isHidden = part.type != 1;
 			spider.isHidden = part.type != 2;
 			horse.isHidden = part.type != 3;
-			mermaid.isHidden = part.type != 4 || !entity.isInWater();
+			mermaid.isHidden = part.type != 4;
+            mermaid2.isHidden = part.type != 4;
 			digitigrade.isHidden = part.type != 5;
 	
 			if(!horse.isHidden){

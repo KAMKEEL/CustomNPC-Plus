@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.model.ModelMPM;
+import noppes.npcs.client.model.ModelMPM64;
 import noppes.npcs.client.model.util.ModelRenderPassHelper;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -23,11 +24,15 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 	private EntityLivingBase entity;
 	
 	private ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
-	
+
 	public RenderCustomNpc() {
 		super(new ModelMPM(0), new ModelMPM(1), new ModelMPM(0.5f));
 	}
-	
+
+	public RenderCustomNpc(int i) {
+		super(new ModelMPM64(0), new ModelMPM64(1), new ModelMPM64(0.5f));
+	}
+
 	@Override
     public void renderPlayer(EntityNPCInterface npcInterface, double d, double d1, double d2, float f, float f1){
 		EntityCustomNpc npc = (EntityCustomNpc) npcInterface;
