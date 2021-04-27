@@ -17,7 +17,7 @@ I am not the original creator of CustomNPC. The original creator is @[Noppes](ht
 - [x] Larger Clone GUI
 - [x] More Clone Tabs
 - [x] Increased Resolution to Additional Body Parts
-- [ ] 1.8 Skins (64x32) [WIP]
+- [ ] 1.8 Skins (64x64) [WIP]
 - [ ] Alex Model
 
 #### Want to check out my other mods?
