@@ -2,7 +2,7 @@
 
 Welcome to the CustomNPC+ Repository.
 
-CustomNPC+ is a [Minecraft](https://minecraft.net/) mod that allows you to add custom npcs to your world. It is developed for creative and story telling players who want to make their minecraft worlds more in-depth and unique. CustomNPC+ is only the continuation of the **1.7.10** Forge version of the Mod and has no plans to add or update any other version.
+CustomNPC+ is a [Minecraft](https://minecraft.net/) mod that allows you to add custom npcs to your world. It is developed for creative and story telling players who want to make their minecraft worlds more in-depth and unique. CustomNPC+ is only a branch version of the **1.7.10** Forge version of the Mod and has no plans to add or update any other version. This is no an official version of CustomNPC.
 
 #### Notice
 I am not the original creator of CustomNPC. The original creator is @[Noppes](https://github.com/Noppes) and I have been given permission to update the 1.7.10 and post my results on GitHub. The original mod that is being updated to latest versions of minecraft can be found on these links: [CurseForge](https://www.curseforge.com/minecraft/mc-mods/custom-npcs), [kodevelopment](http://www.kodevelopment.nl/minecraft/customnpcs)
