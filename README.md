@@ -10,15 +10,17 @@ I am not the original creator of CustomNPC. The original creator is @[Noppes](ht
 ### Features:
 - [x] More Wing Types
 - [x] More Fin Types
-- [x] More Capes
+- [x] More Capes*
 - [x] More Overlays
 - [x] Added Horns
 - [x] Added Dolphin Tail
 - [x] Larger Clone GUI
 - [x] More Clone Tabs
 - [x] Increased Resolution to Additional Body Parts
-- [ ] 1.8 Skins (64x32) [WIP]
+- [ ] 1.8 Skins (64x64) [WIP]
 - [ ] Alex Model
+
+###### **Majority of these cape designs are taken from the internet with fair-usage.*
 
 #### Want to check out my other mods?
 [Plugin Mod](https://github.com/KAMKEEL/Plugin-Mod) is a mod designed to add more aesthetic items for RPG and storytelling. It is compatible with CustomNPC+ and has many items intended to be used and wielded by created NPCs.
