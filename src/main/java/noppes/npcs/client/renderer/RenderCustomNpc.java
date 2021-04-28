@@ -10,7 +10,6 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.model.ModelMPM;
-import noppes.npcs.client.model.ModelMPM64;
 import noppes.npcs.client.model.util.ModelRenderPassHelper;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -30,7 +29,7 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 	}
 
 	public RenderCustomNpc(int i) {
-		super(new ModelMPM64(0), new ModelMPM64(1), new ModelMPM64(0.5f));
+		super(new ModelMPM(0, true), new ModelMPM(1, true), new ModelMPM(0.5f, true));
 	}
 
 	@Override

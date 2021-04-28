@@ -180,8 +180,12 @@ public class ClientProxy extends CommonProxy {
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcDragon.class, new RenderNpcDragon(new ModelNpcDragon(0.0F), 0.5F));
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcSlime.class, new RenderNpcSlime(new ModelNpcSlime(16), new ModelNpcSlime(0), 0.25F));
 		RenderingRegistry.registerEntityRenderingHandler(EntityProjectile.class, new RenderProjectile());
+
+		// Changes Made Here:
 		RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
 		RenderingRegistry.registerEntityRenderingHandler(EntityNPC64x64.class, new RenderCustomNpc(1));
+
+
 		RenderingRegistry.registerEntityRenderingHandler(EntityNPCGolem.class, new RenderNPCHumanMale(
 				new ModelNPCGolem(0), new ModelNPCGolem(1F), new ModelNPCGolem(0.5F)));
 		FMLCommonHandler.instance().bus().register(new ClientTickHandler());
