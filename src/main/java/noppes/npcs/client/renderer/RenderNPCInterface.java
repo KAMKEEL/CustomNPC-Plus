@@ -35,15 +35,10 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 
 public class RenderNPCInterface extends RenderLiving{	
 	public static long LastTextureTick = 0;
-	private boolean newVersion = false;
 
     public RenderNPCInterface(ModelBase model, float f){
         super(model, f);
     }
-
-    protected void setNewVersion(boolean value){
-    	newVersion = value;
-	}
 
 	protected void renderName(EntityNPCInterface npc, double d, double d1, double d2) {
 		if (!this.func_110813_b(npc))
@@ -289,8 +284,9 @@ public class RenderNPCInterface extends RenderLiving{
     
 	@Override
 	public ResourceLocation getEntityTexture(Entity entity) {
-		EntityNPCInterface npc = (EntityNPCInterface) entity;
 
+		EntityNPCInterface npc = (EntityNPCInterface) entity;
+		boolean versionModel = npc.isUpdatedVersion; // DOES NOT WORK
 		if(npc.textureLocation == null){
 			if(npc.display.skinType == 0)
 				npc.textureLocation = new ResourceLocation(npc.display.texture);
@@ -314,7 +310,7 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-					loadSkin(null, npc.textureLocation, npc.display.url, newVersion);
+					loadSkin(null, npc.textureLocation, npc.display.url, versionModel);
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){

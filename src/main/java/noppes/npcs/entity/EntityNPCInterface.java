@@ -185,6 +185,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateClient = false;
 	public boolean updateAI = false;
 
+	public boolean isUpdatedVersion = false;
+
 	public EntityNPCInterface(World world) {
 		super(world);
 		try{

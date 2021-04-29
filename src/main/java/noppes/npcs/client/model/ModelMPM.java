@@ -61,7 +61,6 @@ public class ModelMPM extends ModelNPCMale{
 	public boolean currentlyPlayerTexture;
 	
 	public boolean isArmor;
-	
 	public float alpha = 1;
 
 	public ModelMPM(float par1) {

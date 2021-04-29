@@ -42,7 +42,13 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload
         g.dispose();
         imageData = ((DataBufferInt)bufferedimage1.getRaster().getDataBuffer()).getData();
 
-        setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
+        if(NPC64){
+            setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
+        }
+        else{
+            setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
+        }
+
 
         return bufferedimage1;
     }
