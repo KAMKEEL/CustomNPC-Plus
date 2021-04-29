@@ -306,7 +306,7 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-					func_110301_a(null, npc.textureLocation, npc.display.url);
+					loadSkin(null, npc.textureLocation, npc.display.url);
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){
@@ -319,9 +319,10 @@ public class RenderNPCInterface extends RenderLiving{
 		return npc.textureLocation;
 	}
 
-    private void func_110301_a(File file, ResourceLocation resource, String par1Str){
+    private void loadSkin(File file, ResourceLocation resource, String par1Str){
         TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
         ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt());
         texturemanager.loadTexture(resource, object);
     }
+
 }

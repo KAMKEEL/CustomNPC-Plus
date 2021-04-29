@@ -3,6 +3,7 @@ package noppes.npcs.client.renderer;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.ImageObserver;
 
 import net.minecraft.client.renderer.ImageBufferDownload;
 
@@ -11,21 +12,41 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload
     private int imageData[];
     private int imageWidth;
     private int imageHeight;
+    private boolean NPC64;
+
+    public ImageBufferDownloadAlt(){
+        NPC64 = false;
+    }
+
+    public ImageBufferDownloadAlt(boolean type){
+        NPC64 = type;
+    }
+
 
     @Override
     public BufferedImage parseUserSkin(BufferedImage bufferedimage)
-    {        
-		imageWidth = bufferedimage.getWidth(null);
-        imageHeight = imageWidth / 2;
-        
+    {
+
+        imageWidth = bufferedimage.getWidth(null);
+
+        if(NPC64){
+            imageHeight = bufferedimage.getHeight(null);
+        }
+        else{
+            imageHeight = imageWidth / 2;
+        }
+
         BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageHeight, 2);
         Graphics g = bufferedimage1.getGraphics();
         g.drawImage(bufferedimage, 0, 0, null);
         g.dispose();
         imageData = ((DataBufferInt)bufferedimage1.getRaster().getDataBuffer()).getData();
+
         setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
+
         return bufferedimage1;
     }
+
     /**
      * Makes the given area of the image transparent if it was previously completely opaque (used to remove the outer
      * layer of a skin around the head if it was saved all opaque; this would be redundant so it's assumed that the skin

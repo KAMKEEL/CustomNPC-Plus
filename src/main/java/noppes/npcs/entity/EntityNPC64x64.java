@@ -13,6 +13,7 @@ public class EntityNPC64x64 extends EntityCustomNpc{
 
 	public EntityNPC64x64(World world) {
 		super(world);
-		display.setSkinTexture("customnpcs:textures/entity/humanmale/Steve64.png");
+		display.texture = "customnpcs:textures/entity/humanmale/Steve64.png";
 	}
+
 }

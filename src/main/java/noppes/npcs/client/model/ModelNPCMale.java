@@ -25,17 +25,85 @@ public class ModelNPCMale extends ModelBiped
     {
     	init(f, 0.0F);
     }
+
+    public ModelNPCMale(float f, boolean newSteve)
+    {
+        super(f, 0.0F, 64, 64);
+        init(f, 0.0F, true);
+    }
+
     @Override
     public void setLivingAnimations(EntityLivingBase par1EntityLiving, float f6, float f5, float par9){
     	animationTick += par9;
     	dancingTicks = CustomNpcs.ticks / 3.978873F;
     }
+
+
+    // 64x64 Skin
+    public void init(float f, float f1, boolean NewSteve)
+    {
+
+        heldItemLeft = 0;
+        heldItemRight = 0;
+        isSneak = false;
+        aimedBow = false;
+
+        // Changed
+        bipedCloak = new ModelRenderer(this, 0, 0);
+        bipedCloak.setTextureSize(64, 32);
+        bipedCloak.addBox(-5.0F, 0.0F, -1.0F, 10, 16, 1, f);
+
+        // Same
+        bipedEars = new ModelRenderer(this, 24, 0);
+        bipedEars.setTextureSize(64, 32); // NEW LINE
+        bipedEars.addBox(-3F, -6F, -1F, 6, 6, 1, f);
+
+        bipedHead = new ModelRenderer(this, 0, 0);
+        bipedHead.addBox(-4F, -8F, -4F, 8, 8, 8, f);
+        bipedHead.setRotationPoint(0.0F, 0.0F + f1, 0.0F);
+
+        bipedHeadwear = new ModelRenderer(this, 32, 0);
+        bipedHeadwear.addBox(-4F, -8F, -4F, 8, 8, 8, f + 0.5F);
+        bipedHeadwear.setRotationPoint(0.0F, 0.0F + f1, 0.0F);
+
+        bipedBody = new ModelRenderer(this, 16, 16);
+        bipedBody.addBox(-4F, 0.0F, -2F, 8, 12, 4, f);
+        bipedBody.setRotationPoint(0.0F, 0.0F + f1, 0.0F);
+
+
+        bipedRightArm = new ModelRenderer(this, 40, 16);
+        bipedRightArm.addBox(-3F, -2F, -2F, 4, 12, 4, f);
+        bipedRightArm.setRotationPoint(-5F, 2.0F + f1, 0.0F);
+
+        // Changed
+        bipedLeftArm = new ModelRenderer(this, 32, 48);
+        bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, f);
+        bipedLeftArm.setRotationPoint(5.0F, 2.0F + f1, 0.0F);
+
+        bipedRightLeg = new ModelRenderer(this, 0, 16);
+        bipedRightLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
+        bipedRightLeg.setRotationPoint(-2F, 12F + f1, 0.0F);
+
+        // Changed
+        bipedLeftLeg = new ModelRenderer(this, 16, 48);
+        bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, f);
+        bipedLeftLeg.setRotationPoint(1.9F, 12.0F + f1, 0.0F);
+
+        bipedLeftLeg = new ModelRenderer(this, 0, 16);
+        bipedLeftLeg.mirror = true;
+        bipedLeftLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
+        bipedLeftLeg.setRotationPoint(2.0F, 12F + f1, 0.0F);
+
+    }
+
+    // 64x32
     public void init(float f, float f1)
     {
         heldItemLeft = 0;
         heldItemRight = 0;
         isSneak = false;
         aimedBow = false;
+
         bipedCloak = new ModelRenderer(this, 0, 0);
         bipedCloak.textureHeight = 32;
         bipedCloak.addBox(-5F, 0.0F, -1F, 10, 16, 1, f);
@@ -69,6 +137,9 @@ public class ModelNPCMale extends ModelBiped
         bipedLeftLeg.setRotationPoint(2.0F, 12F + f1, 0.0F);
         
     }
+
+
+
 
     @Override
     public void render(Entity par1Entity, float par2, float par3, float par4, float par5, float par6, float par7){

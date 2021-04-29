@@ -183,7 +183,7 @@ public class ClientProxy extends CommonProxy {
 
 		// Changes Made Here:
 		RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
-		RenderingRegistry.registerEntityRenderingHandler(EntityNPC64x64.class, new RenderCustomNpc(1));
+		RenderingRegistry.registerEntityRenderingHandler(EntityNPC64x64.class, new RenderCustomNpc(false)); // False for Steve
 
 
 		RenderingRegistry.registerEntityRenderingHandler(EntityNPCGolem.class, new RenderNPCHumanMale(

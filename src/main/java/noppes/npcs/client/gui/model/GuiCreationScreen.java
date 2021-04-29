@@ -63,7 +63,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			} catch (NoSuchMethodException e) {
 			}
         }
-		data.put("NPC64", EntityNPC64x64.class);
+		data.put("CustomNPC64x64", EntityNPC64x64.class);
 		list = new ArrayList<String>(data.keySet());
 		Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 	}

@@ -121,13 +121,9 @@ public class ModelMPM extends ModelNPCMale{
 
 	public ModelMPM(float par1, boolean arms) {
 
-		super(par1);
+		super(par1, true);
 		isArmor = par1 > 0;
 		float par2 = 0;
-
-		// Changed Texture Size
-		int short1 = 64;
-		int short2 = 64;
 
 		this.bipedCloak = new ModelRenderer(this, 0, 0);
 		this.bipedCloak.addBox(-5.0F, 0.0F, -1.0F, 10, 16, 1, par1);
@@ -135,35 +131,33 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedEars = new ModelRenderer(this, 24, 0);
 		this.bipedEars.addBox(-3.0F, -6.0F, -1.0F, 6, 6, 1, par1);
 
-		this.bipedHead = (new ModelScaleRenderer(this, 0, 0)).setTextureSize(short1, short2);
+		this.bipedHead = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedHead.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, par1);
 		this.bipedHead.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
-		this.bipedHeadwear = (new ModelScaleRenderer(this, 32, 0)).setTextureSize(short1, short2);
+		this.bipedHeadwear = (new ModelScaleRenderer(this, 32, 0));
 		this.bipedHeadwear.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, par1 + 0.5F);
 		this.bipedHeadwear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
-		this.bipedBody = (new ModelScaleRenderer(this, 16, 16)).setTextureSize(short1, short2);
+		this.bipedBody = (new ModelScaleRenderer(this, 16, 16));
 		this.bipedBody.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1);
 		this.bipedBody.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
-		this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16)).setTextureSize(short1, short2);
+		this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
 		this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
 
-		// Changed Texture Size
-		this.bipedLeftArm = (new ModelScaleRenderer(this, 32, 48)).setTextureSize(short1, short2);
-		this.bipedLeftArm.mirror = true;
+		// Changed for 64x64 Texture
+		this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
 		this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
 
-		this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16)).setTextureSize(short1, short2);
+		this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16));
 		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
 
-		// Changed Texture Size
-		this.bipedLeftLeg = (new ModelScaleRenderer(this, 16, 48)).setTextureSize(short1, short2);
-		this.bipedLeftLeg.mirror = true;
+		// Changed for 64x64 Texture
+		this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
 		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
 

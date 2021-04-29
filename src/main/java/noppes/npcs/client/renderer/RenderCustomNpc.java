@@ -24,12 +24,16 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 	
 	private ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
 
+	// Default Renderer
 	public RenderCustomNpc() {
 		super(new ModelMPM(0), new ModelMPM(1), new ModelMPM(0.5f));
 	}
 
-	public RenderCustomNpc(int i) {
-		super(new ModelMPM(0, true), new ModelMPM(1, true), new ModelMPM(0.5f, true));
+	// 64x64 Version
+	// True = Alex Arms
+	// False = Steve Arms
+	public RenderCustomNpc(boolean arms) {
+		super(new ModelMPM(0, arms), new ModelMPM(1, arms), new ModelMPM(0.5f, arms));
 	}
 
 	@Override
