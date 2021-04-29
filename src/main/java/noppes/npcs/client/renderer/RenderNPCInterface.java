@@ -35,10 +35,16 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 
 public class RenderNPCInterface extends RenderLiving{	
 	public static long LastTextureTick = 0;
+	private boolean newVersion = false;
+
     public RenderNPCInterface(ModelBase model, float f){
         super(model, f);
     }
-    
+
+    protected void setNewVersion(boolean value){
+    	newVersion = value;
+	}
+
 	protected void renderName(EntityNPCInterface npc, double d, double d1, double d2) {
 		if (!this.func_110813_b(npc))
 			return;
@@ -284,6 +290,7 @@ public class RenderNPCInterface extends RenderLiving{
 	@Override
 	public ResourceLocation getEntityTexture(Entity entity) {
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
+
 		if(npc.textureLocation == null){
 			if(npc.display.skinType == 0)
 				npc.textureLocation = new ResourceLocation(npc.display.texture);
@@ -307,12 +314,7 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-
-					if(entity instanceof EntityCustomNpc64){
-						loadSkin(null, npc.textureLocation, npc.display.url, true);
-					}
-					loadSkin(null, npc.textureLocation, npc.display.url, false);
-
+					loadSkin(null, npc.textureLocation, npc.display.url, newVersion);
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){
@@ -326,12 +328,9 @@ public class RenderNPCInterface extends RenderLiving{
 	}
 
 	// True = 64x64 Skin
-    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean newVersion){
+    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean value){
         TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt());
-        if(newVersion){
-        	object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(newVersion));
-		}
+        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(value));
         texturemanager.loadTexture(resource, object);
     }
 

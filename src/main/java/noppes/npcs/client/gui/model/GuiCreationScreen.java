@@ -54,7 +54,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
         for(Object name : mapping.keySet()){
         	Class<?> c = (Class<?>) mapping.get(name);
         	try {
-        		if( (!EntityCustomNpc.class.isAssignableFrom(c) && !EntityCustomNpc.class.isAssignableFrom(c)) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[] {World.class}) != null && !Modifier.isAbstract(c.getModifiers())){
+        		if(!EntityCustomNpc.class.isAssignableFrom(c) && !EntityCustomNpc64.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[] {World.class}) != null && !Modifier.isAbstract(c.getModifiers())){
         			if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity)
         				data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
         		}
@@ -63,7 +63,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			} catch (NoSuchMethodException e) {
 			}
         }
-		data.put("CustomNPC64x64", EntityCustomNpc64.class);
+		data.put("CustomNPC64", EntityCustomNpc64.class);
 		list = new ArrayList<String>(data.keySet());
 		Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 	}

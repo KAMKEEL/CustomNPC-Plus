@@ -21,7 +21,7 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 
 	private RendererLivingEntity renderEntity;
 	private EntityLivingBase entity;
-	
+
 	private ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
 
 	// Default Renderer
@@ -34,6 +34,7 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 	// False = Steve Arms
 	public RenderCustomNpc(boolean arms) {
 		super(new ModelMPM(0, arms), new ModelMPM(1, arms), new ModelMPM(0.5f, arms));
+		this.setNewVersion(true);
 	}
 
 	@Override
