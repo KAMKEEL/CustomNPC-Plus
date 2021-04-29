@@ -286,7 +286,7 @@ public class RenderNPCInterface extends RenderLiving{
 	public ResourceLocation getEntityTexture(Entity entity) {
 
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
-		boolean versionModel = npc.isUpdatedVersion; // DOES NOT WORK
+		boolean versionModel = false; // Square Texture
 		if(npc.textureLocation == null){
 			if(npc.display.skinType == 0)
 				npc.textureLocation = new ResourceLocation(npc.display.texture);
@@ -310,6 +310,9 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
+
+					if(npc.display.squareTexture == 1){ versionModel = true; }
+
 					loadSkin(null, npc.textureLocation, npc.display.url, versionModel);
 					LastTextureTick = 0;
 				}

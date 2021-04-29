@@ -14,7 +14,6 @@ public class EntityCustomNpc extends EntityNPCInterface{
 	
 	public EntityCustomNpc(World world) {
 		super(world);
-		isUpdatedVersion = false;
 	}
 
 	@Override

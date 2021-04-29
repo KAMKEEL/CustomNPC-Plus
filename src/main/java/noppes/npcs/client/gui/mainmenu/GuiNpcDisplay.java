@@ -73,16 +73,20 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
     	y+=23;
     	addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
-    	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"},display.disableLivingAnimation?1:0));
+    	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"}, display.disableLivingAnimation?1:0));
 
-    	y+=23;
+    	// Square Texture Button
+		addLabel(new GuiNpcLabel(300,"display.squareTexture", guiLeft + 230, y + 5));
+		this.addButton(new GuiNpcButton(300, guiLeft + 313, y, 50, 20, new String[]{"gui.no","gui.yes"}, display.squareTexture));
+
+		y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
 
     	y+=23;
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
-    
+
     	//addExtra(new GuiHoverText(0, "testing", guiLeft, guiTop));
     }
 
@@ -145,6 +149,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(button.id == 7){
 			display.visible = button.getValue();
+		}
+		else if(button.id == 300){
+			display.squareTexture = (byte)button.getValue();
 		}
 		else if(button.id == 8){
 			NoppesUtil.openGUI(player, new GuiNpcTextureCloaks(npc, this));

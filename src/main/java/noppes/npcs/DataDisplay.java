@@ -35,6 +35,8 @@ public class DataDisplay {
 	public boolean disableLivingAnimation = false;
 	
 	public byte showBossBar = 0;
+
+	public byte squareTexture = 0;
 	
 	public DataDisplay(EntityNPCInterface npc){
 		this.npc = npc;
@@ -86,6 +88,7 @@ public class DataDisplay {
 
 		nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
 		nbttagcompound.setByte("BossBar", showBossBar);
+		nbttagcompound.setByte("SquareTexture", squareTexture);
 
 		return nbttagcompound;
 	}
@@ -121,6 +124,7 @@ public class DataDisplay {
 
 		disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
 		showBossBar = nbttagcompound.getByte("BossBar");
+		squareTexture = nbttagcompound.getByte("SquareTexture");
 
 		if(prevSkinType != skinType || !texture.equals(prevTexture))
 			npc.textureLocation = null;

@@ -173,6 +173,7 @@ display.selectTexture=Select Texture
 display.livingAnimation=Has a living animation
 display.visible=Visible
 display.bossbar=BossBar
+display.squareTexture=Square Texture
 display.url=Url
 
 inv.minExp=Min Exp

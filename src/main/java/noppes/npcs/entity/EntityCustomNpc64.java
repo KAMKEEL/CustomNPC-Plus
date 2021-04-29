@@ -14,7 +14,6 @@ public class EntityCustomNpc64 extends EntityCustomNpc{
 	public EntityCustomNpc64(World world) {
 		super(world);
 		display.texture = "customnpcs:textures/entity/humanmale/Steve64.png";
-		isUpdatedVersion = true;
 	}
 
 }
