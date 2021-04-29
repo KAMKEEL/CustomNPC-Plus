@@ -24,6 +24,7 @@ import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.EntityCustomNpc64;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.opengl.GL11;
@@ -306,7 +307,12 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-					loadSkin(null, npc.textureLocation, npc.display.url);
+
+					if(entity instanceof EntityCustomNpc64){
+						loadSkin(null, npc.textureLocation, npc.display.url, true);
+					}
+					loadSkin(null, npc.textureLocation, npc.display.url, false);
+
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){
@@ -319,9 +325,13 @@ public class RenderNPCInterface extends RenderLiving{
 		return npc.textureLocation;
 	}
 
-    private void loadSkin(File file, ResourceLocation resource, String par1Str){
+	// True = 64x64 Skin
+    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean newVersion){
         TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
         ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt());
+        if(newVersion){
+        	object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(newVersion));
+		}
         texturemanager.loadTexture(resource, object);
     }
 

@@ -161,7 +161,7 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
 
-		headwear = new ModelHeadwear(this);
+		headwear = new ModelHeadwear(this, arms);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg);
 
 		this.bipedBody.addChild(breasts = new ModelBreasts(this));

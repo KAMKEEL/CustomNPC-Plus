@@ -14,7 +14,6 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.entity.EntityNPC64x64;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptEvent;
 import noppes.npcs.scripted.ScriptNpc;

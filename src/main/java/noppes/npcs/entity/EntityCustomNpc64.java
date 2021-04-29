@@ -9,9 +9,9 @@ import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.EntityUtil;
 
-public class EntityNPC64x64 extends EntityCustomNpc{
+public class EntityCustomNpc64 extends EntityCustomNpc{
 
-	public EntityNPC64x64(World world) {
+	public EntityCustomNpc64(World world) {
 		super(world);
 		display.texture = "customnpcs:textures/entity/humanmale/Steve64.png";
 	}

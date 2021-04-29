@@ -18,8 +18,8 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload
         NPC64 = false;
     }
 
-    public ImageBufferDownloadAlt(boolean type){
-        NPC64 = type;
+    public ImageBufferDownloadAlt(boolean newVersion){
+        NPC64 = newVersion;
     }
 
 
