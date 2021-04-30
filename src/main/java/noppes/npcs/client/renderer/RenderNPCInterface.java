@@ -24,7 +24,6 @@ import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.entity.EntityCustomNpc64;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.opengl.GL11;

@@ -55,6 +55,9 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmorChestplate;
     protected ModelNPCMale modelArmor;
 
+    protected final ModelMPM steve = new ModelMPM(0, true, false);
+    protected final ModelMPM alex = new ModelMPM(0, true, true);
+
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
         super(mainmodel, 0.5F);
@@ -138,10 +141,10 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                     this.mainModel = originalModel;
                 }
                 else if(modelVal ==  1){
-                    this.mainModel = new ModelMPM(0, false);
+                    this.mainModel = steve;
                 }
                 else{
-                    this.mainModel = new ModelMPM(0, true);
+                    this.mainModel = alex;
                 }
             }
         }
@@ -430,49 +433,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             }
             GL11.glPopMatrix();
         }
-    }
-
-    @Override
-    public ResourceLocation getEntityTexture(Entity entity) {
-        EntityNPCInterface npc = (EntityNPCInterface) entity;
-
-        if (npc.textureLocation == null) {
-            if (npc.display.skinType == 0)
-                npc.textureLocation = new ResourceLocation(npc.display.texture);
-            else if (LastTextureTick < 5) { //fixes request flood somewhat
-                return AbstractClientPlayer.locationStevePng;
-            } else if (npc.display.skinType == 1 && npc.display.playerProfile != null) {
-                Minecraft minecraft = Minecraft.getMinecraft();
-                Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
-                if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
-                    npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture) map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN);
-                }
-                LastTextureTick = 0;
-            } else if (npc.display.skinType == 2) {
-                try {
-                    MessageDigest digest = MessageDigest.getInstance("MD5");
-                    byte[] hash = digest.digest(npc.display.url.getBytes("UTF-8"));
-                    StringBuilder sb = new StringBuilder(2 * hash.length);
-                    for (byte b : hash) {
-                        sb.append(String.format("%02x", b & 0xff));
-                    }
-                    npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-                    loadSkin(null, npc.textureLocation, npc.display.url, false);
-                    LastTextureTick = 0;
-                } catch (Exception ex) {
-
-                }
-            }
-        }
-        if(npc.textureLocation == null)
-            return AbstractClientPlayer.locationStevePng;
-        return npc.textureLocation;
-    }
-
-    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean value){
-        TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(value));
-        texturemanager.loadTexture(resource, object);
     }
 
     @Override

@@ -8,6 +8,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -21,19 +22,16 @@ public class ModelNPCMale extends ModelBiped
     public float animationTick;
     public float dancingTicks;
 
-    public float randomFloat;
 
     public ModelNPCMale(float f)
     {
     	init(f, 0.0F);
-    	randomFloat = f;
     }
 
-    public ModelNPCMale(float f, boolean newSteve)
+    public ModelNPCMale(float f, boolean updated, boolean arms)
     {
         super(f, 0.0F, 64, 64);
-        init(f, 0.0F, true);
-        randomFloat = f;
+        init(f, 0.0F, updated, arms);
     }
 
     @Override
@@ -44,7 +42,7 @@ public class ModelNPCMale extends ModelBiped
 
 
     // 64x64 Skin
-    public void init(float f, float f1, boolean NewSteve)
+    public void init(float f, float f1, boolean updated, boolean arms)
     {
 
         heldItemLeft = 0;
@@ -74,29 +72,56 @@ public class ModelNPCMale extends ModelBiped
         bipedBody.addBox(-4F, 0.0F, -2F, 8, 12, 4, f);
         bipedBody.setRotationPoint(0.0F, 0.0F + f1, 0.0F);
 
+        if(updated){
+            if (arms){
+                // Alex Version
+                bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
+                bipedRightArm.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, f);
+                bipedRightArm.setRotationPoint(-5.0F, 2.5F + f1, 0.0F);
 
-        bipedRightArm = new ModelRenderer(this, 40, 16);
-        bipedRightArm.addBox(-3F, -2F, -2F, 4, 12, 4, f);
-        bipedRightArm.setRotationPoint(-5F, 2.0F + f1, 0.0F);
+                bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
+                bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, f);
+                bipedLeftArm.setRotationPoint(5.0F, 2.5F + f1, 0.0F);
+            }
+            else{
+                // Steve Version
+                bipedRightArm = new ModelRenderer(this, 40, 16);
+                bipedRightArm.addBox(-3F, -2F, -2F, 4, 12, 4, f);
+                bipedRightArm.setRotationPoint(-5F, 2.0F + f1, 0.0F);
 
-        // Changed
-        bipedLeftArm = new ModelRenderer(this, 32, 48);
-        bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, f);
-        bipedLeftArm.setRotationPoint(5.0F, 2.0F + f1, 0.0F);
+                bipedLeftArm = new ModelRenderer(this, 32, 48);
+                bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, f);
+                bipedLeftArm.setRotationPoint(5.0F, 2.0F + f1, 0.0F);
+            }
 
-        bipedRightLeg = new ModelRenderer(this, 0, 16);
-        bipedRightLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
-        bipedRightLeg.setRotationPoint(-2F, 12F + f1, 0.0F);
+            bipedRightLeg = new ModelRenderer(this, 0, 16);
+            bipedRightLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
+            bipedRightLeg.setRotationPoint(-2F, 12F + f1, 0.0F);
 
-        // Changed
-        bipedLeftLeg = new ModelRenderer(this, 16, 48);
-        bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, f);
-        bipedLeftLeg.setRotationPoint(1.9F, 12.0F + f1, 0.0F);
+            // 64x64 Leg Version
+            bipedLeftLeg = new ModelRenderer(this, 16, 48);
+            bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, f);
+            bipedLeftLeg.setRotationPoint(1.9F, 12.0F + f1, 0.0F);
+        }
+        else{
+            bipedRightArm = new ModelRenderer(this, 40, 16);
+            bipedRightArm.addBox(-3F, -2F, -2F, 4, 12, 4, f);
+            bipedRightArm.setRotationPoint(-5F, 2.0F + f1, 0.0F);
 
-        bipedLeftLeg = new ModelRenderer(this, 0, 16);
-        bipedLeftLeg.mirror = true;
-        bipedLeftLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
-        bipedLeftLeg.setRotationPoint(2.0F, 12F + f1, 0.0F);
+            bipedLeftArm = new ModelRenderer(this, 40, 16);
+            bipedLeftArm.mirror = true;
+            bipedLeftArm.addBox(-1F, -2F, -2F, 4, 12, 4, f);
+            bipedLeftArm.setRotationPoint(5F, 2.0F + f1, 0.0F);
+
+            bipedRightLeg = new ModelRenderer(this, 0, 16);
+            bipedRightLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
+            bipedRightLeg.setRotationPoint(-2F, 12F + f1, 0.0F);
+
+            bipedLeftLeg = new ModelRenderer(this, 0, 16);
+            bipedLeftLeg.mirror = true;
+            bipedLeftLeg.addBox(-2F, 0.0F, -2F, 4, 12, 4, f);
+            bipedLeftLeg.setRotationPoint(2.0F, 12F + f1, 0.0F);
+        }
 
     }
 

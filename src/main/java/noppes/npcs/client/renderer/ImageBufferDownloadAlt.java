@@ -11,36 +11,20 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
     private int imageData[];
     private int imageWidth;
     private int imageHeight;
-    private boolean NPC64;
-
-    public ImageBufferDownloadAlt() {
-        NPC64 = false;
-    }
-
-    public ImageBufferDownloadAlt(boolean value) {
-        NPC64 = value;
-    }
-
 
     @Override
     public BufferedImage parseUserSkin(BufferedImage bufferedimage) {
 
         imageWidth = bufferedimage.getWidth(null);
         imageHeight = bufferedimage.getHeight(null);
-//        } else {
-//            imageHeight = imageWidth / 2;
-//        }
 
-        BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageHeight, 2);
+        BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageWidth, 2);
         Graphics g = bufferedimage1.getGraphics();
         g.drawImage(bufferedimage, 0, 0, null);
         g.dispose();
         imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
-        setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
-//        } else {
-//            setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
-//        }
 
+        setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
 
         return bufferedimage1;
     }

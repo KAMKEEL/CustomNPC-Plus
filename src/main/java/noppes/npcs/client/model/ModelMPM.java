@@ -118,10 +118,11 @@ public class ModelMPM extends ModelNPCMale{
         }
     }
 
+    // Updated False = 64x32 Skin
     // Steve 64x64 and Alex 64x64
-	public ModelMPM(float par1, boolean arms) {
+	public ModelMPM(float par1, boolean updated, boolean arms) {
 
-		super(par1, true);
+		super(par1, updated, arms);
 		isArmor = par1 > 0;
 		float par2 = 0;
 
@@ -143,23 +144,58 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBody.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1);
 		this.bipedBody.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
-		this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
-		this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
-		this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
+		if(updated){
+			if (arms){
+				// Alex Version
+				this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
+				this.bipedRightArm.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1);
+				this.bipedRightArm.setRotationPoint(-5.0F, 2.5F + par2, 0.0F);
 
-		// Changed for 64x64 Texture
-		this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
-		this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
-		this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+				this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
+				this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1);
+				this.bipedLeftArm.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
+			}
+			else{
+				// Steve Version
+				this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
+				this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+				this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
 
-		this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16));
-		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
-		this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+				this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
+				this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+				this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+			}
 
-		// Changed for 64x64 Texture
-		this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
-		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
-		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
+			this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16));
+			this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+
+			// Changed for 64x64 Texture
+			this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
+			this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
+		}
+		else{
+
+			this.bipedRightArm = new ModelScaleRenderer(this, 40, 16);
+			this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
+			this.bipedLeftArm = new ModelScaleRenderer(this, 40, 16);
+			this.bipedLeftArm.mirror = true;
+			this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+
+			this.bipedRightLeg = new ModelScaleRenderer(this, 0, 16);
+			this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+			this.bipedLeftLeg = new ModelScaleRenderer(this, 0, 16);
+			this.bipedLeftLeg.mirror = true;
+			this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
+
+		}
+
+
 
 		headwear = new ModelHeadwear(this, arms);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg);
@@ -179,6 +215,7 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedBody.addChild(skirt = new ModelSkirt(this));
 			this.bipedBody.addChild(fin = new ModelFin(this));
 
+			// NEED TO FIX
 			this.bipedLeftArm.addChild(clawsL = new ModelClaws(this, false));
 			this.bipedRightArm.addChild(clawsR = new ModelClaws(this, true));
 		}

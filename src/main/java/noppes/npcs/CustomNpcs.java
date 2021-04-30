@@ -201,7 +201,6 @@ public class CustomNpcs {
         registerNpc(EntityNpcDragon.class, "NpcDragon");
         registerNpc(EntityNPCEnderman.class, "npcEnderman");
         registerNpc(EntityNPCGolem.class, "npcGolem");
-        registerNpc(EntityCustomNpc64.class, "CustomNpc64");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
 
 
