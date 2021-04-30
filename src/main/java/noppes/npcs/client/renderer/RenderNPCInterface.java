@@ -36,8 +36,11 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 public class RenderNPCInterface extends RenderLiving{	
 	public static long LastTextureTick = 0;
 
+	private ModelBase originalModel;
+
     public RenderNPCInterface(ModelBase model, float f){
         super(model, f);
+        this.originalModel = model;
     }
 
 	protected void renderName(EntityNPCInterface npc, double d, double d1, double d2) {
@@ -216,6 +219,18 @@ public class RenderNPCInterface extends RenderLiving{
     @Override
     public void doRender(EntityLiving entityliving, double d, double d1, double d2, float f, float f1){
     	EntityNPCInterface npc = (EntityNPCInterface) entityliving;
+
+		int modelVal = npc.display.modelType;
+		if(modelVal == 0){
+			this.mainModel = this.originalModel;
+		}
+		else if(modelVal ==  1){
+			this.mainModel = new ModelMPM(0, false);
+		}
+		else{
+			this.mainModel = new ModelMPM(0, true);
+		}
+
     	if(npc.isKilled() && npc.stats.hideKilledBody && npc.deathTime > 20){
     		return;
     	}
@@ -227,7 +242,7 @@ public class RenderNPCInterface extends RenderLiving{
     	}
     	super.doRender(entityliving, d, d1, d2, f, f1);
 	}
-    
+
     protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7){
     	super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
     	EntityNPCInterface npc = (EntityNPCInterface) entityliving;
@@ -311,7 +326,7 @@ public class RenderNPCInterface extends RenderLiving{
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
 
-					if(npc.display.squareTexture == 1){ versionModel = true; }
+					// if(npc.display.squareTexture == 1){ versionModel = true; }
 
 					loadSkin(null, npc.textureLocation, npc.display.url, versionModel);
 					LastTextureTick = 0;

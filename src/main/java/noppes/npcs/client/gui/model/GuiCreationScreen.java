@@ -42,7 +42,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	private final String[] ignoredTags = {"CanBreakDoors", "Bred", "PlayerCreated", "Tame", "HasReproduced"};
 	
 	private GuiNpcButton prev,next;
-	
+
 	private GuiScreen parent;
 	
 	private HashMap<Integer, String> mapped = new HashMap<Integer, String>();
@@ -54,7 +54,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
         for(Object name : mapping.keySet()){
         	Class<?> c = (Class<?>) mapping.get(name);
         	try {
-        		if(!EntityCustomNpc.class.isAssignableFrom(c) && !EntityCustomNpc64.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[] {World.class}) != null && !Modifier.isAbstract(c.getModifiers())){
+        		if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[] {World.class}) != null && !Modifier.isAbstract(c.getModifiers())){
         			if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity)
         				data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
         		}
@@ -111,6 +111,9 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
     	addButton(new GuiNpcButton(7, guiLeft + 50, y += 22, 50, 20, "selectServer.edit"));
 		addLabel(new GuiNpcLabel(4, "Legs", guiLeft, y + 5, 0xFFFFFF));
+
+		addButton(new GuiNpcButton(250, guiLeft + 50, y += 22, 50, 20, new String[]{"Default","Steve64","Alex"}, this.npc.display.modelType));
+		addLabel(new GuiNpcLabel(250, "Model", guiLeft, y + 5, 0xFFFFFF));
 		
     	addButton(new GuiNpcButton(44, guiLeft + 310, guiTop + 14, 80, 20, "Save Model"));
     	addButton(new GuiNpcButton(45, guiLeft + 310, guiTop + 36, 80, 20, "Load Model"));
@@ -265,6 +268,20 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	if(button.id == 7){
             this.mc.displayGuiScreen(new GuiModelLegs(this, npc));
     	}
+
+    	// New Button for Changing Models
+		if(button.id == 250){
+			if(npc.display.modelType == 0){
+				npc.display.modelType = 1;
+			}
+			else if(npc.display.modelType == 1){
+				npc.display.modelType = 2;
+			}
+			else {
+				npc.display.modelType = 0;
+			}
+		}
+
     	if(button.id == 8){
             this.mc.displayGuiScreen(new GuiModelScale(this, playerdata, npc));
     	}
