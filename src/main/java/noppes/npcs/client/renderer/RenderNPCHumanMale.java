@@ -21,6 +21,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
+import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.ModelNPCMale;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -110,6 +111,24 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     public void renderPlayer(EntityNPCInterface npc, double d, double d1, double d2, 
             float f, float f1)
     {
+
+        // SEEMS TO WORK FOR NOW. Keeps NPC from outsyncing with Creature Models
+        if(npc instanceof EntityCustomNpc){
+            EntityCustomNpc test = (EntityCustomNpc) npc;
+            if(test.modelData.entityClass == null){
+                int modelVal = npc.display.modelType;
+                if(modelVal == 0){
+                    this.mainModel = originalModel;
+                }
+                else if(modelVal ==  1){
+                    this.mainModel = new ModelMPM(0, false);
+                }
+                else{
+                    this.mainModel = new ModelMPM(0, true);
+                }
+            }
+        }
+
         ItemStack itemstack = npc.getHeldItem();
         modelArmorChestplate.heldItemRight = modelArmor.heldItemRight = modelBipedMain.heldItemRight =
         		itemstack == null ? 0 : npc.hurtResistantTime > 0 ? 3 : 1;

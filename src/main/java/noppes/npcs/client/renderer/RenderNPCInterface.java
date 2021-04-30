@@ -36,7 +36,7 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 public class RenderNPCInterface extends RenderLiving{	
 	public static long LastTextureTick = 0;
 
-	private ModelBase originalModel;
+	public ModelBase originalModel;
 
     public RenderNPCInterface(ModelBase model, float f){
         super(model, f);
@@ -196,17 +196,6 @@ public class RenderNPCInterface extends RenderLiving{
     @Override
     public void doRender(EntityLiving entityliving, double d, double d1, double d2, float f, float f1){
     	EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-
-		int modelVal = npc.display.modelType;
-		if(modelVal == 0){
-			this.mainModel = this.originalModel;
-		}
-		else if(modelVal ==  1){
-			this.mainModel = new ModelMPM(0, false);
-		}
-		else{
-			this.mainModel = new ModelMPM(0, true);
-		}
 
     	if(npc.isKilled() && npc.stats.hideKilledBody && npc.deathTime > 20){
     		return;
