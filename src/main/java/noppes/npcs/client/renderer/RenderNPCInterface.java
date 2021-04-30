@@ -274,7 +274,7 @@ public class RenderNPCInterface extends RenderLiving{
 			}
 			else if(npc.display.skinType == 1 && npc.display.playerProfile != null){
                 Minecraft minecraft = Minecraft.getMinecraft();
-                Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
+				Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
                 if (map.containsKey(Type.SKIN)){
                 	npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture)map.get(Type.SKIN), Type.SKIN);
                 }
