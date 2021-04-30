@@ -22,5 +22,10 @@ I am not the original creator of CustomNPC. The original creator is @[Noppes](ht
 
 ###### **Majority of these cape designs are taken from the internet with fair-usage.*
 
+### Skin Model Feature:
+<img src="skinAnimation.gif" width="474" height="260"/>
+
+
 #### Want to check out my other mods?
 [Plugin Mod](https://github.com/KAMKEEL/Plugin-Mod) is a mod designed to add more aesthetic items for RPG and storytelling. It is compatible with CustomNPC+ and has many items intended to be used and wielded by created NPCs.
+
