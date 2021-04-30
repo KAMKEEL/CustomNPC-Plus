@@ -32,7 +32,6 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityFakeLiving;
-import noppes.npcs.entity.EntityCustomNpc64;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener{
@@ -63,7 +62,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			} catch (NoSuchMethodException e) {
 			}
         }
-		data.put("CustomNPC64", EntityCustomNpc64.class);
 		list = new ArrayList<String>(data.keySet());
 		Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 	}
