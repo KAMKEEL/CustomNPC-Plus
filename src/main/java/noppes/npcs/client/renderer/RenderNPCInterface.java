@@ -180,29 +180,6 @@ public class RenderNPCInterface extends RenderLiving{
         }
         else {
         	super.rotateCorpse(npc, f, f1, f2);
-//            if(npc.deathTime > 0)
-//            {      
-//                float x = (float) -Math.cos(Math.toRadians(180 - f1));
-//                float y = (float) -Math.sin(Math.toRadians(f1));
-//                x = (x/ 5f) * npc.getModelSize();
-//                y = (y/ 5f) * npc.getModelSize();
-//                GL11.glTranslatef(x, 0, y);
-//                
-//                
-//                float f3 = ((((float)npc.deathTime+ f2) - 1.0F) / 20F) * 1.6F;
-//                f3 = MathHelper.sqrt_float(f3);
-//                if(f3 > 1.0F)
-//                {
-//                    f3 = 1.0F;
-//                }
-//                GL11.glRotatef(f1, 0.0F, 1.0F, 0.0F);  
-//                GL11.glRotatef(f3 * getDeathMaxRotation(npc), 0.0F, 0.0F, 1.0F);
-//                GL11.glRotatef(180F - f1, 0.0F, 1.0F, 0.0F);
-//            }
-//	        else
-//	        {
-//	            GL11.glRotatef(180F - f1, 0.0F, 1.0F, 0.0F);
-//	        }
         }
     }
 
