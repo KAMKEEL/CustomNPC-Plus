@@ -166,6 +166,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
+
 	public Faction faction; //should only be used server side
 	
 	private EntityAIRangedAttack aiRange;
@@ -1692,4 +1693,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public boolean shouldDismountInWater(Entity rider){
     	return false;
     }
+
+	// Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64
+	public int getModelType()
+	{
+		return this.display.modelType;
+	}
+	public void setModelType(int val)
+	{
+		this.display.modelType = val;
+	}
 }

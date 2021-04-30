@@ -67,7 +67,6 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 			addButton(new GuiNpcButton(3, guiLeft + 110, y , 60, 20, "Edit"));
 			y += 24;
 		}
-
     }
     
     private void drawSlider(int y, ModelPartConfig config){
