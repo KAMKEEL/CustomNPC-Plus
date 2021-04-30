@@ -2,12 +2,19 @@ package noppes.npcs.client.renderer;
 
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
+
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.entity.RenderBiped;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.SkinManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -21,15 +28,25 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
+import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.ModelNPCMale;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.EntityNpcPony;
 import noppes.npcs.items.ItemClaw;
 import noppes.npcs.items.ItemShield;
 
 import org.lwjgl.opengl.GL11;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.util.Map;
 
 public class RenderNPCHumanMale extends RenderNPCInterface
 {
@@ -413,6 +430,49 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             }
             GL11.glPopMatrix();
         }
+    }
+
+    @Override
+    public ResourceLocation getEntityTexture(Entity entity) {
+        EntityNPCInterface npc = (EntityNPCInterface) entity;
+
+        if (npc.textureLocation == null) {
+            if (npc.display.skinType == 0)
+                npc.textureLocation = new ResourceLocation(npc.display.texture);
+            else if (LastTextureTick < 5) { //fixes request flood somewhat
+                return AbstractClientPlayer.locationStevePng;
+            } else if (npc.display.skinType == 1 && npc.display.playerProfile != null) {
+                Minecraft minecraft = Minecraft.getMinecraft();
+                Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
+                if (map.containsKey(MinecraftProfileTexture.Type.SKIN)) {
+                    npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture) map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN);
+                }
+                LastTextureTick = 0;
+            } else if (npc.display.skinType == 2) {
+                try {
+                    MessageDigest digest = MessageDigest.getInstance("MD5");
+                    byte[] hash = digest.digest(npc.display.url.getBytes("UTF-8"));
+                    StringBuilder sb = new StringBuilder(2 * hash.length);
+                    for (byte b : hash) {
+                        sb.append(String.format("%02x", b & 0xff));
+                    }
+                    npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
+                    loadSkin(null, npc.textureLocation, npc.display.url, false);
+                    LastTextureTick = 0;
+                } catch (Exception ex) {
+
+                }
+            }
+        }
+        if(npc.textureLocation == null)
+            return AbstractClientPlayer.locationStevePng;
+        return npc.textureLocation;
+    }
+
+    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean value){
+        TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(value));
+        texturemanager.loadTexture(resource, object);
     }
 
     @Override

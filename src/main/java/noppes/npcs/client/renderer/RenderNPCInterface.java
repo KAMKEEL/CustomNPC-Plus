@@ -267,7 +267,6 @@ public class RenderNPCInterface extends RenderLiving{
 	public ResourceLocation getEntityTexture(Entity entity) {
 
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
-		boolean versionModel = false; // Square Texture
 		if(npc.textureLocation == null){
 			if(npc.display.skinType == 0)
 				npc.textureLocation = new ResourceLocation(npc.display.texture);
@@ -291,14 +290,11 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-
-					// if(npc.display.squareTexture == 1){ versionModel = true; }
-
-					loadSkin(null, npc.textureLocation, npc.display.url, versionModel);
+					loadSkin(null, npc.textureLocation, npc.display.url);
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){
-					
+
 				}
 			}
 		}
@@ -308,9 +304,9 @@ public class RenderNPCInterface extends RenderLiving{
 	}
 
 	// True = 64x64 Skin
-    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean value){
+    private void loadSkin(File file, ResourceLocation resource, String par1Str){
         TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(value));
+        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt());
         texturemanager.loadTexture(resource, object);
     }
 
