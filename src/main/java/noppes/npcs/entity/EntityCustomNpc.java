@@ -76,6 +76,5 @@ public class EntityCustomNpc extends EntityNPCInterface{
 			this.setPosition(posX, posY, posZ);
 		}
 	}
-
 }
 	

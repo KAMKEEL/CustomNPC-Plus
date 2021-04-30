@@ -46,9 +46,8 @@ public class GuiEntitySelection extends GuiNPCInterface
         list.add("CustomNPC");
 		Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
         slot = new GuiNPCStringSlot(list,this,false,18);
-        if(playerdata.getEntityClass() != null){
-            slot.selected = (String) EntityList.classToStringMapping.get(playerdata.getEntityClass());
-        }
+        if(playerdata.getEntityClass() != null)
+        	slot.selected = (String) EntityList.classToStringMapping.get(playerdata.getEntityClass());
         else{
         	slot.selected = "CustomNPC";
         }
@@ -122,7 +121,6 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    	if(entity != null){
 				RendererLivingEntity render = (RendererLivingEntity) RenderManager.instance.getEntityRenderObject(entity);
 	    		npc.display.texture = NPCRendererHelper.getTexture(render,entity);
-                npc.display.modelType = 0;
 	    	}
 	    	else{
 	    		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";

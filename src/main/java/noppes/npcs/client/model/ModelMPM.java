@@ -118,7 +118,6 @@ public class ModelMPM extends ModelNPCMale{
         }
     }
 
-    // Steve 64x64 and Alex 64x64
 	public ModelMPM(float par1, boolean arms) {
 
 		super(par1, true);

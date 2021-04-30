@@ -21,19 +21,15 @@ public class ModelNPCMale extends ModelBiped
     public float animationTick;
     public float dancingTicks;
 
-    public float randomFloat;
-
     public ModelNPCMale(float f)
     {
     	init(f, 0.0F);
-    	randomFloat = f;
     }
 
     public ModelNPCMale(float f, boolean newSteve)
     {
         super(f, 0.0F, 64, 64);
         init(f, 0.0F, true);
-        randomFloat = f;
     }
 
     @Override

@@ -31,13 +31,13 @@ public class DataDisplay {
 	public int modelSize = 5;
 
 	public int showName = 0;
-
-	public int modelType = 0;
-
+	
 	public boolean disableLivingAnimation = false;
 	
 	public byte showBossBar = 0;
 
+	public byte squareTexture = 0;
+	
 	public DataDisplay(EntityNPCInterface npc){
 		this.npc = npc;
 		String[] names = { "Noppes", "Noppes", "Noppes", "Noppes", "Atesson",
@@ -73,7 +73,7 @@ public class DataDisplay {
 		nbttagcompound.setString("CloakTexture", cloakTexture);
 		nbttagcompound.setString("GlowTexture", glowTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
-
+		
         if (this.playerProfile != null)
         {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
@@ -82,14 +82,13 @@ public class DataDisplay {
         }
 		
 		nbttagcompound.setInteger("Size", modelSize);
-		nbttagcompound.setInteger("modelType", modelType);
 
 		nbttagcompound.setInteger("ShowName", showName);
 		nbttagcompound.setInteger("NpcVisible", visible);
 
 		nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
 		nbttagcompound.setByte("BossBar", showBossBar);
-		// nbttagcompound.setByte("SquareTexture", squareTexture);
+		nbttagcompound.setByte("SquareTexture", squareTexture);
 
 		return nbttagcompound;
 	}
@@ -118,15 +117,14 @@ public class DataDisplay {
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
 		
-		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, 40);
-		modelType = nbttagcompound.getInteger("modelType");
+		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, 30);
 
 		showName = nbttagcompound.getInteger("ShowName");
 		visible = nbttagcompound.getInteger("NpcVisible");
 
 		disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
 		showBossBar = nbttagcompound.getByte("BossBar");
-		// squareTexture = nbttagcompound.getByte("SquareTexture");
+		squareTexture = nbttagcompound.getByte("SquareTexture");
 
 		if(prevSkinType != skinType || !texture.equals(prevTexture))
 			npc.textureLocation = null;
