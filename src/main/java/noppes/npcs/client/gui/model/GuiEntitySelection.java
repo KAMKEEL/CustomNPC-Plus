@@ -120,9 +120,9 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    	playerdata.setEntityClass(parent.data.get(slot.selected));
 	    	EntityLivingBase entity = playerdata.getEntity(npc);
 	    	if(entity != null){
+                npc.display.modelType = 0;
 				RendererLivingEntity render = (RendererLivingEntity) RenderManager.instance.getEntityRenderObject(entity);
 	    		npc.display.texture = NPCRendererHelper.getTexture(render,entity);
-                npc.display.modelType = 0;
 	    	}
 	    	else{
 	    		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";

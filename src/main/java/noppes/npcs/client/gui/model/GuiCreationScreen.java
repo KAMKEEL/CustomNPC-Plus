@@ -253,7 +253,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	}
     	
     	if(button.id == 1){
-            this.mc.displayGuiScreen(new GuiEntitySelection(this, playerdata,npc));
+            this.mc.displayGuiScreen(new GuiEntitySelection(this, playerdata, npc));
     	}
 
     	if(button.id == 4){
