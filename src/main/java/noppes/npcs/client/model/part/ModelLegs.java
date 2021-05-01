@@ -201,9 +201,10 @@ public class ModelLegs extends ModelScaleRenderer{
 		naga = new ModelNagaLegs(base);
         this.addChild(naga);
 
+        // Add Mermaid Legs
 		mermaid = new ModelMermaidLegs(base);
-
 		mermaid2 = new ModelMermaidLegs2(base);
+        this.addChild(mermaid);
 		this.addChild(mermaid2);
         
         digitigrade = new ModelDigitigradeLegs(base);
@@ -350,8 +351,8 @@ public class ModelLegs extends ModelScaleRenderer{
 			spider.isHidden = part.type != 2;
 			horse.isHidden = part.type != 3;
 			mermaid.isHidden = part.type != 4;
-            mermaid2.isHidden = part.type != 4;
-			digitigrade.isHidden = part.type != 5;
+            mermaid2.isHidden = part.type != 5;
+			digitigrade.isHidden = part.type != 6;
 	
 			if(!horse.isHidden){
 				x = 0;

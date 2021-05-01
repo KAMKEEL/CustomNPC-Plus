@@ -10,13 +10,10 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
-import noppes.npcs.client.model.part.tails.ModelDragonTail;
-import noppes.npcs.client.model.part.tails.ModelSquirrelTail;
+import noppes.npcs.client.model.part.tails.*;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.client.model.part.tails.ModelRodentTail;
-import noppes.npcs.client.model.part.tails.ModelTailFin;
 
 import org.lwjgl.opengl.GL11;
 
@@ -30,6 +27,7 @@ public class ModelTail extends ModelScaleRenderer {
 	private ModelRenderer horse;
 	private ModelRenderer fin;
 	private ModelRenderer rodent;
+	private ModelRenderer feather;
 	
 	private int color = 0xFFFFFF;
 	
@@ -75,6 +73,8 @@ public class ModelTail extends ModelScaleRenderer {
 
 		this.addChild(fin = new ModelTailFin(base));
 		this.addChild(rodent = new ModelRodentTail(base));
+
+		this.addChild(feather = new ModelFeatherTail(base));
 	}
 
 	public void setData(EntityCustomNpc entity) {
@@ -127,6 +127,7 @@ public class ModelTail extends ModelScaleRenderer {
 		squirrel.isHidden = config.type != 3;
         fin.isHidden = config.type != 4;
         rodent.isHidden = config.type != 5;
+		feather.isHidden = config.type != 6;
 		if(!config.playerTexture){
 			location = config.getResource();
 		}

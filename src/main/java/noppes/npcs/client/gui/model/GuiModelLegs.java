@@ -10,9 +10,9 @@ import noppes.npcs.entity.EntityCustomNpc;
 
 public class GuiModelLegs extends GuiModelInterface{
 
-	private GuiScreen parent;
-	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid","Digitigrade"};
-	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent"};
+	private GuiScreen parent;					// 0         1         2            3          4      5      6           7           8
+	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid", "Mermaid 2","Digitigrade"};
+	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent", "Feather"};
 	public GuiModelLegs(GuiScreen parent, EntityCustomNpc npc){
 		super(npc);
 		this.parent = parent;
@@ -24,7 +24,7 @@ public class GuiModelLegs extends GuiModelInterface{
     	super.initGui();
 		int y = guiTop + 20;
 
-    	addButton(new GuiNpcButton(1, guiLeft + 50, y += 22, 70, 20, arrLegs, getNagaIndex(playerdata.legParts)));
+    	addButton(new GuiNpcButton(1, guiLeft + 50, y += 22, 70, 20, arrLegs, getLegIndex(playerdata.legParts)));
 		addLabel(new GuiNpcLabel(1, "Legs", guiLeft, y + 5, 0xFFFFFF));
 		if(playerdata.legParts.type > 0)
 			addButton(new GuiNpcButton(11, guiLeft + 122, y, 40, 20, playerdata.legParts.getColor()));
@@ -35,13 +35,15 @@ public class GuiModelLegs extends GuiModelInterface{
 		if(tail != null)
 			addButton(new GuiNpcButton(12, guiLeft + 122, y, 40, 20, tail.getColor()));
     }
-    private int getNagaIndex(ModelPartData data) {
+    private int getLegIndex(ModelPartData data) {
     	if(!data.playerTexture && data.type == 1)
     		return 5;
 		if(data.type == 4)
 			return 6;
 		if(data.type == 5)
 			return 7;
+		if(data.type == 6)
+			return 8;
 		return data.type + 1;
 	}
 
@@ -66,6 +68,8 @@ public class GuiModelLegs extends GuiModelInterface{
 			return 8;
 		if(data.type == 5)
 			return 9;
+		if(data.type == 6)
+			return 10;
     	
     	return 0;
     }
@@ -91,8 +95,10 @@ public class GuiModelLegs extends GuiModelInterface{
     			data.setTexture("legs/naga1", 1);
     		if(value == 5)
     			data.setTexture("legs/mermaid1", 4);
-    		if(value == 6)
-    			data.setTexture("", 5);
+			if(value == 6)
+				data.setTexture("legs/mermaid1", 5);
+    		if(value == 7)
+    			data.setTexture("", 6);
 
     		initGui();
 
@@ -122,6 +128,8 @@ public class GuiModelLegs extends GuiModelInterface{
 					data.setTexture("tail/fin1", 4);
 				if(value == 9)
 					data.setTexture("tail/rodent1", 5);
+				if(value == 10)
+					data.setTexture("tail/feather1", 6);
 
 			}
 			initGui();
