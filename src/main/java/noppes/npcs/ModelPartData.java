@@ -55,7 +55,7 @@ public class ModelPartData {
 			this.texture = texture;
 		}
 		else{
-			this.texture = "moreplayermodels:textures/"+ texture + ".png";
+			this.texture = "customnpcs:textures/parts/"+ texture + ".png";
 			playerTexture = false;
 		}
 	}

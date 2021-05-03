@@ -167,6 +167,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	private int taskCount = 1;
 	public int lastInteract = 0;
 
+	public int animationStart = 0;
+
 	public Faction faction; //should only be used server side
 	
 	private EntityAIRangedAttack aiRange;

@@ -29,6 +29,11 @@ public class ModelDataShared{
 	public byte breasts = 0;
 	
 	public byte headwear = 2;
+
+	public byte bodywear = 0;
+
+	public byte armwear = 0;
+	public byte legwear = 0;
 			
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
@@ -44,6 +49,11 @@ public class ModelDataShared{
 		compound.setTag("LegParts", legParts.writeToNBT());
 
 		compound.setByte("Headwear", headwear);
+		compound.setByte("Bodywear", bodywear);
+
+		compound.setByte("Armwear", armwear);
+		compound.setByte("Legwear", legwear);
+
 		compound.setByte("Breasts", breasts);
 		compound.setTag("ExtraData", extra);
 		
@@ -69,6 +79,11 @@ public class ModelDataShared{
 		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
 
 		headwear = compound.getByte("Headwear");
+		bodywear = compound.getByte("Bodywear");
+
+		armwear = compound.getByte("Armwear");
+		legwear = compound.getByte("Legwear");
+
 		breasts = compound.getByte("Breasts");
 		extra = compound.getCompoundTag("ExtraData");
 				

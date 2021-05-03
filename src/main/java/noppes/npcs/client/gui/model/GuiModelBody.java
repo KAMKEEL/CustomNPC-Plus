@@ -11,6 +11,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 public class GuiModelBody extends GuiModelInterface{
 
 	private GuiScreen parent;
+	private final String[] arrBodywear = new String[]{"gui.no","gui.yes"};
 	private final String[] arrWing = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6","Type7","Type8","Type9",
             "Type10","Type11","Type12","Type13"};
 	private final String[] arrBreasts = new String[]{"gui.no","Type1","Type2","Type3"};
@@ -27,7 +28,14 @@ public class GuiModelBody extends GuiModelInterface{
     @Override
     public void initGui() {
     	super.initGui();
+
 		int y = guiTop + 20;
+
+		if (npc.display.modelType == 1 || npc.display.modelType == 2) {
+			addButton(new GuiNpcButton(8, guiLeft + 50, y += 22, 70, 20, arrBodywear, playerdata.bodywear));
+			addLabel(new GuiNpcLabel(8, "Bodywear", guiLeft, y + 5, 0xFFFFFF));
+		}
+
     	addButton(new GuiNpcButton(1, guiLeft + 50, y += 22, 70, 20, arrBreasts, playerdata.breasts));
 		addLabel(new GuiNpcLabel(1, "Breasts", guiLeft, y + 5, 0xFFFFFF));
 
@@ -181,6 +189,10 @@ public class GuiModelBody extends GuiModelInterface{
 					particles.setTexture("skirt/skirt1", 0);
 			}
 			initGui();
+		}
+
+		if(button.id == 8){
+			playerdata.bodywear = (byte) button.getValue();
 		}
 
     	if(button.id == 11){

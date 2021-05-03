@@ -3,18 +3,11 @@ package noppes.npcs.client.renderer;
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.entity.RenderBiped;
-import net.minecraft.client.renderer.texture.ITextureObject;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.client.resources.SkinManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -28,25 +21,15 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
-import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.ModelNPCMale;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.entity.EntityNpcPony;
 import noppes.npcs.items.ItemClaw;
 import noppes.npcs.items.ItemShield;
 
 import org.lwjgl.opengl.GL11;
-
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.Map;
 
 public class RenderNPCHumanMale extends RenderNPCInterface
 {
@@ -55,8 +38,16 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmorChestplate;
     protected ModelNPCMale modelArmor;
 
+    protected final ModelNPCMale OGmodelArmorChestplate = new ModelMPM(1, false, false);
+    protected final ModelNPCMale OGmodelArmor = new ModelMPM(0.5f, false, false);
+
     protected final ModelMPM steve = new ModelMPM(0, true, false);
+    protected final ModelMPM steveArmorChestplate = new ModelMPM(1, true, false);
+    protected final ModelMPM steveModelArmor = new ModelMPM(0.5f, true, false);
+
     protected final ModelMPM alex = new ModelMPM(0, true, true);
+    protected final ModelMPM alexArmorChestplate = new ModelMPM(1, true, true);
+    protected final ModelMPM alexModelArmor = new ModelMPM(0.5f, true, true);
 
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
@@ -131,20 +122,31 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     public void renderPlayer(EntityNPCInterface npc, double d, double d1, double d2, 
             float f, float f1)
     {
-
         // SEEMS TO WORK FOR NOW. Keeps NPC from outsyncing with Creature Models
         if(npc instanceof EntityCustomNpc){
             EntityCustomNpc test = (EntityCustomNpc) npc;
             if(test.modelData.entityClass == null){
                 int modelVal = npc.display.modelType;
-                if(modelVal == 0){
-                    this.mainModel = originalModel;
-                }
-                else if(modelVal ==  1){
+                if(modelVal ==  1){
                     this.mainModel = steve;
+                    this.modelBipedMain = steve;
+                    this.modelArmorChestplate = steveArmorChestplate;
+                    this.modelArmor = steveModelArmor;
+                }
+                else if(modelVal ==  2){
+                    this.mainModel = alex;
+                    this.modelBipedMain = alex;
+                    this.modelArmorChestplate = alexArmorChestplate;
+                    this.modelArmor = alexModelArmor;
                 }
                 else{
-                    this.mainModel = alex;
+                    ((EntityCustomNpc) npc).modelData.bodywear = 0;
+                    ((EntityCustomNpc) npc).modelData.armwear = 0;
+                    ((EntityCustomNpc) npc).modelData.legwear = 0;
+                    this.mainModel = originalModel;
+                    this.modelBipedMain = (ModelNPCMale) originalModel;
+                    this.modelArmorChestplate = OGmodelArmorChestplate;
+                    this.modelArmor = OGmodelArmor;
                 }
             }
         }

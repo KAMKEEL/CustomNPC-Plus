@@ -10,7 +10,8 @@ import noppes.npcs.entity.EntityCustomNpc;
 
 public class GuiModelLegs extends GuiModelInterface{
 
-	private GuiScreen parent;					// 0         1         2            3          4      5      6           7           8
+	private GuiScreen parent;
+	private final String[] arrLegwear = new String[]{"gui.no","Both","Left","Right"};
 	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid", "Mermaid 2","Digitigrade"};
 	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent", "Feather"};
 	public GuiModelLegs(GuiScreen parent, EntityCustomNpc npc){
@@ -23,6 +24,11 @@ public class GuiModelLegs extends GuiModelInterface{
     public void initGui() {
     	super.initGui();
 		int y = guiTop + 20;
+
+		if (npc.display.modelType == 1 || npc.display.modelType == 2) {
+			addButton(new GuiNpcButton(8, guiLeft + 50, y += 22, 70, 20, arrLegwear, playerdata.legwear));
+			addLabel(new GuiNpcLabel(8, "Legwear", guiLeft, y + 5, 0xFFFFFF));
+		}
 
     	addButton(new GuiNpcButton(1, guiLeft + 50, y += 22, 70, 20, arrLegs, getLegIndex(playerdata.legParts)));
 		addLabel(new GuiNpcLabel(1, "Legs", guiLeft, y + 5, 0xFFFFFF));
@@ -79,6 +85,9 @@ public class GuiModelLegs extends GuiModelInterface{
     	super.actionPerformed(btn);
     	GuiNpcButton button = (GuiNpcButton) btn;
 
+		if(button.id == 8){
+			playerdata.legwear = (byte) button.getValue();
+		}
     	if(button.id == 1){
     		ModelPartData data = playerdata.legParts;
     		int value = button.getValue() - 1;

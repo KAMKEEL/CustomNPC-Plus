@@ -7,4 +7,5 @@ eclipse
 .classpath
 .project
 .settings
-
+bin
+.metadata
