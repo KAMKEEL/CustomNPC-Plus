@@ -20,6 +20,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
+import noppes.npcs.client.ImageDownloadAlt32;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
@@ -289,7 +290,29 @@ public class RenderNPCInterface extends RenderLiving{
 						sb.append(String.format("%02x", b&0xff));
 					}
 					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
+
+					loadSkin32(null, npc.textureLocation, npc.display.url);
+
+					LastTextureTick = 0;
+				}
+				catch(Exception ex){
+
+				}
+			}
+			// SKIN CHANGE
+			// For 64 x 64 Textures
+			else if(npc.display.skinType == 3){
+				try{
+					MessageDigest digestion = MessageDigest.getInstance("MD5");
+					byte[] hash = digestion.digest(npc.display.url.getBytes("UTF-8"));
+					StringBuilder sb = new StringBuilder(2*hash.length);
+					for(byte b : hash){
+						sb.append(String.format("%02x", b&0xff));
+					}
+					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
+
 					loadSkin(null, npc.textureLocation, npc.display.url);
+
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){
@@ -302,11 +325,18 @@ public class RenderNPCInterface extends RenderLiving{
 		return npc.textureLocation;
 	}
 
-	// True = 64x64 Skin
+	// 64x64 Skin
     private void loadSkin(File file, ResourceLocation resource, String par1Str){
         TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
         ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt());
         texturemanager.loadTexture(resource, object);
     }
+
+	// SORT OF WORKS
+	private void loadSkin32(File file, ResourceLocation resource, String par1Str){
+		TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+		ITextureObject object = new ImageDownloadAlt32(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownload32());
+		texturemanager.loadTexture(resource, object);
+	}
 
 }

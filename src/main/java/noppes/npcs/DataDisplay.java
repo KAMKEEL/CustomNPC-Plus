@@ -19,14 +19,14 @@ public class DataDisplay {
 	public String name;
 	public String title = "";
 
-	public byte skinType = 0; //0:normal, 1:player, 2:url
+	public byte skinType = 0;	//0:normal, 1:player, 2:url, 3:url64
 	public String url = "";
 	public GameProfile playerProfile;
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";;
 	public String cloakTexture = "";
 	public String glowTexture = "";
 	
-	public int visible = 0;//0:visible 1:Invisible 2:semi-invisible
+	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
 	
 	public int modelSize = 5;
 
@@ -89,7 +89,6 @@ public class DataDisplay {
 
 		nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
 		nbttagcompound.setByte("BossBar", showBossBar);
-		// nbttagcompound.setByte("SquareTexture", squareTexture);
 
 		return nbttagcompound;
 	}
@@ -126,7 +125,6 @@ public class DataDisplay {
 
 		disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
 		showBossBar = nbttagcompound.getByte("BossBar");
-		// squareTexture = nbttagcompound.getByte("SquareTexture");
 
 		if(prevSkinType != skinType || !texture.equals(prevTexture))
 			npc.textureLocation = null;

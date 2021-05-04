@@ -29,47 +29,55 @@ public class ModelMermaidLegs2 extends ModelRenderer {
 		textureHeight = 32;
 
 		Tail1 = new ModelRenderer(base, 0, 18);
+		Tail1.setTextureSize(64,32);
 		Tail1.addBox(0F, 0F, 0F, 8, 6, 4);
 		Tail1.setRotationPoint(-4F, 12F, -2F);
 		setRotation(Tail1, 0.075F, 0F, 0F);
 
 		Tail2 = new ModelRenderer(base, 0, 18);
+		Tail2.setTextureSize(64,32);
 		Tail2.addBox(0F, 0F, 0F, 6, 5, 3);
 		Tail2.setRotationPoint(1F, 5.5F, 0.3F);
 		setRotation(Tail2, 0.56F, 0F, 0F);
 		Tail1.addChild(Tail2);
 
 		Tail3 = new ModelRenderer(base, 0, 18);
+		Tail3.setTextureSize(64,32);
 		Tail3.addBox(0F, 0F, 0F, 5, 5, 2);
 		Tail3.setRotationPoint(5.5F, 4F, 2.5F);
 		setRotation(Tail3, -0.37818F, 3.141593F, 0F);
 		Tail2.addChild(Tail3);
 
 		Tail4 = new ModelRenderer(base, 0, 20);
+		Tail4.setTextureSize(64,32);
 		Tail4.addBox(0F, 0F, 0F, 4, 3, 1);
 		Tail4.setRotationPoint(0.5F, 4.5F, 0.5F);
 		setRotation(Tail4, -0.1f, 0, 0F);
 		Tail3.addChild(Tail4);
 
 		Tail5 = new ModelRenderer(base, 0, 20);
+		Tail5.setTextureSize(64,32);
 		Tail5.addBox(0F, 0F, 0F, 1, 3, 1);
 		Tail5.setRotationPoint(-1F, 1.5F, 0F);
 		setRotation(Tail5, 0, 0, 0F);
 		Tail4.addChild(Tail5);
 
 		Tail6 = new ModelRenderer(base, 0, 20);
+		Tail6.setTextureSize(64,32);
 		Tail6.addBox(0F, 0F, 0F, 1, 3, 1);
 		Tail6.setRotationPoint(-2F, 3F, 0F);
 		setRotation(Tail6, 0, 0, 0F);
 		Tail4.addChild(Tail6);
 
 		Tail7 = new ModelRenderer(base, 0, 20);
+		Tail7.setTextureSize(64,32);
 		Tail7.addBox(0F, 0F, 0F, 1, 3, 1);
 		Tail7.setRotationPoint(4F, 1.5F, 0F);
 		setRotation(Tail7, 0, 0, 0F);
 		Tail4.addChild(Tail7);
 
 		Tail8 = new ModelRenderer(base, 0, 20);
+		Tail8.setTextureSize(64,32);
 		Tail8.addBox(0F, 0F, 0F, 1, 3, 1);
 		Tail8.setRotationPoint(5F, 3F, 0F);
 		setRotation(Tail8, 0, 0, 0F);

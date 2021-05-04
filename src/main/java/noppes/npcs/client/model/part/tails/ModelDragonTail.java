@@ -14,6 +14,7 @@ public class ModelDragonTail extends ModelRenderer {
 		int y = 16;
 
 		ModelRenderer dragon = new ModelRenderer(base, x, y);
+		dragon.setTextureSize(64,32);
         dragon.setRotationPoint(0F, 0F, 3F);
         this.addChild(dragon);
 		

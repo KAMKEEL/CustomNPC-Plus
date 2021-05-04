@@ -59,7 +59,7 @@ public class ModelLegs extends ModelScaleRenderer{
             
     private ModelMPM base;
 	
-	public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2) {
+	public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2, int textWidth, int textHeight) {
 		super(base);
 		this.base = base;
 		this.leg1 = leg1;
@@ -73,51 +73,61 @@ public class ModelLegs extends ModelScaleRenderer{
         float var1 = 0.0F;
         byte var2 = 15;
         spiderNeck = new ModelRenderer(base, 0, 0);
+        spiderNeck.setTextureSize(64,32);
         spiderNeck.addBox(-3.0F, -3.0F, -3.0F, 6, 6, 6, var1);
         spiderNeck.setRotationPoint(0.0F, (float)var2, 2.0F);
         spider.addChild(spiderNeck);
         
         spiderBody = new ModelRenderer(base, 0, 12);
+        spiderBody.setTextureSize(64,32);
         spiderBody.addBox(-5.0F, -4.0F, -6.0F, 10, 8, 12, var1);
         spiderBody.setRotationPoint(0.0F, (float)var2, 11.0F);
         spider.addChild(spiderBody);
         
         this.spiderLeg1 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg1.setTextureSize(64,32);
         this.spiderLeg1.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg1.setRotationPoint(-4.0F, (float)var2, 4.0F);
         spider.addChild(spiderLeg1);
         
         this.spiderLeg2 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg2.setTextureSize(64,32);
         this.spiderLeg2.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg2.setRotationPoint(4.0F, (float)var2, 4.0F);
         spider.addChild(spiderLeg2);
         
         this.spiderLeg3 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg3.setTextureSize(64,32);
         this.spiderLeg3.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg3.setRotationPoint(-4.0F, (float)var2, 3.0F);
         spider.addChild(spiderLeg3);
         
         this.spiderLeg4 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg4.setTextureSize(64,32);
         this.spiderLeg4.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg4.setRotationPoint(4.0F, (float)var2, 3.0F);
         spider.addChild(spiderLeg4);
         
         this.spiderLeg5 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg5.setTextureSize(64,32);
         this.spiderLeg5.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg5.setRotationPoint(-4.0F, (float)var2, 2.0F);
         spider.addChild(spiderLeg5);
         
         this.spiderLeg6 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg6.setTextureSize(64,32);
         this.spiderLeg6.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg6.setRotationPoint(4.0F, (float)var2, 2.0F);
         spider.addChild(spiderLeg6);
         
         this.spiderLeg7 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg7.setTextureSize(64,32);
         this.spiderLeg7.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg7.setRotationPoint(-4.0F, (float)var2, 1.0F);
         spider.addChild(spiderLeg7);
         
         this.spiderLeg8 = new ModelRenderer(base, 18, 0);
+        this.spiderLeg8.setTextureSize(64,32);
         this.spiderLeg8.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg8.setRotationPoint(4.0F, (float)var2, 1.0F);
         spider.addChild(spiderLeg8);

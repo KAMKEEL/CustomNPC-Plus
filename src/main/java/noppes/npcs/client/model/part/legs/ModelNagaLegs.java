@@ -25,8 +25,10 @@ public class ModelNagaLegs extends ModelRenderer{
 		super(base);
 		
 		nagaPart1 = new ModelRenderer(base,0,0);
+		nagaPart1.setTextureSize(64,32);
 		
 		ModelRenderer legPart = new ModelRenderer(base,0,16);
+
 		legPart.addBox(0, -2, -2, 4, 4, 4);
 		legPart.setRotationPoint(-4, 0, 0);
 		nagaPart1.addChild(legPart);
@@ -36,9 +38,11 @@ public class ModelNagaLegs extends ModelRenderer{
 		nagaPart1.addChild(legPart);
 
 		nagaPart2 = new ModelRenderer(base,0,0);
+		nagaPart2.setTextureSize(64,32);
 		nagaPart2.childModels = nagaPart1.childModels;
 
 		nagaPart3 = new ModelRenderer(base,0,0);
+		nagaPart3.setTextureSize(64,32);
 		
 		ModelPlaneRenderer plane = new ModelPlaneRenderer(base, 4, 24);
 		plane.addBackPlane(0,-2, 0, 4, 4);
@@ -89,9 +93,11 @@ public class ModelNagaLegs extends ModelRenderer{
 		nagaPart3.addChild(plane);
 
 		nagaPart4 = new ModelRenderer(base,0,0);
+		nagaPart4.setTextureSize(64,32);
 		nagaPart4.childModels = nagaPart3.childModels;
 		
 		nagaPart5 = new ModelRenderer(base,0,0);
+		nagaPart5.setTextureSize(64,32);
 		
 		legPart = new ModelRenderer(base,56,20);
 		legPart.addBox(0, 0, -2, 2, 5, 2);

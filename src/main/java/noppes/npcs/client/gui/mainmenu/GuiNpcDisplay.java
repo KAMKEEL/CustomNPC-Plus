@@ -56,7 +56,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(4,"display.texture", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 80, y, 200, 20, display.skinType == 0?display.texture:display.url));
     	this.addButton(new GuiNpcButton(3, guiLeft + 325, y, 38, 20, "mco.template.button.select"));
-    	this.addButton(new GuiNpcButton(2, guiLeft + 283, y, 40, 20, new String[]{"display.texture","display.player", "display.url"},display.skinType));
+    	this.addButton(new GuiNpcButton(2, guiLeft + 283, y, 40, 20, new String[]{"display.texture","display.player", "display.url", "display.url64"},display.skinType));
     	getButton(3).setEnabled(display.skinType == 0);
     	if(display.skinType == 1 && display.playerProfile != null)
     		getTextField(3).setText(display.playerProfile.getName());
@@ -102,7 +102,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			display.modelSize = textfield.getInteger();
 		}
 		else if(textfield.id == 3){
-			if(display.skinType == 2)
+			// SKIN CHANGE
+			if(display.skinType == 2 || display.skinType == 3)
 				display.url = textfield.getText();
 			else if(display.skinType == 1){
 				if(!textfield.isEmpty()){
@@ -137,7 +138,10 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		if(button.id == 2){
 			display.skinType = (byte) button.getValue();
-			display.url = "";
+			// SKIN CHANGE
+			if (display.skinType != 3){
+				display.url = "";
+			}
 			display.playerProfile = null;
 			initGui();
 		}

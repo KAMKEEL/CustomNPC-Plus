@@ -15,7 +15,7 @@ public class GuiModelBody extends GuiModelInterface{
 	private final String[] arrWing = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6","Type7","Type8","Type9",
             "Type10","Type11","Type12","Type13"};
 	private final String[] arrBreasts = new String[]{"gui.no","Type1","Type2","Type3"};
-	private final String[] arrParticles = new String[]{"gui.no","Player","Type1","Type2", "Rainbow"};
+	private final String[] arrParticles = new String[]{"gui.no","Player","Type1", "Type2", "Rainbow", "Type3", "Type4", "Type5", "Type6", "Type7"};
 	private final String[] arrfins = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6"};
 	private final String[] arrskirt = new String[]{"gui.no","Player","Type1"};
 	
@@ -109,6 +109,16 @@ public class GuiModelBody extends GuiModelInterface{
     			return 2;
     		if(particles.texture.contains("2"))
     			return 3;
+			if(particles.texture.contains("3"))
+				return 5;
+			if(particles.texture.contains("4"))
+				return 6;
+			if(particles.texture.contains("5"))
+				return 7;
+			if(particles.texture.contains("6"))
+				return 8;
+			if(particles.texture.contains("7"))
+				return 9;
     	}
     	if(particles.type == 1){
     		return 4;
@@ -149,6 +159,16 @@ public class GuiModelBody extends GuiModelInterface{
 	    			particles.setTexture("particle/type2", 0);
 	    		if(value == 4)
 	    			particles.setTexture("", 1);
+				if(value == 5)
+					particles.setTexture("particle/type3", 0);
+				if(value == 6)
+					particles.setTexture("particle/type4", 0);
+				if(value == 7)
+					particles.setTexture("particle/type5", 0);
+				if(value == 8)
+					particles.setTexture("particle/type6", 0);
+				if(value == 9)
+					particles.setTexture("particle/type7", 0);
     		}
     		initGui();
     	}

@@ -207,8 +207,103 @@ public class ModelMPM extends ModelNPCMale{
 		}
 
 		headwear = new ModelHeadwear(this);
-		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg);
+		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 64);
 		// bodywear = new ModelBodywear(this);
+
+		this.bipedBody.addChild(breasts = new ModelBreasts(this));
+		if(!isArmor){
+			this.bipedHead.addChild(ears = new ModelEars(this));
+			this.bipedHead.addChild(mohawk = new ModelMohawk(this));
+			this.bipedHead.addChild(hair = new ModelHair(this));
+			this.bipedHead.addChild(beard = new ModelBeard(this));
+
+			// Completed
+			this.bipedHead.addChild(snout = new ModelSnout(this));
+			this.bipedHead.addChild(horns = new ModelHorns(this));
+
+			// Completed
+			tail = new ModelTail(this);
+
+			this.bipedBody.addChild(wings = new ModelWings(this));
+			this.bipedBody.addChild(fin = new ModelFin(this));
+
+			// Fix This
+			this.bipedBody.addChild(skirt = new ModelSkirt(this));
+			this.bipedLeftArm.addChild(clawsL = new ModelClaws(this, false));
+			this.bipedRightArm.addChild(clawsR = new ModelClaws(this, true));
+		}
+	}
+
+	// Steve 64x32
+	public ModelMPM(float par1) {
+
+		super(par1);
+		isArmor = par1 > 0;
+		float par2 = 0;
+
+		this.bipedCloak = new ModelRenderer(this, 0, 0);
+		this.bipedCloak.addBox(-5.0F, 0.0F, -1.0F, 10, 16, 1, par1);
+
+		this.bipedEars = new ModelRenderer(this, 24, 0);
+		this.bipedEars.addBox(-3.0F, -6.0F, -1.0F, 6, 6, 1, par1);
+
+		this.bipedHead = (new ModelScaleRenderer(this, 0, 0));
+		this.bipedHead.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, par1);
+		this.bipedHead.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
+
+		this.bipedHeadwear = (new ModelScaleRenderer(this, 32, 0));
+		this.bipedHeadwear.addBox(-4.0F, -8.0F, -4.0F, 8, 8, 8, par1 + 0.5F);
+		this.bipedHeadwear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
+
+		this.bipedBody = (new ModelScaleRenderer(this, 16, 16));
+		this.bipedBody.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1);
+		this.bipedBody.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
+
+		// New Extension
+		this.bipedBodywear = (new ModelScaleRenderer(this, 16, 32));
+		this.bipedBodywear.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1 + 0.5F);
+		this.bipedBody.addChild(this.bipedBodywear);
+
+		this.bipedRightArm = new ModelScaleRenderer(this, 40, 16);
+		this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
+
+		this.bipedLeftArm = new ModelScaleRenderer(this, 40, 16);
+		this.bipedLeftArm.mirror = true;
+		this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+
+		// Arms
+		this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 16));
+		this.bipedRightArmwear.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+		this.bipedRightArm.addChild(this.bipedRightArmwear);
+
+		this.bipedLeftArmwear = new ModelScaleRenderer(this, 40, 16);
+		this.bipedLeftArmwear.mirror = true;
+		this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+		this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+
+		this.bipedRightLeg = new ModelScaleRenderer(this, 0, 16);
+		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+
+		// Legs
+		this.bipedLeftLeg = new ModelScaleRenderer(this, 0, 16);
+		this.bipedLeftLeg.mirror = true;
+		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
+
+		this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 16));
+		this.bipedRightLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+		this.bipedRightLeg.addChild(this.bipedRightLegWear);
+
+		this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 16);
+		this.bipedLeftArmwear.mirror = true;
+		this.bipedLeftLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+		this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
+
+		headwear = new ModelHeadwear(this, true);
+		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 32);
 
 		this.bipedBody.addChild(breasts = new ModelBreasts(this));
 		if(!isArmor){

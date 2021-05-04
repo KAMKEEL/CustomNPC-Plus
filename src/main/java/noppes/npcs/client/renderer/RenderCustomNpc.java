@@ -29,7 +29,7 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 
 	// Default Renderer
 	public RenderCustomNpc() {
-		super(new ModelMPM(0, false, false), new ModelMPM(1,false, false), new ModelMPM(0.5f, false, false));
+		super(new ModelMPM(0), new ModelMPM(1), new ModelMPM(0.5f));
 	}
 
 	@Override

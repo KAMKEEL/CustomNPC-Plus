@@ -29,29 +29,34 @@ public class ModelMermaidLegs extends ModelRenderer {
         textureHeight = 32;
 
         top = new ModelRenderer(base, 0, 16);
+        top.setTextureSize(64,32);
         top.addBox(-2F, -2.5F, -2F, 8, 9, 4);
         top.setRotationPoint(-2F, 14F, 1F);
         setRotation(top, 0.26F, 0F, 0F);
 
         middle = new ModelRenderer(base, 28, 0);
+        middle.setTextureSize(64,32);
         middle.addBox(0F, 0F, 0F, 7, 6, 4);
         middle.setRotationPoint(-1.5F, 6.5F, -1F);
         setRotation(middle, 0.86f, 0F, 0F);
         top.addChild(middle);
 
         bottom = new ModelRenderer(base, 24, 16);
+        bottom.setTextureSize(64,32);
         bottom.addBox(0F, 0F, 0F, 6, 7, 3);
         bottom.setRotationPoint(0.5F, 6F, 0.5f);
         setRotation(bottom, 0.15f, 0F, 0F);
         middle.addChild(bottom);
 
         fin1 = new ModelRenderer(base, 0, 0);
+        fin1.setTextureSize(64,32);
         fin1.addBox(0F, 0F, 0F, 5, 9, 1);
         fin1.setRotationPoint(0F, 4.5F, 1F);
         setRotation(fin1, 0.05f, 0, 0.5911399F);
         bottom.addChild(fin1);
 
         fin2 = new ModelRenderer(base, 0, 0);
+        fin2.setTextureSize(64,32);
         fin2.mirror = true;
         fin2.addBox(-5F, 0F, 0F, 5, 9, 1);
         fin2.setRotationPoint(6F, 4.5F, 1F);

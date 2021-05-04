@@ -270,6 +270,9 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	// New Button for Changing Models
 		if(button.id == 250){
 			if(npc.display.modelType == 0){
+				if (npc.display.skinType == 2){
+					npc.display.skinType = 3;
+				}
 				npc.display.modelType = 1;
 			}
 			else if(npc.display.modelType == 1){
@@ -277,6 +280,9 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			}
 			else {
 				npc.display.modelType = 0;
+				if (npc.display.skinType == 3){
+					npc.display.skinType = 2;
+				}
 			}
 		}
 

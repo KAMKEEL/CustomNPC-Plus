@@ -38,8 +38,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmorChestplate;
     protected ModelNPCMale modelArmor;
 
-    protected final ModelNPCMale OGmodelArmorChestplate = new ModelMPM(1, false, false);
-    protected final ModelNPCMale OGmodelArmor = new ModelMPM(0.5f, false, false);
+    protected final ModelNPCMale OGmodelArmorChestplate = new ModelMPM(1);
+    protected final ModelNPCMale OGmodelArmor = new ModelMPM(0.5f);
 
     protected final ModelMPM steve = new ModelMPM(0, true, false);
     protected final ModelMPM steveArmorChestplate = new ModelMPM(1, true, false);
