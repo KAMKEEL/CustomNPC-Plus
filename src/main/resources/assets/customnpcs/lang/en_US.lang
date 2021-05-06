@@ -175,6 +175,7 @@ display.visible=Visible
 display.bossbar=BossBar
 display.squareTexture=Square Texture
 display.url=Url
+display.urlSix=Url64
 
 inv.minExp=Min Exp
 inv.maxExp=Max Exp

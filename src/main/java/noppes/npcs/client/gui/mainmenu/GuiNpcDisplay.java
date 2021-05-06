@@ -56,7 +56,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(4,"display.texture", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 80, y, 200, 20, display.skinType == 0?display.texture:display.url));
     	this.addButton(new GuiNpcButton(3, guiLeft + 325, y, 38, 20, "mco.template.button.select"));
-    	this.addButton(new GuiNpcButton(2, guiLeft + 283, y, 40, 20, new String[]{"display.texture","display.player", "display.url", "display.url64"},display.skinType));
+    	this.addButton(new GuiNpcButton(2, guiLeft + 283, y, 40, 20, new String[]{"display.texture","display.player", "display.url", "display.urlSix"},display.skinType));
     	getButton(3).setEnabled(display.skinType == 0);
     	if(display.skinType == 1 && display.playerProfile != null)
     		getTextField(3).setText(display.playerProfile.getName());
@@ -75,10 +75,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"}, display.disableLivingAnimation?1:0));
 
-    	// Square Texture Button
-		// addLabel(new GuiNpcLabel(300,"display.squareTexture", guiLeft + 230, y + 5));
-		// this.addButton(new GuiNpcButton(300, guiLeft + 313, y, 50, 20, new String[]{"gui.no","gui.yes"}, display.squareTexture));
-
 		y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
@@ -87,8 +83,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
 
-    	//addExtra(new GuiHoverText(0, "testing", guiLeft, guiTop));
-    }
+	}
 
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
@@ -103,8 +98,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(textfield.id == 3){
 			// SKIN CHANGE
-			if(display.skinType == 2 || display.skinType == 3)
+			if(display.skinType == 2 || display.skinType == 3){
 				display.url = textfield.getText();
+			}
 			else if(display.skinType == 1){
 				if(!textfield.isEmpty()){
 					display.playerProfile = new GameProfile(null, textfield.getText());
@@ -138,6 +134,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		if(button.id == 2){
 			display.skinType = (byte) button.getValue();
+			System.out.println("Skin Type set to:" + display.skinType);
 			// SKIN CHANGE
 			if (display.skinType != 3){
 				display.url = "";

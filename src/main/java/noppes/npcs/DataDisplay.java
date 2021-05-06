@@ -20,7 +20,9 @@ public class DataDisplay {
 	public String title = "";
 
 	public byte skinType = 0;	//0:normal, 1:player, 2:url, 3:url64
+
 	public String url = "";
+
 	public GameProfile playerProfile;
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";;
 	public String cloakTexture = "";
@@ -97,7 +99,8 @@ public class DataDisplay {
 		title = nbttagcompound.getString("Title");
 		
 		url = nbttagcompound.getString("SkinUrl");
-        int prevSkinType = skinType;
+
+		int prevSkinType = skinType;
 		skinType = nbttagcompound.getByte("UsingSkinUrl");
 		
 		this.playerProfile = null;

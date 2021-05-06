@@ -24,7 +24,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class ImageDownloadAlt32 extends SimpleTexture
+public class ImageDownloadAlt extends SimpleTexture
 {
     private static final Logger logger = LogManager.getLogger();
     private static final AtomicInteger threadDownloadCounter = new AtomicInteger(0);
@@ -35,7 +35,7 @@ public class ImageDownloadAlt32 extends SimpleTexture
     private Thread imageThread;
     private boolean textureUploaded;
 
-    public ImageDownloadAlt32(File file, String url, ResourceLocation resource, IImageBuffer buffer)
+    public ImageDownloadAlt(File file, String url, ResourceLocation resource, IImageBuffer buffer)
     {
         super(resource);
         this.cacheFile = file;

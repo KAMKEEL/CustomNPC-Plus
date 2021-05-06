@@ -11,20 +11,40 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
     private int imageData[];
     private int imageWidth;
     private int imageHeight;
+    private boolean version;
+
+    // If Version == true, use 64 Loader
+    public ImageBufferDownloadAlt(boolean ver){
+        this.version = ver;
+    }
 
     @Override
     public BufferedImage parseUserSkin(BufferedImage bufferedimage) {
 
-        imageWidth = bufferedimage.getWidth(null);
-        imageHeight = bufferedimage.getHeight(null);
+        if(this.version){
+            imageWidth = bufferedimage.getWidth(null);
+            imageHeight = imageWidth / 2;
+            imageHeight = bufferedimage.getHeight(null);
+            BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageWidth, 2);
+            Graphics g = bufferedimage1.getGraphics();
+            g.drawImage(bufferedimage, 0, 0, null);
+            g.dispose();
+            imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
 
-        BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageWidth, 2);
+            setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
+            return bufferedimage1;
+        }
+
+        imageWidth = bufferedimage.getWidth(null);
+        imageHeight = imageWidth/2;
+
+        BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageHeight, 2);
         Graphics g = bufferedimage1.getGraphics();
         g.drawImage(bufferedimage, 0, 0, null);
         g.dispose();
         imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
 
-        setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
+        setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
 
         return bufferedimage1;
     }
