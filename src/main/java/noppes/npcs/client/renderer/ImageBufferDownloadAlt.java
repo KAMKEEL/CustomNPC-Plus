@@ -23,30 +23,31 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
 
         if(this.version){
             imageWidth = bufferedimage.getWidth(null);
-            imageHeight = imageWidth / 2;
             imageHeight = bufferedimage.getHeight(null);
+
             BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageWidth, 2);
             Graphics g = bufferedimage1.getGraphics();
             g.drawImage(bufferedimage, 0, 0, null);
             g.dispose();
-            imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
 
+            imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
             setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
             return bufferedimage1;
         }
 
-        imageWidth = bufferedimage.getWidth(null);
-        imageHeight = imageWidth/2;
+        else{
+            imageWidth = bufferedimage.getWidth(null);
+            imageHeight = imageWidth / 2;
 
-        BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageHeight, 2);
-        Graphics g = bufferedimage1.getGraphics();
-        g.drawImage(bufferedimage, 0, 0, null);
-        g.dispose();
-        imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
+            BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageHeight, 2);
+            Graphics g = bufferedimage1.getGraphics();
+            g.drawImage(bufferedimage, 0, 0, null);
+            g.dispose();
+            imageData = ((DataBufferInt)bufferedimage1.getRaster().getDataBuffer()).getData();
 
-        setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
-
-        return bufferedimage1;
+            setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
+            return bufferedimage1;
+        }
     }
 
     /**

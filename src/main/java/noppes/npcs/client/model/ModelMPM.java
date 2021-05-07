@@ -73,6 +73,7 @@ public class ModelMPM extends ModelNPCMale{
 		float par2 = 0;
 
 		this.bipedCloak = new ModelRenderer(this, 0, 0);
+		this.bipedCloak.setTextureSize(64,32);
 		this.bipedCloak.addBox(-5.0F, 0.0F, -1.0F, 10, 16, 1, par1);
 
 		this.bipedEars = new ModelRenderer(this, 24, 0);
@@ -97,120 +98,71 @@ public class ModelMPM extends ModelNPCMale{
 		// this.bipedBodywear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
 		// Steve 64x64 Model or Alex 64x64 Model
-		if(updated){
 
-			if (arms){
-				// Alex Version
-				this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
-				this.bipedRightArm.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1);
-				// this.bipedRightArm.setRotationPoint(-5.0F, 2.5F + par2, 0.0F);
+		if (arms){
+			// Alex Version
+			this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
+			this.bipedRightArm.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1);
+			// this.bipedRightArm.setRotationPoint(-5.0F, 2.5F + par2, 0.0F);
 
-				this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
-				this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1);
-				this.bipedLeftArm.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
+			this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
+			this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1);
+			this.bipedLeftArm.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
 
-				this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 32));
-				this.bipedRightArmwear.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
-				this.bipedRightArm.addChild(this.bipedRightArmwear);
-				// this.bipedRightArmWear.setRotationPoint(-5.0F, 2.5F + par2, 0.0F);
+			this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 32));
+			this.bipedRightArmwear.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
+			this.bipedRightArm.addChild(this.bipedRightArmwear);
+			// this.bipedRightArmWear.setRotationPoint(-5.0F, 2.5F + par2, 0.0F);
 
-				this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
-				this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
-				this.bipedLeftArm.addChild(this.bipedLeftArmwear);
-				// this.bipedLeftArmWear.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
-			}
-			else{
-				// Steve Version
-				this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
-				this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
-				this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
-
-				this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
-				this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
-				this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
-
-				this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 32));
-				this.bipedRightArmwear.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-				this.bipedRightArm.addChild(this.bipedRightArmwear);
-				//this.bipedRightArmWear.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
-
-				this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
-				this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-				this.bipedLeftArm.addChild(this.bipedLeftArmwear);
-				//this.bipedLeftArmWear.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
-			}
-
-			this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16));
-			this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
-			this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
-
-			// Changed for 64x64 Texture
-			this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
-			this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
-			this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
-
-			this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 32));
-			this.bipedRightLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedRightLeg.addChild(this.bipedRightLegWear);
-			// this.bipedRightLegWear.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
-
-			this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 48);
-			this.bipedLeftLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
-			// this.bipedLeftLegWear.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
-
+			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
+			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
+			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+			// this.bipedLeftArmWear.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
 		}
-		// Steve 64x32 Model
 		else{
-
-			this.bipedRightArm = new ModelScaleRenderer(this, 40, 16);
+			// Steve Version
+			this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
 			this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
 			this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
 
-			this.bipedLeftArm = new ModelScaleRenderer(this, 40, 16);
-			this.bipedLeftArm.mirror = true;
+			this.bipedLeftArm = new ModelScaleRenderer(this, 32, 48);
 			this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
 			this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
 
-			// Arms
-			this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 16));
+			this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 32));
 			this.bipedRightArmwear.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 			this.bipedRightArm.addChild(this.bipedRightArmwear);
 			//this.bipedRightArmWear.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
 
-			this.bipedLeftArmwear = new ModelScaleRenderer(this, 40, 16);
-			this.bipedLeftArmwear.mirror = true;
+			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
 			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
 			//this.bipedLeftArmWear.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
-
-			this.bipedRightLeg = new ModelScaleRenderer(this, 0, 16);
-			this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
-			this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
-
-			this.bipedLeftLeg = new ModelScaleRenderer(this, 0, 16);
-			this.bipedLeftLeg.mirror = true;
-			this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
-			this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
-
-			this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 16));
-			this.bipedRightLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedRightLeg.addChild(this.bipedRightLegWear);
-			// this.bipedRightLegWear.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
-
-			this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 16);
-			this.bipedLeftArmwear.mirror = true;
-			this.bipedLeftLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
-			// this.bipedLeftLegWear.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
-
 		}
+
+		this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16));
+		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+
+		// Changed for 64x64 Texture
+		this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
+		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
+
+		this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 32));
+		this.bipedRightLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+		this.bipedRightLeg.addChild(this.bipedRightLegWear);
+		// this.bipedRightLegWear.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+
+		this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 48);
+		this.bipedLeftLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+		this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
 
 		headwear = new ModelHeadwear(this);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 64);
 		// bodywear = new ModelBodywear(this);
 
-		this.bipedBody.addChild(breasts = new ModelBreasts(this));
+		this.bipedBody.addChild(breasts = new ModelBreasts(this, 64, 64));
 		if(!isArmor){
 			this.bipedHead.addChild(ears = new ModelEars(this));
 			this.bipedHead.addChild(mohawk = new ModelMohawk(this));
@@ -242,6 +194,7 @@ public class ModelMPM extends ModelNPCMale{
 		float par2 = 0;
 
 		this.bipedCloak = new ModelRenderer(this, 0, 0);
+		this.bipedCloak.setTextureSize(64,32);
 		this.bipedCloak.addBox(-5.0F, 0.0F, -1.0F, 10, 16, 1, par1);
 
 		this.bipedEars = new ModelRenderer(this, 24, 0);
@@ -305,7 +258,7 @@ public class ModelMPM extends ModelNPCMale{
 		headwear = new ModelHeadwear(this, true);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 32);
 
-		this.bipedBody.addChild(breasts = new ModelBreasts(this));
+		this.bipedBody.addChild(breasts = new ModelBreasts(this, 64, 32));
 		if(!isArmor){
 			this.bipedHead.addChild(ears = new ModelEars(this));
 			this.bipedHead.addChild(mohawk = new ModelMohawk(this));
