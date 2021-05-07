@@ -66,9 +66,9 @@ public class ModelMPM extends ModelNPCMale{
 
 	// Updated False = 64x32 Skin
 	// Steve 64x64 and Alex 64x64
-	public ModelMPM(float par1, boolean updated, boolean arms) {
+	public ModelMPM(float par1, boolean arms) {
 
-		super(par1, updated, arms);
+		super(par1, arms);
 		isArmor = par1 > 0;
 		float par2 = 0;
 
@@ -98,7 +98,6 @@ public class ModelMPM extends ModelNPCMale{
 		// this.bipedBodywear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
 		// Steve 64x64 Model or Alex 64x64 Model
-
 		if (arms){
 			// Alex Version
 			this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
@@ -144,7 +143,6 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
 
-		// Changed for 64x64 Texture
 		this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
 		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);

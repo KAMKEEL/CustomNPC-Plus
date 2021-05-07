@@ -41,13 +41,13 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected final ModelNPCMale OGmodelArmorChestplate = new ModelMPM(1);
     protected final ModelNPCMale OGmodelArmor = new ModelMPM(0.5f);
 
-    protected final ModelMPM steve = new ModelMPM(0, true, false);
-    protected final ModelMPM steveArmorChestplate = new ModelMPM(1, true, false);
-    protected final ModelMPM steveModelArmor = new ModelMPM(0.5f, true, false);
+    protected final ModelMPM steve = new ModelMPM(0, false);
+    protected final ModelMPM steveArmorChestplate = new ModelMPM(1, false);
+    protected final ModelMPM steveModelArmor = new ModelMPM(0.5f, false);
 
-    protected final ModelMPM alex = new ModelMPM(0, true, true);
-    protected final ModelMPM alexArmorChestplate = new ModelMPM(1, true, true);
-    protected final ModelMPM alexModelArmor = new ModelMPM(0.5f, true, true);
+    protected final ModelMPM alex = new ModelMPM(0, true);
+    protected final ModelMPM alexArmorChestplate = new ModelMPM(1, true);
+    protected final ModelMPM alexModelArmor = new ModelMPM(0.5f, true);
 
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
