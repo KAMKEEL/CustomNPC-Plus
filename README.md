@@ -17,16 +17,19 @@ I am not the original creator of CustomNPC. The original creator is @[Noppes](ht
 - [x] Larger Clone GUI
 - [x] More Clone Tabs
 - [x] Increased Resolution to Additional Body Parts
-- [ ] Update Local Skin Textures (64x64) [WIP]
-- [X] 1.8 Skins  (64x64)
-- [X] Alex Model (64x64)
-- [ ] Fix Part Rendering
-
+- [x] ~~Update Local Skin Textures (64x64) [WIP]~~
+- [x] Added (New) Local 64x64 Skin Textures 
+- [x] 1.8 Skins  (64x64)
+- [x] Alex Model (64x64)
+- [x] Fix Part Rendering
+- [x] Backported GUI Features
+- [x] Backported New Part Models
+--- Please Suggest New Features!
 
 ###### **Majority of these cape designs are taken from the internet with fair-usage.*
 
 ### Skin Model Feature:
-##### Please note all *local* skins in this version of CustomNPC MUST be 64 x 64 even if 1.7 skin. Custom URL sizes work just fine regardless of 64x32.
+##### Please note all *local* skins in this version of CustomNPC, must match the model selected.
 <img src="skinAnimation.gif" width="474" height="260"/>
 
 
