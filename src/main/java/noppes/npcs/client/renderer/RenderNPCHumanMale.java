@@ -39,8 +39,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmor;
 
     protected final ModelMPM steve = new ModelMPM(0, false);
-    protected final ModelMPM steveChest = new ModelMPM(1, false);
-
     protected final ModelMPM alex = new ModelMPM(0, true);
 
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
@@ -122,14 +120,12 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             if(test.modelData.entityClass == null){
                 int modelVal = npc.display.modelType;
                 if(modelVal ==  1){
-                    this.mainModel = new ModelMPM(0, false);
-                    this.modelBipedMain = new ModelMPM(0, false);
-                    this.modelArmorChestplate = new ModelMPM(1);
+                    this.mainModel = steve;
+                    this.modelBipedMain = steve;
                 }
                 else if(modelVal ==  2){
-                    this.mainModel = new ModelMPM(0, true);
-                    this.modelBipedMain = new ModelMPM(0, true);
-                    this.modelArmorChestplate = new ModelMPM(1);
+                    this.mainModel = alex;
+                    this.modelBipedMain = alex;
                 }
                 else{
                     ((EntityCustomNpc) npc).modelData.bodywear = 0;
