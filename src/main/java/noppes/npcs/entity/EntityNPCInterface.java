@@ -1699,6 +1699,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	{
 		return this.display.modelType;
 	}
+
 	public void setModelType(int val)
 	{
 		this.display.modelType = val;
