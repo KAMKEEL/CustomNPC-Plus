@@ -29,6 +29,7 @@ public class ModelLegs extends ModelScaleRenderer{
 	private ModelDigitigradeLegs digitigrade;
 	private ModelMermaidLegs mermaid;
 	private ModelMermaidLegs2 mermaid2;
+	private boolean mirror = true;
 
 	private ModelRenderer spiderLeg1;
     private ModelRenderer spiderLeg2;
@@ -61,6 +62,11 @@ public class ModelLegs extends ModelScaleRenderer{
 	
 	public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2, int textWidth, int textHeight) {
 		super(base);
+
+		if(textHeight != textWidth){
+		    this.mirror = true;
+        }
+
 		this.base = base;
 		this.leg1 = leg1;
 		this.leg2 = leg2;
@@ -217,7 +223,7 @@ public class ModelLegs extends ModelScaleRenderer{
         this.addChild(mermaid);
 		this.addChild(mermaid2);
         
-        digitigrade = new ModelDigitigradeLegs(base);
+        digitigrade = new ModelDigitigradeLegs(base, mirror);
         this.addChild(digitigrade);
 	}
 	public void setRotation(ModelRenderer model, float x, float y, float z) {

@@ -279,7 +279,9 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				npc.display.modelType = 2;
 			}
 			else {
-				npc.display.skinType = 2;
+				if (npc.display.skinType == 3){
+					npc.display.skinType = 2;
+				}
 				npc.display.modelType = 0;
 			}
 		}

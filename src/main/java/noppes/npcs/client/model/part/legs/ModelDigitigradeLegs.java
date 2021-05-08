@@ -22,9 +22,15 @@ public class ModelDigitigradeLegs extends ModelRenderer {
 
 	private ModelMPM base;
 
-	public ModelDigitigradeLegs(ModelMPM base) {
+	public ModelDigitigradeLegs(ModelMPM base, boolean mirror) {
 		super(base);
 		this.base = base;
+
+		int adder = 0;
+		if(mirror == false){
+			adder = 32;
+		}
+
 		rightleg = new ModelRenderer(base, 0, 16);
 		rightleg.addBox(-2F, 0F, -2F, 4, 6, 4);
 		rightleg.setRotationPoint(-2.1F, 11F, 0F);
@@ -49,29 +55,29 @@ public class ModelDigitigradeLegs extends ModelRenderer {
 		setRotation(rightfoot, 0.55F, 0F, 0F);
 		rightleglow.addChild(rightfoot);
 
-		leftleg = new ModelRenderer(base, 0, 16);
-		leftleg.mirror = true;
+		leftleg = new ModelRenderer(base, 0, 16 + adder);
+		leftleg.mirror = mirror;
 		leftleg.addBox(-2F, 0F, -2F, 4, 6, 4);
 		leftleg.setRotationPoint(2.1F, 11F, 0F);
 		setRotation(leftleg, -0.3F, 0F, 0F);
 		this.addChild(leftleg);
 
-		leftleg2 = new ModelRenderer(base, 0, 20);
-		leftleg2.mirror = true;
+		leftleg2 = new ModelRenderer(base, 0, 20 + adder);
+		leftleg2.mirror = mirror;
 		leftleg2.addBox(-1.5F, -1F, -2F, 3, 7, 3);
 		leftleg2.setRotationPoint(0F, 4.1F, 0F);
 		setRotation(leftleg2, 1.1f, 0F, 0F);
 		leftleg.addChild(leftleg2);
 
-		leftleglow = new ModelRenderer(base, 0, 24);
-		leftleglow.mirror = true;
+		leftleglow = new ModelRenderer(base, 0, 24 + adder);
+		leftleglow.mirror = mirror;
 		leftleglow.addBox(-1.5F, 0F, -1F, 3, 5, 2);
 		leftleglow.setRotationPoint(0F, 5F, 0F);
 		setRotation(leftleglow, -1.35F, 0F, 0F);
 		leftleg2.addChild(leftleglow);
 
-		leftfoot = new ModelRenderer(base, 1, 26);
-		leftfoot.mirror = true;
+		leftfoot = new ModelRenderer(base, 1, 26 + adder);
+		leftfoot.mirror = mirror;
 		leftfoot.addBox(-1.5F, 0F, -5F, 3, 2, 4);
 		leftfoot.setRotationPoint(0F, 3.7F, 1.2F);
 		setRotation(leftfoot, 0.55F, 0F, 0F);

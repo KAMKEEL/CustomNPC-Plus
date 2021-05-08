@@ -19,31 +19,37 @@ public class ModelSnout extends ModelPartInterface {
 		super(base);
 		
 		small = new ModelRenderer(base, 24, 0);
+		small.setTextureSize(64,32);
 		small.addBox(0F, 0F, 0F, 4, 3, 1);
 		small.setRotationPoint(-2F, -3F, -5F);
 		this.addChild(small);
 
 		medium = new ModelRenderer(base, 24, 0);
+		medium.setTextureSize(64,32);
 		medium.addBox(0F, 0F, 0F, 4, 3, 2);
 		medium.setRotationPoint(-2F, -3F, -6F);
 		this.addChild(medium);
 
 		large = new ModelRenderer(base, 24, 0);
+		large.setTextureSize(64,32);
 		large.addBox(0F, 0F, 0F, 4, 3, 3);
 		large.setRotationPoint(-2F, -3F, -7F);
 		this.addChild(large);
 		
 		bunny = new ModelRenderer(base, 24, 0);
+		bunny.setTextureSize(64,32);
 		bunny.addBox(1F, 1F, 0F, 4, 2, 1);
 		bunny.setRotationPoint(-3F, -4F, -5F);
 		this.addChild(bunny);
 		
 		ModelRenderer tooth = new ModelRenderer(base, 24, 3);
+		tooth.setTextureSize(64,32);
 		tooth.addBox(2F, 3f, 0F, 2, 1, 1);
 		tooth.setRotationPoint(0F, 0F, 0F);
 		bunny.addChild(tooth);
 
 		beak = new ModelDuckBeak(base);
+		beak.setTextureSize(64,32);
 		beak.setRotationPoint(0, 0, -4F);
 		this.addChild(beak);
 	}

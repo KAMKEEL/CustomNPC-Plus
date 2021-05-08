@@ -19,34 +19,44 @@ public class ModelDragonTail extends ModelRenderer {
         this.addChild(dragon);
 		
         ModelRenderer DragonTail2 = new ModelRenderer(base, x, y);
+        DragonTail2.setTextureSize(64, 32);
 		DragonTail2.setRotationPoint(0F, 2F, 2F);
 
 		ModelRenderer DragonTail3 = new ModelRenderer(base, x, y);
+		DragonTail3.setTextureSize(64, 32);
 		DragonTail3.setRotationPoint(0F, 4.5F, 4F);
 		
 		ModelRenderer DragonTail4 = new ModelRenderer(base, x, y);
+		DragonTail4.setTextureSize(64, 32);
 		DragonTail4.setRotationPoint(0F, 7F, 5.75F);
 		
 		ModelRenderer DragonTail5 = new ModelRenderer(base, x, y);
+		DragonTail5.setTextureSize(64, 32);
 		DragonTail5.setRotationPoint(0F, 9F, 8F);
 
 		ModelPlaneRenderer planeLeft = new ModelPlaneRenderer(base, x, y);
+		planeLeft.setTextureSize(64, 32);
 		planeLeft.addSidePlane(-1.5F, -1.5F, -1.5F, 3, 3);
 		ModelPlaneRenderer planeRight = new ModelPlaneRenderer(base, x, y);
+		planeRight.setTextureSize(64, 32);
 		planeRight.addSidePlane(-1.5F, -1.5F, -1.5F, 3, 3);
 		setRotation(planeRight,  (float)Math.PI, (float)Math.PI ,0);
 
 		ModelPlaneRenderer planeTop = new ModelPlaneRenderer(base, x, y);
+		planeTop.setTextureSize(64, 32);
 		planeTop.addTopPlane(-1.5F, -1.5F, -1.5F, 3, 3);
 		setRotation(planeTop,   0 ,-(float)Math.PI / 2,0);
 		ModelPlaneRenderer planeBottom = new ModelPlaneRenderer(base, x, y);
+		planeBottom.setTextureSize(64, 32);
 		planeBottom.addTopPlane(-1.5F, -1.5F, -1.5F, 3, 3);
 		setRotation(planeBottom,   0 ,-(float)Math.PI / 2, (float)Math.PI);
 
 		ModelPlaneRenderer planeBack = new ModelPlaneRenderer(base, x, y);
+		planeBack.setTextureSize(64, 32);
 		planeBack.addBackPlane(-1.5F, -1.5F, -1.5F, 3, 3);
 		setRotation(planeBack,  0, 0 ,(float)Math.PI / 2);
 		ModelPlaneRenderer planeFront = new ModelPlaneRenderer(base, x, y);
+		planeFront.setTextureSize(64, 32);
 		planeFront.addBackPlane(-1.5F, -1.5F, -1.5F, 3, 3);
 		setRotation(planeFront,  0, (float)Math.PI ,-(float)Math.PI / 2);
 

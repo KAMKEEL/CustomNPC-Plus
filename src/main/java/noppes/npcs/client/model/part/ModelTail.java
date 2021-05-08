@@ -39,6 +39,7 @@ public class ModelTail extends ModelScaleRenderer {
 		this.rotationPointY = 11;
 
 		tail = new ModelRenderer(base, 56, 21);
+		tail.setTextureSize(64, 32);
 		tail.addBox(-1F, 0F, 0F, 2, 9, 2);
 		tail.setRotationPoint(0F, 0, 1F);
 		setRotation(tail, 0.8714253F, 0F, 0F);
