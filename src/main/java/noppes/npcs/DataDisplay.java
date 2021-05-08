@@ -122,7 +122,7 @@ public class DataDisplay {
 		
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, 40);
 		modelType = nbttagcompound.getInteger("modelType");
-
+		
 		showName = nbttagcompound.getInteger("ShowName");
 		visible = nbttagcompound.getInteger("NpcVisible");
 
