@@ -144,13 +144,14 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightLeg.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
 
 		this.bipedLeftLeg = new ModelScaleRenderer(this, 16, 48);
-		this.bipedLeftLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
+		this.bipedLeftLeg.addBox(-2.7F, 0.0F, -2.0F, 4, 12, 4, par1);
 		this.bipedLeftLeg.setRotationPoint(1.9F, 12.0F + par2, 0.0F);
 
 		this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 32));
 		this.bipedRightLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 		this.bipedRightLeg.addChild(this.bipedRightLegWear);
 		// this.bipedRightLegWear.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+
 
 		this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 48);
 		this.bipedLeftLegWear.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
@@ -415,30 +416,16 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedLeftLeg.rotateAngleY = 0;
 		this.bipedLeftLeg.rotateAngleZ = 0;
 
-		this.bipedLeftLegWear.rotateAngleX = 0;
-		this.bipedLeftLegWear.rotateAngleY = 0;
-		this.bipedLeftLegWear.rotateAngleZ = 0;
-
 		this.bipedRightLeg.rotateAngleX = 0;
 		this.bipedRightLeg.rotateAngleY = 0;
 		this.bipedRightLeg.rotateAngleZ = 0;
-
-		this.bipedRightLegWear.rotateAngleX = 0;
-		this.bipedRightLegWear.rotateAngleY = 0;
-		this.bipedRightLegWear.rotateAngleZ = 0;
 
 		// Arm Rotations
 		this.bipedLeftArm.rotationPointY = 2;
 		this.bipedLeftArm.rotationPointZ = 0;
 
-		this.bipedLeftArmwear.rotationPointY = 2;
-		this.bipedLeftArmwear.rotationPointZ = 0;
-
 		this.bipedRightArm.rotationPointY = 2;
 		this.bipedRightArm.rotationPointZ = 0;
-
-		this.bipedRightArmwear.rotationPointY = 2;
-		this.bipedRightArmwear.rotationPointZ = 0;
 
 		super.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 

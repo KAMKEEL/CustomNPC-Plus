@@ -12,7 +12,7 @@ public class GuiModelLegs extends GuiModelInterface{
 
 	private GuiScreen parent;
 	private final String[] arrLegwear = new String[]{"gui.no","Both","Left","Right"};
-	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid", "Mermaid 2","Digitigrade"};
+	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid", "Mermaid 2", "Digitigrade"};
 	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent", "Feather"};
 	public GuiModelLegs(GuiScreen parent, EntityCustomNpc npc){
 		super(npc);
@@ -41,17 +41,28 @@ public class GuiModelLegs extends GuiModelInterface{
 		if(tail != null)
 			addButton(new GuiNpcButton(12, guiLeft + 122, y, 40, 20, tail.getColor()));
     }
+
     private int getLegIndex(ModelPartData data) {
     	if(!data.playerTexture && data.type == 1)
     		return 5;
 		if(data.type == 4)
 			return 6;
+//		if(data.type == 6)
+//			return 7;
 		if(data.type == 5)
-			return 7;
-		if(data.type == 6)
 			return 8;
 		return data.type + 1;
 	}
+
+//	private int getLegIndex(ModelPartData data) {
+//		if(!data.playerTexture && data.type == 1)
+//			return 5;
+//		if(data.type == 4)
+//			return 6;
+//		if(data.type == 5)
+//			return 7;
+//		return data.type + 1;
+//	}
 
 	private int getTailIndex(ModelPartData data){
 		if(data == null)
@@ -110,15 +121,15 @@ public class GuiModelLegs extends GuiModelInterface{
     		if(value == 5)
     			data.setTexture("legs/mermaid1", 4);
 			if(value == 6)
-				data.setTexture("legs/mermaid1", 5);
+				data.setTexture("legs/mermaid1", 6);
     		if(value == 7)
-    			data.setTexture("", 6);
+    			data.setTexture("", 5);
 
     		initGui();
 
     	}
 
-		if(button.id == 2){
+			if(button.id == 2){
 			int value = button.getValue();
 			if(value == 0)
 				playerdata.removePart("tail");

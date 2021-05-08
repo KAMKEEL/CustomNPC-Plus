@@ -29,7 +29,6 @@ public class ModelLegs extends ModelScaleRenderer{
 	private ModelDigitigradeLegs digitigrade;
 	private ModelMermaidLegs mermaid;
 	private ModelMermaidLegs2 mermaid2;
-	private boolean mirror = true;
 
 	private ModelRenderer spiderLeg1;
     private ModelRenderer spiderLeg2;
@@ -62,10 +61,6 @@ public class ModelLegs extends ModelScaleRenderer{
 	
 	public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2, int textWidth, int textHeight) {
 		super(base);
-
-		if(textHeight != textWidth){
-		    this.mirror = true;
-        }
 
 		this.base = base;
 		this.leg1 = leg1;
@@ -222,8 +217,14 @@ public class ModelLegs extends ModelScaleRenderer{
 		mermaid2 = new ModelMermaidLegs2(base);
         this.addChild(mermaid);
 		this.addChild(mermaid2);
-        
-        digitigrade = new ModelDigitigradeLegs(base, mirror);
+
+		boolean mirror = false;
+        if(textHeight != textWidth){
+            mirror = true;
+        }
+
+		digitigrade = new ModelDigitigradeLegs(base, mirror, textWidth, textHeight);
+
         this.addChild(digitigrade);
 	}
 	public void setRotation(ModelRenderer model, float x, float y, float z) {
@@ -317,7 +318,7 @@ public class ModelLegs extends ModelScaleRenderer{
 			naga.isSneaking = base.isSneak;
 			naga.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 		}
-		else if(part.type == 4){
+		else if(part.type == 4 || part.type == 6){
             mermaid.isRiding = base.isRiding;
             mermaid.isSleeping = base.isSleeping(entity);
             mermaid.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
@@ -367,8 +368,8 @@ public class ModelLegs extends ModelScaleRenderer{
 			spider.isHidden = part.type != 2;
 			horse.isHidden = part.type != 3;
 			mermaid.isHidden = part.type != 4;
-            mermaid2.isHidden = part.type != 5;
-			digitigrade.isHidden = part.type != 6;
+            mermaid2.isHidden = part.type != 6;
+			digitigrade.isHidden = part.type != 5;
 	
 			if(!horse.isHidden){
 				x = 0;
@@ -383,7 +384,7 @@ public class ModelLegs extends ModelScaleRenderer{
 				x = 0;
 				y *= 2f;
 			}
-			else if(!mermaid.isHidden || !digitigrade.isHidden){
+			else if(!mermaid.isHidden || !mermaid2.isHidden || !digitigrade.isHidden){
 				x = 0;
 				y *= 2f;
 			}

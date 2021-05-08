@@ -38,16 +38,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmorChestplate;
     protected ModelNPCMale modelArmor;
 
-    protected final ModelNPCMale OGmodelArmorChestplate = new ModelMPM(1);
-    protected final ModelNPCMale OGmodelArmor = new ModelMPM(0.5f);
-
     protected final ModelMPM steve = new ModelMPM(0, false);
-    protected final ModelMPM steveArmorChestplate = new ModelMPM(1, false);
-    protected final ModelMPM steveModelArmor = new ModelMPM(0.5f, false);
-
     protected final ModelMPM alex = new ModelMPM(0, true);
-    protected final ModelMPM alexArmorChestplate = new ModelMPM(1, true);
-    protected final ModelMPM alexModelArmor = new ModelMPM(0.5f, true);
 
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
@@ -130,23 +122,16 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 if(modelVal ==  1){
                     this.mainModel = steve;
                     this.modelBipedMain = steve;
-                    this.modelArmorChestplate = steveArmorChestplate;
-                    this.modelArmor = steveModelArmor;
                 }
                 else if(modelVal ==  2){
                     this.mainModel = alex;
                     this.modelBipedMain = alex;
-                    this.modelArmorChestplate = alexArmorChestplate;
-                    this.modelArmor = alexModelArmor;
                 }
                 else{
                     ((EntityCustomNpc) npc).modelData.bodywear = 0;
                     ((EntityCustomNpc) npc).modelData.armwear = 0;
                     ((EntityCustomNpc) npc).modelData.legwear = 0;
                     this.mainModel = originalModel;
-                    this.modelBipedMain = (ModelNPCMale) originalModel;
-                    this.modelArmorChestplate = OGmodelArmorChestplate;
-                    this.modelArmor = OGmodelArmor;
                 }
             }
         }
