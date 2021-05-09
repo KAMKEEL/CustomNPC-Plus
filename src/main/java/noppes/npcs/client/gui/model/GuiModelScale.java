@@ -71,24 +71,45 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
     
     private void drawSlider(int y, ModelPartConfig config){
 		y += 15;
-		addLabel(new GuiNpcLabel(10, "Width", guiLeft, y + 5, 0xFFFFFF));
+		addLabel(new GuiNpcLabel(10, "Width", guiLeft - 25, y + 5, 0xFFFFFF));
 		addSlider(new GuiNpcSlider(this, 10, guiLeft + 50, y, config.scaleX - 0.5f));
+		addButton(new GuiNpcButton(170, guiLeft + 8, y, 40, 20, "Reset"));
 		y += 22;
-		addLabel(new GuiNpcLabel(11, "Height", guiLeft, y + 5, 0xFFFFFF));
+		addLabel(new GuiNpcLabel(11, "Height", guiLeft - 25, y + 5, 0xFFFFFF));
 		addSlider(new GuiNpcSlider(this, 11, guiLeft + 50, y, config.scaleY - 0.5f));
+		addButton(new GuiNpcButton(171, guiLeft + 8, y, 40, 20, "Reset"));
 		y += 22;
-		addLabel(new GuiNpcLabel(12, "Depth", guiLeft, y + 5, 0xFFFFFF));
+		addLabel(new GuiNpcLabel(12, "Depth", guiLeft - 25, y + 5, 0xFFFFFF));
 		addSlider(new GuiNpcSlider(this, 12, guiLeft + 50, y, config.scaleZ - 0.5f));
+		addButton(new GuiNpcButton(172, guiLeft + 8, y, 40, 20, "Reset"));
     }
 
 
     @Override
     protected void actionPerformed(GuiButton btn) {
     	super.actionPerformed(btn);
+
     	if(btn.id < 4){
     		type = btn.id;
     		initGui();
     	}
+
+		// Resetting Type
+		ModelPartConfig config = playerdata.head;
+		if(type == 1)
+			config = playerdata.body;
+		else if(type == 2)
+			config = playerdata.arms;
+		else if(type == 3)
+			config = playerdata.legs;
+
+
+		if(btn.id == 170){
+			System.out.println(config.scaleX);
+			System.out.println(config.scaleY);
+			System.out.println(config.scaleZ);
+		}
+
     }
 
     @Override

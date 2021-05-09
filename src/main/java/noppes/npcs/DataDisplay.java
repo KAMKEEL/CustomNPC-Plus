@@ -24,7 +24,7 @@ public class DataDisplay {
 	public String url = "";
 
 	public GameProfile playerProfile;
-	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";;
+	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 	public String glowTexture = "";
 	
@@ -120,7 +120,7 @@ public class DataDisplay {
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
 		
-		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, 40);
+		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, 30);
 		modelType = nbttagcompound.getInteger("modelType");
 		
 		showName = nbttagcompound.getInteger("ShowName");

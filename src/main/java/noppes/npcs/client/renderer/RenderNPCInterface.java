@@ -267,8 +267,11 @@ public class RenderNPCInterface extends RenderLiving{
 
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
 		if(npc.textureLocation == null){
-			if(npc.display.skinType == 0)
-				npc.textureLocation = new ResourceLocation(npc.display.texture);
+			if(npc.display.skinType == 0) {
+				if (!(npc.display.texture).equals("")) {
+					npc.textureLocation = new ResourceLocation(npc.display.texture);
+				}
+			}
 			else if(LastTextureTick < 5){ //fixes request flood somewhat
 				return AbstractClientPlayer.locationStevePng;
 			}
