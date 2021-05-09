@@ -57,6 +57,25 @@ public class ScriptNpc extends ScriptLiving{
 		npc.display.modelSize = size;
 		npc.script.clientNeedsUpdate = true;
 	}
+
+	/**
+	 * @return Returns the current npcs modelType of the NPC
+	 */
+	public int getModelType(){
+		return npc.display.modelType;
+	}
+
+	/**
+	 * @param modelType The modelType of the NPC. 0: Steve, 1: Steve64, 2: Alex
+	 */
+	public void setModelType(int modelType){
+		if(modelType > 2)
+			modelType = 2;
+		else if(modelType < 0)
+			modelType = 0;
+		npc.display.modelType = modelType;
+		npc.script.clientNeedsUpdate = true;
+	}
 	
 	/**
 	 * @return The npcs name

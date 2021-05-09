@@ -38,6 +38,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmorChestplate;
     protected ModelNPCMale modelArmor;
 
+    protected final ModelNPCMale originalBipedMain;
     protected final ModelMPM steve = new ModelMPM(0, false);
     protected final ModelMPM alex = new ModelMPM(0, true);
 
@@ -45,6 +46,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     {
         super(mainmodel, 0.5F);
         modelBipedMain = mainmodel;
+        originalBipedMain = mainmodel;
         modelArmorChestplate = armorChest;
         modelArmor = armor;
     }
@@ -132,6 +134,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                     ((EntityCustomNpc) npc).modelData.armwear = 0;
                     ((EntityCustomNpc) npc).modelData.legwear = 0;
                     this.mainModel = originalModel;
+                    this.modelBipedMain = originalBipedMain;
                 }
             }
         }
