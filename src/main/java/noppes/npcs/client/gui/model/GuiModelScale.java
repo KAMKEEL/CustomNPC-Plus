@@ -15,6 +15,11 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 
 	private GuiScreen parent;
 	private int type = 0;
+
+	private GuiNpcSlider scaleWidth;
+	private GuiNpcSlider scaleHeight;
+	private GuiNpcSlider scaleDepth;
+
 	public GuiModelScale(GuiScreen parent, ModelData data, EntityCustomNpc npc){
 		super(npc);
 		this.parent = parent;
@@ -72,15 +77,18 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
     private void drawSlider(int y, ModelPartConfig config){
 		y += 15;
 		addLabel(new GuiNpcLabel(10, "Width", guiLeft - 25, y + 5, 0xFFFFFF));
-		addSlider(new GuiNpcSlider(this, 10, guiLeft + 50, y, config.scaleX - 0.5f));
+		scaleWidth = new GuiNpcSlider(this, 10, guiLeft + 50, y, config.scaleX - 0.5f);
+		addSlider(scaleWidth);
 		addButton(new GuiNpcButton(170, guiLeft + 8, y, 40, 20, "Reset"));
 		y += 22;
 		addLabel(new GuiNpcLabel(11, "Height", guiLeft - 25, y + 5, 0xFFFFFF));
-		addSlider(new GuiNpcSlider(this, 11, guiLeft + 50, y, config.scaleY - 0.5f));
+		scaleHeight = new GuiNpcSlider(this, 11, guiLeft + 50, y, config.scaleY - 0.5f);
+		addSlider(scaleHeight);
 		addButton(new GuiNpcButton(171, guiLeft + 8, y, 40, 20, "Reset"));
 		y += 22;
 		addLabel(new GuiNpcLabel(12, "Depth", guiLeft - 25, y + 5, 0xFFFFFF));
-		addSlider(new GuiNpcSlider(this, 12, guiLeft + 50, y, config.scaleZ - 0.5f));
+		scaleDepth = new GuiNpcSlider(this, 12, guiLeft + 50, y, config.scaleZ - 0.5f);
+		addSlider(scaleDepth);
 		addButton(new GuiNpcButton(172, guiLeft + 8, y, 40, 20, "Reset"));
     }
 
@@ -93,22 +101,39 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
     		type = btn.id;
     		initGui();
     	}
+		else{
+			// Resetting Type
+			ModelPartConfig config = playerdata.head;
+			if(type == 1)
+				config = playerdata.body;
+			else if(type == 2)
+				config = playerdata.arms;
+			else if(type == 3)
+				config = playerdata.legs;
 
-		// Resetting Type
-		ModelPartConfig config = playerdata.head;
-		if(type == 1)
-			config = playerdata.body;
-		else if(type == 2)
-			config = playerdata.arms;
-		else if(type == 3)
-			config = playerdata.legs;
-
-
-		if(btn.id == 170){
-			System.out.println(config.scaleX);
-			System.out.println(config.scaleY);
-			System.out.println(config.scaleZ);
+			if(btn.id == 170){
+				config.scaleX = 1.0f;
+				scaleWidth.sliderValue = 0.5f;
+				int percent = (int) (50 + scaleWidth.sliderValue * 100);
+				scaleWidth.setString(percent + "%");
+				npc.updateHitbox();
+			}
+			else if(btn.id == 171){
+				config.scaleY = 1.0f;
+				scaleHeight.sliderValue = 0.5f;
+				int percent = (int) (50 + scaleHeight.sliderValue * 100);
+				scaleHeight.setString(percent + "%");
+				npc.updateHitbox();
+			}
+			else if(btn.id == 172){
+				config.scaleZ = 1.0f;
+				scaleDepth.sliderValue = 0.5f;
+				int percent = (int) (50 + scaleDepth.sliderValue * 100);
+				scaleDepth.setString(percent + "%");
+				npc.updateHitbox();
+			}
 		}
+
 
     }
 
