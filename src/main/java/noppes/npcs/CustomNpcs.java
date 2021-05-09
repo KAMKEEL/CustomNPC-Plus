@@ -63,7 +63,7 @@ import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.7.10f")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.0.1")
 public class CustomNpcs {
 
 	@ConfigProp(info = "Disable Chat Bubbles")
