@@ -585,7 +585,7 @@ public class ScriptNpc extends ScriptLiving{
      * @since 1.7.10c
      * @param resistance Explosion resistance (0-2) default is 1
      */
-	public void seExplosionResistance(float resistance){
+	public void setExplosionResistance(float resistance){
 		npc.stats.resistances.explosion = ValueUtil.correctFloat(resistance, 0, 2);
 	}
 
