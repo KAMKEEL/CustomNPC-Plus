@@ -40,6 +40,9 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 #### Scale/Puppet Reset:
 <img src="images/guiAnimation.gif" width="474" height="260"/>
 
+#### Url64:
+<img src="images/Url64Example.gif" width="474" height="260"/>
+
 
 #### Want to check out my other mods?
 [Plugin Mod](https://github.com/KAMKEEL/Plugin-Mod) is a mod designed to add more aesthetic items for RPG and storytelling. It is compatible with CustomNPC+ and has many items intended to be used and wielded by created NPCs.
