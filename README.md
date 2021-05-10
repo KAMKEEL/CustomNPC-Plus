@@ -33,9 +33,12 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 
 ###### **Majority of these cape designs are taken from the internet with fair-usage.*
 
-### Skin Model Feature:
+#### Skin Model Feature:
 ##### Please note all *local* skins in this version of CustomNPC, must match the model selected.
 <img src="images/skinAnimation.gif" width="474" height="260"/>
+
+#### Scale/Puppet Reset:
+<img src="images/guiAnimation.gif" width="474" height="260"/>
 
 
 #### Want to check out my other mods?
