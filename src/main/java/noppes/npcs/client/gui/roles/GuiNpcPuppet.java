@@ -22,6 +22,10 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
 	private int type = 6;
 	private JobPuppet job;
 	private PartConfig part;
+
+	private GuiNpcSlider rotateX;
+	private GuiNpcSlider rotateY;
+	private GuiNpcSlider rotateZ;
 	
 	public GuiNpcPuppet(GuiScreen parent, EntityCustomNpc npc){
 		super(npc);
@@ -118,14 +122,20 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
 		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, config.disabled?1:0));
 		y += 22;
 		addLabel(new GuiNpcLabel(10, "X", guiLeft, y + 5, 0xFFFFFF));
-		addSlider(new GuiNpcSlider(this, 10, guiLeft + 50, y, config.rotationX + 0.5f));
+		rotateX = new GuiNpcSlider(this, 10, guiLeft + 50, y, config.rotationX + 0.5f);
+		addSlider(rotateX);
+		addButton(new GuiNpcButton(170, guiLeft + 8, y, 40, 20, "Reset"));
 		y += 22;
 		addLabel(new GuiNpcLabel(11, "Y", guiLeft, y + 5, 0xFFFFFF));
-		addSlider(new GuiNpcSlider(this, 11, guiLeft + 50, y, config.rotationY + 0.5f));
+		rotateY = new GuiNpcSlider(this, 11, guiLeft + 50, y, config.rotationY + 0.5f);
+		addSlider(rotateY);
+		addButton(new GuiNpcButton(171, guiLeft + 8, y, 40, 20, "Reset"));
 		y += 22;
 		addLabel(new GuiNpcLabel(12, "Z", guiLeft, y + 5, 0xFFFFFF));
-		addSlider(new GuiNpcSlider(this, 12, guiLeft + 50, y, config.rotationZ + 0.5f));
-    }
+		rotateZ = new GuiNpcSlider(this, 12, guiLeft + 50, y, config.rotationZ + 0.5f);
+		addSlider(rotateZ);
+		addButton(new GuiNpcButton(172, guiLeft + 8, y, 40, 20, "Reset"));
+	}
 
 
     @Override
@@ -151,6 +161,29 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
     	if(btn.id == 32){
     		job.whileAttacking = button.getValue() == 0;
     	}
+    	if(btn.id == 170 || btn.id == 171 || btn.id == 172){
+			if(btn.id == 170){
+				System.out.println(part.rotationX);
+				System.out.println(rotateX.sliderValue);
+				part.rotationX = 0.0f;
+				rotateX.sliderValue = 0.5f;
+				int percent = (int) ((rotateX.sliderValue) * 360);
+				rotateX.setString(percent + "%");
+			}
+			else if(btn.id == 171){
+				part.rotationY = 0.0f;
+				rotateY.sliderValue = 0.5f;
+				int percent = (int) ((rotateY.sliderValue) * 360);
+				rotateY.setString(percent + "%");
+			}
+			else{
+				part.rotationZ = 0.0f;
+				rotateZ.sliderValue = 0.5f;
+				int percent = (int) ((rotateZ.sliderValue) * 360);
+				rotateZ.setString(percent + "%");
+			}
+			npc.updateHitbox();
+		}
     }
 
     @Override
