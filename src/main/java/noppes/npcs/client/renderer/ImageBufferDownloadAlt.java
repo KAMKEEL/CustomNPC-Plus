@@ -25,7 +25,7 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
             imageWidth = bufferedimage.getWidth(null);
             imageHeight = bufferedimage.getHeight(null);
 
-            BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageWidth, 2);
+            BufferedImage bufferedimage1 = new BufferedImage(imageWidth, imageHeight, 2);
             Graphics g = bufferedimage1.getGraphics();
             g.drawImage(bufferedimage, 0, 0, null);
             g.dispose();

@@ -134,7 +134,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		if(button.id == 2){
 			display.skinType = (byte) button.getValue();
-			System.out.println("Skin Type set to:" + display.skinType);
+			// System.out.println("Skin Type set to:" + display.skinType);
 			// SKIN CHANGE
 			if (display.skinType != 3){
 				display.url = "";
