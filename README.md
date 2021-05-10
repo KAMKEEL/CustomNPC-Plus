@@ -1,4 +1,4 @@
-![](logo.png)  
+![](images/logo.png)  
 
 Welcome to the CustomNPC+ Repository.
 
@@ -35,7 +35,7 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 
 ### Skin Model Feature:
 ##### Please note all *local* skins in this version of CustomNPC, must match the model selected.
-<img src="skinAnimation.gif" width="474" height="260"/>
+<img src="images/skinAnimation.gif" width="474" height="260"/>
 
 
 #### Want to check out my other mods?
