@@ -19,6 +19,9 @@ public class DataDisplay {
 	public String name;
 	public String title = "";
 
+	private int markovGeneratorId = 8; //roman,japanese,slavic,welsh,sami,oldnorse,ancientgreek,aztec,classic,spanish (0 - 9 inclusively)
+	private int markovGender = 0; //0:random, 1:male, 2:female
+
 	public byte skinType = 0;	//0:normal, 1:player, 2:url, 3:url64
 
 	public String url = "";
@@ -42,6 +45,12 @@ public class DataDisplay {
 
 	public DataDisplay(EntityNPCInterface npc){
 		this.npc = npc;
+
+		/*
+		Implementing MarkovNames generator. You can blame this blunder on Nikedemos.
+
+		Please refer to nikedemos.markovnames.generators.MarkovCustomNPCsClassic.java
+
 		String[] names = { "Noppes", "Noppes", "Noppes", "Noppes", "Atesson",
 				"Rothcersul", "Achdranys", "Pegato", "Chald", "Gareld",
 				"Nalworche", "Ineald", "Tia'kim", "Torerod", "Turturdar",
@@ -52,23 +61,34 @@ public class DataDisplay {
 				"Issraya", "Arisotura", "Honf", "Rilfom", "Estz", "Ghatroth",
 				"Yosil", "Darage", "Aldny", "Tyltran", "Armos", "Loxiku",
 				"Burhat", "Tinlt", "Ightyd", "Mia",
-				"Ken", "Karla", "Lily", "Carina", "Daniel", "Slater", "Zidane", "Valentine", "Eirina", 
-				"Carnow", "Grave", "Shadow", "Drakken", "Kaoz", "Silk", "Drake", "Oldam", "Lynxx", "Lenyx", 
-				"Winter", "Seth", "Apolitho", "Amethyst", "Ankin", "Seinkan", "Ayumu", "Sakamoto", "Divina", 
-				"Div", "Magia", "Magnus", "Tiakono", "Ruin", "Hailinx", "Ethan", "Wate", "Carter", "William", 
+				"Ken", "Karla", "Lily", "Carina", "Daniel", "Slater", "Zidane", "Valentine", "Eirina",
+				"Carnow", "Grave", "Shadow", "Drakken", "Kaoz", "Silk", "Drake", "Oldam", "Lynxx", "Lenyx",
+				"Winter", "Seth", "Apolitho", "Amethyst", "Ankin", "Seinkan", "Ayumu", "Sakamoto", "Divina",
+				"Div", "Magia", "Magnus", "Tiakono", "Ruin", "Hailinx", "Ethan", "Wate", "Carter", "William",
 				"Brion", "Sparrow", "Basrrelen", "Gyaku", "Claire", "Crowfeather", "Blackwell", "Raven", "Farcri",
-				"Lucas", "Bangheart", "Kamoku", "Kyoukan", "Blaze", "Benjamin", "Larianne", "Kakaragon", 
-				"Melancholy", "Epodyno", "Thanato", "Mika", "Dacks", "Ylander", "Neve", "Meadow", "Cuero", 
-				"Embrera", "Eldamore", "Faolan", "Chim", "Nasu", "Kathrine", "Ariel", "Arei", "Demytrix", 
-				"Kora", "Ava", "Larson", "Leonardo", "Wyrl", "Sakiama", "Lambton", "Kederath", "Malus", "Riplette", 
-				"Andern", "Ezall", "Lucien", "Droco", "Cray", "Tymen", "Zenix", "Entranger", 
+				"Lucas", "Bangheart", "Kamoku", "Kyoukan", "Blaze", "Benjamin", "Larianne", "Kakaragon",
+				"Melancholy", "Epodyno", "Thanato", "Mika", "Dacks", "Ylander", "Neve", "Meadow", "Cuero",
+				"Embrera", "Eldamore", "Faolan", "Chim", "Nasu", "Kathrine", "Ariel", "Arei", "Demytrix",
+				"Kora", "Ava", "Larson", "Leonardo", "Wyrl", "Sakiama", "Lambton", "Kederath", "Malus", "Riplette",
+				"Andern", "Ezall", "Lucien", "Droco", "Cray", "Tymen", "Zenix", "Entranger",
 				"Saenorath", "Chris", "Christine", "Marble", "Mable", "Ross", "Rose", "Xalgan ", "Kennet", "Kamkeel"
 		};
 		name = names[new Random().nextInt(names.length)];
+		 */
+
+		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
+		name = getRandomName();
+
 	}
-	
+
+	public String getRandomName() {
+		return CustomNpcs.MARKOV_GENERATOR[markovGeneratorId].fetch(markovGender);
+	}
+
 	public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
 		nbttagcompound.setString("Name", name);
+		nbttagcompound.setInteger("MarkovGeneratorId", markovGeneratorId);
+		nbttagcompound.setInteger("MarkovGender", markovGender);
 		nbttagcompound.setString("Title", title);
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
@@ -95,7 +115,10 @@ public class DataDisplay {
 		return nbttagcompound;
 	}
 	public void readToNBT(NBTTagCompound nbttagcompound) {
-		name = nbttagcompound.getString("Name");
+		setName(nbttagcompound.getString("Name"));
+		setMarkovGeneratorId(nbttagcompound.getInteger("MarkovGeneratorId"));
+		setMarkovGender(nbttagcompound.getInteger("MarkovGender"));
+
 		title = nbttagcompound.getString("Title");
 		
 		url = nbttagcompound.getString("SkinUrl");
@@ -171,6 +194,37 @@ public class DataDisplay {
 		npc.textureLocation = null;
 		skinType = 0;
 		npc.updateClient = true;
+	}
+
+	public String getName(){
+		return name;
+	}
+
+	public void setName(String name){
+		if(this.name.equals(name))
+			return;
+		this.name = name;
+		npc.updateClient = true;
+	}
+
+	public int getMarkovGender(){
+		return markovGender;
+	}
+
+	public void setMarkovGender(int gender) {
+		if(markovGender == gender)
+			return;
+		this.markovGender = ValueUtil.CorrectInt(gender, 0, 2);
+	}
+
+	public int getMarkovGeneratorId(){
+		return markovGeneratorId;
+	}
+
+	public void setMarkovGeneratorId(int id) {
+		if(markovGeneratorId == id)
+			return;
+		this.markovGeneratorId = ValueUtil.CorrectInt(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
 	}
 
 }

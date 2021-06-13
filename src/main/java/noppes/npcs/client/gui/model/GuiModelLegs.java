@@ -11,6 +11,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 public class GuiModelLegs extends GuiModelInterface{
 
 	private GuiScreen parent;
+	private final String[] arrLeg = new String[]{"gui.no","Both","Right","Left"};
 	private final String[] arrLegwear = new String[]{"gui.no","Both","Left","Right"};
 	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid", "Mermaid 2", "Digitigrade"};
 	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent", "Feather"};
@@ -24,6 +25,9 @@ public class GuiModelLegs extends GuiModelInterface{
     public void initGui() {
     	super.initGui();
 		int y = guiTop + 20;
+
+		addButton(new GuiNpcButton(30, guiLeft + 50, y += 22, 70, 20, arrLeg, playerdata.hideLegs));
+		addLabel(new GuiNpcLabel(30, "Hide", guiLeft, y + 5, 0xFFFFFF));
 
 		if (npc.display.modelType == 1 || npc.display.modelType == 2) {
 			addButton(new GuiNpcButton(8, guiLeft + 50, y += 22, 70, 20, arrLegwear, playerdata.legwear));
@@ -47,22 +51,10 @@ public class GuiModelLegs extends GuiModelInterface{
     		return 5;
 		if(data.type == 4)
 			return 6;
-//		if(data.type == 6)
-//			return 7;
 		if(data.type == 5)
 			return 8;
 		return data.type + 1;
 	}
-
-//	private int getLegIndex(ModelPartData data) {
-//		if(!data.playerTexture && data.type == 1)
-//			return 5;
-//		if(data.type == 4)
-//			return 6;
-//		if(data.type == 5)
-//			return 7;
-//		return data.type + 1;
-//	}
 
 	private int getTailIndex(ModelPartData data){
 		if(data == null)
@@ -98,6 +90,9 @@ public class GuiModelLegs extends GuiModelInterface{
 
 		if(button.id == 8){
 			playerdata.legwear = (byte) button.getValue();
+		}
+		if(button.id == 30){
+			playerdata.hideLegs = (byte) button.getValue();
 		}
     	if(button.id == 1){
     		ModelPartData data = playerdata.legParts;

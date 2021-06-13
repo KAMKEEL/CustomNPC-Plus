@@ -21,17 +21,12 @@ import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.NPCEntityHelper;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAIAttackOnCollide;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.EntityAIHurtByTarget;
-import net.minecraft.entity.ai.EntityAILeapAtTarget;
-import net.minecraft.entity.ai.EntityAIOpenDoor;
-import net.minecraft.entity.ai.EntityAIRestrictSun;
-import net.minecraft.entity.ai.EntityAITasks;
+import net.minecraft.entity.ai.*;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.monster.EntityBlaze;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityBat;
@@ -43,6 +38,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
@@ -74,31 +70,11 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.Server;
 import noppes.npcs.VersionCompatibility;
-import noppes.npcs.ai.EntityAIAmbushTarget;
-import noppes.npcs.ai.EntityAIAnimation;
-import noppes.npcs.ai.EntityAIAttackTarget;
-import noppes.npcs.ai.EntityAIAvoidTarget;
-import noppes.npcs.ai.EntityAIBustDoor;
-import noppes.npcs.ai.EntityAIDodgeShoot;
-import noppes.npcs.ai.EntityAIFindShade;
-import noppes.npcs.ai.EntityAIFollow;
-import noppes.npcs.ai.EntityAIJob;
-import noppes.npcs.ai.EntityAILook;
+import noppes.npcs.ai.*;
 import noppes.npcs.ai.EntityAIMoveIndoors;
-import noppes.npcs.ai.EntityAIMovingPath;
-import noppes.npcs.ai.EntityAIOrbitTarget;
 import noppes.npcs.ai.EntityAIPanic;
-import noppes.npcs.ai.EntityAIRangedAttack;
-import noppes.npcs.ai.EntityAIReturn;
-import noppes.npcs.ai.EntityAIRole;
-import noppes.npcs.ai.EntityAISprintToTarget;
-import noppes.npcs.ai.EntityAIStalkTarget;
-import noppes.npcs.ai.EntityAITransform;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
-import noppes.npcs.ai.EntityAIWaterNav;
-import noppes.npcs.ai.EntityAIWorldLines;
-import noppes.npcs.ai.EntityAIZigZagTarget;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -185,6 +161,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public boolean updateClient = false;
 	public boolean updateAI = false;
+
+	// Fly Change
+//	protected EntityMoveHelper moveHelper;
+//	protected PathNavigate navigator;
 
 	public EntityNPCInterface(World world) {
 		super(world);
@@ -612,7 +592,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if (worldObj == null || worldObj.isRemote)
 			return;
 		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
-		
+
 		clearTasks(tasks);
 		clearTasks(targetTasks);
 		IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
@@ -621,8 +601,18 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ai.directLOS, false, attackEntitySelector));
         this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
         this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
-		
-		this.tasks.addTask(0, new EntityAIWaterNav(this));
+
+
+//		if(canFly()){
+//			this.moveHelper = new FlyingMoveHelper(this);
+//			this.navigator = new PathNavigateFlying(this, worldObj);
+//		}
+//		else{
+//			this.moveHelper = new EntityMoveHelper(this);
+//			this.navigator = new PathNavigateGround(this, worldObj);
+			this.tasks.addTask(0, new EntityAIWaterNav(this));
+//		}
+		// this.tasks.addTask(0, new EntityAIWaterNav(this));
 		this.taskCount = 1;
 		this.doorInteractType();
 		this.seekShelter();
@@ -709,7 +699,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	/*
 	 * Branch task function for adjusting NPC door interactivity
 	 */
-	public void doorInteractType(){			
+	public void doorInteractType(){
+		if(canFly()) //currently flying does not support opening doors
+			return;
 		EntityAIBase aiDoor = null;
 		if (this.ai.doorInteract == 1)
 		{
@@ -732,7 +724,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		else if (this.ai.findShelter == 1)
 		{
-			this.tasks.addTask(this.taskCount++, new EntityAIRestrictSun(this));
+			if(!canFly()) // doesnt work when flying
+				this.tasks.addTask(this.taskCount++, new EntityAIRestrictSun(this));
 			this.tasks.addTask(this.taskCount++, new EntityAIFindShade(this));
 		}
 	}
@@ -1574,7 +1567,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean canBeCollidedWith(){
 		return !isKilled();
 	}
-	
+
+	public boolean canFly(){
+		return false;
+	}
+
 	public EntityAIRangedAttack getRangedTask(){
 		return this.aiRange;
 	}

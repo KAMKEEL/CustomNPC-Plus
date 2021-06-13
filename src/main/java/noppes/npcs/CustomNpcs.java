@@ -7,11 +7,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
-import cpw.mods.fml.common.event.FMLServerStartedEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
@@ -26,6 +22,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
+import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.ConfigLoader;
 import noppes.npcs.config.ConfigProp;
 import noppes.npcs.controllers.BankController;
@@ -142,6 +139,8 @@ public class CustomNpcs {
     
     public static ConfigLoader Config;
 
+    public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
+
     public CustomNpcs() {
         instance = this;
     }
@@ -216,6 +215,22 @@ public class CustomNpcs {
         new CustomNpcsPermissions();
         
         PixelmonHelper.load();
+    }
+
+    @EventHandler
+    public void load(FMLInitializationEvent ev) {
+
+        MARKOV_GENERATOR[0] = new MarkovRoman(3);
+        MARKOV_GENERATOR[1] = new MarkovJapanese(4);
+        MARKOV_GENERATOR[2] = new MarkovSlavic(3);
+        MARKOV_GENERATOR[3] = new MarkovWelsh(3);
+        MARKOV_GENERATOR[4] = new MarkovSaami(3);
+        MARKOV_GENERATOR[5] = new MarkovOldNorse(4);
+        MARKOV_GENERATOR[6] = new MarkovAncientGreek(3);
+        MARKOV_GENERATOR[7] = new MarkovAztec(3);
+        MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
+        MARKOV_GENERATOR[9] = new MarkovSpanish(3);
+
     }
 
     @EventHandler
