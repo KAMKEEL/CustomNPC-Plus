@@ -21,10 +21,15 @@ public class ModelSkirt extends ModelPartInterface {
 		super(base);
 		float pi = (float) (Math.PI / 5);
 
+		textureWidth = 64;
+		textureHeight = 32;
+
 		Shape1 = new ModelPlaneRenderer(base, 58, 18);
+		Shape1.setTextureSize(64,32);
 		Shape1.addSidePlane(0, 0, 0, 9, 2);
 		
 		ModelPlaneRenderer part1 = new ModelPlaneRenderer(base, 58, 18);
+		part1.setTextureSize(64,32);
 		part1.addSidePlane(2, 0, 0, 9, 2);
 		part1.rotateAngleY = -(float) (Math.PI/2);
 		Shape1.addChild(part1);

@@ -12,6 +12,7 @@ public class GuiModelHead extends GuiModelInterface{
 
 	private GuiScreen parent;
 
+	private final String[] arrHead = new String[]{"gui.no","gui.yes"};
 	private final String[] arrHeadwear = new String[]{"gui.no","gui.yes","Solid"};
 	private final String[] arrHair = new String[]{"gui.no","Player","Long","Thin","Stylish","Ponytail"};
 	private final String[] arrBeard = new String[]{"gui.no","Player","Standard","Viking","Long","Short"};
@@ -32,6 +33,9 @@ public class GuiModelHead extends GuiModelInterface{
 		super.initGui();
 
 		int y = guiTop + 20;
+
+		addButton(new GuiNpcButton(30, guiLeft + 50, y += 22, 70, 20, arrHead, playerdata.hideHead));
+		addLabel(new GuiNpcLabel(30, "Hide", guiLeft, y + 5, 0xFFFFFF));
 
 		addButton(new GuiNpcButton(0, guiLeft + 50, y += 22, 70, 20, arrHeadwear, playerdata.headwear));
 		addLabel(new GuiNpcLabel(0, "Headwear", guiLeft, y + 5, 0xFFFFFF));
@@ -107,6 +111,10 @@ public class GuiModelHead extends GuiModelInterface{
     	if(button.id == 0){
     		playerdata.headwear = (byte) button.getValue();
     	}
+
+		if(button.id == 30){
+			playerdata.hideHead = (byte) button.getValue();
+		}
 
     	if(button.id == 1){
     		if(button.getValue() == 0)

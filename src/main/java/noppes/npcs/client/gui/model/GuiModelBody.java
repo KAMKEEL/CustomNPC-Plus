@@ -11,6 +11,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 public class GuiModelBody extends GuiModelInterface{
 
 	private GuiScreen parent;
+	private final String[] arrBody = new String[]{"gui.no","gui.yes"};
 	private final String[] arrBodywear = new String[]{"gui.no","gui.yes"};
 	private final String[] arrWing = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6","Type7","Type8","Type9",
             "Type10","Type11","Type12","Type13"};
@@ -30,6 +31,9 @@ public class GuiModelBody extends GuiModelInterface{
     	super.initGui();
 
 		int y = guiTop + 20;
+
+		addButton(new GuiNpcButton(30, guiLeft + 50, y += 22, 70, 20, arrBody, playerdata.hideBody));
+		addLabel(new GuiNpcLabel(30, "Hide", guiLeft, y + 5, 0xFFFFFF));
 
 		if (npc.display.modelType == 1 || npc.display.modelType == 2) {
 			addButton(new GuiNpcButton(8, guiLeft + 50, y += 22, 70, 20, arrBodywear, playerdata.bodywear));
@@ -87,17 +91,27 @@ public class GuiModelBody extends GuiModelInterface{
         return 0;
 	}
 
-    private int getSkirtindex(ModelPartData skirt) {
-        if (skirt == null)
-            return 0;
-        if (skirt.type == 0) {
-            if (skirt.playerTexture)
-                return 1;
-            if (skirt.texture.contains("1"))
-                return 2;
-        }
-        return 0;
-    }
+	private int getSkirtindex(ModelPartData skirt) {
+		if(skirt == null)
+			return 0;
+		if(skirt.type == 0){
+			if(skirt.playerTexture)
+				return 1;
+			if(skirt.texture.contains("1"))
+				return 2;
+			if(skirt.texture.contains("2"))
+				return 3;
+			if(skirt.texture.contains("3"))
+				return 4;
+			if(skirt.texture.contains("4"))
+				return 5;
+			if(skirt.texture.contains("5"))
+				return 6;
+			if(skirt.texture.contains("6"))
+				return 7;
+		}
+		return 0;
+	}
 
 	private int getParticleIndex(ModelPartData particles) {
     	if(particles == null)
@@ -202,17 +216,21 @@ public class GuiModelBody extends GuiModelInterface{
 			if(value == 0)
 				playerdata.removePart("skirt");
 			else{
-				ModelPartData particles = playerdata.getOrCreatePart("skirt");
+				ModelPartData skirt = playerdata.getOrCreatePart("skirt");
 				if(value == 1)
-					particles.setTexture("", 0);
+					skirt.setTexture("", 0);
 				if(value == 2)
-					particles.setTexture("skirt/skirt1", 0);
+					skirt.setTexture("skirt/skirt1", 0);
 			}
 			initGui();
 		}
 
 		if(button.id == 8){
 			playerdata.bodywear = (byte) button.getValue();
+		}
+
+		if(button.id == 30){
+			playerdata.hideBody = (byte) button.getValue();
 		}
 
     	if(button.id == 11){

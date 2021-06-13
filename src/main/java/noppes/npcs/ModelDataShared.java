@@ -27,13 +27,18 @@ public class ModelDataShared{
 	
 	private HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
 	public byte breasts = 0;
-	
+
+	// Enabled vs Disabled
 	public byte headwear = 2;
-
 	public byte bodywear = 0;
-
 	public byte armwear = 0;
 	public byte legwear = 0;
+
+	// Hide Body Parts [0: None, 1: Both, 2: Right, 3: Left],
+	public byte hideHead = 0;
+	public byte hideBody = 0;
+	public byte hideArms = 0;
+	public byte hideLegs = 0;
 			
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();

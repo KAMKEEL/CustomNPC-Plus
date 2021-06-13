@@ -926,3 +926,22 @@ companion.owner=Owner
 companion.strength=Strength
 companion.talent=Talent
 companion.level=Level
+
+markov.generic.name=Generic Generator
+markov.ancientGreek.name=Ancient Greek
+markov.aztec.name=Aztec
+markov.classicCNPCs.name=Classic CNPCs
+markov.japanese.name=Japanese
+markov.oldNorse.name=Old Norse
+markov.roman.name=Roman (Latin)
+markov.sami.name=Lappish (Sami)
+markov.slavic.name=Old Polish
+markov.welsh.name=Breton (Welsh)
+markov.spanish.name=Spanish (Latino)
+
+markov.gender.name=Gender
+markov.gender.either=Either
+markov.gender.female=Female
+markov.gender.male=Male
+
+markov.generate=Generate
