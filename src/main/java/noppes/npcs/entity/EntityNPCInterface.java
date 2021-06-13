@@ -163,8 +163,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateAI = false;
 
 	// Fly Change
-	protected EntityMoveHelper moveHelper;
-	protected PathNavigate navigator;
+//	protected EntityMoveHelper moveHelper;
+//	protected PathNavigate navigator;
 
 	public EntityNPCInterface(World world) {
 		super(world);
@@ -603,15 +603,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
 
 
-		if(canFly()){
-			this.moveHelper = new FlyingMoveHelper(this);
-			this.navigator = new PathNavigateFlying(this, worldObj);
-		}
-		else{
-			this.moveHelper = new EntityMoveHelper(this);
-			this.navigator = new PathNavigateGround(this, worldObj);
+//		if(canFly()){
+//			this.moveHelper = new FlyingMoveHelper(this);
+//			this.navigator = new PathNavigateFlying(this, worldObj);
+//		}
+//		else{
+//			this.moveHelper = new EntityMoveHelper(this);
+//			this.navigator = new PathNavigateGround(this, worldObj);
 			this.tasks.addTask(0, new EntityAIWaterNav(this));
-		}
+//		}
 		// this.tasks.addTask(0, new EntityAIWaterNav(this));
 		this.taskCount = 1;
 		this.doorInteractType();

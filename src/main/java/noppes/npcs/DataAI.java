@@ -34,7 +34,7 @@ public class DataAI {
 	public int tacticalRadius = 8;
 
 	// Fly Change
-	public int movementType = 0;
+//	public int movementType = 0;
 	
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
