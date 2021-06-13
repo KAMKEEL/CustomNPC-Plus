@@ -4,6 +4,8 @@ Welcome to the CustomNPC+ Repository.
 
 CustomNPC+ is a [Minecraft](https://minecraft.net/) mod that allows you to add custom NPCs to your world. It is developed for creative and storytelling players who want to make their Minecraft worlds more in-depth and unique. CustomNPC+ is only a branch version of the **1.7.10** Forge version of the original (down below) and has no plans to add or update any other version. This is not an official version of CustomNPC.
 
+Link to CurseForge: [HERE](https://www.curseforge.com/minecraft/mc-mods/customnpc-plus)
+
 #### Notice
 I am not the original creator of CustomNPC. The original creator is @[Noppes](https://github.com/Noppes). I have been permitted to update the 1.7.10 and post my results on GitHub. The original mod that is updated to the latest versions of Minecraft can be found on these links: [CurseForge](https://www.curseforge.com/minecraft/mc-mods/custom-npcs), [kodevelopment](http://www.kodevelopment.nl/minecraft/customnpcs)
 
@@ -27,7 +29,8 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - [x] Fix Part Rendering
 - [x] Backported GUI Features
 - [x] Backported New Part Models
-- [ ] Custom Part Disabling [WIP]
+- [X] Custom Part Disabling
+- [X] Markov Name Generator
 - [ ] Flying NPCS [WIP]
 --- Please Suggest New Features!
 
