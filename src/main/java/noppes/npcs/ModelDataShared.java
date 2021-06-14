@@ -55,9 +55,13 @@ public class ModelDataShared{
 
 		compound.setByte("Headwear", headwear);
 		compound.setByte("Bodywear", bodywear);
-
 		compound.setByte("Armwear", armwear);
 		compound.setByte("Legwear", legwear);
+
+		compound.setByte("hideHead", hideHead);
+		compound.setByte("hideBody", hideBody);
+		compound.setByte("hideArms", hideArms);
+		compound.setByte("hideLegs", hideLegs);
 
 		compound.setByte("Breasts", breasts);
 		compound.setTag("ExtraData", extra);
@@ -85,9 +89,13 @@ public class ModelDataShared{
 
 		headwear = compound.getByte("Headwear");
 		bodywear = compound.getByte("Bodywear");
-
 		armwear = compound.getByte("Armwear");
 		legwear = compound.getByte("Legwear");
+
+		hideHead = compound.getByte("hideHead");
+		hideBody = compound.getByte("hideBody");
+		hideArms = compound.getByte("hideArms");
+		hideLegs = compound.getByte("hideLegs");
 
 		breasts = compound.getByte("Breasts");
 		extra = compound.getCompoundTag("ExtraData");
