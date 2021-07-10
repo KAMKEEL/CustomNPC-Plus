@@ -3,30 +3,20 @@ package noppes.npcs.entity;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import com.mojang.authlib.GameProfile;
-
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IEntitySelector;
-import net.minecraft.entity.DataWatcher;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EnumCreatureAttribute;
-import net.minecraft.entity.IRangedAttackMob;
-import net.minecraft.entity.NPCEntityHelper;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.*;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.monster.EntityBlaze;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityBat;
@@ -51,7 +41,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
@@ -65,7 +54,6 @@ import noppes.npcs.DataScript;
 import noppes.npcs.DataStats;
 import noppes.npcs.IChatMessages;
 import noppes.npcs.NBTTags;
-import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.Server;
@@ -75,6 +63,9 @@ import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIPanic;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
+import noppes.npcs.ai.pathfinder.FlyingMoveHelper;
+import noppes.npcs.ai.pathfinder.PathNavigateFlying;
+import noppes.npcs.ai.pathfinder.PathNavigateGround;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -100,7 +91,6 @@ import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.TransformData;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.roles.JobFollower;
@@ -162,9 +152,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateClient = false;
 	public boolean updateAI = false;
 
-	// Fly Change
-//	protected EntityMoveHelper moveHelper;
-//	protected PathNavigate navigator;
+//	 Fly Change
+//	public EntityMoveHelper moveHelper;
+//	public PathNavigate navigator;
 
 	public EntityNPCInterface(World world) {
 		super(world);
@@ -602,6 +592,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
         this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
 
+        this.tasks.addTask(0, new EntityAIWaterNav(this));
 
 //		if(canFly()){
 //			this.moveHelper = new FlyingMoveHelper(this);
@@ -610,9 +601,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 //		else{
 //			this.moveHelper = new EntityMoveHelper(this);
 //			this.navigator = new PathNavigateGround(this, worldObj);
-			this.tasks.addTask(0, new EntityAIWaterNav(this));
+//			this.tasks.addTask(0, new EntityAIWaterNav(this));
 //		}
-		// this.tasks.addTask(0, new EntityAIWaterNav(this));
+
 		this.taskCount = 1;
 		this.doorInteractType();
 		this.seekShelter();

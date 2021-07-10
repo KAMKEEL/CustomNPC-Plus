@@ -50,6 +50,9 @@ public class EntityAIWander extends EntityAIBase
             else{
                 this.xPosition = vec.xCoord;
                 this.yPosition = vec.yCoord;
+                // FLY CHANGE
+                if(entity.canFly())
+                    this.yPosition = entity.getStartYPos() + entity.getRNG().nextFloat() * 0.75 * entity.ai.walkingRange;
                 this.zPosition = vec.zCoord;
             }
         }

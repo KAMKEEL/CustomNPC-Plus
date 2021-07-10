@@ -13,7 +13,7 @@ import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class DataAI {
-	private EntityNPCInterface npc;
+    private EntityNPCInterface npc;
 	
 	public int onAttack = 0; //0:fight 1:panic 2:retreat 3:nothing
 	public int doorInteract = 2;
@@ -34,7 +34,7 @@ public class DataAI {
 	public int tacticalRadius = 8;
 
 	// Fly Change
-//	public int movementType = 0;
+	public int movementType = 0;
 	
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
@@ -96,6 +96,7 @@ public class DataAI {
 		setMovingPath(NBTTags.getIntegerArraySet(compound.getTagList("MovingPathNew",10)));
 		movingPos = compound.getInteger("MovingPos");
 		movingPattern = compound.getInteger("MovingPatern");
+		movementType = compound.getInteger("MovingType");
 		
 		startPos = compound.getIntArray("StartPosNew");
 		if (startPos == null || startPos.length != 3){
@@ -142,6 +143,7 @@ public class DataAI {
 		compound.setTag("MovingPathNew", NBTTags.nbtIntegerArraySet(movingPath));
 		compound.setInteger("MovingPos", movingPos);
 		compound.setInteger("MovingPatern", movingPattern);
+		compound.setInteger("MovingType", movementType);
 		
 		npc.setAvoidWater(avoidsWater);
 		
