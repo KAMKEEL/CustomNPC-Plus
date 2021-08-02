@@ -1,9 +1,14 @@
 package noppes.npcs.scripted;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
+import com.google.common.collect.Multimap;
 import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -143,6 +148,15 @@ public class ScriptItemStack {
 		}
 		return false;
 	}
+
+	public void addEnchant(int id, int strength){
+		Enchantment ench = Enchantment.enchantmentsList[id];
+		if (ench == null) {
+			throw new CustomNPCsException("Unknown enchant id:" + id, new Object[0]);
+		} else {
+			this.item.addEnchantment(ench, strength);
+		}
+	}
 	
 	/**
 	 * @since 1.7.10d
@@ -188,7 +202,123 @@ public class ScriptItemStack {
 			item.stackTagCompound = new NBTTagCompound();
 		return item.stackTagCompound;
 	}
-	
+
+	public void setAttribute(String name, double value) {
+			NBTTagCompound compound = this.item.getTagCompound();//func_77978_p()
+			if (compound == null) {
+				this.item.setTagCompound(compound = new NBTTagCompound());//func_77982_d
+			}
+
+			NBTTagList nbttaglist = compound.getTagList("AttributeModifiers", 10);//func_150295_c
+			NBTTagList newList = new NBTTagList();
+
+			for(int i = 0; i < nbttaglist.tagCount(); ++i) {
+				NBTTagCompound c = nbttaglist.getCompoundTagAt(i);//func_150305_b
+				if (!c.getString("AttributeName").equals(name)) {//func_74779_i
+					newList.appendTag(c);//func_74742_a
+				}
+			}
+
+			if (value != 0.0D) {
+				AttributeModifier attributeModifier = new AttributeModifier(name, value, 0);
+				NBTTagCompound nbttagcompound = new NBTTagCompound();
+
+				nbttagcompound.setString("Name",attributeModifier.getName());
+				nbttagcompound.setDouble("Amount", attributeModifier.getAmount());
+				nbttagcompound.setInteger("Operation", attributeModifier.getOperation());
+				nbttagcompound.setLong("UUIDMost", attributeModifier.getID().getMostSignificantBits());
+				nbttagcompound.setLong("UUIDLeast", attributeModifier.getID().getLeastSignificantBits());
+
+				nbttagcompound.setString("AttributeName", name);//func_74778_
+
+				newList.appendTag(nbttagcompound);//func_74742_a
+			}
+
+			compound.setTag("AttributeModifiers", newList);//func_74782_a
+	}
+
+	public double getAttribute(String name) {
+		NBTTagCompound compound = this.item.getTagCompound();
+		if (compound == null) {
+			return 0.0D;
+		} else {
+			Multimap<String, AttributeModifier> map = this.item.getAttributeModifiers();
+			Iterator var4 = map.entries().iterator();
+
+			Entry entry;
+			do {
+				if (!var4.hasNext()) {
+					return 0.0D;
+				}
+
+				entry = (Entry)var4.next();
+			} while(!((String)entry.getKey()).equals(name));
+
+			AttributeModifier mod = (AttributeModifier)entry.getValue();
+			return mod.getAmount();
+		}
+	}
+
+	public String[] getLore() {
+		NBTTagCompound compound = this.item.getTagCompound().getCompoundTag("display");
+		if (compound != null && compound.func_150299_b("Lore") == 9) {
+			NBTTagList nbttaglist = compound.getTagList("Lore", 8);//func_150295_c
+			if (nbttaglist.tagCount() < 1) {
+				return new String[0];
+			} else {
+				List<String> lore = new ArrayList();
+
+				for(int i = 0; i < nbttaglist.tagCount(); ++i) {//func_74745_c()
+					lore.add(nbttaglist.getStringTagAt(i));//func_150307_f
+				}
+
+				return (String[])lore.toArray(new String[lore.size()]);
+			}
+		} else {
+			return new String[0];
+		}
+	}
+
+	public void setLore(String[] lore){
+		NBTTagCompound compound = this.item.getTagCompound();//func_77978_p()
+		if (compound == null) {
+			this.item.setTagCompound(compound = new NBTTagCompound());//func_77982_d
+		}
+
+		NBTTagList nbttaglist = compound.getTagList("display", 10);//func_150295_c
+		NBTTagList newList = new NBTTagList();
+
+		String[] var4 = lore;
+		int var5 = lore.length;
+		for(int var6 = 0; var6 < var5; ++var6) {
+			String s = var4[var6];
+			newList.appendTag(new NBTTagString(s));//func_74742_a
+		}
+
+		NBTTagCompound nbttagcompound = new NBTTagCompound();
+		nbttagcompound.setTag("Lore", newList);//func_74778_
+
+		compound.setTag("display", nbttagcompound);//func_74782_a
+	}
+
+	public boolean hasAttribute(String name) {
+		NBTTagCompound compound = this.item.getTagCompound();//func_77978_p
+		if (compound == null) {
+			return false;
+		} else {
+			NBTTagList nbttaglist = compound.getTagList("AttributeModifiers", 10);//func_150295_c
+
+			for (int i = 0; i < nbttaglist.tagCount(); ++i) {//nbttaglist.func_74745_c()
+				NBTTagCompound c = nbttaglist.getCompoundTagAt(i);//func_150305_b
+				if (c.getString("AttributeName").equals(name)) {//func_74779_i
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
 	/**
 	 * @return Returns whether or not this item is a block
 	 */
