@@ -151,6 +151,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			EnumGuiType gui = EnumGuiType.values()[buffer.readInt()];
 			CustomNpcs.proxy.openGui(NoppesUtil.getLastNpc(), gui, buffer.readInt(), buffer.readInt(), buffer.readInt());
 		}
+		else if(type == EnumPacketClient.SCRIPTED_PARTICLE){
+			NoppesUtil.spawnScriptedParticle(buffer);
+		}
 		else if(type == EnumPacketClient.PARTICLE){
 			NoppesUtil.spawnParticle(buffer);
 		}

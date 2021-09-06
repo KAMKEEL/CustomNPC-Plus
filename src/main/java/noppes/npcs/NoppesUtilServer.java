@@ -291,6 +291,34 @@ public class NoppesUtilServer {
 		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
+	public static void spawnScriptedParticle(Entity entity, String directory, int HEXcolor, int amount, int maxAge,
+											 double x, double y, double z,
+											 double motionX, double motionY, double motionZ, float gravity,
+											 float scale1, float scale2, float scaleRate, int scaleRateStart,
+											 float alpha1, float alpha2, float alphaRate, int alphaRateStart,
+											 String playerName, EntityPlayer playerObj
+	){
+		List<Entity> playerEntities = playerObj.worldObj.getEntitiesWithinAABB(Entity.class, playerObj.boundingBox.expand(300, 300, 300));
+
+		String UUID = "";
+		int entityID = -1;
+		for(Entity e : playerEntities){
+			if(e.equals(entity)){
+				UUID = e.getUniqueID().toString();
+				entityID = e.getEntityId();
+				break;
+			}
+		}
+
+		Server.sendAssociatedData(entity, EnumPacketClient.SCRIPTED_PARTICLE,
+				directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				alpha1, alpha2, alphaRate, alphaRateStart,
+				playerName, UUID, entityID
+		);
+	}
 
 	public static void deleteNpc(EntityNPCInterface npc,EntityPlayer player) {
 		Server.sendAssociatedData(npc, EnumPacketClient.DELETE_NPC, npc.getEntityId());

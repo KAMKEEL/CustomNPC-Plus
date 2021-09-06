@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
@@ -18,6 +19,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.EntityType;
@@ -28,6 +33,47 @@ public class ScriptEntity {
 	
 	public ScriptEntity(Entity entity){
 		this.entity = entity;
+	}
+
+	/**
+	 * @param directory The particle's directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
+	 * @param HEXcolor The particle's color as a HEX integer
+	 * @param amount The amount of particles to spawn
+
+	 * @param scale1 The particle's starting scale1
+	 * @param scale2 The particle's ending scale1
+	 * @param scaleRate Multiplier for the particle's growth rate. Using a negative number shrinks the particle, positive expands it, and value of 0 keeps it from growing or shrinking altogether.
+	 * @param maxAge The particle's maximum age in MC ticks
+
+	 * @param x The particle's x position
+	 * @param y The particle's y position
+	 * @param z The particle's z position
+
+	 * @param motionX The particle's speed in the x axis
+	 * @param motionY The particle's speed in the y axis
+	 * @param motionZ The particle's speed in the z axis
+	 *
+	 * @param gravity The particle's gravity
+	 */
+	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+							  double x, double y, double z,
+							  double motionX, double motionY, double motionZ, float gravity,
+							  float scale1, float scale2, float scaleRate, int scaleRateStart,
+							  float alpha1, float alpha2, float alphaRate, int alphaRateStart
+	) {
+		List<EntityPlayer> entities = entity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(300, 300, 300));
+		if(entities.size() < 1)
+			return;
+		EntityPlayer playerObj = entities.get(0);
+		String playerName = playerObj.getDisplayName();
+
+		NoppesUtilServer.spawnScriptedParticle(entity, directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				alpha1, alpha2, alphaRate, alphaRateStart,
+				playerName, playerObj
+		);
 	}
 
 	public double getYOffset() { return entity.getYOffset(); }
