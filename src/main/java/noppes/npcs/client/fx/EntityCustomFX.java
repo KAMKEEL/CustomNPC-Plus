@@ -4,9 +4,10 @@ import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL44;
 
 public class EntityCustomFX extends EntityFX {
     private Entity entity;
