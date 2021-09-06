@@ -101,29 +101,20 @@ public class NoppesUtil {
 
 		int entityID = buffer.readInt();
 
-		ModelPartData particle = new ModelPartData();
-		particle.setAttributes(
-				directory, HEXcolor, amount, maxAge,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				scale1, scale2, scaleRate, scaleRateStart,
-				alpha1, alpha2, alphaRate, alphaRateStart
-		);
-
 		World worldObj = Minecraft.getMinecraft().theWorld;
 		Entity entity = worldObj.getEntityByID(entityID);
 
 		EntityCustomFX fx = new EntityCustomFX(
 				entity,
+				directory, HEXcolor,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
 				alpha1, alpha2, alphaRate, alphaRateStart,
-				particle.getMaxAge(),
-				particle
+				maxAge
 		);
 
-		for(int i = 0; i < particle.getAmount(); i++){
+		for(int i = 0; i < amount; i++){
 			minecraft.effectRenderer.addEffect(fx);
 		}
 	}

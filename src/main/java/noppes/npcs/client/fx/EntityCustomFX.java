@@ -24,12 +24,11 @@ public class EntityCustomFX extends EntityFX {
     public float alphaRate = 0.0F;
     public int alphaRateStart = 0;
 
-	public EntityCustomFX(Entity entity, double x, double y, double z,
+	public EntityCustomFX(Entity entity, String directory, int HEXColor, double x, double y, double z,
                           double motionX, double motionY, double motionZ, float gravity,
                           float scale1, float scale2, float scaleRate, int scaleRateStart,
                           float alpha1, float alpha2, float alphaRate, int alphaRateStart,
-                          int age,
-                          ModelPartData data) {
+                          int age) {
 		super(entity.worldObj, x, y, z, motionX, motionY, motionZ);
 
         this.scale1 = scale1;
@@ -58,9 +57,9 @@ public class EntityCustomFX extends EntityFX {
 		this.entity = entity;
         noClip = true;
 
-        particleRed = (data.color >> 16 & 255) / 255f;
-        particleGreen = (data.color >> 8  & 255) / 255f;
-        particleBlue = (data.color & 255) / 255f;
+        particleRed = (HEXColor >> 16 & 255) / 255f;
+        particleGreen = (HEXColor >> 8  & 255) / 255f;
+        particleBlue = (HEXColor & 255) / 255f;
         
         if(Math.floor(Math.random()*3) == 1){
         	move = false;
@@ -69,7 +68,7 @@ public class EntityCustomFX extends EntityFX {
             this.startZ = (float) entity.posZ;
         }
 
-        location = new ResourceLocation(data.texture);
+        location = new ResourceLocation(directory);
 	}
 
 	@Override
