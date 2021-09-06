@@ -61,18 +61,13 @@ public class ScriptEntity {
 							  float scale1, float scale2, float scaleRate, int scaleRateStart,
 							  float alpha1, float alpha2, float alphaRate, int alphaRateStart
 	) {
-		List<EntityPlayer> entities = entity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(300, 300, 300));
-		if(entities.size() < 1)
-			return;
-		EntityPlayer playerObj = entities.get(0);
-		String playerName = playerObj.getDisplayName();
-
+		int entityID = entity.getEntityId();
 		NoppesUtilServer.spawnScriptedParticle(entity, directory, HEXcolor, amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
 				alpha1, alpha2, alphaRate, alphaRateStart,
-				playerName, playerObj
+				entityID
 		);
 	}
 

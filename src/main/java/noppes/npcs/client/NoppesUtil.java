@@ -99,9 +99,6 @@ public class NoppesUtil {
 		float alphaRate = buffer.readFloat();
 		int alphaRateStart = buffer.readInt();
 
-		String playerName = Server.readString(buffer);
-		String UUID = Server.readString(buffer);
-
 		int entityID = buffer.readInt();
 
 		ModelPartData particle = new ModelPartData();
@@ -114,25 +111,20 @@ public class NoppesUtil {
 		);
 
 		World worldObj = Minecraft.getMinecraft().theWorld;
-		EntityPlayer player = worldObj.getPlayerEntityByName(playerName);
-		List<Entity> entities = player.worldObj.getEntitiesWithinAABB(Entity.class, player.boundingBox.expand(300, 300, 300));
-		for(Entity entity : entities){
-			if(UUID.equals(entity.getPersistentID().toString()) || (entity.getEntityId() == entityID)){
-				EntityCustomFX fx = new EntityCustomFX(
-						entity,
-						x, y, z,
-						motionX, motionY, motionZ, gravity,
-						scale1, scale2, scaleRate, scaleRateStart,
-						alpha1, alpha2, alphaRate, alphaRateStart,
-						particle.getMaxAge(),
-						particle
-				);
+		Entity entity = worldObj.getEntityByID(entityID);
 
-				for(int i = 0; i < particle.getAmount(); i++){
-					minecraft.effectRenderer.addEffect(fx);
-				}
-				break;
-			}
+		EntityCustomFX fx = new EntityCustomFX(
+				entity,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				alpha1, alpha2, alphaRate, alphaRateStart,
+				particle.getMaxAge(),
+				particle
+		);
+
+		for(int i = 0; i < particle.getAmount(); i++){
+			minecraft.effectRenderer.addEffect(fx);
 		}
 	}
 

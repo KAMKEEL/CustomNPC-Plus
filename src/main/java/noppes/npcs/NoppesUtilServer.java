@@ -296,27 +296,15 @@ public class NoppesUtilServer {
 											 double motionX, double motionY, double motionZ, float gravity,
 											 float scale1, float scale2, float scaleRate, int scaleRateStart,
 											 float alpha1, float alpha2, float alphaRate, int alphaRateStart,
-											 String playerName, EntityPlayer playerObj
+											 int entityID
 	){
-		List<Entity> playerEntities = playerObj.worldObj.getEntitiesWithinAABB(Entity.class, playerObj.boundingBox.expand(300, 300, 300));
-
-		String UUID = "";
-		int entityID = -1;
-		for(Entity e : playerEntities){
-			if(e.equals(entity)){
-				UUID = e.getUniqueID().toString();
-				entityID = e.getEntityId();
-				break;
-			}
-		}
-
 		Server.sendAssociatedData(entity, EnumPacketClient.SCRIPTED_PARTICLE,
 				directory, HEXcolor, amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
 				alpha1, alpha2, alphaRate, alphaRateStart,
-				playerName, UUID, entityID
+				entityID
 		);
 	}
 
