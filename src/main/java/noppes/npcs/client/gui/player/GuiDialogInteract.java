@@ -128,7 +128,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        GL11.glDisable(GL11.GL_TEXTURE_2D);
 	        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         }
-        super.drawScreen(i, j, f);
+        //super.drawScreen(i, j, f);
 
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(770, 771, 1, 0);
