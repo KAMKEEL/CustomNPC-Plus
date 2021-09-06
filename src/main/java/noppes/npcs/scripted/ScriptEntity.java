@@ -30,6 +30,17 @@ public class ScriptEntity {
 		this.entity = entity;
 	}
 
+	public double getYOffset() { return entity.getYOffset(); }
+
+	/**
+	 * @return The entities width
+	 */
+	public double getWidth(){ return entity.width; }
+
+	/**
+	 * @return The entities height
+	 */
+	public double getHeight(){ return entity.height; }
 
 	/**
 	 * @return The entities x position
