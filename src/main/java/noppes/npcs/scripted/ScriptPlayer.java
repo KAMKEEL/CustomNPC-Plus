@@ -245,8 +245,12 @@ public class ScriptPlayer extends ScriptLivingBase{
 	 * @return Returns whether or not it gave the item succesfully
 	 */
 	public boolean giveItem(ScriptItemStack item, int amount){
-		String itemname = Item.itemRegistry.getNameForObject(item.getMCItemStack().getItem());
-		return giveItem(itemname, item.getItemDamage(), amount);
+		if(item != null && item.getMCItemStack() != null) {
+			item.setStackSize(amount);
+			return this.player.inventory.addItemStackToInventory(item.getMCItemStack());
+		} else {
+			return false;
+		}
 	}
 	
 	/**
