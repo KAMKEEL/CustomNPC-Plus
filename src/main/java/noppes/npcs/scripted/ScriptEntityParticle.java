@@ -7,8 +7,6 @@ import noppes.npcs.NoppesUtilServer;
  * Created by luisc on 9/8/2021.
  */
 public class ScriptEntityParticle {
-    private ScriptEntity entity;
-
     private String directory;
     private int HEXcolor = 0xFFFFFF;
     private int amount = 1;
@@ -33,10 +31,6 @@ public class ScriptEntityParticle {
                 alpha1, alpha2, alphaRate, alphaRateStart,
                 entityID
         );
-    }
-
-    public ScriptEntity getEntity() {
-        return entity;
     }
 
     public String getDirectory() {
@@ -113,10 +107,6 @@ public class ScriptEntityParticle {
 
     public int getAlphaRateStart() {
         return alphaRateStart;
-    }
-
-    public void setEntity(ScriptEntity entity) {
-        this.entity = entity;
     }
 
     public void setDirectory(String directory) {
