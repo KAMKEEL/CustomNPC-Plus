@@ -30,7 +30,7 @@ import noppes.npcs.scripted.constants.EntityType;
 public class ScriptEntity {
 	protected Entity entity;
 	private Map<String,Object> tempData = new HashMap<String,Object>();
-	
+
 	public ScriptEntity(Entity entity){
 		this.entity = entity;
 	}
@@ -39,10 +39,6 @@ public class ScriptEntity {
 	 * @param directory The particle's directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
 	 * @param HEXcolor The particle's color as a HEX integer
 	 * @param amount The amount of particles to spawn
-
-	 * @param scale1 The particle's starting scale1
-	 * @param scale2 The particle's ending scale1
-	 * @param scaleRate Multiplier for the particle's growth rate. Using a negative number shrinks the particle, positive expands it, and value of 0 keeps it from growing or shrinking altogether.
 	 * @param maxAge The particle's maximum age in MC ticks
 
 	 * @param x The particle's x position
@@ -52,8 +48,17 @@ public class ScriptEntity {
 	 * @param motionX The particle's speed in the x axis
 	 * @param motionY The particle's speed in the y axis
 	 * @param motionZ The particle's speed in the z axis
-	 *
 	 * @param gravity The particle's gravity
+
+	 * @param scale1 The particle's starting scale
+	 * @param scale2 The particle's ending scale
+	 * @param scaleRate Multiplier for the particle's scale growth rate
+	 * @param scaleRateStart The time at which the particle begins growing/shrinking
+
+	 * @param alpha1 The particle's starting transparency
+	 * @param alpha2 The particle's ending transparency
+	 * @param scaleRate Multiplier for the particle's transparency growth rate
+	 * @param alphaRateStart The time at which the particle begins appearing/fading
 	 */
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
@@ -70,6 +75,7 @@ public class ScriptEntity {
 				entityID
 		);
 	}
+	public void spawnParticle(ScriptEntityParticle entityParticle) { entityParticle.spawnOnEntity(this); }
 
 	public double getYOffset() { return entity.getYOffset(); }
 

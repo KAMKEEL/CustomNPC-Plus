@@ -187,6 +187,14 @@ public class ScriptWorld{
 			return null;
 		return new ScriptItemStack(new ItemStack(item, size, damage));		
 	}
+
+	/**
+	 * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
+	 * @return Returns ScriptEntityParticle object
+	 */
+	public ScriptEntityParticle createEntityParticle(String directory){
+		return new ScriptEntityParticle(directory);
+	}
 	
 	/**
 	 * @param key Get temp data for this key
