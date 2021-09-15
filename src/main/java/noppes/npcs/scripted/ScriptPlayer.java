@@ -1,5 +1,6 @@
 package noppes.npcs.scripted;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -8,6 +9,7 @@ import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.WorldSettings;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesStringUtils;
@@ -180,6 +182,15 @@ public class ScriptPlayer extends ScriptLivingBase{
 		}
 		return i;
 	}
+
+	public int inventoryItemCount(String id, int damage) {
+		Item item = (Item)Item.itemRegistry.getObject(id);
+		if(item == null) {
+			throw new CustomNPCsException("Unknown item id: " + id, new Object[0]);
+		} else {
+			return this.inventoryItemCount(new ScriptItemStack(new ItemStack(item, 1, damage)));
+		}
+	}
 	
 	/**
 	 * @since 1.7.10d
@@ -202,26 +213,32 @@ public class ScriptPlayer extends ScriptLivingBase{
 	 */
 	public boolean removeItem(ScriptItemStack item, int amount){
 		int count = inventoryItemCount(item);
-		if(amount  > count)
+		if(amount > count) {
 			return false;
-		else if(count == amount)
-			removeAllItems(item);
-		else{
-			for(int i = 0; i < player.inventory.mainInventory.length; i++){
-				ItemStack is = player.inventory.mainInventory[i];
-	            if (is != null && is.isItemEqual(item.item)){
-	            	if(amount > is.stackSize){
-	                	player.inventory.mainInventory[i] = null;
-	                	amount -= is.stackSize;
-	            	}
-	            	else{
-	            		is.splitStack(amount);
-	            		break;
-	            	}
-	            }
+		} else {
+			if (count == amount) {
+				this.removeAllItems(item);
+			} else {
+				for(int i = 0; i < ((EntityPlayerMP)this.entity).inventory.getSizeInventory(); ++i) {
+					ItemStack is = ((EntityPlayerMP)this.entity).inventory.getStackInSlot(i);
+					if(is != null && this.isItemEqual(item.getMCItemStack(), is)) {
+						if(amount < is.stackSize) {
+							is.splitStack(amount);
+							break;
+						}
+
+						player.inventory.setInventorySlotContents(i, null);
+						amount -= is.stackSize;
+					}
+				}
 			}
+			this.updatePlayerInventory();
+			return true;
 		}
-		return true;
+	}
+
+	private boolean isItemEqual(ItemStack stack, ItemStack other) {
+		return other.stackSize<1?false:(stack.getItem() != other.getItem()?false:(stack.getItemDamageForDisplay() < 0?true:stack.getItemDamageForDisplay() == other.getItemDamageForDisplay()));
 	}
 
 	/**
@@ -233,8 +250,9 @@ public class ScriptPlayer extends ScriptLivingBase{
 	 */
 	public boolean removeItem(String id, int damage, int amount){
 		Item item = (Item)Item.itemRegistry.getObject(id);
-		if(item == null)
-			return false;		
+		if(item == null) {
+			throw new CustomNPCsException("Unknown item id: " + id, new Object[0]);
+		}
 		return removeItem(new ScriptItemStack(new ItemStack(item, 1, damage)), amount);
 	}
 
@@ -245,9 +263,14 @@ public class ScriptPlayer extends ScriptLivingBase{
 	 * @return Returns whether or not it gave the item succesfully
 	 */
 	public boolean giveItem(ScriptItemStack item, int amount){
-		if(item != null && item.getMCItemStack() != null) {
+		if(item != null && item.getMCItemStack() != null && amount > 0) {
 			item.setStackSize(amount);
-			return this.player.inventory.addItemStackToInventory(item.getMCItemStack());
+			ItemStack mcItemStack = item.getMCItemStack();
+			boolean bool = player.inventory.addItemStackToInventory(mcItemStack);
+			if(bool) {
+				updatePlayerInventory();
+			}
+			return bool;
 		} else {
 			return false;
 		}
@@ -262,9 +285,17 @@ public class ScriptPlayer extends ScriptLivingBase{
 	 */
 	public boolean giveItem(String id, int damage, int amount){
 		Item item = (Item)Item.itemRegistry.getObject(id);
-		if(item == null)
-			return false;		
-		return player.inventory.addItemStackToInventory(new ItemStack(item, amount, damage));
+		if(item == null) {
+			throw new CustomNPCsException("Unknown item id: " + id, new Object[0]);
+		}
+
+		ItemStack itemStack = new ItemStack(item, amount, damage);
+		boolean bool = player.inventory.addItemStackToInventory(itemStack);
+		if(bool) {
+			updatePlayerInventory();
+		}
+
+		return bool;
 	}
 	
 	/**
@@ -293,6 +324,7 @@ public class ScriptPlayer extends ScriptLivingBase{
             if (is != null && is.isItemEqual(item.item))
             	player.inventory.mainInventory[i] = null;
 		}
+		updatePlayerInventory();
 	}
 	
 	
@@ -341,5 +373,9 @@ public class ScriptPlayer extends ScriptLivingBase{
 		if(!PixelmonHelper.Enabled)
 			return null;
 		return new ScriptPixelmonPlayerData(player);
+	}
+
+	public void updatePlayerInventory() {
+		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
 	}
 }
