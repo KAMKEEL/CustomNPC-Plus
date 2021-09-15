@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -349,5 +350,22 @@ public class ScriptWorld{
 	 */
 	public World getMCWorld(){
 		return world;
+	}
+
+	public ScriptEntity createEntityFromNBT(ScriptNBT nbt) {
+		Entity entity = EntityList.createEntityFromNBT(nbt.getMCNBT(), this.world);
+		if(entity == null) {
+			throw new CustomNPCsException("Failed to create an entity from given NBT", new Object[0]);
+		}
+		return new ScriptEntity(entity);
+	}
+
+	public ScriptItemStack createItemFromNBT(ScriptNBT nbt) {
+		ItemStack item = ItemStack.loadItemStackFromNBT(nbt.getMCNBT());
+		if(item.stackSize < 1) {
+			throw new CustomNPCsException("Failed to create an item from given NBT", new Object[0]);
+		} else {
+			return new ScriptItemStack(item);
+		}
 	}
 }

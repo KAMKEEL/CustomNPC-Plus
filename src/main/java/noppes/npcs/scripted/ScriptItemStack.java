@@ -206,4 +206,24 @@ public class ScriptItemStack {
 	public ItemStack getMCItemStack() {
 		return item;
 	}
+
+	public ScriptNBT getNBT() {
+		NBTTagCompound compound = this.item.getTagCompound();
+		if(compound == null) {
+			this.item.readFromNBT(compound = new NBTTagCompound());
+		}
+
+		return new ScriptNBT(compound);
+	}
+
+	public boolean hasNBT() {
+		NBTTagCompound compound = this.item.getTagCompound();
+		return compound != null && !compound.hasNoTags();
+	}
+
+	public ScriptNBT getItemNBT() {
+		NBTTagCompound compound = new NBTTagCompound();
+		this.item.writeToNBT(compound);
+		return new ScriptNBT(compound);
+	}
 }

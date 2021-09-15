@@ -486,4 +486,14 @@ public class ScriptEntity {
 	public Entity getMCEntity(){
 		return entity;
 	}
+
+	public ScriptNBT getNBT(){
+		NBTTagCompound compound = new NBTTagCompound();
+		entity.writeToNBT(compound);
+		return new ScriptNBT(compound);
+	}
+
+	public ScriptNBT getEntityNBT(){return new ScriptNBT(this.entity.getEntityData());}
+
+	public void setEntityNBT(ScriptNBT nbt) {this.entity.readFromNBT(nbt.getMCNBT());}
 }
