@@ -17,11 +17,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
+import net.minecraft.item.*;
 import net.minecraft.item.ItemArmor.ArmorMaterial;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.model.ModelPony;
 import noppes.npcs.client.model.ModelPonyArmor;
@@ -222,7 +219,8 @@ public class RenderNPCPony extends RenderNPCInterface
             float f4 = 0.375F * f;
             GL11.glScalef(f4, -f4, f4);
         } else
-        if(itemstack.getItem() == Items.bow)
+            // CHANGE HERE
+        if(itemstack.getItem() instanceof ItemBow)
         {
             GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
             GL11.glRotatef(-20F, 0.0F, 1.0F, 0.0F);
