@@ -1,20 +1,14 @@
 package noppes.npcs.client.gui;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.IScrollData;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.FactionOptions;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollData,ICustomScrollListener
 {

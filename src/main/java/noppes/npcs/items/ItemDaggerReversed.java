@@ -1,7 +1,6 @@
 package noppes.npcs.items;
 
 import net.minecraft.client.renderer.texture.IIconRegister;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemDaggerReversed extends ItemDagger{

@@ -1,8 +1,5 @@
 package noppes.npcs.scripted;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -13,6 +10,9 @@ import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptItemStack {
 	protected ItemStack item;

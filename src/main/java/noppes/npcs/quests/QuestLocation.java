@@ -1,13 +1,13 @@
 package noppes.npcs.quests;
 
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
+
+import java.util.Vector;
 
 public class QuestLocation extends QuestInterface{
 	public String location = "";

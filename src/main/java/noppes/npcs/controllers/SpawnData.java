@@ -1,11 +1,11 @@
 package noppes.npcs.controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.WeightedRandom;
 import noppes.npcs.NBTTags;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpawnData extends WeightedRandom.Item{
 	public List<String> biomes = new ArrayList<String>();

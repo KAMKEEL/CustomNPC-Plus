@@ -3,13 +3,11 @@ package noppes.npcs.items;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.entity.EntityProjectile;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemCrossbow extends ItemNpcInterface{

@@ -1,7 +1,6 @@
 package noppes.npcs.controllers;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.entity.EntityNPCInterface;
 
 public class TransportLocation {
 	public int id = -1;

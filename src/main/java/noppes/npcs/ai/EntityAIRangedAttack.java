@@ -4,7 +4,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IRangedAttackMob;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
 import noppes.npcs.constants.AiMutex;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumNavType;

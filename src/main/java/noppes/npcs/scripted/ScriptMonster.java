@@ -1,6 +1,5 @@
 package noppes.npcs.scripted;
 
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import noppes.npcs.scripted.constants.EntityType;
 

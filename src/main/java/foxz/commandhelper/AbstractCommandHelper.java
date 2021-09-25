@@ -2,16 +2,9 @@
 // licence : cc-by-nc+no gov,mil usage
 package foxz.commandhelper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.AbstractPermission;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.PlayerSelector;
@@ -22,9 +15,12 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.AbstractPermission;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class AbstractCommandHelper extends CommandHelper {
 

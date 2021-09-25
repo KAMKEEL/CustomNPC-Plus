@@ -1,5 +1,6 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -12,11 +13,8 @@ import noppes.npcs.blocks.BlockBanner;
 import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.client.model.blocks.ModelBanner;
 import noppes.npcs.client.model.blocks.ModelBannerFlag;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockBannerRenderer extends BlockRendererInterface{
 

@@ -1,10 +1,10 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.roles.JobItemGiver;
+
+import java.util.HashMap;
 
 public class PlayerItemGiverData{
 	private HashMap<Integer, Long> itemgivers = new HashMap<Integer,Long>();

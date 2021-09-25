@@ -1,9 +1,9 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+
+import java.util.HashMap;
 
 public class QuestCategory {
 	public HashMap<Integer,Quest> quests;

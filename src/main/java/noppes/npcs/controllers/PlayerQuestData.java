@@ -1,7 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,6 +10,8 @@ import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
+
+import java.util.HashMap;
 
 public class PlayerQuestData {
 	public HashMap<Integer,QuestData> activeQuests = new HashMap<Integer,QuestData>();

@@ -1,13 +1,8 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -17,32 +12,18 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.oredict.OreDictionary;
-import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
-import noppes.npcs.controllers.Bank;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.BankData;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.Line;
-import noppes.npcs.controllers.PlayerBankData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.PlayerTransportData;
-import noppes.npcs.controllers.QuestData;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.TransportLocation;
+import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class NoppesUtilPlayer {
 

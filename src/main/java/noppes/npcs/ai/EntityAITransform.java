@@ -1,12 +1,7 @@
 package noppes.npcs.ai;
 
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
 import noppes.npcs.constants.AiMutex;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAITransform extends EntityAIBase {

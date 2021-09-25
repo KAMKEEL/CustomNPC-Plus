@@ -1,8 +1,8 @@
 package nikedemos.markovnames;
 
-import net.minecraft.util.ResourceLocation;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
+import net.minecraft.util.ResourceLocation;
 
 import java.io.BufferedReader;
 import java.io.IOException;

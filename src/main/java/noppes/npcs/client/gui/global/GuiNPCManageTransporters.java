@@ -1,8 +1,5 @@
 package noppes.npcs.client.gui.global;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
@@ -14,6 +11,9 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 
 public class GuiNPCManageTransporters extends GuiNPCInterface implements IScrollData

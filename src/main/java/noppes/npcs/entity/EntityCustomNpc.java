@@ -1,7 +1,6 @@
 package noppes.npcs.entity;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;

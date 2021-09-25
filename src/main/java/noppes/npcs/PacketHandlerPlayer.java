@@ -1,10 +1,8 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
-
-import java.io.IOException;
-import java.util.Iterator;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemEditableBook;
@@ -16,23 +14,14 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
-import noppes.npcs.constants.EnumCompanionTalent;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.controllers.BankData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerFactionData;
-import noppes.npcs.controllers.PlayerMail;
-import noppes.npcs.controllers.PlayerMailData;
-import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.PlayerQuestData;
+import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 public class PacketHandlerPlayer{
 	

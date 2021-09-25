@@ -1,7 +1,5 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
@@ -10,15 +8,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.ClientCloneController;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCallback, IGuiData{
 	

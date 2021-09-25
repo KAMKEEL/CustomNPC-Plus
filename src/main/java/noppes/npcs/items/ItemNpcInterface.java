@@ -1,18 +1,13 @@
 package noppes.npcs.items;
 
-import net.minecraft.entity.EntityLiving;
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.client.MinecraftForgeClient;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.client.renderer.NpcItemRenderer;
-
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemNpcInterface extends Item implements ItemRenderInterface{
     

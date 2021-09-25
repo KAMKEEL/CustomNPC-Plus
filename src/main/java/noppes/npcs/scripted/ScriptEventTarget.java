@@ -1,7 +1,6 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.ScriptController;
 
 public class ScriptEventTarget extends ScriptEvent{

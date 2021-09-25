@@ -1,21 +1,17 @@
 package noppes.npcs.client.gui.advanced;
 
-import java.util.HashMap;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.GuiNPCDialogSelection;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiSelectionListener;
-import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
 
 
 public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelectionListener,IGuiData{

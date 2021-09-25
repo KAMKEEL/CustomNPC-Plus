@@ -5,9 +5,6 @@ import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.ai.pathfinder.NPCPathFinder;
-import noppes.npcs.ai.pathfinder.PathNavigateNPC;
-import noppes.npcs.ai.pathfinder.SwimNodeProcessor;
 import noppes.npcs.util.Vec3NPC;
 
 public class PathNavigateSwimmer extends PathNavigateNPC

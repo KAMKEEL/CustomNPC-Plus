@@ -1,12 +1,10 @@
 package noppes.npcs.items;
 
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.List;
-
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,13 +15,11 @@ import net.minecraft.world.World;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 public class ItemSoulstoneFilled extends Item {
 	public ItemSoulstoneFilled(){

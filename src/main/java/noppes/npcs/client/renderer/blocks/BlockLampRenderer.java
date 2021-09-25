@@ -1,5 +1,7 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -13,12 +15,8 @@ import noppes.npcs.blocks.tiles.TileLamp;
 import noppes.npcs.client.model.blocks.ModelLamp;
 import noppes.npcs.client.model.blocks.ModelLampCeiling;
 import noppes.npcs.client.model.blocks.ModelLampWall;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockLampRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 

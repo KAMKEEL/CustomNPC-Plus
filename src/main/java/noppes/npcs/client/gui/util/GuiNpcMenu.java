@@ -12,7 +12,6 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.input.Keyboard;
 
 public class GuiNpcMenu implements GuiYesNoCallback{

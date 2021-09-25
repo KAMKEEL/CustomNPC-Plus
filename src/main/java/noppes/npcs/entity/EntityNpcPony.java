@@ -1,6 +1,5 @@
 package noppes.npcs.entity;
 
-import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;

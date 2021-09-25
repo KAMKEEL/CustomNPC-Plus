@@ -1,10 +1,10 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NpcMiscInventory;
+
+import java.util.HashMap;
 
 
 public class Bank {

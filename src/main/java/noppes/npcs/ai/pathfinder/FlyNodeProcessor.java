@@ -6,7 +6,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.math.BlockPos;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class FlyNodeProcessor extends NodeProcessor{

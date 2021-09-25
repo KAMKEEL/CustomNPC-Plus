@@ -1,6 +1,5 @@
 package noppes.npcs.scripted;
 
-import net.minecraft.entity.Entity;
 import noppes.npcs.NoppesUtilServer;
 
 /**

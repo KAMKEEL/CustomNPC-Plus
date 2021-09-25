@@ -3,12 +3,10 @@ package noppes.npcs.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.TextBlock;
-import noppes.npcs.entity.EntityNPCInterface;
 
 public class TextBlockClient extends TextBlock{
 	private ChatStyle style;

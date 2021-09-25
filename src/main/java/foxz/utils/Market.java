@@ -1,12 +1,12 @@
 package foxz.utils;
 
-import java.io.File;
-
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.File;
 
 public class Market {
 

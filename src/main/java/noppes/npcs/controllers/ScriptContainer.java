@@ -1,17 +1,15 @@
 package noppes.npcs.controllers;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NBTTags;
 
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NBTTags;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptContainer {
 	public String fullscript = "";

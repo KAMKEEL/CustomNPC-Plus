@@ -1,6 +1,5 @@
 package noppes.npcs.scripted;
 
-import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.PixelmonHelper;

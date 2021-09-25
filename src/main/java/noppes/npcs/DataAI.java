@@ -1,8 +1,5 @@
 package noppes.npcs;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
@@ -11,6 +8,9 @@ import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataAI {
     private EntityNPCInterface npc;

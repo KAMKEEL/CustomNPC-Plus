@@ -5,14 +5,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
 import noppes.npcs.client.gui.SubGuiNpcCommand;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumMovingType;
-import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.PlayerMail;
 import noppes.npcs.controllers.Quest;
 

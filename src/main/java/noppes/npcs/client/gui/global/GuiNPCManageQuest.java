@@ -1,13 +1,9 @@
 package noppes.npcs.client.gui.global;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
 import noppes.npcs.client.gui.SubGuiNpcCommand;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
@@ -15,27 +11,14 @@ import noppes.npcs.client.gui.SubGuiNpcTextArea;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.GuiSelectionListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IScrollData;
-import noppes.npcs.client.gui.util.ISubGuiListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.constants.EnumQuestRepeat;
-import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PlayerMail;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.QuestCategory;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener,ITextfieldListener, IGuiData
 {

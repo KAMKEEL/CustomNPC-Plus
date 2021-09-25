@@ -1,10 +1,9 @@
 package noppes.npcs.client;
 
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
-
-import java.io.IOException;
-import java.util.HashMap;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.achievement.GuiAchievement;
@@ -18,30 +17,21 @@ import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.PacketHandlerServer;
-import noppes.npcs.Server;
-import noppes.npcs.ServerEventsHandler;
+import noppes.npcs.*;
 import noppes.npcs.client.ClientProxy.FontContainer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 import noppes.npcs.client.gui.player.GuiBook;
-import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.IGuiClose;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IGuiError;
-import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.RecipeCarpentry;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 

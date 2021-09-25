@@ -1,9 +1,7 @@
 package noppes.npcs.entity;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -22,22 +20,18 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.play.server.S27PacketExplosion;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.*;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import noppes.npcs.DataStats;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.util.IProjectileCallback;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 
 public class EntityProjectile extends EntityThrowable {

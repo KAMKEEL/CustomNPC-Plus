@@ -1,11 +1,5 @@
 package noppes.npcs.client.gui.util;
 
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.FontRenderer;
@@ -16,12 +10,16 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import java.awt.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class GuiNPCInterface extends GuiScreen
 {

@@ -1,8 +1,5 @@
 package noppes.npcs;
 
-import java.util.Collection;
-import java.util.List;
-
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
@@ -10,6 +7,9 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.controllers.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Collection;
+import java.util.List;
 
 public class VersionCompatibility {
 	public static int ModRev = 16;

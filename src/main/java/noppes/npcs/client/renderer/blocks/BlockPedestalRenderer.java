@@ -1,5 +1,6 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -13,11 +14,8 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockRotated;
 import noppes.npcs.blocks.tiles.TilePedestal;
 import noppes.npcs.client.model.blocks.ModelPedestal;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockPedestalRenderer extends BlockRendererInterface{
 

@@ -1,8 +1,5 @@
 package noppes.npcs.client.gui.player;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -24,11 +21,13 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 {

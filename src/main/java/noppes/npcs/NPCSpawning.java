@@ -1,14 +1,6 @@
 package noppes.npcs;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
 import com.google.common.collect.Sets;
-
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -29,6 +21,8 @@ import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.SpawnData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.*;
 
 public class NPCSpawning {
 	private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();

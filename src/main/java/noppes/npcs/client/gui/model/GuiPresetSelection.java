@@ -1,8 +1,5 @@
 package noppes.npcs.client.gui.model;
 
-import java.util.Collections;
-import java.util.Vector;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -19,8 +16,10 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.entity.EntityCustomNpc;
-
 import org.lwjgl.opengl.GL11;
+
+import java.util.Collections;
+import java.util.Vector;
 
 public class GuiPresetSelection extends GuiNPCInterface
 {

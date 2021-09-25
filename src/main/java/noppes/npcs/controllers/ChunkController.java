@@ -1,10 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -16,7 +11,10 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobChunkLoader;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class ChunkController implements LoadingCallback{	
 	public static ChunkController instance;

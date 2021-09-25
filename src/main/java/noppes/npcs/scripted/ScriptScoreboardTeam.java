@@ -1,11 +1,11 @@
 package noppes.npcs.scripted;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.EnumChatFormatting;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptScoreboardTeam {
 	private ScorePlayerTeam team;

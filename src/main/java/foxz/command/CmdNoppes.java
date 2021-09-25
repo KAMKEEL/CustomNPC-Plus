@@ -1,12 +1,11 @@
 package foxz.command;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import foxz.commandhelper.ChMcLogger;
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.OpOnly;
+import foxz.commandhelper.permissions.ParamCheck;
+import foxz.commandhelper.permissions.PlayerOnly;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -27,13 +26,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
-import foxz.commandhelper.ChMcLogger;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.OpOnly;
-import foxz.commandhelper.permissions.ParamCheck;
-import foxz.commandhelper.permissions.PlayerOnly;
-import foxz.utils.Utils;
+
+import java.util.*;
 
 @Command(
         name = "noppes",

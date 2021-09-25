@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.player;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -9,30 +11,15 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.*;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.util.GuiButtonNextPage;
-import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.IGuiClose;
-import noppes.npcs.client.gui.util.IGuiError;
-import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.PlayerMail;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfieldListener, IGuiError, IGuiClose, GuiYesNoCallback

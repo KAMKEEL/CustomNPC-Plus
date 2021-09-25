@@ -1,20 +1,15 @@
 package noppes.npcs.controllers;
 
-import io.netty.buffer.ByteBufInputStream;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomNpcs;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.zip.GZIPInputStream;
-
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.CustomNpcs;
 
 public class BankController {
 	public HashMap<Integer,Bank> banks;

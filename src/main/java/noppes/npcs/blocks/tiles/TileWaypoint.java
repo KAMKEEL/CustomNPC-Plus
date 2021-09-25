@@ -1,8 +1,5 @@
 package noppes.npcs.blocks.tiles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -14,6 +11,9 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
 import noppes.npcs.quests.QuestLocation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TileWaypoint extends TileEntity {
 	

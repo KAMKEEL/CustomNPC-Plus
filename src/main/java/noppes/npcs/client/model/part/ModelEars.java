@@ -1,7 +1,6 @@
 package noppes.npcs.client.model.part;
 
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;

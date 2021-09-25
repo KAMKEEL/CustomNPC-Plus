@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.NoppesUtil;
 
 public class ItemMoneyBag extends Item{

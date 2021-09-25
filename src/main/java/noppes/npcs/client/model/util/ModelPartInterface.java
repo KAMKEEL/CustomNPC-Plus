@@ -1,8 +1,6 @@
 package noppes.npcs.client.model.util;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
@@ -11,7 +9,6 @@ import noppes.npcs.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.entity.EntityCustomNpc;
-
 import org.lwjgl.opengl.GL11;
 
 public abstract class ModelPartInterface extends ModelRenderer {

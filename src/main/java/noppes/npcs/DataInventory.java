@@ -1,8 +1,5 @@
 package noppes.npcs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,6 +12,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DataInventory implements IInventory{
 	public HashMap<Integer,ItemStack> items = new HashMap<Integer,ItemStack>();

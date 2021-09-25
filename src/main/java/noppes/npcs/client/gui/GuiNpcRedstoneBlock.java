@@ -5,7 +5,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.blocks.tiles.TileRedstoneBlock;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;

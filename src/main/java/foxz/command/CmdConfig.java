@@ -1,8 +1,10 @@
 package foxz.command;
 
-import java.util.Arrays;
-import java.util.Set;
-
+import foxz.commandhelper.ChMcLogger;
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.OpOnly;
+import foxz.commandhelper.permissions.PlayerOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -12,11 +14,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
-import foxz.commandhelper.ChMcLogger;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.OpOnly;
-import foxz.commandhelper.permissions.PlayerOnly;
+
+import java.util.Arrays;
+import java.util.Set;
 
 @Command(
         name="config",

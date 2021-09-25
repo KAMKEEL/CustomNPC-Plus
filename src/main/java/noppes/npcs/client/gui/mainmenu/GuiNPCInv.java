@@ -1,7 +1,5 @@
 package noppes.npcs.client.gui.mainmenu;
 
-import java.util.HashMap;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -11,19 +9,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.ISliderListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.containers.ContainerNPCInv;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.opengl.GL11;
+
+import java.util.HashMap;
 
 public class GuiNPCInv extends GuiContainerNPCInterface2 implements ISliderListener, IGuiData
 {

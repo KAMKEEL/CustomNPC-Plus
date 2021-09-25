@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.roles;
 
+import foxz.utils.Market;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.RoleType;
-import foxz.utils.Market;
 
 public class ScriptRoleTrader extends ScriptRoleInterface{
 	private RoleTrader role;

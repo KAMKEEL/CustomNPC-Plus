@@ -1,13 +1,13 @@
 package noppes.npcs.ai;
 
-import java.util.Random;
-
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.constants.AiMutex;
+
+import java.util.Random;
 
 public class EntityAIFindShade extends EntityAIBase
 {

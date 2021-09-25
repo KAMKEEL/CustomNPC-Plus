@@ -1,13 +1,13 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumOptionType;
+
+import java.util.HashMap;
 
 public class Dialog implements ICompatibilty {
 	public int version = VersionCompatibility.ModRev;

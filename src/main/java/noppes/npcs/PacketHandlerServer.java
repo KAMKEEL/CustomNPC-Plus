@@ -1,15 +1,9 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -30,46 +24,22 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
-import noppes.npcs.constants.EnumCompanionStage;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumPlayerData;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.controllers.Bank;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogCategory;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.LinkedNpcController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerMail;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestCategory;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeCarpentry;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.SpawnData;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class PacketHandlerServer{
 

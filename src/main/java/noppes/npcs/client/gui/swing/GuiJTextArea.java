@@ -1,19 +1,11 @@
 package noppes.npcs.client.gui.swing;
 
+import noppes.npcs.client.gui.util.IJTextAreaListener;
+import org.lwjgl.opengl.Display;
+
+import javax.swing.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
-
-import noppes.npcs.client.gui.util.IJTextAreaListener;
-
-import org.lwjgl.opengl.Display;
 
 public class GuiJTextArea extends JDialog implements WindowListener{
 	public IJTextAreaListener listener;

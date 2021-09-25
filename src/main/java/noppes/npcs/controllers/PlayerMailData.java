@@ -1,9 +1,9 @@
 package noppes.npcs.controllers;
 
-import java.util.ArrayList;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+
+import java.util.ArrayList;
 
 public class PlayerMailData{
 	public ArrayList<PlayerMail> playermail = new ArrayList<PlayerMail>();

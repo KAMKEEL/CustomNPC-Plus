@@ -1,5 +1,6 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -12,11 +13,8 @@ import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.model.blocks.ModelTombstone1;
 import noppes.npcs.client.model.blocks.ModelTombstone2;
 import noppes.npcs.client.model.blocks.ModelTombstone3;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockTombstoneRenderer extends BlockRendererInterface{
 

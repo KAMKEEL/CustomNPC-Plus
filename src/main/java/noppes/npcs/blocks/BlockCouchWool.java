@@ -1,7 +1,7 @@
 package noppes.npcs.blocks;
 
-import java.util.List;
-
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
 import net.minecraft.block.BlockContainer;
@@ -22,8 +22,8 @@ import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileCouchWool;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 public class BlockCouchWool extends BlockContainer{
 	

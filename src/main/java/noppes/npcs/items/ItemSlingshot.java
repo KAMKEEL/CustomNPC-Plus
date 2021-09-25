@@ -1,6 +1,5 @@
 package noppes.npcs.items;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumAction;
@@ -10,7 +9,6 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.entity.EntityProjectile;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemSlingshot extends ItemNpcInterface{

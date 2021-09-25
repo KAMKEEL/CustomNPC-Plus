@@ -1,19 +1,19 @@
 package noppes.npcs.client.gui.roles;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.Bank;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleBank;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 
 public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener

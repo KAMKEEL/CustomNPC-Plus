@@ -11,11 +11,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.quests.QuestDialog;
-import noppes.npcs.quests.QuestInterface;
-import noppes.npcs.quests.QuestItem;
-import noppes.npcs.quests.QuestKill;
-import noppes.npcs.quests.QuestLocation;
+import noppes.npcs.quests.*;
 
 public class Quest implements ICompatibilty {
 	public int version = VersionCompatibility.ModRev;

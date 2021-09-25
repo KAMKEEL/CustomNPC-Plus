@@ -1,29 +1,18 @@
 package noppes.npcs.client.gui.global;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerSelector;
 import noppes.npcs.client.gui.SubGuiNpcBiomes;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IScrollData;
-import noppes.npcs.client.gui.util.ISliderListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.SpawnData;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, IScrollData, ITextfieldListener, ICustomScrollListener, ISliderListener{
 

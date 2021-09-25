@@ -1,17 +1,14 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiScriptList extends SubGuiInterface{
 	private GuiCustomScroll scroll1;

@@ -1,7 +1,5 @@
 package noppes.npcs.client.model;
 
-import java.util.Random;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
@@ -21,8 +19,9 @@ import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
-
 import org.lwjgl.opengl.GL11;
+
+import java.util.Random;
 
 public class ModelMPM extends ModelNPCMale{
 	private ModelPartInterface wings;

@@ -1,13 +1,13 @@
 package noppes.npcs.quests;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NpcMiscInventory;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class QuestItem extends QuestInterface{
 	public NpcMiscInventory items = new NpcMiscInventory(3);

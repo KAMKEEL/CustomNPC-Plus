@@ -1,18 +1,6 @@
 package noppes.npcs.controllers;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptEngineManager;
-
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -28,16 +16,20 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptAnimal;
-import noppes.npcs.scripted.ScriptEntity;
-import noppes.npcs.scripted.ScriptLiving;
-import noppes.npcs.scripted.ScriptLivingBase;
-import noppes.npcs.scripted.ScriptMonster;
-import noppes.npcs.scripted.ScriptPixelmon;
-import noppes.npcs.scripted.ScriptPlayer;
-import noppes.npcs.scripted.ScriptWorld;
+import noppes.npcs.scripted.*;
 import noppes.npcs.util.NBTJsonUtil;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ScriptController {
 	

@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.EnumHelper;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.items.ItemStaff;
 
 public abstract class EnchantInterface extends Enchantment{
 

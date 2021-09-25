@@ -1,7 +1,11 @@
 package noppes.npcs.config;
 
-import java.awt.Font;
-import java.awt.Point;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+
+import java.awt.*;
 import java.awt.font.GlyphVector;
 import java.lang.ref.WeakReference;
 import java.text.Bidi;
@@ -9,12 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.WeakHashMap;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.ResourceLocation;
-
-import org.lwjgl.opengl.GL11;
 
 
 /**

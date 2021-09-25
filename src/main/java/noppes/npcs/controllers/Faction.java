@@ -1,11 +1,11 @@
 package noppes.npcs.controllers;
 
-import java.util.HashSet;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashSet;
 
 public class Faction {
 	public String name = "";

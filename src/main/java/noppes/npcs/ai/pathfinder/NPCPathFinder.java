@@ -1,14 +1,9 @@
 package noppes.npcs.ai.pathfinder;
 
-import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathFinder;
-import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
 public class NPCPathFinder extends PathFinder

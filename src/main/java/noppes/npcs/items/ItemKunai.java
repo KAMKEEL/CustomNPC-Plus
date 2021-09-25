@@ -4,7 +4,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityProjectile;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemKunai extends ItemNpcWeaponInterface{

@@ -1,5 +1,6 @@
 package noppes.npcs.items;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -17,7 +18,6 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemSoulstoneEmpty extends Item {
 	public ItemSoulstoneEmpty(){

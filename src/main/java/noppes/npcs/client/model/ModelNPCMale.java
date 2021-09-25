@@ -1,6 +1,5 @@
 package noppes.npcs.client.model;
 
-import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
@@ -11,7 +10,6 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.opengl.GL11;
 
 public class ModelNPCMale extends ModelBiped

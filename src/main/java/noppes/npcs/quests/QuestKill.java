@@ -1,16 +1,14 @@
 package noppes.npcs.quests;
 
-import java.util.HashMap;
-import java.util.Vector;
-
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class QuestKill extends QuestInterface{
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();

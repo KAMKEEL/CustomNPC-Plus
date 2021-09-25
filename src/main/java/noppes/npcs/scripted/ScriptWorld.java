@@ -1,9 +1,5 @@
 package noppes.npcs.scripted;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -23,9 +19,12 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ScriptWorld{
 	private static Map<String,Object> tempData = new HashMap<String,Object>();

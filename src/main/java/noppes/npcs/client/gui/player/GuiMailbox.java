@@ -1,10 +1,5 @@
 package noppes.npcs.client.gui.player;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -12,15 +7,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.PlayerMail;
 import noppes.npcs.controllers.PlayerMailData;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScrollListener, GuiYesNoCallback{
     

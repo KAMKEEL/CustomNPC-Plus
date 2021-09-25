@@ -1,7 +1,6 @@
 package noppes.npcs.blocks.tiles;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 
 
 public class TileCouchWool extends TileColorable {

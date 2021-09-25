@@ -1,14 +1,13 @@
 package noppes.npcs.client;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
-import java.io.IOException;
-
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketServer;
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+
+import java.io.IOException;
 
 public class Client {
 

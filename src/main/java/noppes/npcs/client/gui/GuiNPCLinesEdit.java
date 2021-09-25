@@ -1,7 +1,5 @@
 package noppes.npcs.client.gui;
 
-import java.util.HashMap;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -14,6 +12,8 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.controllers.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
 
 public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData
 {

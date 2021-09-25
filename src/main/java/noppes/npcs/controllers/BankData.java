@@ -1,7 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -16,6 +14,8 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
 
 public class BankData {
 	public HashMap<Integer,NpcMiscInventory> itemSlots;  

@@ -1,9 +1,9 @@
 package noppes.npcs.controllers;
 
-import java.util.HashSet;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+
+import java.util.HashSet;
 
 public class PlayerTransportData{
 	public HashSet<Integer> transports = new HashSet<Integer>();

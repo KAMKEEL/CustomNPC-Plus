@@ -1,22 +1,10 @@
 package noppes.npcs.client.controllers;
 
-import java.util.Map;
-
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import net.minecraft.block.BlockJukebox;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.audio.SoundManager;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemRecord;
-import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
-import noppes.npcs.client.AssetsBrowser;
 
 
 public class MusicController {

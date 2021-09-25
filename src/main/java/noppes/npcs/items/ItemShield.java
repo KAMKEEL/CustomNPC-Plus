@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.constants.EnumNpcToolMaterial;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemShield extends ItemNpcInterface{

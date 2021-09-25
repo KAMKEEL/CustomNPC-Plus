@@ -1,7 +1,7 @@
 package noppes.npcs.blocks;
 
-import java.util.List;
-
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -25,8 +25,8 @@ import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileTombstone;
 import noppes.npcs.constants.EnumGuiType;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 public class BlockTombstone extends BlockContainer{
 	

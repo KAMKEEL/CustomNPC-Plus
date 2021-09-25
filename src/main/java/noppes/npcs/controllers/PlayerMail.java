@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.NpcMiscInventory;
 
 public class PlayerMail implements IInventory{
 	public String subject = "";

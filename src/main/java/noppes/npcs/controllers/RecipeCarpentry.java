@@ -1,18 +1,17 @@
 package noppes.npcs.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.block.Block;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
+
+import java.util.HashMap;
 
 public class RecipeCarpentry extends ShapedRecipes{
 	public int id = -1;

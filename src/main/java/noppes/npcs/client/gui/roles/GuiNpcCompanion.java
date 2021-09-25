@@ -1,24 +1,18 @@
 package noppes.npcs.client.gui.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents.GuiTalent;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ISliderListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumCompanionStage;
 import noppes.npcs.constants.EnumCompanionTalent;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListener, ISliderListener{	
 	private RoleCompanion role;

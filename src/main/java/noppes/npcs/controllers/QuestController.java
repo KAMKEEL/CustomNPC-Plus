@@ -1,11 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -13,6 +7,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class QuestController {
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();

@@ -1,55 +1,31 @@
 package noppes.npcs.roles;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.UUID;
-import java.util.Map.Entry;
-
 import com.google.common.collect.HashMultimap;
-
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.BaseAttributeMap;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
+import net.minecraft.item.*;
 import net.minecraft.item.ItemArmor.ArmorMaterial;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumCompanionJobs;
-import noppes.npcs.constants.EnumCompanionStage;
-import noppes.npcs.constants.EnumCompanionTalent;
-import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.companion.CompanionFarmer;
-import noppes.npcs.roles.companion.CompanionFoodStats;
-import noppes.npcs.roles.companion.CompanionGuard;
-import noppes.npcs.roles.companion.CompanionJobInterface;
-import noppes.npcs.roles.companion.CompanionTrader;
+import noppes.npcs.roles.companion.*;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class RoleCompanion extends RoleInterface {
 	public NpcMiscInventory inventory;

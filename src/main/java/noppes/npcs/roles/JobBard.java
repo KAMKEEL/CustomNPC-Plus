@@ -1,7 +1,5 @@
 package noppes.npcs.roles;
 
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,6 +8,8 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.constants.EnumBardInstrument;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
 
 public class JobBard extends JobInterface{
 	public int minRange = 2;

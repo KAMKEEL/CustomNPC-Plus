@@ -1,8 +1,5 @@
 package noppes.npcs;
 
-import java.io.File;
-import java.util.Set;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -25,40 +22,13 @@ import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.ConfigLoader;
 import noppes.npcs.config.ConfigProp;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.ChunkController;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.GlobalDataController;
-import noppes.npcs.controllers.LinkedNpcController;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.TransportController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
-import noppes.npcs.entity.old.EntityNPCDwarfFemale;
-import noppes.npcs.entity.old.EntityNPCDwarfMale;
-import noppes.npcs.entity.old.EntityNPCElfFemale;
-import noppes.npcs.entity.old.EntityNPCElfMale;
-import noppes.npcs.entity.old.EntityNPCEnderman;
-import noppes.npcs.entity.old.EntityNPCFurryFemale;
-import noppes.npcs.entity.old.EntityNPCFurryMale;
-import noppes.npcs.entity.old.EntityNPCHumanFemale;
-import noppes.npcs.entity.old.EntityNPCHumanMale;
-import noppes.npcs.entity.old.EntityNPCOrcFemale;
-import noppes.npcs.entity.old.EntityNPCOrcMale;
-import noppes.npcs.entity.old.EntityNPCVillager;
-import noppes.npcs.entity.old.EntityNpcEnderchibi;
-import noppes.npcs.entity.old.EntityNpcMonsterFemale;
-import noppes.npcs.entity.old.EntityNpcMonsterMale;
-import noppes.npcs.entity.old.EntityNpcNagaFemale;
-import noppes.npcs.entity.old.EntityNpcNagaMale;
-import noppes.npcs.entity.old.EntityNpcSkeleton;
+import noppes.npcs.entity.old.*;
+
+import java.io.File;
+import java.util.Set;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.2.1")
 public class CustomNpcs {

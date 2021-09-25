@@ -1,9 +1,5 @@
 package noppes.npcs.containers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.InventoryBasic;
@@ -11,6 +7,10 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.controllers.RecipeCarpentry;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ContainerManageRecipes extends Container
 {

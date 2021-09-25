@@ -1,5 +1,12 @@
 package noppes.npcs.client;
 
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.*;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -7,21 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.AbstractResourcePack;
-import net.minecraft.client.resources.FallbackResourceManager;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.client.resources.IResourcePack;
-import net.minecraft.client.resources.NPCResourceHelper;
-import net.minecraft.client.resources.ResourcePackRepository;
-import net.minecraft.client.resources.SimpleReloadableResourceManager;
-
-import org.apache.commons.lang3.StringUtils;
-
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
 
 public class AssetsBrowser {
 	public boolean isRoot;

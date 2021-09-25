@@ -1,12 +1,5 @@
 package noppes.npcs.client;
 
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.FolderResourcePack;
 import net.minecraft.client.resources.IResourceManager;
@@ -16,6 +9,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 
 public class CustomNpcResourceListener implements
 		IResourceManagerReloadListener {

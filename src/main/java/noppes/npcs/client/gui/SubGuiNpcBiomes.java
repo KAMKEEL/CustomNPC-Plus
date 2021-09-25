@@ -1,23 +1,15 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.world.biome.BiomeGenBase;
-import net.minecraft.world.biome.BiomeGenMutated;
-import net.minecraftforge.common.BiomeManager;
-import noppes.npcs.DataAI;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumMovingType;
-import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.SpawnData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubGuiNpcBiomes extends SubGuiInterface
 {

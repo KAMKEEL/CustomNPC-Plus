@@ -1,12 +1,12 @@
 package noppes.npcs.controllers;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 public class GlobalDataController {
 	public static GlobalDataController instance;

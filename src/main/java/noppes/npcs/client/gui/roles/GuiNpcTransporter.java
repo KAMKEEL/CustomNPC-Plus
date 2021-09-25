@@ -1,25 +1,15 @@
 package noppes.npcs.client.gui.roles;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.mainmenu.GuiNpcAdvanced;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNPCStringSlot;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, IGuiData{
 	private GuiCustomScroll scroll;

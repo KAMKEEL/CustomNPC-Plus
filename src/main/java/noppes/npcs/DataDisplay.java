@@ -1,7 +1,8 @@
 package noppes.npcs;
 
-import java.util.Random;
-
+import com.google.common.collect.Iterables;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
@@ -9,9 +10,7 @@ import net.minecraft.util.StringUtils;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
-import com.google.common.collect.Iterables;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import java.util.Random;
 
 public class DataDisplay {
 	EntityNPCInterface npc;

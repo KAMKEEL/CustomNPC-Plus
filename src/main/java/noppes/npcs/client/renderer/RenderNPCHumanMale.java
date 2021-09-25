@@ -1,8 +1,5 @@
 package noppes.npcs.client.renderer;
 
-import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
-import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -28,8 +25,10 @@ import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemClaw;
 import noppes.npcs.items.ItemShield;
-
 import org.lwjgl.opengl.GL11;
+
+import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
+import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
 public class RenderNPCHumanMale extends RenderNPCInterface
 {

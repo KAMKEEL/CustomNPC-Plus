@@ -1,7 +1,6 @@
 package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.MathHelper;
 
 public class NPCPathPoint extends PathPoint
 {

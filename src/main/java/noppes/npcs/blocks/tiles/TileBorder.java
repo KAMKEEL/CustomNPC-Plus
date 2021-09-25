@@ -1,7 +1,5 @@
 package noppes.npcs.blocks.tiles;
 
-import java.util.List;
-
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityEnderPearl;
@@ -15,6 +13,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.controllers.Availability;
+
+import java.util.List;
 
 public class TileBorder extends TileEntity implements IEntitySelector{
 	public Availability availability = new Availability();

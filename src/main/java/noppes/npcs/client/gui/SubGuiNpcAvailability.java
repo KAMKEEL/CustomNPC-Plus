@@ -1,27 +1,15 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.GuiSelectionListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumAvailabilityDialog;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAvailabilityFactionType;
-import noppes.npcs.constants.EnumAvailabilityQuest;
 import noppes.npcs.constants.EnumDayTime;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.Availability;
-import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.Quest;
 
 public class SubGuiNpcAvailability extends SubGuiInterface implements ITextfieldListener, GuiSelectionListener, IGuiData 
 {

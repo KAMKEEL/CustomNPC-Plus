@@ -1,10 +1,10 @@
 package noppes.npcs.roles;
 
-import java.util.HashMap;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
 
 public abstract class RoleInterface {
 	public EntityNPCInterface npc;

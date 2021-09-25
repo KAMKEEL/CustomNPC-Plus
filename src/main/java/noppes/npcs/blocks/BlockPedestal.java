@@ -1,7 +1,7 @@
 package noppes.npcs.blocks;
 
-import java.util.List;
-
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
@@ -17,8 +17,8 @@ import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.blocks.tiles.TilePedestal;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 public class BlockPedestal extends BlockTrigger{
 	

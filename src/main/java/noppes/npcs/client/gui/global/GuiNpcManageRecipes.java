@@ -1,30 +1,20 @@
 package noppes.npcs.client.gui.global;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IScrollData;
-import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.controllers.RecipeCarpentry;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.opengl.GL11;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IScrollData, IGuiData, ICustomScrollListener,ITextfieldListener{
     private GuiCustomScroll scroll;

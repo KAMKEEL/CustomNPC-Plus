@@ -1,10 +1,5 @@
 package noppes.npcs.client.gui.player;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
@@ -16,19 +11,16 @@ import noppes.npcs.QuestLogData;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.TextBlockClient;
-import noppes.npcs.client.gui.util.GuiButtonNextPage;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiMenuSideButton;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.ITopButtonListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerPacket;
-
 import org.lwjgl.opengl.GL11;
-
 import tconstruct.client.tabs.InventoryTabQuests;
 import tconstruct.client.tabs.TabRegistry;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,ICustomScrollListener, IGuiData{
 

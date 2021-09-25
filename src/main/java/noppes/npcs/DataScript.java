@@ -1,10 +1,5 @@
 package noppes.npcs;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.script.ScriptEngine;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -21,6 +16,10 @@ import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
+
+import javax.script.ScriptEngine;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DataScript {
 	public Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();

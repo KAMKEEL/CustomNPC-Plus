@@ -6,7 +6,6 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.Tessellator;
 import noppes.npcs.ModelPartConfig;
-
 import org.lwjgl.opengl.GL11;
 
 public class ModelScaleRenderer extends ModelRenderer {

@@ -1,37 +1,17 @@
 package noppes.npcs.client.gui.global;
 
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import noppes.npcs.client.Client;
+import noppes.npcs.client.gui.SubGuiEditText;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.entity.EntityNPCInterface;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-
-import org.apache.logging.log4j.status.StatusConsoleListener;
-
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.SubGuiEditText;
-import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
-import noppes.npcs.client.gui.SubGuiNpcCommand;
-import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
-import noppes.npcs.client.gui.SubGuiNpcTextArea;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.GuiSelectionListener;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IScrollData;
-import noppes.npcs.client.gui.util.ISubGuiListener;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestCategory;
-import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollData, ISubGuiListener{
 	private GuiCustomScroll scroll;

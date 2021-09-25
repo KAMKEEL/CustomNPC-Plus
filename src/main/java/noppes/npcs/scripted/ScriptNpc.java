@@ -1,34 +1,15 @@
 package noppes.npcs.scripted;
 
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobBard;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.roles.ScriptJobBard;
-import noppes.npcs.scripted.roles.ScriptJobConversation;
-import noppes.npcs.scripted.roles.ScriptJobFollower;
-import noppes.npcs.scripted.roles.ScriptJobGuard;
-import noppes.npcs.scripted.roles.ScriptJobHealer;
-import noppes.npcs.scripted.roles.ScriptJobInterface;
-import noppes.npcs.scripted.roles.ScriptJobItemGiver;
-import noppes.npcs.scripted.roles.ScriptJobPuppet;
-import noppes.npcs.scripted.roles.ScriptJobSpawner;
-import noppes.npcs.scripted.roles.ScriptRoleBank;
-import noppes.npcs.scripted.roles.ScriptRoleFollower;
-import noppes.npcs.scripted.roles.ScriptRoleInterface;
-import noppes.npcs.scripted.roles.ScriptRoleMailman;
-import noppes.npcs.scripted.roles.ScriptRoleTrader;
-import noppes.npcs.scripted.roles.ScriptRoleTransporter;
+import noppes.npcs.scripted.roles.*;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptNpc extends ScriptLiving{

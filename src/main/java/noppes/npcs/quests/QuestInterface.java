@@ -1,9 +1,9 @@
 package noppes.npcs.quests;
 
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.Vector;
 
 public abstract class QuestInterface {
 	public int questId;

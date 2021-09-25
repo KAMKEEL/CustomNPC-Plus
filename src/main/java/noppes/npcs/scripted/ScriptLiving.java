@@ -1,12 +1,7 @@
 package noppes.npcs.scripted;
 
-import net.minecraft.entity.NPCEntityHelper;
 import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptLiving extends ScriptLivingBase{
 

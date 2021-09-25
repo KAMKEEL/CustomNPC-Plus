@@ -1,14 +1,14 @@
 package noppes.npcs.quests;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class QuestDialog extends QuestInterface{
 
