@@ -88,10 +88,10 @@ public class MarkovDictionary {
 		// so for instance, "_DUP_AUX", "_TOTAL" will count how many "DUP" seqCurrs we have
 		if (occurrences.containsKeys(str1, str2)) 
 		{
-			int curr = occurrences.get(str1, str2).intValue();
-			occurrences.put(str1, str2, Integer.valueOf(curr + 1));
+			int curr = occurrences.get(str1, str2);
+			occurrences.put(str1, str2, curr + 1);
 		} else {
-			occurrences.put(str1, str2, Integer.valueOf(1));
+			occurrences.put(str1, str2, 1);
 		}
 	}
 
@@ -106,11 +106,8 @@ public class MarkovDictionary {
 		int allEntries = 0;
 
 		// first iteration: we count top level entries. There's just no other way.
-		Iterator<Entry<String, Map<String, Integer>>> i = occurrences.mMap.entrySet().iterator();
 
-		while (i.hasNext()) {
-			Entry<String, Map<String, Integer>> pair = (Entry<String, Map<String, Integer>>) i.next();
-
+		for (Entry<String, Map<String, Integer>> pair : occurrences.mMap.entrySet()) {
 			String k = pair.getKey();
 			if (k.startsWith("_[") && k.endsWith("_")) // dealing with meta entry here
 			{
@@ -165,10 +162,7 @@ public class MarkovDictionary {
 			// and count their total occurrences
 			int subSize = 0;
 
-			Iterator<Entry<String, Integer>> j = occurrences.mMap.get(sequence.toString()).entrySet().iterator();
-
-			while (j.hasNext()) {
-				Entry<String, Integer> entry = j.next();
+			for (Entry<String, Integer> entry : occurrences.mMap.get(sequence.toString()).entrySet()) {
 				subSize += entry.getValue();
 			}
 

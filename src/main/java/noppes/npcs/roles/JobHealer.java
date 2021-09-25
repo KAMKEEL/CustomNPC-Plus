@@ -35,7 +35,7 @@ public class JobHealer extends JobInterface{
 	//TODO heal food, heal potion effects, heal more types of entities besides just the player and npcs
 	public boolean aiShouldExecute() {
 		healTicks++;
-		if (healTicks < speed * 10) 
+		if (healTicks < speed * 10L)
 			return false;
 		
 		for(Object plObj:  npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(range, range/2, range))){

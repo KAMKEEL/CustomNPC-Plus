@@ -188,8 +188,8 @@ public class CmdConfig extends ChMcLogger {
     		}
     	}
 		String font = "";
-		for(int i = 0; i < args.length; i++){
-			font += " " + args[i];
+		for (String arg : args) {
+			font += " " + arg;
 		}
     	Server.sendData((EntityPlayerMP)this.pcParam, EnumPacketClient.CONFIG, 0, font.trim(), size);
     }

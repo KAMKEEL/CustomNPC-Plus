@@ -50,8 +50,7 @@ public class TabRegistry {
 	public static void updateTabValues(int cornerX, int cornerY,
 			Class<?> selectedButton) {
 		int count = 2;
-		for (int i = 0; i < tabList.size(); i++) {
-			AbstractTab t = tabList.get(i);
+		for (AbstractTab t : tabList) {
 			if (t.shouldAddToList()) {
 				t.id = count;
 				t.xPosition = cornerX + (count - 2) * 28;

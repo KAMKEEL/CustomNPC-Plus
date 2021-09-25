@@ -87,27 +87,27 @@ public class ConfigLoader {
             }
             else if (class2.isAssignableFrom(Integer.TYPE))
             {
-            	obj = Integer.valueOf(Integer.parseInt(prop));
+            	obj = Integer.parseInt(prop);
             }
             else if (class2.isAssignableFrom(Short.TYPE))
             {
-            	obj = Short.valueOf(Short.parseShort(prop));
+            	obj = Short.parseShort(prop);
             }
             else if (class2.isAssignableFrom(Byte.TYPE))
             {
-            	obj = Byte.valueOf(Byte.parseByte(prop));
+            	obj = Byte.parseByte(prop);
             }
             else if (class2.isAssignableFrom(Boolean.TYPE))
             {
-            	obj = Boolean.valueOf(Boolean.parseBoolean(prop));
+            	obj = Boolean.parseBoolean(prop);
             }
             else if (class2.isAssignableFrom(Float.TYPE))
             {
-            	obj = Float.valueOf(Float.parseFloat(prop));
+            	obj = Float.parseFloat(prop);
             }
             else if (class2.isAssignableFrom(Double.TYPE))
             {
-            	obj = Double.valueOf(Double.parseDouble(prop));
+            	obj = Double.parseDouble(prop);
             }
 			if(obj != null)
 				config.put(name, obj);

@@ -12,7 +12,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 public class GuiMenuTopIconButton extends GuiMenuTopButton{
@@ -95,15 +94,12 @@ public class GuiMenuTopIconButton extends GuiMenuTopButton{
             GL11.glDisable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             int k = 0;
-            Iterator iterator = p_146283_1_.iterator();
 
-            while (iterator.hasNext())
-            {
-                String s = (String)iterator.next();
+            for (Object o : p_146283_1_) {
+                String s = (String) o;
                 int l = font.getStringWidth(s);
 
-                if (l > k)
-                {
+                if (l > k) {
                     k = l;
                 }
             }
