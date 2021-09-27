@@ -15,41 +15,40 @@ import noppes.npcs.client.gui.player.GuiQuestLog;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumPlayerPacket;
 
-public class ClientTickHandler{
+public class ClientTickHandler {
 
-	private World prevWorld;
-	private boolean otherContainer = false;
-	
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onClientTick(TickEvent.ClientTickEvent event){
-		if(event.phase == Phase.END)
-			return;
-		Minecraft mc = Minecraft.getMinecraft();
-		if(mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer){
-			if(otherContainer){
-		    	NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);
-				otherContainer = false;
-			}
-		}
-		else
-			otherContainer = true;
-		CustomNpcs.ticks++;
-		RenderNPCInterface.LastTextureTick++;
-		if(prevWorld != mc.theWorld){
-			prevWorld = mc.theWorld;
-			MusicController.Instance.stopMusic();
-		}
-	}
+    private World prevWorld;
+    private boolean otherContainer = false;
 
-	@SubscribeEvent
-	public void onKey(InputEvent.KeyInputEvent event){
-		if(ClientProxy.QuestLog.isPressed()){
-			Minecraft mc = Minecraft.getMinecraft();
-			if(mc.currentScreen == null)
-				NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
-			else if(mc.currentScreen instanceof GuiQuestLog)
-				mc.setIngameFocus();
-		}
-	}
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == Phase.END)
+            return;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer) {
+            if (otherContainer) {
+                NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);
+                otherContainer = false;
+            }
+        } else
+            otherContainer = true;
+        CustomNpcs.ticks++;
+        RenderNPCInterface.LastTextureTick++;
+        if (prevWorld != mc.theWorld) {
+            prevWorld = mc.theWorld;
+            MusicController.Instance.stopMusic();
+        }
+    }
+
+    @SubscribeEvent
+    public void onKey(InputEvent.KeyInputEvent event) {
+        if (ClientProxy.QuestLog.isPressed()) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.currentScreen == null)
+                NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
+            else if (mc.currentScreen instanceof GuiQuestLog)
+                mc.setIngameFocus();
+        }
+    }
 
 }

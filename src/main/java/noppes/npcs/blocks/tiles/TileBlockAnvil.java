@@ -3,20 +3,20 @@ package noppes.npcs.blocks.tiles;
 import net.minecraft.tileentity.TileEntity;
 
 public class TileBlockAnvil extends TileEntity {
-	
-	public TileBlockAnvil(){
-		
-	}
-	
-    public boolean canUpdate(){
+
+    public TileBlockAnvil() {
+
+    }
+
+    public boolean canUpdate() {
         return false;
     }
-	
+
 //	@Override
 //	public void updateEntity(){
 //	
 //	}
-	
+
 //	@Override
 //    public void readFromNBT(NBTTagCompound par1NBTTagCompound)
 //    {

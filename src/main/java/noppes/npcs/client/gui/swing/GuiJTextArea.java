@@ -7,60 +7,61 @@ import javax.swing.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-public class GuiJTextArea extends JDialog implements WindowListener{
-	public IJTextAreaListener listener;
-	private JTextArea area;
-	public GuiJTextArea(String text){
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setSize(Display.getWidth() - 40, Display.getHeight() - 40);
-		setLocation(Display.getX() + 20, Display.getY() + 20);
+public class GuiJTextArea extends JDialog implements WindowListener {
+    public IJTextAreaListener listener;
+    private JTextArea area;
 
-	    JScrollPane scroll = new JScrollPane(area = new JTextArea(text));
-	    scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		this.add(scroll);
-		this.addWindowListener(this);
-		setVisible(true);
-	}
-	
-	
-	public GuiJTextArea setListener(IJTextAreaListener listener){
-		this.listener = listener;
-		return this;
-	}
+    public GuiJTextArea(String text) {
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setSize(Display.getWidth() - 40, Display.getHeight() - 40);
+        setLocation(Display.getX() + 20, Display.getY() + 20);
 
-	@Override
-	public void windowOpened(WindowEvent e) {
-		
-	}
+        JScrollPane scroll = new JScrollPane(area = new JTextArea(text));
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        this.add(scroll);
+        this.addWindowListener(this);
+        setVisible(true);
+    }
 
-	@Override
-	public void windowClosing(WindowEvent e) {
-		
-	}
 
-	@Override
-	public void windowClosed(WindowEvent e) {
-		if(listener != null)
-			listener.saveText(area.getText());
-	}
+    public GuiJTextArea setListener(IJTextAreaListener listener) {
+        this.listener = listener;
+        return this;
+    }
 
-	@Override
-	public void windowIconified(WindowEvent e) {
-		
-	}
+    @Override
+    public void windowOpened(WindowEvent e) {
 
-	@Override
-	public void windowDeiconified(WindowEvent e) {
-		
-	}
+    }
 
-	@Override
-	public void windowActivated(WindowEvent e) {
-		
-	}
+    @Override
+    public void windowClosing(WindowEvent e) {
 
-	@Override
-	public void windowDeactivated(WindowEvent e) {
-		
-	}
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        if (listener != null)
+            listener.saveText(area.getText());
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+
+    }
 }

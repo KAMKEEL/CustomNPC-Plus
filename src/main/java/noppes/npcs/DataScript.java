@@ -22,127 +22,125 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DataScript {
-	public Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
-	private static final EntityType entities = new EntityType();
-	private static final JobType jobs = new JobType();
-	private static final RoleType roles = new RoleType();
-	
-	public String scriptLanguage = "ECMAScript";
-	private EntityNPCInterface npc;
-	public boolean enabled = false;
-	
-	public ScriptNpc dummyNpc;
-	public ScriptWorld dummyWorld;
-	public boolean clientNeedsUpdate = false;
-	public boolean aiNeedsUpdate = false;
-	public boolean hasInited = false;
-	
-	public DataScript(EntityNPCInterface npc) {
-		this.npc = npc;
-		if(npc instanceof EntityCustomNpc)
-			dummyNpc = new ScriptNpc((EntityCustomNpc) npc);
-		if(npc.worldObj instanceof WorldServer)
-			dummyWorld = new ScriptWorld((WorldServer) npc.worldObj);
-	}
+    private static final EntityType entities = new EntityType();
+    private static final JobType jobs = new JobType();
+    private static final RoleType roles = new RoleType();
+    public Map<Integer, ScriptContainer> scripts = new HashMap<Integer, ScriptContainer>();
+    public String scriptLanguage = "ECMAScript";
+    public boolean enabled = false;
+    public ScriptNpc dummyNpc;
+    public ScriptWorld dummyWorld;
+    public boolean clientNeedsUpdate = false;
+    public boolean aiNeedsUpdate = false;
+    public boolean hasInited = false;
+    private EntityNPCInterface npc;
 
-	public void readFromNBT(NBTTagCompound compound) {
-		scripts = readScript(compound.getTagList("ScriptsContainers", 10));
-		scriptLanguage = compound.getString("ScriptLanguage");
-		enabled = compound.getBoolean("ScriptEnabled");
-	}
+    public DataScript(EntityNPCInterface npc) {
+        this.npc = npc;
+        if (npc instanceof EntityCustomNpc)
+            dummyNpc = new ScriptNpc((EntityCustomNpc) npc);
+        if (npc.worldObj instanceof WorldServer)
+            dummyWorld = new ScriptWorld((WorldServer) npc.worldObj);
+    }
 
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		compound.setTag("ScriptsContainers", writeScript(scripts));
-		compound.setString("ScriptLanguage", scriptLanguage);
-		compound.setBoolean("ScriptEnabled", enabled);
-		return compound;
-	}
-	
-	private Map<Integer,ScriptContainer> readScript(NBTTagList list){
-		Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
-		for(int i = 0; i < list.tagCount(); i++){
-			NBTTagCompound compoundd = list.getCompoundTagAt(i);
-			ScriptContainer script = new ScriptContainer();
-			script.readFromNBT(compoundd);
-			if(script.hasCode() || npc.isRemote())				
-				scripts.put(compoundd.getInteger("Type"), script);			
-		}
-		return scripts;
-	}
-	
-	private NBTTagList writeScript(Map<Integer,ScriptContainer> scripts){
-		NBTTagList list = new NBTTagList();
-		for(Integer type : scripts.keySet()){
-			NBTTagCompound compoundd = new NBTTagCompound();
-			compoundd.setInteger("Type", type);
-			ScriptContainer script = scripts.get(type);
-			script.writeToNBT(compoundd);
-			list.appendTag(compoundd);
-		}
-		return list;
-	}
+    public void readFromNBT(NBTTagCompound compound) {
+        scripts = readScript(compound.getTagList("ScriptsContainers", 10));
+        scriptLanguage = compound.getString("ScriptLanguage");
+        enabled = compound.getBoolean("ScriptEnabled");
+    }
 
-	public boolean callScript(EnumScriptType type, Object... obs){
-		if(aiNeedsUpdate){
-			npc.updateAI = true;
-			aiNeedsUpdate = false;
-		}
-		if(clientNeedsUpdate){
-			npc.updateClient = true;
-			clientNeedsUpdate = false;
-		}
-		if(!isEnabled())
-			return false;
-		if(!hasInited){
-			hasInited = true;
-			callScript(EnumScriptType.INIT);
-		}
-		ScriptContainer script = scripts.get(type.ordinal());
-		if(script == null || script.errored || !script.hasCode())
-			return false;
-		script.setEngine(scriptLanguage);
-		if(script.engine == null)
-			return false;
-		for(int i = 0; i + 1 < obs.length; i += 2){
-			Object ob = obs[i + 1];
-			if(ob instanceof Entity)
-				ob = ScriptController.Instance.getScriptForEntity((Entity)ob);
-			script.engine.put(obs[i].toString(), ob);
-		}
+    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        compound.setTag("ScriptsContainers", writeScript(scripts));
+        compound.setString("ScriptLanguage", scriptLanguage);
+        compound.setBoolean("ScriptEnabled", enabled);
+        return compound;
+    }
 
-		return callScript(script);
-	}
-	
-	public boolean isEnabled(){
-		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
-	}
-	
-	private boolean callScript(ScriptContainer script){
-		ScriptEngine engine = script.engine;
-		engine.put("npc", dummyNpc);
-		engine.put("world", dummyWorld);
-		ScriptEvent result = (ScriptEvent) engine.get("event");
-		if(result == null)
-			engine.put("event", result = new ScriptEvent());
-		engine.put("EntityType", entities);
-		engine.put("RoleType", roles);
-		engine.put("JobType", jobs);
-		script.run(engine);
-		
-		if(clientNeedsUpdate){
-			npc.updateClient = true;
-			clientNeedsUpdate = false;
-		}
-		if(aiNeedsUpdate){
-			npc.updateAI = true;
-			aiNeedsUpdate = false;
-		}
-		return result.isCancelled();
-	}
+    private Map<Integer, ScriptContainer> readScript(NBTTagList list) {
+        Map<Integer, ScriptContainer> scripts = new HashMap<Integer, ScriptContainer>();
+        for (int i = 0; i < list.tagCount(); i++) {
+            NBTTagCompound compoundd = list.getCompoundTagAt(i);
+            ScriptContainer script = new ScriptContainer();
+            script.readFromNBT(compoundd);
+            if (script.hasCode() || npc.isRemote())
+                scripts.put(compoundd.getInteger("Type"), script);
+        }
+        return scripts;
+    }
 
-	public void setWorld(World world) {
-		if(world instanceof WorldServer)
-			dummyWorld = new ScriptWorld((WorldServer) world);
-	}
-	
+    private NBTTagList writeScript(Map<Integer, ScriptContainer> scripts) {
+        NBTTagList list = new NBTTagList();
+        for (Integer type : scripts.keySet()) {
+            NBTTagCompound compoundd = new NBTTagCompound();
+            compoundd.setInteger("Type", type);
+            ScriptContainer script = scripts.get(type);
+            script.writeToNBT(compoundd);
+            list.appendTag(compoundd);
+        }
+        return list;
+    }
+
+    public boolean callScript(EnumScriptType type, Object... obs) {
+        if (aiNeedsUpdate) {
+            npc.updateAI = true;
+            aiNeedsUpdate = false;
+        }
+        if (clientNeedsUpdate) {
+            npc.updateClient = true;
+            clientNeedsUpdate = false;
+        }
+        if (!isEnabled())
+            return false;
+        if (!hasInited) {
+            hasInited = true;
+            callScript(EnumScriptType.INIT);
+        }
+        ScriptContainer script = scripts.get(type.ordinal());
+        if (script == null || script.errored || !script.hasCode())
+            return false;
+        script.setEngine(scriptLanguage);
+        if (script.engine == null)
+            return false;
+        for (int i = 0; i + 1 < obs.length; i += 2) {
+            Object ob = obs[i + 1];
+            if (ob instanceof Entity)
+                ob = ScriptController.Instance.getScriptForEntity((Entity) ob);
+            script.engine.put(obs[i].toString(), ob);
+        }
+
+        return callScript(script);
+    }
+
+    public boolean isEnabled() {
+        return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
+    }
+
+    private boolean callScript(ScriptContainer script) {
+        ScriptEngine engine = script.engine;
+        engine.put("npc", dummyNpc);
+        engine.put("world", dummyWorld);
+        ScriptEvent result = (ScriptEvent) engine.get("event");
+        if (result == null)
+            engine.put("event", result = new ScriptEvent());
+        engine.put("EntityType", entities);
+        engine.put("RoleType", roles);
+        engine.put("JobType", jobs);
+        script.run(engine);
+
+        if (clientNeedsUpdate) {
+            npc.updateClient = true;
+            clientNeedsUpdate = false;
+        }
+        if (aiNeedsUpdate) {
+            npc.updateAI = true;
+            aiNeedsUpdate = false;
+        }
+        return result.isCancelled();
+    }
+
+    public void setWorld(World world) {
+        if (world instanceof WorldServer)
+            dummyWorld = new ScriptWorld((WorldServer) world);
+    }
+
 }

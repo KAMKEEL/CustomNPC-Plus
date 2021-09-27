@@ -9,10 +9,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
-public class SwimNodeProcessor extends NodeProcessor
-{
-    public void initProcessor(IBlockAccess iblockaccessIn, Entity entityIn)
-    {
+public class SwimNodeProcessor extends NodeProcessor {
+    public void initProcessor(IBlockAccess iblockaccessIn, Entity entityIn) {
         super.initProcessor(iblockaccessIn, entityIn);
     }
 
@@ -21,37 +19,31 @@ public class SwimNodeProcessor extends NodeProcessor
      * {@link net.minecraft.world.pathfinder.WalkNodeProcessor WalkNodeProcessor} uses this to change its field {@link
      * net.minecraft.world.pathfinder.WalkNodeProcessor#avoidsWater avoidsWater}
      */
-    public void postProcess()
-    {
+    public void postProcess() {
         super.postProcess();
     }
 
     /**
      * Returns given entity's position as PathPoint
      */
-    public PathPoint getPathPointTo(Entity entityIn)
-    {
+    public PathPoint getPathPointTo(Entity entityIn) {
         return this.openPoint(MathHelper.floor_double(entityIn.boundingBox.minX), MathHelper.floor_double(entityIn.boundingBox.minY + 0.5D), MathHelper.floor_double(entityIn.boundingBox.minZ));
     }
 
     /**
      * Returns PathPoint for given coordinates
      */
-    public PathPoint getPathPointToCoords(Entity entityIn, double x, double y, double target)
-    {
-        return this.openPoint(MathHelper.floor_double(x - (double)(entityIn.width / 2.0F)), MathHelper.floor_double(y + 0.5D), MathHelper.floor_double(target - (double)(entityIn.width / 2.0F)));
+    public PathPoint getPathPointToCoords(Entity entityIn, double x, double y, double target) {
+        return this.openPoint(MathHelper.floor_double(x - (double) (entityIn.width / 2.0F)), MathHelper.floor_double(y + 0.5D), MathHelper.floor_double(target - (double) (entityIn.width / 2.0F)));
     }
 
-    public int findPathOptions(PathPoint[] pathOptions, Entity entityIn, PathPoint currentPoint, PathPoint targetPoint, float maxDistance)
-    {
+    public int findPathOptions(PathPoint[] pathOptions, Entity entityIn, PathPoint currentPoint, PathPoint targetPoint, float maxDistance) {
         int i = 0;
 
-        for (EnumFacing enumfacing : EnumFacing.values())
-        {
+        for (EnumFacing enumfacing : EnumFacing.values()) {
             PathPoint pathpoint = this.getSafePoint(entityIn, currentPoint.xCoord + enumfacing.getFrontOffsetX(), currentPoint.yCoord + enumfacing.getFrontOffsetY(), currentPoint.zCoord + enumfacing.getFrontOffsetZ());
 
-            if (pathpoint != null && !pathpoint.isFirst && pathpoint.distanceTo(targetPoint) < maxDistance)
-            {
+            if (pathpoint != null && !pathpoint.isFirst && pathpoint.distanceTo(targetPoint) < maxDistance) {
                 pathOptions[i++] = pathpoint;
             }
         }
@@ -62,26 +54,20 @@ public class SwimNodeProcessor extends NodeProcessor
     /**
      * Returns a point that the entity can safely move to
      */
-    private PathPoint getSafePoint(Entity entityIn, int x, int y, int z)
-    {
+    private PathPoint getSafePoint(Entity entityIn, int x, int y, int z) {
         int i = this.func_176186_b(entityIn, x, y, z);
         return i == -1 ? this.openPoint(x, y, z) : null;
     }
 
-    private int func_176186_b(Entity entityIn, int x, int y, int z)
-    {
+    private int func_176186_b(Entity entityIn, int x, int y, int z) {
         BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos();
 
-        for (int i = x; i < x + this.entitySizeX; ++i)
-        {
-            for (int j = y; j < y + this.entitySizeY; ++j)
-            {
-                for (int k = z; k < z + this.entitySizeZ; ++k)
-                {
+        for (int i = x; i < x + this.entitySizeX; ++i) {
+            for (int j = y; j < y + this.entitySizeY; ++j) {
+                for (int k = z; k < z + this.entitySizeZ; ++k) {
                     Block block = this.blockaccess.getBlock(i, j, k);
 
-                    if (block.getMaterial() != Material.water)
-                    {
+                    if (block.getMaterial() != Material.water) {
                         return 0;
                     }
                 }

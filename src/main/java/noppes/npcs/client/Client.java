@@ -11,14 +11,14 @@ import java.io.IOException;
 
 public class Client {
 
-	public static void sendData(EnumPacketServer enu, Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
-		try {
-			if(!Server.fillBuffer(buffer, enu, obs))
-				return;
-			CustomNpcs.Channel.sendToServer(new FMLProxyPacket(buffer, "CustomNPCs"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    public static void sendData(EnumPacketServer enu, Object... obs) {
+        ByteBuf buffer = Unpooled.buffer();
+        try {
+            if (!Server.fillBuffer(buffer, enu, obs))
+                return;
+            CustomNpcs.Channel.sendToServer(new FMLProxyPacket(buffer, "CustomNPCs"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

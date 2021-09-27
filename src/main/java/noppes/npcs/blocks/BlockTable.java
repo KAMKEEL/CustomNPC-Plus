@@ -11,15 +11,15 @@ import noppes.npcs.blocks.tiles.TileTable;
 
 import java.util.List;
 
-public class BlockTable extends BlockRotated{
+public class BlockTable extends BlockRotated {
 
-	public BlockTable() {
+    public BlockTable() {
         super(Blocks.planks);
         this.setLightOpacity(-1);
-	}
-	
-    @Override   
-    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
+    }
+
+    @Override
+    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List) {
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
         par3List.add(new ItemStack(par1, 1, 2));
@@ -28,20 +28,20 @@ public class BlockTable extends BlockRotated{
         par3List.add(new ItemStack(par1, 1, 5));
     }
 
-    @Override   
-    public int damageDropped(int par1){
+    @Override
+    public int damageDropped(int par1) {
         return par1;
     }
 
 
-    @Override   
-    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
-    	super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);    	
-        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
+    @Override
+    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack) {
+        super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);
+        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
     }
 
-	@Override
-	public TileEntity createNewTileEntity(World var1, int var2) {
-		return new TileTable();
-	}
+    @Override
+    public TileEntity createNewTileEntity(World var1, int var2) {
+        return new TileTable();
+    }
 }

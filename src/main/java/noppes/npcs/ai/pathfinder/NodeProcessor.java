@@ -6,8 +6,7 @@ import net.minecraft.util.IntHashMap;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 
-public abstract class NodeProcessor
-{
+public abstract class NodeProcessor {
     public IBlockAccess blockaccess;
     public IntHashMap pointMap = new IntHashMap();
     public int entitySizeX;
@@ -15,8 +14,7 @@ public abstract class NodeProcessor
     public int entitySizeZ;
 
 
-    public void initProcessor(IBlockAccess iblockaccessIn, Entity entityIn)
-    {
+    public void initProcessor(IBlockAccess iblockaccessIn, Entity entityIn) {
         this.blockaccess = iblockaccessIn;
         this.pointMap.clearMap();
         this.entitySizeX = MathHelper.floor_float(entityIn.width + 1.0F);
@@ -24,17 +22,14 @@ public abstract class NodeProcessor
         this.entitySizeZ = MathHelper.floor_float(entityIn.width + 1.0F);
     }
 
-    public void postProcess()
-    {
+    public void postProcess() {
     }
 
-    public PathPoint openPoint(int x, int y, int z)
-    {
+    public PathPoint openPoint(int x, int y, int z) {
         int i = NPCPathPoint.makeHash(x, y, z);
-        NPCPathPoint pathpoint = (NPCPathPoint)this.pointMap.lookup(i);
+        NPCPathPoint pathpoint = (NPCPathPoint) this.pointMap.lookup(i);
 
-        if (pathpoint == null)
-        {
+        if (pathpoint == null) {
             pathpoint = new NPCPathPoint(x, y, z);
             this.pointMap.addKey(i, pathpoint);
         }

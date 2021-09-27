@@ -20,7 +20,7 @@ public class DataAdvanced {
     public Lines attackLines = new Lines();
     public Lines killedLines = new Lines();
     public Lines killLines = new Lines();
-    
+
     public boolean orderedLines = false;
 
     public String idleSound = "";
@@ -28,16 +28,13 @@ public class DataAdvanced {
     public String hurtSound = "minecraft:game.player.hurt";
     public String deathSound = "minecraft:game.player.hurt";
     public String stepSound = "";
-
-    private EntityNPCInterface npc;
     public FactionOptions factions = new FactionOptions();
-
     public EnumRoleType role = EnumRoleType.None;
     public EnumJobType job = EnumJobType.None;
-
     public boolean attackOtherFactions = false;
     public boolean defendFaction = false;
-	public boolean disablePitch = false;
+    public boolean disablePitch = false;
+    private EntityNPCInterface npc;
 
     public DataAdvanced(EntityNPCInterface npc) {
         this.npc = npc;
@@ -67,8 +64,8 @@ public class DataAdvanced {
         compound.setInteger("NpcJob", job.ordinal());
         compound.setTag("FactionPoints", factions.writeToNBT(new NBTTagCompound()));
 
-		compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
-		
+        compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
+
         return compound;
     }
 
@@ -98,34 +95,34 @@ public class DataAdvanced {
 
         factions.readFromNBT(compound.getCompoundTag("FactionPoints"));
 
-		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));	
+        npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));
     }
 
-	private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {
-		HashMap<Integer, DialogOption> map = new HashMap<Integer, DialogOption>();
-		for (int i = 0; i < tagList.tagCount(); i++) {
-			NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
-			int slot = nbttagcompound.getInteger("DialogSlot");
-			DialogOption option = new DialogOption();
-			option.readNBT(nbttagcompound.getCompoundTag("NPCDialog"));
-			map.put(slot, option);
+    private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {
+        HashMap<Integer, DialogOption> map = new HashMap<Integer, DialogOption>();
+        for (int i = 0; i < tagList.tagCount(); i++) {
+            NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+            int slot = nbttagcompound.getInteger("DialogSlot");
+            DialogOption option = new DialogOption();
+            option.readNBT(nbttagcompound.getCompoundTag("NPCDialog"));
+            map.put(slot, option);
 
-		}
-		return map;
-	}
+        }
+        return map;
+    }
 
 
-	private NBTTagList nbtDialogs(HashMap<Integer, DialogOption> dialogs2) {
-		NBTTagList nbttaglist = new NBTTagList();
-		for (int slot : dialogs2.keySet()) {
-			NBTTagCompound nbttagcompound = new NBTTagCompound();
-			nbttagcompound.setInteger("DialogSlot", slot);
-			nbttagcompound.setTag("NPCDialog", dialogs2.get(slot)
-					.writeNBT());
-			nbttaglist.appendTag(nbttagcompound);
-		}
-		return nbttaglist;
-	}
+    private NBTTagList nbtDialogs(HashMap<Integer, DialogOption> dialogs2) {
+        NBTTagList nbttaglist = new NBTTagList();
+        for (int slot : dialogs2.keySet()) {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setInteger("DialogSlot", slot);
+            nbttagcompound.setTag("NPCDialog", dialogs2.get(slot)
+                    .writeNBT());
+            nbttaglist.appendTag(nbttagcompound);
+        }
+        return nbttaglist;
+    }
 
     public Line getInteractLine() {
         return interactLines.getLine(!orderedLines);
@@ -152,42 +149,42 @@ public class DataAdvanced {
             i -= 2;
         }
         role = EnumRoleType.values()[i];
-        if(role == EnumRoleType.None)
+        if (role == EnumRoleType.None)
             npc.roleInterface = null;
-        else if(role == EnumRoleType.Bank && !(npc.roleInterface instanceof RoleBank))
+        else if (role == EnumRoleType.Bank && !(npc.roleInterface instanceof RoleBank))
             npc.roleInterface = new RoleBank(npc);
-        else if(role == EnumRoleType.Follower && !(npc.roleInterface instanceof RoleFollower))
+        else if (role == EnumRoleType.Follower && !(npc.roleInterface instanceof RoleFollower))
             npc.roleInterface = new RoleFollower(npc);
-        else if(role == EnumRoleType.Postman && !(npc.roleInterface instanceof RolePostman))
+        else if (role == EnumRoleType.Postman && !(npc.roleInterface instanceof RolePostman))
             npc.roleInterface = new RolePostman(npc);
-        else if(role == EnumRoleType.Trader && !(npc.roleInterface instanceof RoleTrader))
+        else if (role == EnumRoleType.Trader && !(npc.roleInterface instanceof RoleTrader))
             npc.roleInterface = new RoleTrader(npc);
-        else if(role == EnumRoleType.Transporter && !(npc.roleInterface instanceof RoleTransporter))
+        else if (role == EnumRoleType.Transporter && !(npc.roleInterface instanceof RoleTransporter))
             npc.roleInterface = new RoleTransporter(npc);
-        else if(role == EnumRoleType.Companion && !(npc.roleInterface instanceof RoleCompanion))
+        else if (role == EnumRoleType.Companion && !(npc.roleInterface instanceof RoleCompanion))
             npc.roleInterface = new RoleCompanion(npc);
     }
 
     public void setJob(int i) {
-        if(npc.jobInterface != null && !npc.worldObj.isRemote)
-        	npc.jobInterface.reset();
-        
+        if (npc.jobInterface != null && !npc.worldObj.isRemote)
+            npc.jobInterface.reset();
+
         job = EnumJobType.values()[i % EnumJobType.values().length];
         if (job == EnumJobType.None)
             npc.jobInterface = null;
-        else if (job == EnumJobType.Bard && !(npc.jobInterface instanceof JobBard)) 
+        else if (job == EnumJobType.Bard && !(npc.jobInterface instanceof JobBard))
             npc.jobInterface = new JobBard(npc);
-        else if (job == EnumJobType.Healer && !(npc.jobInterface instanceof JobHealer)) 
+        else if (job == EnumJobType.Healer && !(npc.jobInterface instanceof JobHealer))
             npc.jobInterface = new JobHealer(npc);
-        else if (job == EnumJobType.Guard && !(npc.jobInterface instanceof JobGuard)) 
+        else if (job == EnumJobType.Guard && !(npc.jobInterface instanceof JobGuard))
             npc.jobInterface = new JobGuard(npc);
-        else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver)) 
+        else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver))
             npc.jobInterface = new JobItemGiver(npc);
-        else if (job == EnumJobType.Follower && !(npc.jobInterface instanceof JobFollower)) 
+        else if (job == EnumJobType.Follower && !(npc.jobInterface instanceof JobFollower))
             npc.jobInterface = new JobFollower(npc);
-        else if (job == EnumJobType.Spawner && !(npc.jobInterface instanceof JobSpawner)) 
+        else if (job == EnumJobType.Spawner && !(npc.jobInterface instanceof JobSpawner))
             npc.jobInterface = new JobSpawner(npc);
-        else if (job == EnumJobType.Conversation && !(npc.jobInterface instanceof JobConversation)) 
+        else if (job == EnumJobType.Conversation && !(npc.jobInterface instanceof JobConversation))
             npc.jobInterface = new JobConversation(npc);
         else if (job == EnumJobType.ChunkLoader && !(npc.jobInterface instanceof JobChunkLoader))
             npc.jobInterface = new JobChunkLoader(npc);

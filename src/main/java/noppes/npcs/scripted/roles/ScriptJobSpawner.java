@@ -9,38 +9,40 @@ import noppes.npcs.scripted.constants.JobType;
 
 import java.util.ArrayList;
 
-public class ScriptJobSpawner extends ScriptJobInterface{
-	private JobSpawner job;
-	public ScriptJobSpawner(EntityNPCInterface npc){
-		super(npc);
-		this.job = (JobSpawner) npc.jobInterface;
-	}
-		
-	@Override
-	public int getType(){
-		return JobType.SPAWNER;
-	}
-	
-	/**
-	 * Npc needs to be attacking something or be set to Despawn Spawns On Target Lost: No, otherwise it will despawn right away
-	 * @param number The entity going to be spawned (1-6)
-	 * @return Returns spawned entity
-	 */
-	public ScriptLivingBase spawnEntity(int number){
-		EntityLivingBase base = job.spawnEntity(number);
-		if(base == null)
-			return null;
-		
-		return (ScriptLivingBase) ScriptController.Instance.getScriptForEntity(base);
-	}
-	
-	/**
-	 * Removes all spawned entities
-	 */
-	public void removeAllSpawned(){
-		for(EntityLivingBase entity : job.spawned){
-			entity.isDead = true;
-		}
-		job.spawned = new ArrayList<EntityLivingBase>();
-	}
+public class ScriptJobSpawner extends ScriptJobInterface {
+    private JobSpawner job;
+
+    public ScriptJobSpawner(EntityNPCInterface npc) {
+        super(npc);
+        this.job = (JobSpawner) npc.jobInterface;
+    }
+
+    @Override
+    public int getType() {
+        return JobType.SPAWNER;
+    }
+
+    /**
+     * Npc needs to be attacking something or be set to Despawn Spawns On Target Lost: No, otherwise it will despawn right away
+     *
+     * @param number The entity going to be spawned (1-6)
+     * @return Returns spawned entity
+     */
+    public ScriptLivingBase spawnEntity(int number) {
+        EntityLivingBase base = job.spawnEntity(number);
+        if (base == null)
+            return null;
+
+        return (ScriptLivingBase) ScriptController.Instance.getScriptForEntity(base);
+    }
+
+    /**
+     * Removes all spawned entities
+     */
+    public void removeAllSpawned() {
+        for (EntityLivingBase entity : job.spawned) {
+            entity.isDead = true;
+        }
+        job.spawned = new ArrayList<EntityLivingBase>();
+    }
 }

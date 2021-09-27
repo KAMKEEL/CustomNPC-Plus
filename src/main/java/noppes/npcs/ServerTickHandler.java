@@ -6,10 +6,10 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import net.minecraft.world.WorldServer;
 
 public class ServerTickHandler {
-	@SubscribeEvent
-	public void onServerTick(TickEvent.WorldTickEvent event){
-		if(event.phase == Phase.START){
-			NPCSpawning.findChunksForSpawning((WorldServer) event.world);
-		}
-	}
+    @SubscribeEvent
+    public void onServerTick(TickEvent.WorldTickEvent event) {
+        if (event.phase == Phase.START) {
+            NPCSpawning.findChunksForSpawning((WorldServer) event.world);
+        }
+    }
 }

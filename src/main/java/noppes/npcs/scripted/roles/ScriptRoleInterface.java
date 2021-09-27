@@ -4,17 +4,17 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleInterface {
-	protected EntityNPCInterface npc;
+    protected EntityNPCInterface npc;
 
-	public ScriptRoleInterface(EntityNPCInterface npc){
-		this.npc = npc;
-	}
+    public ScriptRoleInterface(EntityNPCInterface npc) {
+        this.npc = npc;
+    }
 
-	/**
-	 * @see noppes.npcs.scripted.constants.RoleType
-	 * @return The RoleType of this role
-	 */
-	public int getType(){
-		return RoleType.UNKNOWN;
-	}
+    /**
+     * @return The RoleType of this role
+     * @see noppes.npcs.scripted.constants.RoleType
+     */
+    public int getType() {
+        return RoleType.UNKNOWN;
+    }
 }

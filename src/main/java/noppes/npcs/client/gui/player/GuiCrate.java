@@ -11,8 +11,7 @@ import noppes.npcs.containers.ContainerCrate;
 import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
-public class GuiCrate extends GuiContainer
-{
+public class GuiCrate extends GuiContainer {
     private static final ResourceLocation field_147017_u = new ResourceLocation("textures/gui/container/generic_54.png");
     private IInventory upperChestInventory;
     private IInventory lowerChestInventory;
@@ -21,8 +20,7 @@ public class GuiCrate extends GuiContainer
      */
     private int inventoryRows;
 
-    public GuiCrate(ContainerCrate container)
-    {
+    public GuiCrate(ContainerCrate container) {
         super(container);
         this.upperChestInventory = container.upperChestInventory;
         this.lowerChestInventory = container.lowerChestInventory;
@@ -36,14 +34,12 @@ public class GuiCrate extends GuiContainer
     /**
      * Draw the foreground layer for the GuiContainer (everything in front of the items)
      */
-    protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_)
-    {
+    protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
         this.fontRendererObj.drawString(this.lowerChestInventory.hasCustomInventoryName() ? this.lowerChestInventory.getInventoryName() : I18n.format(this.lowerChestInventory.getInventoryName(), new Object[0]), 8, 6, CustomNpcResourceListener.DefaultTextColor);
         this.fontRendererObj.drawString(this.upperChestInventory.hasCustomInventoryName() ? this.upperChestInventory.getInventoryName() : I18n.format(this.upperChestInventory.getInventoryName(), new Object[0]), 8, this.ySize - 96 + 2, CustomNpcResourceListener.DefaultTextColor);
     }
 
-    protected void drawGuiContainerBackgroundLayer(float p_146976_1_, int p_146976_2_, int p_146976_3_)
-    {
+    protected void drawGuiContainerBackgroundLayer(float p_146976_1_, int p_146976_2_, int p_146976_3_) {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(field_147017_u);
         int k = (this.width - this.xSize) / 2;

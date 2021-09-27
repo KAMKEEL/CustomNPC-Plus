@@ -6,20 +6,18 @@ import net.minecraft.world.World;
 
 public class PathNavigateFlying extends PathNavigateSwimmer {
 
-	public PathNavigateFlying(EntityLiving p_i45873_1_, World worldIn) {
-		super(p_i45873_1_, worldIn);
-	}
-	
-    protected PathFinder func_179679_a()
-    {
+    public PathNavigateFlying(EntityLiving p_i45873_1_, World worldIn) {
+        super(p_i45873_1_, worldIn);
+    }
+
+    protected PathFinder func_179679_a() {
         return new NPCPathFinder(new FlyNodeProcessor());
     }
 
     /**
      * If on ground or swimming and can swim
      */
-    protected boolean canNavigate()
-    {
+    protected boolean canNavigate() {
         return true;
     }
 }

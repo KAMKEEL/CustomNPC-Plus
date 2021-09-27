@@ -17,91 +17,90 @@ import noppes.npcs.quests.QuestDialog;
 
 import java.util.HashMap;
 
-public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData
-{
-	private GuiScreen parent;
-	
-	private QuestDialog quest;
-	
-	private HashMap<Integer, String> data = new HashMap<Integer, String>();
+public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData {
+    private GuiScreen parent;
+
+    private QuestDialog quest;
+
+    private HashMap<Integer, String> data = new HashMap<Integer, String>();
+    private int selectedSlot;
 
     public GuiNpcQuestTypeDialog(EntityNPCInterface npc, Quest q, GuiScreen parent) {
-    	this.npc = npc;
-    	this.parent = parent;
-    	title = "Quest Dialog Setup";
-    	
-    	quest = (QuestDialog) q.questInterface;
+        this.npc = npc;
+        this.parent = parent;
+        title = "Quest Dialog Setup";
 
-		setBackground("menubg.png");
-		xSize = 256;
-		ySize = 216;
-		closeOnEsc = true;
-		Client.sendData(EnumPacketServer.QuestDialogGetTitle, 
-				quest.dialogs.containsKey(0)?quest.dialogs.get(0):-1, 
-				quest.dialogs.containsKey(1)?quest.dialogs.get(1):-1, 
-				quest.dialogs.containsKey(2)?quest.dialogs.get(2):-1);
-	}
+        quest = (QuestDialog) q.questInterface;
 
-	public void initGui() {
-		super.initGui();
-		for (int i = 0; i < 3; i++) {
-			String title = "dialog.selectoption";
-			if(data.containsKey(i))
-				title = data.get(i);
-			this.addButton(new GuiNpcButton(i + 9, guiLeft + 10, 55 + i * 22, 20, 20, "X"));
-			this.addButton(new GuiNpcButton(i + 3, guiLeft + 34, 55 + i * 22, 210, 20, title));
+        setBackground("menubg.png");
+        xSize = 256;
+        ySize = 216;
+        closeOnEsc = true;
+        Client.sendData(EnumPacketServer.QuestDialogGetTitle,
+                quest.dialogs.containsKey(0) ? quest.dialogs.get(0) : -1,
+                quest.dialogs.containsKey(1) ? quest.dialogs.get(1) : -1,
+                quest.dialogs.containsKey(2) ? quest.dialogs.get(2) : -1);
+    }
 
-		}
-		this.addButton(new GuiNpcButton(0, guiLeft + 150, guiTop + 190, 98, 20, "gui.back"));
-		
-	}
+    public void initGui() {
+        super.initGui();
+        for (int i = 0; i < 3; i++) {
+            String title = "dialog.selectoption";
+            if (data.containsKey(i))
+                title = data.get(i);
+            this.addButton(new GuiNpcButton(i + 9, guiLeft + 10, 55 + i * 22, 20, 20, "X"));
+            this.addButton(new GuiNpcButton(i + 3, guiLeft + 34, 55 + i * 22, 210, 20, title));
 
-	private int selectedSlot;
-	protected void actionPerformed(GuiButton guibutton) {
-		GuiNpcButton button = (GuiNpcButton) guibutton;
-		if (button.id == 0) {
-			close();
-		}
-		if (button.id >= 3 && button.id < 9) {
-			selectedSlot = button.id - 3;
-			int id = -1;
-			if(quest.dialogs.containsKey(selectedSlot))
-				id = quest.dialogs.get(selectedSlot);
-			GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, parent, id);
-			gui.listener = this;
-			NoppesUtil.openGUI(player, gui);
-		}
-		if (button.id >= 9 && button.id < 15) {
-			int slot = button.id - 9;
-			quest.dialogs.remove(slot);
-			data.remove(slot);
-			save();
-			initGui();
-		}
-	}
+        }
+        this.addButton(new GuiNpcButton(0, guiLeft + 150, guiTop + 190, 98, 20, "gui.back"));
 
-	public void save() {
-	}
+    }
 
-	@Override
-	public void selected(int id, String name) {
-		quest.dialogs.put(selectedSlot, id);
-		data.put(selectedSlot, name);
-	}
+    protected void actionPerformed(GuiButton guibutton) {
+        GuiNpcButton button = (GuiNpcButton) guibutton;
+        if (button.id == 0) {
+            close();
+        }
+        if (button.id >= 3 && button.id < 9) {
+            selectedSlot = button.id - 3;
+            int id = -1;
+            if (quest.dialogs.containsKey(selectedSlot))
+                id = quest.dialogs.get(selectedSlot);
+            GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, parent, id);
+            gui.listener = this;
+            NoppesUtil.openGUI(player, gui);
+        }
+        if (button.id >= 9 && button.id < 15) {
+            int slot = button.id - 9;
+            quest.dialogs.remove(slot);
+            data.remove(slot);
+            save();
+            initGui();
+        }
+    }
 
-	@Override
-	public void setGuiData(NBTTagCompound compound) {
-		data.clear();
-		if(compound.hasKey("1")){
-			data.put(0, compound.getString("1"));
-		}
-		if(compound.hasKey("2")){
-			data.put(1, compound.getString("2"));
-		}
-		if(compound.hasKey("3")){
-			data.put(2, compound.getString("3"));
-		}
-		initGui();
-	}
+    public void save() {
+    }
+
+    @Override
+    public void selected(int id, String name) {
+        quest.dialogs.put(selectedSlot, id);
+        data.put(selectedSlot, name);
+    }
+
+    @Override
+    public void setGuiData(NBTTagCompound compound) {
+        data.clear();
+        if (compound.hasKey("1")) {
+            data.put(0, compound.getString("1"));
+        }
+        if (compound.hasKey("2")) {
+            data.put(1, compound.getString("2"));
+        }
+        if (compound.hasKey("3")) {
+            data.put(2, compound.getString("3"));
+        }
+        initGui();
+    }
 
 }

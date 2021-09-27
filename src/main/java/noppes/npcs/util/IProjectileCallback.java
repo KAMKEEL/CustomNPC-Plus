@@ -6,7 +6,7 @@ import noppes.npcs.entity.EntityProjectile;
 
 public interface IProjectileCallback {
 
-	boolean onImpact(EntityProjectile entityProjectile,
-			EntityLivingBase entity, ItemStack itemstack);
+    boolean onImpact(EntityProjectile entityProjectile,
+                     EntityLivingBase entity, ItemStack itemstack);
 
 }

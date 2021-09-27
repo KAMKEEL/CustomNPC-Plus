@@ -21,14 +21,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-public class ModelPony extends ModelBase
-{
+public class ModelPony extends ModelBase {
 
-    private boolean rainboom;
-    private float WingRotateAngleX;
-    private float WingRotateAngleY;
-    private float WingRotateAngleZ;
-    private float TailRotateAngleY;
     public ModelRenderer Head;
     public ModelRenderer Headpiece[];
     public ModelRenderer Helmet;
@@ -52,14 +46,17 @@ public class ModelPony extends ModelBase
     public boolean isSneak;
     public boolean aimedBow;
     public int heldItemRight;
+    private boolean rainboom;
+    private float WingRotateAngleX;
+    private float WingRotateAngleY;
+    private float WingRotateAngleZ;
+    private float TailRotateAngleY;
 
-    public ModelPony(float f)
-    {
-    	init(f,0.0f);
+    public ModelPony(float f) {
+        init(f, 0.0f);
     }
 
-    public void init(float strech,float f)
-    {
+    public void init(float strech, float f) {
         float f2 = 0.0F;
         float f3 = 0.0F;
         float f4 = 0.0F;
@@ -280,22 +277,19 @@ public class ModelPony extends ModelBase
     }
 
 
-    public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity entity)
-    {
-    	EntityNPCInterface npc = (EntityNPCInterface) entity;
-    	isRiding = npc.isRiding();
-    	
-    	if(isSneak && (npc.currentAnimation == EnumAnimation.CRAWLING || npc.currentAnimation == EnumAnimation.LYING))
-    		isSneak = false;
+    public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity entity) {
+        EntityNPCInterface npc = (EntityNPCInterface) entity;
+        isRiding = npc.isRiding();
+
+        if (isSneak && (npc.currentAnimation == EnumAnimation.CRAWLING || npc.currentAnimation == EnumAnimation.LYING))
+            isSneak = false;
         rainboom = false;
         float f6;
         float f7;
-        if(isSleeping)
-        {
+        if (isSleeping) {
             f6 = 1.4F;
             f7 = 0.1F;
-        } else
-        {
+        } else {
             f6 = f3 / 57.29578F;
             f7 = f4 / 57.29578F;
         }
@@ -314,8 +308,7 @@ public class ModelPony extends ModelBase
         float f9;
         float f10;
         float f11;
-        if(!isFlying || !isPegasus)
-        {
+        if (!isFlying || !isPegasus) {
             f8 = MathHelper.cos(f * 0.6662F + 3.141593F) * 0.6F * f1;
             f9 = MathHelper.cos(f * 0.6662F) * 0.6F * f1;
             f10 = MathHelper.cos(f * 0.6662F) * 0.3F * f1;
@@ -325,17 +318,14 @@ public class ModelPony extends ModelBase
             LeftArm.rotateAngleY = 0.0F;
             RightLeg.rotateAngleY = 0.0F;
             LeftLeg.rotateAngleY = 0.0F;
-        } else
-        {
-            if(f1 < 0.9999F)
-            {
+        } else {
+            if (f1 < 0.9999F) {
                 rainboom = false;
                 f8 = MathHelper.sin(0.0F - f1 * 0.5F);
                 f9 = MathHelper.sin(0.0F - f1 * 0.5F);
                 f10 = MathHelper.sin(f1 * 0.5F);
                 f11 = MathHelper.sin(f1 * 0.5F);
-            } else
-            {
+            } else {
                 rainboom = true;
                 f8 = 4.712F;
                 f9 = 4.712F;
@@ -347,8 +337,7 @@ public class ModelPony extends ModelBase
             RightLeg.rotateAngleY = -0.2F;
             LeftLeg.rotateAngleY = 0.2F;
         }
-        if(isSleeping)
-        {
+        if (isSleeping) {
             f8 = 4.712F;
             f9 = 4.712F;
             f10 = 1.571F;
@@ -362,64 +351,51 @@ public class ModelPony extends ModelBase
         RightArm.rotateAngleZ = 0.0F;
         unicornarm.rotateAngleZ = 0.0F;
         LeftArm.rotateAngleZ = 0.0F;
-        for(int i = 0; i < Tail.length; i++)
-        {
-            if(rainboom)
-            {
+        for (int i = 0; i < Tail.length; i++) {
+            if (rainboom) {
                 Tail[i].rotateAngleZ = 0.0F;
-            } else
-            {
+            } else {
                 Tail[i].rotateAngleZ = MathHelper.cos(f * 0.8F) * 0.2F * f1;
             }
         }
 
-        if(heldItemRight != 0 && !rainboom && !isUnicorn)
-        {
+        if (heldItemRight != 0 && !rainboom && !isUnicorn) {
             RightArm.rotateAngleX = RightArm.rotateAngleX * 0.5F - 0.3141593F;
         }
         float f12 = 0.0F;
-        if(f5 > -9990F && !isUnicorn)
-        {
+        if (f5 > -9990F && !isUnicorn) {
             f12 = MathHelper.sin(MathHelper.sqrt_float(f5) * 3.141593F * 2.0F) * 0.2F;
         }
-        Body.rotateAngleY = (float)((double)f12 * 0.20000000000000001D);
-        for(int j = 0; j < Bodypiece.length; j++)
-        {
-            Bodypiece[j].rotateAngleY = (float)((double)f12 * 0.20000000000000001D);
+        Body.rotateAngleY = (float) ((double) f12 * 0.20000000000000001D);
+        for (int j = 0; j < Bodypiece.length; j++) {
+            Bodypiece[j].rotateAngleY = (float) ((double) f12 * 0.20000000000000001D);
         }
 
-        for(int k = 0; k < LeftWing.length; k++)
-        {
-            LeftWing[k].rotateAngleY = (float)((double)f12 * 0.20000000000000001D);
+        for (int k = 0; k < LeftWing.length; k++) {
+            LeftWing[k].rotateAngleY = (float) ((double) f12 * 0.20000000000000001D);
         }
 
-        for(int l = 0; l < RightWing.length; l++)
-        {
-            RightWing[l].rotateAngleY = (float)((double)f12 * 0.20000000000000001D);
+        for (int l = 0; l < RightWing.length; l++) {
+            RightWing[l].rotateAngleY = (float) ((double) f12 * 0.20000000000000001D);
         }
 
-        for(int i1 = 0; i1 < Tail.length; i1++)
-        {
+        for (int i1 = 0; i1 < Tail.length; i1++) {
             Tail[i1].rotateAngleY = f12;
         }
 
         float f13 = MathHelper.sin(Body.rotateAngleY) * 5F;
         float f14 = MathHelper.cos(Body.rotateAngleY) * 5F;
         float f15 = 4F;
-        if(isSneak && !isFlying)
-        {
+        if (isSneak && !isFlying) {
             f15 = 0.0F;
         }
-        if(isSleeping)
-        {
+        if (isSleeping) {
             f15 = 2.6F;
         }
-        if(rainboom)
-        {
+        if (rainboom) {
             RightArm.rotationPointZ = f13 + 2.0F;
             LeftArm.rotationPointZ = (0.0F - f13) + 2.0F;
-        } else
-        {
+        } else {
             RightArm.rotationPointZ = f13 + 1.0F;
             LeftArm.rotationPointZ = (0.0F - f13) + 1.0F;
         }
@@ -434,8 +410,7 @@ public class ModelPony extends ModelBase
         LeftArm.rotationPointY = 8F;
         RightLeg.rotationPointY = 4F;
         LeftLeg.rotationPointY = 4F;
-        if(f5 > -9990F)
-        {
+        if (f5 > -9990F) {
             float f16 = f5;
             f16 = 1.0F - f5;
             f16 *= f16 * f16;
@@ -443,14 +418,12 @@ public class ModelPony extends ModelBase
             float f22 = MathHelper.sin(f16 * 3.141593F);
             float f28 = MathHelper.sin(f5 * 3.141593F);
             float f33 = f28 * -(Head.rotateAngleX - 0.7F) * 0.75F;
-            if(isUnicorn)
-            {
-                unicornarm.rotateAngleX -= (double)f22 * 1.2D + (double)f33;
+            if (isUnicorn) {
+                unicornarm.rotateAngleX -= (double) f22 * 1.2D + (double) f33;
                 unicornarm.rotateAngleY += Body.rotateAngleY * 2.0F;
                 unicornarm.rotateAngleZ = f28 * -0.4F;
-            } else
-            {
-                unicornarm.rotateAngleX -= (double)f22 * 1.2D + (double)f33;
+            } else {
+                unicornarm.rotateAngleX -= (double) f22 * 1.2D + (double) f33;
                 unicornarm.rotateAngleY += Body.rotateAngleY * 2.0F;
                 unicornarm.rotateAngleZ = f28 * -0.4F;
 //                RightArm.rotateAngleX -= (double)f22 * 1.2D + (double)f33;
@@ -458,16 +431,14 @@ public class ModelPony extends ModelBase
 //                RightArm.rotateAngleZ = f28 * -0.4F;
             }
         }
-        if(isSneak && !isFlying)
-        {
+        if (isSneak && !isFlying) {
             float f17 = 0.4F;
             float f23 = 7F;
             float f29 = -4F;
             Body.rotateAngleX = f17;
             Body.rotationPointY = f23;
             Body.rotationPointZ = f29;
-            for(int i3 = 0; i3 < Bodypiece.length; i3++)
-            {
+            for (int i3 = 0; i3 < Bodypiece.length; i3++) {
                 Bodypiece[i3].rotateAngleX = f17;
                 Bodypiece[i3].rotationPointY = f23;
                 Bodypiece[i3].rotationPointZ = f29;
@@ -475,9 +446,8 @@ public class ModelPony extends ModelBase
 
             float f34 = 3.5F;
             float f37 = 6F;
-            for(int i4 = 0; i4 < LeftWingExt.length; i4++)
-            {
-                LeftWingExt[i4].rotateAngleX = (float)((double)f17 + 2.3561947345733643D);
+            for (int i4 = 0; i4 < LeftWingExt.length; i4++) {
+                LeftWingExt[i4].rotateAngleX = (float) ((double) f17 + 2.3561947345733643D);
                 LeftWingExt[i4].rotationPointY = f23 + f34;
                 LeftWingExt[i4].rotationPointZ = f29 + f37;
                 LeftWingExt[i4].rotateAngleX = 2.5F;
@@ -486,9 +456,8 @@ public class ModelPony extends ModelBase
 
             float f40 = 4.5F;
             float f43 = 6F;
-            for(int i5 = 0; i5 < LeftWingExt.length; i5++)
-            {
-                RightWingExt[i5].rotateAngleX = (float)((double)f17 + 2.3561947345733643D);
+            for (int i5 = 0; i5 < LeftWingExt.length; i5++) {
+                RightWingExt[i5].rotateAngleX = (float) ((double) f17 + 2.3561947345733643D);
                 RightWingExt[i5].rotationPointY = f23 + f40;
                 RightWingExt[i5].rotationPointZ = f29 + f43;
                 RightWingExt[i5].rotateAngleX = 2.5F;
@@ -507,13 +476,11 @@ public class ModelPony extends ModelBase
             float f46;
             float f48;
             float f50;
-            if(isSleeping)
-            {
+            if (isSleeping) {
                 f46 = 2.0F;
                 f48 = -1F;
                 f50 = 1.0F;
-            } else
-            {
+            } else {
                 f46 = 6F;
                 f48 = -2F;
                 f50 = 0.0F;
@@ -540,63 +507,53 @@ public class ModelPony extends ModelBase
             float f60 = 9F - f54;
             float f62 = -4F - f56;
             float f63 = 0.0F;
-            for(int i6 = 0; i6 < Tail.length; i6++)
-            {
+            for (int i6 = 0; i6 < Tail.length; i6++) {
                 Tail[i6].rotationPointX = f58;
                 Tail[i6].rotationPointY = f60;
                 Tail[i6].rotationPointZ = f62;
                 Tail[i6].rotateAngleX = f63;
             }
 
-        } else
-        {
+        } else {
             float f18 = 0.0F;
             float f24 = 0.0F;
             float f30 = 0.0F;
             Body.rotateAngleX = f18;
             Body.rotationPointY = f24;
             Body.rotationPointZ = f30;
-            for(int j3 = 0; j3 < Bodypiece.length; j3++)
-            {
+            for (int j3 = 0; j3 < Bodypiece.length; j3++) {
                 Bodypiece[j3].rotateAngleX = f18;
                 Bodypiece[j3].rotationPointY = f24;
                 Bodypiece[j3].rotationPointZ = f30;
             }
 
-            if(isPegasus)
-            {
-                if(!isFlying)
-                {
-                    for(int k3 = 0; k3 < LeftWing.length; k3++)
-                    {
-                        LeftWing[k3].rotateAngleX = (float)((double)f18 + 1.5707964897155762D);
+            if (isPegasus) {
+                if (!isFlying) {
+                    for (int k3 = 0; k3 < LeftWing.length; k3++) {
+                        LeftWing[k3].rotateAngleX = (float) ((double) f18 + 1.5707964897155762D);
                         LeftWing[k3].rotationPointY = f24 + 13F;
                         LeftWing[k3].rotationPointZ = f30 - 3F;
                     }
 
-                    for(int l3 = 0; l3 < RightWing.length; l3++)
-                    {
-                        RightWing[l3].rotateAngleX = (float)((double)f18 + 1.5707964897155762D);
+                    for (int l3 = 0; l3 < RightWing.length; l3++) {
+                        RightWing[l3].rotateAngleX = (float) ((double) f18 + 1.5707964897155762D);
                         RightWing[l3].rotationPointY = f24 + 13F;
                         RightWing[l3].rotationPointZ = f30 - 3F;
                     }
 
-                } else
-                {
+                } else {
                     float f35 = 5.5F;
                     float f38 = 3F;
-                    for(int j4 = 0; j4 < LeftWingExt.length; j4++)
-                    {
-                        LeftWingExt[j4].rotateAngleX = (float)((double)f18 + 1.5707964897155762D);
+                    for (int j4 = 0; j4 < LeftWingExt.length; j4++) {
+                        LeftWingExt[j4].rotateAngleX = (float) ((double) f18 + 1.5707964897155762D);
                         LeftWingExt[j4].rotationPointY = f24 + f35;
                         LeftWingExt[j4].rotationPointZ = f30 + f38;
                     }
 
                     float f41 = 6.5F;
                     float f44 = 3F;
-                    for(int j5 = 0; j5 < RightWingExt.length; j5++)
-                    {
-                        RightWingExt[j5].rotateAngleX = (float)((double)f18 + 1.5707964897155762D);
+                    for (int j5 = 0; j5 < RightWingExt.length; j5++) {
+                        RightWingExt[j5].rotateAngleX = (float) ((double) f18 + 1.5707964897155762D);
                         RightWingExt[j5].rotationPointY = f24 + f41;
                         RightWingExt[j5].rotationPointZ = f30 + f44;
                     }
@@ -611,18 +568,15 @@ public class ModelPony extends ModelBase
             float f39 = MathHelper.sin(f2 * 0.067F) * 0.05F;
             unicornarm.rotateAngleZ += f36;
             unicornarm.rotateAngleX += f39;
-            if(isPegasus && isFlying)
-            {
+            if (isPegasus && isFlying) {
                 WingRotateAngleY = MathHelper.sin(f2 * 0.067F * 8F) * 1.0F;
                 WingRotateAngleZ = MathHelper.sin(f2 * 0.067F * 8F) * 1.0F;
-                for(int k4 = 0; k4 < LeftWingExt.length; k4++)
-                {
+                for (int k4 = 0; k4 < LeftWingExt.length; k4++) {
                     LeftWingExt[k4].rotateAngleX = 2.5F;
                     LeftWingExt[k4].rotateAngleZ = -WingRotateAngleZ - 4.712F - 0.4F;
                 }
 
-                for(int l4 = 0; l4 < RightWingExt.length; l4++)
-                {
+                for (int l4 = 0; l4 < RightWingExt.length; l4++) {
                     RightWingExt[l4].rotateAngleX = 2.5F;
                     RightWingExt[l4].rotateAngleZ = WingRotateAngleZ + 4.712F + 0.4F;
                 }
@@ -631,13 +585,11 @@ public class ModelPony extends ModelBase
             float f42;
             float f45;
             float f47;
-            if(isSleeping)
-            {
+            if (isSleeping) {
                 f42 = 2.0F;
                 f45 = 1.0F;
                 f47 = 1.0F;
-            } else
-            {
+            } else {
                 f42 = 0.0F;
                 f45 = 0.0F;
                 f47 = 0.0F;
@@ -664,24 +616,19 @@ public class ModelPony extends ModelBase
             float f57 = 9F - f51;
             float f59 = 0.0F - f53;
             float f61 = 0.5F * f1;
-            for(int k5 = 0; k5 < Tail.length; k5++)
-            {
+            for (int k5 = 0; k5 < Tail.length; k5++) {
                 Tail[k5].rotationPointX = f55;
                 Tail[k5].rotationPointY = f57;
                 Tail[k5].rotationPointZ = f59;
-                if(rainboom)
-                {
+                if (rainboom) {
                     Tail[k5].rotateAngleX = 1.571F + 0.1F * MathHelper.sin(f);
-                } else
-                {
+                } else {
                     Tail[k5].rotateAngleX = f61;
                 }
             }
 
-            for(int l5 = 0; l5 < Tail.length; l5++)
-            {
-                if(!rainboom)
-                {
+            for (int l5 = 0; l5 < Tail.length; l5++) {
+                if (!rainboom) {
                     Tail[l5].rotateAngleX += f39;
                 }
             }
@@ -699,10 +646,8 @@ public class ModelPony extends ModelBase
         Bodypiece[10].rotateAngleX = Bodypiece[10].rotateAngleX + 0.5F;
         Bodypiece[11].rotateAngleX = Bodypiece[11].rotateAngleX + 0.5F;
         Bodypiece[12].rotateAngleX = Bodypiece[12].rotateAngleX + 0.5F;
-        if(rainboom)
-        {
-            for(int j1 = 0; j1 < Tail.length; j1++)
-            {
+        if (rainboom) {
+            for (int j1 = 0; j1 < Tail.length; j1++) {
                 Tail[j1].rotationPointY = Tail[j1].rotationPointY + 6F;
                 Tail[j1].rotationPointZ = Tail[j1].rotationPointZ + 1.0F;
             }
@@ -769,8 +714,7 @@ public class ModelPony extends ModelBase
 //            }
 //
 //        }
-        if(isSleeping)
-        {
+        if (isSleeping) {
             RightArm.rotationPointZ = RightArm.rotationPointZ + 6F;
             LeftArm.rotationPointZ = LeftArm.rotationPointZ + 6F;
             RightLeg.rotationPointZ = RightLeg.rotationPointZ - 8F;
@@ -780,10 +724,8 @@ public class ModelPony extends ModelBase
             RightLeg.rotationPointY = RightLeg.rotationPointY + 2.0F;
             LeftLeg.rotationPointY = LeftLeg.rotationPointY + 2.0F;
         }
-        if(aimedBow)
-        {
-            if(isUnicorn)
-            {
+        if (aimedBow) {
+            if (isUnicorn) {
                 float f20 = 0.0F;
                 float f26 = 0.0F;
                 unicornarm.rotateAngleZ = 0.0F;
@@ -793,8 +735,7 @@ public class ModelPony extends ModelBase
                 float f31 = f2;
                 unicornarm.rotateAngleZ += MathHelper.cos(f31 * 0.09F) * 0.05F + 0.05F;
                 unicornarm.rotateAngleX += MathHelper.sin(f31 * 0.067F) * 0.05F;
-            } else
-            {
+            } else {
                 float f21 = 0.0F;
                 float f27 = 0.0F;
                 RightArm.rotateAngleZ = 0.0F;
@@ -810,66 +751,59 @@ public class ModelPony extends ModelBase
     }
 
     @Override
-    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5)
-    {
-    	EntityNpcPony pony = (EntityNpcPony) entity;
-    	if(pony.textureLocation != pony.checked && pony.textureLocation != null){
-    		try {
-				IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(pony.textureLocation);
-				BufferedImage bufferedimage = ImageIO.read(resource.getInputStream());
+    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+        EntityNpcPony pony = (EntityNpcPony) entity;
+        if (pony.textureLocation != pony.checked && pony.textureLocation != null) {
+            try {
+                IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(pony.textureLocation);
+                BufferedImage bufferedimage = ImageIO.read(resource.getInputStream());
 
-				pony.isPegasus = false;
-				pony.isUnicorn = false;
-		        Color color = new Color(bufferedimage.getRGB(0, 0), true);
-		        Color color1 = new Color(249, 177, 49, 255);
-		        Color color2 = new Color(136, 202, 240, 255);
-		        Color color3 = new Color(209, 159, 228, 255);
-		        Color color4 = new Color(254, 249, 252, 255);
-		        if(color.equals(color1))
-		        {
-		        }
-		        if(color.equals(color2))
-		        {
-		        	pony.isPegasus = true;
-		        }
-		        if(color.equals(color3))
-		        {
-		        	pony.isUnicorn = true;
-		        }
-		        if(color.equals(color4))
-		        {
-		        	pony.isPegasus = true;
-		        	pony.isUnicorn = true;
-		        }
-		        pony.checked = pony.textureLocation;
-    		
-    		} catch (IOException e) {
-				
-			}
-    	}
-    	isSleeping = pony.isPlayerSleeping();
+                pony.isPegasus = false;
+                pony.isUnicorn = false;
+                Color color = new Color(bufferedimage.getRGB(0, 0), true);
+                Color color1 = new Color(249, 177, 49, 255);
+                Color color2 = new Color(136, 202, 240, 255);
+                Color color3 = new Color(209, 159, 228, 255);
+                Color color4 = new Color(254, 249, 252, 255);
+                if (color.equals(color1)) {
+                }
+                if (color.equals(color2)) {
+                    pony.isPegasus = true;
+                }
+                if (color.equals(color3)) {
+                    pony.isUnicorn = true;
+                }
+                if (color.equals(color4)) {
+                    pony.isPegasus = true;
+                    pony.isUnicorn = true;
+                }
+                pony.checked = pony.textureLocation;
+
+            } catch (IOException e) {
+
+            }
+        }
+        isSleeping = pony.isPlayerSleeping();
         isUnicorn = pony.isUnicorn;
         isPegasus = pony.isPegasus;
         isSneak = pony.isSneaking();
         heldItemRight = pony.getHeldItem() == null ? 0 : 1;
         setRotationAngles(f, f1, f2, f3, f4, f5, entity);
         GL11.glPushMatrix();
-        if(isSleeping){
-        	GL11.glRotatef(90, 1, 0, 0);
-        	GL11.glTranslatef(0f, -0.5f, -0.9f);
+        if (isSleeping) {
+            GL11.glRotatef(90, 1, 0, 0);
+            GL11.glTranslatef(0f, -0.5f, -0.9f);
         }
-    	float scale = f5;
+        float scale = f5;
         Head.render(scale);
         Headpiece[0].render(scale);
         Headpiece[1].render(scale);
-        if(isUnicorn)
-        {
+        if (isUnicorn) {
             Headpiece[2].render(scale);
         }
         Helmet.render(scale);
         Body.render(scale);
-        for(int i = 0; i < Bodypiece.length; i++)
-        {
+        for (int i = 0; i < Bodypiece.length; i++) {
             Bodypiece[i].render(scale);
         }
 
@@ -877,34 +811,26 @@ public class ModelPony extends ModelBase
         RightArm.render(scale);
         LeftLeg.render(scale);
         RightLeg.render(scale);
-        for(int j = 0; j < Tail.length; j++)
-        {
+        for (int j = 0; j < Tail.length; j++) {
             Tail[j].render(scale);
         }
 
-        if(isPegasus)
-        {
-            if(isFlying || isSneak)
-            {
-                for(int k = 0; k < LeftWingExt.length; k++)
-                {
+        if (isPegasus) {
+            if (isFlying || isSneak) {
+                for (int k = 0; k < LeftWingExt.length; k++) {
                     LeftWingExt[k].render(scale);
                 }
 
-                for(int l = 0; l < RightWingExt.length; l++)
-                {
+                for (int l = 0; l < RightWingExt.length; l++) {
                     RightWingExt[l].render(scale);
                 }
 
-            } else
-            {
-                for(int i1 = 0; i1 < LeftWing.length; i1++)
-                {
+            } else {
+                for (int i1 = 0; i1 < LeftWing.length; i1++) {
                     LeftWing[i1].render(scale);
                 }
 
-                for(int j1 = 0; j1 < RightWing.length; j1++)
-                {
+                for (int j1 = 0; j1 < RightWing.length; j1++) {
                     RightWing[j1].render(scale);
                 }
 
@@ -913,20 +839,17 @@ public class ModelPony extends ModelBase
         GL11.glPopMatrix();
     }
 
-    protected void renderGlow(RenderManager rendermanager, EntityPlayer entityplayer)
-    {
+    protected void renderGlow(RenderManager rendermanager, EntityPlayer entityplayer) {
         ItemStack itemstack = entityplayer.inventory.getCurrentItem();
-        if(itemstack == null)
-        {
+        if (itemstack == null) {
             return;
-        } else
-        {
+        } else {
             GL11.glPushMatrix();
             double d = entityplayer.posX;
             double d1 = entityplayer.posY;
             double d2 = entityplayer.posZ;
             GL11.glEnable(32826 /*GL_RESCALE_NORMAL_EXT*/);
-            GL11.glTranslatef((float)d + 0.0F, (float)d1 + 2.3F, (float)d2);
+            GL11.glTranslatef((float) d + 0.0F, (float) d1 + 2.3F, (float) d2);
             GL11.glScalef(5F, 5F, 5F);
             GL11.glRotatef(-rendermanager.playerViewY, 0.0F, 1.0F, 0.0F);
             GL11.glRotatef(rendermanager.playerViewX, 1.0F, 0.0F, 0.0F);
