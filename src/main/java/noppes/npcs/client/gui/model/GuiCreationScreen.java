@@ -185,7 +185,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		catch(Exception e){
 			
 		}
-		Set<String> keys = fake.func_150296_c();
+		Set<String> keys = fake.func_150296_c(); // getKeySet
 		for(String name : keys)
 			compound.removeTag(name);
 		

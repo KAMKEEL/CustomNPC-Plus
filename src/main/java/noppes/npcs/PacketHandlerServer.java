@@ -98,7 +98,7 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void featherPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
+	private void featherPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) {
 		if(type == EnumPacketServer.DimensionsGet){
 			HashMap<String,Integer> map = new HashMap<String,Integer>();
 			for(int id : DimensionManager.getStaticDimensionIDs()){
@@ -261,13 +261,13 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.RemoteMainMenu){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
+			if(!(entity instanceof EntityNPCInterface))
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) entity);
 		}
 		else if(type == EnumPacketServer.RemoteDelete){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
+			if(!(entity instanceof EntityNPCInterface))
 				return;
 			npc = (EntityNPCInterface) entity;
 			npc.delete();
@@ -284,14 +284,14 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.RemoteReset){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
+			if(!(entity instanceof EntityNPCInterface))
 				return;
 			npc = (EntityNPCInterface) entity;
 			npc.reset();
 		}
 		else if(type == EnumPacketServer.RemoteTpToNpc){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
+			if(!(entity instanceof EntityNPCInterface))
 				return;
 			npc = (EntityNPCInterface) entity;
 			player.playerNetServerHandler.setPlayerLocation(npc.posX, npc.posY, npc.posZ, 0, 0);
@@ -612,7 +612,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.MerchantUpdate){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityVillager))
+			if(!(entity instanceof EntityVillager))
 				return;
 			MerchantRecipeList list = MerchantRecipeList.func_151390_b(new PacketBuffer(buffer));
 			((EntityVillager)entity).setRecipes(list);

@@ -45,30 +45,27 @@ public class CustomNpcs {
     public static boolean NpcUseOpCommands = false;
 
     @ConfigProp
-    public static boolean InventoryGuiEnabled = true;
+    public static boolean InventoryGuiEnabled = false;
 
     @ConfigProp
-    public static boolean DisableExtraItems = false;
+    public static boolean DisableExtraItems = true;
     @ConfigProp
-    public static boolean DisableExtraBlock = false;
+    public static boolean DisableExtraBlock = true;
 
     public static long ticks;
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
     public static CommonProxy proxy;
 
-    @ConfigProp(info = "Enables CustomNpcs startup update message")
-    public static boolean EnableUpdateChecker = true;
-
     public static CustomNpcs instance;
 
     public static boolean FreezeNPCs = false;
 
     @ConfigProp(info = "Only ops can create and edit npcs")
-    public static boolean OpsOnly = false;
+    public static boolean OpsOnly = true;
     
     @ConfigProp(info = "Default interact line. Leave empty to not have one")
-    public static String DefaultInteractLine = "Hello @p";
+    public static String DefaultInteractLine = "";
 
     @ConfigProp
     public static boolean DisableEnchants = false;
@@ -81,7 +78,7 @@ public class CustomNpcs {
     public static File Dir;
 
     @ConfigProp(info = "Set to false if you want to disable guns")
-    public static boolean GunsEnabled = true;
+    public static boolean GunsEnabled = false;
 
     @ConfigProp(info = "Enables leaves decay")
     public static boolean LeavesDecayEnabled = true;
@@ -93,7 +90,7 @@ public class CustomNpcs {
     public static boolean IceMeltsEnabled = true;
     
     @ConfigProp(info = "Normal players can use soulstone on animals")
-	public static boolean SoulStoneAnimals = true;
+	public static boolean SoulStoneAnimals = false;
     
     @ConfigProp(info = "Normal players can use soulstone on all npcs")
 	public static boolean SoulStoneNPCs = false;

@@ -38,8 +38,8 @@ public class EntityAISprintToTarget extends EntityAIBase
         {
         	switch(this.runner.ai.onAttack)
         	{       	
-        		case 0 : return this.runner.getDistanceSqToEntity(this.runTarget) >= 64.0D ? (!this.runner.onGround ? false : true) : false;
-        		case 2 : return this.runner.getDistanceSqToEntity(this.runTarget) <= 49.0D ? (!this.runner.onGround ? false : true) : false;
+        		case 0 : return this.runner.getDistanceSqToEntity(this.runTarget) >= 64.0D && (this.runner.onGround);
+        		case 2 : return this.runner.getDistanceSqToEntity(this.runTarget) <= 49.0D && (this.runner.onGround);
         		default : return false;
         	}
         }

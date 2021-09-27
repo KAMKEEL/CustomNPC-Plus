@@ -4,16 +4,12 @@ public class ValueUtil {
 	public static float correctFloat(float given, float min, float max){
 		if(given < min)
 			return min;
-		if(given > max)
-			return max;
-		return given;
+		return Math.min(given, max);
 	}
 
 	public static int CorrectInt(int given, int min, int max) {
 		if(given < min)
 			return min;
-		if(given > max)
-			return max;
-		return given;
+		return Math.min(given, max);
 	}
 }

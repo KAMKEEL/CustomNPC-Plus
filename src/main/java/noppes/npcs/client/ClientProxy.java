@@ -123,11 +123,6 @@ public class ClientProxy extends CommonProxy {
 		
 		new PresetController(CustomNpcs.Dir);
 		
-		if(CustomNpcs.EnableUpdateChecker){
-			VersionChecker checker = new VersionChecker();
-			checker.start();
-		}
-		
 		ClientCloneController.Instance = new ClientCloneController();
 
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());

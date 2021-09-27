@@ -42,7 +42,7 @@ public class NoppesUtilPlayer {
 		if(npc.advanced.role != EnumRoleType.Follower)
 			return;
 		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCFollowerHire))
+		if(!(con instanceof ContainerNPCFollowerHire))
 			return;
 		
 		ContainerNPCFollowerHire container = (ContainerNPCFollowerHire) con;
@@ -53,7 +53,7 @@ public class NoppesUtilPlayer {
 		if(npc.advanced.role != EnumRoleType.Follower)
 			return;
 		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCFollower))
+		if(!(con instanceof ContainerNPCFollower))
 			return;
 		
 		ContainerNPCFollower container = (ContainerNPCFollower) con;
@@ -150,7 +150,7 @@ public class NoppesUtilPlayer {
 		if(npc.advanced.role != EnumRoleType.Bank)
 			return;
 		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCBankInterface))
+		if(!(con instanceof ContainerNPCBankInterface))
 			return;
 		
 		ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
@@ -178,7 +178,7 @@ public class NoppesUtilPlayer {
 		if(npc.advanced.role != EnumRoleType.Bank)
 			return;
 		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCBankInterface))
+		if(!(con instanceof ContainerNPCBankInterface))
 			return;
 		ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
 		Bank bank = BankController.getInstance().getBank(container.bankid);
@@ -333,7 +333,7 @@ public class NoppesUtilPlayer {
 	public static boolean compareItems(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT){
 		int size = 0;
 		for(ItemStack is : player.inventory.mainInventory){
-			if(is != null && compareItems(item, is, ignoreDamage, ignoreNBT)) 
+			if(compareItems(item, is, ignoreDamage, ignoreNBT))
 				size += is.stackSize;
 		}
 		return size >= item.stackSize;
@@ -344,7 +344,7 @@ public class NoppesUtilPlayer {
 		int size = item.stackSize;
 		for(int i = 0; i < player.inventory.mainInventory.length; i++){
 			ItemStack is = player.inventory.mainInventory[i];
-			if(is == null || !compareItems(item, is, ignoreDamage, ignoreNBT))
+			if(!compareItems(item, is, ignoreDamage, ignoreNBT))
 				continue;
 			if(size >= is.stackSize){
 				size -= is.stackSize;

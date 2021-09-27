@@ -85,7 +85,7 @@ public class RoleFollower extends RoleInterface{
 		try{
 	        UUID uuid = UUID.fromString(ownerUUID);
 	        if(uuid != null)
-	        	return npc.worldObj.func_152378_a(uuid);
+	        	return npc.worldObj.func_152378_a(uuid); // getPlayerEntityByUUID
 		}
 		catch(IllegalArgumentException ex){
 			

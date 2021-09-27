@@ -71,9 +71,9 @@ public class VersionCompatibility {
 		if(npc.npcVersion == 12){
 			NBTTagList list = compound.getTagList("StartPos", 3);
 			if(list.tagCount() == 3){
-				int z = ((NBTTagInt) list.removeTag(2)).func_150287_d();
-				int y = ((NBTTagInt) list.removeTag(1)).func_150287_d();
-				int x = ((NBTTagInt) list.removeTag(0)).func_150287_d();
+				int z = ((NBTTagInt) list.removeTag(2)).getInt();
+				int y = ((NBTTagInt) list.removeTag(1)).getInt();
+				int x = ((NBTTagInt) list.removeTag(0)).getInt();
 				
 				compound.setIntArray("StartPosNew", new int[]{x,y,z});
 			}

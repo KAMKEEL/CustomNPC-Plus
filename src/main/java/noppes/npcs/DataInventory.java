@@ -232,7 +232,7 @@ public class DataInventory implements IInventory{
 	@Override
 	public ItemStack getStackInSlotOnClosing(int par1) {
 		int i = 0;
-        HashMap<Integer,ItemStack> var2;;
+        HashMap<Integer,ItemStack> var2;
 
         if (par1 >= 7)
         {

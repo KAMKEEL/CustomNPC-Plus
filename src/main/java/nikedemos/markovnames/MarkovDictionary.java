@@ -129,7 +129,7 @@ public class MarkovDictionary {
 
 		Iterator<Entry<String, Map<String, Integer>>> it = occurrences.mMap.entrySet().iterator();
 
-		StringBuilder sequence = new StringBuilder("");
+		StringBuilder sequence = new StringBuilder();
 
 		while (it.hasNext()) {
 			Entry<String, Map<String, Integer>> pair = (Entry<String, Map<String, Integer>>) it.next();
@@ -239,10 +239,10 @@ public class MarkovDictionary {
 			incrementSafe(seqCurr, seqNext);
 			// aux counters
 
-			StringBuilder meta = new StringBuilder("_").append(seqCurr).append("_");
-
 			// String aux1="_"+seqCurr+"_";
-			incrementSafe(meta.toString(), "_TOTAL_");
+			incrementSafe("_" + seqCurr + "_"
+					// String aux1="_"+seqCurr+"_";
+					, "_TOTAL_");
 			// String aux2="_"+seqNext+"_";
 			// incrementSafe(aux1, aux2);
 

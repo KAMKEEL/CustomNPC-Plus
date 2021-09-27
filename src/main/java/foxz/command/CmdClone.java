@@ -148,7 +148,7 @@ public class CmdClone extends ChMcLogger {
 	                return false;
 	            }
 	            try{
-		            posX = CommandBase.func_110666_a(pcParam, posX, par[0]);
+                        posX = CommandBase.func_110666_a(pcParam, posX, par[0]);
 		            posY = CommandBase.func_110665_a(pcParam, posY, par[1].trim(), 0, 0);
 		            posZ = CommandBase.func_110666_a(pcParam, posZ, par[2]);
 	            }  catch(NumberFormatException ex){

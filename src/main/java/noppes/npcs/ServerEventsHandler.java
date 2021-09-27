@@ -20,6 +20,7 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
@@ -44,24 +45,27 @@ public class ServerEventsHandler {
 	public static EntityVillager Merchant;
 	public static Entity mounted;
 	
-//	private HashMap<String, Integer> exps = new HashMap<String, Integer>();
-//
-//	@SubscribeEvent
-//	public void onUpdate(LivingUpdateEvent event){
-//		if(!(event.entityLiving instanceof EntityPlayer))
-//			return;
-//		EntityPlayer player = (EntityPlayer) event.entityLiving;
-//		if(exps.containsKey(player.getCommandSenderName())){
-//			int prevExp = exps.get(player.getCommandSenderName());
-//			if(prevExp > player.experienceTotal){				
-//				player.addChatMessage(new ChatComponentText("Omg exp was gotten:" + (player.experienceTotal - prevExp)));
-//			}
-//			else if(prevExp < player.experienceTotal){				
-//				player.addChatMessage(new ChatComponentText("Omg exp was lost:" + (prevExp - player.experienceTotal)));
-//			}
-//		}
-//		exps.put(player.getCommandSenderName(), player.experienceTotal);
-//	}
+	private HashMap<String, Integer> exps = new HashMap<String, Integer>();
+
+	 /**
+	Tracks Exp Gain and Loss
+	 **/
+	/*@SubscribeEvent
+	public void onUpdate(LivingEvent.LivingUpdateEvent event){
+		if(!(event.entityLiving instanceof EntityPlayer))
+			return;
+		EntityPlayer player = (EntityPlayer) event.entityLiving;
+		if(exps.containsKey(player.getCommandSenderName())){
+			int prevExp = exps.get(player.getCommandSenderName());
+			if(prevExp > player.experienceTotal){
+				player.addChatMessage(new ChatComponentText("Omg exp was gotten:" + (player.experienceTotal - prevExp)));
+			}
+			else if(prevExp < player.experienceTotal){
+				player.addChatMessage(new ChatComponentText("Omg exp was lost:" + (prevExp - player.experienceTotal)));
+			}
+		}
+		exps.put(player.getCommandSenderName(), player.experienceTotal);
+	}*/
 
 	@SubscribeEvent
 	public void invoke(EntityInteractEvent event) {
@@ -80,7 +84,7 @@ public class ServerEventsHandler {
 		}
 		
 		if(item.getItem() == CustomItems.wand && npcInteracted && !isRemote){
-			if (!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI)){
+			if (!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI)){
 				return;
 			}
 			event.setCanceled(true);
@@ -98,14 +102,14 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 		}
 		else if(item.getItem() == CustomItems.scripter && !isRemote && npcInteracted){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI))
 				return;
 	    	NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
         	Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.GUI, EnumGuiType.Script.ordinal());
 		}
 		else if(item.getItem() == CustomItems.mount){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
 				return;
 			event.setCanceled(true);
 	    	mounted = event.target;
@@ -113,7 +117,7 @@ public class ServerEventsHandler {
 	    		CustomNpcs.proxy.openGui(MathHelper.floor_double(mounted.posX), MathHelper.floor_double(mounted.posY), MathHelper.floor_double(mounted.posZ), EnumGuiType.MobSpawnerMounter, event.entityPlayer);
 		}
 		else if(item.getItem() == CustomItems.wand && event.target instanceof EntityVillager){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
 				return;
 			event.setCanceled(true);
 			Merchant = (EntityVillager)event.target;
@@ -247,7 +251,7 @@ public class ServerEventsHandler {
 				doExcalibur((EntityPlayer) event.source.getEntity(),event.entityLiving);
 			}
 			
-			if(event.source.getEntity() instanceof EntityNPCInterface && event.entityLiving != null){
+			if(event.source.getEntity() instanceof EntityNPCInterface){
 				EntityNPCInterface npc = (EntityNPCInterface) event.source.getEntity();
 				Line line = npc.advanced.getKillLine();
 				if(line != null)

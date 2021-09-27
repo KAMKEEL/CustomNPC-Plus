@@ -134,7 +134,6 @@ public class NoppesUtilServer {
             }
             catch (NumberFormatException numberformatexception)
             {
-                ;
             }
         }
 
@@ -624,7 +623,7 @@ public class NoppesUtilServer {
 
         if (player.inventory.addItemStackToInventory(item)) {
             entity.worldObj.playSoundAtEntity(entityitem, "random.pop", 0.2F,
-                    ((entity.worldObj.rand.nextFloat() - entity.worldObj.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+                    (entity.worldObj.rand.nextFloat() * 0.7F + 1.0F) * 2.0F);
             player.onItemPickup(entityitem, i);
 
             if (item.stackSize <= 0) {

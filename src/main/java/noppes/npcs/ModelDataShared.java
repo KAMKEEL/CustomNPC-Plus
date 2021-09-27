@@ -162,14 +162,12 @@ public class ModelDataShared{
 	public float getBodyY(){
 		if(legParts.type == 3)
 			return (0.9f - body.scaleY) * 0.75f + getLegsY();
-		if(legParts.type == 3)
-			return (0.5f - body.scaleY) * 0.75f + getLegsY();
 		return (1 - body.scaleY) * 0.75f + getLegsY();
 	}
 
 	public float getLegsY() {
 		if(legParts.type == 3)
-			return (0.87f - legs.scaleY) * 1f;
+			return (0.87f - legs.scaleY);
 		return (1 - legs.scaleY) * 0.75f;
 	}
 }

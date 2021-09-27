@@ -14,9 +14,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class CommonProxy implements IGuiHandler {
 
-	public boolean newVersionAvailable = false;
-	public int revision = 1;
-
 	public void load() {
 		CustomNpcs.Channel.register(new PacketHandlerServer());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());

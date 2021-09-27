@@ -71,6 +71,7 @@ public class EntityAIClosestTarget extends EntityAITarget
     /**
      * Execute a one shot task or start executing a continuous task
      */
+    @Override
     public void startExecuting()
     {
         this.taskOwner.setAttackTarget(this.targetEntity);

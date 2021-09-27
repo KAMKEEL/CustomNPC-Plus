@@ -41,6 +41,7 @@ public class EntityAIOwnerHurtByTarget extends EntityAITarget
     /**
      * Execute a one shot task or start executing a continuous task
      */
+    @Override
     public void startExecuting(){
         this.taskOwner.setAttackTarget(this.theOwnerAttacker);
         EntityLivingBase entitylivingbase = this.npc.getOwner();

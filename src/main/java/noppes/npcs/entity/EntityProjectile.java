@@ -761,7 +761,7 @@ public class EntityProjectile extends EntityThrowable {
 		try{
 	    	UUID uuid = UUID.fromString(throwerName);
 	        if (this.thrower == null && uuid != null)
-	            this.thrower = this.worldObj.func_152378_a(uuid);
+	            this.thrower = this.worldObj.func_152378_a(uuid); // getPlayerEntityByUUID
 		}
 		catch(IllegalArgumentException ex){
 			

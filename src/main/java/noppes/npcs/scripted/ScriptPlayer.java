@@ -120,7 +120,7 @@ public class ScriptPlayer extends ScriptLivingBase{
 
 	@Override
 	public boolean typeOf(int type){
-		return type == EntityType.PLAYER?true:super.typeOf(type);
+		return type == EntityType.PLAYER || super.typeOf(type);
 	}
 	/**
 	 * @param faction The faction id
@@ -177,7 +177,7 @@ public class ScriptPlayer extends ScriptLivingBase{
 	public int inventoryItemCount(String id, int damage) {
 		Item item = (Item)Item.itemRegistry.getObject(id);
 		if(item == null) {
-			throw new CustomNPCsException("Unknown item id: " + id, new Object[0]);
+			throw new CustomNPCsException("Unknown item id: " + id);
 		} else {
 			return this.inventoryItemCount(new ScriptItemStack(new ItemStack(item, 1, damage)));
 		}
@@ -229,7 +229,7 @@ public class ScriptPlayer extends ScriptLivingBase{
 	}
 
 	private boolean isItemEqual(ItemStack stack, ItemStack other) {
-		return other.stackSize<1?false:(stack.getItem() != other.getItem()?false:(stack.getItemDamageForDisplay() < 0?true:stack.getItemDamageForDisplay() == other.getItemDamageForDisplay()));
+		return other.stackSize >= 1 && (stack.getItem() == other.getItem() && (stack.getItemDamageForDisplay() < 0 || stack.getItemDamageForDisplay() == other.getItemDamageForDisplay()));
 	}
 
 	/**
@@ -325,7 +325,7 @@ public class ScriptPlayer extends ScriptLivingBase{
 	 */
 	public boolean hasAchievement(String achievement){
         StatBase statbase = StatList.func_151177_a(achievement);
-        if(statbase == null || !(statbase instanceof Achievement)){
+        if(!(statbase instanceof Achievement)){
         	return false;
         }
 		return player.func_147099_x().hasAchievementUnlocked((Achievement) statbase);
@@ -355,7 +355,7 @@ public class ScriptPlayer extends ScriptLivingBase{
 		player.experienceLevel = level;
 		player.addExperienceLevel(0);
 	}
-	
+
 	/**
 	 * Requires pixelmon to be installed
 	 * @since 1.7.10d

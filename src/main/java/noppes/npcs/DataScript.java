@@ -23,9 +23,9 @@ import java.util.Map;
 
 public class DataScript {
 	public Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
-	private final static EntityType entities = new EntityType();
-	private final static JobType jobs = new JobType();
-	private final static RoleType roles = new RoleType();
+	private static final EntityType entities = new EntityType();
+	private static final JobType jobs = new JobType();
+	private static final RoleType roles = new RoleType();
 	
 	public String scriptLanguage = "ECMAScript";
 	private EntityNPCInterface npc;

@@ -18,7 +18,7 @@ public class CreativeTabNpcs extends CreativeTabs{
 	}
 	
 	@Override
-    public int func_151243_f(){
+    public int func_151243_f(){ // getIconItemDamage
         return meta;
     }
 }

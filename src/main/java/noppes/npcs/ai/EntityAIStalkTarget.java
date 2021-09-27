@@ -182,7 +182,7 @@ public class EntityAIStalkTarget extends EntityAIBase
     		            MovingObjectPosition movingobjectposition = this.theWorld.rayTraceBlocks(vec1, vec2);
     		            if (movingobjectposition != null)
     		            {
-    		            	weight = nearest ? this.targetEntity.getDistanceSq(j, k, l) <= dist : true;    	
+    		            	weight = !nearest || this.targetEntity.getDistanceSq(j, k, l) <= dist;
     		            	if (weight && (j != u || k != v || l != w))
     		            	{
     		            		idealPos = Vec3.createVectorHelper(j, k, l);

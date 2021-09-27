@@ -245,8 +245,8 @@ public class ScriptWorld{
 			return null;
 		NBTBase base = compound.getTag(key);
 		if(base instanceof NBTPrimitive)
-			return ((NBTPrimitive)base).func_150286_g();
-		return ((NBTTagString)base).func_150285_a_();
+			return ((NBTPrimitive)base).func_150286_g(); //getDouble
+		return ((NBTTagString)base).func_150285_a_(); //getString
 	}
 	
 	/**

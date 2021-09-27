@@ -113,7 +113,7 @@ public class BankData {
 	}
 	private ContainerNPCBankInterface getContainer(EntityPlayer player){
 		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCBankInterface))
+		if(!(con instanceof ContainerNPCBankInterface))
 			return null;
 		
 		return (ContainerNPCBankInterface) con;

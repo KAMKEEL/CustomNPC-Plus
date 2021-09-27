@@ -180,11 +180,9 @@ public class PacketHandlerPlayer{
 			String username = Server.readString(buffer);
 			player.closeContainer();
 			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
-			
-			Iterator<PlayerMail> it = data.playermail.iterator();
-			while(it.hasNext()){
-				PlayerMail mail = it.next();
-				if(mail.time == time && mail.sender.equals(username)){
+
+			for (PlayerMail mail : data.playermail) {
+				if (mail.time == time && mail.sender.equals(username)) {
 					ContainerMail.staticmail = mail;
 					player.openGui(CustomNpcs.instance, EnumGuiType.PlayerMailman.ordinal(), player.worldObj, 0, 0, 0);
 					break;
@@ -195,13 +193,11 @@ public class PacketHandlerPlayer{
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
 			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
-			
-			Iterator<PlayerMail> it = data.playermail.iterator();
-			while(it.hasNext()){
-				PlayerMail mail = it.next();
-				if(mail.time == time && mail.sender.equals(username)){
+
+			for (PlayerMail mail : data.playermail) {
+				if (mail.time == time && mail.sender.equals(username)) {
 					mail.beenRead = true;
-					if(mail.hasQuest())
+					if (mail.hasQuest())
 						PlayerQuestController.addActiveQuest(mail.getQuest(), player);
 				}
 			}
@@ -209,7 +205,7 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.SignSave){
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
 			TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-			if(tile == null || !(tile instanceof TileBigSign))
+			if(!(tile instanceof TileBigSign))
 				return;
 			TileBigSign sign = (TileBigSign) tile;
 			if(sign.canEdit){
