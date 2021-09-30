@@ -17,19 +17,18 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.EventHooks;
+import noppes.npcs.EventScriptContainer;
 import noppes.npcs.NBTTags;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.entity.IPlayer;
+import noppes.npcs.scripted.ScriptPlayer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
 public class PlayerScriptData implements IScriptHandler {
-    private List<ScriptContainer> scripts = new ArrayList();
+    private List<EventScriptContainer> scripts = new ArrayList();
     private String scriptLanguage = "ECMAScript";
     private EntityPlayer player;
-    private IPlayer playerAPI;
+    private ScriptPlayer playerAPI;
     private long lastPlayerUpdate = 0L;
     public long lastInited = -1L;
     public boolean hadInteract = true;
@@ -48,23 +47,23 @@ public class PlayerScriptData implements IScriptHandler {
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        this.scripts = NBTTags.GetScript(compound.func_150295_c("Scripts", 10), this);
-        this.scriptLanguage = compound.func_74779_i("ScriptLanguage");
-        this.enabled = compound.func_74767_n("ScriptEnabled");
-        console = NBTTags.GetLongStringMap(compound.func_150295_c("ScriptConsole", 10));
+        this.scripts = NBTTags.GetScript(compound.getTagList("Scripts", 10), this);
+        this.scriptLanguage = compound.getString("ScriptLanguage");
+        this.enabled = compound.getBoolean("ScriptEnabled");
+        console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.func_74782_a("Scripts", NBTTags.NBTScript(this.scripts));
-        compound.func_74778_a("ScriptLanguage", this.scriptLanguage);
-        compound.func_74757_a("ScriptEnabled", this.enabled);
-        compound.func_74782_a("ScriptConsole", NBTTags.NBTLongStringMap(console));
+        compound.setTag("Scripts", NBTTags.NBTScript(this.scripts));
+        compound.setString("ScriptLanguage", this.scriptLanguage);
+        compound.setBoolean("ScriptEnabled", this.enabled);
+        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(console));
         return compound;
     }
 
     public void runScript(EnumScriptType type, Event event) {
         if(this.isEnabled()) {
-            ScriptContainer script;
+            EventScriptContainer script;
             if(ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 errored.clear();
@@ -73,8 +72,8 @@ public class PlayerScriptData implements IScriptHandler {
                     Iterator i = ScriptController.Instance.playerScripts.scripts.iterator();
 
                     while(i.hasNext()) {
-                        script = (ScriptContainer)i.next();
-                        ScriptContainer s = new ScriptContainer(this);
+                        script = ( EventScriptContainer)i.next();
+                         EventScriptContainer s = new  EventScriptContainer(this);
                         s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
                         this.scripts.add(s);
                     }
@@ -87,7 +86,7 @@ public class PlayerScriptData implements IScriptHandler {
             }
 
             for(int var7 = 0; var7 < this.scripts.size(); ++var7) {
-                script = (ScriptContainer)this.scripts.get(var7);
+                script = (EventScriptContainer)this.scripts.get(var7);
                 if(!errored.contains(Integer.valueOf(var7))) {
                     script.run(type, event);
                     if(script.errored) {
@@ -99,7 +98,7 @@ public class PlayerScriptData implements IScriptHandler {
                     while(var8.hasNext()) {
                         Entry entry = (Entry)var8.next();
                         if(!console.containsKey(entry.getKey())) {
-                            console.put(entry.getKey(), " tab " + (var7 + 1) + ":\n" + (String)entry.getValue());
+                            console.put((Long)entry.getKey(), " tab " + (var7 + 1) + ":\n" + (String)entry.getValue());
                         }
                     }
 
@@ -111,11 +110,11 @@ public class PlayerScriptData implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.field_70170_p.field_72995_K);
+        return ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
     }
 
     public boolean isClient() {
-        return !this.player.func_70613_aW();
+        return this.player.isClientWorld();
     }
 
     public boolean getEnabled() {
@@ -134,7 +133,7 @@ public class PlayerScriptData implements IScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<EventScriptContainer> getScripts() {
         return this.scripts;
     }
 
@@ -142,16 +141,15 @@ public class PlayerScriptData implements IScriptHandler {
         if(this.player == null) {
             return "Global script";
         } else {
-            BlockPos pos = this.player.func_180425_c();
-            return MoreObjects.toStringHelper(this.player).add("x", pos.func_177958_n()).add("y", pos.func_177956_o()).add("z", pos.func_177952_p()).toString();
+            BlockPos pos = new BlockPos(this.player);
+            return MoreObjects.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
     }
 
-    public IPlayer getPlayer() {
+    public ScriptPlayer getPlayer() {
         if(this.playerAPI == null) {
-            this.playerAPI = (IPlayer)NpcAPI.Instance().getIEntity(this.player);
+            this.playerAPI = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(this.player);
         }
-
         return this.playerAPI;
     }
 

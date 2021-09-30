@@ -26,6 +26,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilServer;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.constants.*;
 

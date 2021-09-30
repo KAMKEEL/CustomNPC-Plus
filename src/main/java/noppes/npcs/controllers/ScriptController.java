@@ -19,6 +19,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -27,6 +28,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.controllers.data.PlayerScriptData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptAnimal;
 import noppes.npcs.scripted.ScriptEntity;
@@ -36,6 +38,7 @@ import noppes.npcs.scripted.ScriptMonster;
 import noppes.npcs.scripted.ScriptPixelmon;
 import noppes.npcs.scripted.ScriptPlayer;
 import noppes.npcs.scripted.ScriptWorld;
+import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
@@ -49,10 +52,13 @@ public class ScriptController {
 	public long lastLoaded = 0;
 	public File dir;
 	public NBTTagCompound compound = new NBTTagCompound();
-	
+
 	private boolean loaded = false;
 	public boolean shouldSave = false;
-	
+
+	public PlayerScriptData playerScripts = new PlayerScriptData((EntityPlayer)null);
+	public long lastPlayerUpdate = 0L;
+
 	public ScriptController(){
 		loaded = false;
 		Instance = this;
@@ -66,6 +72,42 @@ public class ScriptController {
 			LogWriter.info(fac.getLanguageName() + ": " + ext);
 			languages.put(fac.getLanguageName(), ext);
 		}
+	}
+
+	private File playerScriptsFile() {
+		return new File(this.dir, "player_scripts.json");
+	}
+
+	public boolean loadPlayerScripts() {
+		this.playerScripts.clear();
+		File file = this.playerScriptsFile();
+
+		try {
+			if(!file.exists()) {
+				return false;
+			} else {
+				this.playerScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+				return true;
+			}
+		} catch (Exception var3) {
+			LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
+			return false;
+		}
+	}
+
+	public void setPlayerScripts(NBTTagCompound compound) {
+		this.playerScripts.readFromNBT(compound);
+		File file = this.playerScriptsFile();
+
+		try {
+			NBTJsonUtil.SaveFile(file, compound);
+			this.lastPlayerUpdate = System.currentTimeMillis();
+		} catch (IOException var4) {
+			var4.printStackTrace();
+		} catch (JsonException var5) {
+			var5.printStackTrace();
+		}
+
 	}
 
 	private void loadCategories(){
