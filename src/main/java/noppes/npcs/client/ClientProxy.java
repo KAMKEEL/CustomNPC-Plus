@@ -62,16 +62,7 @@ import noppes.npcs.client.controllers.PresetController;
 import noppes.npcs.client.fx.EntityElementalStaffFX;
 import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
-import noppes.npcs.client.gui.GuiBorderBlock;
-import noppes.npcs.client.gui.GuiMerchantAdd;
-import noppes.npcs.client.gui.GuiNpcDimension;
-import noppes.npcs.client.gui.GuiNpcMobSpawner;
-import noppes.npcs.client.gui.GuiNpcMobSpawnerMounter;
-import noppes.npcs.client.gui.GuiNpcPather;
-import noppes.npcs.client.gui.GuiNpcRedstoneBlock;
-import noppes.npcs.client.gui.GuiNpcRemoteEditor;
-import noppes.npcs.client.gui.GuiNpcWaypoint;
-import noppes.npcs.client.gui.GuiScript;
+import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.global.GuiNPCManageBanks;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCManageFactions;
@@ -376,6 +367,9 @@ public class ClientProxy extends CommonProxy {
 		
 		else if(gui == EnumGuiType.NpcRemote && Minecraft.getMinecraft().currentScreen == null)
 			return new GuiNpcRemoteEditor();
+
+		else if(gui == EnumGuiType.ScriptEvent && Minecraft.getMinecraft().currentScreen == null)
+			return new GuiScriptEvent();
 
 		else if(gui == EnumGuiType.PlayerMailman)
 			return new GuiMailmanWrite((ContainerMail) container, x == 1, y == 1);

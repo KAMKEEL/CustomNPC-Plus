@@ -461,6 +461,29 @@ script.collide=Collide
 script.kills=Kills
 script.dialog_closed=Dialog Closed
 
+eventscript.playerevent=Player Events
+
+playerscript.attack=Attack
+playerscript.break=Break
+playerscript.chat=Chat
+playerscript.containerclosed=Closed Container
+playerscript.containeropen=Open Container
+playerscript.damagedentity=Damaged Entity
+playerscript.damaged=Hurt
+playerscript.killed=Killed
+playerscript.factionupdate=Faction Updated
+playerscript.init=Init
+playerscript.interact=Interact
+playerscript.keypressed=Key Pressed
+playerscript.kills=Kills
+playerscript.levelup=Level Up
+playerscript.login=Login
+playerscript.logout=Logout
+playerscript.pickup=Pickup
+playerscript.rangedlaunched=Range Launched
+playerscript.toss=Toss
+playerscript.update=Update
+
 item.npcWand.name=Npc Wand
 item.npcMobCloner.name=Mob Cloner
 item.npcMovingPath.name=Npc Pather
