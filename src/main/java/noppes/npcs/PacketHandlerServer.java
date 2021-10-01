@@ -106,7 +106,7 @@ public class PacketHandlerServer{
 				clonePackets(type, buffer, player);
 			else if(item.getItem() == CustomItems.teleporter)
 				featherPackets(type, buffer, player);
-			else if(type == EnumPacketServer.ScriptPlayerGet && type == EnumPacketServer.ScriptPlayerSave)
+			else if(type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
 				playerScriptPackets(type, buffer, player, npc);
 			else if(item.getItem() == CustomItems.scripter)
 				scriptPackets(type, buffer, player, npc);
@@ -132,11 +132,11 @@ public class PacketHandlerServer{
 
 	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
 		NBTTagCompound compound;
-		if (type == EnumPacketServer.ScriptPlayerGet) {
+		if(type == EnumPacketServer.ScriptPlayerGet) {
 			compound = ScriptController.Instance.playerScripts.writeToNBT(new NBTTagCompound());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
-		} else if (type == EnumPacketServer.ScriptPlayerSave) {
+		} else if(type == EnumPacketServer.ScriptPlayerSave) {
 			ScriptController.Instance.setPlayerScripts(Server.readNBT(buffer));
 		}
 	}

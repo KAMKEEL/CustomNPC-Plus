@@ -9,8 +9,9 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
+import org.lwjgl.opengl.GL11;
 
-public class GuiScriptGlobal extends GuiNPCInterface {
+public class GuiScriptGlobal extends EventGuiNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
 
     public GuiScriptGlobal() {
@@ -23,12 +24,12 @@ public class GuiScriptGlobal extends GuiNPCInterface {
     public void initGui() {
         super.initGui();
         this.addButton(new GuiNpcButton(0, this.guiLeft + 38, this.guiTop + 20, 100, 20, "Players"));
-        //this.addButton(new GuiNpcButton(1, this.guiLeft + 38, this.guiTop + 50, 100, 20, "Forge"));
+        this.addButton(new GuiNpcButton(1, this.guiLeft + 38, this.guiTop + 50, 100, 20, "Forge"));
     }
 
     public void drawScreen(int i, int j, float f) {
         this.drawDefaultBackground();
-        //GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.renderEngine.bindTexture(this.resource);
         this.drawTexturedModalRect(this.guiLeft, this.guiTop, 0, 0, this.xSize, this.ySize);
         super.drawScreen(i, j, f);
@@ -38,18 +39,15 @@ public class GuiScriptGlobal extends GuiNPCInterface {
         if (guibutton.id == 0) {
             this.displayGuiScreen(new GuiScriptPlayers());
         }
-        /*
-        if (guibutton.id == 1) {
+        /*if (guibutton.id == 1) {
             this.displayGuiScreen(new GuiScriptForge());
-        }
-        */
+        }*/
     }
 
     public void keyTyped(char c, int i) {
         if (i == 1 || this.isInventoryKey(i)) {
             this.close();
         }
-
     }
 
     public void save() {

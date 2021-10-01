@@ -17,9 +17,9 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.GuiScreenEvent.ActionPerformedEvent.Post;
@@ -28,6 +28,7 @@ import net.minecraftforge.common.MinecraftForge;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
 public abstract class EventGuiNPCInterface extends GuiScreen {
     public EntityPlayerSP player;
@@ -69,15 +70,15 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
         this.background = null;
         this.closeOnEsc = false;
         this.bgScale = 1.0F;
-        this.player = Minecraft.func_71410_x().field_71439_g;
+        this.player = Minecraft.getMinecraft().thePlayer;
         this.npc = npc;
         this.title = "";
         this.xSize = 200;
         this.ySize = 222;
         this.drawDefaultBackground = false;
-        this.field_146297_k = Minecraft.func_71410_x();
-        this.field_146296_j = this.field_146297_k.func_175599_af();
-        this.field_146289_q = this.field_146297_k.field_71466_p;
+        this.mc = Minecraft.getMinecraft();
+        this.itemRender = RenderItem.getInstance();
+        this.fontRendererObj = this.mc.fontRenderer;
     }
 
     public EventGuiNPCInterface() {
@@ -92,25 +93,25 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
         return new ResourceLocation("customnpcs", "textures/gui/" + texture);
     }
 
-    public void func_146280_a(Minecraft mc, int width, int height) {
-        super.func_146280_a(mc, width, height);
+    public void setWorldAndResolution(Minecraft mc, int width, int height) {
+        super.setWorldAndResolution(mc, width, height);
         this.initPacket();
     }
 
     public void initPacket() {
     }
 
-    public void func_73866_w_() {
-        super.func_73866_w_();
+    public void initGui() {
+        super.initGui();
         GuiNpcTextField.unfocus();
         if (this.subgui != null) {
-            this.subgui.func_146280_a(this.field_146297_k, this.field_146294_l, this.field_146295_m);
-            this.subgui.func_73866_w_();
+            this.subgui.setWorldAndResolution(this.mc, this.width, this.height);
+            this.subgui.initGui();
         }
 
-        this.guiLeft = (this.field_146294_l - this.xSize) / 2;
-        this.guiTop = (this.field_146295_m - this.ySize) / 2;
-        this.field_146292_n = Lists.newArrayList();
+        this.guiLeft = (this.width - this.xSize) / 2;
+        this.guiTop = (this.height - this.ySize) / 2;
+        this.buttonList = Lists.newArrayList();
         this.buttons = new ConcurrentHashMap();
         this.topbuttons = new ConcurrentHashMap();
         this.sidebuttons = new ConcurrentHashMap();
@@ -122,16 +123,16 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
         this.components = new ArrayList();
     }
 
-    public void func_73876_c() {
+    public void updateScreen() {
         if (this.subgui != null) {
-            this.subgui.func_73876_c();
+            this.subgui.updateScreen();
         } else {
             Iterator var1 = (new ArrayList(this.textfields.values())).iterator();
 
             while(var1.hasNext()) {
                 GuiNpcTextField tf = (GuiNpcTextField)var1.next();
                 if (tf.enabled) {
-                    tf.func_146178_a();
+                    tf.updateCursorCounter();
                 }
             }
 
@@ -142,26 +143,26 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
                 comp.updateScreen();
             }
 
-            super.func_73876_c();
+            super.updateScreen();
         }
 
     }
 
     public void addExtra(GuiHoverText gui) {
-        gui.func_146280_a(this.field_146297_k, 350, 250);
+        gui.setWorldAndResolution(this.mc, 350, 250);
         this.extra.put(gui.id, gui);
     }
 
-    public void func_73864_a(int i, int j, int k) {
+    public void mouseClicked(int i, int j, int k) {
         if (this.subgui != null) {
-            this.subgui.func_73864_a(i, j, k);
+            this.subgui.mouseClicked(i, j, k);
         } else {
             Iterator var4 = (new ArrayList(this.textfields.values())).iterator();
 
             while(var4.hasNext()) {
                 GuiNpcTextField tf = (GuiNpcTextField)var4.next();
                 if (tf.enabled) {
-                    tf.func_146192_a(i, j, k);
+                    tf.mouseClicked(i, j, k);
                 }
             }
 
@@ -180,22 +181,21 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
 
                 while(var4.hasNext()) {
                     GuiCustomScroll scroll = (GuiCustomScroll)var4.next();
-                    scroll.func_73864_a(i, j, k);
+                    scroll.mouseClicked(i, j, k);
                 }
 
-                var4 = this.field_146292_n.iterator();
+                var4 = this.buttonList.iterator();
 
                 while(var4.hasNext()) {
                     GuiButton guibutton = (GuiButton)var4.next();
-                    if (guibutton.func_146116_c(this.field_146297_k, this.mouseX, this.mouseY)) {
-                        Pre event = new Pre(this, guibutton, this.field_146292_n);
+                    if (guibutton.mousePressed(this.mc, this.mouseX, this.mouseY)) {
+                        Pre event = new Pre(this, guibutton, this.buttonList);
                         if (!MinecraftForge.EVENT_BUS.post(event)) {
-                            guibutton = event.getButton();
                             this.selectedButton = guibutton;
-                            guibutton.func_146113_a(this.field_146297_k.func_147118_V());
-                            this.func_146284_a(guibutton);
-                            if (this.equals(this.field_146297_k.field_71462_r)) {
-                                MinecraftForge.EVENT_BUS.post(new Post(this, event.getButton(), this.field_146292_n));
+                            guibutton.func_146113_a(this.mc.getSoundHandler());
+                            this.actionPerformed(guibutton);
+                            if (this.equals(this.mc.currentScreen)) {
+                                MinecraftForge.EVENT_BUS.post(new Post(this, guibutton, this.buttonList));
                             }
                         }
                         break;
@@ -206,9 +206,9 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
 
     }
 
-    public void func_146286_b(int mouseX, int mouseY, int state) {
+    public void mouseReleased(int mouseX, int mouseY, int state) {
         if (this.selectedButton != null && state == 0) {
-            this.selectedButton.func_146118_a(mouseX, mouseY);
+            this.selectedButton.mouseReleased(mouseX, mouseY);
             this.selectedButton = null;
         }
 
@@ -217,7 +217,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
     public void mouseEvent(int i, int j, int k) {
     }
 
-    protected void func_146284_a(GuiButton guibutton) {
+    protected void actionPerformed(GuiButton guibutton) {
         if (this.subgui != null) {
             this.subgui.buttonEvent(guibutton);
         } else {
@@ -225,13 +225,11 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
         }
 
     }
+    public void buttonEvent(GuiButton guibutton){};
 
-    public void buttonEvent(GuiButton guibutton) {
-    }
-
-    public void func_73869_a(char c, int i) {
+    public void keyTyped(char c, int i) {
         if (this.subgui != null) {
-            this.subgui.func_73869_a(c, i);
+            this.subgui.keyTyped(c, i);
         } else {
             boolean active = false;
             Iterator var4 = this.components.iterator();
@@ -251,7 +249,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
 
                 while(var4.hasNext()) {
                     GuiNpcTextField tf = (GuiNpcTextField)var4.next();
-                    tf.func_146201_a(c, i);
+                    tf.textboxKeyTyped(c, i);
                 }
 
                 var4 = (new ArrayList(this.components)).iterator();
@@ -269,29 +267,29 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
         }
     }
 
-    public void func_146281_b() {
+    public void onGuiClosed() {
         GuiNpcTextField.unfocus();
     }
 
     public void close() {
         this.displayGuiScreen((GuiScreen)null);
-        this.field_146297_k.func_71381_h();
+        this.mc.setIngameFocus();
         this.save();
     }
 
     public void addButton(GuiNpcButton button) {
-        this.buttons.put(button.field_146127_k, button);
-        this.field_146292_n.add(button);
+        this.buttons.put(button.id, button);
+        this.buttonList.add(button);
     }
 
     public void addTopButton(GuiMenuTopButton button) {
-        this.topbuttons.put(button.field_146127_k, button);
-        this.field_146292_n.add(button);
+        this.topbuttons.put(button.id, button);
+        this.buttonList.add(button);
     }
 
     public void addSideButton(GuiMenuSideButton button) {
-        this.sidebuttons.put(button.field_146127_k, button);
-        this.field_146292_n.add(button);
+        this.sidebuttons.put(button.id, button);
+        this.buttonList.add(button);
     }
 
     public GuiNpcButton getButton(int i) {
@@ -307,7 +305,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
     }
 
     public void addTextField(GuiNpcTextField tf) {
-        this.textfields.put(tf.field_175208_g, tf);
+        this.textfields.put(tf.id, tf);
     }
 
     public GuiNpcTextField getTextField(int i) {
@@ -342,8 +340,8 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
     }
 
     public void addSlider(GuiNpcSlider slider) {
-        this.sliders.put(slider.field_146127_k, slider);
-        this.field_146292_n.add(slider);
+        this.sliders.put(slider.id, slider);
+        this.buttonList.add(slider);
     }
 
     public GuiNpcSlider getSlider(int i) {
@@ -351,7 +349,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
     }
 
     public void addScroll(GuiCustomScroll scroll) {
-        scroll.func_146280_a(this.field_146297_k, 350, 250);
+        scroll.setWorldAndResolution(this.mc, 350, 250);
         this.scrolls.put(scroll.id, scroll);
     }
 
@@ -361,7 +359,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
 
     public abstract void save();
 
-    public void func_73863_a(int mouseX, int mouseY, float partialTicks) {
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
         int x = mouseX;
@@ -372,31 +370,31 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
         }
 
         if (this.drawDefaultBackground && this.subgui == null) {
-            this.func_146276_q_();
+            this.drawDefaultBackground();
         }
 
-        if (this.background != null && this.field_146297_k.field_71446_o != null) {
-            GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
-            GlStateManager.func_179094_E();
-            GlStateManager.func_179109_b((float)this.guiLeft, (float)this.guiTop, 0.0F);
-            GlStateManager.func_179152_a(this.bgScale, this.bgScale, this.bgScale);
-            this.field_146297_k.field_71446_o.func_110577_a(this.background);
+        if (this.background != null && this.mc.renderEngine != null) {
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glPushMatrix();
+            GL11.glTranslatef((float) this.guiLeft, (float) this.guiTop, 0.0F);
+            GL11.glScalef(this.bgScale, this.bgScale, this.bgScale);
+            this.mc.renderEngine.bindTexture(this.background);
             if (this.xSize > 256) {
-                this.func_73729_b(0, 0, 0, 0, 250, this.ySize);
-                this.func_73729_b(250, 0, 256 - (this.xSize - 250), 0, this.xSize - 250, this.ySize);
+                this.drawTexturedModalRect(0, 0, 0, 0, 250, this.ySize);
+                this.drawTexturedModalRect(250, 0, 256 - (this.xSize - 250), 0, this.xSize - 250, this.ySize);
             } else {
-                this.func_73729_b(0, 0, 0, 0, this.xSize, this.ySize);
+                this.drawTexturedModalRect(0, 0, 0, 0, this.xSize, this.ySize);
             }
 
-            GlStateManager.func_179121_F();
+            GL11.glPopMatrix();
         }
 
-        this.func_73732_a(this.field_146289_q, this.title, this.field_146294_l / 2, 8, 16777215);
+        this.drawCenteredString(this.fontRendererObj, this.title, this.width / 2, 8, 16777215);
         Iterator var6 = (new ArrayList(this.labels.values())).iterator();
 
         while(var6.hasNext()) {
             GuiNpcLabel label = (GuiNpcLabel)var6.next();
-            label.drawLabel(this, this.field_146289_q);
+            label.drawLabel(this, this.fontRendererObj);
         }
 
         var6 = (new ArrayList(this.textfields.values())).iterator();
@@ -424,18 +422,18 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
 
         while(var6.hasNext()) {
             GuiScreen gui = (GuiScreen)var6.next();
-            gui.func_73863_a(x, y, partialTicks);
+            gui.drawScreen(x, y, partialTicks);
         }
 
-        super.func_73863_a(x, y, partialTicks);
+        super.drawScreen(x, y, partialTicks);
         if (this.subgui != null) {
-            this.subgui.func_73863_a(mouseX, mouseY, partialTicks);
+            this.subgui.drawScreen(mouseX, mouseY, partialTicks);
         }
 
     }
 
     public FontRenderer getFontRenderer() {
-        return this.field_146289_q;
+        return this.fontRendererObj;
     }
 
     public void elementClicked() {
@@ -445,7 +443,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
 
     }
 
-    public boolean func_73868_f() {
+    public boolean doesGuiPauseGame() {
         return false;
     }
 
@@ -453,23 +451,23 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
     }
 
     public boolean isInventoryKey(int i) {
-        return i == this.field_146297_k.field_71474_y.field_151445_Q.func_151463_i();
+        return i == this.mc.gameSettings.keyBindInventory.getKeyCode();
     }
 
-    public void func_146276_q_() {
-        super.func_146276_q_();
+    public void drawDefaultBackground() {
+        super.drawDefaultBackground();
     }
 
     public void displayGuiScreen(GuiScreen gui) {
-        this.field_146297_k.func_147108_a(gui);
+        this.mc.displayGuiScreen(gui);
     }
 
     public void setSubGui(SubGuiInterface gui) {
         this.subgui = gui;
         this.subgui.npc = this.npc;
-        this.subgui.func_146280_a(this.field_146297_k, this.field_146294_l, this.field_146295_m);
+        this.subgui.setWorldAndResolution(this.mc, this.width, this.height);
         this.subgui.parent = this;
-        this.func_73866_w_();
+        this.initGui();
     }
 
     public void closeSubGui(SubGuiInterface gui) {
@@ -489,58 +487,41 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
     }
 
     public void drawNpc(EntityLivingBase entity, int x, int y, float zoomed, int rotation) {
-        EntityNPCInterface npc = null;
-        if (entity instanceof EntityNPCInterface) {
-            npc = (EntityNPCInterface)entity;
-        }
-
-        GlStateManager.func_179131_c(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.func_179142_g();
-        GlStateManager.func_179094_E();
-        GlStateManager.func_179109_b((float)(this.guiLeft + x), (float)(this.guiTop + y), 50.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL11.glColorMaterial(0,1);
+        GL11.glPushMatrix();
+        GL11.glTranslatef((float)(this.guiLeft + x), (float)(this.guiTop + y), 50.0F);
         float scale = 1.0F;
-        if ((double)entity.field_70131_O > 2.4D) {
-            scale = 2.0F / entity.field_70131_O;
+        if ((double)entity.height > 2.4D) {
+            scale = 2.0F / entity.height;
         }
 
-        GlStateManager.func_179152_a(-30.0F * scale * zoomed, 30.0F * scale * zoomed, 30.0F * scale * zoomed);
-        GlStateManager.func_179114_b(180.0F, 0.0F, 0.0F, 1.0F);
-        RenderHelper.func_74519_b();
-        float f2 = entity.field_70761_aq;
-        float f3 = entity.field_70177_z;
-        float f4 = entity.field_70125_A;
-        float f7 = entity.field_70759_as;
+        GL11.glScalef(-30.0F * scale * zoomed, 30.0F * scale * zoomed, 30.0F * scale * zoomed);
+        GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
+        RenderHelper.enableStandardItemLighting();
+        float f2 = entity.renderYawOffset;
+        float f3 = entity.rotationYaw;
+        float f4 = entity.rotationPitch;
+        float f7 = entity.rotationYawHead;
         float f5 = (float)(this.guiLeft + x) - (float)this.mouseX;
         float f6 = (float)(this.guiTop + y) - 50.0F * scale * zoomed - (float)this.mouseY;
-        int orientation = 0;
-        if (npc != null) {
-            orientation = npc.ais.orientation;
-            npc.ais.orientation = rotation;
-        }
 
-        GlStateManager.func_179114_b(135.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.func_179114_b(-135.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.func_179114_b(-((float)Math.atan((double)(f6 / 40.0F))) * 20.0F, 1.0F, 0.0F, 0.0F);
-        entity.field_70761_aq = (float)rotation;
-        entity.field_70177_z = (float)Math.atan((double)(f5 / 80.0F)) * 40.0F + (float)rotation;
-        entity.field_70125_A = -((float)Math.atan((double)(f6 / 40.0F))) * 20.0F;
-        entity.field_70759_as = entity.field_70177_z;
-        this.field_146297_k.func_175598_ae().field_78735_i = 180.0F;
-        this.field_146297_k.func_175598_ae().func_188391_a(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, false);
-        entity.field_70760_ar = entity.field_70761_aq = f2;
-        entity.field_70126_B = entity.field_70177_z = f3;
-        entity.field_70127_C = entity.field_70125_A = f4;
-        entity.field_70758_at = entity.field_70759_as = f7;
-        if (npc != null) {
-            npc.ais.orientation = orientation;
-        }
+        GL11.glRotatef(135.0F, 0.0F, 1.0F, 0.0F);
+        GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
+        GL11.glRotatef(-((float) Math.atan((double) (f6 / 40.0F))) * 20.0F, 1.0F, 0.0F, 0.0F);
+        entity.renderYawOffset = (float)rotation;
+        entity.rotationYaw = (float)Math.atan((double)(f5 / 80.0F)) * 40.0F + (float)rotation;
+        entity.rotationPitch = -((float)Math.atan((double)(f6 / 40.0F))) * 20.0F;
+        entity.rotationYawHead	 = entity.rotationYaw;
+        RenderItem.getInstance().zLevel = 180.0F;
+        RenderItem.getInstance().doRender(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+        entity.prevRenderYawOffset = entity.renderYawOffset = f2;
+        entity.prevRotationYaw = entity.rotationYaw = f3;
+        entity.prevRotationPitch = entity.rotationPitch = f4;
+        entity.prevRotationYawHead = entity.rotationYawHead = f7;
 
-        GlStateManager.func_179121_F();
-        RenderHelper.func_74518_a();
-        GlStateManager.func_179101_C();
-        GlStateManager.func_179138_g(OpenGlHelper.field_77476_b);
-        GlStateManager.func_179090_x();
-        GlStateManager.func_179138_g(OpenGlHelper.field_77478_a);
+        GL11.glPopMatrix();
+        RenderHelper.disableStandardItemLighting();
     }
 
     public void openLink(String link) {
