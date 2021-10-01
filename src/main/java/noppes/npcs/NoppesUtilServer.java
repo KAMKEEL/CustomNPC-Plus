@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
+import net.minecraft.command.ICommandManager;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -25,6 +27,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.rcon.RConConsoleSource;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.MobSpawnerBaseLogic;
 import net.minecraft.tileentity.TileEntity;
@@ -33,6 +36,7 @@ import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
@@ -215,6 +219,25 @@ public class NoppesUtilServer {
         logic.func_145752_a(command);
         logic.func_145754_b("@"+name);
         logic.func_145755_a(executer.worldObj);
+	}
+
+	public static String runCommand(final World world, final BlockPos pos, final String name, String command, EntityPlayer player, final ICommandSender executer) {
+		if (player != null) {
+			command = command.replace("@dp", player.getDisplayName());
+		}
+
+		TileEntityCommandBlock tile = new TileEntityCommandBlock();
+		tile.setWorldObj(world);
+		tile.xCoord = MathHelper.floor_double(pos.getX());
+		tile.yCoord = MathHelper.floor_double(pos.getY());
+		tile.zCoord = MathHelper.floor_double(pos.getZ());
+
+		CommandBlockLogic logic = tile.func_145993_a();
+		logic.func_145752_a(command);
+		logic.func_145754_b("@"+name);
+		logic.func_145755_a(world);
+
+		return logic.func_145749_h().getUnformattedText();
 	}
 	
 	public static void consumeItemStack(int i, EntityPlayer player){

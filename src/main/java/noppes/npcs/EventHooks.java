@@ -12,22 +12,21 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.data.PlayerScriptData;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.PlayerEvent.AttackEvent;
 import noppes.npcs.scripted.event.PlayerEvent.ChatEvent;
 import noppes.npcs.scripted.event.PlayerEvent.ContainerClosed;
 import noppes.npcs.scripted.event.PlayerEvent.ContainerOpen;
 import noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent;
-import noppes.npcs.scripted.event.PlayerEvent.FactionUpdateEvent;
 import noppes.npcs.scripted.event.PlayerEvent.KeyPressedEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LevelUpEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LoginEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LogoutEvent;
 import noppes.npcs.scripted.event.PlayerEvent.PickUpEvent;
 import noppes.npcs.scripted.event.PlayerEvent.TossEvent;
-import noppes.npcs.scripted.wrapper.PlayerWrapper;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.PlayerData;
 
 public class EventHooks {
     public EventHooks() {
@@ -61,13 +60,8 @@ public class EventHooks {
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onPlayerBreak(PlayerScriptData handler, noppes.npcs.scripted.event.PlayerEvent.BreakEvent event) {
-        handler.runScript(EnumScriptType.BROKEN, event);
-        return WrapperNpcAPI.EVENT_BUS.post(event);
-    }
-
     public static boolean onPlayerToss(PlayerScriptData handler, EntityItem entityItem) {
-        TossEvent event = new TossEvent(handler.getPlayer(), NpcAPI.Instance().getIItemStack(entityItem.func_92059_d()));
+        TossEvent event = new TossEvent(handler.getPlayer(), NpcAPI.Instance().getIItemStack(entityItem.getEntityItem()));
         handler.runScript(EnumScriptType.TOSS, event);
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
@@ -79,7 +73,7 @@ public class EventHooks {
     }
 
     public static boolean onPlayerPickUp(PlayerScriptData handler, EntityItem entityItem) {
-        PickUpEvent event = new PickUpEvent(handler.getPlayer(), NpcAPI.Instance().getIItemStack(entityItem.func_92059_d()));
+        PickUpEvent event = new PickUpEvent(handler.getPlayer(), NpcAPI.Instance().getIItemStack(entityItem.getEntityItem()));
         handler.runScript(EnumScriptType.PICKUP, event);
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
@@ -138,13 +132,6 @@ public class EventHooks {
     public static boolean onPlayerDamagedEntity(PlayerScriptData handler, DamagedEntityEvent event) {
         handler.runScript(EnumScriptType.DAMAGED_ENTITY, event);
         return WrapperNpcAPI.EVENT_BUS.post(event);
-    }
-
-    public static void OnPlayerFactionChange(PlayerScriptData handler, FactionUpdateEvent event) {
-        if(!handler.isClient()) {
-            handler.runScript(EnumScriptType.FACTION_UPDATE, event);
-            WrapperNpcAPI.EVENT_BUS.post(event);
-        }
     }
 
     public static void onPlayerKeyPressed(EntityPlayerMP player, int button, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed) {

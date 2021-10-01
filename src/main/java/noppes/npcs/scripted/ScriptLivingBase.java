@@ -21,7 +21,7 @@ import net.minecraft.util.MathHelper;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptLivingBase extends ScriptEntity{
+public class ScriptLivingBase extends ScriptEntity implements IEntityLivingBase{
 	protected EntityLivingBase entity;
 	
 	public ScriptLivingBase(EntityLivingBase entity){

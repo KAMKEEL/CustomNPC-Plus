@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;

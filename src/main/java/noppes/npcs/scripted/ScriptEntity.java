@@ -27,7 +27,7 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptEntity {
+public class ScriptEntity implements IEntity{
 	protected Entity entity;
 	private Map<String,Object> tempData = new HashMap<String,Object>();
 

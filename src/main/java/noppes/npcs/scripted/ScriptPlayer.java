@@ -25,7 +25,7 @@ import noppes.npcs.controllers.QuestData;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.util.ValueUtil;
 
-public class ScriptPlayer extends ScriptLivingBase{
+public class ScriptPlayer extends ScriptLivingBase implements IPlayer{
 	protected EntityPlayerMP player;
 	public ScriptPlayer(EntityPlayerMP player){
 		super(player);

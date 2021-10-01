@@ -1,43 +1,28 @@
 //
 // Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
+// (powered by FernFlower decompiler)
 //
 
 package noppes.npcs.scripted.event;
 
+import cpw.mods.fml.common.eventhandler.Cancelable;
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
-import net.minecraftforge.fml.common.eventhandler.Cancelable;
 import noppes.npcs.scripted.IContainer;
 import noppes.npcs.scripted.IDamageSource;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.block.IBlock;
-import noppes.npcs.scripted.entity.IEntity;
-import noppes.npcs.scripted.entity.IEntityLivingBase;
-import noppes.npcs.scripted.entity.IPlayer;
-import noppes.npcs.scripted.event.CustomNPCsEvent;
-import noppes.npcs.scripted.handler.data.IFaction;
-import noppes.npcs.scripted.item.IItemStack;
+import noppes.npcs.scripted.IEntity;
+import noppes.npcs.scripted.IEntityLivingBase;
+import noppes.npcs.scripted.IPlayer;
+import noppes.npcs.scripted.IItemStack;
 
 public class PlayerEvent extends CustomNPCsEvent {
     public final IPlayer player;
 
     public PlayerEvent(IPlayer player) {
         this.player = player;
-    }
-
-    public static class FactionUpdateEvent extends PlayerEvent {
-        public final IFaction faction;
-        public int points;
-        public boolean init;
-
-        public FactionUpdateEvent(IPlayer player, IFaction faction, int points, boolean init) {
-            super(player);
-            this.faction = faction;
-            this.points = points;
-            this.init = init;
-        }
     }
 
     @Cancelable
@@ -130,7 +115,7 @@ public class PlayerEvent extends CustomNPCsEvent {
         public DiedEvent(IPlayer player, DamageSource damagesource, Entity entity) {
             super(player);
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
-            this.type = damagesource.field_76373_n;
+            this.type = damagesource.getDamageType();
             this.source = NpcAPI.Instance().getIEntity(entity);
         }
     }
@@ -191,18 +176,6 @@ public class PlayerEvent extends CustomNPCsEvent {
         public TossEvent(IPlayer player, IItemStack item) {
             super(player);
             this.item = item;
-        }
-    }
-
-    @Cancelable
-    public static class BreakEvent extends PlayerEvent {
-        public final IBlock block;
-        public int exp;
-
-        public BreakEvent(IPlayer player, IBlock block, int exp) {
-            super(player);
-            this.block = block;
-            this.exp = exp;
         }
     }
 

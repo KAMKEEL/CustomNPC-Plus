@@ -308,4 +308,7 @@ public class CustomNpcs {
         return null;
     }
 
+    public static MinecraftServer getServer(){
+        return MinecraftServer.getServer();
+    }
 }

@@ -98,14 +98,12 @@ import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
-import noppes.npcs.scripted.ScriptEventAttack;
-import noppes.npcs.scripted.ScriptEventDamaged;
-import noppes.npcs.scripted.ScriptEventKilled;
-import noppes.npcs.scripted.ScriptEventTarget;
+import noppes.npcs.scripted.*;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 
 public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData{
+	public ICustomNpc wrappedNPC;
 
 	private static final GameProfileAlt chateventProfile = new GameProfileAlt();
 	private static FakePlayer chateventPlayer;
@@ -132,6 +130,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
+
+	public static FakePlayer CommandPlayer;
 
 	public Faction faction; //should only be used server side
 	
@@ -170,6 +170,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setFaction(faction.id);
 			setSize(1, 1);
 			this.updateTasks();
+
+			if (!this.isRemote()) {
+				this.wrappedNPC = new ScriptNpc(this);
+			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -1512,7 +1516,18 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		display.readToNBT(compound);
 	}
-	
+
+	public Entity func_174793_f() {
+		if (this.worldObj.isRemote) {
+			return this;
+		} else {
+			EntityUtil.Copy(this, CommandPlayer);
+			CommandPlayer.setWorld(this.worldObj);
+			CommandPlayer.setPosition(this.posX, this.posY, this.posZ);
+			return CommandPlayer;
+		}
+	}
+
 	@Override
 	public String getCommandSenderName() {
 		return display.name;

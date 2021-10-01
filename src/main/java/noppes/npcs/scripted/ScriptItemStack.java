@@ -14,7 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 
-public class ScriptItemStack {
+public class ScriptItemStack implements IItemStack {
 	protected ItemStack item;
 	
 	public ScriptItemStack(ItemStack item){

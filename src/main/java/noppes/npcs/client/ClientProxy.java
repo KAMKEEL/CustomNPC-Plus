@@ -96,6 +96,7 @@ import noppes.npcs.client.gui.roles.GuiNpcFollowerSetup;
 import noppes.npcs.client.gui.roles.GuiNpcItemGiver;
 import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
+import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
@@ -141,6 +142,7 @@ import noppes.npcs.containers.ContainerNPCTraderSetup;
 import noppes.npcs.containers.ContainerNpcItemGiver;
 import noppes.npcs.containers.ContainerNpcQuestReward;
 import noppes.npcs.containers.ContainerNpcQuestTypeItem;
+import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.entity.*;
 
 import org.lwjgl.input.Keyboard;
@@ -266,6 +268,20 @@ public class ClientProxy extends CommonProxy {
 		((IReloadableResourceManager)Minecraft.getMinecraft().getResourceManager()).registerReloadListener(new CustomNpcResourceListener());
 	}
 
+	public static PlayerData playerData = new PlayerData();
+	@Override
+	public PlayerData getPlayerData(EntityPlayer player) {
+		if (player.getUniqueID() == Minecraft.getMinecraft().thePlayer.getUniqueID()) {
+			if (playerData.player != player) {
+				playerData.player = player;
+			}
+
+			return playerData;
+		} else {
+			return null;
+		}
+	}
+
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		
@@ -369,7 +385,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNpcRemoteEditor();
 
 		else if(gui == EnumGuiType.ScriptEvent && Minecraft.getMinecraft().currentScreen == null)
-			return new GuiScriptEvent();
+			return new GuiScriptGlobal();
 
 		else if(gui == EnumGuiType.PlayerMailman)
 			return new GuiMailmanWrite((ContainerMail) container, x == 1, y == 1);

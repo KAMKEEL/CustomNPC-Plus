@@ -26,13 +26,17 @@ import noppes.npcs.blocks.tiles.TileSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 
-public class ScriptWorld{
+public class ScriptWorld implements IWorld{
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
-	protected WorldServer world;
+	public WorldServer world;
 	public ScriptWorld(WorldServer world){
 		this.world = world;
 	}
-	
+
+	public static ScriptWorld createNew(WorldServer world) {
+		return new ScriptWorld(world);
+	}
+
 	/**
 	 * @return The worlds time
 	 */

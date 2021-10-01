@@ -28,6 +28,7 @@ import noppes.npcs.containers.ContainerNPCTraderSetup;
 import noppes.npcs.containers.ContainerNpcItemGiver;
 import noppes.npcs.containers.ContainerNpcQuestReward;
 import noppes.npcs.containers.ContainerNpcQuestTypeItem;
+import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import cpw.mods.fml.common.network.IGuiHandler;
 
@@ -39,6 +40,10 @@ public class CommonProxy implements IGuiHandler {
 	public void load() {
 		CustomNpcs.Channel.register(new PacketHandlerServer());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
+	}
+
+	public PlayerData getPlayerData(EntityPlayer player) {
+		return null;
 	}
 
 	@Override
