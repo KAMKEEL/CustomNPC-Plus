@@ -70,10 +70,14 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
         top.active = true;
         if(this.activeTab > 0) {
             EventScriptContainer var7 = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            GuiTextArea left = new GuiTextArea(2, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
-            //left.enableCodeHighlighting();
-            //left.setListener(this);
+            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
             this.add(left);
+            /*
+            GuiTextArea left = new GuiTextArea(2, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
+            left.enableCodeHighlighting();
+            left.setListener(this);
+            this.add(left);
+            */
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
@@ -90,9 +94,14 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
 
             this.addScroll(scroll);
         } else {
+            GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int)((float)this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
+            var8.enabled = false;
+            this.add(var8);
+            /*
             GuiTextArea var8 = new GuiTextArea(2, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int)((float)this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
             var8.enabled = false;
             this.add(var8);
+            */
             int var9 = this.guiLeft + this.xSize - 150;
             this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));

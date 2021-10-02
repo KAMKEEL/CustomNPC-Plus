@@ -17,7 +17,6 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.EntityLivingBase;
@@ -243,7 +242,7 @@ public abstract class EventGuiNPCInterface extends GuiScreen {
                 }
             }
 
-            active = active || GuiNpcTextField.isActive();
+            active = active || GuiNpcTextField.isFieldActive();
             if (!this.closeOnEsc || i != 1 && (active || !this.isInventoryKey(i))) {
                 var4 = (new ArrayList(this.textfields.values())).iterator();
 
