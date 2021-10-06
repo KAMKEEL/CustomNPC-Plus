@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.world.World;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -59,11 +58,10 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
         for (Object name : data.keySet()) {
             Class<?> c = (Class<?>) data.get(name);
             try {
-                if (EntityLivingBase.class.isAssignableFrom(c) && !EntityNPCInterface.class.isAssignableFrom(c) && c.getConstructor(new Class[]{World.class}) != null && !Modifier.isAbstract(c.getModifiers()))
+                if (EntityLivingBase.class.isAssignableFrom(c) && !EntityNPCInterface.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers()))
                     list.add(name.toString());
             } catch (SecurityException e) {
                 e.printStackTrace();
-            } catch (NoSuchMethodException e) {
             }
         }
         if (scroll == null)

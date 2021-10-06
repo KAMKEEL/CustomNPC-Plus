@@ -30,7 +30,7 @@ import noppes.npcs.entity.old.*;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.2.1")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.2.3")
 public class CustomNpcs {
 
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];

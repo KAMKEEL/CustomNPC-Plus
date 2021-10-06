@@ -115,8 +115,7 @@ public class ScriptController {
     }
 
     private String readFile(File file) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        try {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
 
@@ -126,8 +125,6 @@ public class ScriptController {
                 line = br.readLine();
             }
             return sb.toString();
-        } finally {
-            br.close();
         }
     }
 

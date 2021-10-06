@@ -5,7 +5,7 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 public class GuiButtonNextPage extends GuiNpcButton {
-    private static final String __OBFID = "CL_00000745";
+
     private static final ResourceLocation field_110405_a = new ResourceLocation("textures/gui/book.png");
     private final boolean field_146151_o;
 

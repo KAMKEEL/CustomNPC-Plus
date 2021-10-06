@@ -90,7 +90,7 @@ public class NBTJsonUtil {
             if (list.func_150303_d() == 3) {
                 int[] arr = new int[list.tagCount()];
                 for (int i = 0; list.tagCount() > 0; i++) {
-                    arr[i] = ((NBTTagInt) list.removeTag(0)).getInt();
+                    arr[i] = ((NBTTagInt) list.removeTag(0)).func_150287_d(); // get int
                 }
                 return new NBTTagIntArray(arr);
             }
