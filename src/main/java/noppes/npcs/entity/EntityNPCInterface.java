@@ -106,7 +106,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public ICustomNpc wrappedNPC;
 
 	private static final GameProfileAlt chateventProfile = new GameProfileAlt();
-	private static FakePlayer chateventPlayer;
+	public static FakePlayer chateventPlayer;
 	public DataDisplay display;
 	public DataStats stats;
 	public DataAI ai;

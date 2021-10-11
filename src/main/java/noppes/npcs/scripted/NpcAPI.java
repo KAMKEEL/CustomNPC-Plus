@@ -62,7 +62,7 @@ public abstract class NpcAPI {
             return null;
         } else {
             try {
-                Class c = Class.forName("noppes.npcs.api.wrapper.WrapperNpcAPI");
+                Class c = Class.forName("noppes.npcs.scripted.wrapper.WrapperNpcAPI");
                 instance = (NpcAPI) c.getMethod("Instance").invoke((Object) null);
             } catch (Exception var1) {
                 var1.printStackTrace();

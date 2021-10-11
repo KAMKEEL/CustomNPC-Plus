@@ -10,23 +10,32 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.google.common.base.Preconditions;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
-import noppes.npcs.EventScriptContainer;
+import noppes.npcs.PlayerScriptContainer;
 import noppes.npcs.NBTTags;
 import noppes.npcs.scripted.ScriptPlayer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.ScriptWorld;
+import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.constants.JobType;
+import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.event.PlayerEvent;
 
 import javax.annotation.CheckForNull;
+import javax.script.ScriptEngine;
 
-public class PlayerScriptData implements IScriptHandler {
-    public List<EventScriptContainer> scripts = new ArrayList();
-    private String scriptLanguage = "ECMAScript";
+public class PlayerDataScript implements IScriptHandler {
+    public List<PlayerScriptContainer> scripts = new ArrayList();
+    public String scriptLanguage = "ECMAScript";
     private EntityPlayer player;
     private ScriptPlayer playerAPI;
     private long lastPlayerUpdate = 0L;
@@ -36,8 +45,20 @@ public class PlayerScriptData implements IScriptHandler {
     private static Map<Long, String> console = new TreeMap();
     private static List<Integer> errored = new ArrayList();
 
-    public PlayerScriptData(EntityPlayer player) {
-        this.player = player;
+    public ScriptPlayer dummyPlayer;
+    public ScriptWorld dummyWorld;
+    private final static EntityType entities = new EntityType();
+    private final static JobType jobs = new JobType();
+    private final static RoleType roles = new RoleType();
+
+    public PlayerDataScript(EntityPlayer player) {
+        if(player != null) {
+            this.player = player;
+            if (player instanceof EntityPlayer)
+                dummyPlayer = new ScriptPlayer((EntityPlayerMP) player);
+            if (player.worldObj instanceof WorldServer)
+                dummyWorld = new ScriptWorld((WorldServer) player.worldObj);
+        }
     }
 
     public void clear() {
@@ -61,9 +82,9 @@ public class PlayerScriptData implements IScriptHandler {
         return compound;
     }
 
-    public void runScript(EnumScriptType type, Event event) {
+    public void callScript(EnumScriptType type, Event event, Object... obs) {
         if(this.isEnabled()) {
-            EventScriptContainer script;
+            PlayerScriptContainer script;
             if(ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 errored.clear();
@@ -72,9 +93,10 @@ public class PlayerScriptData implements IScriptHandler {
                     Iterator i = ScriptController.Instance.playerScripts.scripts.iterator();
 
                     while(i.hasNext()) {
-                        script = ( EventScriptContainer)i.next();
-                         EventScriptContainer s = new  EventScriptContainer(this);
+                        script = (PlayerScriptContainer)i.next();
+                        PlayerScriptContainer s = new PlayerScriptContainer(this);
                         s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
+
                         this.scripts.add(s);
                     }
                 }
@@ -86,23 +108,34 @@ public class PlayerScriptData implements IScriptHandler {
             }
 
             for(int var7 = 0; var7 < this.scripts.size(); ++var7) {
-                script = (EventScriptContainer)this.scripts.get(var7);
+                script = (PlayerScriptContainer)this.scripts.get(var7);
+
+                if(!script.type.equals(type.function))
+                    continue;
+
                 if(!errored.contains(Integer.valueOf(var7))) {
-                    script.run(type, event);
-                    if(script.errored) {
-                        errored.add(Integer.valueOf(var7));
+                    if(script == null || script.errored || !script.hasCode())
+                        return;
+                    script.setEngine(scriptLanguage);
+                    if(script.engine == null)
+                        return;
+                    for(int i = 0; i + 1 < obs.length; i += 2){
+                        Object ob = obs[i + 1];
+                        if(ob instanceof Entity)
+                            ob = ScriptController.Instance.getScriptForEntity((Entity)ob);
+                        script.engine.put(obs[i].toString(), ob);
                     }
 
-                    Iterator var8 = script.console.entrySet().iterator();
-
-                    while(var8.hasNext()) {
-                        Entry entry = (Entry)var8.next();
-                        if(!console.containsKey(entry.getKey())) {
-                            console.put((Long)entry.getKey(), " tab " + (var7 + 1) + ":\n" + (String)entry.getValue());
-                        }
-                    }
-
-                    script.console.clear();
+                    ScriptEngine engine = script.engine;
+                    engine.put("player", dummyPlayer);
+                    engine.put("world", dummyWorld);
+                    PlayerEvent result = (PlayerEvent) engine.get("event");
+                    if(result == null)
+                        engine.put("event", result = new PlayerEvent(this.getPlayer()));
+                    engine.put("EntityType", entities);
+                    engine.put("RoleType", roles);
+                    engine.put("JobType", jobs);
+                    script.run(engine);
                 }
             }
 
@@ -133,83 +166,83 @@ public class PlayerScriptData implements IScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public List<EventScriptContainer> getScripts() {
+    public List<PlayerScriptContainer> getScripts() {
         return this.scripts;
     }
 
     public static final class ToStringHelper {
         private final String className;
-        private final PlayerScriptData.ToStringHelper.ValueHolder holderHead;
-        private PlayerScriptData.ToStringHelper.ValueHolder holderTail;
+        private final PlayerDataScript.ToStringHelper.ValueHolder holderHead;
+        private PlayerDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
         private boolean omitEmptyValues;
 
         private ToStringHelper(String className) {
-            this.holderHead = new PlayerScriptData.ToStringHelper.ValueHolder();
+            this.holderHead = new PlayerDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
             this.className = (String) Preconditions.checkNotNull(className);
         }
 
-        public PlayerScriptData.ToStringHelper omitNullValues() {
+        public PlayerDataScript.ToStringHelper omitNullValues() {
             this.omitNullValues = true;
             return this;
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, @CheckForNull Object value) {
+        public PlayerDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
             return this.addHolder(name, value);
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, boolean value) {
+        public PlayerDataScript.ToStringHelper add(String name, boolean value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, char value) {
+        public PlayerDataScript.ToStringHelper add(String name, char value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, double value) {
+        public PlayerDataScript.ToStringHelper add(String name, double value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, float value) {
+        public PlayerDataScript.ToStringHelper add(String name, float value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, int value) {
+        public PlayerDataScript.ToStringHelper add(String name, int value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper add(String name, long value) {
+        public PlayerDataScript.ToStringHelper add(String name, long value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper addValue(@CheckForNull Object value) {
+        public PlayerDataScript.ToStringHelper addValue(@CheckForNull Object value) {
             return this.addHolder(value);
         }
 
-        public PlayerScriptData.ToStringHelper addValue(boolean value) {
+        public PlayerDataScript.ToStringHelper addValue(boolean value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper addValue(char value) {
+        public PlayerDataScript.ToStringHelper addValue(char value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper addValue(double value) {
+        public PlayerDataScript.ToStringHelper addValue(double value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper addValue(float value) {
+        public PlayerDataScript.ToStringHelper addValue(float value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper addValue(int value) {
+        public PlayerDataScript.ToStringHelper addValue(int value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
 
-        public PlayerScriptData.ToStringHelper addValue(long value) {
+        public PlayerDataScript.ToStringHelper addValue(long value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
 
@@ -243,9 +276,9 @@ public class PlayerScriptData implements IScriptHandler {
             String nextSeparator = "";
             StringBuilder builder = (new StringBuilder(32)).append(this.className).append('{');
 
-            for(PlayerScriptData.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
+            for(PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
                 Object value = valueHolder.value;
-                if (!(valueHolder instanceof PlayerScriptData.ToStringHelper.UnconditionalValueHolder)) {
+                if (!(valueHolder instanceof PlayerDataScript.ToStringHelper.UnconditionalValueHolder)) {
                     if (value == null) {
                         if (omitNullValuesSnapshot) {
                             continue;
@@ -273,45 +306,45 @@ public class PlayerScriptData implements IScriptHandler {
             return builder.append('}').toString();
         }
 
-        private PlayerScriptData.ToStringHelper.ValueHolder addHolder() {
-            PlayerScriptData.ToStringHelper.ValueHolder valueHolder = new PlayerScriptData.ToStringHelper.ValueHolder();
+        private PlayerDataScript.ToStringHelper.ValueHolder addHolder() {
+            PlayerDataScript.ToStringHelper.ValueHolder valueHolder = new PlayerDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
 
-        private PlayerScriptData.ToStringHelper addHolder(@CheckForNull Object value) {
-            PlayerScriptData.ToStringHelper.ValueHolder valueHolder = this.addHolder();
+        private PlayerDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
+            PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             return this;
         }
 
-        private PlayerScriptData.ToStringHelper addHolder(String name, @CheckForNull Object value) {
-            PlayerScriptData.ToStringHelper.ValueHolder valueHolder = this.addHolder();
+        private PlayerDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
+            PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             valueHolder.name = (String)Preconditions.checkNotNull(name);
             return this;
         }
 
-        private PlayerScriptData.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
-            PlayerScriptData.ToStringHelper.UnconditionalValueHolder valueHolder = new PlayerScriptData.ToStringHelper.UnconditionalValueHolder();
+        private PlayerDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
+            PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new PlayerDataScript.ToStringHelper.UnconditionalValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
 
-        private PlayerScriptData.ToStringHelper addUnconditionalHolder(Object value) {
-            PlayerScriptData.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
+        private PlayerDataScript.ToStringHelper addUnconditionalHolder(Object value) {
+            PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             return this;
         }
 
-        private PlayerScriptData.ToStringHelper addUnconditionalHolder(String name, Object value) {
-            PlayerScriptData.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
+        private PlayerDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
+            PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             valueHolder.name = (String)Preconditions.checkNotNull(name);
             return this;
         }
 
-        private static final class UnconditionalValueHolder extends PlayerScriptData.ToStringHelper.ValueHolder {
+        private static final class UnconditionalValueHolder extends PlayerDataScript.ToStringHelper.ValueHolder {
             private UnconditionalValueHolder() {
                 super();
             }
@@ -323,15 +356,15 @@ public class PlayerScriptData implements IScriptHandler {
             @CheckForNull
             Object value;
             @CheckForNull
-            PlayerScriptData.ToStringHelper.ValueHolder next;
+            PlayerDataScript.ToStringHelper.ValueHolder next;
 
             private ValueHolder() {
             }
         }
     }
 
-    public static PlayerScriptData.ToStringHelper toStringHelper(Object self) {
-        return new PlayerScriptData.ToStringHelper(self.getClass().getSimpleName());
+    public static PlayerDataScript.ToStringHelper toStringHelper(Object self) {
+        return new PlayerDataScript.ToStringHelper(self.getClass().getSimpleName());
     }
 
     public String noticeString() {
@@ -339,7 +372,7 @@ public class PlayerScriptData implements IScriptHandler {
             return "Global script";
         } else {
             BlockPos pos = new BlockPos(this.player);
-            return PlayerScriptData.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
+            return PlayerDataScript.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
     }
 

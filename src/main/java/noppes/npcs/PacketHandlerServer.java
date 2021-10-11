@@ -135,7 +135,7 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptPlayerGet) {
 			compound = ScriptController.Instance.playerScripts.writeToNBT(new NBTTagCompound());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
 			ScriptController.Instance.setPlayerScripts(Server.readNBT(buffer));
 		}

@@ -482,7 +482,7 @@ playerscript.logout=Logout
 playerscript.pickup=Pickup
 playerscript.rangedlaunched=Range Launched
 playerscript.toss=Toss
-playerscript.update=Update
+playerscript.tick=Update
 
 item.npcWand.name=Npc Wand
 item.npcMobCloner.name=Mob Cloner

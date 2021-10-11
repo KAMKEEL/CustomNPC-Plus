@@ -111,13 +111,29 @@ public class DataScript {
 			script.engine.put(obs[i].toString(), ob);
 		}
 
-		return callScript(script);
+		//return callScript(script);
+		ScriptEngine engine = script.engine;
+		engine.put("npc", dummyNpc);
+		engine.put("world", dummyWorld);
+		ScriptEvent result = (ScriptEvent) engine.get("event");
+		if(result == null)
+			engine.put("event", result = new ScriptEvent());
+		engine.put("EntityType", entities);
+		engine.put("RoleType", roles);
+		engine.put("JobType", jobs);
+		script.run(engine);
+
+		if(clientNeedsUpdate){
+			npc.updateClient = true;
+			clientNeedsUpdate = false;
+		}
+		if(aiNeedsUpdate){
+			npc.updateAI = true;
+			aiNeedsUpdate = false;
+		}
+		return result.isCancelled();
 	}
-	
-	public boolean isEnabled(){
-		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
-	}
-	
+	/*
 	private boolean callScript(ScriptContainer script){
 		ScriptEngine engine = script.engine;
 		engine.put("npc", dummyNpc);
@@ -129,7 +145,7 @@ public class DataScript {
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);
 		script.run(engine);
-		
+
 		if(clientNeedsUpdate){
 			npc.updateClient = true;
 			clientNeedsUpdate = false;
@@ -139,6 +155,11 @@ public class DataScript {
 			aiNeedsUpdate = false;
 		}
 		return result.isCancelled();
+	}
+	*/
+	
+	public boolean isEnabled(){
+		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
 	}
 
 	public void setWorld(World world) {

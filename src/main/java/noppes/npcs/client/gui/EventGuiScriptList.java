@@ -4,23 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.world.biome.BiomeGenBase;
-import noppes.npcs.EventScriptContainer;
+import noppes.npcs.PlayerScriptContainer;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.entity.EntityNPCInterface;
 
 public class EventGuiScriptList extends SubGuiInterface{
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
-    private EventScriptContainer container;
+    private PlayerScriptContainer container;
     private List<String> scripts;
 
-    public EventGuiScriptList(List<String> scripts, EventScriptContainer container){
+    public EventGuiScriptList(List<String> scripts, PlayerScriptContainer container){
         this.container = container;
         setBackground("menubg.png");
         xSize = 346;

@@ -59,6 +59,7 @@ import noppes.npcs.entity.old.EntityNpcMonsterMale;
 import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.2.1")
 public class CustomNpcs {
@@ -173,8 +174,10 @@ public class CustomNpcs {
         NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy);
 
         MinecraftForge.EVENT_BUS.register(new ServerEventsHandler());
+        //MinecraftForge.EVENT_BUS.register((new ScriptPlayerEventHandler()).registerForgeEvents());
         MinecraftForge.EVENT_BUS.register(new ScriptController());
 
+        FMLCommonHandler.instance().bus().register(new ScriptPlayerEventHandler());
 		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
         
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");
@@ -244,7 +247,10 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         ScriptController.Instance.loadStoredData();
+        ScriptController.Instance.loadForgeScripts();
+        ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
+        WrapperNpcAPI.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){

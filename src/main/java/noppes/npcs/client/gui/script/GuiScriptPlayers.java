@@ -9,10 +9,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.data.PlayerScriptData;
+import noppes.npcs.controllers.data.PlayerDataScript;
 
 public class GuiScriptPlayers extends GuiScriptInterface {
-    private PlayerScriptData script = new PlayerScriptData((EntityPlayer)null);
+    private PlayerDataScript script = new PlayerDataScript((EntityPlayer)null);
 
     public GuiScriptPlayers() {
         this.handler = this.script;

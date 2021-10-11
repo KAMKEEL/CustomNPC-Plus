@@ -18,14 +18,16 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.EventScriptContainer;
+import noppes.npcs.PlayerScriptContainer;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 
-public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener {
+public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener {
     private int activeTab = 0;
     public IScriptHandler handler;
     public Map<String, List<String>> languages = new HashMap();
@@ -38,7 +40,7 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
     }
 
     public void initGui() {
-        this.xSize = (int)((double)this.width * 0.88D);
+        //this.xSize = (int)((double)this.width * 0.88D);
         this.ySize = (int)((double)this.xSize * 0.56D);
         if((double)this.ySize > (double)this.height * 0.95D) {
             this.ySize = (int)((double)this.height * 0.95D);
@@ -53,7 +55,7 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
         this.addTopButton(top = new GuiMenuTopButton(0, this.guiLeft + 4, this.guiTop - 17, "gui.settings"));
 
         for(int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
-            EventScriptContainer var10000 = (EventScriptContainer)this.handler.getScripts().get(ta);
+            PlayerScriptContainer var10000 = (PlayerScriptContainer)this.handler.getScripts().get(ta);
             this.addTopButton(top = new GuiMenuTopButton(ta + 1, top, ta + 1 + ""));
         }
 
@@ -67,17 +69,43 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
             top = this.getTopButton(0);
         }
 
+        List<String> list = new ArrayList<String>();
+        list.add("playerscript.init");
+        list.add("playerscript.tick");
+        list.add("playerscript.interact");
+        list.add("playerscript.damaged");
+        list.add("playerscript.killed");
+        list.add("playerscript.attack");
+        list.add("playerscript.kills");
+        list.add("playerscript.chat");
+        list.add("playerscript.toss");
+        list.add("playerscript.containeropen");
+        list.add("playerscript.containerclosed");
+        list.add("playerscript.login");
+        list.add("playerscript.logout");
+        list.add("playerscript.chat");
+        list.add("playerscript.damagedentity");
+        list.add("playerscript.factionupdate");
+        list.add("playerscript.keypressed");
+        list.add("playerscript.levelup");
+        list.add("playerscript.pickup");
+        list.add("playerscript.rangedlaunched");
+        //list.add("playerscript.break");
+
         top.active = true;
         if(this.activeTab > 0) {
-            EventScriptContainer var7 = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
-            this.add(left);
-            /*
-            GuiTextArea left = new GuiTextArea(2, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
-            left.enableCodeHighlighting();
-            left.setListener(this);
-            this.add(left);
-            */
+            addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft + 4, guiTop + 5));
+            GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
+            hooks.setSize(68, 198);
+            hooks.guiLeft = guiLeft + 4;
+            hooks.guiTop = guiTop + 14;
+            hooks.setUnsortedList(list);
+            hooks.selected = getScriptHook(this.handler.getScripts().get(this.activeTab - 1),list);
+            addScroll(hooks);
+
+            PlayerScriptContainer var7 = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + 72 + yoffset, this.guiTop + yoffset, this.xSize - 180 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
+            this.addTextField(left);
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
@@ -96,12 +124,7 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
         } else {
             GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int)((float)this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
             var8.enabled = false;
-            this.add(var8);
-            /*
-            GuiTextArea var8 = new GuiTextArea(2, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int)((float)this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
-            var8.enabled = false;
-            this.add(var8);
-            */
+            this.addTextField(var8);
             int var9 = this.guiLeft + this.xSize - 150;
             this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));
@@ -122,6 +145,20 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
 
         this.xSize = 420;
         this.ySize = 256;
+    }
+
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
+        this.handler.getScripts().get(this.activeTab - 1).setType(scroll.getSelected().replace("playerscript.",""));
+    }
+
+    private int getScriptHook(PlayerScriptContainer playerScriptContainer, List<String> list) {
+        for(String s : list) {
+            if (s.replace("playerscript.", "").equals(playerScriptContainer.type)) {
+                return list.indexOf(s);
+            }
+        }
+        return 0;
     }
 
     private String getConsoleText() {
@@ -185,7 +222,7 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
         }
 
         if(guibutton.id == 12) {
-            this.handler.getScripts().add(new EventScriptContainer(this.handler));
+            this.handler.getScripts().add(new PlayerScriptContainer(this.handler));
             this.activeTab = this.handler.getScripts().size();
             this.initGui();
         }
@@ -207,17 +244,17 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
         }
 
         if(guibutton.id == 100) {
-            NoppesStringUtils.setClipboardContents(((GuiTextArea)this.get(2)).getText());
+            NoppesStringUtils.setClipboardContents((this.getTextField(2)).getText());
         }
 
         if(guibutton.id == 101) {
-            ((GuiTextArea)this.get(2)).setText(NoppesStringUtils.getClipboardContents());
+            (this.getTextField(2)).setText(NoppesStringUtils.getClipboardContents());
         }
 
-        EventScriptContainer container;
+        PlayerScriptContainer container;
         if(guibutton.id == 102) {
             if(this.activeTab > 0) {
-                container = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+                container = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
                 container.script = "";
             } else {
                 this.handler.clearConsole();
@@ -244,18 +281,19 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
         }
 
         if(guibutton.id == 107) {
-            container = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+            container = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
             if(container == null) {
-                this.handler.getScripts().add(container = new EventScriptContainer(this.handler));
+                this.handler.getScripts().add(container = new PlayerScriptContainer(this.handler));
             }
 
             this.setSubGui(new EventGuiScriptList((List)this.languages.get(this.handler.getLanguage()), container));
         }
 
         if(guibutton.id == 108) {
-            container = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+            container = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
             if(container != null) {
                 this.setScript();
+                this.AWTWindow = new GuiJTextArea(container.script).setListener(this);
             }
         }
 
@@ -263,12 +301,12 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
 
     private void setScript() {
         if(this.activeTab > 0) {
-            EventScriptContainer container = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+            PlayerScriptContainer container = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
             if(container == null) {
-                this.handler.getScripts().add(container = new EventScriptContainer(this.handler));
+                this.handler.getScripts().add(container = new PlayerScriptContainer(this.handler));
             }
 
-            String text = ((GuiTextArea)this.get(2)).getText();
+            String text = (this.getTextField(2)).getText();
             text = text.replace("\r\n", "\n");
             text = text.replace("\r", "\n");
             container.script = text;
@@ -301,10 +339,18 @@ public class GuiScriptInterface extends EventGuiNPCInterface implements GuiYesNo
     }
 
     public void textUpdate(String text) {
-        EventScriptContainer container = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+        PlayerScriptContainer container = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
         if(container != null) {
             container.script = text;
         }
 
+    }
+
+    @Override
+    public void saveText(String text) {
+        PlayerScriptContainer container = handler.getScripts().get(activeTab);
+        if(container != null)
+            container.script = text;
+        initGui();
     }
 }

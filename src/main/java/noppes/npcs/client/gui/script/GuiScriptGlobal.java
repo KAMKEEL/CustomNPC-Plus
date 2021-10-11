@@ -11,7 +11,7 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import org.lwjgl.opengl.GL11;
 
-public class GuiScriptGlobal extends EventGuiNPCInterface {
+public class GuiScriptGlobal extends GuiNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
 
     public GuiScriptGlobal() {

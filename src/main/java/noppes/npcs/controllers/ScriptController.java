@@ -28,7 +28,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.controllers.data.PlayerScriptData;
+import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptAnimal;
 import noppes.npcs.scripted.ScriptEntity;
@@ -56,8 +57,10 @@ public class ScriptController {
 	private boolean loaded = false;
 	public boolean shouldSave = false;
 
-	public PlayerScriptData playerScripts = new PlayerScriptData((EntityPlayer)null);
+	public PlayerDataScript playerScripts = new PlayerDataScript((EntityPlayer)null);
 	public long lastPlayerUpdate = 0L;
+
+	public ForgeDataScript forgeScripts = new ForgeDataScript();
 
 	public ScriptController(){
 		loaded = false;
@@ -74,8 +77,44 @@ public class ScriptController {
 		}
 	}
 
+	private File forgeScriptsFile() {
+		return new File(this.dir, "forge_scripts.json");
+	}
+
+	public boolean loadForgeScripts() {
+		this.forgeScripts.clear();
+		File file = this.forgeScriptsFile();
+
+		try {
+			if(!file.exists()) {
+				return false;
+			} else {
+				this.forgeScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+				return true;
+			}
+		} catch (Exception var3) {
+			LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
+			return false;
+		}
+	}
+
+	public void setForgeScripts(NBTTagCompound compound) {
+		this.forgeScripts.readFromNBT(compound);
+		File file = this.forgeScriptsFile();
+
+		try {
+			NBTJsonUtil.SaveFile(file, compound);
+			this.forgeScripts.lastInited = -1L;
+		} catch (IOException var4) {
+			var4.printStackTrace();
+		} catch (JsonException var5) {
+			var5.printStackTrace();
+		}
+
+	}
+
 	private File playerScriptsFile() {
-		return new File(this.dir, "player_scripts.json");
+		return new File(dir, "player_scripts.json");
 	}
 
 	public boolean loadPlayerScripts() {
@@ -87,6 +126,7 @@ public class ScriptController {
 				return false;
 			} else {
 				this.playerScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+				shouldSave = false;
 				return true;
 			}
 		} catch (Exception var3) {
@@ -107,7 +147,6 @@ public class ScriptController {
 		} catch (JsonException var5) {
 			var5.printStackTrace();
 		}
-
 	}
 
 	private void loadCategories(){
