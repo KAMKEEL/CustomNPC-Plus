@@ -272,11 +272,12 @@ public class ScriptPlayerEventHandler {
     }
     */
 
+    /*
     @SubscribeEvent(
             priority = EventPriority.HIGHEST
     )
     public void invoke(ServerChatEvent event) {
-        if(event.player.worldObj instanceof WorldServer && event.player != EntityNPCInterface.chateventPlayer) {
+        if(event.player.getEntityWorld() instanceof WorldServer && event.player != EntityNPCInterface.chateventPlayer) {
             PlayerDataScript handler = PlayerData.get(event.player).scriptData;
             String message = event.message;
             noppes.npcs.scripted.event.PlayerEvent.ChatEvent ev = new noppes.npcs.scripted.event.PlayerEvent.ChatEvent(handler.getPlayer(), event.message);
@@ -289,6 +290,7 @@ public class ScriptPlayerEventHandler {
             }
         }
     }
+    */
 
     public ScriptPlayerEventHandler registerForgeEvents() {
         ScriptPlayerEventHandler.ForgeEventHandler handler = new ScriptPlayerEventHandler.ForgeEventHandler();

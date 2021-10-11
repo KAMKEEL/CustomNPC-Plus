@@ -86,7 +86,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         list.add("playerscript.chat");
         list.add("playerscript.damagedentity");
         list.add("playerscript.factionupdate");
-        list.add("playerscript.keypressed");
+        list.add("playerscript.keyPressed");
         list.add("playerscript.levelup");
         list.add("playerscript.pickup");
         list.add("playerscript.rangedlaunched");

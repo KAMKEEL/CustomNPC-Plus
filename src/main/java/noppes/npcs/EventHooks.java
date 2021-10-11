@@ -149,7 +149,7 @@ public class EventHooks {
     public static void onPlayerKeyPressed(EntityPlayerMP player, int button, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed) {
         PlayerDataScript handler = PlayerData.get(player).scriptData;
         KeyPressedEvent event = new KeyPressedEvent(handler.getPlayer(), button, isCtrlPressed, isAltPressed, isShiftPressed, isMetaPressed);
-        handler.callScript(EnumScriptType.KEY_PRESSED, event);
+        handler.callScript(EnumScriptType.KEY_PRESSED, event, "key", button, "isCtrlPressed", isCtrlPressed, "isAltPressed", isAltPressed, "isShiftPressed", isShiftPressed, "isMetaPressed", isMetaPressed);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
