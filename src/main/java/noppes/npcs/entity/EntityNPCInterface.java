@@ -3,7 +3,6 @@ package noppes.npcs.entity;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,7 +27,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
@@ -63,9 +61,6 @@ import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIPanic;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
-import noppes.npcs.ai.pathfinder.FlyingMoveHelper;
-import noppes.npcs.ai.pathfinder.PathNavigateFlying;
-import noppes.npcs.ai.pathfinder.PathNavigateGround;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -525,7 +520,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			if(event.getTarget() == null)
 				entity = null;
 			else
-				entity = event.getTarget().getMinecraftEntity();
+				entity = event.getTarget().getMCEntity();
     	}
 		if (entity != null && entity != this && ai.onAttack != 3 && !isAttacking() && !isRemote()){
 			Line line = advanced.getAttackLine();

@@ -7,7 +7,7 @@ import net.minecraft.potion.PotionEffect;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.constants.EntityType;
 
-public interface IEntityLivingBase {
+public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T> {
     /**
      * @return The entity's current health
      */
@@ -51,7 +51,7 @@ public interface IEntityLivingBase {
      * Expert use only
      * @return Returns the minecraft entity object
      */
-    public EntityLivingBase getMinecraftEntity();
+    public T getMCEntity();
 
     /**
      * Makes the entity swing its hand

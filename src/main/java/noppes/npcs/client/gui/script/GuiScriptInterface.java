@@ -75,22 +75,26 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         list.add("playerscript.interact");
         list.add("playerscript.damaged");
         list.add("playerscript.killed");
-        list.add("playerscript.attack");
         list.add("playerscript.kills");
         list.add("playerscript.chat");
-        list.add("playerscript.toss");
-        list.add("playerscript.containeropen");
-        list.add("playerscript.containerclosed");
+        list.add("playerscript.drop");
+        list.add("playerscript.containerOpen");
         list.add("playerscript.login");
         list.add("playerscript.logout");
         list.add("playerscript.chat");
         list.add("playerscript.damagedentity");
-        list.add("playerscript.factionupdate");
         list.add("playerscript.keyPressed");
-        list.add("playerscript.levelup");
-        list.add("playerscript.pickup");
-        list.add("playerscript.rangedlaunched");
-        //list.add("playerscript.break");
+        list.add("playerscript.mouseClicked");
+        list.add("playerscript.pickUp");
+        list.add("playerscript.rangedLaunched");
+        list.add("playerscript.pickupXP");
+        list.add("playerscript.timer");
+        list.add("playerscript.startItem");
+        list.add("playerscript.usingItem");
+        list.add("playerscript.stopItem");
+        list.add("playerscript.finishItem");
+        list.add("playerscript.fall");
+        list.add("playerscript.break");
 
         top.active = true;
         if(this.activeTab > 0) {

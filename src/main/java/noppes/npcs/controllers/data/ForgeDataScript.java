@@ -90,7 +90,7 @@ public class ForgeDataScript implements IScriptHandler {
 
     public void callScript(String type, Event event) {
         if(this.isEnabled()) {
-//            CustomNpcs.getServer().func_152344_a(() -> {
+            //CustomNpcs.getServer().func_152344_a(() -> {
             Minecraft.getMinecraft().func_152344_a(() -> {
                 if (ScriptController.Instance.lastLoaded > this.lastInited) {
                     this.lastInited = ScriptController.Instance.lastLoaded;

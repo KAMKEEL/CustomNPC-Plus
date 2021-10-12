@@ -322,5 +322,5 @@ public interface IEntity<T extends Entity> {
      * Expert users only
      * @return Returns minecrafts entity
      */
-    public Entity getMCEntity();
+    public T getMCEntity();
 }

@@ -8,10 +8,10 @@ import net.minecraft.item.ItemStack;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptLiving extends ScriptLivingBase{
+public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> implements IEntityLiving {
 
-	private EntityLiving entity;
-	public ScriptLiving(EntityLiving entity) {
+	private T entity;
+	public ScriptLiving(T entity) {
 		super(entity);
 		this.entity = entity;
 	}

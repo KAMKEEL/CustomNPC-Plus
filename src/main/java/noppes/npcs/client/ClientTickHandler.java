@@ -15,6 +15,7 @@ import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 public class ClientTickHandler{
 	private World prevWorld;
@@ -42,6 +43,15 @@ public class ClientTickHandler{
 			prevWorld = mc.theWorld;
 			MusicController.Instance.stopMusic();
 		}
+	}
+
+	@SubscribeEvent
+	public void onMouse(InputEvent.MouseInputEvent event){
+		Minecraft mc = Minecraft.getMinecraft();
+		if(mc.currentScreen != null || (Mouse.getEventButton() == -1 && Mouse.getDWheel() == 0))
+			return;
+
+		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, new Object[]{Mouse.getEventButton(),Mouse.getEventDWheel()});
 	}
 
 	@SubscribeEvent

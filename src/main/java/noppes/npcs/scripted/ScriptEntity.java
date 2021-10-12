@@ -27,11 +27,11 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptEntity implements IEntity{
-	protected Entity entity;
+public class ScriptEntity<T extends Entity> implements IEntity{
+	protected T entity;
 	private Map<String,Object> tempData = new HashMap<String,Object>();
 
-	public ScriptEntity(Entity entity){
+	public ScriptEntity(T entity){
 		this.entity = entity;
 	}
 
@@ -483,7 +483,7 @@ public class ScriptEntity implements IEntity{
 	 * Expert users only
 	 * @return Returns minecrafts entity
 	 */
-	public Entity getMCEntity(){
+	public T getMCEntity(){
 		return entity;
 	}
 }

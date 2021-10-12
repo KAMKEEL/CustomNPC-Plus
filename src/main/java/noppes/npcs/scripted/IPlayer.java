@@ -18,7 +18,7 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.util.ValueUtil;
 
-public interface IPlayer {
+public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> {
     /**
      * @return Returns the displayed name of the player
      */

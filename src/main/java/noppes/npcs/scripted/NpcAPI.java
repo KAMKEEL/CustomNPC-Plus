@@ -31,6 +31,8 @@ public abstract class NpcAPI {
 
     public abstract IEntity getIEntity(Entity var1);
 
+    public abstract IBlock getIBlock(World var1, BlockPos var2);
+
     public abstract IContainer getIContainer(IInventory var1);
 
     public abstract IContainer getIContainer(Container var1);

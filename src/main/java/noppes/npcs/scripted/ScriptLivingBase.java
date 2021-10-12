@@ -21,10 +21,10 @@ import net.minecraft.util.MathHelper;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptLivingBase extends ScriptEntity implements IEntityLivingBase{
-	protected EntityLivingBase entity;
+public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase{
+	protected T entity;
 	
-	public ScriptLivingBase(EntityLivingBase entity){
+	public ScriptLivingBase(T entity){
 		super(entity);
 		this.entity = entity;
 	}
@@ -95,7 +95,7 @@ public class ScriptLivingBase extends ScriptEntity implements IEntityLivingBase{
 	 * Expert use only
 	 * @return Returns the minecraft entity object
 	 */
-	public EntityLivingBase getMinecraftEntity(){
+	public T getMCEntity(){
 		return entity;
 	}
 	

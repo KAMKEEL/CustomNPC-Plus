@@ -6,16 +6,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.util.ValueUtil;
 
-public class ScriptPixelmon extends ScriptAnimal{
-	private EntityTameable pixelmon;
+public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> implements IPixelmon {
+	private T pixelmon;
 	private NBTTagCompound compound = null;
-	public ScriptPixelmon(EntityTameable pixelmon){
+	public ScriptPixelmon(T pixelmon){
 		super(pixelmon);
 		this.pixelmon = pixelmon;
 		compound = new NBTTagCompound();
 		pixelmon.writeEntityToNBT(compound);
 	}
-	public ScriptPixelmon(EntityTameable pixelmon, NBTTagCompound compound){
+	public ScriptPixelmon(T pixelmon, NBTTagCompound compound){
 		this(pixelmon);
 		this.compound = compound;
 	}

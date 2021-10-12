@@ -23,6 +23,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -34,6 +36,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -696,5 +699,20 @@ public class NoppesUtilServer {
 				return player;
 		}
         return null;
+	}
+
+	public static Entity GetDamageSourcee(DamageSource damagesource) {
+		Object entity = damagesource.getEntity();
+		if(entity == null) {
+			entity = damagesource.getSourceOfDamage();
+		}
+
+		if(entity instanceof EntityArrow && ((EntityArrow)entity).shootingEntity instanceof EntityLivingBase) {
+			entity = ((EntityArrow)entity).shootingEntity;
+		} else if(entity instanceof EntityThrowable) {
+			entity = ((EntityThrowable)entity).getThrower();
+		}
+
+		return (Entity)entity;
 	}
 }

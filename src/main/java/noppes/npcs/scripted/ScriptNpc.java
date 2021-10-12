@@ -31,10 +31,10 @@ import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
 import noppes.npcs.util.ValueUtil;
 
-public class ScriptNpc extends ScriptLiving implements ICustomNpc{
+public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
 	protected EntityCustomNpc npc;
-	
-	public ScriptNpc(EntityNPCInterface npc){
+
+	public ScriptNpc(T npc){
 		super(npc);
 		this.npc = (EntityCustomNpc)npc;
 	}

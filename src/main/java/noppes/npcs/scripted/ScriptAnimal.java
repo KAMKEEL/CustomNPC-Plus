@@ -3,9 +3,9 @@ package noppes.npcs.scripted;
 import net.minecraft.entity.passive.EntityAnimal;
 import noppes.npcs.scripted.constants.EntityType;
 
-public class ScriptAnimal extends ScriptLiving{
+public class ScriptAnimal<T extends EntityAnimal> extends ScriptLiving<T> implements IAnimal {
 	
-	public ScriptAnimal(EntityAnimal entity) {
+	public ScriptAnimal(T entity) {
 		super(entity);
 	}
 	

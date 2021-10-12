@@ -9,14 +9,10 @@ import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
-import noppes.npcs.scripted.IContainer;
-import noppes.npcs.scripted.IDamageSource;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.IEntity;
-import noppes.npcs.scripted.IEntityLivingBase;
-import noppes.npcs.scripted.IPlayer;
-import noppes.npcs.scripted.IItemStack;
+import noppes.npcs.scripted.*;
 
 public class PlayerEvent extends CustomNPCsEvent {
     public final IPlayer player;
@@ -49,6 +45,26 @@ public class PlayerEvent extends CustomNPCsEvent {
             this.isAltPressed = isAltPressed;
             this.isShiftPressed = isShiftPressed;
             this.isMetaPressed = isMetaPressed;
+        }
+    }
+
+    public static class MouseClickedEvent extends PlayerEvent {
+        public final int button;
+        public final int mouseWheel;
+
+        public MouseClickedEvent(IPlayer player, int button, int mouseWheel){
+            super(player);
+            this.button = button;
+            this.mouseWheel = mouseWheel;
+        }
+    }
+
+    public static class PickupXPEvent extends PlayerEvent {
+        public final int amount;
+
+        public PickupXPEvent(IPlayer player, EntityXPOrb orb) {
+            super(player);
+            this.amount = orb.xpValue;
         }
     }
 
@@ -97,12 +113,21 @@ public class PlayerEvent extends CustomNPCsEvent {
         }
     }
 
+    public static class FallEvent extends PlayerEvent {
+        public final float distance;
+
+        public FallEvent(IPlayer player, float distance){
+            super(player);
+            this.distance = distance;
+        }
+    }
+
     public static class KilledEntityEvent extends PlayerEvent {
         public final IEntityLivingBase entity;
 
         public KilledEntityEvent(IPlayer player, EntityLivingBase entity) {
             super(player);
-            this.entity = (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity);
+            this.entity = new ScriptLivingBase<>(entity);//NpcAPI.Instance().getIEntity(entity);
         }
     }
 
@@ -122,8 +147,13 @@ public class PlayerEvent extends CustomNPCsEvent {
 
     @Cancelable
     public static class RangedLaunchedEvent extends PlayerEvent {
-        public RangedLaunchedEvent(IPlayer player) {
+        public final IItemStack bow;
+        public int charge;
+
+        public RangedLaunchedEvent(IPlayer player, ItemStack bow, int charge) {
             super(player);
+            this.bow = NpcAPI.Instance().getIItemStack(bow);
+            this.charge = charge;
         }
     }
 
@@ -171,11 +201,11 @@ public class PlayerEvent extends CustomNPCsEvent {
 
     @Cancelable
     public static class TossEvent extends PlayerEvent {
-        public final IItemStack item;
+        public final IItemStack[] items;
 
-        public TossEvent(IPlayer player, IItemStack item) {
+        public TossEvent(IPlayer player, IItemStack[] items) {
             super(player);
-            this.item = item;
+            this.items = items;
         }
     }
 
@@ -212,6 +242,63 @@ public class PlayerEvent extends CustomNPCsEvent {
     public static class InitEvent extends PlayerEvent {
         public InitEvent(IPlayer player) {
             super(player);
+        }
+    }
+
+    public static class StartUsingItem extends PlayerEvent {
+        public final IItemStack item;
+        public final int duration;
+
+        public StartUsingItem(IPlayer player, ItemStack item, int duration){
+            super(player);
+
+            this.item = NpcAPI.Instance().getIItemStack(item);
+            this.duration = duration;
+        }
+    }
+    public static class UsingItem extends PlayerEvent {
+        public final IItemStack item;
+        public final int duration;
+
+        public UsingItem(IPlayer player, ItemStack item, int duration){
+            super(player);
+
+            this.item = NpcAPI.Instance().getIItemStack(item);
+            this.duration = duration;
+        }
+    }
+    public static class StopUsingItem extends PlayerEvent {
+        public final IItemStack item;
+        public final int duration;
+
+        public StopUsingItem(IPlayer player, ItemStack item, int duration){
+            super(player);
+
+            this.item = NpcAPI.Instance().getIItemStack(item);
+            this.duration = duration;
+        }
+    }
+    public static class FinishUsingItem extends PlayerEvent {
+        public final IItemStack item;
+        public final int duration;
+
+        public FinishUsingItem(IPlayer player, ItemStack item, int duration){
+            super(player);
+
+            this.item = NpcAPI.Instance().getIItemStack(item);
+            this.duration = duration;
+        }
+    }
+
+    @Cancelable
+    public static class BreakEvent extends PlayerEvent {
+        public final IBlock block;
+        public int exp;
+
+        public BreakEvent(IPlayer player, IBlock block, int exp) {
+            super(player);
+            this.block = block;
+            this.exp = exp;
         }
     }
 }

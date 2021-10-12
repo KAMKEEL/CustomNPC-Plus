@@ -18,7 +18,7 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.roles.*;
 import noppes.npcs.util.ValueUtil;
 
-public interface ICustomNpc<T extends EntityCreature> {
+public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return Returns the current npcs size 1-30
      */

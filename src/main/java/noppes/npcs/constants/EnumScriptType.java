@@ -26,6 +26,7 @@ public enum EnumScriptType {
 	DOOR_TOGGLE("doorToggle"),
 	TIMER("timer"),
 	TOSS("toss"),
+	DROP("drop"),
 	CONTAINER_OPEN("containerOpen"),
 	CONTAINER_CLOSED("containerClosed"),
 	LOGIN("login"),
@@ -40,7 +41,6 @@ public enum EnumScriptType {
 	ATTACK("attack"),
 	PROJECTILE_TICK("projectileTick"),
 	PROJECTILE_IMPACT("projectileImpact"),
-	FACTION_UPDATE("factionUpdate"),
 	LEVEL_UP("levelUp"),
 	QUEST_START("questStart"),
 	QUEST_COMPLETED("questCompleted"),
@@ -52,7 +52,15 @@ public enum EnumScriptType {
 	CUSTOM_GUI_CLOSED("customGuiClosed"),
 	CUSTOM_GUI_BUTTON("customGuiButton"),
 	CUSTOM_GUI_SLOT("customGuiSlot"),
-	CUSTOM_GUI_SCROLL("customGuiScroll");
+	CUSTOM_GUI_SCROLL("customGuiScroll"),
+	PICKUP_XP("pickupXP"),
+	MOUSE_CLICKED("mouseClicked"),
+	START_USING_ITEM("startItem"),
+	USING_ITEM("usingItem"),
+	STOP_USING_ITEM("stopItem"),
+	FINISH_USING_ITEM("finishItem"),
+	FALL("fall"),
+	BREAK("break");
 
 	public String function;
 

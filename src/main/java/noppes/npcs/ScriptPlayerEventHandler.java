@@ -20,27 +20,35 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.relauncher.Side;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.*;
+import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.event.world.WorldEvent.PotentialSpawns;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ForgeEvent;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.controllers.ScriptController;
+import org.lwjgl.input.Mouse;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {
@@ -50,163 +58,127 @@ public class ScriptPlayerEventHandler {
         if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
             PlayerData data = PlayerData.get(player);
-            if(player.ticksExisted % 10 == 0) {
-                EventHooks.onPlayerTick(data.scriptData);
-            }
-
-            if(data.playerLevel != player.experienceLevel) {
-                EventHooks.onPlayerLevelUp(data.scriptData, data.playerLevel - player.experienceLevel);
-                data.playerLevel = player.experienceLevel;
-            }
+            //if(player.ticksExisted % 10 == 0) {
+            EventHooks.onPlayerTick(data.scriptData);
+            //}
 
             data.timers.update();
-        }
-    }
-    /*
-    @SubscribeEvent
-    public void invoke(LeftClickBlock event) {
-        if(!event.entityPlayer.field_70170_p.field_72995_K && event.getWorld() instanceof WorldServer) {
-            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-            AttackEvent ev = new AttackEvent(handler.getPlayer(), 2, NpcAPI.Instance().getIBlock(event.getWorld(), event.getPos()));
-            event.setCanceled(EventHooks.onPlayerAttack(handler, ev));
-            if(event.getItemStack().func_77973_b() == CustomItems.scripted_item && !event.isCanceled()) {
-                ItemScriptedWrapper isw = ItemScripted.GetWrapper(event.getItemStack());
-                noppes.npcs.api.event.ItemEvent.AttackEvent eve = new noppes.npcs.api.event.ItemEvent.AttackEvent(isw, handler.getPlayer(), 2, NpcAPI.Instance().getIBlock(event.getWorld(), event.getPos()));
-                eve.setCanceled(event.isCanceled());
-                event.setCanceled(EventHooks.onScriptItemAttack(isw, eve));
-            }
-
-        }
-    }
-
-    @SubscribeEvent
-    public void invoke(RightClickBlock event) {
-        if(!event.entityPlayer.field_70170_p.field_72995_K && event.getWorld() instanceof WorldServer) {
-            if(event.getItemStack().func_77973_b() == CustomItems.nbt_book) {
-                ((ItemNbtBook)event.getItemStack().func_77973_b()).blockEvent(event);
-                event.setCanceled(true);
-            } else {
-                PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-                handler.hadInteract = true;
-                InteractEvent ev = new InteractEvent(handler.getPlayer(), 2, NpcAPI.Instance().getIBlock(event.getWorld(), event.getPos()));
-                event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
-                if(event.getItemStack().func_77973_b() == CustomItems.scripted_item && !event.isCanceled()) {
-                    ItemScriptedWrapper isw = ItemScripted.GetWrapper(event.getItemStack());
-                    noppes.npcs.api.event.ItemEvent.InteractEvent eve = new noppes.npcs.api.event.ItemEvent.InteractEvent(isw, handler.getPlayer(), 2, NpcAPI.Instance().getIBlock(event.getWorld(), event.getPos()));
-                    event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
-                }
-
-            }
         }
     }
 
     @SubscribeEvent
     public void invoke(EntityInteractEvent event) {
-        if(!event.entityPlayer.field_70170_p.field_72995_K && event.getWorld() instanceof WorldServer) {
-            if(event.getItemStack().func_77973_b() == CustomItems.nbt_book) {
-                ((ItemNbtBook)event.getItemStack().func_77973_b()).entityEvent(event);
-                event.setCanceled(true);
-            } else {
-                PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-                InteractEvent ev = new InteractEvent(handler.getPlayer(), 1, NpcAPI.Instance().getIEntity(event.getTarget()));
-                event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
-                if(event.getItemStack().func_77973_b() == CustomItems.scripted_item && !event.isCanceled()) {
-                    ItemScriptedWrapper isw = ItemScripted.GetWrapper(event.getItemStack());
-                    noppes.npcs.api.event.ItemEvent.InteractEvent eve = new noppes.npcs.api.event.ItemEvent.InteractEvent(isw, handler.getPlayer(), 1, NpcAPI.Instance().getIEntity(event.getTarget()));
-                    event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
-                }
-
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void invoke(RightClickItem event) {
-        if(!event.entityPlayer.field_70170_p.field_72995_K && event.getWorld() instanceof WorldServer) {
-            if(event.entityPlayer.func_184812_l_() && event.entityPlayer.func_70093_af() && event.getItemStack().func_77973_b() == CustomItems.scripted_item) {
-                NoppesUtilServer.sendOpenGui(event.entityPlayer, EnumGuiType.ScriptItem, (EntityNPCInterface)null);
-            } else {
-                PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-                if(handler.hadInteract) {
-                    handler.hadInteract = false;
-                } else {
-                    InteractEvent ev = new InteractEvent(handler.getPlayer(), 0, (Object)null);
-                    event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
-                    if(event.getItemStack().func_77973_b() == CustomItems.scripted_item && !event.isCanceled()) {
-                        ItemScriptedWrapper isw = ItemScripted.GetWrapper(event.getItemStack());
-                        noppes.npcs.api.event.ItemEvent.InteractEvent eve = new noppes.npcs.api.event.ItemEvent.InteractEvent(isw, handler.getPlayer(), 0, (Object)null);
-                        event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
-                    }
-
-                }
-            }
+        if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            noppes.npcs.scripted.event.PlayerEvent.InteractEvent ev = new noppes.npcs.scripted.event.PlayerEvent.InteractEvent(handler.getPlayer(), 1, NpcAPI.Instance().getIEntity(event.target));
+            event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
         }
     }
 
     @SubscribeEvent
     public void invoke(ArrowLooseEvent event) {
-        if(!event.entityPlayer.field_70170_p.field_72995_K && event.getWorld() instanceof WorldServer) {
+        if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-            RangedLaunchedEvent ev = new RangedLaunchedEvent(handler.getPlayer());
-            event.setCanceled(EventHooks.onPlayerRanged(handler, ev));
+            noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent ev = new noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent(handler.getPlayer(), event.bow, event.charge);
+            EventHooks.onPlayerRanged(handler, ev);
         }
     }
 
     @SubscribeEvent
-    public void invoke(BreakEvent event) {
-        if(!event.getPlayer().field_70170_p.field_72995_K && event.getWorld() instanceof WorldServer) {
+    public void invoke(BlockEvent.BreakEvent event) {
+        if(!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.getPlayer()).scriptData;
-            noppes.npcs.api.event.PlayerEvent.BreakEvent ev = new noppes.npcs.api.event.PlayerEvent.BreakEvent(handler.getPlayer(), NpcAPI.Instance().getIBlock(event.getWorld(), event.getPos()), event.getExpToDrop());
+            noppes.npcs.scripted.event.PlayerEvent.BreakEvent ev = new noppes.npcs.scripted.event.PlayerEvent.BreakEvent(handler.getPlayer(), NpcAPI.Instance().getIBlock(event.world, new BlockPos(event.x,event.y,event.z)), event.getExpToDrop());
             event.setCanceled(EventHooks.onPlayerBreak(handler, ev));
             event.setExpToDrop(ev.exp);
         }
     }
 
     @SubscribeEvent
-    public void invoke(ItemTossEvent event) {
-        if(event.getPlayer().field_70170_p instanceof WorldServer) {
-            PlayerDataScript handler = PlayerData.get(event.getPlayer()).scriptData;
-            event.setCanceled(EventHooks.onPlayerToss(handler, event.getEntityItem()));
+    public void invoke(PlayerUseItemEvent.Start event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            event.setCanceled(EventHooks.onStartUsingItem(handler, event.duration, event.item));
+        }
+    }
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Tick event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            event.setCanceled(EventHooks.onUsingItem(handler, event.duration, event.item));
+        }
+    }
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Stop event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            event.setCanceled(EventHooks.onStopUsingItem(handler, event.duration, event.item));
+        }
+    }
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Finish event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onFinishUsingItem(handler, event.duration, event.item);
         }
     }
 
     @SubscribeEvent
-    public void invoke(EntityItemPickupEvent event) {
-        if(event.entityPlayer.field_70170_p instanceof WorldServer) {
+    public void invoke(PlayerDropsEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-            event.setCanceled(EventHooks.onPlayerPickUp(handler, event.getItem()));
+            event.setCanceled(EventHooks.onPlayerDropItems(handler, event.drops));
         }
     }
 
     @SubscribeEvent
-    public void invoke(Open event) {
-        if(event.entityPlayer.field_70170_p instanceof WorldServer) {
+    public void invoke(PlayerPickupXpEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-            EventHooks.onPlayerContainerOpen(handler, event.getContainer());
+            EventHooks.onPlayerPickupXP(handler, event.orb);
         }
     }
 
     @SubscribeEvent
-    public void invoke(Close event) {
-        if(event.entityPlayer.field_70170_p instanceof WorldServer) {
+    public void invoke(PlayerEvent.ItemPickupEvent event) {
+        if(event.player.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.player).scriptData;
+            EventHooks.onPlayerPickUp(handler, event.pickedUp);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerOpenContainerEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-            EventHooks.onPlayerContainerClose(handler, event.getContainer());
+            EventHooks.onPlayerContainerOpen(handler, event.entityPlayer.openContainer);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(LivingFallEvent event) {
+        if(event.entityLiving.worldObj instanceof WorldServer) {
+            PlayerDataScript handler;
+            if (event.entityLiving instanceof EntityPlayer) {
+                handler = PlayerData.get((EntityPlayer)event.entityLiving).scriptData;
+                EventHooks.onPlayerFall(handler, event.distance);
+            }
         }
     }
 
     @SubscribeEvent
     public void invoke(LivingDeathEvent event) {
-        if(event.getEntityLiving().field_70170_p instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.getSource());
+        if(event.entityLiving.worldObj instanceof WorldServer) {
+            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
             PlayerDataScript handler;
-            if(event.getEntityLiving() instanceof EntityPlayer) {
-                handler = PlayerData.get((EntityPlayer)event.getEntityLiving()).scriptData;
-                EventHooks.onPlayerDeath(handler, event.getSource(), source);
+            if(event.entityLiving instanceof EntityPlayer) {
+                handler = PlayerData.get((EntityPlayer)event.entityLiving).scriptData;
+                EventHooks.onPlayerDeath(handler, event.source, source);
             }
 
             if(source instanceof EntityPlayer) {
                 handler = PlayerData.get((EntityPlayer)source).scriptData;
-                EventHooks.onPlayerKills(handler, event.getEntityLiving());
+                EventHooks.onPlayerKills(handler, event.entityLiving);
             }
 
         }
@@ -214,70 +186,47 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingHurtEvent event) {
-        if(event.getEntityLiving().field_70170_p instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.getSource());
+        if(event.entityLiving.worldObj instanceof WorldServer) {
+            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
             PlayerDataScript handler;
-            if(event.getEntityLiving() instanceof EntityPlayer) {
-                handler = PlayerData.get((EntityPlayer)event.getEntityLiving()).scriptData;
-                DamagedEvent pevent = new DamagedEvent(handler.getPlayer(), source, event.getAmount(), event.getSource());
+            if(event.entityLiving instanceof EntityPlayer) {
+                handler = PlayerData.get((EntityPlayer)event.entityLiving).scriptData;
+                noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent(handler.getPlayer(), source, event.ammount, event.source);
                 event.setCanceled(EventHooks.onPlayerDamaged(handler, pevent));
-                event.setAmount(pevent.damage);
+                event.ammount = pevent.damage;
             }
 
             if(source instanceof EntityPlayer) {
                 handler = PlayerData.get((EntityPlayer)source).scriptData;
-                DamagedEntityEvent pevent1 = new DamagedEntityEvent(handler.getPlayer(), event.getEntityLiving(), event.getAmount(), event.getSource());
+                noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent(handler.getPlayer(), event.entityLiving, event.ammount, event.source);
                 event.setCanceled(EventHooks.onPlayerDamagedEntity(handler, pevent1));
-                event.setAmount(pevent1.damage);
+                event.ammount = pevent1.damage;
             }
 
         }
     }
 
     @SubscribeEvent
-    public void invoke(LivingAttackEvent event) {
-        if(event.getEntityLiving().field_70170_p instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.getSource());
-            if(source instanceof EntityPlayer) {
-                PlayerDataScript handler = PlayerData.get((EntityPlayer)source).scriptData;
-                ItemStack item = ((EntityPlayer)source).func_184614_ca();
-                IEntity target = NpcAPI.Instance().getIEntity(event.getEntityLiving());
-                AttackEvent ev = new AttackEvent(handler.getPlayer(), 1, target);
-                event.setCanceled(EventHooks.onPlayerAttack(handler, ev));
-                if(item.func_77973_b() == CustomItems.scripted_item && !event.isCanceled()) {
-                    ItemScriptedWrapper isw = ItemScripted.GetWrapper(item);
-                    noppes.npcs.api.event.ItemEvent.AttackEvent eve = new noppes.npcs.api.event.ItemEvent.AttackEvent(isw, handler.getPlayer(), 1, target);
-                    eve.setCanceled(event.isCanceled());
-                    event.setCanceled(EventHooks.onScriptItemAttack(isw, eve));
-                }
-            }
-
-        }
-    }
-
-    @SubscribeEvent
-    public void invoke(PlayerLoggedInEvent event) {
-        if(event.player.field_70170_p instanceof WorldServer) {
+    public void invoke(PlayerEvent.PlayerLoggedInEvent event) {
+        if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.player).scriptData;
             EventHooks.onPlayerLogin(handler);
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerLoggedOutEvent event) {
-        if(event.player.field_70170_p instanceof WorldServer) {
+    public void invoke(PlayerEvent.PlayerLoggedOutEvent event) {
+        if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.player).scriptData;
             EventHooks.onPlayerLogout(handler);
         }
     }
-    */
 
-    /*
     @SubscribeEvent(
             priority = EventPriority.HIGHEST
     )
-    public void invoke(ServerChatEvent event) {
-        if(event.player.getEntityWorld() instanceof WorldServer && event.player != EntityNPCInterface.chateventPlayer) {
+    public void invoke(net.minecraftforge.event.ServerChatEvent event) {
+        if(event.player.worldObj instanceof WorldServer && !event.player.equals(EntityNPCInterface.chateventPlayer)) {
             PlayerDataScript handler = PlayerData.get(event.player).scriptData;
             String message = event.message;
             noppes.npcs.scripted.event.PlayerEvent.ChatEvent ev = new noppes.npcs.scripted.event.PlayerEvent.ChatEvent(handler.getPlayer(), event.message);
@@ -290,7 +239,6 @@ public class ScriptPlayerEventHandler {
             }
         }
     }
-    */
 
     public ScriptPlayerEventHandler registerForgeEvents() {
         ScriptPlayerEventHandler.ForgeEventHandler handler = new ScriptPlayerEventHandler.ForgeEventHandler();
@@ -299,8 +247,9 @@ public class ScriptPlayerEventHandler {
             Method e = handler.getClass().getMethod("forgeEntity", new Class[]{Event.class});
             Method register = MinecraftForge.EVENT_BUS.getClass().getDeclaredMethod("register", new Class[]{Class.class, Object.class, Method.class, ModContainer.class});
             register.setAccessible(true);
-            ArrayList list = new ArrayList(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
-            list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.fml.common"));
+            ArrayList list = new ArrayList();
+            list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common"));
+            list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
             Iterator e1 = list.iterator();
 
             while(true) {
@@ -332,6 +281,10 @@ public class ScriptPlayerEventHandler {
                     classLoader = (ClassInfo)e1.next();
                     classes = classLoader.getName();
                 } while(classes.startsWith("net.minecraftforge.event.terraingen"));
+
+                if(classes.startsWith("cpw.mods.fml.common.gameevent")){
+                    ;
+                }
 
                 Class infoClass = classLoader.load();
                 ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));

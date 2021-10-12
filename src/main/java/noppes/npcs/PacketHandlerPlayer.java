@@ -60,12 +60,20 @@ public class PacketHandlerPlayer{
 			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.CompanionInv, npc);
-		} else if(type == EnumPlayerPacket.KeyPressed) {
+		}
+		else if(type == EnumPlayerPacket.KeyPressed) {
 			if(ScriptController.Instance.languages.isEmpty()) {
 				return;
 			}
 
 			EventHooks.onPlayerKeyPressed(player, buffer.readInt(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
+		}
+		else if(type == EnumPlayerPacket.MouseClicked) {
+			if(ScriptController.Instance.languages.isEmpty()) {
+				return;
+			}
+
+			EventHooks.onPlayerMouseClicked(player, buffer.readInt(), buffer.readInt());
 		}
 		else if(type == EnumPlayerPacket.FollowerHire){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);

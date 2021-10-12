@@ -152,6 +152,7 @@ public class PlayerData implements IExtendedEntityProperties{
 			PlayerData data = new PlayerData();
 			if(data.player == null) {
 				data.player = player;
+				data.playerLevel = player.experienceLevel;
 				data.scriptData = new PlayerDataScript(player);
 				NBTTagCompound compound = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
 

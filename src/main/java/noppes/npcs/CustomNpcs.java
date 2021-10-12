@@ -174,10 +174,11 @@ public class CustomNpcs {
         NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy);
 
         MinecraftForge.EVENT_BUS.register(new ServerEventsHandler());
-        //MinecraftForge.EVENT_BUS.register((new ScriptPlayerEventHandler()).registerForgeEvents());
         MinecraftForge.EVENT_BUS.register(new ScriptController());
 
-        FMLCommonHandler.instance().bus().register(new ScriptPlayerEventHandler());
+        ScriptPlayerEventHandler scriptPlayerEventHandler = new ScriptPlayerEventHandler();
+        MinecraftForge.EVENT_BUS.register(scriptPlayerEventHandler);
+        FMLCommonHandler.instance().bus().register(scriptPlayerEventHandler.registerForgeEvents());
 		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
         
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");

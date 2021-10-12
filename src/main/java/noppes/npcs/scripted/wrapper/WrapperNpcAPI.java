@@ -59,6 +59,10 @@ public class WrapperNpcAPI extends NpcAPI {
         }
     }
 
+    public IBlock getIBlock(World world, BlockPos pos) {
+        return new ScriptBlock(world, world.getBlock(pos.getX(),pos.getY(),pos.getZ()), pos);
+    }
+
     public ICustomNpc createNPC(World world) {
         if (world.isRemote) {
             return null;
