@@ -19,6 +19,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
@@ -485,5 +486,13 @@ public class ScriptEntity<T extends Entity> implements IEntity{
 	 */
 	public T getMCEntity(){
 		return entity;
+	}
+
+	public INbt getNbt() {
+		return NpcAPI.Instance().getINbt(this.entity.getEntityData());
+	}
+
+	public void setNbt(INbt nbt) {
+		this.entity.readFromNBT(nbt.getMCNBT());
 	}
 }

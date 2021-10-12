@@ -77,4 +77,6 @@ public abstract class NpcAPI {
     public abstract String executeCommand(IWorld var1, String var2);
 
     public abstract String getRandomName(int var1, int var2);
+
+    public abstract INbt getINbt(NBTTagCompound entityData);
 }

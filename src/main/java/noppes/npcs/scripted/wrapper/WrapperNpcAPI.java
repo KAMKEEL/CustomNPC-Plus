@@ -63,6 +63,10 @@ public class WrapperNpcAPI extends NpcAPI {
         return new ScriptBlock(world, world.getBlock(pos.getX(),pos.getY(),pos.getZ()), pos);
     }
 
+    public INbt getINbt(NBTTagCompound compound) {
+        return compound == null?new ScriptNbt(new NBTTagCompound()):new ScriptNbt(compound);
+    }
+
     public ICustomNpc createNPC(World world) {
         if (world.isRemote) {
             return null;

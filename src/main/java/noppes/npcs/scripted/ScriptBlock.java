@@ -9,6 +9,7 @@ import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -108,5 +109,11 @@ public class ScriptBlock implements IBlock {
 
     public TileEntity getMCTileEntity() {
         return this.tile;
+    }
+
+    public INbt getTileEntityNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+        this.tile.writeToNBT(compound);
+        return NpcAPI.Instance().getINbt(compound);
     }
 }

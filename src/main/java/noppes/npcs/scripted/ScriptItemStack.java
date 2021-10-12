@@ -199,6 +199,21 @@ public class ScriptItemStack implements IItemStack {
 		return true;
 	}
 
+	public INbt getNbt() {
+		NBTTagCompound compound = this.item.getTagCompound();
+		if(compound == null) {
+			this.item.setTagCompound(compound = new NBTTagCompound());
+		}
+
+		return NpcAPI.Instance().getINbt(compound);
+	}
+
+	public INbt getItemNbt() {
+		NBTTagCompound compound = new NBTTagCompound();
+		this.item.writeToNBT(compound);
+		return NpcAPI.Instance().getINbt(compound);
+	}
+
 	/**
 	 * No support is given for this method. Dont use if you dont know what you are doing.
 	 * @return Minecraft ItemStack

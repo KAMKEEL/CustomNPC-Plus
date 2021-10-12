@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
@@ -41,7 +42,7 @@ public interface IWorld {
      * @param z World position z
      * @return The block at the given position. Returns null if there isn't a block
      */
-    public ScriptItemStack getBlock(int x, int y, int z);
+    public IBlock getBlock(int x, int y, int z);
 
     /**
      * @param x World position x
@@ -218,6 +219,8 @@ public interface IWorld {
     public ScriptEntity spawnClone(int x, int y, int z, int tab, String name);
 
     public ScriptScoreboard getScoreboard();
+
+    BlockPos getMCBlockPos(int x, int y, int z);
 
     /**
      * @since 1.7.10c
