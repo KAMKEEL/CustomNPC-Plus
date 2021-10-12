@@ -70,6 +70,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         List<String> list = new ArrayList<String>();
+        list.add("playerscript.disabled");
         list.add("playerscript.init");
         list.add("playerscript.tick");
         list.add("playerscript.interact");

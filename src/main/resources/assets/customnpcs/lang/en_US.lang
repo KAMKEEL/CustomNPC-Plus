@@ -463,6 +463,7 @@ script.dialog_closed=Dialog Closed
 
 eventscript.playerevent=Player Events
 
+playerscript.disabled=Disabled
 playerscript.attack=Attack
 playerscript.break=Break
 playerscript.chat=Chat

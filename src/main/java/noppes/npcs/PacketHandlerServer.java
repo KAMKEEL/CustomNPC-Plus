@@ -107,7 +107,7 @@ public class PacketHandlerServer{
 			else if(item.getItem() == CustomItems.teleporter)
 				featherPackets(type, buffer, player);
 			else if(type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
-				playerScriptPackets(type, buffer, player, npc);
+				playerScriptPackets(type, buffer, player);
 			else if(item.getItem() == CustomItems.scripter)
 				scriptPackets(type, buffer, player, npc);
 			else if(item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
@@ -130,7 +130,7 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
+	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		NBTTagCompound compound;
 		if(type == EnumPacketServer.ScriptPlayerGet) {
 			compound = ScriptController.Instance.playerScripts.writeToNBT(new NBTTagCompound());
