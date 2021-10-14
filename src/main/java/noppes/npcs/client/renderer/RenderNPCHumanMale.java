@@ -348,10 +348,10 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             
             IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack2, EQUIPPED);
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
-            
-            if(itemstack2.getItem() instanceof ItemShield || itemstack2.getItem() instanceof ItemClaw)
+
+            Class<?> clazz = itemstack2.getItem().getClass();
+            if(clazz.getSimpleName().equals("ItemShield") || clazz.getSimpleName().equals("ItemRotatedShield") || clazz.getSimpleName().equals("ItemClaw"))
             	GL11.glTranslatef(0.30f, 0, 0f);
-            
             
             if (itemstack2.getItem() instanceof ItemBlock && (is3D || RenderBlocks.renderItemIn3d(Block.getBlockFromItem(itemstack2.getItem()).getRenderType())))
             {
