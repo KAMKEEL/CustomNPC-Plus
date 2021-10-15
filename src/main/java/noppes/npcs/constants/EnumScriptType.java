@@ -60,6 +60,10 @@ public enum EnumScriptType {
 	STOP_USING_ITEM("stopItem"),
 	FINISH_USING_ITEM("finishItem"),
 	FALL("fall"),
+	LIGHTNING("lightning"),
+	PLAYSOUND("playSound"),
+	RESPAWN("respawn"),
+	CHANGED_DIM("changedDim"),
 	BREAK("break");
 
 	public String function;

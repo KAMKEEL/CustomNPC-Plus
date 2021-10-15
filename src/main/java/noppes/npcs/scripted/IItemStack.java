@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public interface IItemStack {
-    /**
-     * @return The minecraft name for this item
-     */
     public String getName();
 
     /**
@@ -114,6 +111,11 @@ public interface IItemStack {
      * @return Returns whether or not this item is a block
      */
     public boolean isBlock();
+
+    public INbt getNbt();
+
+    public INbt getItemNbt();
+
     /**
      * No support is given for this method. Dont use if you dont know what you are doing.
      * @return Minecraft ItemStack

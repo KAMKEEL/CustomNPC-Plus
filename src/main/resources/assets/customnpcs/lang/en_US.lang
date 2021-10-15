@@ -491,7 +491,11 @@ playerscript.startItem=Item Start
 playerscript.usingItem=Using Item
 playerscript.stopItem=Item Stop
 playerscript.finishItem=Item Finish
+playerscript.playSound=Play Sound
+playerscript.lightning=Lightning Struck
 playerscript.fall=Fall
+playerscript.respawn=Respawn
+playerscript.changedDim=Dimension Change
 
 item.npcWand.name=Npc Wand
 item.npcMobCloner.name=Mob Cloner

@@ -110,7 +110,7 @@ public class EventHooks {
     }
 
     public static boolean onPlayerPickUp(PlayerDataScript handler, EntityItem entityItem) {
-        PickUpEvent event = new PickUpEvent(handler.getPlayer(), NpcAPI.Instance().getIItemStack(entityItem.getEntityItem()));
+        PickUpEvent event = new PickUpEvent(handler.getPlayer(), new ScriptItemStack(entityItem.getEntityItem()));//NpcAPI.Instance().getIItemStack(entityItem.getEntityItem()));
         handler.callScript(EnumScriptType.PICKUP, event, "item", event.item);
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
@@ -138,6 +138,18 @@ public class EventHooks {
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onPlayerLightning(PlayerDataScript handler) {
+        PlayerEvent.LightningEvent event = new PlayerEvent.LightningEvent(handler.getPlayer());
+        handler.callScript(EnumScriptType.LIGHTNING, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerSound(PlayerDataScript handler, String name, float pitch, float volume) {
+        PlayerEvent.SoundEvent event = new PlayerEvent.SoundEvent(handler.getPlayer(), name, pitch, volume);
+        handler.callScript(EnumScriptType.PLAYSOUND, event, "name", name, "pitch", pitch, "volume", volume);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onPlayerFall(PlayerDataScript handler, float distance) {
         PlayerEvent.FallEvent event = new PlayerEvent.FallEvent(handler.getPlayer(),distance);
         handler.callScript(EnumScriptType.FALL, event, "distance", event.distance);
@@ -147,6 +159,13 @@ public class EventHooks {
     public static void onPlayerLogin(PlayerDataScript handler) {
         LoginEvent event = new LoginEvent(handler.getPlayer());
         handler.callScript(EnumScriptType.LOGIN, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+
+    public static void onPlayerRespawn(PlayerDataScript handler) {
+        PlayerEvent.RespawnEvent event = new PlayerEvent.RespawnEvent(handler.getPlayer());
+        handler.callScript(EnumScriptType.RESPAWN, event);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
@@ -169,6 +188,12 @@ public class EventHooks {
     public static boolean onPlayerDamagedEntity(PlayerDataScript handler, DamagedEntityEvent event) {
         handler.callScript(EnumScriptType.DAMAGED_ENTITY, event, "target", event.target, "damage", event.damage, "damageSource", event.damageSource, "");
         return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerChangeDim(PlayerDataScript handler, int fromDim, int toDim) {
+        PlayerEvent.ChangedDimension event = new PlayerEvent.ChangedDimension(handler.getPlayer(), fromDim, toDim);
+        handler.callScript(EnumScriptType.CHANGED_DIM, event, "fromDim", event.fromDim, "toDim", event.toDim);
+        WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerMouseClicked(EntityPlayerMP player, int button, int mouseWheel) {

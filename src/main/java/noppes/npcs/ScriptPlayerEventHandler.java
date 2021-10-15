@@ -34,6 +34,8 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
+import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
+import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -140,6 +142,14 @@ public class ScriptPlayerEventHandler {
     }
 
     @SubscribeEvent
+    public void invoke(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if(event.player.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.player).scriptData;
+            EventHooks.onPlayerChangeDim(handler, event.fromDim, event.toDim);
+        }
+    }
+
+    @SubscribeEvent
     public void invoke(PlayerEvent.ItemPickupEvent event) {
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.player).scriptData;
@@ -162,6 +172,28 @@ public class ScriptPlayerEventHandler {
             if (event.entityLiving instanceof EntityPlayer) {
                 handler = PlayerData.get((EntityPlayer)event.entityLiving).scriptData;
                 EventHooks.onPlayerFall(handler, event.distance);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(EntityStruckByLightningEvent event) {
+        if(event.entity.worldObj instanceof WorldServer) {
+            PlayerDataScript handler;
+            if (event.entity instanceof EntityPlayer) {
+                handler = PlayerData.get((EntityPlayer)event.entity).scriptData;
+                EventHooks.onPlayerLightning(handler);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlaySoundAtEntityEvent event) {
+        if(event.entity.worldObj instanceof WorldServer) {
+            PlayerDataScript handler;
+            if (event.entity instanceof EntityPlayer) {
+                handler = PlayerData.get((EntityPlayer)event.entity).scriptData;
+                EventHooks.onPlayerSound(handler,event.name,event.pitch,event.volume);
             }
         }
     }
@@ -203,6 +235,14 @@ public class ScriptPlayerEventHandler {
                 event.ammount = pevent1.damage;
             }
 
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerEvent.PlayerRespawnEvent event) {
+        if(event.player.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.player).scriptData;
+            EventHooks.onPlayerRespawn(handler);
         }
     }
 

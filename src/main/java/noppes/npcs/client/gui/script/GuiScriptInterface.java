@@ -26,11 +26,13 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.PlayerDataScript;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener {
     private int activeTab = 0;
-    public IScriptHandler handler;
+    public PlayerDataScript handler;
     public Map<String, List<String>> languages = new HashMap();
+    private int scriptLimit = 1;
 
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
@@ -54,48 +56,59 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         GuiMenuTopButton top;
         this.addTopButton(top = new GuiMenuTopButton(0, this.guiLeft + 4, this.guiTop - 17, "gui.settings"));
 
+        List<String> hookList = new ArrayList<String>();
+        hookList.add("playerscript.disabled");
+        hookList.add("playerscript.init");
+        hookList.add("playerscript.tick");
+        hookList.add("playerscript.interact");
+        hookList.add("playerscript.damaged");
+        hookList.add("playerscript.killed");
+        hookList.add("playerscript.kills");
+        hookList.add("playerscript.chat");
+        hookList.add("playerscript.drop");
+        hookList.add("playerscript.containerOpen");
+        hookList.add("playerscript.login");
+        hookList.add("playerscript.logout");
+        hookList.add("playerscript.chat");
+        hookList.add("playerscript.damagedentity");
+        hookList.add("playerscript.keyPressed");
+        hookList.add("playerscript.mouseClicked");
+        hookList.add("playerscript.pickUp");
+        hookList.add("playerscript.rangedLaunched");
+        hookList.add("playerscript.pickupXP");
+        hookList.add("playerscript.timer");
+        hookList.add("playerscript.startItem");
+        hookList.add("playerscript.usingItem");
+        hookList.add("playerscript.stopItem");
+        hookList.add("playerscript.finishItem");
+        hookList.add("playerscript.fall");
+        hookList.add("playerscript.playSound");
+        hookList.add("playerscript.lightning");
+        hookList.add("playerscript.break");
+        hookList.add("playerscript.changedDim");
+        hookList.add("playerscript.respawn");
+
+        int topXoffset = 0;
+        int topYoffset = 0;
         for(int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
-            PlayerScriptContainer var10000 = (PlayerScriptContainer)this.handler.getScripts().get(ta);
-            this.addTopButton(top = new GuiMenuTopButton(ta + 1, top, ta + 1 + ""));
+            if(ta%15 == 0 && ta > 0) {
+                topYoffset -= 20;
+                topXoffset -= top.width+260;
+            }
+            this.addTopButton(top = new GuiMenuTopButton(ta + 1, top.xPosition+top.width + topXoffset, top.yPosition + topYoffset, ta + 1 + ""));
+            topXoffset = 0;
+            topYoffset = 0;
+            scriptLimit = ta + 2;
         }
 
-        if(this.handler.getScripts().size() < 16) {
-            this.addTopButton(new GuiMenuTopButton(12, top, "+"));
-        }
+        if(this.handler.getScripts().size() < 75)
+            this.addTopButton(new GuiMenuTopButton(scriptLimit, top.xPosition+top.width, top.yPosition, "+"));
 
         top = this.getTopButton(this.activeTab);
         if(top == null) {
             this.activeTab = 0;
             top = this.getTopButton(0);
         }
-
-        List<String> list = new ArrayList<String>();
-        list.add("playerscript.disabled");
-        list.add("playerscript.init");
-        list.add("playerscript.tick");
-        list.add("playerscript.interact");
-        list.add("playerscript.damaged");
-        list.add("playerscript.killed");
-        list.add("playerscript.kills");
-        list.add("playerscript.chat");
-        list.add("playerscript.drop");
-        list.add("playerscript.containerOpen");
-        list.add("playerscript.login");
-        list.add("playerscript.logout");
-        list.add("playerscript.chat");
-        list.add("playerscript.damagedentity");
-        list.add("playerscript.keyPressed");
-        list.add("playerscript.mouseClicked");
-        list.add("playerscript.pickUp");
-        list.add("playerscript.rangedLaunched");
-        list.add("playerscript.pickupXP");
-        list.add("playerscript.timer");
-        list.add("playerscript.startItem");
-        list.add("playerscript.usingItem");
-        list.add("playerscript.stopItem");
-        list.add("playerscript.finishItem");
-        list.add("playerscript.fall");
-        list.add("playerscript.break");
 
         top.active = true;
         if(this.activeTab > 0) {
@@ -104,8 +117,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             hooks.setSize(68, 198);
             hooks.guiLeft = guiLeft + 4;
             hooks.guiTop = guiTop + 14;
-            hooks.setUnsortedList(list);
-            hooks.selected = getScriptHook(this.handler.getScripts().get(this.activeTab - 1),list);
+            hooks.setUnsortedList(hookList);
+            hooks.selected = getScriptHook(this.handler.getScripts().get(this.activeTab - 1),hookList);
             addScroll(hooks);
 
             PlayerScriptContainer var7 = (PlayerScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
@@ -219,14 +232,15 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.displayGuiScreen(this);
     }
 
+    @Override
     protected void actionPerformed(GuiButton guibutton) {
-        if(guibutton.id >= 0 && guibutton.id < 12) {
+        if(guibutton.id >= 0 && guibutton.id < scriptLimit) {
             this.setScript();
             this.activeTab = guibutton.id;
             this.initGui();
         }
 
-        if(guibutton.id == 12) {
+        if(guibutton.id == scriptLimit) {
             this.handler.getScripts().add(new PlayerScriptContainer(this.handler));
             this.activeTab = this.handler.getScripts().size();
             this.initGui();
@@ -273,7 +287,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if(guibutton.id == 104) {
-            this.handler.setEnabled(((GuiNpcButton)guibutton).getValue() == 1);
+            //ScriptController.Instance.playerScripts.enabled = (((GuiNpcButton)guibutton).getValue() == 1);
+            this.handler.setEnabled((((GuiNpcButton)guibutton).getValue() == 1));
         }
 
         if(guibutton.id == 105) {

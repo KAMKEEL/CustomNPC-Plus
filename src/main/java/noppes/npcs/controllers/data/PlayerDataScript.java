@@ -41,7 +41,7 @@ public class PlayerDataScript implements IScriptHandler {
     private long lastPlayerUpdate = 0L;
     public long lastInited = -1L;
     public boolean hadInteract = true;
-    public boolean enabled = true;
+    public boolean enabled = false;
     private static Map<Long, String> console = new TreeMap();
     private static List<Integer> errored = new ArrayList();
 
@@ -155,6 +155,7 @@ public class PlayerDataScript implements IScriptHandler {
     }
 
     public void setEnabled(boolean bo) {
+        ScriptController.Instance.playerScripts.enabled = bo;
         this.enabled = bo;
     }
 

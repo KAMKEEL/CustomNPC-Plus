@@ -89,6 +89,23 @@ public class PlayerEvent extends CustomNPCsEvent {
         }
     }
 
+    public static class RespawnEvent extends PlayerEvent {
+        public RespawnEvent(IPlayer player) {
+            super(player);
+        }
+    }
+
+    public static class ChangedDimension extends PlayerEvent {
+        public final int fromDim;
+        public final int toDim;
+
+        public ChangedDimension(IPlayer player, int fromDim, int toDim){
+            super(player);
+            this.fromDim = fromDim;
+            this.toDim = toDim;
+        }
+    }
+
     public static class TimerEvent extends PlayerEvent {
         public final int id;
 
@@ -110,6 +127,27 @@ public class PlayerEvent extends CustomNPCsEvent {
             this.source = NpcAPI.Instance().getIEntity(source);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
+        }
+    }
+
+    @Cancelable
+    public static class LightningEvent extends PlayerEvent {
+        public LightningEvent(IPlayer player) {
+            super(player);
+        }
+    }
+
+    @Cancelable
+    public static class SoundEvent extends PlayerEvent {
+        public final String name;
+        public final float pitch;
+        public final float volume;
+
+        public SoundEvent(ScriptPlayer player, String name, float pitch, float volume) {
+            super(player);
+            this.name = name;
+            this.pitch = pitch;
+            this.volume = volume;
         }
     }
 

@@ -50,6 +50,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public void setPosition(double x, double y, double z){
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);
 	}
+
+	public int getDimension(){
+		return player.dimension;
+	}
+
 	
 	public boolean hasFinishedQuest(int id){
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
