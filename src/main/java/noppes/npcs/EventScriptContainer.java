@@ -7,30 +7,20 @@ package noppes.npcs;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
-import javax.script.Invocable;
 import javax.script.ScriptEngine;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
-import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.constants.*;
 
-public class PlayerScriptContainer {
-    public static PlayerScriptContainer Current;
+public class EventScriptContainer {
+    public static EventScriptContainer Current;
     public String type = "init";
     public String fullscript = "";
     public String script = "";
@@ -44,7 +34,7 @@ public class PlayerScriptContainer {
     private CompiledScript compScript = null;
     private boolean init = false;
 
-    public PlayerScriptContainer(IScriptHandler handler) {
+    public EventScriptContainer(IScriptHandler handler) {
         this.handler = handler;
     }
 
@@ -111,18 +101,17 @@ public class PlayerScriptContainer {
     }
 
     public void appandConsole(String message) {
-        if(message != null && !message.isEmpty()) {
+        if (message != null && !message.isEmpty()) {
             long time = System.currentTimeMillis();
-            if(this.console.containsKey(Long.valueOf(time))) {
-                message = (String)this.console.get(Long.valueOf(time)) + "\n" + message;
+            if (this.console.containsKey(time)) {
+                message = (String)this.console.get(time) + "\n" + message;
             }
 
-            this.console.put(Long.valueOf(time), message);
+            this.console.put(time, message);
 
             while(this.console.size() > 40) {
                 this.console.remove(this.console.firstKey());
             }
-
         }
     }
 

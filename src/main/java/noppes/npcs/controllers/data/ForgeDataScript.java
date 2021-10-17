@@ -17,7 +17,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
-import noppes.npcs.PlayerScriptContainer;
+import noppes.npcs.EventScriptContainer;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
@@ -26,10 +26,9 @@ import noppes.npcs.controllers.ScriptController;
 import javax.script.ScriptEngine;
 
 public class ForgeDataScript implements IScriptHandler {
-    private List<PlayerScriptContainer> scripts = new ArrayList();
+    private List<EventScriptContainer> scripts = new ArrayList();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
-    public boolean hadInteract = true;
     private boolean enabled = false;
 
     public ForgeDataScript() {
@@ -58,7 +57,7 @@ public class ForgeDataScript implements IScriptHandler {
             Minecraft.getMinecraft().func_152344_a(() -> {
                 if (ScriptController.Instance.lastLoaded > this.lastInited) {
                     this.lastInited = ScriptController.Instance.lastLoaded;
-                    if (!type.equals("init")) {
+                    if (!type.equals(EnumScriptType.FORGE_INIT)) {
                         EventHooks.onForgeInit(this);
                     }
                 }
@@ -66,7 +65,7 @@ public class ForgeDataScript implements IScriptHandler {
                 Iterator var3 = this.scripts.iterator();
 
                 while (var3.hasNext()) {
-                    PlayerScriptContainer script = (PlayerScriptContainer) var3.next();
+                    EventScriptContainer script = (EventScriptContainer) var3.next();
                     if(script.type != type.function)
                         continue;
 
@@ -102,7 +101,7 @@ public class ForgeDataScript implements IScriptHandler {
                 Iterator var3 = this.scripts.iterator();
 
                 while (var3.hasNext()) {
-                    PlayerScriptContainer script = (PlayerScriptContainer) var3.next();
+                    EventScriptContainer script = (EventScriptContainer) var3.next();
                     //script.run(EnumScriptType.valueOf(type), event);
 
                     script.setEngine(scriptLanguage);
@@ -140,7 +139,7 @@ public class ForgeDataScript implements IScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public List<PlayerScriptContainer> getScripts() {
+    public List<EventScriptContainer> getScripts() {
         return this.scripts;
     }
 
@@ -154,7 +153,7 @@ public class ForgeDataScript implements IScriptHandler {
         Iterator var3 = this.getScripts().iterator();
 
         while(var3.hasNext()) {
-            PlayerScriptContainer script = (PlayerScriptContainer)var3.next();
+            EventScriptContainer script = (EventScriptContainer)var3.next();
             ++tab;
             Iterator var5 = script.console.entrySet().iterator();
 
@@ -171,7 +170,7 @@ public class ForgeDataScript implements IScriptHandler {
         Iterator var1 = this.getScripts().iterator();
 
         while(var1.hasNext()) {
-            PlayerScriptContainer script = (PlayerScriptContainer)var1.next();
+            EventScriptContainer script = (EventScriptContainer)var1.next();
             script.console.clear();
         }
 

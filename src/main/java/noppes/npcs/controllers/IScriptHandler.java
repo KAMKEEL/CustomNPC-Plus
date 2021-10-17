@@ -8,7 +8,7 @@ package noppes.npcs.controllers;
 import java.util.List;
 import java.util.Map;
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.PlayerScriptContainer;
+import noppes.npcs.EventScriptContainer;
 import noppes.npcs.constants.EnumScriptType;
 
 public interface IScriptHandler {
@@ -24,7 +24,7 @@ public interface IScriptHandler {
 
     void setLanguage(String var1);
 
-    List<PlayerScriptContainer> getScripts();
+    List<EventScriptContainer> getScripts();
 
     String noticeString();
 

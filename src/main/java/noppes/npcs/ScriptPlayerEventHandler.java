@@ -322,10 +322,6 @@ public class ScriptPlayerEventHandler {
                     classes = classLoader.getName();
                 } while(classes.startsWith("net.minecraftforge.event.terraingen"));
 
-                if(classes.startsWith("cpw.mods.fml.common.gameevent")){
-                    ;
-                }
-
                 Class infoClass = classLoader.load();
                 ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
                 if(c.isEmpty()) {

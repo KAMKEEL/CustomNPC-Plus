@@ -408,12 +408,12 @@ public class NBTTags {
 		}
 	}
 
-	public static List<PlayerScriptContainer> GetScript(NBTTagList list, IScriptHandler handler) {
+	public static List<EventScriptContainer> GetScript(NBTTagList list, IScriptHandler handler) {
 		ArrayList scripts = new ArrayList();
 
 		for(int i = 0; i < list.tagCount(); ++i) {
 			NBTTagCompound compoundd = list.getCompoundTagAt(i);
-			PlayerScriptContainer script = new PlayerScriptContainer(handler);
+			EventScriptContainer script = new EventScriptContainer(handler);
 			script.readFromNBT(compoundd);
 			scripts.add(script);
 		}
@@ -421,12 +421,12 @@ public class NBTTags {
 		return scripts;
 	}
 
-	public static NBTTagList NBTScript(List<PlayerScriptContainer> scripts) {
+	public static NBTTagList NBTScript(List<EventScriptContainer> scripts) {
 		NBTTagList list = new NBTTagList();
 		Iterator var2 = scripts.iterator();
 
 		while(var2.hasNext()) {
-			PlayerScriptContainer script = (PlayerScriptContainer)var2.next();
+			EventScriptContainer script = (EventScriptContainer)var2.next();
 			NBTTagCompound compound = new NBTTagCompound();
 			script.writeToNBT(compound);
 			list.appendTag(compound);
