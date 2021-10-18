@@ -1,17 +1,17 @@
 package tconstruct.client.tabs;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.network.play.client.C0DPacketCloseWindow;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.network.play.client.C0DPacketCloseWindow;
+import net.minecraftforge.client.event.GuiScreenEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TabRegistry {
 	private static ArrayList<AbstractTab> tabList = new ArrayList<AbstractTab>();
@@ -50,8 +50,7 @@ public class TabRegistry {
 	public static void updateTabValues(int cornerX, int cornerY,
 			Class<?> selectedButton) {
 		int count = 2;
-		for (int i = 0; i < tabList.size(); i++) {
-			AbstractTab t = tabList.get(i);
+		for (AbstractTab t : tabList) {
 			if (t.shouldAddToList()) {
 				t.id = count;
 				t.xPosition = cornerX + (count - 2) * 28;

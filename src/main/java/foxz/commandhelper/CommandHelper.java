@@ -1,8 +1,8 @@
 package foxz.commandhelper;
 
-import java.util.List;
-
 import net.minecraft.command.ICommandSender;
+
+import java.util.List;
 
 public abstract class CommandHelper {
 

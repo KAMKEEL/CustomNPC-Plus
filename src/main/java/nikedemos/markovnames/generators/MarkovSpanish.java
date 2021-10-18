@@ -36,7 +36,7 @@ public class MarkovSpanish extends MarkovGenerator {
 		// now it's time to pick it at random
 		//
 		if (gender == 0) {
-			gender = rng.nextBoolean() == true ? 1 : 2;
+			gender = rng.nextBoolean() ? 1 : 2;
 		}
 
 		if (gender == 1) {

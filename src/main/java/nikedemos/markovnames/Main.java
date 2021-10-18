@@ -28,25 +28,21 @@ public class Main {
 		GENERATORS.put("AZTEC", new MarkovAztec(3));
 		
 		//iterate through generators, generate 5 male and 5 female names, move on to the next
-		Iterator<Entry<String, MarkovGenerator>> g = GENERATORS.entrySet().iterator();
-		
-		while (g.hasNext()) {
-			Entry<String, MarkovGenerator> pair = (Entry<String, MarkovGenerator>) g.next();
-			
-			System.out.println("==="+pair.getKey()+"===");
-			
-			for (int i=0; i<16; i++)
-			{
-			if (i==0)
+
+		for (Entry<String, MarkovGenerator> pair : GENERATORS.entrySet()) {
+			System.out.println("===" + pair.getKey() + "===");
+
+			for (int i = 0; i < 16; i++) {
+				if (i == 0)
 					System.out.println("GENTLEMEN-----------");
-			int gender = i<8 ? 1 : 2;
-			String random_name = pair.getValue().fetch(gender);
-			System.out.println(random_name);
-			
-			if (i==15) //extra padding
-				System.out.println("\n");
-			else if (i==7) //separate genders
-				System.out.println("LADIES--------------");
+				int gender = i < 8 ? 1 : 2;
+				String random_name = pair.getValue().fetch(gender);
+				System.out.println(random_name);
+
+				if (i == 15) //extra padding
+					System.out.println("\n");
+				else if (i == 7) //separate genders
+					System.out.println("LADIES--------------");
 			}
 		}
 	}

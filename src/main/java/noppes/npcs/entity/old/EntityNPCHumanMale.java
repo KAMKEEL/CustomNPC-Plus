@@ -13,25 +13,23 @@ import noppes.npcs.entity.EntityNPCInterface;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer, 
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNPCHumanMale extends EntityNPCInterface
-{
-    public EntityNPCHumanMale(World world)
-    {
+public class EntityNPCHumanMale extends EntityNPCInterface {
+    public EntityNPCHumanMale(World world) {
         super(world);
     }
 
-    
-    public void onUpdate(){
-    	isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
-	    	
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
-    	super.onUpdate();
+    public void onUpdate() {
+        isDead = true;
+
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
+
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            worldObj.spawnEntityInWorld(npc);
+        }
+        super.onUpdate();
     }
 }
