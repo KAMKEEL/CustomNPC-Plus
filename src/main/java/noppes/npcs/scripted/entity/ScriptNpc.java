@@ -31,7 +31,7 @@ import noppes.npcs.scripted.roles.ScriptRoleTransporter;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
-	protected EntityCustomNpc npc;
+	public EntityCustomNpc npc;
 
 	public ScriptNpc(T npc){
 		super(npc);

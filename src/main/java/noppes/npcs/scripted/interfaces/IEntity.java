@@ -300,4 +300,6 @@ public interface IEntity<T extends Entity> {
      * @return Returns minecrafts entity
      */
     public T getMCEntity();
+
+    void storeAsClone(int tab, String name);
 }

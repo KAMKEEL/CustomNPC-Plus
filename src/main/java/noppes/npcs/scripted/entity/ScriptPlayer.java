@@ -29,7 +29,7 @@ import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
-	protected T player;
+	public T player;
 	public ScriptPlayer(T player){
 		super(player);
 		this.player = player;

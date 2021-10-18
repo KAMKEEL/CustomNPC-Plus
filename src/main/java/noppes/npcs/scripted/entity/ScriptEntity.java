@@ -20,7 +20,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptEntityParticle;
 import noppes.npcs.scripted.ScriptItemStack;
@@ -494,5 +496,14 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public void setNbt(INbt nbt) {
 		this.entity.readFromNBT(nbt.getMCNBT());
+	}
+
+	public void storeAsClone(int tab, String name) {
+		NBTTagCompound compound = new NBTTagCompound();
+		if (!this.entity.writeToNBTOptional(compound)) {
+			throw new CustomNPCsException("Cannot store dead entities", new Object[0]);
+		} else {
+			ServerCloneController.Instance.addClone(compound, name, tab);
+		}
 	}
 }
