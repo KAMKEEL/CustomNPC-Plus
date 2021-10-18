@@ -2,9 +2,8 @@ package noppes.npcs.containers;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.scripted.IContainer;
+import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.ScriptContainer;
 
 public class ContainerNpcInterface extends Container{

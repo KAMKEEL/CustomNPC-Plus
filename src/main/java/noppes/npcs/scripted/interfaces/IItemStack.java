@@ -1,17 +1,6 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public interface IItemStack {
     public String getName();

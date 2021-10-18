@@ -20,15 +20,13 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
 import noppes.npcs.EventScriptContainer;
 import noppes.npcs.NBTTags;
-import noppes.npcs.scripted.ScriptPlayer;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.ScriptWorld;
-import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.event.PlayerEvent;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 import javax.annotation.CheckForNull;
 import javax.script.ScriptEngine;
@@ -47,9 +45,6 @@ public class PlayerDataScript implements IScriptHandler {
 
     public ScriptPlayer dummyPlayer;
     public ScriptWorld dummyWorld;
-    private final static EntityType entities = new EntityType();
-    private final static JobType jobs = new JobType();
-    private final static RoleType roles = new RoleType();
 
     public PlayerDataScript(EntityPlayer player) {
         if(player != null) {
@@ -132,9 +127,7 @@ public class PlayerDataScript implements IScriptHandler {
                     PlayerEvent result = (PlayerEvent) engine.get("event");
                     if(result == null)
                         engine.put("event", result = new PlayerEvent(this.getPlayer()));
-                    engine.put("EntityType", entities);
-                    engine.put("RoleType", roles);
-                    engine.put("JobType", jobs);
+                    script.engine.put("API", new WrapperNpcAPI());
                     script.run(engine);
 
                     if (script.errored) {

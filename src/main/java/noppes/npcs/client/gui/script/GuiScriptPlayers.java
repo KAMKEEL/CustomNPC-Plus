@@ -9,6 +9,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
 public class GuiScriptPlayers extends GuiScriptInterface {
@@ -27,5 +28,10 @@ public class GuiScriptPlayers extends GuiScriptInterface {
     public void save() {
         super.save();
         Client.sendData(EnumPacketServer.ScriptPlayerSave, script.writeToNBT(new NBTTagCompound()));
+    }
+
+    public void close() {
+        super.close();
+        ScriptController.Instance.playerScripts.errored.clear();
     }
 }

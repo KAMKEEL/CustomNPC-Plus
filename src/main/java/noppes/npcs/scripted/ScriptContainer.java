@@ -6,15 +6,12 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockAir;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.IContainer;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.IItemStack;
+import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.IItemStack;
 
 public class ScriptContainer implements IContainer {
     private IInventory inventory;

@@ -7,8 +7,8 @@ package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.scripted.IWorld;
-import noppes.npcs.scripted.IEntity;
+import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.interfaces.IEntity;
 
 @Cancelable
 public class ForgeEvent extends CustomNPCsEvent {

@@ -1,7 +1,7 @@
 package noppes.npcs.scripted;
 
-import net.minecraft.entity.Entity;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.scripted.entity.ScriptEntity;
 
 /**
  * Created by luisc on 9/8/2021.

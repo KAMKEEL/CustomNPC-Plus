@@ -1,8 +1,8 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.event;
 
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.entity.ScriptLivingBase;
 
 public class ScriptEventAttack extends ScriptEvent{
 

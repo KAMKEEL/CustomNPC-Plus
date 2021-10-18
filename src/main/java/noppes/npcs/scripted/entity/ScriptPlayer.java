@@ -1,4 +1,4 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -22,7 +22,10 @@ import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {

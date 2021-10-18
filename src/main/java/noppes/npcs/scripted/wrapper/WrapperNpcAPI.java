@@ -9,17 +9,15 @@ import java.io.File;
 import java.util.Map;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockAir;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -28,16 +26,11 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.util.LRUHashMap;
-import noppes.npcs.util.NBTJsonUtil;
-import noppes.npcs.util.JsonException;
 
 public class WrapperNpcAPI extends NpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap(10);
@@ -59,8 +52,20 @@ public class WrapperNpcAPI extends NpcAPI {
         }
     }
 
+    public IPlayer getIPlayer(EntityPlayerMP player) {
+        if (player != null && !player.worldObj.isRemote) {
+            return new ScriptPlayer(player);
+        } else {
+            return null;
+        }
+    }
+
     public IBlock getIBlock(World world, BlockPos pos) {
         return new ScriptBlock(world, world.getBlock(pos.getX(),pos.getY(),pos.getZ()), pos);
+    }
+
+    public IBlock getIBlock(World world, int x, int y, int z) {
+        return new ScriptBlock(world, world.getBlock(x, y, z), new BlockPos(x,y,z));
     }
 
     public INbt getINbt(NBTTagCompound compound) {

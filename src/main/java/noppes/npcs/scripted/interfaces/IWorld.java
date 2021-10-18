@@ -1,29 +1,10 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.EntityLightningBolt;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagString;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ServerCloneController;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import noppes.npcs.scripted.*;
+import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 
 public interface IWorld {
     /**

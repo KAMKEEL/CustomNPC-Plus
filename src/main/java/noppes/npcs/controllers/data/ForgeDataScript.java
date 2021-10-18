@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
 import noppes.npcs.EventScriptContainer;
@@ -22,6 +21,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 import javax.script.ScriptEngine;
 
@@ -51,40 +51,9 @@ public class ForgeDataScript implements IScriptHandler {
         return compound;
     }
 
-    public void callScript(EnumScriptType type, Event event, Object... obs) {
-        if(this.isEnabled()) {
-//            CustomNpcs.getServer().func_152344_a(() -> {
-            Minecraft.getMinecraft().func_152344_a(() -> {
-                if (ScriptController.Instance.lastLoaded > this.lastInited) {
-                    this.lastInited = ScriptController.Instance.lastLoaded;
-                    if (!type.equals(EnumScriptType.FORGE_INIT)) {
-                        EventHooks.onForgeInit(this);
-                    }
-                }
-
-                Iterator var3 = this.scripts.iterator();
-
-                while (var3.hasNext()) {
-                    EventScriptContainer script = (EventScriptContainer) var3.next();
-                    if(script.type != type.function)
-                        continue;
-
-                    script.setEngine(scriptLanguage);
-                    if(script.engine == null)
-                        return;
-                    for(int i = 0; i + 1 < obs.length; i += 2){
-                        Object ob = obs[i + 1];
-                        if(ob instanceof Entity)
-                            ob = ScriptController.Instance.getScriptForEntity((Entity)ob);
-                        script.engine.put(obs[i].toString(), ob);
-                    }
-                    ScriptEngine engine = script.engine;
-
-                    //script.run(EnumScriptType.valueOf(type), event);
-                    script.run(engine);
-                }
-            });
-        }
+    @Override
+    public void callScript(EnumScriptType var1, Event var2, Object... obs) {
+        callScript(var1.function, var2);
     }
 
     public void callScript(String type, Event event) {
@@ -102,11 +71,19 @@ public class ForgeDataScript implements IScriptHandler {
 
                 while (var3.hasNext()) {
                     EventScriptContainer script = (EventScriptContainer) var3.next();
-                    //script.run(EnumScriptType.valueOf(type), event);
+
+                    if(!script.type.equals(type))
+                        continue;
 
                     script.setEngine(scriptLanguage);
                     if(script.engine == null)
                         return;
+
+                    Event result = (Event) script.engine.get("event");
+                    if(result == null)
+                        script.engine.put("event", event);
+                    script.engine.put("API", new WrapperNpcAPI());
+
                     ScriptEngine engine = script.engine;
 
                     script.run(engine);

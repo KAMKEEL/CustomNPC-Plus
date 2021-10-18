@@ -3,7 +3,7 @@
 // (powered by FernFlower decompiler)
 //
 
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;

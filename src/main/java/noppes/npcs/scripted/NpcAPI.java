@@ -10,6 +10,7 @@ import java.io.File;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -18,6 +19,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.scripted.interfaces.*;
 
 public abstract class NpcAPI {
     private static NpcAPI instance = null;
@@ -31,7 +33,11 @@ public abstract class NpcAPI {
 
     public abstract IEntity getIEntity(Entity var1);
 
+    public abstract IPlayer getIPlayer(EntityPlayerMP var1);
+
     public abstract IBlock getIBlock(World var1, BlockPos var2);
+
+    public abstract IBlock getIBlock(World world, int x, int y, int z);
 
     public abstract IContainer getIContainer(IInventory var1);
 

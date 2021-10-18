@@ -1,11 +1,9 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
-import net.minecraft.potion.PotionEffect;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.entity.ScriptLivingBase;
 
 public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T> {
     /**

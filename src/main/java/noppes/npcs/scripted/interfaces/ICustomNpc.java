@@ -3,20 +3,14 @@
 // (powered by FernFlower decompiler)
 //
 
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.EntityCreature;
-import net.minecraft.item.ItemStack;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.Line;
-import noppes.npcs.scripted.IItemStack;
-import noppes.npcs.scripted.constants.AnimationType;
-import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.ScriptFaction;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.entity.ScriptLivingBase;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.roles.*;
-import noppes.npcs.util.ValueUtil;
 
 public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**

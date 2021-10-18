@@ -497,6 +497,8 @@ playerscript.fall=Fall
 playerscript.respawn=Respawn
 playerscript.changedDim=Dimension Change
 
+forgescript.forgeInit=Init
+
 item.npcWand.name=Npc Wand
 item.npcMobCloner.name=Mob Cloner
 item.npcMovingPath.name=Npc Pather

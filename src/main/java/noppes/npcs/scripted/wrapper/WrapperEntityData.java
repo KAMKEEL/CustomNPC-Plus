@@ -8,20 +8,14 @@ package noppes.npcs.scripted.wrapper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
-import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.entity.projectile.EntityThrowable;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.LogWriter;
-import noppes.npcs.scripted.*;
 import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.entity.EntityProjectile;
+import noppes.npcs.scripted.entity.*;
+import noppes.npcs.scripted.interfaces.IEntity;
 
 public class WrapperEntityData{
     public IEntity base;

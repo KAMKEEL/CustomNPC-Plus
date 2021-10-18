@@ -3,34 +3,11 @@
 // (powered by FernFlower decompiler)
 //
 
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.passive.EntityAnimal;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.scripted.IWorld;
-import noppes.npcs.scripted.IItemStack;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptEntity;
-import noppes.npcs.scripted.ScriptEntityParticle;
+import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.ScriptItemStack;
-import noppes.npcs.scripted.constants.EntityType;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public interface IEntity<T extends Entity> {
     /**

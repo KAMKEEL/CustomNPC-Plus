@@ -7,6 +7,7 @@ package noppes.npcs.scripted;
 
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
+import noppes.npcs.scripted.interfaces.IPos;
 
 public class ScriptBlockPos implements IPos {
     private BlockPos blockPos;

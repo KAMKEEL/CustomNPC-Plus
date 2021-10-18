@@ -93,7 +93,12 @@ import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
-import noppes.npcs.scripted.*;
+import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.scripted.event.ScriptEventAttack;
+import noppes.npcs.scripted.event.ScriptEventDamaged;
+import noppes.npcs.scripted.event.ScriptEventKilled;
+import noppes.npcs.scripted.event.ScriptEventTarget;
+import noppes.npcs.scripted.interfaces.ICustomNpc;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 

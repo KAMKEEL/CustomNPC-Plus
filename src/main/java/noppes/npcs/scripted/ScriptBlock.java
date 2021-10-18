@@ -7,7 +7,6 @@ package noppes.npcs.scripted;
 
 import java.util.Map;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -15,6 +14,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.util.LRUHashMap;
 
 public class ScriptBlock implements IBlock {

@@ -6,13 +6,15 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.scripted.*;
+import noppes.npcs.scripted.entity.ScriptLivingBase;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.interfaces.*;
 
 public class PlayerEvent extends CustomNPCsEvent {
     public final IPlayer player;

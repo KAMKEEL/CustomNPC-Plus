@@ -39,9 +39,9 @@ public class GuiScriptGlobal extends GuiNPCInterface {
         if (guibutton.id == 0) {
             this.displayGuiScreen(new GuiScriptPlayers());
         }
-        /*if (guibutton.id == 1) {
+        if (guibutton.id == 1) {
             this.displayGuiScreen(new GuiScriptForge());
-        }*/
+        }
     }
 
     public void keyTyped(char c, int i) {

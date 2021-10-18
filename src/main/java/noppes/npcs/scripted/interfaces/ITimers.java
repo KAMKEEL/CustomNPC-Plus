@@ -3,7 +3,7 @@
 // (powered by Fernflower decompiler)
 //
 
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
 public interface ITimers {
     void start(int var1, int var2, boolean var3);

@@ -3,7 +3,7 @@
 // (powered by Fernflower decompiler)
 //
 
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.passive.EntityAnimal;
 

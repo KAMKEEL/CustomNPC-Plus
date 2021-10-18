@@ -23,11 +23,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IWorld;
 
-public class ScriptWorld implements IWorld{
+public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
 	public WorldServer world;
 	public ScriptWorld(WorldServer world){

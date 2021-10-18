@@ -13,9 +13,11 @@ import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.INbt;
 
 public class ScriptItemStack implements IItemStack {
-	protected ItemStack item;
+	public ItemStack item;
 	
 	public ScriptItemStack(ItemStack item){
 		this.item = item;
