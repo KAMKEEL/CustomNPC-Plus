@@ -5,6 +5,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
+import net.minecraft.stats.Achievement;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
@@ -60,31 +61,31 @@ public class CommonProxy implements IGuiHandler {
 
 		if(gui == EnumGuiType.PlayerBankSmall)
 			return new ContainerNPCBankSmall(player, x , y);
-		
+
 		if(gui == EnumGuiType.PlayerBankUnlock)
 			return new ContainerNPCBankUnlock(player, x , y);
 
 		if(gui == EnumGuiType.PlayerBankUprade)
 			return new ContainerNPCBankUpgrade(player, x , y);
-		
+
 		if(gui == EnumGuiType.PlayerBankLarge)
 			return new ContainerNPCBankLarge(player, x , y);
 
 		if(gui == EnumGuiType.PlayerFollowerHire)
 			return new ContainerNPCFollowerHire(npc, player);
-		
+
 		if(gui == EnumGuiType.PlayerFollower)
 			return new ContainerNPCFollower(npc, player);
-		
+
 		if(gui == EnumGuiType.PlayerTrader)
 			return  new ContainerNPCTrader(npc, player);
 
 		if(gui == EnumGuiType.PlayerAnvil)
 			return new ContainerCarpentryBench(player.inventory, player.worldObj, x, y, z);
-		
+
 		if(gui == EnumGuiType.SetupItemGiver)
 			return new ContainerNpcItemGiver(npc, player);
-		
+
 		if(gui == EnumGuiType.SetupTrader)
 			return new ContainerNPCTraderSetup(npc, player);
 
@@ -93,10 +94,10 @@ public class CommonProxy implements IGuiHandler {
 
 		if(gui == EnumGuiType.QuestReward)
 			return new ContainerNpcQuestReward(player);
-		
+
 		if(gui == EnumGuiType.QuestItem)
 			return new ContainerNpcQuestTypeItem(player);
-		
+
 		if(gui == EnumGuiType.ManageRecipes)
 			return new ContainerManageRecipes(player,x);
 
@@ -108,13 +109,13 @@ public class CommonProxy implements IGuiHandler {
 
 		if(gui == EnumGuiType.Crate)
 			return new ContainerCrate(player.inventory, (TileNpcContainer)player.worldObj.getTileEntity(x, y, z));
-		
+
 		if(gui == EnumGuiType.PlayerMailman)
 			return new ContainerMail(player, x == 1, y == 1);
-		
+
 		if(gui == EnumGuiType.CompanionInv)
 			return new ContainerNPCCompanion(npc, player);
-		
+
 		return null;
 	}
 
@@ -134,17 +135,17 @@ public class CommonProxy implements IGuiHandler {
 
 
 	public void openGui(int i, int j, int k, EnumGuiType gui, EntityPlayer player) {
-		
+
 	}
 
 	public void openGui(EntityPlayer player, Object guiscreen) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void spawnParticle(EntityLivingBase player, String string, Object... ob) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public boolean hasClient() {
@@ -157,7 +158,7 @@ public class CommonProxy implements IGuiHandler {
 
 	public void registerItem(Item item) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public ModelBiped getSkirtModel() {
@@ -165,8 +166,11 @@ public class CommonProxy implements IGuiHandler {
 	}
 
 	public void spawnParticle(String particle, double x, double y, double z,
-			double motionX, double motionY, double motionZ, float scale) {
-		
+							  double motionX, double motionY, double motionZ, float scale) {
+
 	}
 
+	public String getAchievementDesc(Achievement achievement) {
+		return "";
+	}
 }

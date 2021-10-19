@@ -44,7 +44,7 @@ import noppes.npcs.util.NBTJsonUtil;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ScriptController {
-	
+
 	public static ScriptController Instance;
 	public static boolean HasStart = false;
 	private ScriptEngineManager manager;
@@ -184,39 +184,40 @@ public class ScriptController {
 		}
 	}
 	public boolean loadStoredData(){
-    	loadCategories();
-    	File file = getSavedFile();
-        try {
-        	if(!file.exists())
-        		return false;
-        	this.compound = NBTJsonUtil.LoadFile(file);
-    		shouldSave = false;
-		} 
-        catch (Exception e) {
+		loadCategories();
+		File file = getSavedFile();
+		try {
+			if(!file.exists())
+				return false;
+			this.compound = NBTJsonUtil.LoadFile(file);
+			shouldSave = false;
+		}
+		catch (Exception e) {
 			LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-        	return false;
-        }
-        return true;
+			return false;
+		}
+		return true;
 	}
-	
+
 	private File getSavedFile(){
 		return new File(dir, "world_data.json");
 	}
-	private String readFile(File file) throws IOException {
-	    BufferedReader br = new BufferedReader(new FileReader(file));
-	    try {
-	        StringBuilder sb = new StringBuilder();
-	        String line = br.readLine();
 
-	        while (line != null) {
-	            sb.append(line);
-	            sb.append("\n");
-	            line = br.readLine();
-	        }
-	        return sb.toString();
-	    } finally {
-	        br.close();
-	    }
+	private String readFile(File file) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		try {
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
+
+			while (line != null) {
+				sb.append(line);
+				sb.append("\n");
+				line = br.readLine();
+			}
+			return sb.toString();
+		} finally {
+			br.close();
+		}
 	}
 
 	public ScriptEngine getEngineByName(String language) {
@@ -237,7 +238,7 @@ public class ScriptController {
 		}
 		return list;
 	}
-	
+
 	private List<String> getScripts(String language){
 		List<String> list = new ArrayList<String>();
 		String ext = languages.get(language);
@@ -283,14 +284,14 @@ public class ScriptController {
 	public void saveWorld(WorldEvent.Save event){
 		if(!shouldSave || event.world.isRemote || event.world != MinecraftServer.getServer().worldServers[0])
 			return;
-		
+
 		try {
 			NBTJsonUtil.SaveFile(getSavedFile(), compound);
-		} 
+		}
 		catch (Exception e) {
 			LogWriter.except(e);
-		} 
-		
+		}
+
 		shouldSave = false;
 	}
 }

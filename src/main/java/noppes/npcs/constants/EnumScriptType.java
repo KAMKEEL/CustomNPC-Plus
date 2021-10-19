@@ -72,7 +72,7 @@ public enum EnumScriptType {
 	PLAYSOUND("playSound"),
 	RESPAWN("respawn"),
 	CHANGED_DIM("changedDim"),
-	BREAK("break"),
+	BREAK_BLOCK("breakBlock"),
 	FORGE_INIT("forgeInit"),
 	FORGE_ENTITY("forgeEntity"),
 	FORGE_WORLD("forgeWorld");

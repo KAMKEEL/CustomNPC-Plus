@@ -220,7 +220,7 @@ public class ScriptPlayerEventHandler {
     public void invoke(AchievementEvent event) {
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
-            EventHooks.onPlayerAchievement(handler, event.achievement.getDescription());
+            EventHooks.onPlayerAchievement(handler, CustomNpcs.proxy.getAchievementDesc(event.achievement));
         }
     }
 

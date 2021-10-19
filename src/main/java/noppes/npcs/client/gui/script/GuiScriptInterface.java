@@ -103,7 +103,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("killed");
                 hookList.add("drop");
                 hookList.add("respawn");
-                hookList.add("break");
+                hookList.add("breakBlock");
                 hookList.add("chat");
                 hookList.add("login");
                 hookList.add("logout");
@@ -130,7 +130,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("playSound");
                 hookList.add("lightning");
                 hookList.add("changedDim");
-                hookList.add("achievement");
             }
             else if(handler instanceof ForgeDataScript) {
                 hookList.add("init");

@@ -117,6 +117,7 @@ gui.update=Update
 gui.disabled=Disabled
 gui.editor=Editor
 gui.playernearby=Player nearby
+gui.forum=Forum
 
 remote.title=Nearby NPCs
 remote.reset=Reset
@@ -145,7 +146,7 @@ mailbox.name=Mailbox
 mailbox.sender=Sender
 mailbox.read=Read
 mailbox.timesend=%s ago
-mailbox.day=day 
+mailbox.day=day
 mailbox.days=days
 mailbox.hour=hour
 mailbox.hours=hours
@@ -376,7 +377,7 @@ follower.lastday=Last day
 follower.day=Day
 follower.days=Days
 follower.hireText=Thank you for hiring me for
-follower.farewellText=My days with you are over. Farewell 
+follower.farewellText=My days with you are over. Farewell
 follower.infiniteDays=Infinite Days
 follower.guiDisabled=GuiDisabled
 follower.allowSoulstone=AllowSoulstone
@@ -442,6 +443,9 @@ quest.exp=Exp
 quest.takeitems=Take Items
 quest.objectives=Objectives
 
+script.apidoc=API Docs
+script.apisrc=API Source
+
 script.scripts=Scripts
 script.hooks=Hooks
 script.loadscript=Load Scripts
@@ -465,7 +469,7 @@ eventscript.playerevent=Player Events
 
 playerscript.disabled=Disabled
 playerscript.attack=Attack
-playerscript.break=Break
+playerscript.breakBlock=Break
 playerscript.chat=Chat
 playerscript.containerclosed=Closed Container
 playerscript.containerOpen=Open Container
@@ -505,9 +509,6 @@ playerscript.wakeUp=Wake Up
 playerscript.fillBucket=Fill Bucket
 playerscript.bonemeal=Bonemeal
 playerscript.achievement=Achievement
-
-
-forgescript.forgeInit=Init
 
 item.npcWand.name=Npc Wand
 item.npcMobCloner.name=Mob Cloner
