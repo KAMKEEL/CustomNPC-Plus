@@ -6,6 +6,7 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -14,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -113,6 +115,24 @@ public class EventHooks {
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
+    public static void onPlayerUseHoe(PlayerDataScript handler, ItemStack hoe, int x, int y, int z) {
+        noppes.npcs.scripted.event.PlayerEvent.UseHoe event = new noppes.npcs.scripted.event.PlayerEvent.UseHoe(handler.getPlayer(), hoe, x, y, z);
+        handler.callScript(EnumScriptType.USE_HOE, event,"event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerSleep(PlayerDataScript handler, int x, int y, int z) {
+        noppes.npcs.scripted.event.PlayerEvent.Sleep event = new noppes.npcs.scripted.event.PlayerEvent.Sleep(handler.getPlayer(), x, y, z);
+        handler.callScript(EnumScriptType.SLEEP, event,"event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerWakeUp(PlayerDataScript handler, boolean setSpawn) {
+        noppes.npcs.scripted.event.PlayerEvent.WakeUp event = new noppes.npcs.scripted.event.PlayerEvent.WakeUp(handler.getPlayer(), setSpawn);
+        handler.callScript(EnumScriptType.WAKE_UP, event,"event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onPlayerDeath(PlayerDataScript handler, DamageSource source, Entity entity) {
         noppes.npcs.scripted.event.PlayerEvent.DiedEvent event = new noppes.npcs.scripted.event.PlayerEvent.DiedEvent(handler.getPlayer(), source, entity);
         handler.callScript(EnumScriptType.KILLED, event,"event", event);
@@ -148,12 +168,35 @@ public class EventHooks {
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
+    public static void onPlayerJump(PlayerDataScript handler) {
+        PlayerEvent.JumpEvent event = new PlayerEvent.JumpEvent(handler.getPlayer());
+        handler.callScript(EnumScriptType.JUMP, event,"event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onPlayerLogin(PlayerDataScript handler) {
         LoginEvent event = new LoginEvent(handler.getPlayer());
         handler.callScript(EnumScriptType.LOGIN, event, "event", event);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
+    public static void onPlayerAchievement(PlayerDataScript handler, String description) {
+        PlayerEvent.Achievement event = new PlayerEvent.Achievement(handler.getPlayer(), description);
+        handler.callScript(EnumScriptType.ACHIEVEMENT, event, "event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerFillBucket(PlayerDataScript handler, ItemStack current, ItemStack result) {
+        PlayerEvent.FillBucket event = new PlayerEvent.FillBucket(handler.getPlayer(), current, result);
+        handler.callScript(EnumScriptType.FILL_BUCKET, event, "event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPlayerBonemeal(PlayerDataScript handler, int x, int y, int z, World world) {
+        PlayerEvent.Bonemeal event = new PlayerEvent.Bonemeal(handler.getPlayer(), x, y, z, world);
+        handler.callScript(EnumScriptType.BONEMEAL, event, "event", event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
 
     public static void onPlayerRespawn(PlayerDataScript handler) {
         PlayerEvent.RespawnEvent event = new PlayerEvent.RespawnEvent(handler.getPlayer());
@@ -170,6 +213,11 @@ public class EventHooks {
     public static void onPlayerChat(PlayerDataScript handler, ChatEvent event) {
         handler.callScript(EnumScriptType.CHAT, event,"event", event);
         WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerBowCharge(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.RangedChargeEvent event) {
+        handler.callScript(EnumScriptType.RANGED_CHARGE, event,"event", event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onPlayerRanged(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent event) {

@@ -6,11 +6,14 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.entity.ScriptPlayer;
@@ -159,6 +162,12 @@ public class PlayerEvent extends CustomNPCsEvent {
         public FallEvent(IPlayer player, float distance){
             super(player);
             this.distance = distance;
+        }
+    }
+
+    public static class JumpEvent extends PlayerEvent {
+        public JumpEvent(IPlayer player){
+            super(player);
         }
     }
 
@@ -339,6 +348,84 @@ public class PlayerEvent extends CustomNPCsEvent {
             super(player);
             this.block = block;
             this.exp = exp;
+        }
+    }
+
+    public static class UseHoe extends PlayerEvent {
+        public final IItemStack hoe;
+        public final int x;
+        public final int y;
+        public final int z;
+
+        public UseHoe(IPlayer player, ItemStack item, int x, int y, int z) {
+            super(player);
+            this.hoe = new ScriptItemStack(item);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    public static class WakeUp extends PlayerEvent{
+        public final boolean setSpawn;
+
+        public WakeUp(IPlayer player, boolean setSpawn) {
+            super(player);
+            this.setSpawn = setSpawn;
+        }
+    }
+
+    public static class Sleep extends PlayerEvent {
+        public final int x;
+        public final int y;
+        public final int z;
+
+        public Sleep(ScriptPlayer player, int x, int y, int z) {
+            super(player);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    public static class Achievement extends PlayerEvent {
+        public final String description;
+
+        public Achievement(IPlayer player, String description) {
+            super(player);
+            this.description = description;
+        }
+    }
+
+    public static class FillBucket extends PlayerEvent {
+        public final IItemStack current;
+        public final IItemStack result;
+
+        public FillBucket(IPlayer player, ItemStack current, ItemStack result) {
+            super(player);
+            this.current = new ScriptItemStack(current);
+            this.result = new ScriptItemStack(result);
+        }
+    }
+
+    public static class Bonemeal extends PlayerEvent {
+        public final IBlock block;
+        public final int x;
+        public final int y;
+        public final int z;
+
+        public Bonemeal(IPlayer player, int x, int y, int z, World world) {
+            super(player);
+            this.block = API.getIBlock(world, x, y, z);
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
+
+    public static class RangedChargeEvent extends PlayerEvent {
+        public RangedChargeEvent(ScriptPlayer player) {
+            super(player);
         }
     }
 }

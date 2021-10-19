@@ -37,6 +37,7 @@ import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
@@ -74,6 +75,15 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
             noppes.npcs.scripted.event.PlayerEvent.InteractEvent ev = new noppes.npcs.scripted.event.PlayerEvent.InteractEvent(handler.getPlayer(), 1, NpcAPI.Instance().getIEntity(event.target));
             event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(ArrowNockEvent event) {
+        if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            noppes.npcs.scripted.event.PlayerEvent.RangedChargeEvent ev = new noppes.npcs.scripted.event.PlayerEvent.RangedChargeEvent(handler.getPlayer());
+            EventHooks.onPlayerBowCharge(handler, ev);
         }
     }
 
@@ -166,12 +176,71 @@ public class ScriptPlayerEventHandler {
     }
 
     @SubscribeEvent
+    public void invoke(UseHoeEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onPlayerUseHoe(handler, event.current, event.x, event.y, event.z);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerSleepInBedEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onPlayerSleep(handler, event.x, event.y, event.z);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerWakeUpEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onPlayerWakeUp(handler, event.setSpawn);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(FillBucketEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onPlayerFillBucket(handler, event.current, event.result);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(BonemealEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onPlayerBonemeal(handler, event.x, event.y, event.z, event.world);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(AchievementEvent event) {
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
+            EventHooks.onPlayerAchievement(handler, event.achievement.getDescription());
+        }
+    }
+
+    @SubscribeEvent
     public void invoke(LivingFallEvent event) {
         if(event.entityLiving.worldObj instanceof WorldServer) {
             PlayerDataScript handler;
             if (event.entityLiving instanceof EntityPlayer) {
                 handler = PlayerData.get((EntityPlayer)event.entityLiving).scriptData;
                 EventHooks.onPlayerFall(handler, event.distance);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(LivingEvent.LivingJumpEvent event) {
+        if(event.entityLiving.worldObj instanceof WorldServer) {
+            PlayerDataScript handler;
+            if (event.entityLiving instanceof EntityPlayer) {
+                handler = PlayerData.get((EntityPlayer)event.entityLiving).scriptData;
+                EventHooks.onPlayerJump(handler);
             }
         }
     }

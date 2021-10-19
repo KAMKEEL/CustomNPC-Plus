@@ -469,7 +469,7 @@ playerscript.break=Break
 playerscript.chat=Chat
 playerscript.containerclosed=Closed Container
 playerscript.containerOpen=Open Container
-playerscript.damagedentity=Damaged Entity
+playerscript.damagedEntity=Damaged Entity
 playerscript.damaged=Hurt
 playerscript.killed=Killed
 playerscript.factionupdate=Faction Updated
@@ -481,7 +481,8 @@ playerscript.levelUp=Level Up
 playerscript.login=Login
 playerscript.logout=Logout
 playerscript.pickUp=Pickup
-playerscript.rangedLaunched=Range Launched
+playerscript.rangedCharge=Arrow Charge
+playerscript.rangedLaunched=Arrow Launched
 playerscript.drop=Drop Items
 playerscript.tick=Update
 playerscript.pickupXP=Pickup XP
@@ -494,8 +495,16 @@ playerscript.finishItem=Item Finish
 playerscript.playSound=Play Sound
 playerscript.lightning=Lightning Struck
 playerscript.fall=Fall
+playerscript.jump=Jump
 playerscript.respawn=Respawn
 playerscript.changedDim=Dimension Change
+playerscript.useHoe=Use Hoe
+playerscript.sleep=Sleep
+playerscript.wakeUp=Wake Up
+playerscript.fillBucket=Fill Bucket
+playerscript.bonemeal=Bonemeal
+playerscript.achievement=Achievement
+
 
 forgescript.forgeInit=Init
 
