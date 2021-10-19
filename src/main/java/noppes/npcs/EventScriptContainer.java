@@ -7,24 +7,26 @@ package noppes.npcs;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptEngine;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 
 public class EventScriptContainer {
     public static EventScriptContainer Current;
-    public String type = "init";
+    //public String type = "init";
+    private static String CurrentType;
     public String fullscript = "";
     public String script = "";
     public TreeMap<Long, String> console = new TreeMap();
+    private HashSet<String> unknownFunctions = new HashSet();
     public boolean errored = false;
     public List<String> scripts = new ArrayList();
     public long lastCreated = 0L;
@@ -40,7 +42,7 @@ public class EventScriptContainer {
 
     public void readFromNBT(NBTTagCompound compound) {
         this.script = compound.getString("Script");
-        this.type = compound.getString("Type");
+        //this.type = compound.getString("Type");
         this.console = NBTTags.GetLongStringMap(compound.getTagList("Console", 10));
         this.scripts = NBTTags.getStringList(compound.getTagList("ScriptList", 10));
         this.lastCreated = 0L;
@@ -48,7 +50,7 @@ public class EventScriptContainer {
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString("Script", this.script);
-        compound.setString("Type", this.type);
+        //compound.setString("Type", this.type);
         compound.setTag("Console", NBTTags.NBTLongStringMap(this.console));
         compound.setTag("ScriptList", NBTTags.nbtStringList(this.scripts));
         return compound;
@@ -74,7 +76,8 @@ public class EventScriptContainer {
 
         return this.fullscript;
     }
-    public void run(ScriptEngine engine){
+
+    /*public void run(ScriptEngine engine){
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         engine.getContext().setWriter(pw);
@@ -94,10 +97,51 @@ public class EventScriptContainer {
             appandConsole(e.getMessage());
         }
         appandConsole(sw.getBuffer().toString().trim());
+    }*/
+
+    public void run(EnumScriptType type, Event event) {
+        this.run((String)type.function, (Object)event);
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void run(String type, Object event) {
+        if (!this.errored && this.hasCode() && !this.unknownFunctions.contains(type)) {
+            this.setEngine(this.handler.getLanguage());
+            if (this.engine != null) {
+                if (ScriptController.Instance.lastLoaded > this.lastCreated) {
+                    this.lastCreated = ScriptController.Instance.lastLoaded;
+                    this.init = false;
+                }
+
+                String var3 = "lock";
+                synchronized("lock") {
+                    Current = this;
+                    CurrentType = type;
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    this.engine.getContext().setWriter(pw);
+                    this.engine.getContext().setErrorWriter(pw);
+
+                    try {
+                        if (!this.init) {
+                            this.engine.eval(this.getFullCode());
+                            this.init = true;
+                        }
+
+                        ((Invocable)this.engine).invokeFunction(type, new Object[]{event});
+                    } catch (NoSuchMethodException var13) {
+                        this.unknownFunctions.add(type);
+                    } catch (Throwable var14) {
+                        this.errored = true;
+                        var14.printStackTrace(pw);
+                    } finally {
+                        this.appandConsole(sw.getBuffer().toString().trim());
+                        pw.close();
+                        Current = null;
+                    }
+
+                }
+            }
+        }
     }
 
     public void appandConsole(String message) {

@@ -72,9 +72,6 @@ public class ForgeDataScript implements IScriptHandler {
                 while (var3.hasNext()) {
                     EventScriptContainer script = (EventScriptContainer) var3.next();
 
-                    if(!script.type.equals(type))
-                        continue;
-
                     script.setEngine(scriptLanguage);
                     if(script.engine == null)
                         return;
@@ -86,7 +83,7 @@ public class ForgeDataScript implements IScriptHandler {
 
                     ScriptEngine engine = script.engine;
 
-                    script.run(engine);
+                    script.run(type, event);
                 }
             });
         }

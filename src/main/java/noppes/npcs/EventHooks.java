@@ -6,7 +6,6 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -32,7 +31,7 @@ import noppes.npcs.scripted.event.PlayerEvent.KeyPressedEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LoginEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LogoutEvent;
 import noppes.npcs.scripted.event.PlayerEvent.PickUpEvent;
-import noppes.npcs.scripted.event.PlayerEvent.TossEvent;
+import noppes.npcs.scripted.event.PlayerEvent.DropEvent;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -92,7 +91,7 @@ public class EventHooks {
         IItemStack[] items = new IItemStack[entityItems.size()];
         for(int i = 0; i < entityItems.size(); i++){ items[i] = NpcAPI.Instance().getIItemStack(entityItems.get(i).getEntityItem()); }
 
-        TossEvent event = new TossEvent(handler.getPlayer(), items);
+        DropEvent event = new DropEvent(handler.getPlayer(), items);
         handler.callScript(EnumScriptType.DROP, event,"event", event);
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
@@ -101,6 +100,12 @@ public class EventHooks {
         PlayerEvent.PickupXPEvent event = new PlayerEvent.PickupXPEvent(handler.getPlayer(), orb);
         handler.callScript(EnumScriptType.PICKUP_XP, event,"event", event);
         WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerToss(PlayerDataScript handler, EntityItem entityItem) {
+        PlayerEvent.TossEvent event = new PlayerEvent.TossEvent(handler.getPlayer(), NpcAPI.Instance().getIItemStack(entityItem.getEntityItem()));
+        handler.callScript(EnumScriptType.TOSS, event,"event", event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onPlayerPickUp(PlayerDataScript handler, EntityItem entityItem) {

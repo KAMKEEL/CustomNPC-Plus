@@ -249,12 +249,22 @@ public class PlayerEvent extends CustomNPCsEvent {
     }
 
     @Cancelable
-    public static class TossEvent extends PlayerEvent {
+    public static class DropEvent extends PlayerEvent {
         public final IItemStack[] items;
 
-        public TossEvent(IPlayer player, IItemStack[] items) {
+        public DropEvent(IPlayer player, IItemStack[] items) {
             super(player);
             this.items = items;
+        }
+    }
+
+    @Cancelable
+    public static class TossEvent extends PlayerEvent {
+        public final IItemStack item;
+
+        public TossEvent(IPlayer player, IItemStack item) {
+            super(player);
+            this.item = item;
         }
     }
 

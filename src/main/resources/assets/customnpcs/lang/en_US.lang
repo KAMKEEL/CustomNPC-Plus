@@ -483,6 +483,7 @@ playerscript.logout=Logout
 playerscript.pickUp=Pickup
 playerscript.rangedCharge=Arrow Charge
 playerscript.rangedLaunched=Arrow Launched
+playerscript.toss=Toss Item
 playerscript.drop=Drop Items
 playerscript.tick=Update
 playerscript.pickupXP=Pickup XP

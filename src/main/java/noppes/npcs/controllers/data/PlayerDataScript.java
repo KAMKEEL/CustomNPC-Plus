@@ -105,9 +105,6 @@ public class PlayerDataScript implements IScriptHandler {
             for(int var7 = 0; var7 < this.scripts.size(); ++var7) {
                 script = (EventScriptContainer)this.scripts.get(var7);
 
-                if(!script.type.equals(type.function))
-                    continue;
-
                 if(!ScriptController.Instance.playerScripts.errored.contains(Integer.valueOf(var7))) {
                     if(script == null || script.errored || !script.hasCode())
                         return;
@@ -128,7 +125,7 @@ public class PlayerDataScript implements IScriptHandler {
                     if(result == null)
                         engine.put("event", result = new PlayerEvent(this.getPlayer()));
                     script.engine.put("API", new WrapperNpcAPI());
-                    script.run(engine);
+                    script.run(type, event);
 
                     if (script.errored) {
                         ScriptController.Instance.playerScripts.errored.add(var7);
