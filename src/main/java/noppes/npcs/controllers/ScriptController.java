@@ -202,6 +202,7 @@ public class ScriptController {
 	private File getSavedFile(){
 		return new File(dir, "world_data.json");
 	}
+
 	private String readFile(File file) throws IOException {
 	    BufferedReader br = new BufferedReader(new FileReader(file));
 	    try {
