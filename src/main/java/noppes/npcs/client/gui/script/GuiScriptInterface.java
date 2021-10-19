@@ -5,28 +5,40 @@
 
 package noppes.npcs.client.gui.script;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.Map.Entry;
+
+import com.google.common.reflect.ClassPath;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.EventScriptContainer;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.IScriptHandler;
+import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import org.apache.commons.lang3.StringUtils;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
     private int activeTab = 0;
@@ -80,64 +92,76 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         top.active = true;
         if(this.activeTab > 0) {
+            List<String> hookList = new ArrayList<String>();
             if(handler instanceof PlayerDataScript) {
-                List<String> hookList = new ArrayList<String>();
-                hookList.add("playerscript.disabled");
-                hookList.add("playerscript.init");
-                hookList.add("playerscript.tick");
-                hookList.add("playerscript.interact");
-                hookList.add("playerscript.damagedEntity");
-                hookList.add("playerscript.damaged");
-                hookList.add("playerscript.kills");
-                hookList.add("playerscript.killed");
-                hookList.add("playerscript.drop");
-                hookList.add("playerscript.respawn");
-                hookList.add("playerscript.break");
-                hookList.add("playerscript.chat");
-                hookList.add("playerscript.login");
-                hookList.add("playerscript.logout");
-                hookList.add("playerscript.keyPressed");
-                hookList.add("playerscript.mouseClicked");
-                hookList.add("playerscript.pickUp");
-                hookList.add("playerscript.pickupXP");
-                hookList.add("playerscript.rangedCharge");
-                hookList.add("playerscript.rangedLaunched");
-                hookList.add("playerscript.timer");
-                hookList.add("playerscript.startItem");
-                hookList.add("playerscript.usingItem");
-                hookList.add("playerscript.stopItem");
-                hookList.add("playerscript.finishItem");
-                hookList.add("playerscript.containerOpen");
-                hookList.add("playerscript.useHoe");
-                hookList.add("playerscript.bonemeal");
-                hookList.add("playerscript.fillBucket");
-                hookList.add("playerscript.jump");
-                hookList.add("playerscript.fall");
-                hookList.add("playerscript.wakeUp");
-                hookList.add("playerscript.sleep");
-                hookList.add("playerscript.playSound");
-                hookList.add("playerscript.lightning");
-                hookList.add("playerscript.changedDim");
-                hookList.add("playerscript.achievement");
+                hookList.add("init");
+                hookList.add("tick");
+                hookList.add("interact");
+                hookList.add("damagedEntity");
+                hookList.add("damaged");
+                hookList.add("kills");
+                hookList.add("killed");
+                hookList.add("drop");
+                hookList.add("respawn");
+                hookList.add("break");
+                hookList.add("chat");
+                hookList.add("login");
+                hookList.add("logout");
+                hookList.add("keyPressed");
+                hookList.add("mouseClicked");
+                hookList.add("toss");
+                hookList.add("pickUp");
+                hookList.add("pickupXP");
+                hookList.add("rangedCharge");
+                hookList.add("rangedLaunched");
+                hookList.add("timer");
+                hookList.add("startItem");
+                hookList.add("usingItem");
+                hookList.add("stopItem");
+                hookList.add("finishItem");
+                hookList.add("containerOpen");
+                hookList.add("useHoe");
+                hookList.add("bonemeal");
+                hookList.add("fillBucket");
+                hookList.add("jump");
+                hookList.add("fall");
+                hookList.add("wakeUp");
+                hookList.add("sleep");
+                hookList.add("playSound");
+                hookList.add("lightning");
+                hookList.add("changedDim");
+                hookList.add("achievement");
+            }
+            else if(handler instanceof ForgeDataScript) {
+                hookList.add("init");
 
-                addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft + 4, guiTop + 5));
-                GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
-                hooks.setSize(68, 198);
-                hooks.guiLeft = guiLeft + 4;
-                hooks.guiTop = guiTop + 14;
-                hooks.setUnsortedList(hookList);
-                hooks.selected = getScriptHook(this.handler.getScripts().get(this.activeTab - 1),hookList);
-                addScroll(hooks);
+                ArrayList<ClassPath.ClassInfo> list = new ArrayList();
+                try {
+                    list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                for(ClassPath.ClassInfo classInfo : list){
+                    String eventName = classInfo.getName();
+                    int i = eventName.lastIndexOf(".");
+                    eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
+
+                    hookList.add(eventName);
+                }
             }
-            else if(handler instanceof ForgeDataScript){
-                addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft + 4, guiTop + 5));
-                GuiNpcTextField hookField = new GuiNpcTextField(1,this,this.fontRendererObj,guiLeft + 4,guiTop + 14,68,20,"");
-                hookField.setText(this.handler.getScripts().get(this.activeTab - 1).type);
-                addTextField(hookField);
-            }
+
+            addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft - 160, guiTop + 5));
+            GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
+            hooks.allowUserInput = false;
+            hooks.setSize(158, 198);
+            hooks.guiLeft = guiLeft - 160;
+            hooks.guiTop = guiTop + 14;
+            hooks.setUnsortedList(hookList);
+            addScroll(hooks);
 
             EventScriptContainer var7 = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + 72 + yoffset, this.guiTop + yoffset, this.xSize - 180 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
+            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + yoffset, this.guiTop + yoffset, this.xSize - 110 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
             this.addTextField(left);
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
@@ -182,24 +206,24 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
-        this.handler.getScripts().get(this.activeTab - 1).setType(scroll.getSelected().replace("playerscript.",""));
+        //this.handler.getScripts().get(this.activeTab - 1).setType(scroll.getSelected().replace("playerscript.",""));
     }
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        if(textfield.id == 1){
+        /*if(textfield.id == 1){
             this.handler.getScripts().get(this.activeTab - 1).setType(textfield.getText());
-        }
+        }*/
     }
 
-    private int getScriptHook(EventScriptContainer eventScriptContainer, List<String> list) {
+    /*private int getScriptHook(EventScriptContainer eventScriptContainer, List<String> list) {
         for(String s : list) {
             if (s.replace("playerscript.", "").equals(eventScriptContainer.type)) {
                 return list.indexOf(s);
             }
         }
         return 0;
-    }
+    }*/
 
     private String getConsoleText() {
         Map<Long, String> map = this.handler.getConsoleText();

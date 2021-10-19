@@ -36,6 +36,7 @@ import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
+import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
@@ -220,6 +221,14 @@ public class ScriptPlayerEventHandler {
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
             EventHooks.onPlayerAchievement(handler, event.achievement.getDescription());
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(ItemTossEvent event) {
+        if(event.player.worldObj instanceof WorldServer) {
+            PlayerDataScript handler = PlayerData.get(event.player).scriptData;
+            EventHooks.onPlayerToss(handler, event.entityItem);
         }
     }
 
