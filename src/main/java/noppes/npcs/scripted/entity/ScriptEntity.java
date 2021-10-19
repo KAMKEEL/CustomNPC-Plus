@@ -502,6 +502,12 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		return NpcAPI.Instance().getINbt(this.entity.getEntityData());
 	}
 
+	public INbt getAllNbt() {
+		NBTTagCompound compound = new NBTTagCompound();
+		this.entity.writeToNBT(compound);
+		return NpcAPI.Instance().getINbt(compound);
+	}
+
 	public void setNbt(INbt nbt) {
 		this.entity.readFromNBT(nbt.getMCNBT());
 	}
