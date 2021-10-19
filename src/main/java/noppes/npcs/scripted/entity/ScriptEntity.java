@@ -463,12 +463,14 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.motionX *= 0.6D;
 		entity.motionZ *= 0.6D;
 		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
+		entity.hurtResistantTime = 0;
 	}
 
 	public void knockback(int xpower, int ypower, int zpower, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
 		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, 0.1D + ypower * 0.04f, MathHelper.cos(v) * (float)zpower);
 		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
+		entity.hurtResistantTime = 0;
 	}
 
 	/**
