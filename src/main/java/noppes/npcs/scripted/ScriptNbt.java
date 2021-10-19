@@ -1,25 +1,14 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.scripted;
 
-import java.util.Iterator;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagDouble;
-import net.minecraft.nbt.NBTTagFloat;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.nbt.NBTTagIntArray;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.nbt.*;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.util.NBTJsonUtil;
 
+import java.util.Iterator;
+
 public class ScriptNbt implements INbt {
     private NBTTagCompound compound;
-
+    
     public ScriptNbt(NBTTagCompound compound) {
         this.compound = compound;
     }
@@ -114,9 +103,9 @@ public class ScriptNbt implements INbt {
 
     public Object[] getList(String key, int type) {
         NBTTagList list = this.compound.getTagList(key, type);
-        Object[] nbts = new Object[list.tagCount()];
+        Object[] nbts = new Object[list.func_150303_d()];
 
-        for(int i = 0; i < list.tagCount(); ++i) {
+        for(int i = 0; i < list.func_150303_d(); ++i) {
             if(list.func_150303_d() == 10) {
                 nbts[i] = new ScriptNbt(list.getCompoundTagAt(i));
             } else if(list.func_150303_d() == 8) {
@@ -153,8 +142,8 @@ public class ScriptNbt implements INbt {
 
         for(int var6 = 0; var6 < var5; ++var6) {
             Object nbt = var4[var6];
-            if(nbt instanceof INbt) {
-                list.appendTag(((INbt) nbt).getMCNBT());
+            if(nbt instanceof ScriptNbt) {
+                list.appendTag(((ScriptNbt)nbt).getMCNBT());
             } else if(nbt instanceof String) {
                 list.appendTag(new NBTTagString((String) nbt));
             } else if(nbt instanceof Double) {
@@ -171,16 +160,22 @@ public class ScriptNbt implements INbt {
         this.compound.setTag(key, list);
     }
 
-    public INbt getCompound(String key) {
+    public ScriptNbt getCompound(String key) {
         return new ScriptNbt(this.compound.getCompoundTag(key));
     }
 
     public void setCompound(String key, INbt value) {
-        if(value == null) {
+        if (value == null) {
             throw new CustomNPCsException("Value cant be null", new Object[0]);
         } else {
             this.compound.setTag(key, value.getMCNBT());
         }
+    }
+
+    public void setCompound(String key, ScriptNbt value) {
+        if(value == null)
+            throw new CustomNPCsException("Value cant be null", new Object[0]);
+        else this.compound.setTag(key, value.getMCNBT());
     }
 
     public String[] getKeys() {
@@ -199,7 +194,12 @@ public class ScriptNbt implements INbt {
         return NBTJsonUtil.Convert(this.compound);
     }
 
-    public boolean isEqual(INbt nbt) {
+    @Override
+    public boolean isEqual(INbt var1) {
+        return false;
+    }
+
+    public boolean isEqual(ScriptNbt nbt) {
         return nbt == null?false:this.compound.equals(nbt.getMCNBT());
     }
 
@@ -210,6 +210,5 @@ public class ScriptNbt implements INbt {
             String name = (String)var1.next();
             this.compound.removeTag(name);
         }
-
     }
 }
