@@ -24,6 +24,7 @@ import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;

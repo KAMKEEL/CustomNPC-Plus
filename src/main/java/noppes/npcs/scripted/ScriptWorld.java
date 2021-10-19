@@ -364,7 +364,7 @@ public class ScriptWorld implements IWorld {
 		return world;
 	}
 
-	public ScriptEntity createEntityFromNBT(ScriptNBT nbt) {
+	public ScriptEntity createEntityFromNBT(ScriptNbt nbt) {
 		Entity entity = EntityList.createEntityFromNBT(nbt.getMCNBT(), this.world);
 		if(entity == null) {
 			throw new CustomNPCsException("Failed to create an entity from given NBT", new Object[0]);
@@ -372,7 +372,7 @@ public class ScriptWorld implements IWorld {
 		return new ScriptEntity(entity);
 	}
 
-	public ScriptItemStack createItemFromNBT(ScriptNBT nbt) {
+	public ScriptItemStack createItemFromNBT(ScriptNbt nbt) {
 		ItemStack item = ItemStack.loadItemStackFromNBT(nbt.getMCNBT());
 		if(item.stackSize < 1) {
 			throw new CustomNPCsException("Failed to create an item from given NBT", new Object[0]);

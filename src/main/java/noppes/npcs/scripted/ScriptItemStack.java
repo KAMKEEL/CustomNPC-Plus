@@ -224,13 +224,13 @@ public class ScriptItemStack implements IItemStack {
 		return item;
 	}
 
-	public ScriptNBT getNBT() {
+	public ScriptNbt getNBT() {
 		NBTTagCompound compound = this.item.getTagCompound();
 		if(compound == null) {
 			this.item.readFromNBT(compound = new NBTTagCompound());
 		}
 
-		return new ScriptNBT(compound);
+		return new ScriptNbt(compound);
 	}
 
 	public boolean hasNBT() {
@@ -238,9 +238,9 @@ public class ScriptItemStack implements IItemStack {
 		return compound != null && !compound.hasNoTags();
 	}
 
-	public ScriptNBT getItemNBT() {
+	public ScriptNbt getItemNBT() {
 		NBTTagCompound compound = new NBTTagCompound();
 		this.item.writeToNBT(compound);
-		return new ScriptNBT(compound);
+		return new ScriptNbt(compound);
 	}
 }
