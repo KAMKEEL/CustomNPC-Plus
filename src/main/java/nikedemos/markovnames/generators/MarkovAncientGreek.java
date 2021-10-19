@@ -39,7 +39,7 @@ public class MarkovAncientGreek extends MarkovGenerator {
 		//
 		if (gender==0)
 		{
-			gender = rng.nextBoolean()==true? 1 : 2;
+			gender = rng.nextBoolean() ? 1 : 2;
 		}
 		
 		//now if it's 2 - a lady - feminize the 3 sequences

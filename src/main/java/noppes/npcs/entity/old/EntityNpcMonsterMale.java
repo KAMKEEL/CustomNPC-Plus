@@ -14,27 +14,25 @@ import noppes.npcs.entity.EntityNPCInterface;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer, 
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNpcMonsterMale extends EntityNPCInterface
-{
-    public EntityNpcMonsterMale(World world)
-    {
+public class EntityNpcMonsterMale extends EntityNPCInterface {
+    public EntityNpcMonsterMale(World world) {
         super(world);
         display.texture = "customnpcs:textures/entity/monstermale/ZombieSteve.png";
     }
-    
-    public void onUpdate(){
-    	isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
-	    	
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	npc.ai.animationType = EnumAnimation.HUG;
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
-    	super.onUpdate();
+    public void onUpdate() {
+        isDead = true;
+
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
+
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            npc.ai.animationType = EnumAnimation.HUG;
+            worldObj.spawnEntityInWorld(npc);
+        }
+        super.onUpdate();
     }
 
 }

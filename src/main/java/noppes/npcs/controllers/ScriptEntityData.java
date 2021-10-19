@@ -6,21 +6,23 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.scripted.entity.ScriptEntity;
 
-public class ScriptEntityData implements IExtendedEntityProperties{
-	public ScriptEntity base;
-	public ScriptEntityData(ScriptEntity base){
-		this.base = base;
-	}
-	@Override
-	public void saveNBTData(NBTTagCompound compound) {
-	}
+public class ScriptEntityData implements IExtendedEntityProperties {
+    public ScriptEntity base;
 
-	@Override
-	public void loadNBTData(NBTTagCompound compound) {		
-	}
+    public ScriptEntityData(ScriptEntity base) {
+        this.base = base;
+    }
 
-	@Override
-	public void init(Entity entity, World world) {
-	}
+    @Override
+    public void saveNBTData(NBTTagCompound compound) {
+    }
+
+    @Override
+    public void loadNBTData(NBTTagCompound compound) {
+    }
+
+    @Override
+    public void init(Entity entity, World world) {
+    }
 
 }

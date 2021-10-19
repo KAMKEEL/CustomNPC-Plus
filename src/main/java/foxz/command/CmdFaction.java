@@ -1,15 +1,15 @@
 package foxz.command;
 
-import java.util.List;
-
-import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerFactionData;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
+import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.PlayerFactionData;
+
+import java.util.List;
 
 @Command(
         name = "faction",

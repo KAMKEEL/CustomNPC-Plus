@@ -1,16 +1,16 @@
 package foxz.utils;
 
-import java.io.File;
-
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.util.NBTJsonUtil;
 
+import java.io.File;
+
 public class Market {
 
-    static public void save(RoleTrader r, String name) {
+    public static void save(RoleTrader r, String name) {
     	if(name.isEmpty())
     		return;
     	File file = getFile(name + "_new");
@@ -28,7 +28,7 @@ public class Market {
     }
 
 
-    static public void load(RoleTrader role, String name){
+    public static void load(RoleTrader role, String name){
     	if(role.npc.worldObj.isRemote)
     		return;
     	File file = getFile(name);
@@ -47,7 +47,7 @@ public class Market {
     	return new File(dir, name.toLowerCase() + ".json");
     }
 
-    static public void setMarket(EntityNPCInterface npc, String marketName) {
+    public static void setMarket(EntityNPCInterface npc, String marketName) {
     	if(marketName.isEmpty())
     		return;
     	if(!getFile(marketName).exists())

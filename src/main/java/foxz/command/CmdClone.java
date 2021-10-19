@@ -1,7 +1,12 @@
 package foxz.command;
 
-import java.util.List;
-
+import foxz.commandhelper.ChMcLogger;
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.OpOnly;
+import foxz.commandhelper.permissions.ParamCheck;
+import foxz.commandhelper.permissions.PlayerOnly;
+import foxz.utils.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandBase;
 import net.minecraft.entity.Entity;
@@ -12,13 +17,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
-import foxz.commandhelper.ChMcLogger;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.OpOnly;
-import foxz.commandhelper.permissions.ParamCheck;
-import foxz.commandhelper.permissions.PlayerOnly;
-import foxz.utils.Utils;
+
+import java.util.List;
 
 @Command(
         name = "clone",
@@ -148,7 +148,7 @@ public class CmdClone extends ChMcLogger {
 	                return false;
 	            }
 	            try{
-		            posX = CommandBase.func_110666_a(pcParam, posX, par[0]);
+                        posX = CommandBase.func_110666_a(pcParam, posX, par[0]);
 		            posY = CommandBase.func_110665_a(pcParam, posY, par[1].trim(), 0, 0);
 		            posZ = CommandBase.func_110666_a(pcParam, posZ, par[2]);
 	            }  catch(NumberFormatException ex){

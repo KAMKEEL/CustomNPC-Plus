@@ -7,10 +7,8 @@ import net.minecraft.util.MathHelper;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public class ModelPonyArmor extends ModelBase
-{
+public class ModelPonyArmor extends ModelBase {
 
-    private boolean rainboom;
     public ModelRenderer head;
     public ModelRenderer Body;
     public ModelRenderer BodyBack;
@@ -30,14 +28,13 @@ public class ModelPonyArmor extends ModelBase
     public boolean isSneak = false;
     public boolean aimedBow;
     public int heldItemRight;
+    private boolean rainboom;
 
-    public ModelPonyArmor(float f)
-    {
-    	init(f,0.0f);
+    public ModelPonyArmor(float f) {
+        init(f, 0.0f);
     }
 
-    public void init(float strech,float f)
-    {
+    public void init(float strech, float f) {
         float f2 = 0.0F;
         float f3 = 0.0F;
         float f4 = 0.0F;
@@ -83,23 +80,20 @@ public class ModelPonyArmor extends ModelBase
         LeftLeg2.setRotationPoint(3F, 0.0F + f, 0.0F);
     }
 
-    public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity entity)
-    {
-    	EntityNPCInterface npc = (EntityNPCInterface) entity;
-    	if(!isRiding)
-    		isRiding = npc.currentAnimation == EnumAnimation.SITTING;
-    	
-    	if(isSneak && (npc.currentAnimation == EnumAnimation.CRAWLING || npc.currentAnimation == EnumAnimation.LYING))
-    		isSneak = false;
+    public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity entity) {
+        EntityNPCInterface npc = (EntityNPCInterface) entity;
+        if (!isRiding)
+            isRiding = npc.currentAnimation == EnumAnimation.SITTING;
+
+        if (isSneak && (npc.currentAnimation == EnumAnimation.CRAWLING || npc.currentAnimation == EnumAnimation.LYING))
+            isSneak = false;
         rainboom = false;
         float f6;
         float f7;
-        if(isSleeping)
-        {
+        if (isSleeping) {
             f6 = 1.4F;
             f7 = 0.1F;
-        } else
-        {
+        } else {
             f6 = f3 / 57.29578F;
             f7 = f4 / 57.29578F;
         }
@@ -109,8 +103,7 @@ public class ModelPonyArmor extends ModelBase
         float f9;
         float f10;
         float f11;
-        if(!isFlying || !isPegasus)
-        {
+        if (!isFlying || !isPegasus) {
             f8 = MathHelper.cos(f * 0.6662F + 3.141593F) * 0.6F * f1;
             f9 = MathHelper.cos(f * 0.6662F) * 0.6F * f1;
             f10 = MathHelper.cos(f * 0.6662F) * 0.3F * f1;
@@ -123,17 +116,14 @@ public class ModelPonyArmor extends ModelBase
             LeftArm2.rotateAngleY = 0.0F;
             RightLeg2.rotateAngleY = 0.0F;
             LeftLeg2.rotateAngleY = 0.0F;
-        } else
-        {
-            if(f1 < 0.9999F)
-            {
+        } else {
+            if (f1 < 0.9999F) {
                 rainboom = false;
                 f8 = MathHelper.sin(0.0F - f1 * 0.5F);
                 f9 = MathHelper.sin(0.0F - f1 * 0.5F);
                 f10 = MathHelper.sin(f1 * 0.5F);
                 f11 = MathHelper.sin(f1 * 0.5F);
-            } else
-            {
+            } else {
                 rainboom = true;
                 f8 = 4.712F;
                 f9 = 4.712F;
@@ -149,8 +139,7 @@ public class ModelPonyArmor extends ModelBase
             RightLeg2.rotateAngleY = -0.2F;
             LeftLeg2.rotateAngleY = 0.2F;
         }
-        if(isSleeping)
-        {
+        if (isSleeping) {
             f8 = 4.712F;
             f9 = 4.712F;
             f10 = 1.571F;
@@ -168,37 +157,31 @@ public class ModelPonyArmor extends ModelBase
         LeftLeg2.rotateAngleX = f11;
         rightarm2.rotateAngleZ = 0.0F;
         LeftArm2.rotateAngleZ = 0.0F;
-        if(heldItemRight != 0 && !rainboom && !isUnicorn)
-        {
+        if (heldItemRight != 0 && !rainboom && !isUnicorn) {
             rightarm.rotateAngleX = rightarm.rotateAngleX * 0.5F - 0.3141593F;
             rightarm2.rotateAngleX = rightarm2.rotateAngleX * 0.5F - 0.3141593F;
         }
         float f12 = 0.0F;
-        if(f5 > -9990F && !isUnicorn)
-        {
+        if (f5 > -9990F && !isUnicorn) {
             f12 = MathHelper.sin(MathHelper.sqrt_float(f5) * 3.141593F * 2.0F) * 0.2F;
         }
-        Body.rotateAngleY = (float)((double)f12 * 0.20000000000000001D);
-        BodyBack.rotateAngleY = (float)((double)f12 * 0.20000000000000001D);
+        Body.rotateAngleY = (float) ((double) f12 * 0.20000000000000001D);
+        BodyBack.rotateAngleY = (float) ((double) f12 * 0.20000000000000001D);
         float f13 = MathHelper.sin(Body.rotateAngleY) * 5F;
         float f14 = MathHelper.cos(Body.rotateAngleY) * 5F;
         float f15 = 4F;
-        if(isSneak && !isFlying)
-        {
+        if (isSneak && !isFlying) {
             f15 = 0.0F;
         }
-        if(isSleeping)
-        {
+        if (isSleeping) {
             f15 = 2.6F;
         }
-        if(rainboom)
-        {
+        if (rainboom) {
             rightarm.rotationPointZ = f13 + 2.0F;
             rightarm2.rotationPointZ = f13 + 2.0F;
             LeftArm.rotationPointZ = (0.0F - f13) + 2.0F;
             LeftArm2.rotationPointZ = (0.0F - f13) + 2.0F;
-        } else
-        {
+        } else {
             rightarm.rotationPointZ = f13 + 1.0F;
             rightarm2.rotationPointZ = f13 + 1.0F;
             LeftArm.rotationPointZ = (0.0F - f13) + 1.0F;
@@ -226,8 +209,7 @@ public class ModelPonyArmor extends ModelBase
         LeftArm2.rotationPointY = 8F;
         RightLeg2.rotationPointY = 4F;
         LeftLeg2.rotationPointY = 4F;
-        if(f5 > -9990F && !isUnicorn)
-        {
+        if (f5 > -9990F && !isUnicorn) {
             float f16 = f5;
             f16 = 1.0F - f5;
             f16 *= f16 * f16;
@@ -242,8 +224,7 @@ public class ModelPonyArmor extends ModelBase
 //            rightarm2.rotateAngleY += Body.rotateAngleY * 2.0F;
 //            rightarm2.rotateAngleZ = f26 * -0.4F;
         }
-        if(isSneak && !isFlying)
-        {
+        if (isSneak && !isFlying) {
             float f17 = 0.4F;
             float f22 = 7F;
             float f27 = -4F;
@@ -272,13 +253,11 @@ public class ModelPonyArmor extends ModelBase
             float f31;
             float f33;
             float f35;
-            if(isSleeping)
-            {
+            if (isSleeping) {
                 f31 = 2.0F;
                 f33 = -1F;
                 f35 = 1.0F;
-            } else
-            {
+            } else {
                 f31 = 6F;
                 f33 = -2F;
                 f35 = 0.0F;
@@ -286,8 +265,7 @@ public class ModelPonyArmor extends ModelBase
             head.rotationPointY = f31;
             head.rotationPointZ = f33;
             head.rotationPointX = f35;
-        } else
-        {
+        } else {
             float f18 = 0.0F;
             float f23 = 0.0F;
             float f28 = 0.0F;
@@ -339,8 +317,7 @@ public class ModelPonyArmor extends ModelBase
 //            RightLeg2.rotationPointY = RightLeg2.rotationPointY + f19;
 //            RightLeg2.rotationPointZ = RightLeg2.rotationPointZ + f24;
 //        }
-        if(isSleeping)
-        {
+        if (isSleeping) {
             rightarm.rotationPointZ = rightarm.rotationPointZ + 6F;
             LeftArm.rotationPointZ = LeftArm.rotationPointZ + 6F;
             RightLeg.rotationPointZ = RightLeg.rotationPointZ - 8F;
@@ -358,8 +335,7 @@ public class ModelPonyArmor extends ModelBase
             RightLeg2.rotationPointY = RightLeg2.rotationPointY + 2.0F;
             LeftLeg2.rotationPointY = LeftLeg2.rotationPointY + 2.0F;
         }
-        if(aimedBow && !isUnicorn)
-        {
+        if (aimedBow && !isUnicorn) {
             float f20 = 0.0F;
             float f25 = 0.0F;
             rightarm.rotateAngleZ = 0.0F;
@@ -380,22 +356,21 @@ public class ModelPonyArmor extends ModelBase
         }
     }
 
-    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5)
-    {
-    	float scale = f5;
+    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+        float scale = f5;
         setRotationAngles(f, f1, f2, f3, f4, f5, entity);
-            head.render(scale);
-            Body.render(scale);
-            BodyBack.render(scale);
-            LeftArm.render(scale);
-            rightarm.render(scale);
-            LeftLeg.render(scale);
-            RightLeg.render(scale);
-            LeftArm2.render(scale);
-            rightarm2.render(scale);
-            LeftLeg2.render(scale);
-            RightLeg2.render(scale);
-        
+        head.render(scale);
+        Body.render(scale);
+        BodyBack.render(scale);
+        LeftArm.render(scale);
+        rightarm.render(scale);
+        LeftLeg.render(scale);
+        RightLeg.render(scale);
+        LeftArm2.render(scale);
+        rightarm2.render(scale);
+        LeftLeg2.render(scale);
+        RightLeg2.render(scale);
+
     }
 
 }

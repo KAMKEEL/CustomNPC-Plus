@@ -1,11 +1,12 @@
 package net.minecraft.util.math;
 
 import com.google.common.collect.AbstractIterator;
-import java.util.Iterator;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.Vec3i;
+
+import java.util.Iterator;
 
 /** This code is owned by Minecraft */
 

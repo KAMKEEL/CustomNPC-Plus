@@ -11,44 +11,44 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
 public class ModelTombstone1 extends ModelBase {
-	// fields
-	ModelRenderer Mid;
-	ModelRenderer OuterEdge1;
-	ModelRenderer OuterEdge2;
-	ModelRenderer OuterEdgeTop;
+    // fields
+    ModelRenderer Mid;
+    ModelRenderer OuterEdge1;
+    ModelRenderer OuterEdge2;
+    ModelRenderer OuterEdgeTop;
 
-	public ModelTombstone1() {
-		Mid = new ModelRenderer(this, 36, 0);
-		Mid.addBox(0F, 0F, 0F, 10, 14, 3);
-		Mid.setRotationPoint(-5F, 10F, -1.5F);
-		
-		OuterEdge1 = new ModelRenderer(this, 0, 0);
-		OuterEdge1.addBox(0F, 0F, 0F, 2, 16, 4);
-		OuterEdge1.setRotationPoint(-7F, 8F, -2F);
-		
-		OuterEdge2 = new ModelRenderer(this, 0, 0);
-		OuterEdge2.mirror = true;
-		OuterEdge2.addBox(1F, 0F, 0F, 2, 16, 4);
-		OuterEdge2.setRotationPoint(4F, 8F, -2F);
-		
-		OuterEdgeTop = new ModelRenderer(this, 0, 22);
-		OuterEdgeTop.addBox(0F, 0F, 0F, 10, 2, 4);
-		OuterEdgeTop.setRotationPoint(-5F, 8F, -2F);
-	}
+    public ModelTombstone1() {
+        Mid = new ModelRenderer(this, 36, 0);
+        Mid.addBox(0F, 0F, 0F, 10, 14, 3);
+        Mid.setRotationPoint(-5F, 10F, -1.5F);
 
-	public void render(Entity entity, float f, float f1, float f2, float f3,
-			float f4, float f5) {
-		super.render(entity, f, f1, f2, f3, f4, f5);
-		Mid.render(f5);
-		OuterEdge1.render(f5);
-		OuterEdge2.render(f5);
-		OuterEdgeTop.render(f5);
-	}
+        OuterEdge1 = new ModelRenderer(this, 0, 0);
+        OuterEdge1.addBox(0F, 0F, 0F, 2, 16, 4);
+        OuterEdge1.setRotationPoint(-7F, 8F, -2F);
 
-	private void setRotation(ModelRenderer model, float x, float y, float z) {
-		model.rotateAngleX = x;
-		model.rotateAngleY = y;
-		model.rotateAngleZ = z;
-	}
+        OuterEdge2 = new ModelRenderer(this, 0, 0);
+        OuterEdge2.mirror = true;
+        OuterEdge2.addBox(1F, 0F, 0F, 2, 16, 4);
+        OuterEdge2.setRotationPoint(4F, 8F, -2F);
+
+        OuterEdgeTop = new ModelRenderer(this, 0, 22);
+        OuterEdgeTop.addBox(0F, 0F, 0F, 10, 2, 4);
+        OuterEdgeTop.setRotationPoint(-5F, 8F, -2F);
+    }
+
+    public void render(Entity entity, float f, float f1, float f2, float f3,
+                       float f4, float f5) {
+        super.render(entity, f, f1, f2, f3, f4, f5);
+        Mid.render(f5);
+        OuterEdge1.render(f5);
+        OuterEdge2.render(f5);
+        OuterEdgeTop.render(f5);
+    }
+
+    private void setRotation(ModelRenderer model, float x, float y, float z) {
+        model.rotateAngleX = x;
+        model.rotateAngleY = y;
+        model.rotateAngleZ = z;
+    }
 
 }

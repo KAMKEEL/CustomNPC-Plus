@@ -3,15 +3,12 @@ package noppes.npcs.client.renderer;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.opengl.GL11;
 
-public class RenderNpcSlime extends RenderNPCInterface
-{
+public class RenderNpcSlime extends RenderNPCInterface {
     private ModelBase scaleAmount;
 
-    public RenderNpcSlime(ModelBase par1ModelBase, ModelBase par2ModelBase, float par3)
-    {
+    public RenderNpcSlime(ModelBase par1ModelBase, ModelBase par2ModelBase, float par3) {
         super(par1ModelBase, par3);
         this.scaleAmount = par2ModelBase;
     }
@@ -19,25 +16,17 @@ public class RenderNpcSlime extends RenderNPCInterface
     /**
      * Determines whether Slime Render should pass or not.
      */
-    protected int shouldSlimeRenderPass(EntityNPCInterface par1EntitySlime, int par2, float par3)
-    {
-        if (par1EntitySlime.isInvisible())
-        {
+    protected int shouldSlimeRenderPass(EntityNPCInterface par1EntitySlime, int par2, float par3) {
+        if (par1EntitySlime.isInvisible()) {
             return 0;
-        }
-        else 
-        	if (par2 == 0)
-        {
+        } else if (par2 == 0) {
             this.setRenderPassModel(this.scaleAmount);
             GL11.glEnable(GL11.GL_NORMALIZE);
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             return 1;
-        }
-        else
-        {
-            if (par2 == 1)
-            {
+        } else {
+            if (par2 == 1) {
                 GL11.glDisable(GL11.GL_BLEND);
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             }
@@ -70,8 +59,7 @@ public class RenderNpcSlime extends RenderNPCInterface
      * Queries whether should render the specified pass or not.
      */
     @Override
-    protected int shouldRenderPass(EntityLivingBase par1EntityLiving, int par2, float par3)
-    {
-        return this.shouldSlimeRenderPass((EntityNPCInterface)par1EntityLiving, par2, par3);
+    protected int shouldRenderPass(EntityLivingBase par1EntityLiving, int par2, float par3) {
+        return this.shouldSlimeRenderPass((EntityNPCInterface) par1EntityLiving, par2, par3);
     }
 }

@@ -7,22 +7,21 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 
-public class ItemPlaceholder extends ItemBlock{
+public class ItemPlaceholder extends ItemBlock {
 
-	public ItemPlaceholder(Block p_i45328_1_) {
-		super(p_i45328_1_);
-		setHasSubtypes(true);
-	}
-	
-	@Override
-    public String getUnlocalizedName(ItemStack par1ItemStack){
+    public ItemPlaceholder(Block p_i45328_1_) {
+        super(p_i45328_1_);
+        setHasSubtypes(true);
+    }
+
+    @Override
+    public String getUnlocalizedName(ItemStack par1ItemStack) {
         return super.getUnlocalizedName(par1ItemStack) + "_" + par1ItemStack.getItemDamage();
     }
-	
-	@Override
+
+    @Override
     @SideOnly(Side.CLIENT)
-    public IIcon getIconFromDamage(int par1)
-    {
+    public IIcon getIconFromDamage(int par1) {
         return this.field_150939_a.getIcon(0, par1);
     }
 }

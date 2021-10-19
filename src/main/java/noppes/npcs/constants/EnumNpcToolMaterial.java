@@ -1,7 +1,6 @@
 package noppes.npcs.constants;
 
-public enum EnumNpcToolMaterial
-{
+public enum EnumNpcToolMaterial {
     WOOD(0, 59, 2.0F, 0, 15),
     STONE(1, 131, 4.0F, 1, 5),
     BRONZE(2, 170, 5.0F, 2, 15),
@@ -28,14 +27,17 @@ public enum EnumNpcToolMaterial
      */
     private final float efficiencyOnProperMaterial;
 
-    /** Damage versus entities. */
+    /**
+     * Damage versus entities.
+     */
     private final int damageVsEntity;
 
-    /** Defines the natural enchantability factor of the material. */
+    /**
+     * Defines the natural enchantability factor of the material.
+     */
     private final int enchantability;
 
-    private EnumNpcToolMaterial(int par3, int par4, float par5, int par6, int par7)
-    {
+    private EnumNpcToolMaterial(int par3, int par4, float par5, int par6, int par7) {
         this.harvestLevel = par3;
         this.maxUses = par4;
         this.efficiencyOnProperMaterial = par5;
@@ -46,40 +48,35 @@ public enum EnumNpcToolMaterial
     /**
      * The number of uses this material allows. (wood = 59, stone = 131, iron = 250, diamond = 1561, gold = 32)
      */
-    public int getMaxUses()
-    {
+    public int getMaxUses() {
         return this.maxUses;
     }
 
     /**
      * The strength of this tool material against blocks which it is effective against.
      */
-    public float getEfficiencyOnProperMaterial()
-    {
+    public float getEfficiencyOnProperMaterial() {
         return this.efficiencyOnProperMaterial;
     }
 
     /**
      * Damage versus entities.
      */
-    public int getDamageVsEntity()
-    {
+    public int getDamageVsEntity() {
         return this.damageVsEntity;
     }
 
     /**
      * The level of material this tool can harvest (3 = DIAMOND, 2 = IRON, 1 = STONE, 0 = IRON/GOLD)
      */
-    public int getHarvestLevel()
-    {
+    public int getHarvestLevel() {
         return this.harvestLevel;
     }
 
     /**
      * Return the natural enchantability factor of the material.
      */
-    public int getEnchantability()
-    {
+    public int getEnchantability() {
         return this.enchantability;
     }
 }
