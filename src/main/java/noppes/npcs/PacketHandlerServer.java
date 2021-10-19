@@ -62,6 +62,8 @@ import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.SpawnData;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.TransportLocation;
+import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
@@ -106,6 +108,10 @@ public class PacketHandlerServer{
 				clonePackets(type, buffer, player);
 			else if(item.getItem() == CustomItems.teleporter)
 				featherPackets(type, buffer, player);
+			else if(type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
+				playerScriptPackets(type, buffer, player);
+			else if(type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
+				forgeScriptPackets(type, buffer, player);
 			else if(item.getItem() == CustomItems.scripter)
 				scriptPackets(type, buffer, player, npc);
 			else if(item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
@@ -125,6 +131,30 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = npc.script.writeToNBT(new NBTTagCompound());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+	}
+
+	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		NBTTagCompound compound;
+		if(type == EnumPacketServer.ScriptPlayerGet) {
+			PlayerDataScript data = ScriptController.Instance.playerScripts;
+			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		} else if(type == EnumPacketServer.ScriptPlayerSave) {
+			ScriptController.Instance.setPlayerScripts(Server.readNBT(buffer));
+		}
+	}
+
+	private void forgeScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		NBTTagCompound compound;
+		if (type == EnumPacketServer.ScriptForgeGet) {
+			ForgeDataScript data = ScriptController.Instance.forgeScripts;
+			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
+		} else if (type == EnumPacketServer.ScriptForgeSave) {
+			ScriptController.Instance.setForgeScripts(Server.readNBT(buffer));
 		}
 	}
 

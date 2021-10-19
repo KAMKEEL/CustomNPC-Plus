@@ -1,12 +1,12 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.entity;
 
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.IMonster;
 
-public class ScriptMonster extends ScriptLiving{
+public class ScriptMonster<T extends EntityMob> extends ScriptLiving<T> implements IMonster {
 
-	public ScriptMonster(EntityMob entity) {
+	public ScriptMonster(T entity) {
 		super(entity);
 	}
 	

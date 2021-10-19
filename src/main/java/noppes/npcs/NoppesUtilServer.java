@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
+import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -21,6 +22,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -31,8 +34,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
@@ -69,7 +73,7 @@ import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
-import noppes.npcs.scripted.ScriptEventDialog;
+import noppes.npcs.scripted.event.ScriptEventDialog;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -215,6 +219,25 @@ public class NoppesUtilServer {
         logic.func_145752_a(command);
         logic.func_145754_b("@"+name);
         logic.func_145755_a(executer.worldObj);
+	}
+
+	public static String runCommand(final World world, final BlockPos pos, final String name, String command, EntityPlayer player, final ICommandSender executer) {
+		if (player != null) {
+			command = command.replace("@dp", player.getDisplayName());
+		}
+
+		TileEntityCommandBlock tile = new TileEntityCommandBlock();
+		tile.setWorldObj(world);
+		tile.xCoord = MathHelper.floor_double(pos.getX());
+		tile.yCoord = MathHelper.floor_double(pos.getY());
+		tile.zCoord = MathHelper.floor_double(pos.getZ());
+
+		CommandBlockLogic logic = tile.func_145993_a();
+		logic.func_145752_a(command);
+		logic.func_145754_b("@"+name);
+		logic.func_145755_a(world);
+
+		return logic.func_145749_h().getUnformattedText();
 	}
 	
 	public static void consumeItemStack(int i, EntityPlayer player){
@@ -673,5 +696,20 @@ public class NoppesUtilServer {
 				return player;
 		}
         return null;
+	}
+
+	public static Entity GetDamageSourcee(DamageSource damagesource) {
+		Object entity = damagesource.getEntity();
+		if(entity == null) {
+			entity = damagesource.getSourceOfDamage();
+		}
+
+		if(entity instanceof EntityArrow && ((EntityArrow)entity).shootingEntity instanceof EntityLivingBase) {
+			entity = ((EntityArrow)entity).shootingEntity;
+		} else if(entity instanceof EntityThrowable) {
+			entity = ((EntityThrowable)entity).getThrower();
+		}
+
+		return (Entity)entity;
 	}
 }

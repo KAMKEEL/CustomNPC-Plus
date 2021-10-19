@@ -1,4 +1,4 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.entity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
@@ -19,19 +18,23 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptEntityParticle;
+import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.IEntity;
+import noppes.npcs.scripted.interfaces.INbt;
 
-public class ScriptEntity {
-	protected Entity entity;
+public class ScriptEntity<T extends Entity> implements IEntity {
+	protected T entity;
 	private Map<String,Object> tempData = new HashMap<String,Object>();
 
-	public ScriptEntity(Entity entity){
+	public ScriptEntity(T entity){
 		this.entity = entity;
 	}
 
@@ -461,20 +464,6 @@ public class ScriptEntity {
         entity.motionZ *= 0.6D;
         entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
 	}
-
-	/**
-	 * @param xpower How strong the knockback is on the x axis
-	 * @param ypower How strong the knockback is on the y axis
-	 * @param zpower How strong the knockback is on the z axis
-	 * @param direction The direction in which he flies back (0-360). Usually based on getRotation()
-	 */
-	public void knockback(int xpower, int ypower, int zpower, float direction){
-		float v = direction * (float)Math.PI / 180.0F;
-		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, ypower, MathHelper.cos(v) * (float)zpower);
-		entity.motionX *= 0.6D;
-		entity.motionZ *= 0.6D;
-		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
-	}
 	
 	/**
 	 * @since 1.7.10c
@@ -497,17 +486,24 @@ public class ScriptEntity {
 	 * Expert users only
 	 * @return Returns minecrafts entity
 	 */
-	public Entity getMCEntity(){
+	public T getMCEntity(){
 		return entity;
 	}
 
-	public ScriptNBT getNBT(){
-		NBTTagCompound compound = new NBTTagCompound();
-		entity.writeToNBT(compound);
-		return new ScriptNBT(compound);
+	public INbt getNbt() {
+		return NpcAPI.Instance().getINbt(this.entity.getEntityData());
 	}
 
-	public ScriptNBT getEntityNBT(){return new ScriptNBT(this.entity.getEntityData());}
+	public void setNbt(INbt nbt) {
+		this.entity.readFromNBT(nbt.getMCNBT());
+	}
 
-	public void setEntityNBT(ScriptNBT nbt) {this.entity.readFromNBT(nbt.getMCNBT());}
+	public void storeAsClone(int tab, String name) {
+		NBTTagCompound compound = new NBTTagCompound();
+		if (!this.entity.writeToNBTOptional(compound)) {
+			throw new CustomNPCsException("Cannot store dead entities", new Object[0]);
+		} else {
+			ServerCloneController.Instance.addClone(compound, name, tab);
+		}
+	}
 }

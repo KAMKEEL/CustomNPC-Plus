@@ -1,9 +1,6 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.entity;
 
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
@@ -11,9 +8,11 @@ import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobBard;
+import noppes.npcs.scripted.ScriptFaction;
+import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.ICustomNpc;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;
 import noppes.npcs.scripted.roles.ScriptJobFollower;
@@ -31,12 +30,12 @@ import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
 import noppes.npcs.util.ValueUtil;
 
-public class ScriptNpc extends ScriptLiving{
-	protected EntityCustomNpc npc;
-	
-	public ScriptNpc(EntityCustomNpc npc){
+public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
+	public EntityCustomNpc npc;
+
+	public ScriptNpc(T npc){
 		super(npc);
-		this.npc = npc;
+		this.npc = (EntityCustomNpc)npc;
 	}
 		
 	/**

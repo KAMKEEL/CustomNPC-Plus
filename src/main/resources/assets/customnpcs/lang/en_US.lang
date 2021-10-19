@@ -461,6 +461,54 @@ script.collide=Collide
 script.kills=Kills
 script.dialog_closed=Dialog Closed
 
+eventscript.playerevent=Player Events
+
+playerscript.disabled=Disabled
+playerscript.attack=Attack
+playerscript.break=Break
+playerscript.chat=Chat
+playerscript.containerclosed=Closed Container
+playerscript.containerOpen=Open Container
+playerscript.damagedEntity=Damaged Entity
+playerscript.damaged=Hurt
+playerscript.killed=Killed
+playerscript.factionupdate=Faction Updated
+playerscript.init=Init
+playerscript.interact=Interact
+playerscript.keyPressed=Key Pressed
+playerscript.kills=Kills
+playerscript.levelUp=Level Up
+playerscript.login=Login
+playerscript.logout=Logout
+playerscript.pickUp=Pickup
+playerscript.rangedCharge=Arrow Charge
+playerscript.rangedLaunched=Arrow Launched
+playerscript.toss=Toss Item
+playerscript.drop=Drop Items
+playerscript.tick=Update
+playerscript.pickupXP=Pickup XP
+playerscript.timer=Timer
+playerscript.mouseClicked=Mouse Click
+playerscript.startItem=Item Start
+playerscript.usingItem=Using Item
+playerscript.stopItem=Item Stop
+playerscript.finishItem=Item Finish
+playerscript.playSound=Play Sound
+playerscript.lightning=Lightning Struck
+playerscript.fall=Fall
+playerscript.jump=Jump
+playerscript.respawn=Respawn
+playerscript.changedDim=Dimension Change
+playerscript.useHoe=Use Hoe
+playerscript.sleep=Sleep
+playerscript.wakeUp=Wake Up
+playerscript.fillBucket=Fill Bucket
+playerscript.bonemeal=Bonemeal
+playerscript.achievement=Achievement
+
+
+forgescript.forgeInit=Init
+
 item.npcWand.name=Npc Wand
 item.npcMobCloner.name=Mob Cloner
 item.npcMovingPath.name=Npc Pather

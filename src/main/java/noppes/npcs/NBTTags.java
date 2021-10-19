@@ -1,18 +1,13 @@
 package noppes.npcs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
-import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.controllers.IScriptHandler;
 
 public class NBTTags {
 
@@ -383,4 +378,60 @@ public class NBTTags {
 		return compound;
 	}
 
+	public static TreeMap<Long, String> GetLongStringMap(NBTTagList tagList) {
+		TreeMap list = new TreeMap();
+
+		for(int i = 0; i < tagList.tagCount(); ++i) {
+			NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+			list.put(Long.valueOf(nbttagcompound.getLong("Long")), nbttagcompound.getString("String"));
+		}
+
+		return list;
+	}
+
+	public static NBTTagList NBTLongStringMap(Map<Long, String> map) {
+		NBTTagList nbttaglist = new NBTTagList();
+		if(map == null) {
+			return nbttaglist;
+		} else {
+			Iterator var2 = map.keySet().iterator();
+
+			while(var2.hasNext()) {
+				long slot = ((Long)var2.next()).longValue();
+				NBTTagCompound nbttagcompound = new NBTTagCompound();
+				nbttagcompound.setLong("Long", slot);
+				nbttagcompound.setString("String", (String) map.get(Long.valueOf(slot)));
+				nbttaglist.appendTag(nbttagcompound);
+			}
+
+			return nbttaglist;
+		}
+	}
+
+	public static List<EventScriptContainer> GetScript(NBTTagList list, IScriptHandler handler) {
+		ArrayList scripts = new ArrayList();
+
+		for(int i = 0; i < list.tagCount(); ++i) {
+			NBTTagCompound compoundd = list.getCompoundTagAt(i);
+			EventScriptContainer script = new EventScriptContainer(handler);
+			script.readFromNBT(compoundd);
+			scripts.add(script);
+		}
+
+		return scripts;
+	}
+
+	public static NBTTagList NBTScript(List<EventScriptContainer> scripts) {
+		NBTTagList list = new NBTTagList();
+		Iterator var2 = scripts.iterator();
+
+		while(var2.hasNext()) {
+			EventScriptContainer script = (EventScriptContainer)var2.next();
+			NBTTagCompound compound = new NBTTagCompound();
+			script.writeToNBT(compound);
+			list.appendTag(compound);
+		}
+
+		return list;
+	}
 }

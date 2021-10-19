@@ -10,10 +10,8 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.world.World;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
@@ -84,7 +82,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
         addScroll(scroll);
 		this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 140, 98, 20, "gui.back"));
 
-    	scroll.visible = GuiNpcTextField.isActive();
+    	scroll.visible = GuiNpcTextField.isFieldActive();
 	}
 
 	protected void actionPerformed(GuiButton guibutton) {
@@ -96,7 +94,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
     public void mouseClicked(int i, int j, int k)
     {
     	super.mouseClicked(i, j, k);
-    	scroll.visible = GuiNpcTextField.isActive();
+    	scroll.visible = GuiNpcTextField.isFieldActive();
     }
 	public void save() {
 	}

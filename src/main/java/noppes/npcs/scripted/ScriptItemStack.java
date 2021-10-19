@@ -13,9 +13,11 @@ import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.INbt;
 
-public class ScriptItemStack {
-	protected ItemStack item;
+public class ScriptItemStack implements IItemStack {
+	public ItemStack item;
 	
 	public ScriptItemStack(ItemStack item){
 		this.item = item;
@@ -197,6 +199,21 @@ public class ScriptItemStack {
 		if(block == null || block == Blocks.air)
 			return false;
 		return true;
+	}
+
+	public INbt getNbt() {
+		NBTTagCompound compound = this.item.getTagCompound();
+		if(compound == null) {
+			this.item.setTagCompound(compound = new NBTTagCompound());
+		}
+
+		return NpcAPI.Instance().getINbt(compound);
+	}
+
+	public INbt getItemNbt() {
+		NBTTagCompound compound = new NBTTagCompound();
+		this.item.writeToNBT(compound);
+		return NpcAPI.Instance().getINbt(compound);
 	}
 
 	/**

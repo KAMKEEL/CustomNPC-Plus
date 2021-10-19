@@ -15,8 +15,8 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptEvent;
-import noppes.npcs.scripted.ScriptNpc;
+import noppes.npcs.scripted.event.ScriptEvent;
+import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
@@ -113,11 +113,7 @@ public class DataScript {
 
 		return callScript(script);
 	}
-	
-	public boolean isEnabled(){
-		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
-	}
-	
+
 	private boolean callScript(ScriptContainer script){
 		ScriptEngine engine = script.engine;
 		engine.put("npc", dummyNpc);
@@ -129,7 +125,7 @@ public class DataScript {
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);
 		script.run(engine);
-		
+
 		if(clientNeedsUpdate){
 			npc.updateClient = true;
 			clientNeedsUpdate = false;
@@ -139,6 +135,10 @@ public class DataScript {
 			aiNeedsUpdate = false;
 		}
 		return result.isCancelled();
+	}
+	
+	public boolean isEnabled(){
+		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
 	}
 
 	public void setWorld(World world) {

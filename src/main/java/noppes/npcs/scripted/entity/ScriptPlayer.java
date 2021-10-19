@@ -1,4 +1,4 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -24,12 +24,15 @@ import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.util.ValueUtil;
 
-public class ScriptPlayer extends ScriptLivingBase{
-	protected EntityPlayerMP player;
-	public ScriptPlayer(EntityPlayerMP player){
+public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
+	public T player;
+	public ScriptPlayer(T player){
 		super(player);
 		this.player = player;
 	}
@@ -52,6 +55,11 @@ public class ScriptPlayer extends ScriptLivingBase{
 	public void setPosition(double x, double y, double z){
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);
 	}
+
+	public int getDimension(){
+		return player.dimension;
+	}
+
 	
 	public boolean hasFinishedQuest(int id){
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;

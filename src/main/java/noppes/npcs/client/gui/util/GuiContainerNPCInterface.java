@@ -109,7 +109,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 	    	for(GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
 	    		tf.textboxKeyTyped(c, i);
 	    	
-	        if (closeOnEsc && (i == 1 || i == mc.gameSettings.keyBindInventory.getKeyCode() && !GuiNpcTextField.isActive()))
+	        if (closeOnEsc && (i == 1 || i == mc.gameSettings.keyBindInventory.getKeyCode() && !GuiNpcTextField.isFieldActive()))
 	            close();
     	}
     }

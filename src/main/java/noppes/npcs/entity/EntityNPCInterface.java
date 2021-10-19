@@ -3,7 +3,6 @@ package noppes.npcs.entity;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,7 +27,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
@@ -63,9 +61,6 @@ import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIPanic;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
-import noppes.npcs.ai.pathfinder.FlyingMoveHelper;
-import noppes.npcs.ai.pathfinder.PathNavigateFlying;
-import noppes.npcs.ai.pathfinder.PathNavigateGround;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -98,17 +93,20 @@ import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
-import noppes.npcs.scripted.ScriptEventAttack;
-import noppes.npcs.scripted.ScriptEventDamaged;
-import noppes.npcs.scripted.ScriptEventKilled;
-import noppes.npcs.scripted.ScriptEventTarget;
+import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.scripted.event.ScriptEventAttack;
+import noppes.npcs.scripted.event.ScriptEventDamaged;
+import noppes.npcs.scripted.event.ScriptEventKilled;
+import noppes.npcs.scripted.event.ScriptEventTarget;
+import noppes.npcs.scripted.interfaces.ICustomNpc;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 
 public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData{
+	public ICustomNpc wrappedNPC;
 
 	private static final GameProfileAlt chateventProfile = new GameProfileAlt();
-	private static FakePlayer chateventPlayer;
+	public static FakePlayer chateventPlayer;
 	public DataDisplay display;
 	public DataStats stats;
 	public DataAI ai;
@@ -132,6 +130,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
+
+	public static FakePlayer CommandPlayer;
 
 	public Faction faction; //should only be used server side
 	
@@ -170,6 +170,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setFaction(faction.id);
 			setSize(1, 1);
 			this.updateTasks();
+
+			if (!this.isRemote()) {
+				this.wrappedNPC = new ScriptNpc(this);
+			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -521,7 +525,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			if(event.getTarget() == null)
 				entity = null;
 			else
-				entity = event.getTarget().getMinecraftEntity();
+				entity = event.getTarget().getMCEntity();
     	}
 		if (entity != null && entity != this && ai.onAttack != 3 && !isAttacking() && !isRemote()){
 			Line line = advanced.getAttackLine();
@@ -1512,7 +1516,18 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		display.readToNBT(compound);
 	}
-	
+
+	public Entity func_174793_f() {
+		if (this.worldObj.isRemote) {
+			return this;
+		} else {
+			EntityUtil.Copy(this, CommandPlayer);
+			CommandPlayer.setWorld(this.worldObj);
+			CommandPlayer.setPosition(this.posX, this.posY, this.posZ);
+			return CommandPlayer;
+		}
+	}
+
 	@Override
 	public String getCommandSenderName() {
 		return display.name;

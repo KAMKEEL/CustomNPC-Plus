@@ -1,4 +1,4 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.event;
 
 public 
 class ScriptEvent{

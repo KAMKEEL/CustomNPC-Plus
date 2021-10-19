@@ -5,9 +5,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 
 public class PlayerData implements IExtendedEntityProperties{
@@ -18,7 +21,10 @@ public class PlayerData implements IExtendedEntityProperties{
 	public PlayerFactionData factionData = new PlayerFactionData();
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData();
 	public PlayerMailData mailData = new PlayerMailData();
-	
+	public PlayerDataScript scriptData;
+	public int playerLevel = 0;
+	public DataTimers timers = new DataTimers(this);
+
 	public EntityNPCInterface editingNpc;
 	public NBTTagCompound cloned;
 	
@@ -51,8 +57,8 @@ public class PlayerData implements IExtendedEntityProperties{
 		transportData.loadNBTData(data);
 		factionData.loadNBTData(data);
 		itemgiverData.loadNBTData(data);
-		mailData.loadNBTData(data);	
-
+		mailData.loadNBTData(data);
+		timers.readFromNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -87,7 +93,8 @@ public class PlayerData implements IExtendedEntityProperties{
 		factionData.saveNBTData(compound);
 		itemgiverData.saveNBTData(compound);
 		mailData.saveNBTData(compound);
-		
+		timers.writeToNBT(compound);
+
 		compound.setString("PlayerName", playername);
 		compound.setString("UUID", uuid);
 		compound.setInteger("PlayerCompanionId", companionID);
@@ -138,4 +145,21 @@ public class PlayerData implements IExtendedEntityProperties{
 		world.spawnEntityInWorld(npc);
 	}
 
+	public static PlayerData get(EntityPlayer player) {
+		if(player.worldObj.isRemote) {
+			return CustomNpcs.proxy.getPlayerData(player);
+		} else {
+			PlayerData data = new PlayerData();
+			if(data.player == null) {
+				data.player = player;
+				data.playerLevel = player.experienceLevel;
+				data.scriptData = new PlayerDataScript(player);
+				NBTTagCompound compound = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
+
+				data.setNBT(compound);
+			}
+
+			return data;
+		}
+	}
 }
