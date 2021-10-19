@@ -263,7 +263,7 @@ public class EventHooks {
     }
 
     public static boolean onPlayerBreak(PlayerDataScript handler, PlayerEvent.BreakEvent event) {
-        handler.callScript(EnumScriptType.BREAK, event,"event", event);
+        handler.callScript(EnumScriptType.BREAK_BLOCK, event,"event", event);
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 

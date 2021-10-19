@@ -5,6 +5,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
+import net.minecraft.stats.Achievement;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
@@ -169,4 +170,7 @@ public class CommonProxy implements IGuiHandler {
 		
 	}
 
+	public String getAchievementDesc(Achievement achievement) {
+		return "";
+	}
 }

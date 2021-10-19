@@ -21,6 +21,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
+import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
@@ -292,6 +293,8 @@ public class ClientProxy extends CommonProxy {
 		Container container =  this.getContainer(gui, player, x, y, z, npc);
 		return getGui(npc, gui, container, x, y, z);
 	}
+
+
 
 	private GuiScreen getGui(EntityNPCInterface npc, EnumGuiType gui, Container container, int x, int y, int z) {
 		if (gui == EnumGuiType.MainMenuDisplay){
@@ -574,6 +577,10 @@ public class ClientProxy extends CommonProxy {
         }
 	}
 
+	@Override
+	public String getAchievementDesc(Achievement achievement) {
+		return achievement.getDescription();
+	}
 	
 	public static class FontContainer {
 		private StringCache textFont = null;
