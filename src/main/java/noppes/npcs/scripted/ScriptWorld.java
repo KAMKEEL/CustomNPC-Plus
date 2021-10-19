@@ -359,7 +359,7 @@ public class ScriptWorld implements IWorld {
 	 * Expert use only
 	 * @return Returns minecraft world object
 	 */
-	public World getMCWorld(){
-		return world;
+	public WorldServer getMCWorld(){
+		return this.world;
 	}
 }

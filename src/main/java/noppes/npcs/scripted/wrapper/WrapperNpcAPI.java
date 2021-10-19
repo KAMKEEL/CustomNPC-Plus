@@ -7,7 +7,9 @@ package noppes.npcs.scripted.wrapper;
 
 import java.io.File;
 import java.util.Map;
+import java.util.UUID;
 
+import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -173,7 +175,7 @@ public class WrapperNpcAPI extends NpcAPI {
     }
 
     public String executeCommand(IWorld world, String command) {
-        FakePlayer player = EntityNPCInterface.CommandPlayer;
+        FakePlayer player = new FakePlayer(world.getMCWorld(), new GameProfile(new UUID(0L,0L), "CommandPlayer"));
         player.setWorld(world.getMCWorld());
         player.setPosition(0.0D, 0.0D, 0.0D);
         return NoppesUtilServer.runCommand(world.getMCWorld(), BlockPos.ORIGIN, "API", command, (EntityPlayer)null, player);

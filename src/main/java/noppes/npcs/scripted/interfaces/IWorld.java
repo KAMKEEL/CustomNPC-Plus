@@ -2,6 +2,7 @@ package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
@@ -208,5 +209,5 @@ public interface IWorld {
      * Expert use only
      * @return Returns minecraft world object
      */
-    public World getMCWorld();
+    public WorldServer getMCWorld();
 }
