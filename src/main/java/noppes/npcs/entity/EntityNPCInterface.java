@@ -105,8 +105,9 @@ import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData{
 	public ICustomNpc wrappedNPC;
 
-	private static final GameProfileAlt chateventProfile = new GameProfileAlt();
+	public static final GameProfileAlt chateventProfile = new GameProfileAlt();
 	public static FakePlayer chateventPlayer;
+	public static FakePlayer CommandPlayer;
 	public DataDisplay display;
 	public DataStats stats;
 	public DataAI ai;
@@ -130,8 +131,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
-
-	public static FakePlayer CommandPlayer;
 
 	public Faction faction; //should only be used server side
 	

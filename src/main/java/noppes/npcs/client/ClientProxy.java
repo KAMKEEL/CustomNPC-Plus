@@ -28,6 +28,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CommonProxy;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
@@ -146,6 +147,7 @@ import noppes.npcs.containers.ContainerNpcQuestTypeItem;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.entity.*;
 
+import noppes.npcs.scripted.interfaces.IWorld;
 import org.lwjgl.input.Keyboard;
 
 import tconstruct.client.tabs.InventoryTabFactions;
@@ -237,6 +239,10 @@ public class ClientProxy extends CommonProxy {
 			TabRegistry.registerTab(new InventoryTabFactions());
 			TabRegistry.registerTab(new InventoryTabQuests());
 		}
+	}
+
+	public FakePlayer getCommandPlayer(IWorld world) {
+		return (FakePlayer)(new EntityCustomNpc(world.getMCWorld())).getFakePlayer();
 	}
 
 	private void createFolders() {

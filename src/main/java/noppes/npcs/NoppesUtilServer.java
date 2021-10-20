@@ -221,23 +221,17 @@ public class NoppesUtilServer {
         logic.func_145755_a(executer.worldObj);
 	}
 
-	public static String runCommand(final World world, final BlockPos pos, final String name, String command, EntityPlayer player, final ICommandSender executer) {
-		if (player != null) {
-			command = command.replace("@dp", player.getDisplayName());
-		}
-
+	public static void runCommand(World world, String name, String command) {
 		TileEntityCommandBlock tile = new TileEntityCommandBlock();
-		tile.setWorldObj(world);
-		tile.xCoord = MathHelper.floor_double(pos.getX());
-		tile.yCoord = MathHelper.floor_double(pos.getY());
-		tile.zCoord = MathHelper.floor_double(pos.getZ());
+		tile.setWorldObj(world.provider.worldObj);
+		tile.xCoord = 0;
+		tile.yCoord = 0;
+		tile.zCoord = 0;
 
 		CommandBlockLogic logic = tile.func_145993_a();
 		logic.func_145752_a(command);
 		logic.func_145754_b("@"+name);
 		logic.func_145755_a(world);
-
-		return logic.func_145749_h().getUnformattedText();
 	}
 	
 	public static void consumeItemStack(int i, EntityPlayer player){

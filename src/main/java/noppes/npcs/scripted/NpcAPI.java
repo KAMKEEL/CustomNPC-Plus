@@ -10,6 +10,7 @@ import java.io.File;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
@@ -19,6 +20,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.*;
 
 public abstract class NpcAPI {
@@ -80,7 +82,7 @@ public abstract class NpcAPI {
         }
     }
 
-    public abstract String executeCommand(IWorld var1, String var2);
+    public abstract void executeCommand(IWorld var1, String var2);
 
     public abstract String getRandomName(int var1, int var2);
 

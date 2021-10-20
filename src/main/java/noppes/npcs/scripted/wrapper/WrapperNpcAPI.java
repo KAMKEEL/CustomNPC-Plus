@@ -26,6 +26,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.client.EntityUtil;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -174,11 +175,9 @@ public class WrapperNpcAPI extends NpcAPI {
         return new ScriptDamageSource(damagesource);
     }
 
-    public String executeCommand(IWorld world, String command) {
-        FakePlayer player = new FakePlayer(world.getMCWorld(), new GameProfile(new UUID(0L,0L), "CommandPlayer"));
-        player.setWorld(world.getMCWorld());
-        player.setPosition(0.0D, 0.0D, 0.0D);
-        return NoppesUtilServer.runCommand(world.getMCWorld(), BlockPos.ORIGIN, "API", command, (EntityPlayer)null, player);
+    public void executeCommand(IWorld world, String command) {
+        //if(!world.getMCWorld().isRemote)
+            NoppesUtilServer.runCommand(world.getMCWorld(), "API", command);
     }
     public String getRandomName(int dictionary, int gender) {
         return CustomNpcs.MARKOV_GENERATOR[dictionary].fetch(gender);

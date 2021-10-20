@@ -7,6 +7,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
 import net.minecraft.stats.Achievement;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.ContainerCarpentryBench;
@@ -30,8 +31,10 @@ import noppes.npcs.containers.ContainerNpcItemGiver;
 import noppes.npcs.containers.ContainerNpcQuestReward;
 import noppes.npcs.containers.ContainerNpcQuestTypeItem;
 import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import cpw.mods.fml.common.network.IGuiHandler;
+import noppes.npcs.scripted.interfaces.IWorld;
 
 public class CommonProxy implements IGuiHandler {
 
@@ -147,6 +150,8 @@ public class CommonProxy implements IGuiHandler {
 		// TODO Auto-generated method stub
 
 	}
+
+	public FakePlayer getCommandPlayer(IWorld world) { return null; }
 
 	public boolean hasClient() {
 		return false;
