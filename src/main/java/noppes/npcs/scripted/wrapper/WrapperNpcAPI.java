@@ -49,7 +49,7 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public IEntity getIEntity(Entity entity) {
         if (entity != null && !entity.worldObj.isRemote) {
-            return (IEntity)(entity instanceof EntityNPCInterface ? ((EntityNPCInterface)entity).wrappedNPC : WrapperEntityData.get(entity));
+            return (entity instanceof EntityNPCInterface ? ((EntityNPCInterface)entity).wrappedNPC : entity instanceof EntityPlayerMP ?  getIPlayer((EntityPlayerMP) entity) : WrapperEntityData.get(entity));
         } else {
             return null;
         }
