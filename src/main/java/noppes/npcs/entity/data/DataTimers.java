@@ -12,6 +12,7 @@ import java.util.Map;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -24,16 +25,29 @@ public class DataTimers implements ITimers {
         this.parent = parent;
     }
 
+    private void saveNbt() {
+        if(parent instanceof PlayerData) {
+            PlayerData playerData = (PlayerData) parent;
+            playerData.saveNBTData(null);
+        }
+        else if(parent instanceof PlayerData) {
+            PlayerData playerData = (PlayerData) parent;
+            playerData.saveNBTData(null);
+        }
+    }
+
     public void start(int id, int ticks, boolean repeat) {
         if(this.timers.containsKey(Integer.valueOf(id))) {
             throw new CustomNPCsException("There is already a timer with id: " + id, new Object[0]);
         } else {
             this.timers.put(Integer.valueOf(id), new DataTimers.Timer(id, ticks, repeat));
+            saveNbt();
         }
     }
 
     public void forceStart(int id, int ticks, boolean repeat) {
         this.timers.put(Integer.valueOf(id), new DataTimers.Timer(id, ticks, repeat));
+        saveNbt();
     }
 
     public boolean has(int id) {
@@ -41,7 +55,9 @@ public class DataTimers implements ITimers {
     }
 
     public boolean stop(int id) {
-        return this.timers.remove(Integer.valueOf(id)) != null;
+        boolean remove = this.timers.remove(Integer.valueOf(id)) != null;
+        saveNbt();
+        return remove;
     }
 
     public void reset(int id) {
@@ -50,6 +66,7 @@ public class DataTimers implements ITimers {
             throw new CustomNPCsException("There is no timer with id: " + id, new Object[0]);
         } else {
             timer.ticks = 0;
+            saveNbt();
         }
     }
 
@@ -71,14 +88,14 @@ public class DataTimers implements ITimers {
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        HashMap timers = new HashMap();
+        Map<Integer, DataTimers.Timer> timers = new HashMap();
         NBTTagList list = compound.getTagList("NpcsTimers", 10);
 
         for(int i = 0; i < list.tagCount(); ++i) {
             NBTTagCompound c = list.getCompoundTagAt(i);
             DataTimers.Timer t = new DataTimers.Timer(c.getInteger("ID"), c.getInteger("TimerTicks"), c.getBoolean("Repeat"));
             t.ticks = c.getInteger("Ticks");
-            timers.put(Integer.valueOf(t.id), t);
+            timers.put(t.id, t);
         }
 
         this.timers = timers;
@@ -91,11 +108,12 @@ public class DataTimers implements ITimers {
             DataTimers.Timer timer = (DataTimers.Timer)var1.next();
             timer.update();
         }
-
+        saveNbt();
     }
 
     public void clear() {
         this.timers = new HashMap();
+        saveNbt();
     }
 
     class Timer {
@@ -120,7 +138,10 @@ public class DataTimers implements ITimers {
                 }
 
                 Object ob = DataTimers.this.parent;
-                if(ob instanceof PlayerData) {
+                if (ob instanceof EntityNPCInterface) {
+                    EventHooks.onNPCTimer((EntityNPCInterface)ob, this.id);
+                }
+                else if(ob instanceof PlayerData) {
                     EventHooks.onPlayerTimer((PlayerData)ob, this.id);
                 }
             }

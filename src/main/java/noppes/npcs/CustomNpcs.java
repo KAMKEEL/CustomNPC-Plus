@@ -315,6 +315,32 @@ public class CustomNpcs {
         return null;
     }
 
+    public static File getWorldSaveDirectory(String s) {
+        try {
+            File dir = new File(".");
+            if (getServer() != null) {
+                if (!getServer().isDedicatedServer()) {
+                    dir = new File(Minecraft.getMinecraft().mcDataDir, "saves");
+                }
+
+                dir = new File(new File(dir, getServer().getFolderName()), "customnpcs");
+            }
+
+            if (s != null) {
+                dir = new File(dir, s);
+            }
+
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            return dir;
+        } catch (Exception var2) {
+            LogWriter.error("Error getting worldsave", var2);
+            return null;
+        }
+    }
+
     public static MinecraftServer getServer(){
         return MinecraftServer.getServer();
     }

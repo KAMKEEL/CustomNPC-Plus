@@ -87,6 +87,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
 import noppes.npcs.controllers.TransformData;
+import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.roles.JobFollower;
 import noppes.npcs.roles.JobInterface;
@@ -115,6 +116,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataInventory inventory;
 	public DataScript script;
 	public TransformData transform;
+	public DataTimers timers;
 	
 	public String linkedName = "";
 	public long linkedLast = 0;
@@ -190,7 +192,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		inventory = new DataInventory(this);
 		transform = new TransformData(this);
 		script = new DataScript(this);
-		
+		timers = new DataTimers(this);
         this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
@@ -226,6 +228,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		super.onUpdate();
 		if(this.ticksExisted % 10 == 0)
 			script.callScript(EnumScriptType.TICK);
+		this.timers.update();
 	}
 	
 	public void setWorld(World world){
@@ -920,7 +923,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.readToNBT(compound);
 		ai.readToNBT(compound);
 		script.readFromNBT(compound);
-		
+		timers.readFromNBT(compound);
 		advanced.readToNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null) 
             roleInterface.readFromNBT(compound);
@@ -951,7 +954,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.writeToNBT(compound);
 		ai.writeToNBT(compound);
 		script.writeToNBT(compound);
-		
+		timers.writeToNBT(compound);
 		advanced.writeToNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null)
             roleInterface.writeToNBT(compound);

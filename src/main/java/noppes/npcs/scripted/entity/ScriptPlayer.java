@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -26,10 +27,12 @@ import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
+	private PlayerData data;
 	public ScriptPlayer(T player){
 		super(player);
 		this.player = player;
@@ -349,5 +352,17 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		if(!PixelmonHelper.Enabled)
 			return null;
 		return new ScriptPixelmonPlayerData(player);
+	}
+
+	private PlayerData getData() {
+		if (this.data == null) {
+			this.data = PlayerData.get(player);
+		}
+
+		return this.data;
+	}
+
+	public ITimers getTimers() {
+		return this.getData().timers;
 	}
 }

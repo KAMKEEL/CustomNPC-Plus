@@ -4,7 +4,7 @@ import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
 
-public class ScriptEventTarget extends ScriptEvent{
+public class ScriptEventTarget extends ScriptEvent {
 
 	private ScriptLivingBase target;
 	

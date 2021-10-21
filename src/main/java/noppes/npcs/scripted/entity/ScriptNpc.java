@@ -13,6 +13,7 @@ import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;
 import noppes.npcs.scripted.roles.ScriptJobFollower;
@@ -677,5 +678,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	@Override
 	public long getAge(){
 		return npc.totalTicksAlive;
+	}
+
+	public ITimers getTimers() {
+		return ((EntityNPCInterface)this.npc).timers;
 	}
 }

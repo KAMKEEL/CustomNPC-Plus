@@ -459,6 +459,7 @@ script.damaged=Damaged
 script.killed=Killed
 script.attack=Attack
 script.target=Target
+script.timer=Timer
 script.availableScripts=Available Scripts
 script.loadedScripts=Loaded Scripts
 script.collide=Collide

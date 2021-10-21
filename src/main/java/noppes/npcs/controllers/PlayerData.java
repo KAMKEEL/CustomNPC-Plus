@@ -2,16 +2,23 @@ package noppes.npcs.controllers;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
+import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
 
 public class PlayerData implements IExtendedEntityProperties{
 	public PlayerDialogData dialogData = new PlayerDialogData();
@@ -145,16 +152,79 @@ public class PlayerData implements IExtendedEntityProperties{
 		world.spawnEntityInWorld(npc);
 	}
 
+	public static NBTTagCompound loadPlayerDataOld(String player) {
+		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
+		String filename = player;
+		if (player.isEmpty()) {
+			filename = "noplayername";
+		}
+
+		filename = filename + ".dat";
+
+		File file;
+		try {
+			file = new File(saveDir, filename);
+			if (file.exists()) {
+				NBTTagCompound comp = CompressedStreamTools.readCompressed(new FileInputStream(file));
+				file.delete();
+				file = new File(saveDir, filename + "_old");
+				if (file.exists()) {
+					file.delete();
+				}
+
+				return comp;
+			}
+		} catch (Exception var6) {
+			LogWriter.except(var6);
+		}
+
+		try {
+			file = new File(saveDir, filename + "_old");
+			if (file.exists()) {
+				return CompressedStreamTools.readCompressed(new FileInputStream(file));
+			}
+		} catch (Exception var5) {
+			LogWriter.except(var5);
+		}
+
+		return new NBTTagCompound();
+	}
+
+	public static NBTTagCompound loadPlayerData(String player) {
+		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
+		String filename = player;
+		if (player.isEmpty()) {
+			filename = "noplayername";
+		}
+
+		filename = filename + ".json";
+		File file = null;
+
+		try {
+			file = new File(saveDir, filename);
+			if (file.exists()) {
+				return NBTJsonUtil.LoadFile(file);
+			}
+		} catch (Exception var5) {
+			LogWriter.error("Error loading: " + file.getAbsolutePath(), var5);
+		}
+
+		return new NBTTagCompound();
+	}
+
 	public static PlayerData get(EntityPlayer player) {
 		if(player.worldObj.isRemote) {
 			return CustomNpcs.proxy.getPlayerData(player);
 		} else {
 			PlayerData data = new PlayerData();
-			if(data.player == null) {
+			if (data.player == null) {
 				data.player = player;
 				data.playerLevel = player.experienceLevel;
 				data.scriptData = new PlayerDataScript(player);
-				NBTTagCompound compound = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
+				NBTTagCompound compound = loadPlayerData(player.getPersistentID().toString());
+				if (compound.hasNoTags()) {
+					compound = loadPlayerDataOld(player.getCommandSenderName());
+				}
 
 				data.setNBT(compound);
 			}

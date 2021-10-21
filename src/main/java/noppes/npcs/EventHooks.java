@@ -21,9 +21,9 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.*;
-import noppes.npcs.scripted.event.ForgeEvent;
-import noppes.npcs.scripted.event.PlayerEvent;
+import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.PlayerEvent.ChatEvent;
 import noppes.npcs.scripted.event.PlayerEvent.ContainerOpen;
 import noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent;
@@ -44,6 +44,13 @@ import java.util.ArrayList;
 
 public class EventHooks {
     public EventHooks() {
+    }
+
+    public static void onNPCTimer(EntityNPCInterface npc, int id) {
+        NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
+        ScriptEventTimer scriptEvent = new ScriptEventTimer(id);
+        npc.script.callScript(EnumScriptType.TIMER, "event", scriptEvent);
+        WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerInit(PlayerDataScript handler) {
