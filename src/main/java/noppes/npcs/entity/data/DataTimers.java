@@ -25,29 +25,16 @@ public class DataTimers implements ITimers {
         this.parent = parent;
     }
 
-    private void saveNbt() {
-        if(parent instanceof PlayerData) {
-            PlayerData playerData = (PlayerData) parent;
-            playerData.saveNBTData(null);
-        }
-        else if(parent instanceof PlayerData) {
-            PlayerData playerData = (PlayerData) parent;
-            playerData.saveNBTData(null);
-        }
-    }
-
     public void start(int id, int ticks, boolean repeat) {
         if(this.timers.containsKey(Integer.valueOf(id))) {
             throw new CustomNPCsException("There is already a timer with id: " + id, new Object[0]);
         } else {
             this.timers.put(Integer.valueOf(id), new DataTimers.Timer(id, ticks, repeat));
-            saveNbt();
         }
     }
 
     public void forceStart(int id, int ticks, boolean repeat) {
         this.timers.put(Integer.valueOf(id), new DataTimers.Timer(id, ticks, repeat));
-        saveNbt();
     }
 
     public boolean has(int id) {
@@ -56,7 +43,6 @@ public class DataTimers implements ITimers {
 
     public boolean stop(int id) {
         boolean remove = this.timers.remove(Integer.valueOf(id)) != null;
-        saveNbt();
         return remove;
     }
 
@@ -66,7 +52,6 @@ public class DataTimers implements ITimers {
             throw new CustomNPCsException("There is no timer with id: " + id, new Object[0]);
         } else {
             timer.ticks = 0;
-            saveNbt();
         }
     }
 
@@ -108,12 +93,10 @@ public class DataTimers implements ITimers {
             DataTimers.Timer timer = (DataTimers.Timer)var1.next();
             timer.update();
         }
-        saveNbt();
     }
 
     public void clear() {
         this.timers = new HashMap();
-        saveNbt();
     }
 
     class Timer {

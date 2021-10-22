@@ -354,15 +354,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return new ScriptPixelmonPlayerData(player);
 	}
 
-	private PlayerData getData() {
-		if (this.data == null) {
-			this.data = PlayerData.get(player);
-		}
-
-		return this.data;
-	}
-
 	public ITimers getTimers() {
-		return this.getData().timers;
+		return PlayerDataController.instance.getPlayerData(player).timers;
 	}
 }

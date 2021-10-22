@@ -63,11 +63,12 @@ public class ScriptPlayerEventHandler {
         if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
             PlayerData data = PlayerData.get(player);
-            //if(player.ticksExisted % 10 == 0) {
             EventHooks.onPlayerTick(data.scriptData);
-            //}
 
-            data.timers.update();
+            if(PlayerDataController.instance != null) {
+                PlayerDataController.instance.getPlayerData(player).scriptData = data.scriptData;
+                PlayerDataController.instance.getPlayerData(player).timers.update();
+            }
         }
     }
 
