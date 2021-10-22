@@ -12,6 +12,11 @@ import java.util.UUID;
 import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -27,11 +32,13 @@ import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
+import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.controllers.ScriptEntityData;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.util.LRUHashMap;
 
@@ -48,18 +55,37 @@ public class WrapperNpcAPI extends NpcAPI {
     }
 
     public IEntity getIEntity(Entity entity) {
+        /*
         if (entity != null && !entity.worldObj.isRemote) {
             return (entity instanceof EntityNPCInterface ? ((EntityNPCInterface)entity).wrappedNPC : entity instanceof EntityPlayerMP ?  getIPlayer((EntityPlayerMP) entity) : WrapperEntityData.get(entity));
         } else {
             return null;
         }
-    }
-
-    public IPlayer getIPlayer(EntityPlayerMP player) {
-        if (player != null && !player.worldObj.isRemote) {
-            return new ScriptPlayer(player);
-        } else {
+        */
+        if(entity == null)
             return null;
+        if(entity instanceof EntityNPCInterface)
+            return ((EntityNPCInterface) entity).script.dummyNpc;
+        else{
+            ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
+            if(data != null)
+                return data.base;
+            if(entity instanceof EntityPlayerMP)
+                data = new ScriptEntityData(new ScriptPlayer((EntityPlayerMP) entity));
+            else if(PixelmonHelper.isPixelmon(entity))
+                return new ScriptPixelmon((EntityTameable) entity);
+            else if(entity instanceof EntityAnimal)
+                data = new ScriptEntityData(new ScriptAnimal((EntityAnimal) entity));
+            else if(entity instanceof EntityMob)
+                data = new ScriptEntityData(new ScriptMonster((EntityMob) entity));
+            else if(entity instanceof EntityLiving)
+                data = new ScriptEntityData(new ScriptLiving((EntityLiving) entity));
+            else if(entity instanceof EntityLivingBase)
+                data = new ScriptEntityData(new ScriptLivingBase((EntityLivingBase)entity));
+            else
+                data = new ScriptEntityData(new ScriptEntity(entity));
+            entity.registerExtendedProperties("ScriptedObject", data);
+            return data.base;
         }
     }
 

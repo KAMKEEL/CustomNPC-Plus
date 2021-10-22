@@ -35,8 +35,6 @@ public abstract class NpcAPI {
 
     public abstract IEntity getIEntity(Entity var1);
 
-    public abstract IPlayer getIPlayer(EntityPlayerMP var1);
-
     public abstract IBlock getIBlock(World var1, BlockPos var2);
 
     public abstract IBlock getIBlock(World world, int x, int y, int z);

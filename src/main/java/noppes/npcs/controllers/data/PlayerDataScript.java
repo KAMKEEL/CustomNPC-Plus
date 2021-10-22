@@ -20,12 +20,16 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
 import noppes.npcs.EventScriptContainer;
 import noppes.npcs.NBTTags;
+import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.event.PlayerEvent;
+import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 import javax.annotation.CheckForNull;
@@ -35,7 +39,7 @@ public class PlayerDataScript implements IScriptHandler {
     public List<EventScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     private EntityPlayer player;
-    private ScriptPlayer playerAPI;
+    private IPlayer playerAPI;
     private long lastPlayerUpdate = 0L;
     public long lastInited = -1L;
     public boolean hadInteract = true;
@@ -43,16 +47,16 @@ public class PlayerDataScript implements IScriptHandler {
     private Map<Long, String> console = new TreeMap();
     public List<Integer> errored = new ArrayList();
 
-    public ScriptPlayer dummyPlayer;
-    public ScriptWorld dummyWorld;
+    public IPlayer dummyPlayer;
+    public IWorld dummyWorld;
 
     public PlayerDataScript(EntityPlayer player) {
         if(player != null) {
             this.player = player;
             if (player instanceof EntityPlayer)
-                dummyPlayer = new ScriptPlayer((EntityPlayerMP) player);
+                dummyPlayer = (IPlayer) ScriptController.Instance.getScriptForEntity(this.player);
             if (player.worldObj instanceof WorldServer)
-                dummyWorld = new ScriptWorld((WorldServer) player.worldObj);
+                dummyWorld = (IWorld) NpcAPI.Instance().getIWorld((WorldServer) this.player.worldObj);
         }
     }
 
@@ -119,8 +123,8 @@ public class PlayerDataScript implements IScriptHandler {
                     }
 
                     ScriptEngine engine = script.engine;
-                    engine.put("player", dummyPlayer);
                     engine.put("world", dummyWorld);
+                    engine.put("player", dummyPlayer);
                     PlayerEvent result = (PlayerEvent) engine.get("event");
                     if(result == null)
                         engine.put("event", result = new PlayerEvent(this.getPlayer()));
@@ -184,10 +188,11 @@ public class PlayerDataScript implements IScriptHandler {
         }
     }
 
-    public ScriptPlayer getPlayer() {
-        if(this.playerAPI == null) {
-            this.playerAPI = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(this.player);
+    public IPlayer getPlayer() {
+        if (this.playerAPI == null) {
+            this.playerAPI = (IPlayer) NpcAPI.Instance().getIEntity(this.player);
         }
+
         return this.playerAPI;
     }
 

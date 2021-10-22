@@ -16,7 +16,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.*;
 
 public class PlayerEvent extends CustomNPCsEvent {
@@ -148,7 +147,7 @@ public class PlayerEvent extends CustomNPCsEvent {
         public final float pitch;
         public final float volume;
 
-        public SoundEvent(ScriptPlayer player, String name, float pitch, float volume) {
+        public SoundEvent(IPlayer player, String name, float pitch, float volume) {
             super(player);
             this.name = name;
             this.pitch = pitch;
@@ -390,7 +389,7 @@ public class PlayerEvent extends CustomNPCsEvent {
         public final int y;
         public final int z;
 
-        public Sleep(ScriptPlayer player, int x, int y, int z) {
+        public Sleep(IPlayer player, int x, int y, int z) {
             super(player);
             this.x = x;
             this.y = y;
@@ -434,7 +433,7 @@ public class PlayerEvent extends CustomNPCsEvent {
     }
 
     public static class RangedChargeEvent extends PlayerEvent {
-        public RangedChargeEvent(ScriptPlayer player) {
+        public RangedChargeEvent(IPlayer player) {
             super(player);
         }
     }
