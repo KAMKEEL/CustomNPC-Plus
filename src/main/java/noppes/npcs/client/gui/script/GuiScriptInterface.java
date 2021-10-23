@@ -93,6 +93,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         top.active = true;
         if(this.activeTab > 0) {
             List<String> hookList = new ArrayList<String>();
+
+            GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
+            hooks.allowUserInput = false;
+            hooks.setSize(108, 198);
+            hooks.guiLeft = guiLeft - 110;
+            hooks.guiTop = guiTop + 14;
+
             if(handler instanceof PlayerDataScript) {
                 hookList.add("init");
                 hookList.add("tick");
@@ -132,32 +139,46 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("changedDim");
             }
             else if(handler instanceof ForgeDataScript) {
+                hooks.setSize(238, 198);
+                hooks.guiLeft = guiLeft - 240;
+
                 hookList.add("init");
 
                 ArrayList<ClassPath.ClassInfo> list = new ArrayList();
                 try {
+                    list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.event"));
+                    list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
                     list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
-                for(ClassPath.ClassInfo classInfo : list){
-                    String eventName = classInfo.getName();
-                    int i = eventName.lastIndexOf(".");
-                    eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
+                for(ClassPath.ClassInfo e1 : list){
+                    ClassPath.ClassInfo classLoader = e1;
+                    Class infoClass = classLoader.load();
+                    ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
+                    if(c.isEmpty()) {
+                        c.add(infoClass);
+                    }
+                    Iterator var10 = c.iterator();
+                    while(var10.hasNext()) {
+                        Class c1 = (Class) var10.next();
+                        if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers())) {
+                            String eventName = c1.getName();
+                            int i = eventName.lastIndexOf(".");
+                            eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
 
-                    hookList.add(eventName);
+                            hookList.add(eventName);
+                        }
+                    }
                 }
             }
-
-            addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft - 160, guiTop + 5));
-            GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
-            hooks.allowUserInput = false;
-            hooks.setSize(158, 198);
-            hooks.guiLeft = guiLeft - 160;
-            hooks.guiTop = guiTop + 14;
             hooks.setUnsortedList(hookList);
             addScroll(hooks);
+
+            GuiNpcLabel hookLabel = new GuiNpcLabel(0, "script.hooks", hooks.guiLeft, guiTop + 5);
+            hookLabel.color = 0xaaaaaa;
+            addLabel(hookLabel);
 
             EventScriptContainer var7 = (EventScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
             GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + yoffset, this.guiTop + yoffset, this.xSize - 110 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);

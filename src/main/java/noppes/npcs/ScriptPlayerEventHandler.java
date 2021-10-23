@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Vector;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.Event;
@@ -365,10 +366,10 @@ public class ScriptPlayerEventHandler {
 
         try {
             Method e = handler.getClass().getMethod("forgeEntity", new Class[]{Event.class});
-            Method register = MinecraftForge.EVENT_BUS.getClass().getDeclaredMethod("register", new Class[]{Class.class, Object.class, Method.class, ModContainer.class});
+            Method register = FMLCommonHandler.instance().bus().getClass().getDeclaredMethod("register", new Class[]{Class.class, Object.class, Method.class, ModContainer.class});
             register.setAccessible(true);
             ArrayList list = new ArrayList();
-            list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common"));
+            list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
             list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
             Iterator e1 = list.iterator();
 
@@ -412,7 +413,7 @@ public class ScriptPlayerEventHandler {
                 while(var10.hasNext()) {
                     Class c1 = (Class)var10.next();
                     if(!EntityConstructing.class.isAssignableFrom(c1) && !PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers())) {
-                        register.invoke(MinecraftForge.EVENT_BUS, new Object[]{c1, handler, e, Loader.instance().activeModContainer()});
+                        register.invoke(FMLCommonHandler.instance().bus(), new Object[]{c1, handler, e, Loader.instance().activeModContainer()});
                     }
                 }
             }
@@ -452,4 +453,25 @@ public class ScriptPlayerEventHandler {
             }
         }
     }
+
+    /*@SubscribeEvent
+    public void forgeTick(TickEvent.ServerTickEvent event){
+        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
+            EventHooks.onForgeEvent(new ForgeEvent(event), event);
+        }
+    }
+
+    @SubscribeEvent
+    public void forgeTick(TickEvent.WorldTickEvent event){
+        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
+            EventHooks.onForgeEvent(new ForgeEvent(event), event);
+        }
+    }
+
+    @SubscribeEvent
+    public void forgeTick(TickEvent.PlayerTickEvent event){
+        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
+            EventHooks.onForgeEvent(new ForgeEvent(event), event);
+        }
+    }*/
 }
