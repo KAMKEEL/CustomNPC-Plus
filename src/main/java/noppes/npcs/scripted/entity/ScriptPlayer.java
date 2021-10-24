@@ -15,6 +15,7 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
@@ -232,6 +233,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	            }
 			}
 		}
+		this.updatePlayerInventory();
 		return true;
 	}
 
@@ -258,7 +260,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public boolean giveItem(ScriptItemStack item, int amount){
 		if(item != null && item.getMCItemStack() != null) {
 			item.setStackSize(amount);
-			return this.player.inventory.addItemStackToInventory(item.getMCItemStack());
+			boolean bool = this.player.inventory.addItemStackToInventory(item.getMCItemStack());
+			this.updatePlayerInventory();
+			return bool;
 		} else {
 			return false;
 		}
@@ -356,5 +360,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public ITimers getTimers() {
 		return PlayerDataController.instance.getPlayerData(player).timers;
+	}
+
+	public void updatePlayerInventory() {
+		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
+		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		playerdata.checkQuestCompletion((EntityPlayer)this.entity, EnumQuestType.Item);
 	}
 }

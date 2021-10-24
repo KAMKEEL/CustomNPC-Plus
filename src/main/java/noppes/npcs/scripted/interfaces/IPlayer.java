@@ -168,4 +168,6 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     public ScriptPixelmonPlayerData getPixelmonData();
 
     public ITimers getTimers();
+
+    public void updatePlayerInventory();
 }
