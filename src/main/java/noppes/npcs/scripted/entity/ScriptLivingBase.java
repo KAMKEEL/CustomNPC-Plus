@@ -4,10 +4,13 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntityLivingBase;
+import noppes.npcs.scripted.wrapper.ScriptDamageSource;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -29,6 +32,18 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 */
 	public void setHealth(float health){
 		entity.setHealth(health);
+	}
+
+	public void hurt(float damage){
+		entity.attackEntityFrom(DamageSource.generic,damage);
+	}
+
+	public void hurt(ScriptEntity source, float damage){
+		entity.attackEntityFrom(new EntityDamageSource(source.getTypeName(),source.getMCEntity()),damage);
+	}
+
+	public void hurt(ScriptDamageSource damageSource, float damage){
+		entity.attackEntityFrom(damageSource.getMCDamageSource(),damage);
 	}
 	
 	/**

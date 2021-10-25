@@ -25,6 +25,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -199,6 +200,10 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public IDamageSource getIDamageSource(DamageSource damagesource) {
         return new ScriptDamageSource(damagesource);
+    }
+
+    public IDamageSource getIDamageSource(IEntity entity) {
+        return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(),entity.getMCEntity()));
     }
 
     public void executeCommand(IWorld world, String command) {
