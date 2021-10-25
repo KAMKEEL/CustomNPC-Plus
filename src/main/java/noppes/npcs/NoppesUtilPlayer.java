@@ -110,6 +110,28 @@ public class NoppesUtilPlayer {
 		}
         player.worldObj.updateEntityWithOptionalForce(player, false);
 	}
+
+	public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, float yaw, float pitch, int dimension){
+		if(player.dimension != dimension){
+			int dim = player.dimension;
+			MinecraftServer server = MinecraftServer.getServer();
+			WorldServer wor = server.worldServerForDimension(dimension);
+			if(wor == null){
+				player.addChatMessage(new ChatComponentText("Broken transporter. Dimenion does not exist"));
+				return;
+			}
+			player.setLocationAndAngles(posX, posY, posZ, yaw, pitch);
+			server.getConfigurationManager().transferPlayerToDimension(player, dimension, new CustomTeleporter(wor));
+			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
+
+			if(!wor.playerEntities.contains(player))
+				wor.spawnEntityInWorld(player);
+		}
+		else{
+			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
+		}
+		player.worldObj.updateEntityWithOptionalForce(player, false);
+	}
 	
 	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
     	ItemStack currency = currencyInv.getStackInSlot(0);

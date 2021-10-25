@@ -309,7 +309,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
             	player.inventory.mainInventory[i] = null;
 		}
 	}
-	
+
+	public void setRotation(float rotationYaw, float rotationPitch){
+		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
+	}
 	
 	/**
 	 * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements
