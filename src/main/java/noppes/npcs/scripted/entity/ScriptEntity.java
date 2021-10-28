@@ -477,6 +477,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.hurtResistantTime = ticks;
 	};
 
+	public boolean hasCollided() {
+		return entity.isCollided;
+	}
+
 	/**
 	 * @since 1.7.10c
 	 * @return Returns whether or not this entity is sneaking
