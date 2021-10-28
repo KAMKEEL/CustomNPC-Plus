@@ -473,6 +473,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.hurtResistantTime = 0;
 	}
 
+	public void setImmune(int ticks) {
+		entity.hurtResistantTime = ticks;
+	};
+
 	/**
 	 * @since 1.7.10c
 	 * @return Returns whether or not this entity is sneaking

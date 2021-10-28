@@ -38,11 +38,11 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		entity.attackEntityFrom(DamageSource.generic,damage);
 	}
 
-	public void hurt(float damage, ScriptEntity source){
+	public void hurt(float damage, ScriptEntity source) {
 		entity.attackEntityFrom(new EntityDamageSource(source.getTypeName(),source.getMCEntity()),damage);
 	}
 
-	public void hurt(float damage, ScriptDamageSource damageSource){
+	public void hurt(float damage, ScriptDamageSource damageSource) {
 		entity.attackEntityFrom(damageSource.getMCDamageSource(),damage);
 	}
 	
