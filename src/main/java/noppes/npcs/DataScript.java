@@ -21,6 +21,8 @@ import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 public class DataScript {
 	public Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
@@ -33,7 +35,7 @@ public class DataScript {
 	public boolean enabled = false;
 	
 	public ScriptNpc dummyNpc;
-	public ScriptWorld dummyWorld;
+	public IWorld dummyWorld;
 	public boolean clientNeedsUpdate = false;
 	public boolean aiNeedsUpdate = false;
 	public boolean hasInited = false;
@@ -121,6 +123,7 @@ public class DataScript {
 		ScriptEvent result = (ScriptEvent) engine.get("event");
 		if(result == null)
 			engine.put("event", result = new ScriptEvent());
+		engine.put("API", new WrapperNpcAPI());
 		engine.put("EntityType", entities);
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);
