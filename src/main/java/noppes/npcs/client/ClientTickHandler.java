@@ -48,7 +48,7 @@ public class ClientTickHandler{
 	@SubscribeEvent
 	public void onMouse(InputEvent.MouseInputEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
-		if(mc.currentScreen != null || (Mouse.getEventButton() == -1 && Mouse.getDWheel() == 0))
+		if(Mouse.getEventButton() == -1 && Mouse.getDWheel() == 0)
 			return;
 
 		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, new Object[]{Mouse.getEventButton(),Mouse.getEventDWheel()});
@@ -73,7 +73,7 @@ public class ClientTickHandler{
 			}
 		} else {
 			Minecraft mc = Minecraft.getMinecraft();
-			if(key == this.buttonPressed && time - this.buttonTime < 500000000L && mc.currentScreen == null) {
+			if(key == this.buttonPressed && time - this.buttonTime < 500000000L) {
 				boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
 				boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
 				boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
