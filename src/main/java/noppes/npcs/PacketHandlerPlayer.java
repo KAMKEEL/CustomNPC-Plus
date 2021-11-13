@@ -66,14 +66,14 @@ public class PacketHandlerPlayer{
 				return;
 			}
 
-			EventHooks.onPlayerKeyPressed(player, buffer.readInt(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
+			EventHooks.onPlayerKeyPressed(player, buffer.readInt(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
 		}
 		else if(type == EnumPlayerPacket.MouseClicked) {
 			if(ScriptController.Instance.languages.isEmpty()) {
 				return;
 			}
 
-			EventHooks.onPlayerMouseClicked(player, buffer.readInt(), buffer.readInt());
+			EventHooks.onPlayerMouseClicked(player, buffer.readInt(), buffer.readInt(), buffer.readBoolean());
 		}
 		else if(type == EnumPlayerPacket.FollowerHire){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
