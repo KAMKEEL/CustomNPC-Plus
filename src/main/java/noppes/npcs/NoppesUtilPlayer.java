@@ -397,5 +397,7 @@ public class NoppesUtilPlayer {
 			}
 		}
 	}
-
+	public static void isGUIOpen(EntityPlayerMP player){
+		Server.sendData(player, EnumPacketClient.ISGUIOPEN);
+	}
 }

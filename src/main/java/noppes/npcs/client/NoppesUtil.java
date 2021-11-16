@@ -21,7 +21,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.ModelPartData;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.client.fx.EntityCustomFX;
@@ -289,4 +288,7 @@ public class NoppesUtil {
 		CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Waypoint, player);
 	}
 
+	public static void isGUIOpen(boolean isGUIOpen) {
+		Client.sendData(EnumPacketServer.IsGuiOpen, isGUIOpen);
+	}
 }

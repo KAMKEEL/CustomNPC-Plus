@@ -24,6 +24,7 @@ import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
@@ -33,7 +34,6 @@ import noppes.npcs.util.ValueUtil;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
-	private PlayerData data;
 	public ScriptPlayer(T player){
 		super(player);
 		this.player = player;
@@ -56,6 +56,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	@Override
 	public void setPosition(double x, double y, double z){
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);
+	}
+
+	public void setPosition(double x, double y, double z, int dimensionId){
+		if (NpcAPI.Instance().getIWorld(dimensionId) == null)
+			return;
+
+		NoppesUtilPlayer.teleportPlayer(player, x, y, z, dimensionId);
 	}
 
 	public int getDimension(){
@@ -369,5 +376,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
 		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
 		playerdata.checkQuestCompletion((EntityPlayer)this.entity, EnumQuestType.Item);
+	}
+
+	public boolean checkGUIOpen() {
+		NoppesUtilPlayer.isGUIOpen(player);
+		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		return data.getGUIOpen();
 	}
 }

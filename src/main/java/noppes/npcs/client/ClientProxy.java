@@ -588,6 +588,11 @@ public class ClientProxy extends CommonProxy {
 		return achievement.getDescription();
 	}
 
+	@Override
+	public boolean isGUIOpen(){
+		return Minecraft.getMinecraft().currentScreen != null;
+	}
+
 	public static class FontContainer {
 		private StringCache textFont = null;
 		public boolean useCustomFont = true;

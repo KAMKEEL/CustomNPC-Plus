@@ -36,7 +36,6 @@ import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
@@ -705,5 +704,19 @@ public class NoppesUtilServer {
 		}
 
 		return (Entity)entity;
+	}
+
+	public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {
+		EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(player.getDisplayName());
+		PlayerData playerdata;
+		if(pl == null)
+			playerdata = PlayerDataController.instance.getDataFromUsername(player.getDisplayName());
+		else
+			playerdata = PlayerDataController.instance.getPlayerData(pl);
+
+		boolean isGUIOpen = buffer.readBoolean();
+		playerdata.setGUIOpen(isGUIOpen);
+
+		sendPlayerData(EnumPlayerData.Players, (EntityPlayerMP)player, player.getDisplayName());
 	}
 }

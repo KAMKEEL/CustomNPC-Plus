@@ -17,6 +17,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     public void setPosition(double x, double y, double z);
 
+    public void setPosition(double x, double y, double z, int dimensionId);
+
     public boolean hasFinishedQuest(int id);
 
     public boolean hasActiveQuest(int id);
@@ -170,4 +172,6 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     public ITimers getTimers();
 
     public void updatePlayerInventory();
+
+    public boolean checkGUIOpen();
 }

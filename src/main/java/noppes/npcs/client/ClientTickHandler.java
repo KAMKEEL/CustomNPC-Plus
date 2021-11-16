@@ -47,7 +47,6 @@ public class ClientTickHandler{
 
 	@SubscribeEvent
 	public void onMouse(InputEvent.MouseInputEvent event){
-		Minecraft mc = Minecraft.getMinecraft();
 		if(Mouse.getEventButton() == -1 && Mouse.getDWheel() == 0)
 			return;
 
@@ -73,7 +72,7 @@ public class ClientTickHandler{
 			}
 		}
 
-		if((Keyboard.getEventKeyState() && time-this.buttonTime == 0) || !Keyboard.getEventKeyState()) {
+		if(time-this.buttonTime == 0 || !Keyboard.getEventKeyState()) {
 			boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
 			boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
 			boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
