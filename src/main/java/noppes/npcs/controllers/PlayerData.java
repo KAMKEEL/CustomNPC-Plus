@@ -29,7 +29,6 @@ public class PlayerData implements IExtendedEntityProperties{
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData();
 	public PlayerMailData mailData = new PlayerMailData();
 	public PlayerDataScript scriptData;
-	public int playerLevel = 0;
 	public DataTimers timers = new DataTimers(this);
 
 	public EntityNPCInterface editingNpc;
@@ -233,7 +232,6 @@ public class PlayerData implements IExtendedEntityProperties{
 			PlayerData data = new PlayerData();
 			if (data.player == null) {
 				data.player = player;
-				data.playerLevel = player.experienceLevel;
 				data.scriptData = new PlayerDataScript(player);
 				NBTTagCompound compound = loadPlayerData(player.getPersistentID().toString());
 				if (compound.hasNoTags()) {
