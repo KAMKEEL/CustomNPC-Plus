@@ -103,6 +103,9 @@ public class NoppesUtil {
 		World worldObj = Minecraft.getMinecraft().theWorld;
 		Entity entity = worldObj.getEntityByID(entityID);
 
+		if(entity == null)
+			return;
+
 		EntityCustomFX fx = new EntityCustomFX(
 				entity,
 				directory, HEXcolor,
