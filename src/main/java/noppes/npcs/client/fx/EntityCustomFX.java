@@ -1,15 +1,19 @@
 package noppes.npcs.client.fx;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientProxy;
+import org.lwjgl.Sys;
 import org.lwjgl.opengl.GL11;
 
 public class EntityCustomFX extends EntityFX {
     private Entity entity;
     private final ResourceLocation location;
+    private static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
     private boolean move = true;
     private float startX = 0, startY = 0, startZ = 0;
 
@@ -92,8 +96,8 @@ public class EntityCustomFX extends EntityFX {
             particleAlpha = this.alpha2;
         else if(particleAge >= this.alphaRateStart)
             particleAlpha += alpha;
-        
-    	ClientProxy.bindTexture(location);
+
+        ClientProxy.bindTexture(location);
 
         float f = 0.0f;
         float f1 = 1.0f;
@@ -104,7 +108,6 @@ public class EntityCustomFX extends EntityFX {
         float f6 = (float)(((prevPosY + (posY - prevPosY) * (double)par2) - interpPosY) + startY);
         float f7 = (float)(((prevPosZ + (posZ - prevPosZ) * (double)par2) - interpPosZ) + startZ);
 
-        GL11.glColor4f(1, 1, 1, 1.0F);
         tessellator.startDrawingQuads();
         tessellator.setBrightness(240);
         par1Tessellator.setColorOpaque_F(1, 1, 1);
@@ -114,8 +117,43 @@ public class EntityCustomFX extends EntityFX {
         par1Tessellator.addVertexWithUV(f5 + par3 * f4 + par6 * f4, f6 + par4 * f4, f7 + par5 * f4 + par7 * f4, f, f2);
         par1Tessellator.addVertexWithUV((f5 + par3 * f4) - par6 * f4, f6 - par4 * f4, (f7 + par5 * f4) - par7 * f4, f, f3);
 
-        tessellator.draw();
-        tessellator.startDrawingQuads();
+        /*
+        Minecraft minecraft = Minecraft.getMinecraft();
+        EntityPlayer player = minecraft.thePlayer;
+
+        double yaw = (player.rotationYaw/180)*Math.PI;
+        double pitch = (player.rotationPitch/180)*Math.PI;
+
+        double angle = Minecraft.getMinecraft().theWorld.getWorldTime()%360;
+        double angleRad = (angle/180)*Math.PI;
+
+        double angleX = Math.sin(yaw)*Math.cos(pitch);
+        if(Math.abs(angleX) < 0.0001){
+            angleX = 0.0D;
+        }
+        double angleY = Math.sin(pitch);
+        if(Math.abs(angleY) < 0.0001){
+            angleY = 0.0D;
+        }
+        double angleZ = -Math.cos(yaw)*Math.cos(pitch);
+        if(Math.abs(angleZ) < 0.0001){
+            angleZ = 0.0D;
+        }
+
+        double translateX = 0;
+        double translateY = 0;
+        double translateZ = 0;
+        */
+
+        GL11.glPushMatrix();
+            GL11.glColor4f(1, 1, 1, 1.0F);
+            //GL11.glTranslated(translateX,translateY,translateZ);
+            //GL11.glRotated(angle, angleX, angleY, angleZ);
+
+            tessellator.draw();
+            ClientProxy.bindTexture(resource);
+            tessellator.startDrawingQuads();
+        GL11.glPopMatrix();
     }
     
     public int getFXLayer(){
