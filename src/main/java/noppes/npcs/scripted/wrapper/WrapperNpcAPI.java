@@ -227,12 +227,6 @@ public class WrapperNpcAPI extends NpcAPI {
         return arr;
     }
 
-    /**
-     * @param id The items name
-     * @param damage The damage value
-     * @param size The number of items in the item
-     * @return Returns the item
-     */
     public ScriptItemStack createItem(String id, int damage, int size){
         Item item = (Item)Item.itemRegistry.getObject(id);
         if(item == null)
@@ -240,11 +234,11 @@ public class WrapperNpcAPI extends NpcAPI {
         return new ScriptItemStack(new ItemStack(item, size, damage));
     }
 
-    /**
-     * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
-     * @return Returns ScriptEntityParticle object
-     */
     public ScriptEntityParticle createEntityParticle(String directory){
         return new ScriptEntityParticle(directory);
+    }
+
+    public int getServerTime() {
+        return MinecraftServer.getServer().getTickCounter();
     }
 }

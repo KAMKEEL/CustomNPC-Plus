@@ -92,4 +92,6 @@ public abstract class NpcAPI {
     public abstract ScriptItemStack createItem(String id, int damage, int size);
 
     public abstract ScriptEntityParticle createEntityParticle(String directory);
+
+    public abstract int getServerTime();
 }

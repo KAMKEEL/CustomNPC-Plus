@@ -707,16 +707,8 @@ public class NoppesUtilServer {
 	}
 
 	public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {
-		EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(player.getDisplayName());
-		PlayerData playerdata;
-		if(pl == null)
-			playerdata = PlayerDataController.instance.getDataFromUsername(player.getDisplayName());
-		else
-			playerdata = PlayerDataController.instance.getPlayerData(pl);
-
+		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
 		boolean isGUIOpen = buffer.readBoolean();
 		playerdata.setGUIOpen(isGUIOpen);
-
-		sendPlayerData(EnumPlayerData.Players, (EntityPlayerMP)player, player.getDisplayName());
 	}
 }
