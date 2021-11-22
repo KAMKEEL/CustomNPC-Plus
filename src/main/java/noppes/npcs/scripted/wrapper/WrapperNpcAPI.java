@@ -6,6 +6,7 @@
 package noppes.npcs.scripted.wrapper;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
@@ -34,6 +36,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ScriptEntityData;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
@@ -212,5 +215,36 @@ public class WrapperNpcAPI extends NpcAPI {
     }
     public String getRandomName(int dictionary, int gender) {
         return CustomNpcs.MARKOV_GENERATOR[dictionary].fetch(gender);
+    }
+
+    public ScriptPlayer[] getAllServerPlayers(){
+        List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+        ScriptPlayer[] arr = new ScriptPlayer[list.size()];
+        for(int i = 0; i < list.size(); i++){
+            arr[i] = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(list.get(i));
+        }
+
+        return arr;
+    }
+
+    /**
+     * @param id The items name
+     * @param damage The damage value
+     * @param size The number of items in the item
+     * @return Returns the item
+     */
+    public ScriptItemStack createItem(String id, int damage, int size){
+        Item item = (Item)Item.itemRegistry.getObject(id);
+        if(item == null)
+            return null;
+        return new ScriptItemStack(new ItemStack(item, size, damage));
+    }
+
+    /**
+     * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
+     * @return Returns ScriptEntityParticle object
+     */
+    public ScriptEntityParticle createEntityParticle(String directory){
+        return new ScriptEntityParticle(directory);
     }
 }

@@ -210,4 +210,6 @@ public interface IWorld {
      * @return Returns minecraft world object
      */
     public WorldServer getMCWorld();
+
+    public int getDimensionID();
 }

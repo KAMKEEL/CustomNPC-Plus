@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -85,4 +86,10 @@ public abstract class NpcAPI {
     public abstract String getRandomName(int var1, int var2);
 
     public abstract INbt getINbt(NBTTagCompound entityData);
+
+    public abstract ScriptPlayer[] getAllServerPlayers();
+
+    public abstract ScriptItemStack createItem(String id, int damage, int size);
+
+    public abstract ScriptEntityParticle createEntityParticle(String directory);
 }
