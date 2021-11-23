@@ -1597,10 +1597,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
     public boolean isInvisibleToPlayer(EntityPlayer player){
-		if(display.invisibleToList != null && display.invisibleToList.contains(player.getPersistentID()))
-			return true;
-
-        return display.visible == 1 && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
+        return (scriptInvisibleToPlayer(player) || display.visible == 1) && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
     }
 
 	public boolean scriptInvisibleToPlayer(EntityPlayer player){

@@ -8,6 +8,7 @@ import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.CustomItems;
 import noppes.npcs.ModelPartConfig;
@@ -295,7 +296,8 @@ public class ModelMPM extends ModelNPCMale{
 	@Override
 	public void render(Entity par1Entity, float par2, float par3, float par4, float par5, float par6, float par7){
 		EntityCustomNpc npc = (EntityCustomNpc) par1Entity;
-		if(npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) && Minecraft.getMinecraft().thePlayer.getHeldItem().getItem() != CustomItems.wand)
+		EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+		if(npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand))
 			return;
 
 		if(entityModel != null){
@@ -314,9 +316,7 @@ public class ModelMPM extends ModelNPCMale{
 			}
 		}
 		else{
-			alpha = npc.isInvisible() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) ? 0.15f : 1;
-			if(npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) && Minecraft.getMinecraft().thePlayer.getHeldItem().getItem() == CustomItems.wand)
-				alpha = 0.15f;
+			alpha = npc.isInvisible() && !npc.isInvisibleToPlayer(player) ? 0.15f : 1;
 
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
