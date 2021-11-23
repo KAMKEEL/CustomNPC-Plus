@@ -9,6 +9,7 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
+import noppes.npcs.CustomItems;
 import noppes.npcs.ModelPartConfig;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.ClientProxy;
@@ -294,6 +295,8 @@ public class ModelMPM extends ModelNPCMale{
 	@Override
 	public void render(Entity par1Entity, float par2, float par3, float par4, float par5, float par6, float par7){
 		EntityCustomNpc npc = (EntityCustomNpc) par1Entity;
+		if(npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) && Minecraft.getMinecraft().thePlayer.getHeldItem().getItem() != CustomItems.wand)
+			return;
 
 		if(entityModel != null){
 			if(!isArmor){
@@ -311,7 +314,10 @@ public class ModelMPM extends ModelNPCMale{
 			}
 		}
 		else{
-			alpha = npc.isInvisible() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer)?0.15f:1;
+			alpha = npc.isInvisible() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) ? 0.15f : 1;
+			if(npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) && Minecraft.getMinecraft().thePlayer.getHeldItem().getItem() == CustomItems.wand)
+				alpha = 0.15f;
+
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
 			setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);

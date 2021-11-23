@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumAnimation;
@@ -30,6 +31,10 @@ import noppes.npcs.scripted.roles.ScriptRoleMailman;
 import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
 	public EntityCustomNpc npc;
@@ -430,6 +435,24 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 */
 	public int getVisibleType(){
 		return npc.display.visible;
+	}
+
+	public void setVisibleTo(ScriptPlayer player, boolean visible) {
+		UUID uuid = player.player.getPersistentID();
+		ArrayList<UUID> uuidList = npc.display.invisibleToList;
+		if(uuidList != null) {
+			if (!uuidList.contains(uuid)) {
+				if (!visible)
+					npc.display.invisibleToList.add(uuid);
+			} else if (visible) {
+				npc.display.invisibleToList.remove(uuid);
+			}
+		}
+		npc.script.clientNeedsUpdate = true;
+	}
+
+	public boolean isVisibleTo(ScriptPlayer player) {
+		return !npc.scriptInvisibleToPlayer(player.player);
 	}
 	
 	/**

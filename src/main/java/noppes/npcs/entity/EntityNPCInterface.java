@@ -3,10 +3,7 @@ package noppes.npcs.entity;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
@@ -95,6 +92,7 @@ import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.ScriptEventAttack;
 import noppes.npcs.scripted.event.ScriptEventDamaged;
 import noppes.npcs.scripted.event.ScriptEventKilled;
@@ -1599,8 +1597,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
     public boolean isInvisibleToPlayer(EntityPlayer player){
+		if(display.invisibleToList != null && display.invisibleToList.contains(player.getPersistentID()))
+			return true;
+
         return display.visible == 1 && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
     }
+
+	public boolean scriptInvisibleToPlayer(EntityPlayer player){
+		return display.invisibleToList != null && display.invisibleToList.contains(player.getPersistentID());
+	}
 
 	@Override
 	public boolean isInvisible(){

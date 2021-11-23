@@ -226,6 +226,22 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public int getVisibleType();
 
     /**
+     *
+     * @param player The player this NPC becomes visible/invisible to
+     * @param visible True if you want the NPC to be invisible to the player, false otherwise
+     */
+    public void setVisibleTo(ScriptPlayer player, boolean visible);
+
+    /**
+     *
+     * @param player The player this NPC is visible/invisible to
+     * @return False if the NPC has been toggled to be invisible to this player, true otherwise.
+     * If setVisibleTo(player,visible) was not called to make this NPC invisible to the player at any point
+     * in the NPC's life, this function will return true regardless of the value of isVisible().
+     */
+    public boolean isVisibleTo(ScriptPlayer player);
+
+    /**
      * @param type The visibility type of the name, 0:visible, 1:invisible, 2:when-attacking
      */
     public void setShowName(int type);
