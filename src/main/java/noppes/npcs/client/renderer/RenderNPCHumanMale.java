@@ -12,10 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -272,7 +269,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(-var6, -var6, var6);
             }
-            else if (itemstack2.getItem() == Items.bow)
+            // CHANGE HERE
+            else if (itemstack2.getItem() instanceof ItemBow)
             {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
@@ -350,10 +348,10 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             
             IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack2, EQUIPPED);
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
-            
-            if(itemstack2.getItem() instanceof ItemShield || itemstack2.getItem() instanceof ItemClaw)
+
+            Class<?> clazz = itemstack2.getItem().getClass();
+            if(clazz.getSimpleName().equals("ItemShield") || clazz.getSimpleName().equals("ItemRotatedShield") || clazz.getSimpleName().equals("ItemClaw"))
             	GL11.glTranslatef(0.30f, 0, 0f);
-            
             
             if (itemstack2.getItem() instanceof ItemBlock && (is3D || RenderBlocks.renderItemIn3d(Block.getBlockFromItem(itemstack2.getItem()).getRenderType())))
             {
@@ -364,7 +362,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(var6, -var6, var6);
             }
-            else if (itemstack2.getItem() == Items.bow)
+            else if (itemstack2.getItem() instanceof ItemBow)
             {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);

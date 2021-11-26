@@ -22,6 +22,7 @@ import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
@@ -1264,8 +1265,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public IIcon getItemIcon(ItemStack par1ItemStack, int par2){
-        if (par1ItemStack.getItem() == Items.bow){
-            return Items.bow.getIcon(par1ItemStack, par2);
+    	// Change Here
+        if (par1ItemStack.getItem() instanceof ItemBow){
+            return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
         }
 		EntityPlayer player = CustomNpcs.proxy.getPlayer();
 		if(player == null)

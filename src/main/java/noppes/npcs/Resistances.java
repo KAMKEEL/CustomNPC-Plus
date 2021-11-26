@@ -9,6 +9,8 @@ public class Resistances {
 	public float arrow = 1f;
 	public float playermelee = 1f;
 	public float explosion = 1f;
+
+	public boolean disableDamage = false;
 	
 	public NBTTagCompound writeToNBT() {
 		NBTTagCompound compound = new NBTTagCompound();
@@ -16,6 +18,7 @@ public class Resistances {
 		compound.setFloat("Arrow", arrow);
 		compound.setFloat("Melee", playermelee);
 		compound.setFloat("Explosion", explosion);
+		compound.setBoolean("disableDamage", disableDamage);
 		return compound;
 	}
 
@@ -24,9 +27,14 @@ public class Resistances {
 		arrow = compound.getFloat("Arrow");
 		playermelee = compound.getFloat("Melee");
 		explosion = compound.getFloat("Explosion");
+		disableDamage = compound.getBoolean("disableDamage");
 	}
 
 	public float applyResistance(DamageSource source, float damage) {
+		if(disableDamage){
+			return 0;
+		}
+
 		if(source.damageType.equals("arrow") || source.damageType.equals("thrown")){
 			damage *= (2 - arrow);
 		}
