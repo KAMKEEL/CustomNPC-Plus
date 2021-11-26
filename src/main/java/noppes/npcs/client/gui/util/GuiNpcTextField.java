@@ -27,7 +27,7 @@ public class GuiNpcTextField extends GuiTextField{
 			listener = (ITextfieldListener) parent;
 	}
 	
-	public static boolean isActive(){
+	public static boolean isFieldActive(){
 		return activeTextfield != null;
 	}
 	

@@ -18,21 +18,29 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IWorld;
 
-public class ScriptWorld{
+public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
-	protected WorldServer world;
+	public WorldServer world;
 	public ScriptWorld(WorldServer world){
 		this.world = world;
 	}
-	
+
+	public static ScriptWorld createNew(WorldServer world) {
+		return new ScriptWorld(world);
+	}
+
 	/**
 	 * @return The worlds time
 	 */
@@ -53,11 +61,11 @@ public class ScriptWorld{
 	 * @param z World position z
 	 * @return The block at the given position. Returns null if there isn't a block
 	 */
-	public ScriptItemStack getBlock(int x, int y, int z){
+	public IBlock getBlock(int x, int y, int z){
 		Block block = world.getBlock(x, y, z);
 		if(block == null || block.isAir(world, x, y, z))
 			return null;
-		return new ScriptItemStack(new ItemStack(block, 1, world.getBlockMetadata(x, y, z)));
+		return new ScriptBlock(world, block, new BlockPos(x,y,z));
 	}
 
 	/**
@@ -186,6 +194,14 @@ public class ScriptWorld{
 		if(item == null)
 			return null;
 		return new ScriptItemStack(new ItemStack(item, size, damage));		
+	}
+
+	/**
+	 * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
+	 * @return Returns ScriptEntityParticle object
+	 */
+	public ScriptEntityParticle createEntityParticle(String directory){
+		return new ScriptEntityParticle(directory);
 	}
 	
 	/**
@@ -333,13 +349,21 @@ public class ScriptWorld{
 	public ScriptScoreboard getScoreboard(){
 		return new ScriptScoreboard();
 	}
-	
+
+	public BlockPos getMCBlockPos(int x, int y, int z){
+		return new BlockPos(x,y,z);
+	}
+
 	/**
 	 * @since 1.7.10c
 	 * Expert use only
 	 * @return Returns minecraft world object
 	 */
-	public World getMCWorld(){
-		return world;
+	public WorldServer getMCWorld(){
+		return this.world;
+	}
+
+	public int getDimensionID(){
+		return world.provider.dimensionId;
 	}
 }

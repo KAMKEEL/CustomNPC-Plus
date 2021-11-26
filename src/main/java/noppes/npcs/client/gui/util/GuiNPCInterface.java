@@ -144,7 +144,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     	for(GuiNpcTextField tf : textfields.values())
     			tf.textboxKeyTyped(c, i);
 
-        if (closeOnEsc && (i == 1 || !GuiNpcTextField.isActive() && isInventoryKey(i))){
+        if (closeOnEsc && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))){
         	close();
         }
     }

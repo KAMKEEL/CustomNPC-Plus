@@ -4,7 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
-import noppes.npcs.scripted.ScriptPlayer;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleFollower extends ScriptRoleInterface{
@@ -19,11 +19,11 @@ public class ScriptRoleFollower extends ScriptRoleInterface{
 	 * @param player Player who is set as the owner. If null given everything resets
 	 */
 	public void setOwner(ScriptPlayer player){
-		if(player == null || player.getMinecraftEntity() == null){
+		if(player == null || player.getMCEntity() == null){
 			role.setOwner(null);
 			return;
 		}
-		EntityPlayer mcplayer = (EntityPlayer) player.getMinecraftEntity();
+		EntityPlayer mcplayer = (EntityPlayer) player.getMCEntity();
 		role.setOwner(mcplayer);
 	}
 	

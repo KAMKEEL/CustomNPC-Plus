@@ -22,13 +22,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.controllers.BankData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerFactionData;
-import noppes.npcs.controllers.PlayerMail;
-import noppes.npcs.controllers.PlayerMailData;
-import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.PlayerQuestData;
+import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -67,17 +61,31 @@ public class PacketHandlerPlayer{
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.CompanionInv, npc);
 		}
+		else if(type == EnumPlayerPacket.KeyPressed) {
+			if(ScriptController.Instance.languages.isEmpty()) {
+				return;
+			}
+
+			EventHooks.onPlayerKeyPressed(player, buffer.readInt(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
+		}
+		else if(type == EnumPlayerPacket.MouseClicked) {
+			if(ScriptController.Instance.languages.isEmpty()) {
+				return;
+			}
+
+			EventHooks.onPlayerMouseClicked(player, buffer.readInt(), buffer.readInt(), buffer.readBoolean());
+		}
 		else if(type == EnumPlayerPacket.FollowerHire){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
 				return;
-			NoppesUtilPlayer.hireFollower(player,npc);
+			NoppesUtilPlayer.hireFollower(player, npc);
 		}
 		else if(type == EnumPlayerPacket.FollowerExtend){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
 				return;
-			NoppesUtilPlayer.extendFollower(player,npc);
+			NoppesUtilPlayer.extendFollower(player, npc);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.FollowerState){
@@ -124,17 +132,17 @@ public class PacketHandlerPlayer{
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null)
 				return;
-			NoppesUtilPlayer.dialogSelected(buffer.readInt(),buffer.readInt(),player,npc);
+			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
 		}
 		else if(type == EnumPlayerPacket.CheckQuestCompletion){
 			PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-			playerdata.checkQuestCompletion(player,null);
+			playerdata.checkQuestCompletion(player, null);
 		}
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);
 		}
 		else if(type == EnumPlayerPacket.QuestCompletion){
-			NoppesUtilPlayer.questCompletion(player,buffer.readInt());
+			NoppesUtilPlayer.questCompletion(player, buffer.readInt());
 		}
 		else if(type == EnumPlayerPacket.FactionsGet){
 			PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;	

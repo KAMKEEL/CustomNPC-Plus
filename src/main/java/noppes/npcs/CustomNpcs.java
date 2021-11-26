@@ -59,6 +59,7 @@ import noppes.npcs.entity.old.EntityNpcMonsterMale;
 import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.2.1")
 public class CustomNpcs {
@@ -175,6 +176,9 @@ public class CustomNpcs {
         MinecraftForge.EVENT_BUS.register(new ServerEventsHandler());
         MinecraftForge.EVENT_BUS.register(new ScriptController());
 
+        ScriptPlayerEventHandler scriptPlayerEventHandler = new ScriptPlayerEventHandler();
+        MinecraftForge.EVENT_BUS.register(scriptPlayerEventHandler);
+        FMLCommonHandler.instance().bus().register(scriptPlayerEventHandler.registerForgeEvents());
 		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
         
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");
@@ -244,7 +248,10 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         ScriptController.Instance.loadStoredData();
+        ScriptController.Instance.loadForgeScripts();
+        ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
+        WrapperNpcAPI.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){
@@ -308,4 +315,33 @@ public class CustomNpcs {
         return null;
     }
 
+    public static File getWorldSaveDirectory(String s) {
+        try {
+            File dir = new File(".");
+            if (getServer() != null) {
+                if (!getServer().isDedicatedServer()) {
+                    dir = new File(Minecraft.getMinecraft().mcDataDir, "saves");
+                }
+
+                dir = new File(new File(dir, getServer().getFolderName()), "customnpcs");
+            }
+
+            if (s != null) {
+                dir = new File(dir, s);
+            }
+
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            return dir;
+        } catch (Exception var2) {
+            LogWriter.error("Error getting worldsave", var2);
+            return null;
+        }
+    }
+
+    public static MinecraftServer getServer(){
+        return MinecraftServer.getServer();
+    }
 }

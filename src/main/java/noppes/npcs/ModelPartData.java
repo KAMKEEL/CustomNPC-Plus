@@ -8,9 +8,9 @@ public class ModelPartData {
 	public String texture;
 	public byte type = 0;
 	public boolean playerTexture;
-	
+
 	private ResourceLocation location;
-	
+
 	public ModelPartData(){
 		playerTexture = true;
 	}
@@ -29,7 +29,7 @@ public class ModelPartData {
 		compound.setBoolean("PlayerTexture", playerTexture);
 		return compound;
 	}
-	
+
 	public void readFromNBT(NBTTagCompound compound){
 		type = compound.getByte("Type");
 		color = compound.getInteger("Color");
@@ -37,13 +37,13 @@ public class ModelPartData {
 		playerTexture = compound.getBoolean("PlayerTexture");
 		location = null;
 	}
-	
+
 	public ResourceLocation getResource(){
 		if(texture.isEmpty())
 			return null;
 		if(location != null)
 			return location;
-		location = new ResourceLocation(texture);		
+		location = new ResourceLocation(texture);
 		return location;
 	}
 
@@ -59,7 +59,7 @@ public class ModelPartData {
 			playerTexture = false;
 		}
 	}
-	
+
 	public String toString(){
 		return "Color: " + color + " Type: " + type;
 	}
@@ -67,9 +67,9 @@ public class ModelPartData {
 	public String getColor() {
 		String str = Integer.toHexString(color);
 
-    	while(str.length() < 6)
-    		str = "0" + str;
-    	
-    	return str;
+		while(str.length() < 6)
+			str = "0" + str;
+
+		return str;
 	}
 }

@@ -240,7 +240,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
      */
     public void keyTyped(char par1, int par2)
     {
-    	if(!GuiNpcTextField.isActive() && canEdit)
+    	if(!GuiNpcTextField.isFieldActive() && canEdit)
         	this.keyTypedInBook(par1, par2);
     	else
     		super.keyTyped(par1, par2);

@@ -26,6 +26,9 @@ minecraft {
     runDir = "eclipse"
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 dependencies {
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..

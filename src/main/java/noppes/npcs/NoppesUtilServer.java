@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
+import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -21,6 +22,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -31,8 +34,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityCommandBlock;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
@@ -69,7 +72,7 @@ import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
-import noppes.npcs.scripted.ScriptEventDialog;
+import noppes.npcs.scripted.event.ScriptEventDialog;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -216,6 +219,19 @@ public class NoppesUtilServer {
         logic.func_145754_b("@"+name);
         logic.func_145755_a(executer.worldObj);
 	}
+
+	public static void runCommand(World world, String name, String command) {
+		TileEntityCommandBlock tile = new TileEntityCommandBlock();
+		tile.setWorldObj(world.provider.worldObj);
+		tile.xCoord = 0;
+		tile.yCoord = 0;
+		tile.zCoord = 0;
+
+		CommandBlockLogic logic = tile.func_145993_a();
+		logic.func_145752_a(command);
+		logic.func_145754_b("@"+name);
+		logic.func_145755_a(world);
+	}
 	
 	public static void consumeItemStack(int i, EntityPlayer player){
 		ItemStack item = player.inventory.getCurrentItem();
@@ -291,6 +307,22 @@ public class NoppesUtilServer {
 		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
+	public static void spawnScriptedParticle(Entity entity, String directory, int HEXcolor, int amount, int maxAge,
+											 double x, double y, double z,
+											 double motionX, double motionY, double motionZ, float gravity,
+											 float scale1, float scale2, float scaleRate, int scaleRateStart,
+											 float alpha1, float alpha2, float alphaRate, int alphaRateStart,
+											 int entityID
+	){
+		Server.sendAssociatedData(entity, EnumPacketClient.SCRIPTED_PARTICLE,
+				directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				alpha1, alpha2, alphaRate, alphaRateStart,
+				entityID
+		);
+	}
 
 	public static void deleteNpc(EntityNPCInterface npc,EntityPlayer player) {
 		Server.sendAssociatedData(npc, EnumPacketClient.DELETE_NPC, npc.getEntityId());
@@ -657,5 +689,26 @@ public class NoppesUtilServer {
 				return player;
 		}
         return null;
+	}
+
+	public static Entity GetDamageSourcee(DamageSource damagesource) {
+		Object entity = damagesource.getEntity();
+		if(entity == null) {
+			entity = damagesource.getSourceOfDamage();
+		}
+
+		if(entity instanceof EntityArrow && ((EntityArrow)entity).shootingEntity instanceof EntityLivingBase) {
+			entity = ((EntityArrow)entity).shootingEntity;
+		} else if(entity instanceof EntityThrowable) {
+			entity = ((EntityThrowable)entity).getThrower();
+		}
+
+		return (Entity)entity;
+	}
+
+	public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {
+		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
+		boolean isGUIOpen = buffer.readBoolean();
+		playerdata.setGUIOpen(isGUIOpen);
 	}
 }

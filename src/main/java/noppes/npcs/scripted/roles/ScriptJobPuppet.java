@@ -1,11 +1,7 @@
 package noppes.npcs.scripted.roles;
 
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobGuard;
-import noppes.npcs.roles.JobHealer;
 import noppes.npcs.roles.JobPuppet;
-import noppes.npcs.scripted.ScriptLivingBase;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobPuppet extends ScriptJobInterface{

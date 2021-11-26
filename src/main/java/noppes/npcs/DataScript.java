@@ -15,12 +15,14 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptEvent;
-import noppes.npcs.scripted.ScriptNpc;
+import noppes.npcs.scripted.event.ScriptEvent;
+import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 public class DataScript {
 	public Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
@@ -33,7 +35,7 @@ public class DataScript {
 	public boolean enabled = false;
 	
 	public ScriptNpc dummyNpc;
-	public ScriptWorld dummyWorld;
+	public IWorld dummyWorld;
 	public boolean clientNeedsUpdate = false;
 	public boolean aiNeedsUpdate = false;
 	public boolean hasInited = false;
@@ -113,11 +115,7 @@ public class DataScript {
 
 		return callScript(script);
 	}
-	
-	public boolean isEnabled(){
-		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
-	}
-	
+
 	private boolean callScript(ScriptContainer script){
 		ScriptEngine engine = script.engine;
 		engine.put("npc", dummyNpc);
@@ -125,11 +123,12 @@ public class DataScript {
 		ScriptEvent result = (ScriptEvent) engine.get("event");
 		if(result == null)
 			engine.put("event", result = new ScriptEvent());
+		engine.put("API", new WrapperNpcAPI());
 		engine.put("EntityType", entities);
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);
 		script.run(engine);
-		
+
 		if(clientNeedsUpdate){
 			npc.updateClient = true;
 			clientNeedsUpdate = false;
@@ -139,6 +138,10 @@ public class DataScript {
 			aiNeedsUpdate = false;
 		}
 		return result.isCancelled();
+	}
+	
+	public boolean isEnabled(){
+		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
 	}
 
 	public void setWorld(World world) {

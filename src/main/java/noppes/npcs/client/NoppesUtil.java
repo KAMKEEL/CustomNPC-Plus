@@ -6,12 +6,14 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -21,6 +23,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
+import noppes.npcs.client.fx.EntityCustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -64,6 +67,57 @@ public class NoppesUtil {
 	        	worldObj.spawnParticle("instantSpell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
 	        	worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
 	        }
+		}
+	}
+
+	public static void spawnScriptedParticle(ByteBuf buffer){
+		Minecraft minecraft =  Minecraft.getMinecraft();
+
+		String directory = Server.readString(buffer);
+
+		int HEXcolor = buffer.readInt();
+		int amount = buffer.readInt();
+		int maxAge = buffer.readInt();
+
+		double x = buffer.readDouble();
+		double y = buffer.readDouble();
+		double z = buffer.readDouble();
+
+		double motionX = buffer.readDouble();
+		double motionY = buffer.readDouble();
+		double motionZ = buffer.readDouble();
+		float gravity = buffer.readFloat();
+
+		float scale1 = buffer.readFloat();
+		float scale2 = buffer.readFloat();
+		float scaleRate = buffer.readFloat();
+		int scaleRateStart = buffer.readInt();
+
+		float alpha1 = buffer.readFloat();
+		float alpha2 = buffer.readFloat();
+		float alphaRate = buffer.readFloat();
+		int alphaRateStart = buffer.readInt();
+
+		int entityID = buffer.readInt();
+
+		World worldObj = Minecraft.getMinecraft().theWorld;
+		Entity entity = worldObj.getEntityByID(entityID);
+
+		if(entity == null)
+			return;
+
+		EntityCustomFX fx = new EntityCustomFX(
+				entity,
+				directory, HEXcolor,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				alpha1, alpha2, alphaRate, alphaRateStart,
+				maxAge
+		);
+
+		for(int i = 0; i < amount; i++){
+			minecraft.effectRenderer.addEffect(fx);
 		}
 	}
 
@@ -237,4 +291,7 @@ public class NoppesUtil {
 		CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Waypoint, player);
 	}
 
+	public static void isGUIOpen(boolean isGUIOpen) {
+		Client.sendData(EnumPacketServer.IsGuiOpen, isGUIOpen);
+	}
 }
