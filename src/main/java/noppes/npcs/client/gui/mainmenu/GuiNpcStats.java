@@ -45,7 +45,6 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 
     	addButton(new GuiNpcButton(0,guiLeft + 82, y+=22, 56, 20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(2,"stats.respawn", guiLeft + 5, y + 5));
-
     	
     	this.addButton(new GuiNpcButton(2, guiLeft + 82, y+=22, 56, 20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(5,"stats.meleeproperties", guiLeft + 5, y + 5));
@@ -53,12 +52,14 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     	addLabel(new GuiNpcLabel(6,"stats.rangedproperties", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(9, guiLeft + 217, y, 56, 20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(7,"stats.projectileproperties", guiLeft + 140, y + 5));
-    	
-    	this.addButton(new GuiNpcButton(15, guiLeft + 82, y+=34, 56, 20, "selectServer.edit"));
-    	addLabel(new GuiNpcLabel(15,"potion.resistance", guiLeft + 5, y + 5));
 
-    	    	
-    	addButton(new GuiNpcButton(4,guiLeft + 82, y+=34, 56, 20, new String[]{"gui.no","gui.yes"} ,npc.isImmuneToFire()? 1:0));
+		this.addButton(new GuiNpcButton(15, guiLeft + 82, y+=34, 56, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(15,"potion.resistance", guiLeft + 5, y + 5));
+
+		this.addButton(new GuiNpcButton(21, guiLeft + 217, y, 56, 20, new String[]{"gui.no","gui.yes"}, this.stats.resistances.disableDamage? 1:0));
+		addLabel(new GuiNpcLabel(21,"stats.disabledamage", guiLeft + 140, y + 5));
+
+		addButton(new GuiNpcButton(4,guiLeft + 82, y+=34, 56, 20, new String[]{"gui.no","gui.yes"} ,npc.isImmuneToFire()? 1:0));
     	addLabel(new GuiNpcLabel(10,"stats.fireimmune", guiLeft + 5, y + 5));
     	addButton(new GuiNpcButton(5,guiLeft + 217, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.canDrown? 1:0));
     	addLabel(new GuiNpcLabel(11,"stats.candrown", guiLeft + 140, y + 5));
@@ -133,6 +134,9 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 		}
 		else if (button.id == 18) {
 			stats.potionImmune = ((GuiNpcButtonYesNo)guibutton).getBoolean();
+		}
+		else if(button.id == 21){
+			stats.resistances.disableDamage = ((GuiNpcButton)guibutton).getValue() == 1;
 		}
     }
 	@Override
