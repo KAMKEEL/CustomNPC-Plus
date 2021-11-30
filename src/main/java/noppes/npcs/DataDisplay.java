@@ -87,7 +87,6 @@ public class DataDisplay {
 
 		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
 		name = getRandomName();
-
 	}
 
 	public String getRandomName() {
@@ -168,11 +167,16 @@ public class DataDisplay {
 		disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
 		showBossBar = nbttagcompound.getByte("BossBar");
 
-		invisibleToList.clear();
 		NBTTagList tagList = (NBTTagList)nbttagcompound.getTag("InvisibleToList");
-		for(int i = 0; i < tagList.tagCount(); i++){
-			String nbtTagString = tagList.getStringTagAt(i);
-			invisibleToList.add(UUID.fromString(nbtTagString));
+		if(tagList != null) {
+			invisibleToList.clear();
+			for (int i = 0; i < tagList.tagCount(); i++) {
+				String nbtTagString = tagList.getStringTagAt(i);
+				invisibleToList.add(UUID.fromString(nbtTagString));
+			}
+		}
+		else {
+			invisibleToList = new ArrayList<>();
 		}
 
 		if(prevSkinType != skinType || !texture.equals(prevTexture))
