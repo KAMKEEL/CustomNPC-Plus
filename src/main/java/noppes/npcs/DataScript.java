@@ -42,7 +42,7 @@ public class DataScript implements IScriptHandler {
 	public boolean hasInited = false;
 	
 	public DataScript(EntityNPCInterface npc) {
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 12; i++) {
 			scripts.add(new ScriptContainer(this));
 		}
 
@@ -68,7 +68,7 @@ public class DataScript implements IScriptHandler {
 	
 	private List<ScriptContainer> readScript(NBTTagList list){
 		List<ScriptContainer> scripts = new ArrayList<>();
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 12; i++) {
 			scripts.add(new ScriptContainer(this));
 		}
 
