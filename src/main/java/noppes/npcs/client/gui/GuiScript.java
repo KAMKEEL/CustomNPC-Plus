@@ -1,9 +1,6 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
@@ -15,6 +12,7 @@ import noppes.npcs.DataScript;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.script.EventGuiScriptList;
 import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiMenuTopButton;
@@ -139,19 +137,16 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	}
 
 	private String getConsoleText() {
-		String console = "";
-		if(activeConsole == 0){
-			for(ScriptContainer container : script.scripts.values()){
-				if(!container.console.isEmpty())
-					console += container.console + '\n';
-			}
+		Map<Long, String> map = this.script.getConsoleText();
+		StringBuilder builder = new StringBuilder();
+		Iterator var3 = map.entrySet().iterator();
+
+		while(var3.hasNext()) {
+			Map.Entry<Long, String> entry = (Map.Entry)var3.next();
+			builder.insert(0, new Date((Long)entry.getKey()) + (String)entry.getValue() + "\n");
 		}
-		else{
-			ScriptContainer container = script.scripts.get(activeConsole - 1);
-			if(container != null)
-				console = container.console;
-		}
-		return console;
+
+		return builder.toString();
 	}
 	
     @Override
@@ -182,19 +177,16 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		if (guibutton.id == 101) {
 			getTextField(2).setText(NoppesStringUtils.getClipboardContents());
 		}
-		if (guibutton.id == 102) {
-			getTextField(2).setText("");
-			if(!showScript){
-				if(activeConsole == 0){
-					for(ScriptContainer container : script.scripts.values())
-						container.console = "";
-				}
-				else{
-					ScriptContainer container = script.scripts.get(activeConsole - 1);
-					if(container != null)
-						container.console = "";
-				}
+		ScriptContainer container;
+		if(guibutton.id == 102) {
+			if(this.activeTab > 0) {
+				container = (ScriptContainer)this.script.getScripts().get(this.activeTab - 1);
+				container.script = "";
+			} else {
+				this.script.clearConsole();
 			}
+
+			this.initGui();
 		}
 		if (guibutton.id == 103) {
 			script.scriptLanguage = ((GuiNpcButton)guibutton).displayString;
@@ -209,31 +201,36 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		if (guibutton.id == 106) {
 			NoppesUtil.openFolder(ScriptController.Instance.dir);
 		}
-		if (guibutton.id == 107) {
-			ScriptContainer container = script.scripts.get(activeTab);
-			if(container == null)
-				script.scripts.put(activeTab, container = new ScriptContainer());
-			setSubGui(new GuiScriptList(languages.get(script.scriptLanguage), container));
+		if(guibutton.id == 107) {
+			container = (ScriptContainer)this.script.getScripts().get(this.activeTab - 1);
+			if(container == null) {
+				this.script.getScripts().add(container = new ScriptContainer(this.script));
+			}
+
+			this.setSubGui(new EventGuiScriptList((List)this.languages.get(this.script.getLanguage()), container));
 		}
-		if (guibutton.id == 108) {
-			ScriptContainer container = script.scripts.get(activeTab);
-			if(container != null){
-				setScript();
+		if(guibutton.id == 108) {
+			container = (ScriptContainer)this.script.getScripts().get(this.activeTab - 1);
+			if(container != null) {
+				this.setScript();
 				this.AWTWindow = new GuiJTextArea(container.script).setListener(this);
 			}
 		}
 	}
-	
-	private void setScript(){
-		if(showScript){
-			ScriptContainer container = script.scripts.get(activeTab);
-			if(container == null)
-				script.scripts.put(activeTab, container = new ScriptContainer());
-			String text = getTextField(2).getText();
+
+	private void setScript() {
+		if(this.activeTab > 0) {
+			ScriptContainer container = (ScriptContainer)this.script.getScripts().get(this.activeTab - 1);
+			if(container == null) {
+				this.script.getScripts().add(container = new ScriptContainer(this.script));
+			}
+
+			String text = (this.getTextField(2)).getText();
 			text = text.replace("\r\n", "\n");
 			text = text.replace("\r", "\n");
 			container.script = text;
 		}
+
 	}
 
 	@Override
@@ -271,7 +268,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
 	@Override
 	public void saveText(String text) {
-		ScriptContainer container = script.scripts.get(activeTab);
+		ScriptContainer container = script.getScripts().get(activeTab);
 		if(container != null)
 			container.script = text;
 		initGui();

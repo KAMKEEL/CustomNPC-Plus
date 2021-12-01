@@ -453,25 +453,4 @@ public class ScriptPlayerEventHandler {
             }
         }
     }
-
-    /*@SubscribeEvent
-    public void forgeTick(TickEvent.ServerTickEvent event){
-        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
-            EventHooks.onForgeEvent(new ForgeEvent(event), event);
-        }
-    }
-
-    @SubscribeEvent
-    public void forgeTick(TickEvent.WorldTickEvent event){
-        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
-            EventHooks.onForgeEvent(new ForgeEvent(event), event);
-        }
-    }
-
-    @SubscribeEvent
-    public void forgeTick(TickEvent.PlayerTickEvent event){
-        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
-            EventHooks.onForgeEvent(new ForgeEvent(event), event);
-        }
-    }*/
 }

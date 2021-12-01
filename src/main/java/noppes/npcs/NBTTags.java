@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.IScriptHandler;
 
 public class NBTTags {
@@ -408,12 +409,12 @@ public class NBTTags {
 		}
 	}
 
-	public static List<EventScriptContainer> GetScript(NBTTagList list, IScriptHandler handler) {
+	public static List<ScriptContainer> GetScript(NBTTagList list, IScriptHandler handler) {
 		ArrayList scripts = new ArrayList();
 
 		for(int i = 0; i < list.tagCount(); ++i) {
 			NBTTagCompound compoundd = list.getCompoundTagAt(i);
-			EventScriptContainer script = new EventScriptContainer(handler);
+			ScriptContainer script = new ScriptContainer(handler);
 			script.readFromNBT(compoundd);
 			scripts.add(script);
 		}
@@ -421,12 +422,12 @@ public class NBTTags {
 		return scripts;
 	}
 
-	public static NBTTagList NBTScript(List<EventScriptContainer> scripts) {
+	public static NBTTagList NBTScript(List<ScriptContainer> scripts) {
 		NBTTagList list = new NBTTagList();
 		Iterator var2 = scripts.iterator();
 
 		while(var2.hasNext()) {
-			EventScriptContainer script = (EventScriptContainer)var2.next();
+			ScriptContainer script = (ScriptContainer)var2.next();
 			NBTTagCompound compound = new NBTTagCompound();
 			script.writeToNBT(compound);
 			list.appendTag(compound);

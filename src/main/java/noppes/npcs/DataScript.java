@@ -1,10 +1,10 @@
 package noppes.npcs;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.script.ScriptEngine;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -24,8 +25,8 @@ import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
-public class DataScript {
-	public Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
+public class DataScript implements IScriptHandler {
+	public List<ScriptContainer> scripts = new ArrayList();
 	private final static EntityType entities = new EntityType();
 	private final static JobType jobs = new JobType();
 	private final static RoleType roles = new RoleType();
@@ -41,6 +42,10 @@ public class DataScript {
 	public boolean hasInited = false;
 	
 	public DataScript(EntityNPCInterface npc) {
+		for (int i = 0; i < 10; i++) {
+			scripts.add(new ScriptContainer(this));
+		}
+
 		this.npc = npc;
 		if(npc instanceof EntityCustomNpc)
 			dummyNpc = new ScriptNpc((EntityCustomNpc) npc);
@@ -61,21 +66,25 @@ public class DataScript {
 		return compound;
 	}
 	
-	private Map<Integer,ScriptContainer> readScript(NBTTagList list){
-		Map<Integer,ScriptContainer> scripts = new HashMap<Integer,ScriptContainer>();
+	private List<ScriptContainer> readScript(NBTTagList list){
+		List<ScriptContainer> scripts = new ArrayList<>();
+		for (int i = 0; i < 10; i++) {
+			scripts.add(new ScriptContainer(this));
+		}
+
 		for(int i = 0; i < list.tagCount(); i++){
 			NBTTagCompound compoundd = list.getCompoundTagAt(i);
-			ScriptContainer script = new ScriptContainer();
+			ScriptContainer script = new ScriptContainer(this);
 			script.readFromNBT(compoundd);
-			if(script.hasCode() || npc.isRemote())				
-				scripts.put(compoundd.getInteger("Type"), script);			
+			if(script.hasCode() || npc.isRemote())
+				scripts.set(compoundd.getInteger("Type"), script);
 		}
 		return scripts;
 	}
 	
-	private NBTTagList writeScript(Map<Integer,ScriptContainer> scripts){
+	private NBTTagList writeScript(List<ScriptContainer> scripts){
 		NBTTagList list = new NBTTagList();
-		for(Integer type : scripts.keySet()){
+		for(int type = 0; type < scripts.size(); type++){
 			NBTTagCompound compoundd = new NBTTagCompound();
 			compoundd.setInteger("Type", type);
 			ScriptContainer script = scripts.get(type);
@@ -142,6 +151,69 @@ public class DataScript {
 	
 	public boolean isEnabled(){
 		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
+	}
+
+	public void callScript(EnumScriptType var1, Event var2, Object... obs) {
+
+	}
+
+	public Map<Long, String> getConsoleText() {
+		Map<Long, String> map = new TreeMap();
+		int tab = 0;
+		Iterator var3 = this.getScripts().iterator();
+
+		while(var3.hasNext()) {
+			ScriptContainer script = (ScriptContainer)var3.next();
+			++tab;
+			Iterator var5 = script.console.entrySet().iterator();
+
+			while(var5.hasNext()) {
+				Map.Entry<Long, String> entry = (Map.Entry)var5.next();
+				map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
+			}
+		}
+
+		return map;
+	}
+
+	public void clearConsole() {
+		Iterator var1 = this.getScripts().iterator();
+
+		while(var1.hasNext()) {
+			ScriptContainer script = (ScriptContainer)var1.next();
+			script.console.clear();
+		}
+
+	}
+
+	public boolean isClient() {
+		return this.npc.isRemote();
+	}
+
+	public boolean getEnabled() {
+		return this.enabled;
+	}
+
+	public void setEnabled(boolean bo) {
+		this.enabled = bo;
+	}
+
+	public String getLanguage() {
+		return this.scriptLanguage;
+	}
+
+	public void setLanguage(String lang) {
+		this.scriptLanguage = lang;
+	}
+
+	public List<ScriptContainer> getScripts() {
+		return this.scripts;
+	}
+
+	public String noticeString() {
+		//BlockPos pos = this.npc.func_180425_c();
+		//return MoreObjects.toStringHelper(this.npc).add("x", pos.func_177958_n()).add("y", pos.func_177956_o()).add("z", pos.func_177952_p()).toString();
+		return "";
 	}
 
 	public void setWorld(World world) {

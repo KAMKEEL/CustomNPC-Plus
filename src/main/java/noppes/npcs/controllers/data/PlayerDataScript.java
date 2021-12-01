@@ -12,21 +12,17 @@ import java.util.Map.Entry;
 import com.google.common.base.Preconditions;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
-import noppes.npcs.EventScriptContainer;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
-import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.event.PlayerEvent;
 import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -36,7 +32,7 @@ import javax.annotation.CheckForNull;
 import javax.script.ScriptEngine;
 
 public class PlayerDataScript implements IScriptHandler {
-    public List<EventScriptContainer> scripts = new ArrayList();
+    public List<ScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     private EntityPlayer player;
     private IPlayer playerAPI;
@@ -82,71 +78,50 @@ public class PlayerDataScript implements IScriptHandler {
     }
 
     public void callScript(EnumScriptType type, Event event, Object... obs) {
-        if(this.isEnabled()) {
-            EventScriptContainer script;
-            if(ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
+        if (this.isEnabled()) {
+            ScriptContainer script;
+            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
-                //ScriptController.Instance.playerScripts.errored.clear();
-                if(this.player != null) {
+                errored.clear();
+                if (this.player != null) {
                     this.scripts.clear();
-                    Iterator i = ScriptController.Instance.playerScripts.scripts.iterator();
+                    Iterator var3 = ScriptController.Instance.playerScripts.scripts.iterator();
 
-                    while(i.hasNext()) {
-                        script = (EventScriptContainer)i.next();
-                        EventScriptContainer s = new EventScriptContainer(this);
+                    while(var3.hasNext()) {
+                        script = (ScriptContainer)var3.next();
+                        ScriptContainer s = new ScriptContainer(this);
                         s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
-
                         this.scripts.add(s);
                     }
                 }
 
                 this.lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
-                if(type != EnumScriptType.INIT) {
+                if (type != EnumScriptType.INIT) {
                     EventHooks.onPlayerInit(this);
                 }
             }
 
-            for(int var7 = 0; var7 < this.scripts.size(); ++var7) {
-                script = (EventScriptContainer)this.scripts.get(var7);
-
-                if(!ScriptController.Instance.playerScripts.errored.contains(Integer.valueOf(var7))) {
-                    if(script == null || script.errored || !script.hasCode())
-                        return;
-                    script.setEngine(scriptLanguage);
-                    if(script.engine == null)
-                        return;
-                    for(int i = 0; i + 1 < obs.length; i += 2){
-                        Object ob = obs[i + 1];
-                        if(ob instanceof Entity)
-                            ob = ScriptController.Instance.getScriptForEntity((Entity)ob);
-                        script.engine.put(obs[i].toString(), ob);
-                    }
-
-                    ScriptEngine engine = script.engine;
-                    engine.put("world", dummyWorld);
-                    engine.put("player", dummyPlayer);
-                    PlayerEvent result = (PlayerEvent) engine.get("event");
-                    if(result == null)
-                        engine.put("event", result = new PlayerEvent(this.getPlayer()));
-                    script.engine.put("API", new WrapperNpcAPI());
+            for(int i = 0; i < this.scripts.size(); ++i) {
+                script = (ScriptContainer)this.scripts.get(i);
+                if (!errored.contains(i)) {
                     script.run(type, event);
-
                     if (script.errored) {
-                        ScriptController.Instance.playerScripts.errored.add(var7);
+                        errored.add(i);
                     }
 
                     Iterator var8 = script.console.entrySet().iterator();
 
                     while(var8.hasNext()) {
                         Entry<Long, String> entry = (Entry)var8.next();
-                        if (!ScriptController.Instance.playerScripts.console.containsKey(entry.getKey())) {
-                            ScriptController.Instance.playerScripts.console.put(entry.getKey(), " tab " + (var7 + 1) + ":\n" + (String)entry.getValue());
+                        if (!console.containsKey(entry.getKey())) {
+                            console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
                         }
                     }
 
                     script.console.clear();
                 }
             }
+
         }
     }
 
@@ -175,7 +150,7 @@ public class PlayerDataScript implements IScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public List<EventScriptContainer> getScripts() {
+    public List<ScriptContainer> getScripts() {
         return this.scripts;
     }
 
