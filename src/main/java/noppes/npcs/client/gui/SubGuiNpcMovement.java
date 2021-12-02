@@ -30,12 +30,12 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
     	this.addButton(new GuiNpcButton(0, guiLeft + 80, y, 100, 20, EnumMovingType.names(), ai.movingType.ordinal()));
 
     	// Fly Change
-		// this.addButton(new GuiNpcButton(15, guiLeft + 80, y += 22, 100, 20, new String[]{"movement.ground","movement.flying"}, ai.movementType));
+		this.addButton(new GuiNpcButton(15, guiLeft + 80, y += 22, 100, 20, new String[]{"movement.ground","movement.flying"}, ai.movementType));
 
 		if(ai.movingType == EnumMovingType.Wandering){    
 			addTextField(new GuiNpcTextField(4,this, guiLeft + 100, y += 22, 40, 20, ai.walkingRange + ""));
 	    	getTextField(4).numbersOnly = true;
-	        getTextField(4).setMinMaxDefault(0, 1000, 5);
+	        getTextField(4).setMinMaxDefault(0, Integer.MAX_VALUE, 5);
 	        addLabel(new GuiNpcLabel(4,"gui.range", guiLeft + 4, y + 5));	
 	        
 	        addButton(new GuiNpcButton(5, guiLeft + 100, y += 22, 50, 20, new String[]{"gui.no","gui.yes"}, ai.npcInteracting?1:0));
@@ -93,7 +93,7 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 
         addTextField(new GuiNpcTextField(14,this, guiLeft + 80, y += 22, 50, 18, ai.getWalkingSpeed()+""));
         getTextField(14).numbersOnly = true;
-        getTextField(14).setMinMaxDefault(0, 10, 4);
+        getTextField(14).setMinMaxDefault(0, Integer.MAX_VALUE, 4);
         addLabel(new GuiNpcLabel(14,"stats.walkspeed", guiLeft + 5, y + 5));
         
     	addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));

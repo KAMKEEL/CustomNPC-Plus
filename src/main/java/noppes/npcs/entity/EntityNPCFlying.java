@@ -73,6 +73,9 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
                     d5 = (double)MathHelper.sqrt_double(d3);
                     this.motionX += (d0 / d5 * 0.5D - this.motionX) * 0.6000000238418579D;
                     this.motionZ += (d1 / d5 * 0.5D - this.motionZ) * 0.6000000238418579D;
+
+                    this.motionX *= this.ai.getWalkingSpeed()/10.0D;
+                    this.motionZ *= this.ai.getWalkingSpeed()/10.0D;
                 }
             }
         }
