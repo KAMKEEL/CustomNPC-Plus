@@ -122,13 +122,9 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
         
 		if(strength < 0)
 			strength = 0;
-		else if(strength > 255)
-			strength = 255;
 
 		if(duration < 0)
 			duration = 0;
-		else if(duration > 1000000)
-			duration = 1000000;
 		
 		if(!Potion.potionTypes[effect].isInstant())
 			duration *= 20;

@@ -105,7 +105,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @param health New max health
      */
-    public void setMaxHealth(int health);
+    public void setMaxHealth(double health);
 
     /**
      * @param bo Whether or not the npc will try to return to his home position
@@ -264,12 +264,12 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return The melee strength
      */
-    public int getMeleeStrength();
+    public float getMeleeStrength();
 
     /**
      * @param strength The melee strength
      */
-    public void setMeleeStrength(int strength);
+    public void setMeleeStrength(float strength);
 
     /**
      * @return The melee speed
@@ -284,12 +284,12 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return The ranged strength
      */
-    public int getRangedStrength();
+    public float getRangedStrength();
 
     /**
      * @param strength The ranged strength
      */
-    public void setRangedStrength(int strength);
+    public void setRangedStrength(float strength);
 
     /**
      * @return The ranged speed
@@ -382,22 +382,26 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return Returns the combat health regen per second
      */
-    public int getCombatRegen();
+    public float getCombatRegen();
 
     /**
      * @param regen The combat health regen per second
      */
-    public void setCombatRegen(int regen);
+    public void setCombatRegen(float regen);
 
     /**
      * @return Returns the health regen per second when not in combat
      */
-    public int getHealthRegen();
+    public float getHealthRegen();
 
     /**
      * @param regen The health regen per second when not in combat
      */
-    public void setHealthRegen(int regen);
+    public void setHealthRegen(float regen);
 
     public long getAge();
+
+    public boolean canFly();
+
+    public void setFly(int fly);
 }

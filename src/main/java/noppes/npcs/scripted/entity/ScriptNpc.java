@@ -1,6 +1,5 @@
 package noppes.npcs.scripted.entity;
 
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumAnimation;
@@ -33,7 +32,6 @@ import noppes.npcs.scripted.roles.ScriptRoleTransporter;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
@@ -45,19 +43,17 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 		
 	/**
-	 * @return Returns the current npcs size 1-30
+	 * @return Returns the current npcs size
 	 */
 	public int getSize(){
 		return npc.display.modelSize;
 	}
 	
 	/**
-	 * @param size The size of the npc (1-30) default is 5
+	 * @param size The size of the npc. Default is 5
 	 */
 	public void setSize(int size){
-		if(size > 30)
-			size = 30;
-		else if(size < 1)
+		if(size < 1)
 			size = 1;
 		npc.display.modelSize = size;
 		npc.script.clientNeedsUpdate = true;
@@ -186,7 +182,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @param health New max health
 	 */
-	public void setMaxHealth(int health){
+	public void setMaxHealth(double health){
 		npc.stats.setMaxHealth(health);
 		npc.script.clientNeedsUpdate = true;
 	}
@@ -488,14 +484,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The melee strength
 	 */
-	public int getMeleeStrength(){
+	public float getMeleeStrength(){
 		return npc.stats.getAttackStrength();
 	}
 	
 	/**
 	 * @param strength The melee strength
 	 */
-	public void setMeleeStrength(int strength){
+	public void setMeleeStrength(float strength){
 		npc.stats.setAttackStrength(strength);
 	}
 	
@@ -516,14 +512,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The ranged strength
 	 */
-	public int getRangedStrength(){
+	public float getRangedStrength(){
 		return npc.stats.pDamage;
 	}
 	
 	/**
 	 * @param strength The ranged strength
 	 */
-	public void setRangedStrength(int strength){
+	public void setRangedStrength(float strength){
 		npc.stats.pDamage = strength;
 	}
 	
@@ -673,28 +669,28 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return Returns the combat health regen per second
 	 */
-	public int getCombatRegen(){
+	public float getCombatRegen(){
 		return npc.stats.combatRegen;
 	}
 	
 	/**
 	 * @param regen The combat health regen per second
 	 */
-	public void setCombatRegen(int regen){
+	public void setCombatRegen(float regen){
 		npc.stats.combatRegen = regen;
 	}
 	
 	/**
 	 * @return Returns the health regen per second when not in combat
 	 */
-	public int getHealthRegen(){
+	public float getHealthRegen(){
 		return npc.stats.healthRegen;
 	}
 	
 	/**
 	 * @param regen The health regen per second when not in combat
 	 */
-	public void setHealthRegen(int regen){
+	public void setHealthRegen(float regen){
 		npc.stats.healthRegen = regen;
 	}
 	
@@ -705,5 +701,17 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public ITimers getTimers() {
 		return ((EntityNPCInterface)this.npc).timers;
+	}
+
+	public boolean canFly(){
+		return npc.ai.movementType == 1;
+	}
+
+	public void setFly(int fly){
+		if(fly > 0)
+			fly = 1;
+		else fly = 0;
+
+		npc.ai.movementType = fly;
 	}
 }

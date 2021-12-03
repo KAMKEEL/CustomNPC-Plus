@@ -11,7 +11,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -45,12 +44,12 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements ISliderListe
         super.initGui();
         addLabel(new GuiNpcLabel(0,"inv.minExp", guiLeft + 118, guiTop + 18));
         addTextField(new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 108, guiTop + 29, 60, 20, npc.inventory.minExp + ""));
-        getTextField(0).numbersOnly = true;
+        getTextField(0).integersOnly = true;
         getTextField(0).setMinMaxDefault(0, Short.MAX_VALUE, 0);
         
         addLabel(new GuiNpcLabel(1,"inv.maxExp", guiLeft + 118, guiTop + 52));
         addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 108, guiTop + 63, 60, 20, npc.inventory.maxExp + ""));
-        getTextField(1).numbersOnly = true;
+        getTextField(1).integersOnly = true;
         getTextField(1).setMinMaxDefault(0, Short.MAX_VALUE, 0);     
         
         addButton(new GuiNpcButton(10, guiLeft + 88, guiTop + 88, 80, 20, new String[]{"stats.normal", "inv.auto"}, npc.inventory.lootMode));

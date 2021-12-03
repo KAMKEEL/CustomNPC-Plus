@@ -34,7 +34,7 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 
 		if(ai.movingType == EnumMovingType.Wandering){    
 			addTextField(new GuiNpcTextField(4,this, guiLeft + 100, y += 22, 40, 20, ai.walkingRange + ""));
-	    	getTextField(4).numbersOnly = true;
+	    	getTextField(4).integersOnly = true;
 	        getTextField(4).setMinMaxDefault(0, Integer.MAX_VALUE, 5);
 	        addLabel(new GuiNpcLabel(4,"gui.range", guiLeft + 4, y + 5));	
 	        
@@ -45,15 +45,15 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
         	addTextField(new GuiNpcTextField(7,this, guiLeft + 99, y += 22, 24, 20, (int)ai.bodyOffsetX + ""));
 	        addLabel(new GuiNpcLabel(17, "spawner.posoffset", guiLeft + 4, y + 5));
         	addLabel(new GuiNpcLabel(7,"X:", guiLeft + 115, y + 5));
-        	getTextField(7).numbersOnly = true;
+        	getTextField(7).integersOnly = true;
 	        getTextField(7).setMinMaxDefault(0, 10, 5);
 	        addLabel(new GuiNpcLabel(8,"Y:", guiLeft + 125, y + 5));
         	addTextField(new GuiNpcTextField(8,this, guiLeft + 135, y, 24, 20, (int)ai.bodyOffsetY + ""));
-        	getTextField(8).numbersOnly = true;
+        	getTextField(8).integersOnly = true;
 	        getTextField(8).setMinMaxDefault(0, 10, 5);
 	        addLabel(new GuiNpcLabel(9,"Z:", guiLeft + 161, y + 5));
         	addTextField(new GuiNpcTextField(9,this, guiLeft + 171, y, 24, 20, (int)ai.bodyOffsetZ + ""));
-        	getTextField(9).numbersOnly = true;
+        	getTextField(9).integersOnly = true;
 	        getTextField(9).setMinMaxDefault(0, 10, 5);  
 
 	    	this.addButton(new GuiNpcButton(3, guiLeft + 80, y += 22, 100, 20, new String[]{"stats.normal","movement.sitting","movement.lying","movement.sneaking","movement.dancing","movement.aiming", "movement.crawling", "movement.hug"},ai.animationType.ordinal()));
@@ -65,14 +65,14 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 	        }
 			else{
 				addTextField(new GuiNpcTextField(5,this, guiLeft + 99, y += 22, 40, 20, ai.orientation + ""));
-				getTextField(5).numbersOnly = true;
+				getTextField(5).integersOnly = true;
 				getTextField(5).setMinMaxDefault(0, 359, 0);
 				this.addLabel(new GuiNpcLabel(6, "movement.rotation", guiLeft + 4, y + 5));
 				addLabel(new GuiNpcLabel(5,"(0-359)", guiLeft + 142, y + 5));
 			}
 			if(ai.standingType == EnumStandingType.NoRotation || ai.standingType == EnumStandingType.HeadRotation){
 				addTextField(new GuiNpcTextField(5,this, guiLeft + 165, y, 40, 20, ai.orientation + ""));
-				getTextField(5).numbersOnly = true;
+				getTextField(5).integersOnly = true;
 				getTextField(5).setMinMaxDefault(0, 359, 0);
 				addLabel(new GuiNpcLabel(5,"(0-359)", guiLeft + 207, y + 5));
 			}
@@ -92,7 +92,7 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
         addLabel(new GuiNpcLabel(13,"movement.stopinteract", guiLeft + 4, y + 5));
 
         addTextField(new GuiNpcTextField(14,this, guiLeft + 80, y += 22, 50, 18, ai.getWalkingSpeed()+""));
-        getTextField(14).numbersOnly = true;
+        getTextField(14).integersOnly = true;
         getTextField(14).setMinMaxDefault(0, Integer.MAX_VALUE, 4);
         addLabel(new GuiNpcLabel(14,"stats.walkspeed", guiLeft + 5, y + 5));
         

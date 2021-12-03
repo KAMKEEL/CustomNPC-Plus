@@ -48,18 +48,18 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
 			
 			if(i > 0){
 				this.addTextField(new GuiNpcTextField(i + 14, this, this.fontRendererObj, guiLeft + 164 + offset, guiTop + 13 + i % 7 * 22, 30, 20, line.delay + ""));
-				this.getTextField(i + 14).numbersOnly = true;
+				this.getTextField(i + 14).integersOnly = true;
 				this.getTextField(i + 14).setMinMaxDefault(5, 1000, 40);
 			}
 		}
 		addLabel(new GuiNpcLabel(50, "conversation.delay", guiLeft + 202, guiTop + 175));
 		addTextField(new GuiNpcTextField(50, this, fontRendererObj, guiLeft + 260, guiTop + 170, 40, 20, job.generalDelay + ""));
-		getTextField(50).numbersOnly = true;
+		getTextField(50).integersOnly = true;
 		getTextField(50).setMinMaxDefault(10, Integer.MAX_VALUE, 12000);
 
 		addLabel(new GuiNpcLabel(54, "gui.range", guiLeft + 202, guiTop + 196));
 		addTextField(new GuiNpcTextField(54, this, fontRendererObj, guiLeft + 260, guiTop + 191, 40, 20, job.range + ""));
-		getTextField(54).numbersOnly = true;
+		getTextField(54).integersOnly = true;
 		getTextField(54).setMinMaxDefault(4, Integer.MAX_VALUE, 20);
 		
 		addLabel(new GuiNpcLabel(51, "quest.quest", guiLeft + 13, guiTop + 175));

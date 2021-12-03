@@ -196,7 +196,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
         this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
-        this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(this.getSpeed());
+		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(this.getSpeed());
         this.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(stats.getAttackStrength());
     }
 
@@ -599,15 +599,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         this.tasks.addTask(0, new EntityAIWaterNav(this));
 
-//		if(canFly()){
-//			this.moveHelper = new FlyingMoveHelper(this);
-//			this.navigator = new PathNavigateFlying(this, worldObj);
-//		}
-//		else{
-//			this.moveHelper = new EntityMoveHelper(this);
-//			this.navigator = new PathNavigateGround(this, worldObj);
-//			this.tasks.addTask(0, new EntityAIWaterNav(this));
-//		}
+		if(canFly()){
+			//this.moveHelper = new FlyingMoveHelper(this);
+			//this.navigator = new PathNavigateFlying(this, worldObj);
+			this.getNavigator().setCanSwim(true);
+			this.tasks.addTask(0, new EntityAISwimming(this));
+		}
+		else{
+			//this.moveHelper = new EntityMoveHelper(this);
+			//this.navigator = new PathNavigateGround(this, worldObj);
+			this.tasks.addTask(0, new EntityAIWaterNav(this));
+		}
 
 		this.taskCount = 1;
 		this.doorInteractType();
@@ -1450,7 +1452,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public NBTTagCompound writeSpawnData() {
 		NBTTagCompound compound = new NBTTagCompound();
 		display.writeToNBT(compound);
-		compound.setInteger("MaxHealth", stats.maxHealth);
+		compound.setDouble("MaxHealth", stats.maxHealth);
 		compound.setTag("Armor", NBTTags.nbtItemStackList(inventory.getArmor()));
 		compound.setTag("Weapons", NBTTags.nbtItemStackList(inventory.getWeapons()));
 		compound.setInteger("Speed", ai.getWalkingSpeed());
@@ -1489,7 +1491,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		} 
 	}
 	public void readSpawnData(NBTTagCompound compound) {
-		stats.maxHealth = compound.getInteger("MaxHealth");
+		stats.maxHealth = compound.getDouble("MaxHealth");
 		ai.setWalkingSpeed(compound.getInteger("Speed"));
 		stats.hideKilledBody = compound.getBoolean("DeadBody");
 		ai.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];

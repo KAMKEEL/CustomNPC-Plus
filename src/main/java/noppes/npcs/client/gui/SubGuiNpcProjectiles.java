@@ -7,7 +7,6 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.constants.EnumParticleType;
 
@@ -30,19 +29,19 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
         super.initGui();
         addLabel(new GuiNpcLabel(1,"enchantment.arrowDamage", guiLeft + 5, guiTop + 15));
         addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 45, guiTop + 10, 50, 18, stats.pDamage+""));
-        getTextField(1).numbersOnly = true;
-        getTextField(1).setMinMaxDefault(0, Integer.MAX_VALUE, 5);
+        getTextField(1).setFloatsOnly();
+        getTextField(1).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 5);
         addLabel(new GuiNpcLabel(2,"enchantment.arrowKnockback", guiLeft + 110, guiTop + 15));
         addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 150, guiTop + 10, 50, 18, stats.pImpact+""));
-        getTextField(2).numbersOnly = true;
+        getTextField(2).integersOnly = true;
         getTextField(2).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
         addLabel(new GuiNpcLabel(3,"stats.size", guiLeft + 5, guiTop + 45));
         addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 45, guiTop + 40, 50, 18, stats.pSize+""));
-        getTextField(3).numbersOnly = true;
+        getTextField(3).integersOnly = true;
         getTextField(3).setMinMaxDefault(1, Integer.MAX_VALUE, 10);
         addLabel(new GuiNpcLabel(4,"stats.speed", guiLeft + 5, guiTop + 75));
         addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 45, guiTop + 70, 50, 18, stats.pSpeed+""));
-        getTextField(4).numbersOnly = true;
+        getTextField(4).integersOnly = true;
         getTextField(4).setMinMaxDefault(1, Integer.MAX_VALUE, 10);
         
         addLabel(new GuiNpcLabel(5,"stats.hasgravity", guiLeft + 5, guiTop + 105));
@@ -59,7 +58,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
     	addButton(new GuiNpcButton(4,guiLeft + 60, guiTop + 160, 60, 20, potionNames, stats.pEffect.ordinal()));
     	if(stats.pEffect != EnumPotionType.None) {
     		addTextField(new GuiNpcTextField(5,this, fontRendererObj, guiLeft + 140, guiTop + 160, 60, 18, stats.pDur + ""));
-    		getTextField(5).numbersOnly = true;
+    		getTextField(5).integersOnly = true;
     		getTextField(5).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
     		if(stats.pEffect != EnumPotionType.Fire) {
     			addButton(new GuiNpcButton(10, guiLeft + 210, guiTop + 160, 40, 20, new String[]{"stats.regular", "stats.amplified"} ,stats.pEffAmp));
@@ -82,7 +81,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
 
 	public void unFocused(GuiNpcTextField textfield) {
 		if(textfield.id == 1){
-			stats.pDamage = textfield.getInteger();
+			stats.pDamage = Float.parseFloat(textfield.getText());
 		}
 		else if(textfield.id == 2){
 			stats.pImpact = textfield.getInteger();
