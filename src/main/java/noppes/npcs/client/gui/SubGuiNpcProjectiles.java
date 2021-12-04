@@ -81,7 +81,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
 
 	public void unFocused(GuiNpcTextField textfield) {
 		if(textfield.id == 1){
-			stats.pDamage = Float.parseFloat(textfield.getText());
+			stats.pDamage = (float)(Math.floor(Float.parseFloat(textfield.getText())));
 		}
 		else if(textfield.id == 2){
 			stats.pImpact = textfield.getInteger();

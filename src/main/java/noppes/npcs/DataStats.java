@@ -8,6 +8,9 @@ import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 public class DataStats {
 	
 	private float attackStrength = 5;
@@ -173,12 +176,12 @@ public class DataStats {
 		return attackStrength;
 	}
 	public void setAttackStrength(float strength){
-		attackStrength = strength;
+		attackStrength = (float)(Math.floor(strength));
 		npc.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(attackStrength);
 	}
 	
 	public void setMaxHealth(double maxHealth) {
-		this.maxHealth = maxHealth;
+		this.maxHealth = Math.floor(maxHealth);
 		npc.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(maxHealth);
 	}
 }

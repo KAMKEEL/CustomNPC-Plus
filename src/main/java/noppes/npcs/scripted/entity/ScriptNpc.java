@@ -712,7 +712,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param strength The ranged strength
 	 */
 	public void setRangedStrength(float strength){
-		npc.stats.pDamage = strength;
+		npc.stats.pDamage = (float)(Math.floor(strength));
 	}
 	
 	/**
@@ -897,7 +897,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param regen The combat health regen per second
 	 */
 	public void setCombatRegen(float regen){
-		npc.stats.combatRegen = regen;
+		npc.stats.combatRegen = (float)(Math.floor(regen));
 	}
 	
 	/**
@@ -911,7 +911,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param regen The health regen per second when not in combat
 	 */
 	public void setHealthRegen(float regen){
-		npc.stats.healthRegen = regen;
+		npc.stats.healthRegen = (float)(Math.floor(regen));
 	}
 	
 	@Override

@@ -83,17 +83,17 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
 		if(textfield.id == 0){
-			stats.maxHealth = Double.parseDouble(textfield.getText());
+			stats.maxHealth = Math.floor(Double.parseDouble(textfield.getText()));
 			npc.heal((float)(stats.maxHealth));
 		}
 		else if(textfield.id == 1){
 			stats.aggroRange = textfield.getInteger();
 		}
 		else if(textfield.id == 14){
-			stats.healthRegen = Float.parseFloat(textfield.getText());
+			stats.healthRegen = (float)(Math.floor(Float.parseFloat(textfield.getText())));
 		}
 		else if(textfield.id == 16){
-			stats.combatRegen = Float.parseFloat(textfield.getText());
+			stats.combatRegen = (float)(Math.floor(Float.parseFloat(textfield.getText())));
 		}
 	}
 	
