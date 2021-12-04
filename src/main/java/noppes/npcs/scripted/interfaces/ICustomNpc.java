@@ -6,6 +6,7 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.EntityCreature;
+import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.scripted.ScriptFaction;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
@@ -127,6 +128,30 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      */
     public void setFaction(int id);
 
+    /**
+     *
+     * @param attackOtherFactions True if you want the NPC to attack other factions, false otherwise.
+     */
+    public void setAttackFactions(boolean attackOtherFactions);
+
+    /**
+     *
+     * @return Returns true if the NPC attacks other factions, false otherwise.
+     */
+    public boolean getAttackFactions();
+
+    /**
+     *
+     * @param defendFaction True if the NPC should defend faction members, false otherwise.
+     */
+    public void setDefendFaction(boolean defendFaction);
+
+    /**
+     *
+     * @return Returns true if the NPC should defend faction members, false otherwise.
+     */
+    public boolean getDefendFaction();
+
     public int getType();
 
     public boolean typeOf(int type);
@@ -199,6 +224,30 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public void setProjectileItem(ScriptItemStack item);
 
     /**
+     *
+     * @return Returns true if the NPC can aim while shooting.
+     */
+    public boolean canAimWhileShooting();
+
+    /**
+     *
+     * @param aimWhileShooting Set to true if you want the NPC to aim while shooting, false otherwise.
+     */
+    public void aimWhileShooting(boolean aimWhileShooting);
+
+    /**
+     *
+     * @return The directory of the sound that plays when a projectile is shot
+     */
+    public String getFireSound();
+
+    /**
+     *
+     * @param fireSound The new directory of the sound that plays when a projectile is shot
+     */
+    public void setFireSound(String fireSound);
+
+    /**
      * @param slot The armor slot to return. 0:head, 1:body, 2:legs, 3:boots
      * @return Returns the worn armor in slot
      */
@@ -211,9 +260,187 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public void setArmor(int slot, ScriptItemStack item);
 
     /**
+     *
+     * @param slot The slot from the NPC's drop list to return (0-8)
+     * @return The item in the NPC's drop list slot
+     */
+    public ScriptItemStack getLootItem(int slot);
+
+    /**
+     *
+     * @param slot The slot from the NPC's drop list to change
+     * @param item The item the drop list slot will be changed to
+     */
+    public void setLootItem(int slot, ScriptItemStack item);
+
+    /**
+     *
+     * @param slot The slot from the NPC's drop list to return (0-8)
+     * @return The chance of dropping the item in this slot. Returns 100 if the slot is not found.
+     */
+    public int getLootChance(int slot);
+
+    /**
+     *
+     * @param slot The slot from the NPC's drop list to change
+     * @param chance The new chance of dropping the item in this slot
+     */
+    public void setLootChance(int slot, int chance);
+
+    /**
+     *
+     * @return The NPC's loot mode. 0 = Normal, 1 = Auto Pickup
+     */
+    public int getLootMode();
+
+    /**
+     *
+     * @param lootMode The NPC's loot mode. 0 = Normal, 1 = Auto Pickup
+     */
+    public void setLootMode(int lootMode);
+
+    /**
+     *
+     * @param lootXP The new minimum XP gained from killing the NPC. If greater than the max XP, it will be set to it.
+     */
+    public void setMinLootXP(int lootXP);
+
+    /**
+     *
+     * @param lootXP The new maximum XP gained from killing the NPC. If less than the min XP, it will be set to it.
+     */
+    public void setMaxLootXP(int lootXP);
+
+    /**
+     *
+     * @return The minimum XP gained from killing the NPC.
+     */
+    public int getMinLootXP();
+
+    /**
+     *
+     * @return The maximum XP gained from killing the NPC.
+     */
+    public int getMaxLootXP();
+
+    /**
      * @param type The AnimationType
      */
     public void setAnimation(int type);
+
+    /**
+     *
+     * @param variant Changes the tactical variant of the NPC.
+     *                0 - Rush
+     *                1 - Dodge
+     *                2 - Surround
+     *                3 - Hit N Run
+     *                4 - Ambush
+     *                5 - Stalk
+     *                6 - None
+     *
+     */
+    public void setTacticalVariant(int variant);
+
+    /**
+     *
+     * @return Returns the tactical variant of the NPC.
+     *                0 - Rush
+     *                1 - Dodge
+     *                2 - Surround
+     *                3 - Hit N Run
+     *                4 - Ambush
+     *                5 - Stalk
+     *                6 - None
+     *
+     */
+    public int getTacticalVariant();
+
+    /**
+     *
+     * @param variant Sets the NPC's tactical variant by name.
+     */
+    public void setTacticalVariant(String variant);
+
+    /**
+     *
+     * @return Returns the name of the NPc's tactical variant.
+     */
+    public String getTacticalVariantName();
+
+    /**
+     *
+     * @param tacticalRadius Sets the radius in which the tactical variant is affected, if any. Effective for all tactical variants except Rush and None.
+     */
+    public void setTacticalRadius(int tacticalRadius);
+
+    /**
+     *
+     * @return Gets the radius in which the tactical variant is affected, if any. Effective for all tactical variants except Rush and None.
+     */
+    public int getTacticalRadius();
+
+    /**
+     *
+     * @param ignore True if the NPC goes through cobwebs
+     */
+    public void setIgnoreCobweb(boolean ignore);
+
+    /**
+     *
+     * @return True if the NPC goes through cobwebs
+     */
+    public boolean getIgnoreCobweb();
+
+    /**
+     *
+     * @return Changes what the NPC does when it finds an enemy based on the integer given.
+     *          0 - Retaliate
+     *          1 - Panic
+     *          2 - Retreat
+     *          3 - Nothing
+     */
+    public void setOnFoundEnemy(int onAttack);
+
+    /**
+     *
+     * @return Returns an integer representing what the NPC does when it finds an enemy.
+     *          0 - Retaliate
+     *          1 - Panic
+     *          2 - Retreat
+     *          3 - Nothing
+     */
+    public int onFoundEnemy();
+
+    /**
+     *
+     * @param shelterFrom An integer representing what conditions the NPC seeks shelter under.
+     *          0 - Darkenss
+     *          1 - Sunlight
+     *          2 - Disabled
+     */
+    public void setShelterFrom(int shelterFrom);
+
+    /**
+     *
+     * @return Returns an integer representing what conditions the NPC seeks shelter under.
+     *          0 - Darkenss
+     *          1 - Sunlight
+     *          2 - Disabled
+     */
+    public int getShelterFrom();
+
+    /**
+     *
+     * @return Whether the NPC has a living animation
+     */
+    public boolean hasLivingAnimation();
+
+    /**
+     *
+     * @param livingAnimation True if you want the NPC to have a living animation, false otherwise
+     */
+    public void setLivingAnimation(boolean livingAnimation);
 
     /**
      * @param type The visibility type of the npc, 0:visible, 1:invisible, 2:semi-visible
@@ -312,6 +539,54 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public void setRangedBurst(int count);
 
     /**
+     *
+     * @return The amount of ticks before this entity respawns
+     */
+    public int getRespawnTime();
+
+    /**
+     *
+     * @param time The new amount of ticks before this entity respawns
+     */
+    public void setRespawnTime(int time);
+
+    /**
+     *
+     * @return Respawn: 0 - Yes (Always), 1 - Day, 2 - Night, 3 - No (Dies permanently)
+     */
+    public int getRespawnCycle();
+
+    /**
+     *
+     * @param cycle Sets when the NPC respawns. Respawn: 0 - Yes (Always), 1 - Day, 2 - Night, 3 - No (Dies permanently)
+     */
+    public void setRespawnCycle(int cycle);
+
+    /**
+     *
+     * @return Whether the NPC is hidden when it dies
+     */
+    public boolean getHideKilledBody();
+
+    /**
+     *
+     * @param hide True if the NPC is hidden when it dies. False otherwise.
+     */
+    public void hideKilledBody(boolean hide);
+
+    /**
+     *
+     * @return Returns true if the NPC naturally despawns.
+     */
+    public boolean naturallyDespawns();
+
+    /**
+     *
+     * @param canDespawn True if the NPC should naturally despawn. False otherwise.
+     */
+    public void setNaturallyDespawns(boolean canDespawn);
+
+    /**
      * @param player The player to give the item to
      * @param item The item given to the player
      */
@@ -404,4 +679,20 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public boolean canFly();
 
     public void setFly(int fly);
+
+    public void setSkinType(byte type);
+
+    public byte getSkinType();
+
+    public void setSkinUrl(String url);
+
+    public String getSkinUrl();
+
+    public void setCloakTexture(String cloakTexture);
+
+    public String getCloakTexture();
+
+    public void setOverlayTexture(String overlayTexture);
+
+    public String getOverlayTexture();
 }

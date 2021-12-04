@@ -218,9 +218,21 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.ySize = 256;
     }
 
+    public String previousHookClicked = "";
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
-        //this.handler.getScripts().get(this.activeTab - 1).setType(scroll.getSelected().replace("playerscript.",""));
+        String hook = scroll.getSelected();
+        if(previousHookClicked.equals(hook)){
+            String addString = "";
+            if(!this.getTextField(2).getText().isEmpty())
+                addString += "\n";
+            addString += "function "+hook+"(event) {\n    \n}\n";
+
+            this.getTextField(2).setText(this.getTextField(2).getText()+addString);
+            previousHookClicked = "";
+        } else {
+            previousHookClicked = hook;
+        }
     }
 
     @Override
@@ -229,15 +241,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.handler.getScripts().get(this.activeTab - 1).setType(textfield.getText());
         }*/
     }
-
-    /*private int getScriptHook(EventScriptContainer eventScriptContainer, List<String> list) {
-        for(String s : list) {
-            if (s.replace("playerscript.", "").equals(eventScriptContainer.type)) {
-                return list.indexOf(s);
-            }
-        }
-        return 0;
-    }*/
 
     private String getConsoleText() {
         Map<Long, String> map = this.handler.getConsoleText();

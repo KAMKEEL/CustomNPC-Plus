@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -215,6 +216,22 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.setFaction(id);
 	}
 
+	public void setAttackFactions(boolean attackOtherFactions){
+		npc.advanced.attackOtherFactions = attackOtherFactions;
+	}
+
+	public boolean getAttackFactions(){
+		return npc.advanced.attackOtherFactions;
+	}
+
+	public void setDefendFaction(boolean defendFaction){
+		npc.advanced.defendFaction = defendFaction;
+	}
+
+	public boolean getDefendFaction(){
+		return npc.advanced.defendFaction;
+	}
+
 	@Override
 	public int getType(){
 		return EntityType.NPC;
@@ -372,6 +389,22 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.inventory.setProjectile(item.item);
 		npc.script.aiNeedsUpdate = true;
 	}
+
+	public boolean canAimWhileShooting() {
+		return !npc.stats.aimWhileShooting;
+	}
+
+	public void aimWhileShooting(boolean aimWhileShooting) {
+		npc.stats.aimWhileShooting = aimWhileShooting;
+	}
+
+	public String getFireSound() {
+		return npc.stats.fireSound;
+	}
+
+	public void setFireSound(String fireSound) {
+		npc.stats.fireSound = fireSound;
+	}
 	
 	/**
 	 * @param slot The armor slot to return. 0:head, 1:body, 2:legs, 3:boots
@@ -398,6 +431,91 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		
 		npc.script.clientNeedsUpdate = true;
 	}
+
+	/**
+	 *
+	 * @param slot The slot from the NPC's drop list to return (0-8)
+	 * @return
+	 */
+	public ScriptItemStack getLootItem(int slot) {
+		return new ScriptItemStack(npc.inventory.getStackInSlot(slot+7));
+	}
+
+	/**
+	 *
+	 * @param slot The slot from the NPC's drop list to change
+	 * @param item The item the drop list slot will be changed to
+	 */
+	public void setLootItem(int slot, ScriptItemStack item) {
+		npc.inventory.setInventorySlotContents(slot+7, item.item);
+	}
+
+	/**
+	 *
+	 * @param slot The slot from the NPC's drop list to return (0-8)
+	 * @return The chance of dropping the item in this slot. Returns 100 if the slot is not found.
+	 */
+	public int getLootChance(int slot) {
+		if(!npc.inventory.dropchance.containsKey(slot))
+			return 100;
+
+		return npc.inventory.dropchance.get(slot);
+	}
+
+	/**
+	 *
+	 * @param slot The slot from the NPC's drop list to change
+	 * @param chance The new chance of dropping the item in this slot
+	 */
+	public void setLootChance(int slot, int chance) {
+		if(slot < 0 || slot > 8)
+			return;
+
+		if(chance < 0)
+			chance = 0;
+		if(chance > 100)
+			chance = 100;
+
+		npc.inventory.dropchance.put(slot,chance);
+	}
+
+	public int getLootMode(){
+		return npc.inventory.lootMode;
+	}
+
+	public void setLootMode(int lootMode){
+		if(lootMode < 0 || lootMode > 1)
+			return;
+		npc.inventory.lootMode = lootMode;
+	}
+
+	public void setMinLootXP(int lootXP) {
+		if(lootXP > npc.inventory.maxExp)
+			lootXP = npc.inventory.maxExp;
+		if(lootXP < 0)
+			lootXP = 0;
+		if(lootXP > Short.MAX_VALUE)
+			lootXP = Short.MAX_VALUE;
+
+		npc.inventory.minExp = lootXP;
+	}
+	public void setMaxLootXP(int lootXP) {
+		if(lootXP < npc.inventory.minExp)
+			lootXP = npc.inventory.minExp;
+		if(lootXP < 0)
+			lootXP = 0;
+		if(lootXP > Short.MAX_VALUE)
+			lootXP = Short.MAX_VALUE;
+
+		npc.inventory.maxExp = lootXP;
+	}
+
+	public int getMinLootXP(){
+		return npc.inventory.minExp;
+	}
+	public int getMaxLootXP(){
+		return npc.inventory.maxExp;
+	}
 	
 	/**
 	 * @param type The AnimationType
@@ -415,7 +533,81 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.ai.animationType = EnumAnimation.LYING;
 		else if(type == AnimationType.HUGGING)
 			npc.ai.animationType = EnumAnimation.HUG;
-		
+	}
+
+	public void setTacticalVariant(int variant){
+		if(variant > EnumNavType.values().length-1)
+			return;
+
+		npc.ai.tacticalVariant = EnumNavType.values()[variant];
+	}
+
+	public int getTacticalVariant(){
+		return npc.ai.tacticalVariant.ordinal();
+	}
+
+	public void setTacticalVariant(String variant){
+		boolean found = false;
+		for(String s : EnumNavType.names()){
+			if(s.equals(variant))
+				found = true;
+		}
+
+		if(!found)
+			return;
+
+		npc.ai.tacticalVariant = EnumNavType.valueOf(variant);
+	}
+
+	public String getTacticalVariantName(){
+		return npc.ai.tacticalVariant.name();
+	}
+
+	public void setTacticalRadius(int tacticalRadius){
+		if(tacticalRadius < 0)
+			tacticalRadius = 0;
+
+		npc.ai.tacticalRadius = tacticalRadius;
+	}
+
+	public int getTacticalRadius(){
+		return npc.ai.tacticalRadius;
+	}
+
+	public void setIgnoreCobweb(boolean ignore){
+		npc.ai.ignoreCobweb = ignore;
+	}
+
+	public boolean getIgnoreCobweb(){
+		return npc.ai.ignoreCobweb;
+	}
+
+	public void setOnFoundEnemy(int onAttack){
+		if(onAttack < 0 || onAttack > 3)
+			return;
+		npc.ai.onAttack = onAttack;
+	}
+
+	public int onFoundEnemy(){
+		return npc.ai.onAttack;
+	}
+
+	public void setShelterFrom(int shelterFrom){
+		if(shelterFrom < 0 || shelterFrom > 2)
+			return;
+		npc.ai.findShelter = shelterFrom;
+	}
+
+	public int getShelterFrom(){
+		return npc.ai.findShelter;
+	}
+
+	public boolean hasLivingAnimation() {
+		return !npc.display.disableLivingAnimation;
+	}
+
+	public void setLivingAnimation(boolean livingAnimation) {
+		npc.display.disableLivingAnimation = !livingAnimation;
 	}
 	
 	/**
@@ -551,19 +743,47 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.stats.burstCount = count;
 	}
 
-	/**
-	 * @param player The player to give the item to
-	 * @param item The item given to the player
-	 */
+	public int getRespawnTime() {
+		return npc.stats.respawnTime;
+	}
+
+	public void setRespawnTime(int time) {
+		npc.stats.respawnTime = time;
+	}
+
+	public int getRespawnCycle() {
+		return npc.stats.spawnCycle;
+	}
+
+	public void setRespawnCycle(int cycle) {
+		if(cycle < 0)
+			cycle = 0;
+		if(cycle > 3)
+			cycle = 3;
+
+		npc.stats.spawnCycle = cycle;
+	}
+
+	public boolean getHideKilledBody() {
+		return npc.stats.hideKilledBody;
+	}
+
+	public void hideKilledBody(boolean hide) {
+		npc.stats.hideKilledBody = hide;
+	}
+
+	public boolean naturallyDespawns() {
+		return npc.stats.canDespawn;
+	}
+
+	public void setNaturallyDespawns(boolean canDespawn) {
+		npc.stats.canDespawn = canDespawn;
+	}
+
 	public void giveItem(ScriptPlayer player, ScriptItemStack item){
 		npc.givePlayerItem(player.player, item.item);
 	}
-	
-	
-	/**
-	 * On servers the enable-command-block option in the server.properties needs to be set to true
-	 * @param command The command to be executed
-	 */
+
 	public void executeCommand(String command){
 		NoppesUtilServer.runCommand(npc, npc.getCommandSenderName(), command, null);
 	}
@@ -713,5 +933,45 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		else fly = 0;
 
 		npc.ai.movementType = fly;
+	}
+
+	public void setSkinType(byte type) {
+		npc.display.skinType = type;
+		npc.updateClient = true;
+	}
+
+	public byte getSkinType() {
+		return npc.display.skinType;
+	}
+
+	public void setSkinUrl(String url){
+		if(this.npc.display.url.equals(url))
+			return;
+		this.npc.display.url = url;
+		npc.textureLocation = null;
+		npc.display.skinType = 2;
+		npc.updateClient = true;
+	}
+
+	public String getSkinUrl() {
+		return this.npc.display.url;
+	}
+
+	public void setCloakTexture(String cloakTexture) {
+		npc.display.cloakTexture = cloakTexture;
+		npc.updateClient = true;
+	}
+
+	public String getCloakTexture() {
+		return npc.display.cloakTexture;
+	}
+
+	public void setOverlayTexture(String overlayTexture) {
+		npc.display.glowTexture = overlayTexture;
+		npc.updateClient = true;
+	}
+
+	public String getOverlayTexture() {
+		return npc.display.glowTexture;
 	}
 }

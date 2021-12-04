@@ -85,8 +85,9 @@ public class ScriptContainer {
     public void run(ScriptEngine engine){
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        engine.getContext().setWriter(pw);
-        engine.getContext().setErrorWriter(pw);
+        this.engine.getContext().setWriter(pw);
+        this.engine.getContext().setErrorWriter(pw);
+
         try {
             if(compScript == null && engine instanceof Compilable)
                 compScript = ((Compilable)engine).compile(getFullCode());
@@ -96,12 +97,13 @@ public class ScriptContainer {
             }
             else
                 engine.eval(getFullCode());
-
-        } catch (Exception e) {
-            errored = true;
-            appandConsole(e.getMessage());
+        } catch (Throwable var14) {
+            this.errored = true;
+            var14.printStackTrace(pw);
+        } finally {
+            this.appandConsole(sw.getBuffer().toString().trim());
+            pw.close();
         }
-        appandConsole(sw.getBuffer().toString().trim());
     }
 
     public void run(EnumScriptType type, Event event) {
