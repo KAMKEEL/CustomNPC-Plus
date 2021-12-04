@@ -132,54 +132,6 @@ public class ScriptContainer {
                             this.init = true;
                         }
 
-                        if (this.engine.getFactory().getLanguageName().equals("lua")) {
-                            Object ob = this.engine.get(type);
-                            if (ob == null) {
-                                this.unknownFunctions.add(type);
-                            }
-                        } else {
-                            ((Invocable)this.engine).invokeFunction(type, new Object[]{event});
-                        }
-                    } catch (NoSuchMethodException var13) {
-                        this.unknownFunctions.add(type);
-                    } catch (Throwable var14) {
-                        this.errored = true;
-                        var14.printStackTrace(pw);
-                    } finally {
-                        this.appandConsole(sw.getBuffer().toString().trim());
-                        pw.close();
-                        Current = null;
-                    }
-
-                }
-            }
-        }
-    }
-
-    /*public void run(String type, Object event) {
-        if (!this.errored && this.hasCode() && !this.unknownFunctions.contains(type)) {
-            this.setEngine(this.handler.getLanguage());
-            if (this.engine != null) {
-                if (ScriptController.Instance.lastLoaded > this.lastCreated) {
-                    this.lastCreated = ScriptController.Instance.lastLoaded;
-                    this.init = false;
-                }
-
-                String var3 = "lock";
-                synchronized("lock") {
-                    Current = this;
-                    CurrentType = type;
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    this.engine.getContext().setWriter(pw);
-                    this.engine.getContext().setErrorWriter(pw);
-
-                    try {
-                        if (!this.init) {
-                            this.engine.eval(this.getFullCode());
-                            this.init = true;
-                        }
-
                         ((Invocable)this.engine).invokeFunction(type, new Object[]{event});
                     } catch (NoSuchMethodException var13) {
                         this.unknownFunctions.add(type);
@@ -195,7 +147,7 @@ public class ScriptContainer {
                 }
             }
         }
-    }*/
+    }
 
     public void appandConsole(String message) {
         if (message != null && !message.isEmpty()) {

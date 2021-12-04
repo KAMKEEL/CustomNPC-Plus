@@ -28,6 +28,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -173,7 +174,7 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerOpenContainerEvent event) {
-        if(event.entityPlayer.worldObj instanceof WorldServer) {
+        if(event.entityPlayer.worldObj instanceof WorldServer && !(event.entityPlayer.openContainer instanceof ContainerPlayer)) {
             PlayerDataScript handler = PlayerData.get(event.entityPlayer).scriptData;
             EventHooks.onPlayerContainerOpen(handler, event.entityPlayer.openContainer);
         }
