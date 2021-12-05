@@ -45,40 +45,36 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
         this.motionY *= speed*speedMult;
 
-        Entity entity = this.getAttackTarget();
-        if (!this.worldObj.isRemote)
-        {
-            if (entity != null)
-            {
-                if (this.posY < entity.posY)
-                {
-                    if (this.motionY < 0.0D)
-                    {
-                        this.motionY = 0.0D;
+        if(isEntityAlive()) {
+            if (!this.worldObj.isRemote) {
+                Entity entity = this.getAttackTarget();
+                if (entity != null && entity.isEntityAlive()) {
+                    if (this.posY < entity.posY) {
+                        if (this.motionY < 0.0D) {
+                            this.motionY = 0.0D;
+                        }
+
+                        this.motionY += (speed - this.motionY) * speed * speedMult;
                     }
 
-                    this.motionY += (speed - this.motionY) * speed*speedMult;
+                    double d0 = entity.posX - this.posX;
+                    double d1 = entity.posY - this.posY;
+                    double d2 = entity.posZ - this.posZ;
+                    double d3 = d0 * d0 + d2 * d2;
+
+                    if (d3 > 9.0D) {
+                        double d5 = (double) MathHelper.sqrt_double(d3);
+                        this.motionX += (d0 / d5 * speed - this.motionX) * speed * speedMult;
+                        this.motionZ += (d2 / d5 * speed - this.motionZ) * speed * speedMult;
+                    }
+
+                    this.rotationYaw = (float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI));
                 }
-
-                double d0 = entity.posX - this.posX;
-                double d1 = entity.posY - this.posY;
-                double d2 = entity.posZ - this.posZ;
-                double d3 = d0 * d0 + d2 * d2;
-
-                if (d3 > 9.0D)
-                {
-                    double d5 = (double)MathHelper.sqrt_double(d3);
-                    this.motionX += (d0 / d5 * speed - this.motionX) * speed*speedMult;
-                    this.motionZ += (d2 / d5 * speed - this.motionZ) * speed*speedMult;
-                }
-
-                this.rotationYaw = (float)((Math.atan2(-d0,-d2)+Math.PI)*-(180F/Math.PI));
             }
-        }
 
-        if (this.motionX * this.motionX + this.motionZ * this.motionZ > 0.05000000074505806D && isEntityAlive())
-        {
-            this.rotationYaw = (float)Math.atan2(this.motionZ, this.motionX) * (180F / (float)Math.PI) - 90.0F;
+            if (this.motionX * this.motionX + this.motionZ * this.motionZ > 0.05000000074505806D && isEntityAlive()) {
+                this.rotationYaw = (float) Math.atan2(this.motionZ, this.motionX) * (180F / (float) Math.PI) - 90.0F;
+            }
         }
 
         super.onLivingUpdate();
