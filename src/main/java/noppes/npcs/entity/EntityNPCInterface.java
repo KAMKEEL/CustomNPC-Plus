@@ -25,6 +25,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
@@ -59,6 +60,8 @@ import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIPanic;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
+import noppes.npcs.ai.pathfinder.PathNavigateFlying;
+import noppes.npcs.ai.pathfinder.PathNavigateGround;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -153,8 +156,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateAI = false;
 
 //	 Fly Change
-//	public EntityMoveHelper moveHelper;
-//	public PathNavigate navigator;
+	//public EntityMoveHelper moveHelper;
+	public PathNavigate navigator;
 
 	public EntityNPCInterface(World world) {
 		super(world);
@@ -597,17 +600,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
         this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
 
-        this.tasks.addTask(0, new EntityAIWaterNav(this));
-
 		if(canFly()){
 			//this.moveHelper = new FlyingMoveHelper(this);
-			//this.navigator = new PathNavigateFlying(this, worldObj);
+			this.navigator = new PathNavigateFlying(this, worldObj);
 			this.getNavigator().setCanSwim(true);
 			this.tasks.addTask(0, new EntityAISwimming(this));
 		}
 		else{
 			//this.moveHelper = new EntityMoveHelper(this);
-			//this.navigator = new PathNavigateGround(this, worldObj);
+			this.navigator = new PathNavigateGround(this, worldObj);
 			this.tasks.addTask(0, new EntityAIWaterNav(this));
 		}
 

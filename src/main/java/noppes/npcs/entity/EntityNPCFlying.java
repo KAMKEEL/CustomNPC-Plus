@@ -10,11 +10,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
 	public EntityNPCFlying(World world) {
 		super(world);
-        this.getNavigator().setCanSwim(true);
-        this.tasks.addTask(0, new EntityAISwimming(this));
 	}
-
-	// FLY CHANGE  [WIP]
 
 	@Override
 	public boolean canFly(){
@@ -43,32 +39,36 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         double speed = this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
         double speedMult = 0.6000000238418579D/0.5D;
 
-        this.motionY *= speed*speedMult;
-
         if(isEntityAlive()) {
             if (!this.worldObj.isRemote) {
                 Entity entity = this.getAttackTarget();
                 if (entity != null && entity.isEntityAlive()) {
-                    if (this.posY < entity.posY) {
-                        if (this.motionY < 0.0D) {
-                            this.motionY = 0.0D;
-                        }
-
-                        this.motionY += (speed - this.motionY) * speed * speedMult;
-                    }
-
                     double d0 = entity.posX - this.posX;
-                    double d1 = entity.posY - this.posY;
                     double d2 = entity.posZ - this.posZ;
                     double d3 = d0 * d0 + d2 * d2;
 
-                    if (d3 > 9.0D) {
-                        double d5 = (double) MathHelper.sqrt_double(d3);
-                        this.motionX += (d0 / d5 * speed - this.motionX) * speed * speedMult;
-                        this.motionZ += (d2 / d5 * speed - this.motionZ) * speed * speedMult;
+                    if(this.hurtTime == 0) {
+                        if (this.posY != entity.posY) {
+                            if (this.motionY * Math.signum(this.posY - entity.posY) > 0.0D) {
+                                this.motionY = 0.0D;
+                            }
+
+                            this.motionY -= Math.signum(this.posY - entity.posY) * (speed * speedMult) * this.ai.flySpeed;
+                        }
+
+                        if (d3 > 9.0D) {
+                            double d5 = MathHelper.sqrt_double(d3);
+                            this.motionX += (d0 / d5 * speed - this.motionX) * speed * speedMult;
+                            this.motionZ += (d2 / d5 * speed - this.motionZ) * speed * speedMult;
+                        }
                     }
 
                     this.rotationYaw = (float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI));
+                } else {
+                    if (!this.onGround && this.motionY < 0.0D)
+                    {
+                        this.motionY *= 0.6D;
+                    }
                 }
             }
 

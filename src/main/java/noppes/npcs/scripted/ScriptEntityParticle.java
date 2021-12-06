@@ -113,7 +113,7 @@ public class ScriptEntityParticle {
         this.directory = directory;
     }
 
-    public void setHEXcolor(int HEXcolor) {
+    public void setHEXColor(int HEXcolor) {
         this.HEXcolor = HEXcolor;
     }
 

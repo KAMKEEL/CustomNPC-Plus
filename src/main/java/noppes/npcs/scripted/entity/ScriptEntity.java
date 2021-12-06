@@ -457,20 +457,17 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param power How strong the knockback is
 	 * @param direction The direction in which he flies back (0-360). Usually based on getRotation()
 	 */
+	@Override
 	public void knockback(int power, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
+		entity.velocityChanged = true;
 		entity.addVelocity(-MathHelper.sin(v) * (float)power, 0.1D + power * 0.04f, MathHelper.cos(v) * (float)power);
-		entity.motionX *= 0.6D;
-		entity.motionZ *= 0.6D;
-		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
-		entity.hurtResistantTime = 0;
 	}
 
 	public void knockback(int xpower, int ypower, int zpower, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
+		entity.velocityChanged = true;
 		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, 0.1D + ypower * 0.04f, MathHelper.cos(v) * (float)zpower);
-		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
-		entity.hurtResistantTime = 0;
 	}
 
 	public void setImmune(int ticks) {

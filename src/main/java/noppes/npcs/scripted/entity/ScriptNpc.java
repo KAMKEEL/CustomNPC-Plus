@@ -923,16 +923,27 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return ((EntityNPCInterface)this.npc).timers;
 	}
 
-	public boolean canFly(){
-		return npc.ai.movementType == 1;
-	}
-
 	public void setFly(int fly){
 		if(fly > 0)
 			fly = 1;
 		else fly = 0;
 
 		npc.ai.movementType = fly;
+	}
+
+	public boolean canFly(){
+		return npc.ai.movementType == 1;
+	}
+
+	public void setFlySpeed(double flySpeed){
+		if(flySpeed < 0.0D)
+			flySpeed = 0.0D;
+
+		npc.ai.flySpeed = flySpeed;
+	}
+
+	public double getFlySpeed(double flySpeed){
+		return npc.ai.flySpeed;
 	}
 
 	public void setSkinType(byte type) {

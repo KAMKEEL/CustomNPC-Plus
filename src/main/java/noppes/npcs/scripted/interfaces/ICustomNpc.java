@@ -676,9 +676,13 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
 
     public long getAge();
 
+    public void setFly(int fly);
+
     public boolean canFly();
 
-    public void setFly(int fly);
+    public void setFlySpeed(double flySpeed);
+
+    public double getFlySpeed(double flySpeed);
 
     public void setSkinType(byte type);
 

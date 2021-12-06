@@ -10,7 +10,7 @@ public class PathNavigateFlying extends PathNavigateSwimmer {
 		super(p_i45873_1_, worldIn);
 	}
 	
-    protected PathFinder func_179679_a()
+    protected PathFinder getPathFinder()
     {
         return new NPCPathFinder(new FlyNodeProcessor());
     }
