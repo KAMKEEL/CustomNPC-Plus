@@ -31,7 +31,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
     public void onLivingUpdate()
     {
-        if(!canFly()){
+        if(!canFly() || this.isJumping){
             super.onLivingUpdate();
             return;
         }
@@ -41,23 +41,24 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
         if(isEntityAlive()) {
             if (!this.worldObj.isRemote) {
-                Entity entity = this.getAttackTarget();
-                if (entity != null && entity.isEntityAlive()) {
-                    double d0 = entity.posX - this.posX;
-                    double d2 = entity.posZ - this.posZ;
-                    double d3 = d0 * d0 + d2 * d2;
+                Entity target = this.getAttackTarget();
+                if (target != null && target.isEntityAlive()) {
+                    double d0 = target.posX - this.posX;
+                    double d1 = target.posY - this.posY;
+                    double d2 = target.posZ - this.posZ;
+                    double d4 = d0 * d0 + d1 * d1 + d2 * d2;
 
                     if(this.hurtTime == 0) {
-                        if (this.posY != entity.posY) {
-                            if (this.motionY * Math.signum(this.posY - entity.posY) > 0.0D) {
+                        if (this.posY != target.posY) {
+                            if (this.motionY * Math.signum(this.posY - target.posY) > 0.0D) {
                                 this.motionY = 0.0D;
                             }
 
-                            this.motionY -= Math.signum(this.posY - entity.posY) * (speed * speedMult) * this.ai.flySpeed;
+                            this.motionY -= Math.signum(this.posY - target.posY) * (speed * speedMult) * this.ai.flySpeed;
                         }
 
-                        if (d3 > 9.0D) {
-                            double d5 = MathHelper.sqrt_double(d3);
+                        if (d4 > 0.5D) {
+                            double d5 = MathHelper.sqrt_double(d4);
                             this.motionX += (d0 / d5 * speed - this.motionX) * speed * speedMult;
                             this.motionZ += (d2 / d5 * speed - this.motionZ) * speed * speedMult;
                         }

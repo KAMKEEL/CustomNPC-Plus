@@ -1,5 +1,6 @@
 package noppes.npcs.ai.pathfinder;
 
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.util.AxisAlignedBB;
@@ -8,60 +9,83 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 // Fly Change
 
-public class FlyingMoveHelper extends EntityMoveHelper {
+public class FlyingMoveHelper extends EntityMoveHelper{
     private EntityNPCInterface entity;
 
-    private int field_179928_h;
-    protected boolean update;
-
-    public double posX;
-    public double posY;
-    public double posZ;
+    private double posX;
+    private double posY;
+    private double posZ;
+    private double speed;
+    private boolean update;
+    private static final String __OBFID = "CL_00001573";
 
     public FlyingMoveHelper(EntityNPCInterface entity){
         super(entity);
         this.entity = entity;
+        this.posX = entity.posX;
+        this.posY = entity.posY;
+        this.posZ = entity.posZ;
     }
 
-    public void onUpdateMoveHelper(){
-        if (this.update){
+    public void onUpdateMoveHelper() {
+        this.entity.setMoveForward(0.0F);
+
+        if (this.update) {
+            this.update = false;
+            int i = MathHelper.floor_double(this.entity.boundingBox.minY + 0.5D);
             double d0 = this.posX - this.entity.posX;
-            double d1 = this.posY - this.entity.posY;
-            double d2 = this.posZ - this.entity.posZ;
-            double d3 = d0 * d0 + d1 * d1 + d2 * d2;
-            
-            if (this.field_179928_h-- <= 0){
-                this.field_179928_h += this.entity.getRNG().nextInt(5) + 2;
-                d3 = (double) MathHelper.sqrt_double(d3);
+            double d1 = this.posZ - this.entity.posZ;
+            double d2 = this.posY - (double)i;
+            double d3 = d0 * d0 + d2 * d2 + d1 * d1;
 
-                if (d3 > 1 && this.func_179926_b(this.posX, this.posY, this.posZ, d3)){                    
-                    double speed = entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue() / 2.5;
-                    this.entity.motionX += d0 / d3 * speed;
-                    this.entity.motionY += d1 / d3 * speed;
-                    this.entity.motionZ += d2 / d3 * speed;
-                    this.entity.renderYawOffset = this.entity.rotationYaw = -((float)Math.atan2(this.entity.motionX, this.entity.motionZ)) * 180.0F / (float)Math.PI;
-                }
-                else{
-                    this.update = false;
+            if (d3 >= 2.500000277905201E-7D) {
+                float f = (float)(Math.atan2(d1, d0) * 180.0D / Math.PI) - 90.0F;
+                this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw, f, 30.0F);
+                this.entity.setAIMoveSpeed((float)(this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue()));
+
+                if (d2 > 0.0D && d0 * d0 + d1 * d1 < 1.0D) {
+                    this.entity.getJumpHelper().setJumping();
                 }
             }
         }
     }
 
-    private boolean func_179926_b(double p_179926_1_, double p_179926_3_, double p_179926_5_, double p_179926_7_){
-        double d4 = (p_179926_1_ - this.entity.posX) / p_179926_7_;
-        double d5 = (p_179926_3_ - this.entity.posY) / p_179926_7_;
-        double d6 = (p_179926_5_ - this.entity.posZ) / p_179926_7_;
-        AxisAlignedBB axisalignedbb = this.entity.getBoundingBox();
+    private float limitAngle(float p_75639_1_, float p_75639_2_, float p_75639_3_)
+    {
+        float f3 = MathHelper.wrapAngleTo180_float(p_75639_2_ - p_75639_1_);
 
-        for (int i = 1; (double)i < p_179926_7_; ++i){
-            axisalignedbb = axisalignedbb.offset(d4, d5, d6);
-
-            if (!this.entity.worldObj.getCollidingBoundingBoxes(this.entity, axisalignedbb).isEmpty()){
-                return false;
-            }
+        if (f3 > p_75639_3_)
+        {
+            f3 = p_75639_3_;
         }
 
-        return true;
+        if (f3 < -p_75639_3_)
+        {
+            f3 = -p_75639_3_;
+        }
+
+        return p_75639_1_ + f3;
+    }
+
+    /**
+     * Sets the speed and location to move to
+     */
+    public void setMoveTo(double p_75642_1_, double p_75642_3_, double p_75642_5_, double p_75642_7_)
+    {
+        this.posX = p_75642_1_;
+        this.posY = p_75642_3_;
+        this.posZ = p_75642_5_;
+        this.speed = p_75642_7_;
+        this.update = true;
+    }
+
+    public boolean isUpdating()
+    {
+        return this.update;
+    }
+
+    public double getSpeed()
+    {
+        return this.speed;
     }
 }

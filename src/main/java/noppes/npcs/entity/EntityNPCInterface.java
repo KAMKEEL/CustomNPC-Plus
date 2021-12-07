@@ -20,7 +20,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityThrowable;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
@@ -60,8 +59,8 @@ import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIPanic;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
+import noppes.npcs.ai.pathfinder.FlyingMoveHelper;
 import noppes.npcs.ai.pathfinder.PathNavigateFlying;
-import noppes.npcs.ai.pathfinder.PathNavigateGround;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -96,7 +95,6 @@ import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.entity.ScriptNpc;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.ScriptEventAttack;
 import noppes.npcs.scripted.event.ScriptEventDamaged;
 import noppes.npcs.scripted.event.ScriptEventKilled;
@@ -156,12 +154,19 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateAI = false;
 
 //	 Fly Change
-	//public EntityMoveHelper moveHelper;
-	public PathNavigate navigator;
+	public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
+	public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 
 	public EntityNPCInterface(World world) {
 		super(world);
 		try{
+			if (canFly()) {
+				this.getNavigator().setCanSwim(true);
+				this.tasks.addTask(0, new EntityAISwimming(this));
+			} else {
+				this.tasks.addTask(0, new EntityAIWaterNav(this));
+			}
+
 			dialogs = new HashMap<Integer, DialogOption>();
 			if(!CustomNpcs.DefaultInteractLine.isEmpty())
 				advanced.interactLines.lines.put(0, new Line(CustomNpcs.DefaultInteractLine));
@@ -405,6 +410,29 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		
 		return true;
 	}
+
+	public PathNavigate getNavigator() {
+		if(canFly() && !this.onGround)
+			return this.flyNavigator;
+		else {
+			return super.getNavigator();
+		}
+	}
+
+	public EntityMoveHelper getMoveHelper() {
+		if(canFly() && !this.onGround)
+			return this.flyMoveHelper;
+		else {
+			return super.getMoveHelper();
+		}
+	}
+
+	protected void updateAITasks()
+	{
+		super.updateAITasks();
+		this.getNavigator().onUpdateNavigation();
+		this.getMoveHelper().onUpdateMoveHelper();
+	}
 	
 	public void addInteract(EntityLivingBase entity){
 		if( !ai.stopAndInteract || isAttacking() || !entity.isEntityAlive())
@@ -600,15 +628,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
         this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
 
-		if(canFly()){
-			//this.moveHelper = new FlyingMoveHelper(this);
-			this.navigator = new PathNavigateFlying(this, worldObj);
+		if (canFly()) {
 			this.getNavigator().setCanSwim(true);
 			this.tasks.addTask(0, new EntityAISwimming(this));
-		}
-		else{
-			//this.moveHelper = new EntityMoveHelper(this);
-			this.navigator = new PathNavigateGround(this, worldObj);
+		} else {
 			this.tasks.addTask(0, new EntityAIWaterNav(this));
 		}
 
