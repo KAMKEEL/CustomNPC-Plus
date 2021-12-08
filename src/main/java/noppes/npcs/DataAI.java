@@ -36,6 +36,7 @@ public class DataAI {
 	// Fly Change
 	public int movementType = 0;
 	public double flySpeed = 1.0D;
+	public double flyGravity = 0.0D;
 	
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
@@ -104,6 +105,11 @@ public class DataAI {
 		else
 			flySpeed = compound.getDouble("FlySpeed");
 
+		if(!compound.hasKey("FlyGravity"))
+			flyGravity = 0.0D;
+		else
+			flyGravity = compound.getDouble("FlyGravity");
+
 		startPos = compound.getIntArray("StartPosNew");
 		if (startPos == null || startPos.length != 3){
 			startPos = new int[] { 
@@ -152,6 +158,7 @@ public class DataAI {
 
 		compound.setInteger("MovingType", movementType);
 		compound.setDouble("FlySpeed",flySpeed);
+		compound.setDouble("FlyGravity",flyGravity);
 
 		npc.setAvoidWater(avoidsWater);
 		

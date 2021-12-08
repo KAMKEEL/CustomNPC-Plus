@@ -954,6 +954,19 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.ai.flySpeed;
 	}
 
+	public void setFlyGravity(double flyGravity){
+		if(flyGravity < 0.0D)
+			flyGravity = 0.0D;
+		if(flyGravity > 1.0D)
+			flyGravity = 1.0D;
+
+		npc.ai.flyGravity = flyGravity;
+	}
+
+	public double getFlyGravity(double flySpeed){
+		return npc.ai.flyGravity;
+	}
+
 	public void setSkinType(byte type) {
 		npc.display.skinType = type;
 		npc.updateClient = true;
