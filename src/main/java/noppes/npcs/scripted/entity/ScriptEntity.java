@@ -460,13 +460,13 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	@Override
 	public void knockback(int power, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
-		entity.addVelocity(-MathHelper.sin(v) * (float)power, 0.1D + power * 0.04f, MathHelper.cos(v) * (float)power);
+		entity.addVelocity(-MathHelper.sin(v) * (float)power, power, MathHelper.cos(v) * (float)power);
 		entity.velocityChanged = true;
 	}
 
 	public void knockback(int xpower, int ypower, int zpower, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
-		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, 0.1D + ypower * 0.04f, MathHelper.cos(v) * (float)zpower);
+		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, ypower, MathHelper.cos(v) * (float)zpower);
 		entity.velocityChanged = true;
 	}
 
