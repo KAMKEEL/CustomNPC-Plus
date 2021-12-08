@@ -49,8 +49,9 @@ public class FlyingMoveHelper extends EntityMoveHelper{
                     double verticalSpeed = Math.abs(this.entity.posY - this.posY);
                     if(verticalSpeed > speed * speedMult)
                         verticalSpeed = speed * speedMult;
+                    verticalSpeed += this.entity.ai.flySpeed/2.0D;
 
-                    this.entity.motionY -= Math.signum(this.entity.posY - this.posY) * verticalSpeed * this.entity.ai.flySpeed;
+                    this.entity.motionY -= Math.signum(this.entity.posY - this.posY) * verticalSpeed;
                 }
 
                 double d5 = MathHelper.sqrt_double(d4);

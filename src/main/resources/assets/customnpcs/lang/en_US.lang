@@ -308,6 +308,11 @@ ai.tacticalvariant=TacticalVariant
 ai.cobwebAffected=CobwebAffected
 ai.movement=Movement
 
+movement.ground=Ground
+movement.flying=Flying
+fly.speed=Flying Speed
+fly.gravity=Flying Gravity
+
 aitactics.rush=Rush
 aitactics.stagger=Dodge
 aitactics.orbit=Surround

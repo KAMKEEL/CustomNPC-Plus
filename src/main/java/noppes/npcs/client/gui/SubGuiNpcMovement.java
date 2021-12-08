@@ -32,6 +32,18 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
     	// Fly Change
 		this.addButton(new GuiNpcButton(15, guiLeft + 80, y += 22, 100, 20, new String[]{"movement.ground","movement.flying"}, ai.movementType));
 
+		if(ai.movementType == 1){
+			this.addLabel(new GuiNpcLabel(18, "fly.speed", guiLeft + 4, y + 140));
+			addTextField(new GuiNpcTextField(18,this, guiLeft + 80, y + 135, 40, 20, ai.flySpeed + ""));
+			getTextField(18).doublesOnly = true;
+			getTextField(18).setMinMaxDefaultDouble(0.0D,Double.MAX_VALUE,1.0D);
+
+			this.addLabel(new GuiNpcLabel(19, "fly.gravity", guiLeft + 4, y + 160));
+			addTextField(new GuiNpcTextField(19,this, guiLeft + 80, y + 155, 40, 20, ai.flyGravity + ""));
+			getTextField(19).doublesOnly = true;
+			getTextField(19).setMinMaxDefaultDouble(0.0D,1.0D,0.0D);
+		}
+
 		if(ai.movingType == EnumMovingType.Wandering){    
 			addTextField(new GuiNpcTextField(4,this, guiLeft + 100, y += 22, 40, 20, ai.walkingRange + ""));
 	    	getTextField(4).integersOnly = true;
@@ -146,6 +158,7 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 		}
 		else if (button.id == 15) {
 			ai.movementType = button.getValue();
+			initGui();
 		}
 		else if(button.id == 66){
         	close();
@@ -171,6 +184,12 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 		}
 		else if(textfield.id == 14){
 			ai.setWalkingSpeed(textfield.getInteger());
+		}
+		else if(textfield.id == 18){
+			ai.flySpeed = textfield.getDouble();
+		}
+		else if(textfield.id == 19){
+			ai.flyGravity = textfield.getDouble();
 		}
 	}
 
