@@ -36,7 +36,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             return;
         }
 
-        if (!this.onGround && !this.getMoveHelper().isUpdating())
+        if (!this.onGround)
         {
             this.motionY *= this.ai.flyGravity;
             this.velocityChanged = true;
