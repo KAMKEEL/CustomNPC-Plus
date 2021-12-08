@@ -1,16 +1,12 @@
 package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.monster.EntityZombie;
-import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathEntity;
-import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
@@ -23,7 +19,7 @@ public class PathNavigateFlying extends PathNavigate {
     private EntityNPCInterface theEntity;
     private World worldObj;
     /** The PathEntity being followed. */
-    private PathEntity currentPath;
+    private FlyPathEntity currentPath;
     private double speed;
     /** The number of blocks (extra) +/- in each axis that get pulled out as cache for the pathfinder's search space */
     private IAttributeInstance pathSearchRange;
@@ -120,7 +116,7 @@ public class PathNavigateFlying extends PathNavigate {
     /**
      * Returns the path to the given coordinates
      */
-    public PathEntity getPathToXYZ(double p_75488_1_, double p_75488_3_, double p_75488_5_)
+    public FlyPathEntity getPathToXYZ(double p_75488_1_, double p_75488_3_, double p_75488_5_)
     {
         return !this.canNavigate() ? null : this.getEntityPathToXYZ(this.theEntity, MathHelper.floor_double(p_75488_1_), (int)p_75488_3_, MathHelper.floor_double(p_75488_5_), this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
     }
@@ -130,14 +126,14 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public boolean tryMoveToXYZ(double p_75492_1_, double p_75492_3_, double p_75492_5_, double p_75492_7_)
     {
-        PathEntity pathentity = this.getPathToXYZ((double)MathHelper.floor_double(p_75492_1_), (double)((int)p_75492_3_), (double)MathHelper.floor_double(p_75492_5_));
+        FlyPathEntity pathentity = this.getPathToXYZ((double)MathHelper.floor_double(p_75492_1_), (double)((int)p_75492_3_), (double)MathHelper.floor_double(p_75492_5_));
         return this.setPath(pathentity, p_75492_7_);
     }
 
     /**
      * Returns the path to the given EntityLiving
      */
-    public PathEntity getPathToEntityLiving(Entity p_75494_1_)
+    public FlyPathEntity getPathToEntityLiving(Entity p_75494_1_)
     {
         return !this.canNavigate() ? null : this.getPathEntityToEntity(this.theEntity, p_75494_1_, this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
     }
@@ -147,16 +143,17 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public boolean tryMoveToEntityLiving(Entity p_75497_1_, double p_75497_2_)
     {
-        PathEntity pathentity = this.getPathToEntityLiving(p_75497_1_);
-        return pathentity != null ? this.setPath(pathentity, p_75497_2_) : false;
+        FlyPathEntity pathentity = this.getPathToEntityLiving(p_75497_1_);
+        return pathentity != null && this.setPath(pathentity, p_75497_2_);
     }
 
     /**
      * sets the active path data if path is 100% unique compared to old path, checks to adjust path for sun avoiding
      * ents and stores end coords
      */
-    public boolean setPath(PathEntity p_75484_1_, double p_75484_2_)
+    public boolean setPath(PathEntity pathEntity, double p_75484_2_)
     {
+        FlyPathEntity p_75484_1_ = (FlyPathEntity) pathEntity;
         if (p_75484_1_ == null)
         {
             this.currentPath = null;
@@ -471,7 +468,7 @@ public class PathNavigateFlying extends PathNavigate {
         return true;
     }
 
-    public PathEntity getPathEntityToEntity(Entity p_72865_1_, Entity p_72865_2_, float p_72865_3_, boolean p_72865_4_, boolean p_72865_5_, boolean p_72865_6_, boolean p_72865_7_)
+    public FlyPathEntity getPathEntityToEntity(Entity p_72865_1_, Entity p_72865_2_, float p_72865_3_, boolean p_72865_4_, boolean p_72865_5_, boolean p_72865_6_, boolean p_72865_7_)
     {
         this.theEntity.worldObj.theProfiler.startSection("pathfind");
         int i = MathHelper.floor_double(p_72865_1_.posX);
@@ -485,12 +482,12 @@ public class PathNavigateFlying extends PathNavigate {
         int i2 = j + l;
         int j2 = k + l;
         ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, i1, j1, k1, l1, i2, j2, 0);
-        PathEntity pathentity = (new PathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
+        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }
 
-    public PathEntity getEntityPathToXYZ(Entity p_72844_1_, int p_72844_2_, int p_72844_3_, int p_72844_4_, float p_72844_5_, boolean p_72844_6_, boolean p_72844_7_, boolean p_72844_8_, boolean p_72844_9_)
+    public FlyPathEntity getEntityPathToXYZ(Entity p_72844_1_, int p_72844_2_, int p_72844_3_, int p_72844_4_, float p_72844_5_, boolean p_72844_6_, boolean p_72844_7_, boolean p_72844_8_, boolean p_72844_9_)
     {
         this.theEntity.worldObj.theProfiler.startSection("pathfind");
         int l = MathHelper.floor_double(p_72844_1_.posX);
@@ -504,7 +501,7 @@ public class PathNavigateFlying extends PathNavigate {
         int l2 = i1 + k1;
         int i3 = j1 + k1;
         ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, l1, i2, j2, k2, l2, i3, 0);
-        PathEntity pathentity = (new PathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_)).createEntityPathTo(p_72844_1_, p_72844_2_, p_72844_3_, p_72844_4_, p_72844_5_);
+        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_)).createEntityPathTo(p_72844_1_, p_72844_2_, p_72844_3_, p_72844_4_, p_72844_5_);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }

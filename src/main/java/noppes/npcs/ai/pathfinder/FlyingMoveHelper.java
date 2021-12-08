@@ -1,5 +1,6 @@
 package noppes.npcs.ai.pathfinder;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityMoveHelper;
@@ -28,25 +29,36 @@ public class FlyingMoveHelper extends EntityMoveHelper{
     }
 
     public void onUpdateMoveHelper() {
-        this.entity.setMoveForward(0.0F);
-
         if (this.update) {
             this.update = false;
-            int i = MathHelper.floor_double(this.entity.boundingBox.minY + 0.5D);
+
+            double speed = this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
+            double speedMult = 0.6000000238418579D / 0.5D;
+
             double d0 = this.posX - this.entity.posX;
-            double d1 = this.posZ - this.entity.posZ;
-            double d2 = this.posY - (double)i;
-            double d3 = d0 * d0 + d2 * d2 + d1 * d1;
+            double d1 = this.posY - this.entity.posY;
+            double d2 = this.posZ - this.entity.posZ;
+            double d4 = d0 * d0 + d1 * d1 + d2 * d2;
 
-            if (d3 >= 2.500000277905201E-7D) {
-                float f = (float)(Math.atan2(d1, d0) * 180.0D / Math.PI) - 90.0F;
-                this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw, f, 30.0F);
-                this.entity.setAIMoveSpeed((float)(this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue()));
+            if (this.entity.hurtTime == 0 && d4 > 0.5D) {
+                if (this.posY != this.entity.posY) {
+                    if (this.entity.motionY * Math.signum(this.entity.posY - this.posY) > 0.0D) {
+                        this.entity.motionY = 0.0D;
+                    }
 
-                if (d2 > 0.0D && d0 * d0 + d1 * d1 < 1.0D) {
-                    this.entity.getJumpHelper().setJumping();
+                    double verticalSpeed = Math.abs(this.entity.posY - this.posY);
+                    if(verticalSpeed > speed * speedMult)
+                        verticalSpeed = speed * speedMult;
+
+                    this.entity.motionY -= Math.signum(this.entity.posY - this.posY) * verticalSpeed * this.entity.ai.flySpeed;
                 }
+
+                double d5 = MathHelper.sqrt_double(d4);
+                this.entity.motionX += (d0 / d5 * speed - this.entity.motionX) * speed * speedMult;
+                this.entity.motionZ += (d2 / d5 * speed - this.entity.motionZ) * speed * speedMult;
             }
+
+            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),30.0F);
         }
     }
 

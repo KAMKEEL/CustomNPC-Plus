@@ -412,7 +412,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	public PathNavigate getNavigator() {
-		if(canFly() && !this.onGround)
+		if(canFly())
 			return this.flyNavigator;
 		else {
 			return super.getNavigator();
@@ -420,7 +420,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	public EntityMoveHelper getMoveHelper() {
-		if(canFly() && !this.onGround)
+		if(canFly())
 			return this.flyMoveHelper;
 		else {
 			return super.getMoveHelper();
