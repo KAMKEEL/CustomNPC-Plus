@@ -31,17 +31,16 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
     public void onLivingUpdate()
     {
-        if(!canFly() || this.isJumping){
-            super.onLivingUpdate();
+        super.onLivingUpdate();
+        if(!canFly()){
             return;
         }
 
         if (!this.onGround && !this.getMoveHelper().isUpdating())
         {
             this.motionY *= 0.0D;
+            this.velocityChanged = true;
         }
-
-        super.onLivingUpdate();
     }
 
     @Override

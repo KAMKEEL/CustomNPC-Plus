@@ -932,13 +932,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
 	@Override
-	public void addVelocity(double d, double d1, double d2) {
-		if (isWalking() && !isKilled())
-			super.addVelocity(d, d1, d2);
-	}
-
-
-	@Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
 		super.readEntityFromNBT(compound);
 		npcVersion = compound.getInteger("ModRev");
