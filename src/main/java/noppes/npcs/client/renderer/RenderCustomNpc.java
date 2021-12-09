@@ -11,6 +11,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.ModelRenderPassHelper;
 import noppes.npcs.constants.EnumStandingType;
@@ -88,6 +89,47 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 
 	@Override
     protected int shouldRenderPass(EntityLivingBase par1EntityLivingBase, int par2, float par3){
+		EntityNPCInterface npc = (EntityNPCInterface) par1EntityLivingBase;
+		if (npc.hasPoweredTexture())
+		{
+			if (npc.isInvisible())
+			{
+				GL11.glDepthMask(false);
+			}
+			else
+			{
+				GL11.glDepthMask(true);
+			}
+
+			if (par2 == 1)
+			{
+				ResourceLocation poweredNPCTexture = new ResourceLocation(npc.display.poweredTexture);//customnpcs:textures/entity/npc_armor.png
+				float f1 = (float)npc.ticksExisted + par3;
+				this.bindTexture(poweredNPCTexture);
+				GL11.glMatrixMode(GL11.GL_TEXTURE);
+				GL11.glLoadIdentity();
+				float f2 = f1 * 0.01F;
+				float f3 = f1 * 0.01F;
+				GL11.glTranslatef(f2, f3, 0.0F);
+				this.setRenderPassModel(this.originalModel);
+				GL11.glMatrixMode(GL11.GL_MODELVIEW);
+				GL11.glEnable(GL11.GL_BLEND);
+				float f4 = 0.5F;
+				GL11.glColor4f(f4, f4, f4, 1.0F);
+				GL11.glDisable(GL11.GL_LIGHTING);
+				GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+				return 1;
+			}
+
+			if (par2 == 2)
+			{
+				GL11.glMatrixMode(GL11.GL_TEXTURE);
+				GL11.glLoadIdentity();
+				GL11.glMatrixMode(GL11.GL_MODELVIEW);
+				GL11.glEnable(GL11.GL_LIGHTING);
+				GL11.glDisable(GL11.GL_BLEND);
+			}
+		}
 		if(renderEntity != null){
 			return NPCRendererHelper.shouldRenderPass(entity, par2, par3, renderEntity);
 		}
