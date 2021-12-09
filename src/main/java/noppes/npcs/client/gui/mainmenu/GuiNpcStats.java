@@ -40,7 +40,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
         addLabel(new GuiNpcLabel(1,"stats.aggro", guiLeft + 140, y + 5));
         addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 220, y, 50, 18, stats.aggroRange+""));
         getTextField(1).integersOnly = true;
-        getTextField(1).setMinMaxDefault(1, Integer.MAX_VALUE, 2);
+        getTextField(1).setMinMaxDefault(1, 100, 2);
         addLabel(new GuiNpcLabel(34,"stats.creaturetype", guiLeft + 275, y + 5));
     	addButton(new GuiNpcButton(8,guiLeft + 355, y, 56, 20, new String[]{"stats.normal","stats.undead","stats.arthropod"} ,stats.creatureType.ordinal()));
 
