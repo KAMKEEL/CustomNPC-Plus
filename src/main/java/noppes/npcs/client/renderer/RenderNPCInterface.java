@@ -231,23 +231,63 @@ public class RenderNPCInterface extends RenderLiving{
                 GL11.glDepthMask(true);
             }
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
             GL11.glPushMatrix();
-            GL11.glScalef(1.001f, 1.001f, 1.001f);
-            if(mainModel instanceof ModelMPM){
-	            ((ModelMPM)mainModel).isArmor = true;
-	            mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-	            ((ModelMPM)mainModel).isArmor = false;
-            }
-            else
-	            mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+				GL11.glScalef(1.001f, 1.001f, 1.001f);
+				if(mainModel instanceof ModelMPM){
+					((ModelMPM)mainModel).isArmor = true;
+					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					((ModelMPM)mainModel).isArmor = false;
+				}
+				else
+					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
             GL11.glPopMatrix();
-            GL11.glEnable(GL11.GL_LIGHTING);
+
+			GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
- 	        
+
 
             GL11.glDepthFunc(GL11.GL_LEQUAL);
             GL11.glDisable(GL11.GL_BLEND);
          }
+		if (npc.hasPoweredTexture())
+		{
+			GL11.glDepthMask(!npc.isInvisible());
+			ResourceLocation poweredNPCTexture = new ResourceLocation(npc.display.poweredTexture);//customnpcs:textures/entity/npc_armor.png
+			float f1 = (float)npc.ticksExisted + par3;
+			this.bindTexture(poweredNPCTexture);
+			GL11.glMatrixMode(GL11.GL_TEXTURE);
+			GL11.glLoadIdentity();
+			float f2 = f1 * 0.01F;
+			float f3 = f1 * 0.01F;
+			GL11.glTranslatef(f2, f3, 0.0F);
+			this.setRenderPassModel(this.originalModel);
+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
+			GL11.glEnable(GL11.GL_BLEND);
+			float f4 = 0.5F;
+			GL11.glColor4f(f4, f4, f4, 1.0F);
+			GL11.glDisable(GL11.GL_LIGHTING);
+			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+
+
+			GL11.glPushMatrix();
+			GL11.glScalef(1.001f, 1.001f, 1.001f);
+			if(mainModel instanceof ModelMPM){
+				((ModelMPM)mainModel).isArmor = true;
+				mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+				((ModelMPM)mainModel).isArmor = false;
+			}
+			else
+				mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+			GL11.glPopMatrix();
+
+			GL11.glEnable(GL11.GL_LIGHTING);
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
+
+
+			GL11.glDepthFunc(GL11.GL_LEQUAL);
+			GL11.glDisable(GL11.GL_BLEND);
+		}
     }
     @Override
     protected float handleRotationFloat(EntityLivingBase par1EntityLiving, float par2){
