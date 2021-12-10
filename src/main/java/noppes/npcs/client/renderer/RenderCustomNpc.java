@@ -108,14 +108,17 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 				this.bindTexture(poweredNPCTexture);
 				GL11.glMatrixMode(GL11.GL_TEXTURE);
 				GL11.glLoadIdentity();
-				float f2 = f1 * 0.01F;
-				float f3 = f1 * 0.01F;
-				GL11.glTranslatef(f2, f3, 0.0F);
+
+				float f2 = f1 * npc.display.poweredTranslateX;
+				float f3 = f1 * npc.display.poweredTranslateY;
+				float f4 = f1 * npc.display.poweredTranslateZ;
+				GL11.glTranslatef(f2, f3, f4);
+
 				this.setRenderPassModel(this.originalModel);
 				GL11.glMatrixMode(GL11.GL_MODELVIEW);
 				GL11.glEnable(GL11.GL_BLEND);
-				float f4 = 0.5F;
-				GL11.glColor4f(f4, f4, f4, 1.0F);
+				float f5 = 0.5F;
+				GL11.glColor4f(f5, f5, f5, 1.0F);
 				GL11.glDisable(GL11.GL_LIGHTING);
 				GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
 				return 1;

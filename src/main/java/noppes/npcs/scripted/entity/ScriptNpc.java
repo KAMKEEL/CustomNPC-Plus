@@ -1015,4 +1015,21 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public String getPoweredTexture() {
 		return npc.display.poweredTexture;
 	}
+
+	public void setPoweredXYZ(float x, float y, float z) {
+		npc.display.poweredTranslateX = x;
+		npc.display.poweredTranslateY = y;
+		npc.display.poweredTranslateZ = z;
+		npc.updateClient = true;
+	}
+
+	public float getPoweredX() {
+		return npc.display.poweredTranslateX;
+	}
+	public float getPoweredY() {
+		return npc.display.poweredTranslateY;
+	}
+	public float getPoweredZ() {
+		return npc.display.poweredTranslateZ;
+	}
 }
