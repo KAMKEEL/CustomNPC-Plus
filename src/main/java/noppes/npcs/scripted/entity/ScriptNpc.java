@@ -1032,4 +1032,25 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public float getPoweredZ() {
 		return npc.display.poweredTranslateZ;
 	}
+
+	public void setPoweredRGBA(float r, float g, float b, float alpha) {
+		npc.display.poweredRed = r;
+		npc.display.poweredGreen = g;
+		npc.display.poweredBlue = b;
+		npc.display.poweredAlpha = alpha;
+		npc.updateClient = true;
+	}
+
+	public float getPoweredR() {
+		return npc.display.poweredRed;
+	}
+	public float getPoweredG() {
+		return npc.display.poweredGreen;
+	}
+	public float getPoweredB() {
+		return npc.display.poweredBlue;
+	}
+	public float getPoweredAlpha() {
+		return npc.display.poweredAlpha;
+	}
 }

@@ -267,8 +267,13 @@ public class RenderNPCInterface extends RenderLiving{
 			this.setRenderPassModel(this.originalModel);
 			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 			GL11.glEnable(GL11.GL_BLEND);
-			float f5 = 0.5F;
-			GL11.glColor4f(f5, f5, f5, 1.0F);
+
+			float f5 = npc.display.poweredRed;
+			float f6 = npc.display.poweredGreen;
+			float f7 = npc.display.poweredBlue;
+			float f8 = npc.display.poweredAlpha;
+			GL11.glColor4f(f5, f6, f7, f8);
+
 			GL11.glDisable(GL11.GL_LIGHTING);
 			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
 

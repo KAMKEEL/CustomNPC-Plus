@@ -713,4 +713,11 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public float getPoweredX();
     public float getPoweredY();
     public float getPoweredZ();
+
+    public void setPoweredRGBA(float r, float g, float b, float alpha);
+
+    public float getPoweredR();
+    public float getPoweredG();
+    public float getPoweredB();
+    public float getPoweredAlpha();
 }
