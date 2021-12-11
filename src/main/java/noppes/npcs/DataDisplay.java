@@ -37,16 +37,7 @@ public class DataDisplay {
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 	public String glowTexture = "";
-
 	public String poweredTexture = "";
-	public float poweredTranslateX = 0.01F;
-	public float poweredTranslateY = 0.01F;
-	public float poweredTranslateZ = 0.0F;
-
-	public float poweredRed = 1.0F;
-	public float poweredGreen = 1.0F;
-	public float poweredBlue = 1.0F;
-	public float poweredAlpha = 1.0F;
 
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
 	
@@ -115,15 +106,6 @@ public class DataDisplay {
 		nbttagcompound.setString("PoweredTexture", poweredTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
 
-		nbttagcompound.setFloat("PoweredX",poweredTranslateX);
-		nbttagcompound.setFloat("PoweredY",poweredTranslateY);
-		nbttagcompound.setFloat("PoweredZ",poweredTranslateZ);
-
-		nbttagcompound.setFloat("PoweredRed",poweredRed);
-		nbttagcompound.setFloat("PoweredGreen",poweredGreen);
-		nbttagcompound.setFloat("PoweredBlue",poweredBlue);
-		nbttagcompound.setFloat("PoweredAlpha",poweredAlpha);
-
         if (this.playerProfile != null)
         {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
@@ -178,13 +160,6 @@ public class DataDisplay {
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
 		poweredTexture = nbttagcompound.getString("PoweredTexture");
-		poweredTranslateX = nbttagcompound.getFloat("PoweredX");
-		poweredTranslateY = nbttagcompound.getFloat("PoweredY");
-		poweredTranslateZ = nbttagcompound.getFloat("PoweredZ");
-		poweredRed = nbttagcompound.getFloat("PoweredRed");
-		poweredGreen = nbttagcompound.getFloat("PoweredGreen");
-		poweredBlue = nbttagcompound.getFloat("PoweredBlue");
-		poweredAlpha = nbttagcompound.getFloat("PoweredAlpha");
 		
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		modelType = nbttagcompound.getInteger("modelType");

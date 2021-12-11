@@ -707,17 +707,4 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public void setPoweredTexture(String poweredTexture);
 
     public String getPoweredTexture();
-
-    public void setPoweredXYZ(float x, float y, float z);
-
-    public float getPoweredX();
-    public float getPoweredY();
-    public float getPoweredZ();
-
-    public void setPoweredRGBA(float r, float g, float b, float alpha);
-
-    public float getPoweredR();
-    public float getPoweredG();
-    public float getPoweredB();
-    public float getPoweredAlpha();
 }
