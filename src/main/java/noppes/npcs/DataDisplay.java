@@ -37,8 +37,7 @@ public class DataDisplay {
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 	public String glowTexture = "";
-	public String poweredTexture = "";
-
+	
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
 	
 	public int modelSize = 5;
@@ -103,7 +102,6 @@ public class DataDisplay {
 		nbttagcompound.setString("Texture", texture);
 		nbttagcompound.setString("CloakTexture", cloakTexture);
 		nbttagcompound.setString("GlowTexture", glowTexture);
-		nbttagcompound.setString("PoweredTexture", poweredTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
 
         if (this.playerProfile != null)
@@ -159,7 +157,6 @@ public class DataDisplay {
 		texture = nbttagcompound.getString("Texture");
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
-		poweredTexture = nbttagcompound.getString("PoweredTexture");
 		
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		modelType = nbttagcompound.getInteger("modelType");
