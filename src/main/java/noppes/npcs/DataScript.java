@@ -16,6 +16,7 @@ import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ScriptEvent;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.ScriptWorld;
@@ -50,7 +51,7 @@ public class DataScript implements IScriptHandler {
 		if(npc instanceof EntityCustomNpc)
 			dummyNpc = new ScriptNpc((EntityCustomNpc) npc);
 		if(npc.worldObj instanceof WorldServer)
-			dummyWorld = new ScriptWorld((WorldServer) npc.worldObj);
+			dummyWorld = NpcAPI.Instance().getIWorld((WorldServer) npc.worldObj);//new ScriptWorld((WorldServer) npc.worldObj);
 	}
 
 	public void readFromNBT(NBTTagCompound compound) {
