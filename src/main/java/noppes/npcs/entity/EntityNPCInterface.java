@@ -1590,10 +1590,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     	if(!ai.ignoreCobweb)
     		super.setInWeb();
     }
+
 	@Override
 	public boolean canBeCollidedWith(){
 		return !isKilled();
 	}
+
+	// obviously we dont want this
+	@Override
+	public boolean canBePushed() {
+		return false;
+	}
+
+	// not any entity can collide. if you want projectiles to still be
+	// effective, you will have to handle those yourself
+	@Override
+	protected void collideWithEntity(Entity p_82167_1_) {}
+
+	// checks for any entity within a certain boundingbox, eg minecarts
+	@Override
+	protected void collideWithNearbyEntities() {}
 
 	public boolean canFly(){
 		return false;
