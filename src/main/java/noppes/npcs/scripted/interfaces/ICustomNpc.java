@@ -688,6 +688,10 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
 
     public double getFlyGravity(double flyGravity);
 
+    public void setSpeed(int speed);
+
+    public int getSpeed();
+
     public void setSkinType(byte type);
 
     public byte getSkinType();

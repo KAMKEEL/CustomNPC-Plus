@@ -967,6 +967,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.ai.flyGravity;
 	}
 
+	public void setSpeed(int speed) {
+		npc.ai.setWalkingSpeed(speed);
+	}
+
+	public int getSpeed() {
+		return npc.ai.getWalkingSpeed();
+	}
+
 	public void setSkinType(byte type) {
 		npc.display.skinType = type;
 		npc.updateClient = true;
