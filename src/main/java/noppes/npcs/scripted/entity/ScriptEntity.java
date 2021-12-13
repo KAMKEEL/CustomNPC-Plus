@@ -18,14 +18,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptEntityParticle;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
@@ -524,5 +522,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		} else {
 			ServerCloneController.Instance.addClone(compound, name, tab);
 		}
+	}
+
+	public ScriptWorld getWorld() {
+		return (ScriptWorld)NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
 	}
 }
