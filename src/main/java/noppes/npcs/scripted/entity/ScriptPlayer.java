@@ -4,8 +4,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
@@ -391,14 +389,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public ScriptDBCPlayer<T> getDBCPlayer() {
-		Set keySet = player.getEntityData().func_150296_c();
+		Set keySet = player.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
 		Iterator iterator = keySet.iterator();
 
 		while (iterator.hasNext())
 		{
 			String s = (String)iterator.next();
 			if(s.contains("jrmc"))
-				return new ScriptDBCPlayer<>(this.player);
+				return new ScriptDBCPlayer<T>(this.player);
 		}
 		return null;
 	}
