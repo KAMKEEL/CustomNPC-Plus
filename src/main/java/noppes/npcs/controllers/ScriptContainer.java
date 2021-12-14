@@ -20,6 +20,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumScriptType;
+import scala.Char;
 
 public class ScriptContainer {
     private static final String lock = "lock";
@@ -101,7 +102,20 @@ public class ScriptContainer {
             this.errored = true;
             var14.printStackTrace(pw);
         } finally {
-            this.appandConsole(sw.getBuffer().toString().trim());
+            String errorString = sw.getBuffer().toString().trim();
+            int startIndex = 0;
+            if(!errorString.isEmpty()) {
+                String endString = "in <eval> at line number ";
+                startIndex = errorString.indexOf(endString) + endString.length();
+
+                for (int i = startIndex; i < errorString.length(); i++) {
+                    if (!Character.isDigit(errorString.charAt(i))) {
+                        startIndex = i;
+                        break;
+                    }
+                }
+            }
+            this.appandConsole(errorString.substring(0, startIndex));
             pw.close();
         }
     }
@@ -141,7 +155,20 @@ public class ScriptContainer {
                         this.errored = true;
                         var14.printStackTrace(pw);
                     } finally {
-                        this.appandConsole(sw.getBuffer().toString().trim());
+                        String errorString = sw.getBuffer().toString().trim();
+                        int startIndex = 0;
+                        if(!errorString.isEmpty()) {
+                            String endString = "in <eval> at line number ";
+                            startIndex = errorString.indexOf(endString) + endString.length();
+
+                            for (int i = startIndex; i < errorString.length(); i++) {
+                                if (!Character.isDigit(errorString.charAt(i))) {
+                                    startIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        this.appandConsole(errorString.substring(0, startIndex));
                         pw.close();
                         Current = null;
                     }
