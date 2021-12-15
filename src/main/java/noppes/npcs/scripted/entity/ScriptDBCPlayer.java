@@ -159,16 +159,22 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         switch (stat) {
             case "strength":
                 stat = "str";
+                break;
             case "dexterity":
                 stat = "dex";
+                break;
             case "constitution":
                 stat = "con";
+                break;
             case "willpower":
                 stat = "wil";
+                break;
             case "mind":
                 stat = "mnd";
+                break;
             case "spirit":
                 stat = "spi";
+                break;
         }
         if(!(stat.equals("str") || stat.equals("dex") || stat.equals("con") || stat.equals("wil") || stat.equals("mnd") || stat.equals("spi")))
             throw new CustomNPCsException("Invalid stat name: " + stat + "\nValid stat names are:" +
@@ -201,11 +207,41 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
                 break;
             case "remove":
                 String newBonusString = "";
-                for (int i = 0; i < bonusValues.length; i++) {
-                    if (!bonusValues[i][0].equals(bonusID))
-                        newBonusString += (i != 0 ? "|" : "") + bonusValues[i][0] + ";" + bonusValues[i][1];
+                if(player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus"+stat)) {
+                    int num = -1;
+                    boolean number;
+                    boolean run = false;
+                    String[] bonusValue;
+
+                    try {
+                        num = Integer.parseInt(bonusID);
+                        number = true;
+                    } catch (Exception var33) {
+                        number = false;
+                    }
+
+                    for(int i = 0; i < bonuses.length; ++i) {
+                        bonusValue = bonuses[i].split("\\;");
+                        bonusValues[i][0] = bonusValue[0];
+                        if (number && i == num || !number && bonusValues[i][0].equals(bonusID)) {
+                            bonuses[i] = "";
+                            run = true;
+                            break;
+                        }
+                    }
+
+                    if (run) {
+                        String startString = "";
+
+                        for (int i = 0; i < bonuses.length; ++i) {
+                            if (bonuses[i] != null && bonuses[i].length() > 0) {
+                                startString = startString + bonuses[i] + (bonuses.length - 1 == i ? "" : "|");
+                            }
+                        }
+
+                        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, startString);
+                    }
                 }
-                player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, newBonusString);
                 break;
             case "add":
                 boolean nbtFail = false;
