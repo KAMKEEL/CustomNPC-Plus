@@ -1,7 +1,14 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptItemStack;
+
+import java.util.ArrayList;
 
 public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
     public T player;
@@ -108,6 +115,48 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
     }
     public float getGravity(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getFloat("jrmcGravForce");
+    }
+
+    public boolean isBlocking(){
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+        return compound.getCompoundTag("JRMCEP").getInteger("blocking") == 1;
+    }
+
+    public void setHairCode(String hairCode){
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+        compound.getCompoundTag("JRMCEP").setString("haircode",hairCode);
+    }
+    public String getHairCode(){
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+        return compound.getCompoundTag("JRMCEP").getString("haircode");
+    }
+
+    public void setExtraCode(String extraCode){
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+        compound.getCompoundTag("JRMCEP").setString("extracode",extraCode);
+    }
+    public String getExtraCode(){
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+        return compound.getCompoundTag("JRMCEP").getString("extracode");
+    }
+
+    public ScriptItemStack[] getInventory(){
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+
+        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
+        ScriptItemStack[] itemList = new ScriptItemStack[list.tagCount()];
+        for (int i = 0; i < list.tagCount(); i++) {
+            ItemStack itemStack = ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
+            itemList[i] = new ScriptItemStack(itemStack);
+        }
+
+        return itemList;
     }
 
     public void setForm(byte form){
