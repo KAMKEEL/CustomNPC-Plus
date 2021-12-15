@@ -92,6 +92,43 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         return n1;
     }
 
+    public void addBonusAttribute(String stat, String bonusID, String operation, double attributeValue){
+        addBonusAttribute(stat,bonusID,operation,attributeValue,true);
+    }
+    public void addBonusAttribute(String stat, String bonusID, String operation, double attributeValue, boolean endOfTheList){
+        bonusAttribute("add",stat,bonusID,operation,attributeValue,endOfTheList);
+    }
+    public void addToBonusAttribute(String stat, String bonusID, String operation, double attributeValue){
+        bonusAttribute("addto",stat,bonusID,operation,attributeValue,true);
+    }
+    public void setBonusAttribute(String stat, String bonusID, String operation, double attributeValue){
+        bonusAttribute("set",stat,bonusID,operation,attributeValue,true);
+    }
+    public void getBonusAttribute(String stat, String bonusID){
+        bonusAttribute("get",stat,bonusID,"*",1.0,true);
+    }
+    public void removeBonusAttribute(String stat, String bonusID){
+        bonusAttribute("remove",stat,bonusID,"*",1.0,true);
+    }
+    public void clearBonusAttribute(String stat){
+        bonusAttribute("clear",stat,"","*",1.0,true);
+    }
+
+    public String bonusAttribute(String action, String stat, String bonusID) {
+        String[] actions = new String[]{"get", "remove", "clear"};
+        boolean valid = false;
+        for(String s : actions){
+            if(s.equals(action.toLowerCase())){
+                valid = true;
+            }
+        }
+        if (!valid) {
+            throw new CustomNPCsException("Action can be:  get/remove/clear", new Object[0]);
+        }
+
+        return bonusAttribute(action,stat,bonusID,"*",1.0,false);
+    }
+
     public String bonusAttribute(String action, String stat, String bonusID, String operation, double attributeValue, boolean endOfTheList) {
         String[] actions = new String[]{"add", "addto", "set", "get", "remove", "clear"};
         String[] operations = new String[]{"+", "-", "*", "/", "%"};
@@ -106,14 +143,16 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
             throw new CustomNPCsException("Action can be:  add/addTo/set/get/remove/clear", new Object[0]);
         }
 
-        valid = false;
-        for(String s : operations){
-            if(s.equals(operation)){
-                valid = true;
+        if(!action.equals("remove") && !action.equals("get") && !action.equals("clear")) {
+            valid = false;
+            for (String s : operations) {
+                if (s.equals(operation)) {
+                    valid = true;
+                }
             }
-        }
-        if (!valid) {
-            throw new CustomNPCsException("Operation can be:  +  -  *  /  %", new Object[0]);
+            if (!valid) {
+                throw new CustomNPCsException("Operation can be:  +  -  *  /  %", new Object[0]);
+            }
         }
 
         stat = stat.toLowerCase().trim();
