@@ -193,6 +193,13 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         return Integer.parseInt(player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSltX").replace("TR",""));
     }
 
+    public void setSkills(String skills){
+        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSlts",skills);
+    }
+    public String getSkills(){
+        return player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSlts");
+    }
+
     public byte getDBCClass(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcClass");
     }
