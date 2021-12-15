@@ -186,6 +186,13 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcAuraColor");
     }
 
+    public void setFormLevel(int level){
+        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSltX","TR"+level);
+    }
+    public int getFormLevel(){
+        return Integer.parseInt(player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSltX").replace("TR",""));
+    }
+
     public byte getDBCClass(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcClass");
     }
