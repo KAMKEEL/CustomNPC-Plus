@@ -400,4 +400,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 		return null;
 	}
+
+	public boolean blocking() {
+		return player.isBlocking();
+	}
 }
