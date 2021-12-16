@@ -114,7 +114,7 @@ public class ScriptController {
 	}
 
 	private File playerScriptsFile() {
-		return new File(this.dir, "player_scripts.json");
+		return new File(dir, "player_scripts.json");
 	}
 
 	public boolean loadPlayerScripts() {
@@ -122,10 +122,11 @@ public class ScriptController {
 		File file = this.playerScriptsFile();
 
 		try {
-			if (!file.exists()) {
+			if(!file.exists()) {
 				return false;
 			} else {
 				this.playerScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+				shouldSave = false;
 				return true;
 			}
 		} catch (Exception var3) {
@@ -146,7 +147,6 @@ public class ScriptController {
 		} catch (JsonException var5) {
 			var5.printStackTrace();
 		}
-
 	}
 
 	private void loadCategories(){

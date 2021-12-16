@@ -145,11 +145,12 @@ public class PacketHandlerServer{
 
 	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		NBTTagCompound compound;
-		if (type == EnumPacketServer.ScriptPlayerGet) {
-			compound = ScriptController.Instance.playerScripts.writeToNBT(new NBTTagCompound());
+		if(type == EnumPacketServer.ScriptPlayerGet) {
+			PlayerDataScript data = ScriptController.Instance.playerScripts;
+			compound = data.writeToNBT(new NBTTagCompound());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
-		} else if (type == EnumPacketServer.ScriptPlayerSave) {
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		} else if(type == EnumPacketServer.ScriptPlayerSave) {
 			ScriptController.Instance.setPlayerScripts(Server.readNBT(buffer));
 		}
 	}
