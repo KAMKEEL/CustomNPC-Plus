@@ -20,6 +20,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.scripted.NpcAPI;
 import scala.Char;
 
 public class ScriptContainer {
@@ -141,6 +142,8 @@ public class ScriptContainer {
                     PrintWriter pw = new PrintWriter(sw);
                     this.engine.getContext().setWriter(pw);
                     this.engine.getContext().setErrorWriter(pw);
+
+                    this.engine.put("API", NpcAPI.Instance());
 
                     try {
                         if (!this.init) {

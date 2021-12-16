@@ -51,7 +51,7 @@ public class ForgeDataScript implements IScriptHandler {
     }
 
     @Override
-    public void callScript(EnumScriptType var1, Event var2, Object... obs) {
+    public void callScript(EnumScriptType var1, Event var2) {
         callScript(var1.function, var2);
     }
 

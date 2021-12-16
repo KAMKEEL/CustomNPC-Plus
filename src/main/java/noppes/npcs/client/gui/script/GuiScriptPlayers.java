@@ -17,7 +17,7 @@ public class GuiScriptPlayers extends GuiScriptInterface {
 
     public GuiScriptPlayers() {
         this.handler = this.script;
-        Client.sendData(EnumPacketServer.ScriptPlayerGet);
+        Client.sendData(EnumPacketServer.ScriptPlayerGet, new Object[0]);
     }
 
     public void setGuiData(NBTTagCompound compound) {
@@ -27,11 +27,6 @@ public class GuiScriptPlayers extends GuiScriptInterface {
 
     public void save() {
         super.save();
-        Client.sendData(EnumPacketServer.ScriptPlayerSave, script.writeToNBT(new NBTTagCompound()));
-    }
-
-    public void close() {
-        super.close();
-        ScriptController.Instance.playerScripts.errored.clear();
+        Client.sendData(EnumPacketServer.ScriptPlayerSave, new Object[]{this.script.writeToNBT(new NBTTagCompound())});
     }
 }

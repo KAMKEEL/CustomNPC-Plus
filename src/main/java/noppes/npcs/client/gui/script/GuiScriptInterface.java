@@ -350,7 +350,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if(guibutton.id == 104) {
-            this.handler.setEnabled((((GuiNpcButton)guibutton).getValue() == 1));
+            this.handler.setEnabled(((GuiNpcButton)guibutton).getValue() == 1);
         }
 
         if(guibutton.id == 105) {
