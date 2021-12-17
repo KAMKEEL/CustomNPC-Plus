@@ -187,6 +187,11 @@ public class DataScript implements IScriptHandler {
 
 	}
 
+	@Override
+	public void callScript(EnumScriptType var1, Event var2) {
+
+	}
+
 	public boolean isClient() {
 		return this.npc.isRemote();
 	}

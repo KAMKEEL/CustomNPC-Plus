@@ -20,6 +20,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.scripted.NpcAPI;
 import scala.Char;
 
 public class ScriptContainer {
@@ -133,46 +134,44 @@ public class ScriptContainer {
                     this.init = false;
                 }
 
-                String var3 = "lock";
-                synchronized("lock") {
-                    Current = this;
-                    CurrentType = type;
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    this.engine.getContext().setWriter(pw);
-                    this.engine.getContext().setErrorWriter(pw);
+                engine.put("API", NpcAPI.Instance());
 
-                    try {
-                        if (!this.init) {
-                            this.engine.eval(this.getFullCode());
-                            this.init = true;
-                        }
+                Current = this;
+                CurrentType = type;
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                this.engine.getContext().setWriter(pw);
+                this.engine.getContext().setErrorWriter(pw);
 
-                        ((Invocable)this.engine).invokeFunction(type, new Object[]{event});
-                    } catch (NoSuchMethodException var13) {
-                        this.unknownFunctions.add(type);
-                    } catch (Throwable var14) {
-                        this.errored = true;
-                        var14.printStackTrace(pw);
-                    } finally {
-                        String errorString = sw.getBuffer().toString().trim();
-                        int startIndex = 0;
-                        if(!errorString.isEmpty()) {
-                            String endString = "in <eval> at line number ";
-                            startIndex = errorString.indexOf(endString) + endString.length();
-
-                            for (int i = startIndex; i < errorString.length(); i++) {
-                                if (!Character.isDigit(errorString.charAt(i))) {
-                                    startIndex = i;
-                                    break;
-                                }
-                            }
-                        }
-                        this.appandConsole(errorString.substring(0, startIndex));
-                        pw.close();
-                        Current = null;
+                try {
+                    if (!this.init) {
+                        this.engine.eval(this.getFullCode());
+                        this.init = true;
                     }
 
+                    ((Invocable)this.engine).invokeFunction(type, new Object[]{event});
+                } catch (NoSuchMethodException var13) {
+                    this.unknownFunctions.add(type);
+                } catch (Throwable var14) {
+                    this.errored = true;
+                    var14.printStackTrace(pw);
+                } finally {
+                    String errorString = sw.getBuffer().toString().trim();
+                    int startIndex = 0;
+                    if(!errorString.isEmpty()) {
+                        String endString = "in <eval> at line number ";
+                        startIndex = errorString.indexOf(endString) + endString.length();
+
+                        for (int i = startIndex; i < errorString.length(); i++) {
+                            if (!Character.isDigit(errorString.charAt(i))) {
+                                startIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                    this.appandConsole(errorString.substring(0, startIndex));
+                    pw.close();
+                    Current = null;
                 }
             }
         }

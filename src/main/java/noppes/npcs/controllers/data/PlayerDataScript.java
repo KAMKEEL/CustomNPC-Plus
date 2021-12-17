@@ -77,72 +77,51 @@ public class PlayerDataScript implements IScriptHandler {
         return compound;
     }
 
-    public void callScript(EnumScriptType type, Event event, Object... obs) {
-        if(this.isEnabled()) {
+    public void callScript(EnumScriptType type, Event event) {
+        if (this.isEnabled()) {
             ScriptContainer script;
-            if(ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
+            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
-                //ScriptController.Instance.playerScripts.errored.clear();
-                if(this.player != null) {
+                errored.clear();
+                if (this.player != null) {
                     this.scripts.clear();
-                    Iterator i = ScriptController.Instance.playerScripts.scripts.iterator();
+                    Iterator var3 = ScriptController.Instance.playerScripts.scripts.iterator();
 
-                    while(i.hasNext()) {
-                        script = (ScriptContainer)i.next();
+                    while(var3.hasNext()) {
+                        script = (ScriptContainer)var3.next();
                         ScriptContainer s = new ScriptContainer(this);
                         s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
-
                         this.scripts.add(s);
                     }
                 }
 
                 this.lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
-                if(type != EnumScriptType.INIT) {
+                if (type != EnumScriptType.INIT) {
                     EventHooks.onPlayerInit(this);
                 }
             }
 
-            for(int var7 = 0; var7 < this.scripts.size(); ++var7) {
-                script = (ScriptContainer)this.scripts.get(var7);
-
-                if(!ScriptController.Instance.playerScripts.errored.contains(Integer.valueOf(var7))) {
-                    if(script == null || script.errored || !script.hasCode())
-                        return;
-                    script.setEngine(scriptLanguage);
-                    if(script.engine == null)
-                        return;
-                    for(int i = 0; i + 1 < obs.length; i += 2){
-                        Object ob = obs[i + 1];
-                        if(ob instanceof Entity)
-                            ob = ScriptController.Instance.getScriptForEntity((Entity)ob);
-                        script.engine.put(obs[i].toString(), ob);
-                    }
-
-                    ScriptEngine engine = script.engine;
-                    engine.put("world", dummyWorld);
-                    engine.put("player", dummyPlayer);
-                    PlayerEvent result = (PlayerEvent) engine.get("event");
-                    if(result == null)
-                        engine.put("event", result = new PlayerEvent(this.getPlayer()));
-                    script.engine.put("API", new WrapperNpcAPI());
+            for(int i = 0; i < this.scripts.size(); ++i) {
+                script = (ScriptContainer)this.scripts.get(i);
+                if (!errored.contains(i)) {
                     script.run(type, event);
-
                     if (script.errored) {
-                        ScriptController.Instance.playerScripts.errored.add(var7);
+                        errored.add(i);
                     }
 
                     Iterator var8 = script.console.entrySet().iterator();
 
                     while(var8.hasNext()) {
                         Entry<Long, String> entry = (Entry)var8.next();
-                        if (!ScriptController.Instance.playerScripts.console.containsKey(entry.getKey())) {
-                            ScriptController.Instance.playerScripts.console.put(entry.getKey(), " tab " + (var7 + 1) + ":\n" + (String)entry.getValue());
+                        if (!console.containsKey(entry.getKey())) {
+                            console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
                         }
                     }
 
                     script.console.clear();
                 }
             }
+
         }
     }
 
