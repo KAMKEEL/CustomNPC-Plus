@@ -433,6 +433,10 @@ public class ScriptPlayerEventHandler {
         @SubscribeEvent
         public void forgeEntity(Event event) {
             if(CustomNpcs.getServer() != null && ScriptController.Instance.forgeScripts.isEnabled()) {
+                if(event instanceof TickEvent && !(((TickEvent)event).side == Side.SERVER && ((TickEvent)event).phase == TickEvent.Phase.START)) {
+                    return;
+                }
+
                 if(event instanceof EntityEvent) {
                     EntityEvent ev2 = (EntityEvent)event;
                     if(ev2.entity != null && ev2.entity.worldObj instanceof WorldServer) {
@@ -444,9 +448,9 @@ public class ScriptPlayerEventHandler {
                         EventHooks.onForgeWorldEvent(ev1);
                     }
                 } else if(!(event instanceof TickEvent) || ((TickEvent)event).side != Side.CLIENT) {
-                    if(event instanceof PlayerEvent) {
-                        PlayerEvent ev = (PlayerEvent)event;
-                        if(!(ev.player.worldObj instanceof WorldServer)) {
+                    if (event instanceof PlayerEvent) {
+                        PlayerEvent ev = (PlayerEvent) event;
+                        if (!(ev.player.worldObj instanceof WorldServer)) {
                             return;
                         }
                     }
