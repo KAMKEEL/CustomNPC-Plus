@@ -70,7 +70,8 @@ public class ScriptPlayerEventHandler {
 
             if(PlayerDataController.instance != null) {
                 PlayerDataController.instance.getPlayerData(player).scriptData = data.scriptData;
-                PlayerDataController.instance.getPlayerData(player).timers.update();
+                if(PlayerDataController.instance.getPlayerData(player).timers.size() > 0)
+                    PlayerDataController.instance.getPlayerData(player).timers.update();
             }
         }
     }
