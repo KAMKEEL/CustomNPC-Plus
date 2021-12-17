@@ -44,8 +44,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
-import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.world.*;
 import net.minecraftforge.event.world.WorldEvent.PotentialSpawns;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
@@ -374,6 +373,7 @@ public class ScriptPlayerEventHandler {
             ArrayList list = new ArrayList();
             list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
             list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
+            list.removeAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event.terraingen"));
             Iterator e1 = list.iterator();
 
             while(true) {
@@ -415,7 +415,7 @@ public class ScriptPlayerEventHandler {
                 Iterator var10 = c.iterator();
                 while(var10.hasNext()) {
                     Class c1 = (Class)var10.next();
-                    if(!EntityConstructing.class.isAssignableFrom(c1) && !PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers())) {
+                    if(!EntityConstructing.class.isAssignableFrom(c1) && !PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
                         register.invoke(FMLCommonHandler.instance().bus(), new Object[]{c1, handler, e, Loader.instance().activeModContainer()});
                     }
                 }

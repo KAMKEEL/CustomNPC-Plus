@@ -22,6 +22,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.world.ChunkDataEvent;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NoppesStringUtils;
@@ -140,9 +143,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
                 ArrayList<ClassPath.ClassInfo> list = new ArrayList();
                 try {
-                    list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.event"));
                     list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
                     list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
+                    list.removeAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event.terraingen"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -157,7 +160,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                     Iterator var10 = c.iterator();
                     while(var10.hasNext()) {
                         Class c1 = (Class) var10.next();
-                        if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers())) {
+                        if(!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
                             String eventName = c1.getName();
                             int i = eventName.lastIndexOf(".");
                             eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
