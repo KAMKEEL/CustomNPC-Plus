@@ -20,6 +20,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.PlayerEvent;
 import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -33,19 +34,13 @@ public class PlayerDataScript implements IScriptHandler {
     private IPlayer playerAPI;
     private long lastPlayerUpdate = 0L;
     public long lastInited = -1L;
-    public boolean hadInteract = true;
     public boolean enabled = false;
     private Map<Long, String> console = new TreeMap();
     public List<Integer> errored = new ArrayList();
-    public IPlayer dummyPlayer;
-    public IWorld dummyWorld;
+
     public PlayerDataScript(EntityPlayer player) {
         if(player != null) {
             this.player = player;
-            if (player instanceof EntityPlayer)
-                dummyPlayer = (IPlayer) ScriptController.Instance.getScriptForEntity(this.player);
-            if (player.worldObj instanceof WorldServer)
-                dummyWorld = (IWorld) NpcAPI.Instance().getIWorld((WorldServer) this.player.worldObj);
         }
     }
     public void clear() {
@@ -73,27 +68,17 @@ public class PlayerDataScript implements IScriptHandler {
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 errored.clear();
-                if(this.player != null) {
-                    this.scripts.clear();
-                    Iterator i = ScriptController.Instance.playerScripts.scripts.iterator();
-
-                    while(i.hasNext()) {
-                        script = (ScriptContainer)i.next();
-                        ScriptContainer s = new ScriptContainer(this);
-                        s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
-
-                        this.scripts.add(s);
-                    }
-                }
 
                 this.lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
+
                 if (type != EnumScriptType.INIT) {
-                    EventHooks.onPlayerInit(this);
+                    noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent)event;
+                    EventHooks.onPlayerInit(this, (ScriptPlayer) playerEvent.player);
                 }
             }
 
-            for(int i = 0; i < this.scripts.size(); ++i) {
-                script = (ScriptContainer)this.scripts.get(i);
+            for(int i = 0; i < ScriptController.Instance.playerScripts.scripts.size(); ++i) {
+                script = (ScriptContainer)ScriptController.Instance.playerScripts.scripts.get(i);
                 if (!errored.contains(i)) {
                     if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.playerScripts.errored.contains(i))
                         return;
