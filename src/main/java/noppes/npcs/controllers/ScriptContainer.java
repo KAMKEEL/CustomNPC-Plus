@@ -104,19 +104,7 @@ public class ScriptContainer {
             var14.printStackTrace(pw);
         } finally {
             String errorString = sw.getBuffer().toString().trim();
-            int startIndex = 0;
-            if(!errorString.isEmpty()) {
-                String endString = "in <eval> at line number ";
-                startIndex = errorString.indexOf(endString) + endString.length();
-
-                for (int i = startIndex; i < errorString.length(); i++) {
-                    if (!Character.isDigit(errorString.charAt(i))) {
-                        startIndex = i;
-                        break;
-                    }
-                }
-            }
-            this.appandConsole(errorString.substring(0, startIndex));
+            this.appandConsole(errorString);
             pw.close();
         }
     }
@@ -157,19 +145,7 @@ public class ScriptContainer {
                     var14.printStackTrace(pw);
                 } finally {
                     String errorString = sw.getBuffer().toString().trim();
-                    int startIndex = 0;
-                    if(!errorString.isEmpty()) {
-                        String endString = "in <eval> at line number ";
-                        startIndex = errorString.indexOf(endString) + endString.length();
-
-                        for (int i = startIndex; i < errorString.length(); i++) {
-                            if (!Character.isDigit(errorString.charAt(i))) {
-                                startIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                    this.appandConsole(errorString.substring(0, startIndex));
+                    this.appandConsole(errorString);
                     pw.close();
                     Current = null;
                 }
