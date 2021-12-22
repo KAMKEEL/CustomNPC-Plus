@@ -31,7 +31,8 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - [x] Backported New Part Models
 - [X] Custom Part Disabling
 - [X] Markov Name Generator
-- [ ] Flying NPCS [WIP]
+- [X] Flying NPCS
+- [X] Better Script Speeds
 --- Please Suggest New Features!
 
 ###### **Majority of these cape designs are taken from the internet with fair-usage.*
