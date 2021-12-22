@@ -8,6 +8,7 @@ package noppes.npcs.client.gui.script;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 
 public class GuiScriptForge extends GuiScriptInterface {
@@ -15,7 +16,7 @@ public class GuiScriptForge extends GuiScriptInterface {
 
     public GuiScriptForge() {
         this.handler = this.script;
-        Client.sendData(EnumPacketServer.ScriptForgeGet);
+        Client.sendData(EnumPacketServer.ScriptForgeGet, new Object[0]);
     }
 
     public void setGuiData(NBTTagCompound compound) {
@@ -25,6 +26,6 @@ public class GuiScriptForge extends GuiScriptInterface {
 
     public void save() {
         super.save();
-        Client.sendData(EnumPacketServer.ScriptForgeSave, script.writeToNBT(new NBTTagCompound()));
+        Client.sendData(EnumPacketServer.ScriptForgeSave, new Object[]{this.script.writeToNBT(new NBTTagCompound())});
     }
 }

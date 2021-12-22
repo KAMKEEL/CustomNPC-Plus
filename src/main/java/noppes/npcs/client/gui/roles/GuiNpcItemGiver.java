@@ -34,11 +34,11 @@ public class GuiNpcItemGiver extends GuiContainerNPCInterface2
     	this.addButton(new GuiNpcButton(1, guiLeft + 6, guiTop + 29, 140,20, new String[]{"Timer","Give Only Once","Daily"},role.cooldownType));
 
     	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 55, guiTop + 54, 90, 20, role.cooldown + ""));
-    	getTextField(0).numbersOnly = true;
+    	getTextField(0).integersOnly = true;
         addLabel(new GuiNpcLabel(0,"Cooldown:", guiLeft + 6, guiTop + 59));
         addLabel(new GuiNpcLabel(1,"Items to give", guiLeft + 46, guiTop + 79));
         
-        getTextField(0).numbersOnly = true;
+        getTextField(0).integersOnly = true;
 
         int i = 0;
         for(String line : role.lines){

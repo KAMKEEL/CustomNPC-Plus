@@ -37,7 +37,7 @@ public class GuiNpcFollowerSetup extends GuiContainerNPCInterface2
         	int y = guiTop + 37;
         	y += i * 25;
         	GuiNpcTextField tf = new GuiNpcTextField(i,this, fontRendererObj,x, y, 24, 20, "1");
-        	tf.numbersOnly = true;
+        	tf.integersOnly = true;
         	tf.setMinMaxDefault(1, Integer.MAX_VALUE, 1);
         	addTextField(tf);
         }

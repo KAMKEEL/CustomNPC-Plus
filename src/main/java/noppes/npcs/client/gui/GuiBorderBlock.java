@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileBorder;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -30,7 +29,7 @@ public class GuiBorderBlock extends GuiNPCInterface implements IGuiData{
     	
     	addLabel(new GuiNpcLabel(0,"Height", guiLeft+ 1, guiTop + 76, 0xffffff));    	
     	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft+ 60, guiTop + 71,40,20, tile.height + ""));
-    	getTextField(0).numbersOnly = true;
+    	getTextField(0).integersOnly = true;
     	getTextField(0).setMinMaxDefault(0, 500, 6); 	
 
     	addLabel(new GuiNpcLabel(1,"Message", guiLeft+ 1, guiTop + 100, 0xffffff));    	

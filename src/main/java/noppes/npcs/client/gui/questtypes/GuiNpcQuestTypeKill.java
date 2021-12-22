@@ -50,7 +50,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 		for (String name : quest.targets.keySet()) {
 			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 70 + i * 22, 180, 20, name));
 			this.addTextField(new GuiNpcTextField(i + 3, this, fontRendererObj, guiLeft + 186, guiTop + 70 + i * 22, 24, 20, quest.targets.get(name) + ""));
-			this.getTextField(i+3).numbersOnly = true;
+			this.getTextField(i+3).integersOnly = true;
 			this.getTextField(i+3).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
 			i++;
 		}
@@ -58,7 +58,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 		for(;i < 3; i++){
 			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 70 + i * 22, 180, 20, ""));
 			this.addTextField(new GuiNpcTextField(i + 3, this, fontRendererObj, guiLeft + 186, guiTop + 70 + i * 22, 24, 20, "1"));
-			this.getTextField(i+3).numbersOnly = true;
+			this.getTextField(i+3).integersOnly = true;
 			this.getTextField(i+3).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
 		}
         Map<?,?> data = EntityList.stringToClassMapping;

@@ -42,7 +42,7 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
     	addLabel(new GuiNpcLabel(2, "companion.age", guiLeft + 4, y + 5));
     	if(role.canAge){
 	    	addTextField(new GuiNpcTextField(2, this, guiLeft + 162, y, 140, 20, role.ticksActive + ""));
-	    	getTextField(2).numbersOnly = true;
+	    	getTextField(2).integersOnly = true;
 	    	getTextField(2).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
     	}
 

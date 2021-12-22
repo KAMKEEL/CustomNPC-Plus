@@ -24,6 +24,7 @@ import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
@@ -31,6 +32,9 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.Iterator;
+import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -382,5 +386,22 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.isGUIOpen(player);
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
 		return data.getGUIOpen();
+	}
+
+	public ScriptDBCPlayer<T> getDBCPlayer() {
+		Set keySet = player.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
+		Iterator iterator = keySet.iterator();
+
+		while (iterator.hasNext())
+		{
+			String s = (String)iterator.next();
+			if(s.contains("jrmc"))
+				return new ScriptDBCPlayer<T>(this.player);
+		}
+		return null;
+	}
+
+	public boolean blocking() {
+		return player.isBlocking();
 	}
 }

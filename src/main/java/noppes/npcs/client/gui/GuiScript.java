@@ -1,9 +1,6 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
@@ -30,23 +27,23 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCallback, ICustomScrollListener, IJTextAreaListener {	
+public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCallback, ICustomScrollListener, IJTextAreaListener {
 	public boolean showScript = false;
 	private int activeTab = 0;
 	public DataScript script;
 	public Map<String,List<String>> languages = new HashMap<String,List<String>>();
-	
+
 	private static int activeConsole = 0;
-	
+
 	public GuiScript(EntityNPCInterface npc) {
 		super(npc);
 		script = npc.script;
 		drawDefaultBackground = true;
 		closeOnEsc = true;
-        xSize = 420;
-        
-        setBackground("menubg.png");
-        Client.sendData(EnumPacketServer.ScriptDataGet);
+		xSize = 420;
+
+		setBackground("menubg.png");
+		Client.sendData(EnumPacketServer.ScriptDataGet);
 	}
 
 	public void initGui() {
@@ -59,38 +56,38 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		top.active = !showScript;
 		addTopButton(new GuiMenuTopButton(15, top, "gui.website"));
 
-        List<String> list = new ArrayList<String>();
-        list.add("script.init");
-        list.add("script.update");
-        list.add("script.interact");
-        list.add("dialog.dialog");
-        list.add("script.damaged");
-        list.add("script.killed");
-        list.add("script.attack");
-        list.add("script.target");
-        list.add("script.collide");
-        list.add("script.kills");
-        list.add("script.dialog_closed");
+		List<String> list = new ArrayList<String>();
+		list.add("script.init");
+		list.add("script.update");
+		list.add("script.interact");
+		list.add("dialog.dialog");
+		list.add("script.damaged");
+		list.add("script.killed");
+		list.add("script.attack");
+		list.add("script.target");
+		list.add("script.collide");
+		list.add("script.kills");
+		list.add("script.dialog_closed");
 		list.add("script.timer");
-        
+
 		if(showScript){
 			addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft + 4, guiTop + 5));
 			GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
 			hooks.setSize(68, 198);
 			hooks.guiLeft = guiLeft + 4;
 			hooks.guiTop = guiTop + 14;
-	        hooks.setUnsortedList(list);
-	        hooks.selected = activeTab;
-	        addScroll(hooks);
-	        
+			hooks.setUnsortedList(list);
+			hooks.selected = activeTab;
+			addScroll(hooks);
+
 			ScriptContainer container = script.scripts.get(activeTab);
-			
+
 			addTextField(new GuiNpcTextArea(2, this, guiLeft + 74, guiTop + 4, 239, 208, container == null?"":container.script));
 
 			addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
 			addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
 			addButton(new GuiNpcButton(100, guiLeft + 315, guiTop + 25, 50, 20, "gui.copy"));
-			
+
 			addButton(new GuiNpcButton(108, guiLeft + 315, guiTop + 47, 80, 20, "gui.editor"));
 
 			addButton(new GuiNpcButton(107, guiLeft + 315, guiTop + 70, 80, 20, "script.loadscript"));
@@ -115,14 +112,14 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			l.add("All");
 			l.addAll(list);
 			addButton(new GuiNpcButton(105, guiLeft + 60, guiTop + 4, 80, 20, l.toArray(new String[l.size()]), activeConsole));
-			
+
 			addLabel(new GuiNpcLabel(1, "script.language", guiLeft + 232, guiTop + 30));
 			addButton(new GuiNpcButton(103, guiLeft + 294, guiTop + 25, 80, 20, languages.keySet().toArray(new String[languages.keySet().size()]), getScriptIndex()));
 			getButton(103).enabled = languages.size() > 0;
 
 			addLabel(new GuiNpcLabel(2, "gui.enabled", guiLeft + 232, guiTop + 53));
 			addButton(new GuiNpcButton(104, guiLeft + 294, guiTop + 48, 50, 20, new String[]{"gui.no","gui.yes"}, script.enabled?1:0));
-			
+
 			if(MinecraftServer.getServer() != null)
 				addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
 		}
@@ -139,27 +136,24 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	}
 
 	private String getConsoleText() {
-		String console = "";
-		if(activeConsole == 0){
-			for(ScriptContainer container : script.scripts.values()){
-				if(!container.console.isEmpty())
-					console += container.console + '\n';
-			}
+		Map<Long, String> map = this.script.getConsoleText();
+		StringBuilder builder = new StringBuilder();
+		Iterator var3 = map.entrySet().iterator();
+
+		while(var3.hasNext()) {
+			Map.Entry<Long, String> entry = (Map.Entry)var3.next();
+			builder.insert(0, new Date((Long)entry.getKey()) + (String)entry.getValue() + "\n");
 		}
-		else{
-			ScriptContainer container = script.scripts.get(activeConsole - 1);
-			if(container != null)
-				console = container.console;
-		}
-		return console;
+
+		return builder.toString();
 	}
-	
-    @Override
-    public void confirmClicked(boolean flag, int i){
-    	if(flag)
-    		openLink("http://www.kodevelopment.nl/minecraft/customnpcs/scripting");
+
+	@Override
+	public void confirmClicked(boolean flag, int i){
+		if(flag)
+			openLink("http://www.kodevelopment.nl/minecraft/customnpcs/scripting");
 		displayGuiScreen(this);
-    }
+	}
 
 	@Override
 	protected void actionPerformed(GuiButton guibutton) {
@@ -174,7 +168,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		}
 		if(guibutton.id == 15){
 			GuiConfirmOpenLink guiyesno = new GuiConfirmOpenLink(this, "http://www.kodevelopment.nl/minecraft/customnpcs/scripting", 0, true);
-            mc.displayGuiScreen(guiyesno);
+			mc.displayGuiScreen(guiyesno);
 		}
 		if (guibutton.id == 100) {
 			NoppesStringUtils.setClipboardContents(getTextField(2).getText());
@@ -186,13 +180,13 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			getTextField(2).setText("");
 			if(!showScript){
 				if(activeConsole == 0){
-					for(ScriptContainer container : script.scripts.values())
-						container.console = "";
+					for(ScriptContainer container : script.scripts)
+						container.console.clear();
 				}
 				else{
 					ScriptContainer container = script.scripts.get(activeConsole - 1);
 					if(container != null)
-						container.console = "";
+						container.console.clear();
 				}
 			}
 		}
@@ -212,7 +206,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		if (guibutton.id == 107) {
 			ScriptContainer container = script.scripts.get(activeTab);
 			if(container == null)
-				script.scripts.put(activeTab, container = new ScriptContainer());
+				script.scripts.set(activeTab, container = new ScriptContainer(this.script));
 			setSubGui(new GuiScriptList(languages.get(script.scriptLanguage), container));
 		}
 		if (guibutton.id == 108) {
@@ -223,12 +217,12 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			}
 		}
 	}
-	
+
 	private void setScript(){
 		if(showScript){
 			ScriptContainer container = script.scripts.get(activeTab);
 			if(container == null)
-				script.scripts.put(activeTab, container = new ScriptContainer());
+				script.scripts.set(activeTab, container = new ScriptContainer(this.script));
 			String text = getTextField(2).getText();
 			text = text.replace("\r\n", "\n");
 			text = text.replace("\r", "\n");
@@ -257,7 +251,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	@Override
 	public void save() {
 		setScript();
-        Client.sendData(EnumPacketServer.ScriptDataSave, script.writeToNBT(new NBTTagCompound()));
+		Client.sendData(EnumPacketServer.ScriptDataSave, script.writeToNBT(new NBTTagCompound()));
 	}
 
 	@Override
@@ -278,3 +272,4 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	}
 
 }
+

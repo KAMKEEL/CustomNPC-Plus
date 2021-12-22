@@ -35,6 +35,8 @@ public class DataAI {
 
 	// Fly Change
 	public int movementType = 0;
+	public double flySpeed = 1.0D;
+	public double flyGravity = 0.0D;
 	
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
@@ -96,8 +98,18 @@ public class DataAI {
 		setMovingPath(NBTTags.getIntegerArraySet(compound.getTagList("MovingPathNew",10)));
 		movingPos = compound.getInteger("MovingPos");
 		movingPattern = compound.getInteger("MovingPatern");
+
 		movementType = compound.getInteger("MovingType");
-		
+		if(!compound.hasKey("FlySpeed"))
+			flySpeed = 1.0D;
+		else
+			flySpeed = compound.getDouble("FlySpeed");
+
+		if(!compound.hasKey("FlyGravity"))
+			flyGravity = 0.0D;
+		else
+			flyGravity = compound.getDouble("FlyGravity");
+
 		startPos = compound.getIntArray("StartPosNew");
 		if (startPos == null || startPos.length != 3){
 			startPos = new int[] { 
@@ -143,8 +155,11 @@ public class DataAI {
 		compound.setTag("MovingPathNew", NBTTags.nbtIntegerArraySet(movingPath));
 		compound.setInteger("MovingPos", movingPos);
 		compound.setInteger("MovingPatern", movingPattern);
+
 		compound.setInteger("MovingType", movementType);
-		
+		compound.setDouble("FlySpeed",flySpeed);
+		compound.setDouble("FlyGravity",flyGravity);
+
 		npc.setAvoidWater(avoidsWater);
 		
 		compound.setIntArray("StartPosNew", npc.getStartPos());

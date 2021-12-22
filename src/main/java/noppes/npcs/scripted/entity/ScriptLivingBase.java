@@ -1,11 +1,13 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.MathHelper;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
@@ -49,8 +51,8 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	/**
 	 * @return Entity's max health
 	 */
-	public float getMaxHealth(){
-		return entity.getMaxHealth();
+	public double getMaxHealth(){
+		return entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).getAttributeValue();
 	}
 	/**
 	 * @return Whether or not this entity is attacking something
@@ -122,13 +124,9 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
         
 		if(strength < 0)
 			strength = 0;
-		else if(strength > 255)
-			strength = 255;
 
 		if(duration < 0)
 			duration = 0;
-		else if(duration > 1000000)
-			duration = 1000000;
 		
 		if(!Potion.potionTypes[effect].isInstant())
 			duration *= 20;

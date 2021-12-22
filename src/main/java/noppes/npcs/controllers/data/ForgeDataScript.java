@@ -13,10 +13,9 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
-import noppes.npcs.EventScriptContainer;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
@@ -26,7 +25,7 @@ import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import javax.script.ScriptEngine;
 
 public class ForgeDataScript implements IScriptHandler {
-    private List<EventScriptContainer> scripts = new ArrayList();
+    private List<ScriptContainer> scripts = new ArrayList();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
     private boolean enabled = false;
@@ -52,7 +51,7 @@ public class ForgeDataScript implements IScriptHandler {
     }
 
     @Override
-    public void callScript(EnumScriptType var1, Event var2, Object... obs) {
+    public void callScript(EnumScriptType var1, Event var2) {
         callScript(var1.function, var2);
     }
 
@@ -68,20 +67,8 @@ public class ForgeDataScript implements IScriptHandler {
 
                 Iterator var3 = this.scripts.iterator();
 
-                while (var3.hasNext()) {
-                    EventScriptContainer script = (EventScriptContainer) var3.next();
-
-                    script.setEngine(scriptLanguage);
-                    if(script.engine == null)
-                        return;
-
-                    Event result = (Event) script.engine.get("event");
-                    if(result == null)
-                        script.engine.put("event", event);
-                    script.engine.put("API", new WrapperNpcAPI());
-
-                    ScriptEngine engine = script.engine;
-
+                while(var3.hasNext()) {
+                    ScriptContainer script = (ScriptContainer)var3.next();
                     script.run(type, event);
                 }
             //});
@@ -112,7 +99,7 @@ public class ForgeDataScript implements IScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public List<EventScriptContainer> getScripts() {
+    public List<ScriptContainer> getScripts() {
         return this.scripts;
     }
 
@@ -126,7 +113,7 @@ public class ForgeDataScript implements IScriptHandler {
         Iterator var3 = this.getScripts().iterator();
 
         while(var3.hasNext()) {
-            EventScriptContainer script = (EventScriptContainer)var3.next();
+            ScriptContainer script = (ScriptContainer)var3.next();
             ++tab;
             Iterator var5 = script.console.entrySet().iterator();
 
@@ -143,7 +130,7 @@ public class ForgeDataScript implements IScriptHandler {
         Iterator var1 = this.getScripts().iterator();
 
         while(var1.hasNext()) {
-            EventScriptContainer script = (EventScriptContainer)var1.next();
+            ScriptContainer script = (ScriptContainer)var1.next();
             script.console.clear();
         }
 

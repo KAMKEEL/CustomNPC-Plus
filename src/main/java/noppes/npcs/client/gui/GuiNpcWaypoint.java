@@ -29,7 +29,7 @@ public class GuiNpcWaypoint extends GuiNPCInterface{
     	
     	addLabel(new GuiNpcLabel(1,"gui.range", guiLeft+ 1, guiTop + 97, 0xffffff));    	
     	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft+ 60, guiTop + 92,200,20, tile.range + ""));
-    	getTextField(1).numbersOnly = true;
+    	getTextField(1).integersOnly = true;
     	getTextField(1).setMinMaxDefault(2, 60, 10);
 
         addButton(new GuiNpcButton(0, guiLeft + 40, guiTop + 190,120,20, "Done"));

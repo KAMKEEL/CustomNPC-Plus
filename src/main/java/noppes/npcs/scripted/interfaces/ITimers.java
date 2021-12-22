@@ -17,4 +17,6 @@ public interface ITimers {
     void reset(int var1);
 
     void clear();
+
+    int size();
 }

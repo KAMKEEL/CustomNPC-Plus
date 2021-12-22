@@ -55,9 +55,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	this.addButton(new GuiNpcButton(1, guiLeft + 50, y,110,20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(2,"display.size", guiLeft + 175, y + 5));
         addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 203, y, 40, 20, display.modelSize + ""));
-        getTextField(2).numbersOnly = true;
-        getTextField(2).setMinMaxDefault(1, 30, 5);
-        addLabel(new GuiNpcLabel(3,"(1-30)", guiLeft + 246 , y + 5));
+        getTextField(2).integersOnly = true;
+        getTextField(2).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
+        //addLabel(new GuiNpcLabel(3,"(1-30)", guiLeft + 246 , y + 5));
 
     	y+=23;
     	addLabel(new GuiNpcLabel(4,"display.texture", guiLeft + 5, y + 5));

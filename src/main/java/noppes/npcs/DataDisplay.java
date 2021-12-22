@@ -158,7 +158,7 @@ public class DataDisplay {
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
 		
-		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, 30);
+		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		modelType = nbttagcompound.getInteger("modelType");
 		
 		showName = nbttagcompound.getInteger("ShowName");

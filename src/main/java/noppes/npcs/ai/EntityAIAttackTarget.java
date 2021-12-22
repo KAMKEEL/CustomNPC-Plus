@@ -1,10 +1,12 @@
 package noppes.npcs.ai;
 
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.AiMutex;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -55,7 +57,9 @@ public class EntityAIAttackTarget extends EntityAIBase
         }
         else{
         	this.entityTarget = entitylivingbase;
+            this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(((EntityNPCInterface) this.attacker).stats.aggroRange);
             this.entityPathEntity = this.attacker.getNavigator().getPathToEntityLiving(entitylivingbase);
+            this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
             return this.entityPathEntity != null;
         }
     }
