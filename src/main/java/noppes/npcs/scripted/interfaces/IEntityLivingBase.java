@@ -19,7 +19,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
     /**
      * @return Entity's max health
      */
-    public float getMaxHealth();
+    public double getMaxHealth();
     /**
      * @return Whether or not this entity is attacking something
      */

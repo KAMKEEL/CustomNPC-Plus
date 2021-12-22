@@ -39,16 +39,16 @@ public class GuiNpcBard extends GuiNPCInterface2
         
         addLabel(new GuiNpcLabel(2,"bard.ondistance", guiLeft + 60, guiTop + 143));
         addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft+160, guiTop + 138, 40, 20, job.minRange + ""));
-        getTextField(2).numbersOnly = true;
-        getTextField(2).setMinMaxDefault(2, 64, 5);
+        getTextField(2).integersOnly = true;
+        getTextField(2).setMinMaxDefault(2, Integer.MAX_VALUE, 5);
 
         addLabel(new GuiNpcLabel(4,"bard.hasoff", guiLeft + 60, guiTop + 166));
         addButton(new GuiNpcButton(4, guiLeft + 160, guiTop + 161, 60, 20, new String[]{"gui.no","gui.yes"}, job.hasOffRange?1:0));
         
         addLabel(new GuiNpcLabel(3,"bard.offdistance", guiLeft + 60, guiTop + 189));
         addTextField(new GuiNpcTextField(3,this, this.fontRendererObj, guiLeft+160, guiTop + 184, 40, 20, job.maxRange + ""));
-        getTextField(3).numbersOnly = true;
-        getTextField(3).setMinMaxDefault(2, 64, 10);
+        getTextField(3).integersOnly = true;
+        getTextField(3).setMinMaxDefault(2, Integer.MAX_VALUE, 10);
 
     	getLabel(3).enabled = job.hasOffRange;
     	getTextField(3).enabled = job.hasOffRange;

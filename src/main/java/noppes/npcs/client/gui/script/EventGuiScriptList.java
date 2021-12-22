@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.EventScriptContainer;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -18,10 +18,10 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 public class EventGuiScriptList extends SubGuiInterface {
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
-    private EventScriptContainer container;
+    private ScriptContainer container;
     private List<String> scripts;
 
-    public EventGuiScriptList(List<String> scripts, EventScriptContainer container) {
+    public EventGuiScriptList(List<String> scripts, ScriptContainer container) {
         this.container = container;
         this.setBackground("menubg.png");
         this.xSize = 346;

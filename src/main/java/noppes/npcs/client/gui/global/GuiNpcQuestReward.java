@@ -32,8 +32,8 @@ public class GuiNpcQuestReward extends GuiContainerNPCInterface implements IText
         
         addLabel(new GuiNpcLabel(1, "quest.exp", guiLeft + 4, guiTop + 45));
         addTextField(new GuiNpcTextField(0, this, this.fontRendererObj, guiLeft + 4, guiTop + 55, 60, 20, quest.rewardExp + ""));
-        getTextField(0).numbersOnly = true;
-        getTextField(0).setMinMaxDefault(0, 99999, 0);
+        getTextField(0).integersOnly = true;
+        getTextField(0).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
     }
 
     public void actionPerformed(GuiButton guibutton){

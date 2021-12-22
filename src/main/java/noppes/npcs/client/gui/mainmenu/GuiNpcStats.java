@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.mainmenu;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EnumCreatureAttribute;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataStats;
 import noppes.npcs.client.Client;
@@ -34,12 +35,12 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
         int y = guiTop + 10;
         addLabel(new GuiNpcLabel(0,"stats.health", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(0,this, guiLeft + 85, y, 50, 18, stats.maxHealth+""));
-        getTextField(0).numbersOnly = true;
-        getTextField(0).setMinMaxDefault(1, Integer.MAX_VALUE, 20);
+        getTextField(0).doublesOnly = true;
+        getTextField(0).setMinMaxDefaultDouble(0,Double.MAX_VALUE,20);
         addLabel(new GuiNpcLabel(1,"stats.aggro", guiLeft + 140, y + 5));
         addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 220, y, 50, 18, stats.aggroRange+""));
-        getTextField(1).numbersOnly = true;
-        getTextField(1).setMinMaxDefault(1, 64, 2);
+        getTextField(1).integersOnly = true;
+        getTextField(1).setMinMaxDefault(1, Integer.MAX_VALUE, 2);
         addLabel(new GuiNpcLabel(34,"stats.creaturetype", guiLeft + 275, y + 5));
     	addButton(new GuiNpcButton(8,guiLeft + 355, y, 56, 20, new String[]{"stats.normal","stats.undead","stats.arthropod"} ,stats.creatureType.ordinal()));
 
@@ -63,10 +64,10 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     	addLabel(new GuiNpcLabel(10,"stats.fireimmune", guiLeft + 5, y + 5));
     	addButton(new GuiNpcButton(5,guiLeft + 217, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.canDrown? 1:0));
     	addLabel(new GuiNpcLabel(11,"stats.candrown", guiLeft + 140, y + 5));
-    	addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, stats.healthRegen + "").setNumbersOnly());
+    	addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, stats.healthRegen + "").setFloatsOnly());
     	addLabel(new GuiNpcLabel(14,"stats.regenhealth", guiLeft + 275, y + 5));
     	
-    	addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y+=22, 56, 20, stats.combatRegen + "").setNumbersOnly());
+    	addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y+=22, 56, 20, stats.combatRegen + "").setFloatsOnly());
     	addLabel(new GuiNpcLabel(16,"stats.combatregen", guiLeft + 275, y + 5));
     	addButton(new GuiNpcButton(6,guiLeft + 82, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.burnInSun? 1:0));
     	addLabel(new GuiNpcLabel(12,"stats.burninsun", guiLeft + 5, y + 5));
@@ -82,17 +83,17 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
 		if(textfield.id == 0){
-			stats.maxHealth = textfield.getInteger();
-			npc.heal(stats.maxHealth);
+			stats.maxHealth = Math.floor(Double.parseDouble(textfield.getText()));
+			npc.heal((float)(stats.maxHealth));
 		}
 		else if(textfield.id == 1){
 			stats.aggroRange = textfield.getInteger();
 		}
 		else if(textfield.id == 14){
-			stats.healthRegen = textfield.getInteger();
+			stats.healthRegen = (float)(Math.floor(Float.parseFloat(textfield.getText())));
 		}
 		else if(textfield.id == 16){
-			stats.combatRegen = textfield.getInteger();
+			stats.combatRegen = (float)(Math.floor(Float.parseFloat(textfield.getText())));
 		}
 	}
 	

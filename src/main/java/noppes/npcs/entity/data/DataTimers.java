@@ -101,6 +101,8 @@ public class DataTimers implements ITimers {
         this.timers = new HashMap();
     }
 
+    public int size() { return this.timers.size(); }
+
     class Timer {
         public int id;
         private boolean repeat;

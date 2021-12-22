@@ -24,13 +24,13 @@ public class GuiNpcHealer extends GuiNPCInterface2
 
         addLabel(new GuiNpcLabel(1,"Healing Speed:", guiLeft + 60, guiTop + 110));
         addTextField(new GuiNpcTextField(1,this, this.fontRendererObj, guiLeft+130, guiTop + 105, 40, 20, job.speed + ""));
-        getTextField(1).numbersOnly = true;
-        getTextField(1).setMinMaxDefault(1, 10, 8);
+        getTextField(1).integersOnly = true;
+        getTextField(1).setMinMaxDefault(1, Integer.MAX_VALUE, 8);
         
         addLabel(new GuiNpcLabel(2,"Range:", guiLeft + 60, guiTop + 133));
         addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft+130, guiTop + 128, 40, 20, job.range + ""));
-        getTextField(2).numbersOnly = true;
-        getTextField(2).setMinMaxDefault(2, 20, 5);
+        getTextField(2).integersOnly = true;
+        getTextField(2).setMinMaxDefault(2, Integer.MAX_VALUE, 5);
         
     }
     @Override

@@ -52,7 +52,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 		if (ai.useRangeMelee >= 1){
 			addLabel(new GuiNpcLabel(20,"gui.minrange", guiLeft + 300, guiTop + 115));
 			addTextField(new GuiNpcTextField(6,this, fontRendererObj, guiLeft + 380, guiTop + 110, 30, 20, ai.distanceToMelee + ""));
-	    	getTextField(6).numbersOnly = true;
+	    	getTextField(6).integersOnly = true;
 	        getTextField(6).setMinMaxDefault(1, npc.stats.aggroRange, 5);
 		}
 		addLabel(new GuiNpcLabel(19,"ai.tacticalvariant", guiLeft + 150, guiTop + 140));
@@ -70,7 +70,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     		}
     		addLabel(new GuiNpcLabel(21, label, guiLeft + 300, guiTop + 140));
     		addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 380, guiTop + 135, 30, 20, ai.tacticalRadius + ""));
-	    	getTextField(3).numbersOnly = true;
+	    	getTextField(3).integersOnly = true;
 	        getTextField(3).setMinMaxDefault(1, npc.stats.aggroRange, 5);
     	}
 

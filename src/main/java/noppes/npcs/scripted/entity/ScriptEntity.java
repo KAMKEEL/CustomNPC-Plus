@@ -18,14 +18,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptEntityParticle;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
@@ -457,20 +455,17 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param power How strong the knockback is
 	 * @param direction The direction in which he flies back (0-360). Usually based on getRotation()
 	 */
+	@Override
 	public void knockback(int power, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
-		entity.addVelocity(-MathHelper.sin(v) * (float)power, 0.1D + power * 0.04f, MathHelper.cos(v) * (float)power);
-		entity.motionX *= 0.6D;
-		entity.motionZ *= 0.6D;
-		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
-		entity.hurtResistantTime = 0;
+		entity.addVelocity(-MathHelper.sin(v) * (float)power, power, MathHelper.cos(v) * (float)power);
+		entity.velocityChanged = true;
 	}
 
 	public void knockback(int xpower, int ypower, int zpower, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
-		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, 0.1D + ypower * 0.04f, MathHelper.cos(v) * (float)zpower);
-		entity.attackEntityFrom(DamageSource.outOfWorld, 0.0001F);
-		entity.hurtResistantTime = 0;
+		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, ypower, MathHelper.cos(v) * (float)zpower);
+		entity.velocityChanged = true;
 	}
 
 	public void setImmune(int ticks) {
@@ -527,5 +522,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		} else {
 			ServerCloneController.Instance.addClone(compound, name, tab);
 		}
+	}
+
+	public ScriptWorld getWorld() {
+		return (ScriptWorld)NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
 	}
 }
