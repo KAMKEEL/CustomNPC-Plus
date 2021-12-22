@@ -245,9 +245,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        /*if(textfield.id == 1){
-            this.handler.getScripts().get(this.activeTab - 1).setType(textfield.getText());
-        }*/
+
     }
 
     private String getConsoleText() {
