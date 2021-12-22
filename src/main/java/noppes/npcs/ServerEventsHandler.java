@@ -21,6 +21,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -35,20 +36,14 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.Line;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.QuestData;
-import noppes.npcs.controllers.RecipeCarpentry;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.roles.RoleFollower;
+import noppes.npcs.scripted.event.ForgeEvent;
 
 public class ServerEventsHandler {
 
@@ -73,6 +68,13 @@ public class ServerEventsHandler {
 //		}
 //		exps.put(player.getCommandSenderName(), player.experienceTotal);
 //	}
+
+	@SubscribeEvent
+	public void invoke(CommandEvent event){
+		if(CustomNpcs.getServer() != null && ScriptController.Instance.forgeScripts.isEnabled()) {
+			EventHooks.onForgeEvent(new ForgeEvent(event), event);
+		}
+	}
 
 	@SubscribeEvent
 	public void invoke(EntityInteractEvent event) {

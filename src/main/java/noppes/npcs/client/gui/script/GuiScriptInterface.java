@@ -20,6 +20,7 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.world.ChunkDataEvent;
@@ -169,6 +170,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                         }
                     }
                 }
+                String eventName = CommandEvent.class.getName();
+                int i = eventName.lastIndexOf(".");
+                eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
+                hookList.add(eventName);
             }
             hooks.setUnsortedList(hookList);
             addScroll(hooks);
