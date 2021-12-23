@@ -170,10 +170,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                         }
                     }
                 }
-                String eventName = CommandEvent.class.getName();
-                int i = eventName.lastIndexOf(".");
-                eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
-                hookList.add(eventName);
             }
             hooks.setUnsortedList(hookList);
             addScroll(hooks);

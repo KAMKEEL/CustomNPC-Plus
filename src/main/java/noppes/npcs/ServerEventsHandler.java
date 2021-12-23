@@ -70,13 +70,6 @@ public class ServerEventsHandler {
 //	}
 
 	@SubscribeEvent
-	public void invoke(CommandEvent event){
-		if(CustomNpcs.getServer() != null && ScriptController.Instance.forgeScripts.isEnabled()) {
-			EventHooks.onForgeEvent(new ForgeEvent(event), event);
-		}
-	}
-
-	@SubscribeEvent
 	public void invoke(EntityInteractEvent event) {
 		ItemStack item = event.entityPlayer.getCurrentEquippedItem();
 		if(item == null)
