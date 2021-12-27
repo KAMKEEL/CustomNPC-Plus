@@ -30,6 +30,11 @@ public class ScriptBlock implements IBlock {
         this.block = block;
         this.pos = pos;
         this.bPos = new ScriptBlockPos(pos);
+        this.setTile(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
+    }
+
+    protected void setTile(TileEntity tile) {
+        this.tile = tile;
     }
 
     public IPos getPos() {

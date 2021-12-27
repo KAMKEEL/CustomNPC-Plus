@@ -475,7 +475,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSltX","TR"+level);
     }
     public int getFormLevel(){
-        return Integer.parseInt(player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSltX").replace("TR",""));
+        return Integer.parseInt(player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSltX").replace("TR","").replace("pty",""));
     }
 
     public void setSkills(String skills){
