@@ -101,7 +101,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param x The entities x position
 	 */
 	public void setX(double x){
-		entity.posX = x;
+		entity.setPosition(x, entity.posY, entity.posZ);;
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param y The entities y position
 	 */
 	public void setY(double y){
-		entity.posY = y;
+		entity.setPosition(entity.posX, y, entity.posZ);
 	}
 
 	/**
@@ -129,7 +129,52 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param z The entities x position
 	 */
 	public void setZ(double z){
-		entity.posZ = z;
+		entity.setPosition(entity.posX, entity.posY, z);;
+	}
+
+	/**
+	 * @return The entities z motion
+	 */
+	public double getMotionX(){
+		return entity.motionX;
+	}
+
+	/**
+	 * @param x The entities x motion
+	 */
+	public void setMotionX(double x){
+		entity.motionX = x;
+		entity.velocityChanged = true;
+	}
+
+	/**
+	 * @return The entities x motion
+	 */
+	public double getMotionY(){
+		return entity.motionY;
+	}
+
+	/**
+	 * @param y The entities y motion
+	 */
+	public void setMotionY(double y){
+		entity.motionY = y;
+		entity.velocityChanged = true;
+	}
+
+	/**
+	 * @return The entities y motion
+	 */
+	public double getMotionZ(){
+		return entity.motionZ;
+	}
+
+	/**
+	 * @param z The entities z motion
+	 */
+	public void setMotionZ(double z){
+		entity.motionZ = z;
+		entity.velocityChanged = true;
 	}
 
 	/**

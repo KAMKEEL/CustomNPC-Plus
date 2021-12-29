@@ -23,6 +23,7 @@ import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.interfaces.ICustomNpc;
 import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
@@ -36,7 +37,7 @@ public class DataScript implements IScriptHandler {
 	private EntityNPCInterface npc;
 	public boolean enabled = false;
 	
-	public ScriptNpc dummyNpc;
+	public ICustomNpc dummyNpc;
 	public IWorld dummyWorld;
 	public boolean clientNeedsUpdate = false;
 	public boolean aiNeedsUpdate = false;
@@ -48,8 +49,8 @@ public class DataScript implements IScriptHandler {
 		}
 
 		this.npc = npc;
-		if(npc instanceof EntityCustomNpc)
-			dummyNpc = new ScriptNpc((EntityCustomNpc) npc);
+		dummyNpc = new ScriptNpc<>(npc);
+
 		if(npc.worldObj instanceof WorldServer)
 			dummyWorld = NpcAPI.Instance().getIWorld((WorldServer) npc.worldObj);//new ScriptWorld((WorldServer) npc.worldObj);
 	}

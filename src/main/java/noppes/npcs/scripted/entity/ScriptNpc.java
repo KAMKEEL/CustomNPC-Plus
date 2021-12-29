@@ -2,10 +2,7 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -89,6 +86,17 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setRotation(float rotation){
 		npc.ai.orientation = (int)rotation;
 		super.setRotation(rotation);
+	}
+	public void setRotationType(int rotationType){
+		for (EnumStandingType e : EnumStandingType.values()) {
+			if (e.ordinal() == rotationType) {
+				npc.ai.standingType = e;
+				break;
+			}
+		}
+	}
+	public int getRotationType(){
+		return npc.ai.standingType.ordinal();
 	}
 	/**
 	 * @param name The name of the npc

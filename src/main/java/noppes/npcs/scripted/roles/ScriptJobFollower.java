@@ -23,7 +23,7 @@ public class ScriptJobFollower extends ScriptJobInterface{
 	public ScriptNpc getFollowingNpc(){
 		if(!isFollowing())
 			return null;
-		return job.following.script.dummyNpc;
+		return (ScriptNpc)job.following.script.dummyNpc;
 	}
 	
 	public boolean isFollowing(){

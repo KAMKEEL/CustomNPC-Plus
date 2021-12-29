@@ -31,13 +31,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.entity.ScriptAnimal;
-import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.entity.ScriptLiving;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
-import noppes.npcs.scripted.entity.ScriptMonster;
-import noppes.npcs.scripted.entity.ScriptPixelmon;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
@@ -256,7 +250,7 @@ public class ScriptController {
 		if(entity == null)
 			return null;
 		if(entity instanceof EntityNPCInterface)
-			return ((EntityNPCInterface) entity).script.dummyNpc;
+			return (ScriptNpc)((EntityNPCInterface) entity).script.dummyNpc;
 		else{
 			ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
 			if(data != null)
