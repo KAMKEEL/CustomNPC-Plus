@@ -311,6 +311,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptRoleTransporter(npc);
 		return new ScriptRoleInterface(npc);
 	}
+	public void setRole(int role){
+		for (EnumRoleType e : EnumRoleType.values()) {
+			if (e.ordinal() == role) {
+				npc.advanced.role = e;
+				break;
+			}
+		}
+	}
 
 	/**
 	 * @return Returns the npcs current job
@@ -333,6 +341,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		else if(npc.advanced.job == EnumJobType.Spawner)
 			return new ScriptJobSpawner(npc);
 		return new ScriptJobInterface(npc);
+	}
+	public void setJob(int job){
+		for (EnumJobType e : EnumJobType.values()) {
+			if (e.ordinal() == job) {
+				npc.advanced.job = e;
+				break;
+			}
+		}
 	}
 	
 	/**
