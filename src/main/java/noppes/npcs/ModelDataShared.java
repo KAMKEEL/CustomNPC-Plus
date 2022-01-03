@@ -34,6 +34,10 @@ public class ModelDataShared{
 	public byte armwear = 0;
 	public byte legwear = 0;
 
+	// Solid or normal arm/legwear [0: None, 1: Both, 2: Right, 3: Left]
+	public byte solidArmwear = 0;
+	public byte solidLegwear = 0;
+
 	// Hide Body Parts [0: None, 1: Both, 2: Right, 3: Left],
 	public byte hideHead = 0;
 	public byte hideBody = 0;
@@ -57,6 +61,9 @@ public class ModelDataShared{
 		compound.setByte("Bodywear", bodywear);
 		compound.setByte("Armwear", armwear);
 		compound.setByte("Legwear", legwear);
+
+		compound.setByte("SolidArmwear", solidArmwear);
+		compound.setByte("SolidLegwear", solidLegwear);
 
 		compound.setByte("hideHead", hideHead);
 		compound.setByte("hideBody", hideBody);
@@ -91,6 +98,9 @@ public class ModelDataShared{
 		bodywear = compound.getByte("Bodywear");
 		armwear = compound.getByte("Armwear");
 		legwear = compound.getByte("Legwear");
+
+		solidArmwear = compound.getByte("SolidArmwear");
+		solidLegwear = compound.getByte("SolidLegwear");
 
 		hideHead = compound.getByte("hideHead");
 		hideBody = compound.getByte("hideBody");
