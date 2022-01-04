@@ -313,10 +313,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	    			LinkedNpcController.Instance.loadNpcData(this);
 	    		}
 				if(updateClient){
-	    			NBTTagCompound compound = writeSpawnData();
-	    			compound.setInteger("EntityId", getEntityId());
-	    			Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
-	    			updateClient = false;
+	    			this.updateClient();
 	    		}
 	    		if(updateAI){
 	    			updateTasks();
@@ -365,6 +362,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				((JobBard)jobInterface).onLivingUpdate();
         }
     }
+
+	public void updateClient() {
+		NBTTagCompound compound = writeSpawnData();
+		compound.setInteger("EntityId", getEntityId());
+		Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
+		updateClient = false;
+	}
+
     
 	@Override
 	public boolean interact(EntityPlayer player) {

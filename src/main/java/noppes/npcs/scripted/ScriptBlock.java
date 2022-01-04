@@ -77,7 +77,7 @@ public class ScriptBlock implements IBlock {
     }
 
     public boolean isContainer() {
-        return this.tile != null && this.tile instanceof IInventory?((IInventory)this.tile).getSizeInventory() > 0:false;
+        return this.tile != null && this.tile instanceof IInventory && ((IInventory) this.tile).getSizeInventory() > 0;
     }
 
     public IContainer getContainer() {

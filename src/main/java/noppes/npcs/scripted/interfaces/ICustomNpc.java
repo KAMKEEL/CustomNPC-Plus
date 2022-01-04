@@ -728,4 +728,6 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public void setOverlayTexture(String overlayTexture);
 
     public String getOverlayTexture();
+
+    public void updateClient();
 }

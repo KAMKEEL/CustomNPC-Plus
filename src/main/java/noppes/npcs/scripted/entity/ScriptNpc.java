@@ -1087,4 +1087,6 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public String getOverlayTexture() {
 		return npc.display.glowTexture;
 	}
+
+	public void updateClient() { this.npc.updateClient(); };
 }
