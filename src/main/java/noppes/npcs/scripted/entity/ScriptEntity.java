@@ -18,6 +18,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ScriptController;
@@ -27,6 +28,7 @@ import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
+import noppes.npcs.scripted.interfaces.IPos;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -207,6 +209,13 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.setPosition(x, y, z);
 	}
 
+	public IPos getPos() {
+		return new ScriptBlockPos(new BlockPos(entity.posX,entity.posY,entity.posZ));
+	}
+
+	public void setPos(IPos pos) {
+		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
+	}
 
 	/**
 	 * @param range The search range for entities around this entity
