@@ -36,10 +36,7 @@ import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.event.FactionGainPointsEvent;
-import noppes.npcs.event.NPCDeathEvent;
-import noppes.npcs.event.NPCKillEntityEvent;
-import noppes.npcs.event.PlayerInteractAtNPCEvent;
+import noppes.npcs.event.*;
 import noppes.npcs.items.ItemExcalibur;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
@@ -320,8 +317,6 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void invoke(LivingDeathEvent event) {
-        if (event.entityLiving.worldObj.isRemote) return;
-
         DamageSource source = event.source;
         EntityLivingBase entity = event.entityLiving;
 
@@ -355,35 +350,28 @@ public class ServerEventsHandler {
             }
         }
 
-        if (entity instanceof EntityNPCInterface) {
-            EntityNPCInterface npc = (EntityNPCInterface) entity;
+        EntityPlayer player = null;
 
-            EntityPlayer entityPlayer = attacker instanceof EntityPlayer ? (EntityPlayer) attacker : null;
+        if (attacker instanceof EntityPlayer) {
+            player = (EntityPlayer) attacker;
+        } else if (attacker instanceof EntityNPCInterface && ((EntityNPCInterface) attacker).advanced.role == EnumRoleType.Follower)
+            player = ((RoleFollower) ((EntityNPCInterface) attacker).roleInterface).owner;
+        if (player != null) {
+            doQuest(player, entity, true);
 
-            if (npc.advanced.role == EnumRoleType.Follower && entityPlayer == null) {
-                entityPlayer = ((RoleFollower) npc.roleInterface).owner;
-            }
-
-            if (entityPlayer != null) {
+            if (entity instanceof EntityNPCInterface) {
                 NPCDeathEvent npcDeathEvent = EventBus.callTo(
                   new NPCDeathEvent(
-                    npc,
-                    entityPlayer
+                    (EntityNPCInterface) entity,
+                    player
                   )
                 );
 
                 if (!npcDeathEvent.isCanceled()) {
-                    doQuest(entityPlayer, entity, true);
-                    doFactionPoints(entityPlayer, npc);
+                    doFactionPoints(player, (EntityNPCInterface) entity);
                 }
             }
-
         }
-//
-//        if (event.entityLiving instanceof EntityPlayer) {
-//            PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entityLiving);
-//            data.saveNBTData(null);
-//        } Why it's saving?
     }
 
     private void doExcalibur(EntityPlayer player, EntityLivingBase entity) {
@@ -395,18 +383,7 @@ public class ServerEventsHandler {
     }
 
     private void doFactionPoints(EntityPlayer player, EntityNPCInterface npc) {
-        FactionOptions options = npc.advanced.factions;
-
-        FactionGainPointsEvent event = EventBus.callTo(
-          new FactionGainPointsEvent(
-            options,
-            player
-          )
-        );
-
-        if (event.isCanceled()) return;
-
-        options.addPoints(player);
+        npc.advanced.factions.addPoints(player);
     }
 
     private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {

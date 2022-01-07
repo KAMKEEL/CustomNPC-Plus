@@ -3,6 +3,8 @@ package noppes.npcs.controllers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.event.FactionGainPointsEvent;
+import noppes.npcs.util.EventBus;
 
 public class FactionOptions {
 
@@ -59,6 +61,14 @@ public class FactionOptions {
 		if(!faction.hideFaction){
 			String message = decrease?"faction.decreasepoints":"faction.increasepoints";
 			player.addChatMessage(new ChatComponentTranslation(message, faction.name, points));
+		}
+
+		FactionGainPointsEvent event = EventBus.callTo(
+				new FactionGainPointsEvent(this, player)
+		);
+
+		if(event.isCanceled()) {
+			return;
 		}
 		
 		data.increasePoints(factionId, decrease?-points:points);

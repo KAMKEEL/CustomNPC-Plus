@@ -98,14 +98,6 @@ public class PlayerQuestData {
             if (inter.isCompleted(player)) {
                 if (!data.isCompleted) {
                     if (!data.quest.complete(player, data)) {
-                        PlayerCompleteQuestEvent event = EventBus.callTo(
-                          new PlayerCompleteQuestEvent(player, data.quest)
-                        );
-
-                        if (event.isCanceled()) {
-                            continue;
-                        }
-
                         Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", data.quest.title);
                         Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", data.quest.title);
                     }

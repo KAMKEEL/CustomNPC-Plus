@@ -41,8 +41,10 @@ import noppes.npcs.controllers.QuestData;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.event.PlayerCompleteQuestEvent;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+import noppes.npcs.util.EventBus;
 
 public class NoppesUtilPlayer {
 
@@ -293,12 +295,22 @@ public class NoppesUtilPlayer {
 	public static void questCompletion(EntityPlayerMP player, int questId) {
 		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
 		QuestData data = playerdata.activeQuests.get(questId);
-		if(data == null)
+
+		if(data == null) {
 			return;
+		}
 		
-		if(!data.quest.questInterface.isCompleted(player))
+		if(!data.quest.questInterface.isCompleted(player)) {
 			return;
-		
+		}
+
+		PlayerCompleteQuestEvent event = EventBus.callTo(
+				new PlayerCompleteQuestEvent(player, data.quest)
+		);
+
+		if(event.isCanceled()) {
+			return;
+		}
 
 		data.quest.questInterface.handleComplete(player);
 		if(data.quest.rewardExp > 0){
