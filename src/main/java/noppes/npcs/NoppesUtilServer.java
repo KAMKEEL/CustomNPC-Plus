@@ -356,7 +356,6 @@ public class NoppesUtilServer {
 		Map<String,Integer> map = new HashMap<String,Integer>();
         
 		if(type == EnumPlayerData.Players){
-	        File loc = PlayerDataController.instance.getSaveDir();
 	        for(String username : PlayerDataController.instance.getUsernameData().keySet()){
 	        	map.put(username, 0);
 	        }
