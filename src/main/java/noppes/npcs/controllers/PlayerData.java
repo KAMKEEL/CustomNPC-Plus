@@ -45,16 +45,14 @@ public class PlayerData implements IExtendedEntityProperties{
 
 	@Override
 	public void saveNBTData(NBTTagCompound compound) {
-		PlayerDataController.instance.savePlayerData(this);
+		PlayerDataController.instance.savePlayerData(getNBT(), player.getPersistentID());
 	}
 
 	@Override
 	public void loadNBTData(NBTTagCompound compound) {
-		NBTTagCompound data = PlayerDataController.instance.loadPlayerData(player.getPersistentID().toString());
-		if(data.hasNoTags()){
-			data = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
-		}
-		setNBT(data);
+		setNBT(
+			PlayerDataController.instance.loadPlayerData(player.getPersistentID())
+		);
 	}
 
 	public void setNBT(NBTTagCompound data){
@@ -162,84 +160,5 @@ public class PlayerData implements IExtendedEntityProperties{
 		setCompanion(npc);
 		((RoleCompanion)npc.roleInterface).setSitting(false);
 		world.spawnEntityInWorld(npc);
-	}
-
-	public static NBTTagCompound loadPlayerDataOld(String player) {
-		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
-		String filename = player;
-		if (player.isEmpty()) {
-			filename = "noplayername";
-		}
-
-		filename = filename + ".dat";
-
-		File file;
-		try {
-			file = new File(saveDir, filename);
-			if (file.exists()) {
-				NBTTagCompound comp = CompressedStreamTools.readCompressed(new FileInputStream(file));
-				file.delete();
-				file = new File(saveDir, filename + "_old");
-				if (file.exists()) {
-					file.delete();
-				}
-
-				return comp;
-			}
-		} catch (Exception var6) {
-			LogWriter.except(var6);
-		}
-
-		try {
-			file = new File(saveDir, filename + "_old");
-			if (file.exists()) {
-				return CompressedStreamTools.readCompressed(new FileInputStream(file));
-			}
-		} catch (Exception var5) {
-			LogWriter.except(var5);
-		}
-
-		return new NBTTagCompound();
-	}
-
-	public static NBTTagCompound loadPlayerData(String player) {
-		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
-		String filename = player;
-		if (player.isEmpty()) {
-			filename = "noplayername";
-		}
-
-		filename = filename + ".json";
-		File file = null;
-
-		try {
-			file = new File(saveDir, filename);
-			if (file.exists()) {
-				return NBTJsonUtil.LoadFile(file);
-			}
-		} catch (Exception var5) {
-			LogWriter.error("Error loading: " + file.getAbsolutePath(), var5);
-		}
-
-		return new NBTTagCompound();
-	}
-
-	public static PlayerData get(EntityPlayer player) {
-		if(player.worldObj.isRemote) {
-			return CustomNpcs.proxy.getPlayerData(player);
-		} else {
-			PlayerData data = new PlayerData();
-			if (data.player == null) {
-				data.player = player;
-				NBTTagCompound compound = loadPlayerData(player.getPersistentID().toString());
-				if (compound.hasNoTags()) {
-					compound = loadPlayerDataOld(player.getCommandSenderName());
-				}
-
-				data.setNBT(compound);
-			}
-
-			return data;
-		}
 	}
 }
