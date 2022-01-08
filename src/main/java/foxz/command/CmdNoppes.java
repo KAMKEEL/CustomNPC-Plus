@@ -38,7 +38,7 @@ import foxz.utils.Utils;
 @Command(
         name = "noppes",
         desc = "noppes root command",
-        sub = {CmdClone.class, CmdScript.class, CmdQuest.class, CmdDialog.class, CmdConfig.class}
+        sub = {CmdClone.class, CmdScript.class, CmdQuest.class, CmdDialog.class, CmdConfig.class, CmdAdapter.class}
 )
 public class CmdNoppes extends ChMcLogger {
 
