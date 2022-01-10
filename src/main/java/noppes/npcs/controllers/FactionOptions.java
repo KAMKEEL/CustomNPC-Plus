@@ -52,7 +52,7 @@ public class FactionOptions {
 			addPoints(player, data, faction2Id, decreaseFaction2Points, faction2Points);
 	}
 	private void addPoints(EntityPlayer player, PlayerFactionData data, int factionId, boolean decrease, int points) {
-		Faction faction = FactionController.getInstance().getFaction(factionId);
+		Faction faction = FactionController.getInstance().get(factionId);
 		if(faction == null)
 			return;
 		

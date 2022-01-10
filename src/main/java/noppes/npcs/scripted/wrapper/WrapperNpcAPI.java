@@ -35,16 +35,18 @@ import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ScriptEntityData;
+import noppes.npcs.controllers.*;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.ScriptContainer;
 import noppes.npcs.scripted.entity.*;
+import noppes.npcs.scripted.handler.*;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
+import noppes.npcs.util.NBTJsonUtil;
 
 public class WrapperNpcAPI extends NpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap(10);
@@ -56,6 +58,29 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+    }
+
+    public IFactionHandler getFactions() {
+        this.checkWorld();
+        return FactionController.getInstance();
+    }
+
+    public IRecipeHandler getRecipes() {
+        this.checkWorld();
+        return RecipeController.instance;
+    }
+
+    public IQuestHandler getQuests() {
+        this.checkWorld();
+        return QuestController.instance;
+    }
+
+    public IDialogHandler getDialogs() {
+        return DialogController.instance;
+    }
+
+    public ICloneHandler getClones() {
+        return ServerCloneController.Instance;
     }
 
     public IEntity getIEntity(Entity entity) {
@@ -96,6 +121,18 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public INbt getINbt(NBTTagCompound compound) {
         return compound == null?new ScriptNbt(new NBTTagCompound()):new ScriptNbt(compound);
+    }
+
+    public INbt stringToNbt(String str) {
+        if (str != null && !str.isEmpty()) {
+            try {
+                return this.getINbt(NBTJsonUtil.Convert(str));
+            } catch (JsonException var3) {
+                throw new CustomNPCsException(var3, "Failed converting " + str, new Object[0]);
+            }
+        } else {
+            throw new CustomNPCsException("Cant cast empty string to nbt", new Object[0]);
+        }
     }
 
     public ICustomNpc createNPC(World world) {

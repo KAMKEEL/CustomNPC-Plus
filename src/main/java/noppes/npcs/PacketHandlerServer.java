@@ -264,7 +264,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.FactionGet){
 			NBTTagCompound compound = new NBTTagCompound();
-			Faction faction = FactionController.getInstance().getFaction(buffer.readInt());
+			Faction faction = FactionController.getInstance().get(buffer.readInt());
 			faction.writeNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
@@ -380,7 +380,7 @@ public class PacketHandlerServer{
 			NoppesUtilServer.setRecipeGui(player,recipe);
 		}
 		else if(type == EnumPacketServer.RecipeRemove){
-			RecipeCarpentry recipe = RecipeController.instance.removeRecipe(buffer.readInt());
+			RecipeCarpentry recipe = RecipeController.instance.delete(buffer.readInt());
 			NoppesUtilServer.sendRecipeData(player, recipe.isGlobal?3:4);
 			NoppesUtilServer.setRecipeGui(player,new RecipeCarpentry(""));
 		}
@@ -555,14 +555,14 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.FactionSave){
 			Faction faction = new Faction();
 			faction.readNBT(Server.readNBT(buffer));
-			FactionController.getInstance().saveFaction(faction);
+			FactionController.getInstance().create(faction);
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.FactionRemove){
-			FactionController.getInstance().removeFaction(buffer.readInt());			
+			FactionController.getInstance().delete(buffer.readInt());
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			(new Faction()).writeNBT(compound);

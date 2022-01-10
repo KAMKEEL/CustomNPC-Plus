@@ -1422,10 +1422,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			return fac;
 		}
 		else{
-			Faction fac = FactionController.getInstance().getFaction(faction);
+			Faction fac = FactionController.getInstance().get(faction);
 			if (fac == null) {
 				faction = FactionController.getInstance().getFirstFactionId();
-				fac = FactionController.getInstance().getFaction(faction);
+				fac = FactionController.getInstance().get(faction);
 			}
 			return fac;
 		}
@@ -1436,7 +1436,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public void setFaction(int integer) {
 		if(integer < 0|| isRemote())
 			return;
-		Faction faction = FactionController.getInstance().getFaction(integer);
+		Faction faction = FactionController.getInstance().get(integer);
 		if(faction == null)
 			return;
 		String str = faction.id + ":" + faction.color + ":" + faction.name;

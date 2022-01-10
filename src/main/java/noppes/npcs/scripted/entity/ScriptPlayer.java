@@ -29,15 +29,20 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.util.ValueUtil;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
+	private PlayerData data;
+
 	public ScriptPlayer(T player){
 		super(player);
 		this.player = player;
@@ -388,6 +393,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return data.getGUIOpen();
 	}
 
+	public void checkQuestCompleted() {
+		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		for(EnumQuestType e : EnumQuestType.values())
+			playerdata.checkQuestCompletion((EntityPlayer)this.entity, e);
+	}
+
 	public ScriptDBCPlayer<T> getDBCPlayer() {
 		Set keySet = player.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
 		Iterator iterator = keySet.iterator();
@@ -403,5 +414,45 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public boolean blocking() {
 		return player.isBlocking();
+	}
+
+	private PlayerData getData() {
+		if (this.data == null) {
+			this.data = PlayerDataController.instance.getPlayerData(player);
+		}
+
+		return this.data;
+	}
+
+	public IQuest[] getActiveQuests() {
+		PlayerQuestData data = this.getData().questData;
+		List<IQuest> quests = new ArrayList();
+		Iterator var3 = data.activeQuests.keySet().iterator();
+
+		while(var3.hasNext()) {
+			int id = (Integer)var3.next();
+			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			if (quest != null) {
+				quests.add(quest);
+			}
+		}
+
+		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
+	}
+
+	public IQuest[] getFinishedQuests() {
+		PlayerQuestData data = this.getData().questData;
+		List<IQuest> quests = new ArrayList();
+		Iterator var3 = data.finishedQuests.keySet().iterator();
+
+		while(var3.hasNext()) {
+			int id = (Integer)var3.next();
+			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			if (quest != null) {
+				quests.add(quest);
+			}
+		}
+
+		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
 	}
 }

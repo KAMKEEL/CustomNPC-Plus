@@ -1,6 +1,8 @@
 package noppes.npcs.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -8,8 +10,10 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumOptionType;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.*;
 
-public class Dialog implements ICompatibilty {
+public class Dialog implements ICompatibilty, IDialog {
 	public int version = VersionCompatibility.ModRev;
 	public int id = -1;
 	public String title = "";
@@ -108,9 +112,7 @@ public class Dialog implements ICompatibilty {
 	public boolean hasQuest() {
 		return getQuest() != null;
 	}
-	public Quest getQuest() {
-		return QuestController.instance.quests.get(quest);
-	}
+
 	public boolean hasOtherOptions() {
 		for(DialogOption option: options.values())
 			if(option != null && option.optionType != EnumOptionType.Disabled)
@@ -148,5 +150,74 @@ public class Dialog implements ICompatibilty {
 	public void setVersion(int version) {
 		this.version = version;
 	}
-	
+
+	public int getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.title;
+	}
+
+	public List<IDialogOption> getOptions() {
+		return new ArrayList(this.options.values());
+	}
+
+	public IDialogOption getOption(int slot) {
+		IDialogOption option = (IDialogOption)this.options.get(slot);
+		if (option == null) {
+			throw new CustomNPCsException("There is no DialogOption for slot: " + slot, new Object[0]);
+		} else {
+			return option;
+		}
+	}
+
+	public IAvailability getAvailability() {
+		return this.availability;
+	}
+
+	public IDialogCategory getCategory() {
+		return this.category;
+	}
+
+	public void save() {
+		DialogController.instance.saveDialog(this.category.id, this);
+	}
+
+	public void setName(String name) {
+		this.title = name;
+	}
+
+	public String getText() {
+		return this.text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
+
+	public void setQuest(IQuest quest) {
+		if (quest == null) {
+			this.quest = -1;
+		} else {
+			if (quest.getId() < 0) {
+				throw new CustomNPCsException("Quest id is lower than 0", new Object[0]);
+			}
+
+			this.quest = quest.getId();
+		}
+
+	}
+
+	public Quest getQuest() {
+		return QuestController.instance == null ? null : (Quest)QuestController.instance.quests.get(this.quest);
+	}
+
+	public String getCommand() {
+		return this.command;
+	}
+
+	public void setCommand(String command) {
+		this.command = command;
+	}
 }

@@ -2,9 +2,7 @@ package noppes.npcs.controllers;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -13,9 +11,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.constants.EnumOptionType;
+import noppes.npcs.scripted.handler.IDialogHandler;
+import noppes.npcs.scripted.handler.data.IDialog;
+import noppes.npcs.scripted.handler.data.IDialogCategory;
 import noppes.npcs.util.NBTJsonUtil;
 
-public class DialogController {
+public class DialogController implements IDialogHandler {
 	public HashMap<Integer,DialogCategory> categories = new HashMap<Integer, DialogCategory>();
 	public HashMap<Integer,Dialog> dialogs = new HashMap<Integer, Dialog>();
 	public static DialogController instance;
@@ -311,5 +312,13 @@ public class DialogController {
 			map.put(category.title, category.id);
 		}
 		return map;
+	}
+
+	public List<IDialogCategory> categories() {
+		return new ArrayList(this.categories.values());
+	}
+
+	public IDialog get(int id) {
+		return (IDialog)this.dialogs.get(id);
 	}
 }

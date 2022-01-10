@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
@@ -16,8 +13,10 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.scripted.handler.IRecipeHandler;
+import noppes.npcs.scripted.handler.data.IRecipe;
 
-public class RecipeController {
+public class RecipeController implements IRecipeHandler {
 	private static Collection<RecipeCarpentry> prevRecipes;
 	public HashMap<Integer,RecipeCarpentry> globalRecipes = new HashMap<Integer, RecipeCarpentry>();
 	public HashMap<Integer,RecipeCarpentry> anvilRecipes = new HashMap<Integer, RecipeCarpentry>();
@@ -198,7 +197,7 @@ public class RecipeController {
 		return false;
 	}
 
-	public RecipeCarpentry removeRecipe(int id) {
+	public RecipeCarpentry delete(int id) {
 		RecipeCarpentry recipe = getRecipe(id);
 		globalRecipes.remove(recipe.id);
 		anvilRecipes.remove(recipe.id);
@@ -212,6 +211,48 @@ public class RecipeController {
 			RecipeController.instance.anvilRecipes.put(recipeAnvil.id, recipeAnvil);
 		else{
 			RecipeController.instance.globalRecipes.put(recipeAnvil.id, recipeAnvil);
+		}
+	}
+
+	public List<IRecipe> getGlobalList() {
+		return new ArrayList(this.globalRecipes.values());
+	}
+
+	public List<IRecipe> getCarpentryList() {
+		return new ArrayList(this.anvilRecipes.values());
+	}
+
+	public void addRecipe(String name, boolean global, ItemStack result, Object... objects) {
+		RecipeCarpentry recipe = new RecipeCarpentry(name);
+		recipe.isGlobal = global;
+		recipe = RecipeCarpentry.saveRecipe(recipe, result, objects);
+
+		try {
+			this.saveRecipe(recipe.writeNBT());
+		} catch (Exception var7) {
+			var7.printStackTrace();
+		}
+	}
+
+	public void addRecipe(String name, boolean global, ItemStack result, int width, int height, ItemStack... objects) {
+		ArrayList<ItemStack> list = new ArrayList<>();
+		int var9 = objects.length;
+
+		for(int var10 = 0; var10 < var9; ++var10) {
+			ItemStack item = objects[var10];
+			if (item.stackSize > 0) {
+				list.add(item);
+			}
+		}
+
+		RecipeCarpentry recipe = new RecipeCarpentry(width, height, list.toArray(new ItemStack[0]), result);
+		recipe.isGlobal = global;
+		recipe.name = name;
+
+		try {
+			this.saveRecipe(recipe.writeNBT());
+		} catch (IOException var12) {
+			var12.printStackTrace();
 		}
 	}
 }

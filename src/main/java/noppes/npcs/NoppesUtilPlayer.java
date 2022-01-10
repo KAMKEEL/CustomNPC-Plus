@@ -6,6 +6,7 @@ import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -399,5 +400,32 @@ public class NoppesUtilPlayer {
 	}
 	public static void isGUIOpen(EntityPlayerMP player){
 		Server.sendData(player, EnumPacketClient.ISGUIOPEN);
+	}
+
+	public static List<ItemStack> countStacks(IInventory inv, boolean ignoreDamage, boolean ignoreNBT) {
+		List<ItemStack> list = new ArrayList();
+
+		for(int i = 0; i < inv.getSizeInventory(); ++i) {
+			ItemStack item = inv.getStackInSlot(i);
+			if (!NoppesUtilServer.IsItemStackNull(item)) {
+				boolean found = false;
+				Iterator var7 = list.iterator();
+
+				while(var7.hasNext()) {
+					ItemStack is = (ItemStack)var7.next();
+					if (compareItems(item, is, ignoreDamage, ignoreNBT)) {
+						is.stackSize = is.stackSize + item.stackSize;
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					list.add(item.copy());
+				}
+			}
+		}
+
+		return list;
 	}
 }

@@ -39,7 +39,7 @@ public class PlayerFactionData {
 
 	public int getFactionPoints(int id) {
 		if(!factionData.containsKey(id)){
-			Faction faction = FactionController.getInstance().getFaction(id);
+			Faction faction = FactionController.getInstance().get(id);
 			factionData.put(id, faction == null? -1 : faction.defaultPoints);
 		}
 		return factionData.get(id);
@@ -47,7 +47,7 @@ public class PlayerFactionData {
 
 	public void increasePoints(int factionId, int points) {
 		if(!factionData.containsKey(factionId)){
-			Faction faction = FactionController.getInstance().getFaction(factionId);
+			Faction faction = FactionController.getInstance().get(factionId);
 			factionData.put(factionId, faction == null? -1 : faction.defaultPoints);
 		}
 		factionData.put(factionId, factionData.get(factionId) + points);
@@ -59,7 +59,7 @@ public class PlayerFactionData {
 		
 		NBTTagList list = new NBTTagList();
 		for(int id : factionData.keySet()){
-			Faction faction = FactionController.getInstance().getFaction(id);
+			Faction faction = FactionController.getInstance().get(id);
 			if(faction == null || faction.hideFaction)
 				continue;
 			NBTTagCompound com = new NBTTagCompound();

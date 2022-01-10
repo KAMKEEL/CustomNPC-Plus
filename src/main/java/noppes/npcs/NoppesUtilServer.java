@@ -711,4 +711,8 @@ public class NoppesUtilServer {
 		boolean isGUIOpen = buffer.readBoolean();
 		playerdata.setGUIOpen(isGUIOpen);
 	}
+
+	public static boolean IsItemStackNull(ItemStack is) {
+		return is == null || is.stackSize == 0 || is.getItem() == null;
+	}
 }
