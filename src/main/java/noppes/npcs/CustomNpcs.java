@@ -180,9 +180,9 @@ public class CustomNpcs {
         MinecraftForge.EVENT_BUS.register(scriptPlayerEventHandler);
         FMLCommonHandler.instance().bus().register(scriptPlayerEventHandler);
 
-        ScriptForgeEventHandler forgeEventHandler = new ScriptForgeEventHandler();
-        MinecraftForge.EVENT_BUS.register(forgeEventHandler.registerForgeEvents());
-        FMLCommonHandler.instance().bus().register(forgeEventHandler.registerForgeEvents());
+        ScriptForgeEventHandler forgeEventHandler = (new ScriptForgeEventHandler()).registerForgeEvents();
+        MinecraftForge.EVENT_BUS.register(forgeEventHandler);
+        FMLCommonHandler.instance().bus().register(forgeEventHandler);
 
 		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
         
