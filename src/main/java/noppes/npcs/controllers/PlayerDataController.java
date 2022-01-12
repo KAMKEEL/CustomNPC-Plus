@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
 import java.util.HashMap;
@@ -41,20 +42,30 @@ public class PlayerDataController {
         }
     }
 
-    public NBTTagCompound loadPlayerData(UUID uniqueId) {
+    public CompletableFuture<NBTTagCompound> loadPlayerData(UUID uniqueId) {
         return CompletableFuture.supplyAsync(() -> {
             File data = new File(getSaveDir(), uniqueId + ".dat");
 
-            if (data.exists()) {
-                try {
-                    return from(data);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            try {
+                if (data.exists()) {
+                    try {
+                        return from(data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    data = new File(getSaveDir(), uniqueId + ".json");
+
+                    if (data.exists()) {
+                        return NBTJsonUtil.LoadFile(data);
+                    }
                 }
+            } catch (Exception exception) {
+                exception.printStackTrace();
             }
 
             return new NBTTagCompound();
-        }, executorService).join();
+        }, executorService);
     }
 
     public void savePlayerData(NBTTagCompound compound, UUID uuid) {
