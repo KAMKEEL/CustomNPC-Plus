@@ -10,6 +10,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.IItemStack;
 
@@ -81,5 +82,9 @@ public class ScriptContainer implements IContainer {
         }
 
         return items;
+    }
+
+    public boolean isCustomGUI() {
+        return this.container instanceof ContainerCustomGui;
     }
 }

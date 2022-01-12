@@ -134,6 +134,12 @@ public class ScriptItemStack implements IItemStack {
 			return ((NBTTagString)tag).func_150285_a_();
 		return tag;
 	}
+
+	public INbt removeTags() {
+		ScriptNbt nbt = (ScriptNbt)NpcAPI.Instance().getINbt(item.stackTagCompound);
+		item.stackTagCompound = null;
+		return nbt;
+	}
 	
 	public boolean isEnchanted(){
 		return item.isItemEnchanted();
