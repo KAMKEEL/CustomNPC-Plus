@@ -8,9 +8,7 @@ package noppes.npcs.scripted.wrapper;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import com.mojang.authlib.GameProfile;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -31,10 +29,8 @@ import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.*;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
@@ -42,6 +38,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptContainer;
 import noppes.npcs.scripted.entity.*;
+import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.*;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.util.JsonException;
@@ -270,5 +267,9 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public int getServerTime() {
         return MinecraftServer.getServer().getTickCounter();
+    }
+
+    public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {
+        return new ScriptGui(id, width, height, pauseGame);
     }
 }

@@ -65,6 +65,7 @@ import noppes.npcs.client.fx.EntityElementalStaffFX;
 import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
+import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.global.GuiNPCManageBanks;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCManageFactions;
@@ -128,22 +129,7 @@ import noppes.npcs.client.renderer.blocks.BlockWallBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockWeaponRackRenderer;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.containers.ContainerCarpentryBench;
-import noppes.npcs.containers.ContainerCrate;
-import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.containers.ContainerManageBanks;
-import noppes.npcs.containers.ContainerManageRecipes;
-import noppes.npcs.containers.ContainerNPCBankInterface;
-import noppes.npcs.containers.ContainerNPCCompanion;
-import noppes.npcs.containers.ContainerNPCFollower;
-import noppes.npcs.containers.ContainerNPCFollowerHire;
-import noppes.npcs.containers.ContainerNPCFollowerSetup;
-import noppes.npcs.containers.ContainerNPCInv;
-import noppes.npcs.containers.ContainerNPCTrader;
-import noppes.npcs.containers.ContainerNPCTraderSetup;
-import noppes.npcs.containers.ContainerNpcItemGiver;
-import noppes.npcs.containers.ContainerNpcQuestReward;
-import noppes.npcs.containers.ContainerNpcQuestTypeItem;
+import noppes.npcs.containers.*;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.entity.*;
 
@@ -437,6 +423,10 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.CompanionInv)
 			return new GuiNpcCompanionInv(npc, (ContainerNPCCompanion) container);
+
+		else if (gui == EnumGuiType.CustomGui)
+			return new GuiCustom((ContainerCustomGui)container);
+
 		return null;
 	}
 

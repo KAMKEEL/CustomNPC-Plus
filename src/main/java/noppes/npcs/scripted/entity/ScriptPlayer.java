@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
@@ -16,20 +17,17 @@ import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerDialogData;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.QuestData;
+import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.controllers.*;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
+import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.ICustomGui;
 import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.util.ValueUtil;
@@ -438,6 +436,23 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 
 		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
+	}
+
+	public IContainer getOpenContainer() {
+		return NpcAPI.Instance().getIContainer(((EntityPlayerMP)this.entity).openContainer);
+	}
+
+	public void showCustomGui(ICustomGui gui) {
+		CustomGuiController.openGui(this, (ScriptGui) gui);
+	}
+
+	public ICustomGui getCustomGui() {
+		return ((EntityPlayerMP)this.entity).openContainer instanceof ContainerCustomGui ? ((ContainerCustomGui)((EntityPlayerMP)this.entity).openContainer).customGui : null;
+	}
+
+	public void closeGui() {
+		((EntityPlayerMP)this.entity).closeContainer();
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, new Object[]{-1, new NBTTagCompound()});
 	}
 
 	public IQuest[] getFinishedQuests() {

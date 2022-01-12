@@ -135,6 +135,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("playSound");
                 hookList.add("lightning");
                 hookList.add("changedDim");
+                hookList.add("customGuiClosed");
+                hookList.add("customGuiButton");
+                hookList.add("customGuiSlot");
+                hookList.add("customGuiScroll");
             }
             else if(handler instanceof ForgeDataScript) {
                 hooks.setSize(238, 198);

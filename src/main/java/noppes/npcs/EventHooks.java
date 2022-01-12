@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
@@ -33,6 +34,7 @@ import noppes.npcs.scripted.event.PlayerEvent.LoginEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LogoutEvent;
 import noppes.npcs.scripted.event.PlayerEvent.PickUpEvent;
 import noppes.npcs.scripted.event.PlayerEvent.DropEvent;
+import noppes.npcs.scripted.interfaces.ICustomGui;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -46,6 +48,8 @@ import java.util.ArrayList;
 public class EventHooks {
     public EventHooks() {
     }
+
+    
 
     public static void onNPCTimer(EntityNPCInterface npc, int id) {
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
@@ -310,5 +314,25 @@ public class EventHooks {
             }
 
         }
+    }
+
+    public static void onCustomGuiButton(ScriptPlayer player, ICustomGui gui, int buttonId) {
+        CustomGuiEvent.ButtonEvent event = new CustomGuiEvent.ButtonEvent(player, gui, buttonId);
+        CustomGuiController.onButton(event);
+    }
+
+    public static void onCustomGuiSlot(ScriptPlayer player, ICustomGui gui, int slotId) {
+        CustomGuiEvent.SlotEvent event = new CustomGuiEvent.SlotEvent(player, gui, slotId, player.getOpenContainer().getSlot(slotId));
+        CustomGuiController.onSlotChange(event);
+    }
+
+    public static void onCustomGuiScrollClick(ScriptPlayer player, ICustomGui gui, int scrollId, int scrollIndex, String[] selection, boolean doubleClick) {
+        CustomGuiEvent.ScrollEvent event = new CustomGuiEvent.ScrollEvent(player, gui, scrollId, scrollIndex, selection, doubleClick);
+        CustomGuiController.onScrollClick(event);
+    }
+
+    public static void onCustomGuiClose(ScriptPlayer player, ICustomGui gui) {
+        noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent event = new noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent(player, gui);
+        CustomGuiController.onClose(event);
     }
 }

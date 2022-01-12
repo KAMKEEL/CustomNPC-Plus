@@ -36,31 +36,10 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.controllers.Bank;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogCategory;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.LinkedNpcController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerMail;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestCategory;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeCarpentry;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.SpawnData;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -71,6 +50,9 @@ import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.gui.ScriptGui;
 
 public class PacketHandlerServer{
 
@@ -93,6 +75,24 @@ public class PacketHandlerServer{
 			if(type == EnumPacketServer.IsGuiOpen) {
 				isGuiOpenPacket(buffer, player);
 				return;
+			}  else if (type == EnumPacketServer.CustomGuiButton) {
+				if (player.openContainer instanceof ContainerCustomGui) {
+					((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+					EventHooks.onCustomGuiButton((ScriptPlayer)NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+					return;
+				}
+			} else if (type == EnumPacketServer.CustomGuiSlotChange) {
+				if (player.openContainer instanceof ContainerCustomGui) {
+					((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+					EventHooks.onCustomGuiSlot((ScriptPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+					return;
+				}
+			} else if (type == EnumPacketServer.CustomGuiScrollClick && player.openContainer instanceof ContainerCustomGui) {
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				EventHooks.onCustomGuiScrollClick((ScriptPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
+				return;
+			} else if (type == EnumPacketServer.CustomGuiClose) {
+				EventHooks.onCustomGuiClose((ScriptPlayer)NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
 			}
 
 			if(type.needsNpc && npc == null){
@@ -103,24 +103,28 @@ public class PacketHandlerServer{
 			}			
 			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
-			else if(item.getItem() == CustomItems.wand)
-				wandPackets(type, buffer, player, npc);
-			else if(item.getItem() == CustomItems.moving)
-				movingPackets(type, buffer, player, npc);
-			else if(item.getItem() == CustomItems.mount)
-				mountPackets(type, buffer, player);
-			else if(item.getItem() == CustomItems.cloner)
-				clonePackets(type, buffer, player);
-			else if(item.getItem() == CustomItems.teleporter)
-				featherPackets(type, buffer, player);
-			else if(type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
-				playerScriptPackets(type, buffer, player);
-			else if(type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
-				forgeScriptPackets(type, buffer, player);
-			else if(item.getItem() == CustomItems.scripter)
-				scriptPackets(type, buffer, player, npc);
-			else if(item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
-				blockPackets(type, buffer, player);
+			else {
+				if (item != null) {
+					if (item.getItem() == CustomItems.wand)
+						wandPackets(type, buffer, player, npc);
+					else if (item.getItem() == CustomItems.moving)
+						movingPackets(type, buffer, player, npc);
+					else if (item.getItem() == CustomItems.mount)
+						mountPackets(type, buffer, player);
+					else if (item.getItem() == CustomItems.cloner)
+						clonePackets(type, buffer, player);
+					else if (item.getItem() == CustomItems.teleporter)
+						featherPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
+						playerScriptPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
+						forgeScriptPackets(type, buffer, player);
+					else if (item.getItem() == CustomItems.scripter)
+						scriptPackets(type, buffer, player, npc);
+					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
+						blockPackets(type, buffer, player);
+				}
+			}
 		} catch (Exception e) {
 			LogWriter.error("Error with EnumPacketServer." + type, e);
 		}
