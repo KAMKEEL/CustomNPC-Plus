@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
@@ -19,6 +20,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.controllers.CustomGuiController;
+import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
@@ -334,5 +336,31 @@ public class EventHooks {
     public static void onCustomGuiClose(ScriptPlayer player, ICustomGui gui) {
         noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent event = new noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent(player, gui);
         CustomGuiController.onClose(event);
+    }
+
+    public static void onQuestFinished(EntityPlayer player, Quest quest){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        QuestEvent.QuestCompletedEvent event = new QuestEvent.QuestCompletedEvent(new ScriptPlayer((EntityPlayerMP) player), quest);
+        handler.callScript(EnumScriptType.QUEST_COMPLETED, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onQuestStarted(EntityPlayer player, Quest quest){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        QuestEvent.QuestStartEvent event = new QuestEvent.QuestStartEvent(new ScriptPlayer((EntityPlayerMP) player), quest);
+        handler.callScript(EnumScriptType.QUEST_START, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onQuestTurnedIn(QuestEvent.QuestTurnedInEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.QUEST_TURNIN, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onFactionPoints(FactionEvent.FactionPoints event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.FACTION_POINTS, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
     }
 }

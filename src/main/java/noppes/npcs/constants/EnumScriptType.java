@@ -47,6 +47,7 @@ public enum EnumScriptType {
 	QUEST_START("questStart"),
 	QUEST_COMPLETED("questCompleted"),
 	QUEST_TURNIN("questTurnIn"),
+	FACTION_POINTS("factionPoints"),
 	KEY_PRESSED("keyPressed"),
 	CUSTOM_CHEST_CLOSED("customChestClosed"),
 	CUSTOM_CHEST_CLICKED("customChestClicked"),
