@@ -1040,6 +1040,23 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.ai.flyGravity;
 	}
 
+	public void setFlyHeightLimit(int flyHeightLimit){
+		if(flyHeightLimit < 0)
+			flyHeightLimit = 0;
+
+		this.npc.ai.flyHeightLimit = flyHeightLimit;
+	}
+	public int getFlyHeightLimit(int flyHeightLimit){
+		return this.npc.ai.flyHeightLimit;
+	}
+
+	public void limitFlyHeight(boolean limit){
+		this.npc.ai.hasFlyLimit = limit;
+	}
+	public boolean isFlyHeightLimited(boolean limit){
+		return this.npc.ai.hasFlyLimit;
+	}
+
 	public void setSpeed(int speed) {
 		npc.ai.setWalkingSpeed(speed);
 	}

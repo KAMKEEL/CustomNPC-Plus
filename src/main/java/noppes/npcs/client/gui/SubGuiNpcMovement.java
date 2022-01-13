@@ -42,6 +42,16 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 			addTextField(new GuiNpcTextField(19,this, guiLeft + 80, y + 155, 40, 20, ai.flyGravity + ""));
 			getTextField(19).doublesOnly = true;
 			getTextField(19).setMinMaxDefaultDouble(0.0D,1.0D,0.0D);
+
+			this.addLabel(new GuiNpcLabel(20, "Limit Height", guiLeft + 150, y + 116));
+			addButton(new GuiNpcButton(20, guiLeft + 210, y + 110, 40, 20, new String[]{"gui.no","gui.yes"}, ai.hasFlyLimit?1:0));
+
+			if(ai.hasFlyLimit) {
+				this.addLabel(new GuiNpcLabel(21, "Height", guiLeft + 150, y + 140));
+				addTextField(new GuiNpcTextField(21, this, guiLeft + 185, y + 135, 40, 20, ai.flyHeightLimit + ""));
+				getTextField(21).integersOnly = true;
+				getTextField(21).setMinMaxDefaultDouble(0.0D, Double.MAX_VALUE, 1.0D);
+			}
 		}
 
 		if(ai.movingType == EnumMovingType.Wandering){    
@@ -159,10 +169,12 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 		else if (button.id == 15) {
 			ai.movementType = button.getValue();
 			initGui();
+		} else if (button.id == 20) {
+			ai.hasFlyLimit = button.getValue() == 1;
+			initGui();
+		} else if (button.id == 66) {
+			close();
 		}
-		else if(button.id == 66){
-        	close();
-        }
     }
 
 	@Override
@@ -190,6 +202,9 @@ public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldList
 		}
 		else if(textfield.id == 19){
 			ai.flyGravity = textfield.getDouble();
+		}
+		else if(textfield.id == 21){
+			ai.flyHeightLimit = textfield.getInteger();
 		}
 	}
 

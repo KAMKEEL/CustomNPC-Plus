@@ -37,6 +37,8 @@ public class DataAI {
 	public int movementType = 0;
 	public double flySpeed = 1.0D;
 	public double flyGravity = 0.0D;
+	public boolean hasFlyLimit = true;
+	public int flyHeightLimit = 2;
 	
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
@@ -110,6 +112,16 @@ public class DataAI {
 		else
 			flyGravity = compound.getDouble("FlyGravity");
 
+		if(!compound.hasKey("HasFlyLimit"))
+			hasFlyLimit = false;
+		else
+			hasFlyLimit = compound.getBoolean("HasFlyLimit");
+
+		if(!compound.hasKey("FlyHeightLimit"))
+			flyHeightLimit = 5;
+		else
+			flyHeightLimit = compound.getInteger("FlyHeightLimit");
+
 		startPos = compound.getIntArray("StartPosNew");
 		if (startPos == null || startPos.length != 3){
 			startPos = new int[] { 
@@ -159,6 +171,8 @@ public class DataAI {
 		compound.setInteger("MovingType", movementType);
 		compound.setDouble("FlySpeed",flySpeed);
 		compound.setDouble("FlyGravity",flyGravity);
+		compound.setBoolean("HasFlyLimit",hasFlyLimit);
+		compound.setInteger("FlyHeightLimit", flyHeightLimit);
 
 		npc.setAvoidWater(avoidsWater);
 		
