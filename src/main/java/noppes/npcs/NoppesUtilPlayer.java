@@ -46,6 +46,7 @@ import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 import noppes.npcs.scripted.interfaces.IItemStack;
 
@@ -264,13 +265,19 @@ public class NoppesUtilPlayer {
 		Dialog dialog = DialogController.instance.dialogs.get(dialogId);
 		if(dialog == null)
 			return;
-		npc.script.callScript(EnumScriptType.DIALOG_OPTION, "player", player, "dialog", dialogId, "option", optionId + 1);
+
+		EventHooks.onDialogOption(new DialogEvent.DialogOption(new ScriptPlayer((EntityPlayerMP) player), dialog));
+		npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "player", player, "dialog", dialogId, "option", optionId + 1);
     	
-		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions())
+		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
+			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));
 			return;
+		}
 		DialogOption option = dialog.options.get(optionId);
-    	if(option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption)
-    		return;
+    	if(option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
+			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));
+			return;
+		}
     	if(option.optionType == EnumOptionType.RoleOption){
     		if(npc.roleInterface != null)
     			npc.roleInterface.interact(player);

@@ -23,6 +23,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     public boolean hasActiveQuest(int id);
 
+    public void showDialog(int id);
+
     public boolean hasReadDialog(int id);
 
     /**

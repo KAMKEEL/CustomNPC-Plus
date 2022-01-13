@@ -11,19 +11,18 @@ import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.Server;
+import noppes.npcs.*;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.*;
+import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.IContainer;
@@ -85,6 +84,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public boolean hasActiveQuest(int id){
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
 		return data.activeQuests.containsKey(id);
+	}
+
+	public void showDialog(int id){
+		Dialog dialog = (Dialog) DialogController.instance.get(id);
+		if(dialog == null)
+			return;
+
+		NoppesUtilServer.openDialog(player, new EntityDialogNpc(this.player.worldObj), dialog);
 	}
 	
 	public boolean hasReadDialog(int id){
@@ -161,7 +168,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 */
 	public void addFactionPoints(int faction, int points){
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
-		data.factionData.increasePoints(faction, points);
+		data.factionData.increasePoints(faction, points, player);
 	}
         
     /**         

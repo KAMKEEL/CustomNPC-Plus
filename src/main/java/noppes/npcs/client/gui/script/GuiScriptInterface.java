@@ -139,6 +139,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("questCompleted");
                 hookList.add("questTurnIn");
                 hookList.add("factionPoints");
+                hookList.add("dialogOpen");
+                hookList.add("dialogOption");
+                hookList.add("dialogClose");
                 hookList.add("customGuiClosed");
                 hookList.add("customGuiButton");
                 hookList.add("customGuiSlot");

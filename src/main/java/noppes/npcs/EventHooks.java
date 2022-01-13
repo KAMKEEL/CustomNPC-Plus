@@ -363,4 +363,22 @@ public class EventHooks {
         handler.callScript(EnumScriptType.FACTION_POINTS, event);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
+
+    public static void onDialogOpen(DialogEvent.DialogOpen event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.DIALOG_OPEN, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onDialogOption(DialogEvent.DialogOption event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.DIALOG_OPTION, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onDialogClosed(DialogEvent.DialogClosed event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.DIALOG_CLOSE, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
 }

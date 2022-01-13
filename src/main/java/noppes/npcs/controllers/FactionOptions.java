@@ -60,14 +60,12 @@ public class FactionOptions {
 		if(faction == null)
 			return;
 
-		EventHooks.onFactionPoints(new FactionEvent.FactionPoints(new ScriptPlayer((EntityPlayerMP) player), faction, decrease, points));
-
 		if(!faction.hideFaction){
 			String message = decrease?"faction.decreasepoints":"faction.increasepoints";
 			player.addChatMessage(new ChatComponentTranslation(message, faction.name, points));
 		}
 		
-		data.increasePoints(factionId, decrease?-points:points);
+		data.increasePoints(factionId, decrease?-points:points,player);
 		
 	}
 }
