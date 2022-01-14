@@ -76,11 +76,13 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
     }
 
     public boolean mouseClicked(GuiCustom gui, int mouseX, int mouseY, int mouseButton) {
-        this.mouseClicked(mouseX, mouseY, mouseButton);
+        boolean flag = mouseX >= this.xPosition && mouseX < this.xPosition + this.width && mouseY >= this.yPosition && mouseY < this.yPosition + this.height;
 
-        if (!this.isFocused() && mouseButton == 0){
+        if (this.isFocused() && mouseButton == 0 && !flag){
             parent.onTextFieldUnfocused(this);
         }
+
+        this.mouseClicked(mouseX, mouseY, mouseButton);
 
         return true;
     }
