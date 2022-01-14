@@ -72,6 +72,8 @@ import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.ScriptEventDialog;
 
 public class NoppesUtilServer {
@@ -180,6 +182,9 @@ public class NoppesUtilServer {
 	
 	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia){
 		Dialog dialog = dia.copy(player);
+
+		EventHooks.onDialogOpen(new DialogEvent.DialogOpen(new ScriptPlayer((EntityPlayerMP) player), dialog));
+
 		if(npc instanceof EntityDialogNpc){
 			dialog.hideNPC = true;
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG_DUMMY, npc.getCommandSenderName(), dialog.writeToNBT(new NBTTagCompound()));
@@ -710,5 +715,9 @@ public class NoppesUtilServer {
 		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
 		boolean isGUIOpen = buffer.readBoolean();
 		playerdata.setGUIOpen(isGUIOpen);
+	}
+
+	public static boolean IsItemStackNull(ItemStack is) {
+		return is == null || is.stackSize == 0 || is.getItem() == null;
 	}
 }

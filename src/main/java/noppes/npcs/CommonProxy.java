@@ -4,32 +4,14 @@ import net.minecraft.client.model.ModelBiped;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.Item;
 import net.minecraft.stats.Achievement;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.containers.ContainerCarpentryBench;
-import noppes.npcs.containers.ContainerCrate;
-import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.containers.ContainerManageBanks;
-import noppes.npcs.containers.ContainerManageRecipes;
-import noppes.npcs.containers.ContainerMerchantAdd;
-import noppes.npcs.containers.ContainerNPCBankLarge;
-import noppes.npcs.containers.ContainerNPCBankSmall;
-import noppes.npcs.containers.ContainerNPCBankUnlock;
-import noppes.npcs.containers.ContainerNPCBankUpgrade;
-import noppes.npcs.containers.ContainerNPCCompanion;
-import noppes.npcs.containers.ContainerNPCFollower;
-import noppes.npcs.containers.ContainerNPCFollowerHire;
-import noppes.npcs.containers.ContainerNPCFollowerSetup;
-import noppes.npcs.containers.ContainerNPCInv;
-import noppes.npcs.containers.ContainerNPCTrader;
-import noppes.npcs.containers.ContainerNPCTraderSetup;
-import noppes.npcs.containers.ContainerNpcItemGiver;
-import noppes.npcs.containers.ContainerNpcQuestReward;
-import noppes.npcs.containers.ContainerNpcQuestTypeItem;
+import noppes.npcs.containers.*;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -59,6 +41,9 @@ public class CommonProxy implements IGuiHandler {
 		return getContainer(gui, player, x, y, z, npc);
 	}
 	public Container getContainer(EnumGuiType gui,EntityPlayer player, int x, int y, int z,EntityNPCInterface npc){
+		if(gui == EnumGuiType.CustomGui)
+			return new ContainerCustomGui(new InventoryBasic("", false, x));
+
 		if(gui == EnumGuiType.MainMenuInv)
 			return new ContainerNPCInv(npc, player);
 

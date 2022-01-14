@@ -1,13 +1,19 @@
 package noppes.npcs.quests;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestObjective;
 
 public class QuestLocation extends QuestInterface{
 	public String location = "";
@@ -95,4 +101,67 @@ public class QuestLocation extends QuestInterface{
 		return false;
 	}
 
+	public IQuestObjective[] getObjectives(EntityPlayer player) {
+		List<IQuestObjective> list = new ArrayList();
+		if (!this.location.isEmpty()) {
+			list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location, "LocationFound"));
+		}
+
+		if (!this.location2.isEmpty()) {
+			list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location2, "Location2Found"));
+		}
+
+		if (!this.location3.isEmpty()) {
+			list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location3, "Location3Found"));
+		}
+
+		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+	}
+
+	class QuestLocationObjective implements IQuestObjective {
+		private final QuestLocation parent;
+		private final EntityPlayer player;
+		private final String location;
+		private final String nbtName;
+
+		public QuestLocationObjective(QuestLocation this$0, EntityPlayer player, String location, String nbtName) {
+			this.parent = this$0;
+			this.player = player;
+			this.location = location;
+			this.nbtName = nbtName;
+		}
+
+		public int getProgress() {
+			return this.isCompleted() ? 1 : 0;
+		}
+
+		public void setProgress(int progress) {
+			if (progress >= 0 && progress <= 1) {
+				PlayerData data = PlayerData.get(this.player);
+				QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
+				boolean completed = questData.extraData.getBoolean	(this.nbtName);
+				if ((!completed || progress != 1) && (completed || progress != 0)) {
+					questData.extraData.setBoolean(this.nbtName, progress == 1);
+					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[3]);
+					data.saveNBTData(data.getNBT());
+				}
+			} else {
+				throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
+			}
+		}
+
+		public int getMaxProgress() {
+			return 1;
+		}
+
+		public boolean isCompleted() {
+			PlayerData data = PlayerData.get(this.player);
+			QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
+			return questData.extraData.getBoolean(this.nbtName);
+		}
+
+		public String getText() {
+			return this.location + ": " + (this.isCompleted() ? "Found" : "Not Found");
+		}
+	}
 }

@@ -1,11 +1,15 @@
 package noppes.npcs.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.scripted.handler.data.IDialog;
+import noppes.npcs.scripted.handler.data.IDialogCategory;
 
-public class DialogCategory {
+public class DialogCategory implements IDialogCategory {
 
 	public int id = -1;
 	public String title = "";
@@ -42,5 +46,19 @@ public class DialogCategory {
         }
         nbtfactions.setTag("Dialogs", dialogs);
         return nbtfactions;
+	}
+
+	public List<IDialog> dialogs() {
+		return new ArrayList(this.dialogs.values());
+	}
+
+	public String getName() {
+		return this.title;
+	}
+
+	public IDialog create() {
+		Dialog dialog = new Dialog();
+		dialog.category = this;
+		return dialog;
 	}
 }

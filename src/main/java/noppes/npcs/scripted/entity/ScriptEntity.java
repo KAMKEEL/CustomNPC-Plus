@@ -18,6 +18,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ScriptController;
@@ -27,6 +28,7 @@ import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
+import noppes.npcs.scripted.interfaces.IPos;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -101,7 +103,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param x The entities x position
 	 */
 	public void setX(double x){
-		entity.posX = x;
+		entity.setPosition(x, entity.posY, entity.posZ);;
 	}
 
 	/**
@@ -115,7 +117,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param y The entities y position
 	 */
 	public void setY(double y){
-		entity.posY = y;
+		entity.setPosition(entity.posX, y, entity.posZ);
 	}
 
 	/**
@@ -129,7 +131,52 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param z The entities x position
 	 */
 	public void setZ(double z){
-		entity.posZ = z;
+		entity.setPosition(entity.posX, entity.posY, z);;
+	}
+
+	/**
+	 * @return The entities z motion
+	 */
+	public double getMotionX(){
+		return entity.motionX;
+	}
+
+	/**
+	 * @param x The entities x motion
+	 */
+	public void setMotionX(double x){
+		entity.motionX = x;
+		entity.velocityChanged = true;
+	}
+
+	/**
+	 * @return The entities x motion
+	 */
+	public double getMotionY(){
+		return entity.motionY;
+	}
+
+	/**
+	 * @param y The entities y motion
+	 */
+	public void setMotionY(double y){
+		entity.motionY = y;
+		entity.velocityChanged = true;
+	}
+
+	/**
+	 * @return The entities y motion
+	 */
+	public double getMotionZ(){
+		return entity.motionZ;
+	}
+
+	/**
+	 * @param z The entities z motion
+	 */
+	public void setMotionZ(double z){
+		entity.motionZ = z;
+		entity.velocityChanged = true;
 	}
 
 	/**
@@ -162,6 +209,13 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.setPosition(x, y, z);
 	}
 
+	public IPos getPos() {
+		return new ScriptBlockPos(new BlockPos(entity.posX,entity.posY,entity.posZ));
+	}
+
+	public void setPos(IPos pos) {
+		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
+	}
 
 	/**
 	 * @param range The search range for entities around this entity

@@ -2,10 +2,7 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -89,6 +86,17 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setRotation(float rotation){
 		npc.ai.orientation = (int)rotation;
 		super.setRotation(rotation);
+	}
+	public void setRotationType(int rotationType){
+		for (EnumStandingType e : EnumStandingType.values()) {
+			if (e.ordinal() == rotationType) {
+				npc.ai.standingType = e;
+				break;
+			}
+		}
+	}
+	public int getRotationType(){
+		return npc.ai.standingType.ordinal();
 	}
 	/**
 	 * @param name The name of the npc
@@ -303,6 +311,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptRoleTransporter(npc);
 		return new ScriptRoleInterface(npc);
 	}
+	public void setRole(int role){
+		for (EnumRoleType e : EnumRoleType.values()) {
+			if (e.ordinal() == role) {
+				npc.advanced.role = e;
+				break;
+			}
+		}
+	}
 
 	/**
 	 * @return Returns the npcs current job
@@ -325,6 +341,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		else if(npc.advanced.job == EnumJobType.Spawner)
 			return new ScriptJobSpawner(npc);
 		return new ScriptJobInterface(npc);
+	}
+	public void setJob(int job){
+		for (EnumJobType e : EnumJobType.values()) {
+			if (e.ordinal() == job) {
+				npc.advanced.job = e;
+				break;
+			}
+		}
 	}
 	
 	/**
@@ -396,6 +420,55 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void aimWhileShooting(boolean aimWhileShooting) {
 		npc.stats.aimWhileShooting = aimWhileShooting;
+	}
+
+	public void setMinProjectileDelay(int minDelay){
+		npc.stats.minDelay = minDelay;
+	}
+	public int getMinProjectileDelay(){
+		return npc.stats.minDelay;
+	}
+
+	public void setMaxProjectileDelay(int maxDelay){
+		npc.stats.maxDelay = maxDelay;
+	}
+	public int getMaxProjectileDelay(){
+		return npc.stats.maxDelay;
+	}
+
+	public void setRangedRage(int rangedRange) {
+		npc.stats.rangedRange = rangedRange;
+	}
+	public int getRangedRage() {
+		return npc.stats.rangedRange;
+	}
+
+	public void setFireRate(int rate) {
+		npc.stats.fireRate = rate;
+	}
+	public int getFireRate() {
+		return npc.stats.fireRate;
+	}
+
+	public void setBurstCount(int burstCount) {
+		npc.stats.burstCount = burstCount;
+	}
+	public int getBurstCount() {
+		return npc.stats.burstCount;
+	}
+
+	public void setShotCount(int shotCount) {
+		npc.stats.shotCount = shotCount;
+	}
+	public int getShotCount() {
+		return npc.stats.shotCount;
+	}
+
+	public void setAccuracy(int accuracy) {
+		npc.stats.accuracy = accuracy;
+	}
+	public int getAccuracy() {
+		return npc.stats.accuracy;
 	}
 
 	public String getFireSound() {
@@ -967,6 +1040,23 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.ai.flyGravity;
 	}
 
+	public void setFlyHeightLimit(int flyHeightLimit){
+		if(flyHeightLimit < 0)
+			flyHeightLimit = 0;
+
+		this.npc.ai.flyHeightLimit = flyHeightLimit;
+	}
+	public int getFlyHeightLimit(int flyHeightLimit){
+		return this.npc.ai.flyHeightLimit;
+	}
+
+	public void limitFlyHeight(boolean limit){
+		this.npc.ai.hasFlyLimit = limit;
+	}
+	public boolean isFlyHeightLimited(boolean limit){
+		return this.npc.ai.hasFlyLimit;
+	}
+
 	public void setSpeed(int speed) {
 		npc.ai.setWalkingSpeed(speed);
 	}
@@ -1014,4 +1104,6 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public String getOverlayTexture() {
 		return npc.display.glowTexture;
 	}
+
+	public void updateClient() { this.npc.updateClient(); };
 }

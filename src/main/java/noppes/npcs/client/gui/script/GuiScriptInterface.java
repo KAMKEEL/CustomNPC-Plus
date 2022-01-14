@@ -20,6 +20,7 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.world.ChunkDataEvent;
@@ -134,6 +135,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("playSound");
                 hookList.add("lightning");
                 hookList.add("changedDim");
+                hookList.add("questStart");
+                hookList.add("questCompleted");
+                hookList.add("questTurnIn");
+                hookList.add("factionPoints");
+                hookList.add("dialogOpen");
+                hookList.add("dialogOption");
+                hookList.add("dialogClose");
+                hookList.add("customGuiClosed");
+                hookList.add("customGuiButton");
+                hookList.add("customGuiSlot");
+                hookList.add("customGuiScroll");
             }
             else if(handler instanceof ForgeDataScript) {
                 hooks.setSize(238, 198);
@@ -240,9 +252,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        /*if(textfield.id == 1){
-            this.handler.getScripts().get(this.activeTab - 1).setType(textfield.getText());
-        }*/
+
     }
 
     private String getConsoleText() {

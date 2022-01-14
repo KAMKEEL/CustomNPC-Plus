@@ -30,6 +30,11 @@ public class ScriptBlock implements IBlock {
         this.block = block;
         this.pos = pos;
         this.bPos = new ScriptBlockPos(pos);
+        this.setTile(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
+    }
+
+    protected void setTile(TileEntity tile) {
+        this.tile = tile;
     }
 
     public IPos getPos() {
@@ -72,7 +77,7 @@ public class ScriptBlock implements IBlock {
     }
 
     public boolean isContainer() {
-        return this.tile != null && this.tile instanceof IInventory?((IInventory)this.tile).getSizeInventory() > 0:false;
+        return this.tile != null && this.tile instanceof IInventory && ((IInventory) this.tile).getSizeInventory() > 0;
     }
 
     public IContainer getContainer() {

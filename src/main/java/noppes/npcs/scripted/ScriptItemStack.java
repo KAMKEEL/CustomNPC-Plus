@@ -112,6 +112,8 @@ public class ScriptItemStack implements IItemStack {
 	 * @return Returns whether or not the key exists
 	 */
 	public boolean hasTag(String key){
+		if(item.stackTagCompound == null)
+			return false;
 		return getTag().hasKey(key);
 	}
 	
@@ -120,6 +122,9 @@ public class ScriptItemStack implements IItemStack {
 	 * @return Returns the value associated with the key. Returns null of it doesnt exist
 	 */
 	public Object getTag(String key){
+		if(item.stackTagCompound == null)
+			return null;
+
 		NBTBase tag = getTag().getTag(key);
 		if(tag == null)
 			return null;
@@ -128,6 +133,12 @@ public class ScriptItemStack implements IItemStack {
 		if(tag instanceof NBTTagString)
 			return ((NBTTagString)tag).func_150285_a_();
 		return tag;
+	}
+
+	public INbt removeTags() {
+		ScriptNbt nbt = (ScriptNbt)NpcAPI.Instance().getINbt(item.stackTagCompound);
+		item.stackTagCompound = null;
+		return nbt;
 	}
 	
 	public boolean isEnchanted(){

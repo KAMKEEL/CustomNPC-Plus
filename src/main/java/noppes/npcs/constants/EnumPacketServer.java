@@ -76,7 +76,9 @@ public enum EnumPacketServer {
 	RemoteTpToNpc,QuestGet, QuestCategoryGet, 
 	SaveTileEntity,
 	NaturalSpawnGetAll, MailOpenSetup,
-	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen;
+	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen,
+
+	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose;
 
 	public CustomNpcsPermissions.Permission permission = null;
 	public boolean needsNpc = false;

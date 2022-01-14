@@ -235,6 +235,27 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      */
     public void aimWhileShooting(boolean aimWhileShooting);
 
+    public void setMinProjectileDelay(int minDelay);
+    public int getMinProjectileDelay();
+
+    public void setMaxProjectileDelay(int maxDelay);
+    public int getMaxProjectileDelay();
+
+    public void setRangedRage(int rangedRange);
+    public int getRangedRage();
+
+    public void setFireRate(int rate);
+    public int getFireRate();
+
+    public void setBurstCount(int burstCount);
+    public int getBurstCount();
+
+    public void setShotCount(int shotCount);
+    public int getShotCount();
+
+    public void setAccuracy(int accuracy);
+    public int getAccuracy();
+
     /**
      *
      * @return The directory of the sound that plays when a projectile is shot
@@ -707,4 +728,6 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     public void setOverlayTexture(String overlayTexture);
 
     public String getOverlayTexture();
+
+    public void updateClient();
 }

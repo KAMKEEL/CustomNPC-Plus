@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
@@ -18,6 +19,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import noppes.npcs.controllers.CustomGuiController;
+import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
@@ -33,6 +36,7 @@ import noppes.npcs.scripted.event.PlayerEvent.LoginEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LogoutEvent;
 import noppes.npcs.scripted.event.PlayerEvent.PickUpEvent;
 import noppes.npcs.scripted.event.PlayerEvent.DropEvent;
+import noppes.npcs.scripted.interfaces.ICustomGui;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -46,6 +50,8 @@ import java.util.ArrayList;
 public class EventHooks {
     public EventHooks() {
     }
+
+    
 
     public static void onNPCTimer(EntityNPCInterface npc, int id) {
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
@@ -310,5 +316,69 @@ public class EventHooks {
             }
 
         }
+    }
+
+    public static void onCustomGuiButton(ScriptPlayer player, ICustomGui gui, int buttonId) {
+        CustomGuiEvent.ButtonEvent event = new CustomGuiEvent.ButtonEvent(player, gui, buttonId);
+        CustomGuiController.onButton(event);
+    }
+
+    public static void onCustomGuiSlot(ScriptPlayer player, ICustomGui gui, int slotId) {
+        CustomGuiEvent.SlotEvent event = new CustomGuiEvent.SlotEvent(player, gui, slotId, player.getOpenContainer().getSlot(slotId));
+        CustomGuiController.onSlotChange(event);
+    }
+
+    public static void onCustomGuiScrollClick(ScriptPlayer player, ICustomGui gui, int scrollId, int scrollIndex, String[] selection, boolean doubleClick) {
+        CustomGuiEvent.ScrollEvent event = new CustomGuiEvent.ScrollEvent(player, gui, scrollId, scrollIndex, selection, doubleClick);
+        CustomGuiController.onScrollClick(event);
+    }
+
+    public static void onCustomGuiClose(ScriptPlayer player, ICustomGui gui) {
+        noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent event = new noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent(player, gui);
+        CustomGuiController.onClose(event);
+    }
+
+    public static void onQuestFinished(EntityPlayer player, Quest quest){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        QuestEvent.QuestCompletedEvent event = new QuestEvent.QuestCompletedEvent(new ScriptPlayer((EntityPlayerMP) player), quest);
+        handler.callScript(EnumScriptType.QUEST_COMPLETED, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onQuestStarted(EntityPlayer player, Quest quest){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        QuestEvent.QuestStartEvent event = new QuestEvent.QuestStartEvent(new ScriptPlayer((EntityPlayerMP) player), quest);
+        handler.callScript(EnumScriptType.QUEST_START, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onQuestTurnedIn(QuestEvent.QuestTurnedInEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.QUEST_TURNIN, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onFactionPoints(FactionEvent.FactionPoints event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.FACTION_POINTS, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onDialogOpen(DialogEvent.DialogOpen event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.DIALOG_OPEN, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onDialogOption(DialogEvent.DialogOption event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.DIALOG_OPTION, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onDialogClosed(DialogEvent.DialogClosed event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.DIALOG_CLOSE, event);
+        WrapperNpcAPI.EVENT_BUS.post(event);
     }
 }

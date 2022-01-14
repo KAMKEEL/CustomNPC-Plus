@@ -20,7 +20,7 @@ public class GuiCustomScroll extends GuiScreen
     public int id;
     public int guiLeft = 0;
     public int guiTop = 0;
-    private int xSize, ySize;
+    public int xSize, ySize;
     public int selected;
     private HashSet<String> selectedList;
     private int hover;

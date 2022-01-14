@@ -22,4 +22,6 @@ public interface IContainer {
     int count(IItemStack var1, boolean var2, boolean var3);
 
     IItemStack[] getItems();
+
+    boolean isCustomGUI();
 }

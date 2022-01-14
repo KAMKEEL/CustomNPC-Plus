@@ -63,6 +63,8 @@ public interface IItemStack {
      */
     public Object getTag(String key);
 
+    public INbt removeTags();
+
     public boolean isEnchanted();
 
     /**

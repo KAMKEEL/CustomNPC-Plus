@@ -43,17 +43,18 @@ public class ModelMPM extends ModelNPCMale{
 
 	// New
 	public ModelRenderer bipedBodywear;
-	public ModelRenderer bipedRightArmwear;
+	public ModelRenderer bipedRightArmWear;
 	public ModelRenderer bipedLeftArmwear;
 	public ModelRenderer bipedRightLegWear;
 	public ModelRenderer bipedLeftLegWear;
 
 	private ModelLegs legs;
 	private ModelScaleRenderer headwear;
-
-	// private ModelScaleRenderer bodywear;
-	// private ModelScaleRenderer armwear;
-	// private ModelScaleRenderer legwear;
+	private ModelScaleRenderer bodywear;
+	private final ModelScaleRenderer solidLeftArmWear;
+	private final ModelScaleRenderer solidRightArmWear;
+	private final ModelScaleRenderer solidLeftLegWear;
+	private final ModelScaleRenderer solidRightLegWear;
 
 	private ModelTail tail;
 	public ModelBase entityModel;
@@ -110,15 +111,17 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1);
 			this.bipedLeftArm.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
 
-			this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 32));
-			this.bipedRightArmwear.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
-			this.bipedRightArm.addChild(this.bipedRightArmwear);
-			// this.bipedRightArmWear.setRotationPoint(-5.0F, 2.5F + par2, 0.0F);
+			this.bipedRightArmWear = (new ModelScaleRenderer(this, 40, 32));
+			this.bipedRightArmWear.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
+			this.bipedRightArm.addChild(this.bipedRightArmWear);
+			this.solidRightArmWear = new ModelLimbWear(this,"arm","right");
+			this.bipedRightArm.addChild(this.solidRightArmWear);
 
 			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
 			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
 			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
-			// this.bipedLeftArmWear.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
+			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left");
+			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
 		else{
 			// Steve Version
@@ -130,15 +133,17 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
 			this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
 
-			this.bipedRightArmwear = (new ModelScaleRenderer(this, 40, 32));
-			this.bipedRightArmwear.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedRightArm.addChild(this.bipedRightArmwear);
-			//this.bipedRightArmWear.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
+			this.bipedRightArmWear = (new ModelScaleRenderer(this, 40, 32));
+			this.bipedRightArmWear.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+			this.bipedRightArm.addChild(this.bipedRightArmWear);
+			this.solidRightArmWear = new ModelLimbWear(this,"arm","right");
+			this.bipedRightArm.addChild(this.solidRightArmWear);
 
 			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
 			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
-			//this.bipedLeftArmWear.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left");
+			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
 
 		this.bipedRightLeg = (new ModelScaleRenderer(this, 0, 16));
@@ -152,15 +157,19 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 32));
 		this.bipedRightLegWear.addBox(-2.08F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 		this.bipedRightLeg.addChild(this.bipedRightLegWear);
-		// this.bipedRightLegWear.setRotationPoint(-1.9F, 12.0F + par2, 0.0F);
+		this.solidRightLegWear = new ModelLimbWear(this,"leg","right");
+		this.bipedRightLeg.addChild(this.solidRightLegWear);
 
 		this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 48);
 		this.bipedLeftLegWear.addBox(-1.92F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 		this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
+		this.solidLeftLegWear = new ModelLimbWear(this,"leg","left");
+		this.bipedLeftLeg.addChild(this.solidLeftLegWear);
+
 
 		headwear = new ModelHeadwear(this);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 64);
-		// bodywear = new ModelBodywear(this);
+		bodywear = new ModelBodywear(this);
 
 		this.bipedBody.addChild(breasts = new ModelBreasts(this, 64, 64));
 		if(!isArmor){
@@ -235,16 +244,24 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBody.addChild(this.bipedBodywear);
 
 		// Arms
-		this.bipedRightArmwear = (new ModelScaleRenderer(this, 0, 0));
-		this.bipedRightArm.addChild(this.bipedRightArmwear);
+		this.bipedRightArmWear = (new ModelScaleRenderer(this, 0, 0));
+		this.bipedRightArm.addChild(this.bipedRightArmWear);
+		this.solidRightArmWear = (new ModelScaleRenderer(this, 0, 0));
+		this.bipedRightArm.addChild(this.solidRightArmWear);
 		this.bipedLeftArmwear = new ModelScaleRenderer(this, 0, 0);
 		this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+		this.solidLeftArmWear = (new ModelScaleRenderer(this, 0, 0));
+		this.bipedLeftArm.addChild(this.solidLeftArmWear);
 
 		// Legs
 		this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedRightLeg.addChild(this.bipedRightLegWear);
+		this.solidRightLegWear = new ModelScaleRenderer(this, 0, 0);
+		this.bipedRightLeg.addChild(this.solidRightLegWear);
 		this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 0);
 		this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
+		this.solidLeftLegWear = new ModelScaleRenderer(this, 0, 0);
+		this.bipedLeftLeg.addChild(this.solidLeftLegWear);
 
 		headwear = new ModelHeadwear(this, true);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 32);
@@ -539,7 +556,24 @@ public class ModelMPM extends ModelNPCMale{
 		((ModelScaleRenderer)this.bipedBody).isHidden = entity.modelData.hideBody == 1;
 
 		// Hide Bodywear
-		((ModelScaleRenderer)this.bipedBodywear).isHidden = entity.modelData.bodywear != 1;
+		((ModelScaleRenderer)this.bipedBodywear).isHidden = entity.modelData.bodywear == 0;
+
+		if(bipedBodywear.showModel && !bipedBodywear.isHidden){
+			if(entity.modelData.bodywear == 1 || isArmor){
+				((ModelScaleRenderer)this.bipedBodywear).setConfig(entity.modelData.body,x,y,z);
+				((ModelScaleRenderer)this.bipedBodywear).render(f);
+			}
+			else if(entity.modelData.bodywear == 2){
+				this.bodywear.rotateAngleX = bipedBodywear.rotateAngleX;
+				this.bodywear.rotateAngleY = bipedBodywear.rotateAngleY;
+				this.bodywear.rotateAngleZ = bipedBodywear.rotateAngleZ;
+				this.bodywear.rotationPointX = bipedBodywear.rotationPointX;
+				this.bodywear.rotationPointY = bipedBodywear.rotationPointY;
+				this.bodywear.rotationPointZ = bipedBodywear.rotationPointZ;
+				this.bodywear.setConfig(entity.modelData.body,x,y,z);
+				this.bodywear.render(f);
+			}
+		}
 
 		((ModelScaleRenderer)this.bipedBody).setConfig(body,x,y,z);
 		((ModelScaleRenderer)this.bipedBody).render(f);
@@ -581,20 +615,31 @@ public class ModelMPM extends ModelNPCMale{
 
 		// Hide Armwear
 		if(entity.modelData.armwear == 1){
-			((ModelScaleRenderer)this.bipedRightArmwear).isHidden = false;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = false;
+			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
+			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+
+			this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
+			this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
 		}
 		else if(entity.modelData.armwear == 2){
-			((ModelScaleRenderer)this.bipedRightArmwear).isHidden = true;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = false;
+			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = true;
+			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+
+			this.solidRightArmWear.isHidden = true;
+			this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
 		}
 		else if(entity.modelData.armwear == 3){
-			((ModelScaleRenderer)this.bipedRightArmwear).isHidden = false;
+			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
 			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = true;
+
+			this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
+			this.solidLeftArmWear.isHidden = true;
 		}
 		else{
-			((ModelScaleRenderer)this.bipedRightArmwear).isHidden = true;
+			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = true;
 			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = true;
+			this.solidRightArmWear.isHidden = true;
+			this.solidLeftArmWear.isHidden = true;
 		}
 
 		if(!bo){
@@ -641,20 +686,31 @@ public class ModelMPM extends ModelNPCMale{
 
 		// Hide Legwear
 		if(entity.modelData.legwear == 1){
-			((ModelScaleRenderer)this.bipedRightLegWear).isHidden = false;
-			((ModelScaleRenderer)this.bipedLeftLegWear).isHidden = false;
+			((ModelScaleRenderer)this.bipedRightLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 3;
+			((ModelScaleRenderer)this.bipedLeftLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 2;
+
+			this.solidRightLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 2;
+			this.solidLeftLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 3;
 		}
 		else if(entity.modelData.legwear == 2){
 			((ModelScaleRenderer)this.bipedRightLegWear).isHidden = true;
-			((ModelScaleRenderer)this.bipedLeftLegWear).isHidden = false;
+			((ModelScaleRenderer)this.bipedLeftLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 2;
+
+			this.solidRightLegWear.isHidden = true;
+			this.solidLeftLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 3;
 		}
 		else if(entity.modelData.legwear == 3){
-			((ModelScaleRenderer)this.bipedRightLegWear).isHidden = false;
+			((ModelScaleRenderer)this.bipedRightLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 3;
 			((ModelScaleRenderer)this.bipedLeftLegWear).isHidden = true;
+
+			this.solidRightLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 2;
+			this.solidLeftLegWear.isHidden = true;
 		}
 		else{
 			((ModelScaleRenderer)this.bipedRightLegWear).isHidden = true;
 			((ModelScaleRenderer)this.bipedLeftLegWear).isHidden = true;
+			this.solidRightLegWear.isHidden = true;
+			this.solidLeftLegWear.isHidden = true;
 		}
 
 		this.legs.setConfig(legs,x,y,z);

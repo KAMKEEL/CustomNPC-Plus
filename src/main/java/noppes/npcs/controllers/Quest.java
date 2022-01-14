@@ -16,8 +16,15 @@ import noppes.npcs.quests.QuestInterface;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.quests.QuestLocation;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.handler.data.IQuest;
+import noppes.npcs.scripted.handler.data.IQuestCategory;
+import noppes.npcs.scripted.handler.data.IQuestObjective;
+import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.IPlayer;
 
-public class Quest implements ICompatibilty {
+public class Quest implements ICompatibilty, IQuest {
 	public int version = VersionCompatibility.ModRev;
 	public int id = -1;
 	public EnumQuestType type = EnumQuestType.Item;
@@ -147,5 +154,92 @@ public class Quest implements ICompatibilty {
 	@Override
 	public void setVersion(int version) {
 		this.version = version;
+	}
+
+	public int getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.title;
+	}
+
+	public int getType() {
+		return this.type.ordinal();
+	}
+
+	public void setType(int questType) {
+		if(questType < 0 || questType >= EnumQuestType.values().length)
+			return;
+
+		EnumQuestType type = EnumQuestType.values()[questType];
+		setType(type);
+	}
+
+	public IQuestCategory getCategory() {
+		return this.category;
+	}
+
+	public void save() {
+		QuestController.instance.saveQuest(this.category.id, this);
+	}
+
+	public void setName(String name) {
+		this.title = name;
+	}
+
+	public String getLogText() {
+		return this.logText;
+	}
+
+	public void setLogText(String text) {
+		this.logText = text;
+	}
+
+	public String getCompleteText() {
+		return this.completeText;
+	}
+
+	public void setCompleteText(String text) {
+		this.completeText = text;
+	}
+
+	public void setNextQuest(IQuest quest) {
+		if (quest == null) {
+			this.nextQuestid = -1;
+			this.nextQuestTitle = "";
+		} else {
+			if (quest.getId() < 0) {
+				throw new CustomNPCsException("Quest id is lower than 0", new Object[0]);
+			}
+
+			this.nextQuestid = quest.getId();
+			this.nextQuestTitle = quest.getName();
+		}
+
+	}
+
+	public String getNpcName() {
+		return this.completerNpc;
+	}
+
+	public void setNpcName(String name) {
+		this.completerNpc = name;
+	}
+
+	public IQuestObjective[] getObjectives(IPlayer player) {
+		if (!player.hasActiveQuest(this.id)) {
+			throw new CustomNPCsException("Player doesnt have this quest active.", new Object[0]);
+		} else {
+			return this.questInterface.getObjectives((EntityPlayer) player.getMCEntity());
+		}
+	}
+
+	public boolean getIsRepeatable() {
+		return this.repeat != EnumQuestRepeat.NONE;
+	}
+
+	public IContainer getRewards() {
+		return NpcAPI.Instance().getIContainer(this.rewardItems);
 	}
 }

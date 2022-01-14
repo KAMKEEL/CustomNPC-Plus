@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.EventHooks;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
@@ -103,6 +104,7 @@ public class PlayerQuestData {
 					}
 					data.isCompleted = true;
 					bo = true;
+					EventHooks.onQuestFinished(player,data.quest);
 				}
 			}
 			else

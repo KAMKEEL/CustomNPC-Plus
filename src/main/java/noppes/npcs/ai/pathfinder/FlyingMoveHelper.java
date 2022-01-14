@@ -2,6 +2,7 @@ package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityMoveHelper;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -50,7 +51,18 @@ public class FlyingMoveHelper extends EntityMoveHelper{
                     if(verticalSpeed > Math.abs(this.entity.posY - this.posY))
                         verticalSpeed = Math.abs(this.entity.posY - this.posY);
 
-                    this.entity.motionY -= Math.signum(this.entity.posY - this.posY) * verticalSpeed;
+                    int blockY = (int) this.posY;
+                    double heightOffGround = 0;
+                    if(this.entity.ai.hasFlyLimit) {
+                        for (blockY = (int) this.posY; blockY > 0; blockY--) {
+                            heightOffGround = this.posY - blockY;
+                            if (this.entity.worldObj.getBlock((int) this.posX, blockY, (int) this.posZ) != Blocks.air || heightOffGround > this.entity.ai.flyHeightLimit){
+                                break;
+                            }
+                        }
+                    }
+                    if(heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit)
+                        this.entity.motionY -= Math.signum(this.entity.posY - this.posY) * verticalSpeed;
                 }
 
                 double d5 = MathHelper.sqrt_double(d4);

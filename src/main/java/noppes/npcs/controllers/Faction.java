@@ -1,13 +1,18 @@
 package noppes.npcs.controllers;
 
 import java.util.HashSet;
+import java.util.Iterator;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IFaction;
+import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.IPlayer;
 
-public class Faction {
+public class Faction implements IFaction {
 	public String name = "";
 	public int color = Integer.parseInt("FF00", 16);
 	
@@ -84,5 +89,91 @@ public class Faction {
 
 	public boolean isAggressiveToNpc(EntityNPCInterface entity) {
 		return attackFactions.contains(entity.faction.id);
+	}
+
+	public int getId() {
+		return this.id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public int getDefaultPoints() {
+		return this.defaultPoints;
+	}
+
+	public int getColor() {
+		return this.color;
+	}
+
+	public int playerStatus(IPlayer player) {
+		PlayerFactionData data = PlayerData.get((EntityPlayer) player.getMCEntity()).factionData;
+		int points = data.getFactionPoints(this.id);
+		if (points >= this.friendlyPoints) {
+			return 1;
+		} else {
+			return points < this.neutralPoints ? -1 : 0;
+		}
+	}
+
+	public boolean hostileToNpc(ICustomNpc npc) {
+		return this.attackFactions.contains(npc.getFaction().getId());
+	}
+
+	public void setDefaultPoints(int points) {
+		this.defaultPoints = points;
+	}
+
+	public boolean hostileToFaction(int factionId) {
+		return this.attackFactions.contains(factionId);
+	}
+
+	public int[] getHostileList() {
+		int[] a = new int[this.attackFactions.size()];
+		int i = 0;
+
+		Integer val;
+		for(Iterator var3 = this.attackFactions.iterator(); var3.hasNext(); a[i++] = val) {
+			val = (Integer)var3.next();
+		}
+
+		return a;
+	}
+
+	public void addHostile(int id) {
+		if (this.attackFactions.contains(id)) {
+			throw new CustomNPCsException("Faction " + this.id + " is already hostile to " + id, new Object[0]);
+		} else {
+			this.attackFactions.add(id);
+		}
+	}
+
+	public void removeHostile(int id) {
+		this.attackFactions.remove(id);
+	}
+
+	public boolean hasHostile(int id) {
+		return this.attackFactions.contains(id);
+	}
+
+	public boolean getIsHidden() {
+		return this.hideFaction;
+	}
+
+	public void setIsHidden(boolean bo) {
+		this.hideFaction = bo;
+	}
+
+	public boolean getAttackedByMobs() {
+		return this.getsAttacked;
+	}
+
+	public void setAttackedByMobs(boolean bo) {
+		this.getsAttacked = bo;
+	}
+
+	public void save() {
+		FactionController.getInstance().saveFaction(this);
 	}
 }

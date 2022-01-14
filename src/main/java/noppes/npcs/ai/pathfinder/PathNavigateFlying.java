@@ -297,23 +297,6 @@ public class PathNavigateFlying extends PathNavigate {
      */
     private int getPathableYPos()
     {
-        int i = (int)this.theEntity.boundingBox.minY;
-        Block block = this.worldObj.getBlock(MathHelper.floor_double(this.theEntity.posX), i, MathHelper.floor_double(this.theEntity.posZ));
-        int j = 0;
-
-        do
-        {
-            if (block != Blocks.air)
-            {
-                return i;
-            }
-
-            ++i;
-            block = this.worldObj.getBlock(MathHelper.floor_double(this.theEntity.posX), i, MathHelper.floor_double(this.theEntity.posZ));
-            ++j;
-        }
-        while (j <= 16);
-
         return (int)(this.theEntity.boundingBox.minY + 0.5D);
     }
 

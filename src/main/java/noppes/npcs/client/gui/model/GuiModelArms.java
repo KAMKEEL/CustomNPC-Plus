@@ -12,6 +12,7 @@ public class GuiModelArms extends GuiModelInterface{
 
 	private final String[] arrArm = new String[]{"gui.no","Both","Right","Left"};
 	private final String[] arrArmwear = new String[]{"gui.no","Both","Left","Right"};
+	private final String[] arrSolidArmwear = new String[]{"gui.no","Both","Left","Right"};
 	private final String[] arrClaws = new String[]{"gui.no","Both","Left","Right"};
 
 	private GuiScreen parent;
@@ -32,6 +33,9 @@ public class GuiModelArms extends GuiModelInterface{
 		if (npc.display.modelType == 1 || npc.display.modelType == 2) {
 			addButton(new GuiNpcButton(8, guiLeft + 50, y += 22, 70, 20, arrArmwear, playerdata.armwear));
 			addLabel(new GuiNpcLabel(8, "Armwear", guiLeft, y + 5, 0xFFFFFF));
+
+			addButton(new GuiNpcButton(9, guiLeft + 50, y += 22, 70, 20, arrSolidArmwear, playerdata.solidArmwear));
+			addLabel(new GuiNpcLabel(9, "Solid Armwear", guiLeft, y + 5, 0xFFFFFF));
 		}
 
 		ModelPartData claws = playerdata.getPartData("claws");
@@ -49,6 +53,9 @@ public class GuiModelArms extends GuiModelInterface{
 
 		if(button.id == 8){
 			playerdata.armwear = (byte) button.getValue();
+		}
+		if(button.id == 9){
+			playerdata.solidArmwear = (byte) button.getValue();
 		}
 		if(button.id == 30){
 			playerdata.hideArms = (byte) button.getValue();

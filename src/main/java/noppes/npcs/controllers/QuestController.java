@@ -2,9 +2,7 @@ package noppes.npcs.controllers;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,9 +10,12 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.scripted.handler.IQuestHandler;
+import noppes.npcs.scripted.handler.data.IQuest;
+import noppes.npcs.scripted.handler.data.IQuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
 
-public class QuestController {
+public class QuestController implements IQuestHandler {
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
 
@@ -232,5 +233,12 @@ public class QuestController {
 	private File getDir(){
 		return new File(CustomNpcs.getWorldSaveDirectory(), "quests");
 	}
-	
+
+	public List<IQuestCategory> categories() {
+		return new ArrayList(this.categories.values());
+	}
+
+	public IQuest get(int id) {
+		return (IQuest)this.quests.get(id);
+	}
 }

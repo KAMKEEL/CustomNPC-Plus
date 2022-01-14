@@ -2,6 +2,7 @@ package noppes.npcs.controllers;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.MathHelper;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumAvailabilityDialog;
@@ -9,8 +10,11 @@ import noppes.npcs.constants.EnumAvailabilityFaction;
 import noppes.npcs.constants.EnumAvailabilityFactionType;
 import noppes.npcs.constants.EnumAvailabilityQuest;
 import noppes.npcs.constants.EnumDayTime;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IAvailability;
+import noppes.npcs.scripted.interfaces.IPlayer;
 
-public class Availability implements ICompatibilty {
+public class Availability implements ICompatibilty, IAvailability {
 	public int version = VersionCompatibility.ModRev;
 
 	public EnumAvailabilityDialog dialogAvailable = EnumAvailabilityDialog.Always;
@@ -178,7 +182,7 @@ public class Availability implements ICompatibilty {
 		if(available == EnumAvailabilityFactionType.Always)
 			return true;
 		
-		Faction faction = FactionController.getInstance().getFaction(id);
+		Faction faction = FactionController.getInstance().get(id);
 		if(faction == null)
 			return true;
 		
@@ -232,5 +236,171 @@ public class Availability implements ICompatibilty {
 	@Override
 	public void setVersion(int version) {
 		this.version = version;
+	}
+
+	public boolean isAvailable(IPlayer player) {
+		return this.isAvailable((EntityPlayer)player.getMCEntity());
+	}
+
+	public int getDaytime() {
+		return this.daytime.ordinal();
+	}
+
+	public void setDaytime(int type) {
+		this.daytime = EnumDayTime.values()[MathHelper.clamp_int(type, 0, 2)];
+	}
+
+	public int getMinPlayerLevel() {
+		return this.minPlayerLevel;
+	}
+
+	public void setMinPlayerLevel(int level) {
+		this.minPlayerLevel = level;
+	}
+
+	public int getDialog(int i) {
+		if (i < 0 && i > 3) {
+			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
+		} else if (i == 0) {
+			return this.dialogId;
+		} else if (i == 1) {
+			return this.dialog2Id;
+		} else {
+			return i == 2 ? this.dialog3Id : this.dialog4Id;
+		}
+	}
+
+	public void setDialog(int i, int id, int type) {
+		if (i < 0 && i > 3) {
+			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
+		} else {
+			EnumAvailabilityDialog e = EnumAvailabilityDialog.values()[MathHelper.clamp_int(type, 0, 2)];
+			if (i == 0) {
+				this.dialogId = id;
+				this.dialogAvailable = e;
+			} else if (i == 1) {
+				this.dialog2Id = id;
+				this.dialog2Available = e;
+			} else if (i == 2) {
+				this.dialog3Id = id;
+				this.dialog3Available = e;
+			} else if (i == 3) {
+				this.dialog4Id = id;
+				this.dialog4Available = e;
+			}
+
+		}
+	}
+
+	public void removeDialog(int i) {
+		if (i < 0 && i > 3) {
+			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
+		} else {
+			if (i == 0) {
+				this.dialogId = -1;
+				this.dialogAvailable = EnumAvailabilityDialog.Always;
+			} else if (i == 1) {
+				this.dialog2Id = -1;
+				this.dialog2Available = EnumAvailabilityDialog.Always;
+			} else if (i == 2) {
+				this.dialog3Id = -1;
+				this.dialog3Available = EnumAvailabilityDialog.Always;
+			} else if (i == 3) {
+				this.dialog4Id = -1;
+				this.dialog4Available = EnumAvailabilityDialog.Always;
+			}
+
+		}
+	}
+
+	public int getQuest(int i) {
+		if (i < 0 && i > 3) {
+			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
+		} else if (i == 0) {
+			return this.questId;
+		} else if (i == 1) {
+			return this.quest2Id;
+		} else {
+			return i == 2 ? this.quest3Id : this.quest4Id;
+		}
+	}
+
+	public void setQuest(int i, int id, int type) {
+		if (i < 0 && i > 3) {
+			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
+		} else {
+			EnumAvailabilityQuest e = EnumAvailabilityQuest.values()[MathHelper.clamp_int(type, 0, 5)];
+			if (i == 0) {
+				this.questId = id;
+				this.questAvailable = e;
+			} else if (i == 1) {
+				this.quest2Id = id;
+				this.quest2Available = e;
+			} else if (i == 2) {
+				this.quest3Id = id;
+				this.quest3Available = e;
+			} else if (i == 3) {
+				this.quest4Id = id;
+				this.quest4Available = e;
+			}
+
+		}
+	}
+
+	public void removeQuest(int i) {
+		if (i < 0 && i > 3) {
+			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
+		} else {
+			if (i == 0) {
+				this.questId = -1;
+				this.questAvailable = EnumAvailabilityQuest.Always;
+			} else if (i == 1) {
+				this.quest2Id = -1;
+				this.quest2Available = EnumAvailabilityQuest.Always;
+			} else if (i == 2) {
+				this.quest3Id = -1;
+				this.quest3Available = EnumAvailabilityQuest.Always;
+			} else if (i == 3) {
+				this.quest4Id = -1;
+				this.quest4Available = EnumAvailabilityQuest.Always;
+			}
+
+		}
+	}
+
+	public void setFaction(int i, int id, int type, int stance) {
+		if (i < 0 && i > 1) {
+			throw new CustomNPCsException(i + " isnt between 0 and 1", new Object[0]);
+		} else {
+			EnumAvailabilityFactionType e = EnumAvailabilityFactionType.values()[MathHelper.clamp_int(type, 0, 2)];
+			EnumAvailabilityFaction ee = EnumAvailabilityFaction.values()[MathHelper.clamp_int(stance, 0, 2)];
+			if (i == 0) {
+				this.factionId = id;
+				this.factionAvailable = e;
+				this.factionStance = ee;
+			} else if (i == 1) {
+				this.faction2Id = id;
+				this.faction2Available = e;
+				this.faction2Stance = ee;
+			}
+
+		}
+	}
+
+	public void removeFaction(int i) {
+		if (i < 0 && i > 1) {
+			throw new CustomNPCsException(i + " isnt between 0 and 1", new Object[0]);
+		} else {
+			if (i == 0) {
+				this.factionId = -1;
+				this.factionAvailable = EnumAvailabilityFactionType.Always;
+				this.factionStance = EnumAvailabilityFaction.Friendly;
+			} else if (i == 1) {
+				this.faction2Id = -1;
+				this.faction2Available = EnumAvailabilityFactionType.Always;
+				this.faction2Stance = EnumAvailabilityFaction.Friendly;
+			}
+
+		}
 	}
 }

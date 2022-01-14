@@ -4,40 +4,42 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.Server;
+import noppes.npcs.*;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerDialogData;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.QuestData;
+import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.controllers.*;
+import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.event.FactionEvent;
+import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.handler.data.IQuest;
+import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.ICustomGui;
 import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.util.ValueUtil;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
+	private PlayerData data;
+
 	public ScriptPlayer(T player){
 		super(player);
 		this.player = player;
@@ -82,6 +84,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public boolean hasActiveQuest(int id){
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
 		return data.activeQuests.containsKey(id);
+	}
+
+	public void showDialog(int id){
+		Dialog dialog = (Dialog) DialogController.instance.get(id);
+		if(dialog == null)
+			return;
+
+		NoppesUtilServer.openDialog(player, new EntityDialogNpc(this.player.worldObj), dialog);
 	}
 	
 	public boolean hasReadDialog(int id){
@@ -158,7 +168,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 */
 	public void addFactionPoints(int faction, int points){
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
-		data.factionData.increasePoints(faction, points);
+		data.factionData.increasePoints(faction, points, player);
 	}
         
     /**         
@@ -388,6 +398,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return data.getGUIOpen();
 	}
 
+	public void checkQuestCompleted() {
+		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		for(EnumQuestType e : EnumQuestType.values())
+			playerdata.checkQuestCompletion((EntityPlayer)this.entity, e);
+	}
+
 	public ScriptDBCPlayer<T> getDBCPlayer() {
 		Set keySet = player.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
 		Iterator iterator = keySet.iterator();
@@ -403,5 +419,62 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public boolean blocking() {
 		return player.isBlocking();
+	}
+
+	private PlayerData getData() {
+		if (this.data == null) {
+			this.data = PlayerDataController.instance.getPlayerData(player);
+		}
+
+		return this.data;
+	}
+
+	public IQuest[] getActiveQuests() {
+		PlayerQuestData data = this.getData().questData;
+		List<IQuest> quests = new ArrayList();
+		Iterator var3 = data.activeQuests.keySet().iterator();
+
+		while(var3.hasNext()) {
+			int id = (Integer)var3.next();
+			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			if (quest != null) {
+				quests.add(quest);
+			}
+		}
+
+		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
+	}
+
+	public IContainer getOpenContainer() {
+		return NpcAPI.Instance().getIContainer(((EntityPlayerMP)this.entity).openContainer);
+	}
+
+	public void showCustomGui(ICustomGui gui) {
+		CustomGuiController.openGui(this, (ScriptGui) gui);
+	}
+
+	public ICustomGui getCustomGui() {
+		return ((EntityPlayerMP)this.entity).openContainer instanceof ContainerCustomGui ? ((ContainerCustomGui)((EntityPlayerMP)this.entity).openContainer).customGui : null;
+	}
+
+	public void closeGui() {
+		((EntityPlayerMP)this.entity).closeContainer();
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, new Object[]{-1, new NBTTagCompound()});
+	}
+
+	public IQuest[] getFinishedQuests() {
+		PlayerQuestData data = this.getData().questData;
+		List<IQuest> quests = new ArrayList();
+		Iterator var3 = data.finishedQuests.keySet().iterator();
+
+		while(var3.hasNext()) {
+			int id = (Integer)var3.next();
+			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			if (quest != null) {
+				quests.add(quest);
+			}
+		}
+
+		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
 	}
 }

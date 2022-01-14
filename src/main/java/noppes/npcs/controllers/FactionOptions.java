@@ -1,8 +1,12 @@
 package noppes.npcs.controllers;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.EventHooks;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.event.FactionEvent;
 
 public class FactionOptions {
 
@@ -52,16 +56,16 @@ public class FactionOptions {
 			addPoints(player, data, faction2Id, decreaseFaction2Points, faction2Points);
 	}
 	private void addPoints(EntityPlayer player, PlayerFactionData data, int factionId, boolean decrease, int points) {
-		Faction faction = FactionController.getInstance().getFaction(factionId);
+		Faction faction = FactionController.getInstance().get(factionId);
 		if(faction == null)
 			return;
-		
+
 		if(!faction.hideFaction){
 			String message = decrease?"faction.decreasepoints":"faction.increasepoints";
 			player.addChatMessage(new ChatComponentTranslation(message, faction.name, points));
 		}
 		
-		data.increasePoints(factionId, decrease?-points:points);
+		data.increasePoints(factionId, decrease?-points:points,player);
 		
 	}
 }

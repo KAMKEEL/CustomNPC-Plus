@@ -13,6 +13,7 @@ public class GuiModelLegs extends GuiModelInterface{
 	private GuiScreen parent;
 	private final String[] arrLeg = new String[]{"gui.no","Both","Right","Left"};
 	private final String[] arrLegwear = new String[]{"gui.no","Both","Left","Right"};
+	private final String[] arrSolidLegwear = new String[]{"gui.no","Both","Left","Right"};
 	private final String[] arrLegs = new String[]{"gui.no","Player","Player Naga","Spider","Horse","Naga", "Mermaid", "Mermaid 2", "Digitigrade"};
 	private final String[] arrTail = new String[]{"gui.no","Player", "Player Dragon","Cat","Wolf","Horse","Dragon", "Squirrel", "Fin", "Rodent", "Feather"};
 	public GuiModelLegs(GuiScreen parent, EntityCustomNpc npc){
@@ -32,6 +33,9 @@ public class GuiModelLegs extends GuiModelInterface{
 		if (npc.display.modelType == 1 || npc.display.modelType == 2) {
 			addButton(new GuiNpcButton(8, guiLeft + 50, y += 22, 70, 20, arrLegwear, playerdata.legwear));
 			addLabel(new GuiNpcLabel(8, "Legwear", guiLeft, y + 5, 0xFFFFFF));
+
+			addButton(new GuiNpcButton(9, guiLeft + 50, y += 22, 70, 20, arrSolidLegwear, playerdata.solidLegwear));
+			addLabel(new GuiNpcLabel(9, "Solid", guiLeft, y + 5, 0xFFFFFF));
 		}
 
     	addButton(new GuiNpcButton(1, guiLeft + 50, y += 22, 70, 20, arrLegs, getLegIndex(playerdata.legParts)));
@@ -90,6 +94,9 @@ public class GuiModelLegs extends GuiModelInterface{
 
 		if(button.id == 8){
 			playerdata.legwear = (byte) button.getValue();
+		}
+		if(button.id == 9){
+			playerdata.solidLegwear = (byte) button.getValue();
 		}
 		if(button.id == 30){
 			playerdata.hideLegs = (byte) button.getValue();
