@@ -69,7 +69,7 @@ public class CustomNpcs {
 	
     private static int NewEntityStartId = 0;
     
-    @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server")
+    @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
 
     @ConfigProp(info = "Set to true if you want the dialog command option to be able to use op commands like tp etc")
@@ -167,6 +167,10 @@ public class CustomNpcs {
         if (NpcNavRange < 16) {
             NpcNavRange = 16;
         }
+        if (NpcNavRange > 96) {
+            NpcNavRange = 96;
+        }
+
         EnchantInterface.load();
         CustomItems.load();
         

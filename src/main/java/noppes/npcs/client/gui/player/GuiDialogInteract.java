@@ -64,6 +64,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	grabMouse(dialog.showWheel);
     	guiTop = (height - ySize);
     	calculateRowHeight();
+		this.drawDefaultBackground = dialog.darkenScreen;
     }
     
     public void grabMouse(boolean grab){
