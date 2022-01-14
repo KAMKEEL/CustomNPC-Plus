@@ -22,12 +22,12 @@ public class ScriptGuiTexturedRect extends ScriptGuiComponent implements ITextur
         this.scale = 1.0F;
         this.setID(id);
         this.setTexture(texture);
-        this.setPos(GuiCustom.guiLeft + x, GuiCustom.guiTop + y);
+        this.setPos(x, y);
         this.setSize(width, height);
     }
 
     public ScriptGuiTexturedRect(int id, String texture, int x, int y, int width, int height, int textureX, int textureY) {
-        this(id, texture, GuiCustom.guiLeft + x, GuiCustom.guiTop + y, width, height);
+        this(id, texture, x, y, width, height);
         this.setTextureOffset(textureX, textureY);
     }
 
