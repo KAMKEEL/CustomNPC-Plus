@@ -83,6 +83,15 @@ public class CustomGuiController {
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
+    public static void onCustomGuiUnfocused(CustomGuiEvent.UnfocusedEvent event) {
+        EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
+        if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {
+            getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_TEXTFIELD, event);
+        }
+
+        WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onScrollClick(CustomGuiEvent.ScrollEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
         if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {

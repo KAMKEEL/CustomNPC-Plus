@@ -466,6 +466,10 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         }
     }
 
+    public void onTextFieldUnfocused(CustomGuiTextField textField){
+        Client.sendData(EnumPacketServer.CustomGuiUnfocused, new Object[]{this.updateGui().toNBT(), textField.getID()});
+    }
+
     ScriptGui updateGui() {
         Iterator var1 = this.dataHolders.iterator();
 

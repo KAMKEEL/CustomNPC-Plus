@@ -328,6 +328,11 @@ public class EventHooks {
         CustomGuiController.onSlotChange(event);
     }
 
+    public static void onCustomGuiUnfocused(ScriptPlayer player, ICustomGui gui, int textfieldId) {
+        CustomGuiEvent.UnfocusedEvent event = new CustomGuiEvent.UnfocusedEvent(player, gui, textfieldId);
+        CustomGuiController.onCustomGuiUnfocused(event);
+    }
+
     public static void onCustomGuiScrollClick(ScriptPlayer player, ICustomGui gui, int scrollId, int scrollIndex, String[] selection, boolean doubleClick) {
         CustomGuiEvent.ScrollEvent event = new CustomGuiEvent.ScrollEvent(player, gui, scrollId, scrollIndex, selection, doubleClick);
         CustomGuiController.onScrollClick(event);
