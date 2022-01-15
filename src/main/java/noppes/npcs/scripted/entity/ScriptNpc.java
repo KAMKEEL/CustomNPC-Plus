@@ -1105,5 +1105,12 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.display.glowTexture;
 	}
 
-	public void updateClient() { this.npc.updateClient(); };
+	public void setCollisionType(int type){
+		npc.display.collidesWith = type;
+	}
+	public int getCollisionType(){
+		return npc.display.collidesWith;
+	}
+
+	public void updateClient() { this.npc.updateClient(); }
 }
