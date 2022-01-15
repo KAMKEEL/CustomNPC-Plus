@@ -54,37 +54,6 @@ public class DataDisplay {
 
 	public DataDisplay(EntityNPCInterface npc){
 		this.npc = npc;
-
-		/*
-		Implementing MarkovNames generator. You can blame this blunder on Nikedemos.
-
-		Please refer to nikedemos.markovnames.generators.MarkovCustomNPCsClassic.java
-
-		String[] names = { "Noppes", "Noppes", "Noppes", "Noppes", "Atesson",
-				"Rothcersul", "Achdranys", "Pegato", "Chald", "Gareld",
-				"Nalworche", "Ineald", "Tia'kim", "Torerod", "Turturdar",
-				"Ranler", "Dyntan", "Oldrake", "Gharis", "Elmn", "Tanal",
-				"Waran-ess", "Ach-aldhat", "Athi", "Itageray", "Tasr",
-				"Ightech", "Gakih", "Adkal", "Qua'an", "Sieq", "Urnp", "Rods",
-				"Vorbani", "Smaik", "Fian", "Hir", "Ristai", "Kineth", "Naif",
-				"Issraya", "Arisotura", "Honf", "Rilfom", "Estz", "Ghatroth",
-				"Yosil", "Darage", "Aldny", "Tyltran", "Armos", "Loxiku",
-				"Burhat", "Tinlt", "Ightyd", "Mia",
-				"Ken", "Karla", "Lily", "Carina", "Daniel", "Slater", "Zidane", "Valentine", "Eirina",
-				"Carnow", "Grave", "Shadow", "Drakken", "Kaoz", "Silk", "Drake", "Oldam", "Lynxx", "Lenyx",
-				"Winter", "Seth", "Apolitho", "Amethyst", "Ankin", "Seinkan", "Ayumu", "Sakamoto", "Divina",
-				"Div", "Magia", "Magnus", "Tiakono", "Ruin", "Hailinx", "Ethan", "Wate", "Carter", "William",
-				"Brion", "Sparrow", "Basrrelen", "Gyaku", "Claire", "Crowfeather", "Blackwell", "Raven", "Farcri",
-				"Lucas", "Bangheart", "Kamoku", "Kyoukan", "Blaze", "Benjamin", "Larianne", "Kakaragon",
-				"Melancholy", "Epodyno", "Thanato", "Mika", "Dacks", "Ylander", "Neve", "Meadow", "Cuero",
-				"Embrera", "Eldamore", "Faolan", "Chim", "Nasu", "Kathrine", "Ariel", "Arei", "Demytrix",
-				"Kora", "Ava", "Larson", "Leonardo", "Wyrl", "Sakiama", "Lambton", "Kederath", "Malus", "Riplette",
-				"Andern", "Ezall", "Lucien", "Droco", "Cray", "Tymen", "Zenix", "Entranger",
-				"Saenorath", "Chris", "Christine", "Marble", "Mable", "Ross", "Rose", "Xalgan ", "Kennet", "Kamkeel"
-		};
-		name = names[new Random().nextInt(names.length)];
-		 */
-
 		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
 		name = getRandomName();
 	}

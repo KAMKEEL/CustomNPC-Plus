@@ -126,12 +126,12 @@ public class GuiNpcTextField extends GuiTextField{
 				setText(max+"");
 		}
 		else if(doublesOnly && !floatsOnly){
-			if(isEmpty() || !isDouble())
-				setText(defDouble +"");
-			else if(getDouble() < minDouble)
-				setText(minDouble +"");
-			else if(getDouble() > maxDouble)
-				setText(maxDouble +"");
+			if (isEmpty() || !isDouble())
+				setText(defDouble + "");
+			else if (getDouble() < minDouble)
+				setText(minDouble + "");
+			else if (getDouble() > maxDouble)
+				setText(maxDouble + "");
 		}
 		else if(floatsOnly){
 			if(isEmpty() || !isFloat())

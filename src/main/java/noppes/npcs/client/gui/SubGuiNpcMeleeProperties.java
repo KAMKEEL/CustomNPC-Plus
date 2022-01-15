@@ -27,7 +27,7 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
     {
         super.initGui();
         addLabel(new GuiNpcLabel(1,"stats.meleestrength", guiLeft + 5, guiTop + 15));
-        addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 85, guiTop + 10, 50, 18, stats.getAttackStrength()+""));
+        addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 85, guiTop + 10, 50, 18, String.format("%.0f", stats.getAttackStrength()) + ""));
         getTextField(1).floatsOnly = true;
 		getTextField(1).setMinMaxDefaultFloat(0,Float.MAX_VALUE,5);
         addLabel(new GuiNpcLabel(2,"stats.meleerange", guiLeft + 5, guiTop + 45));
