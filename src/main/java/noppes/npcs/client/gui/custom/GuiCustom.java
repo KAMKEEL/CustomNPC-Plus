@@ -466,6 +466,10 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         }
     }
 
+    public void onTextFieldUnfocused(CustomGuiTextField textField){
+        Client.sendData(EnumPacketServer.CustomGuiUnfocused, new Object[]{this.updateGui().toNBT(), textField.getID()});
+    }
+
     ScriptGui updateGui() {
         Iterator var1 = this.dataHolders.iterator();
 
@@ -537,10 +541,18 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         this.field_146995_H = false;
 
         if (mouseButton == 0 || mouseButton == 1 || flag) {
-            int i1 = guiLeft + ((ContainerCustomGui)this.inventorySlots).playerInvX;
-            int j1 = guiTop + ((ContainerCustomGui)this.inventorySlots).playerInvY;
-            boolean flag1 = mouseX < i1 || mouseY < j1 || mouseX >= i1 + this.xSize || mouseY >= j1 + this.ySize;
+            boolean flag1 = true;
             int k1 = -1;
+
+            for (int i = 0; i < this.inventorySlots.inventorySlots.size(); ++i)
+            {
+                Slot invSlot = (Slot)this.inventorySlots.inventorySlots.get(i);
+
+                if (invSlot.equals(slot))
+                {
+                    flag1 = false;
+                }
+            }
 
             if (slot != null) {
                 k1 = slot.slotNumber;

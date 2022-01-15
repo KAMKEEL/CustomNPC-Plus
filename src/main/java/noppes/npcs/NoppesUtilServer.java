@@ -319,7 +319,7 @@ public class NoppesUtilServer {
 											 float alpha1, float alpha2, float alphaRate, int alphaRateStart,
 											 int entityID
 	){
-		Server.sendAssociatedData(entity, EnumPacketClient.SCRIPTED_PARTICLE,
+		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE,
 				directory, HEXcolor, amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,

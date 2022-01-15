@@ -23,6 +23,15 @@ public class CustomGuiEvent extends Event {
         }
     }
 
+    public static class UnfocusedEvent extends CustomGuiEvent {
+        public final int textfieldId;
+
+        public UnfocusedEvent(IPlayer player, ICustomGui gui, int textfieldId) {
+            super(player, gui);
+            this.textfieldId = textfieldId;
+        }
+    }
+
     public static class CloseEvent extends CustomGuiEvent {
         public CloseEvent(IPlayer player, ICustomGui gui) {
             super(player, gui);

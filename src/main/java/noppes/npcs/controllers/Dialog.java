@@ -30,6 +30,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean hideNPC = false;
 	public boolean showWheel = false;
 	public boolean disableEsc = false;
+	public boolean darkenScreen = true;
 	
 	public boolean hasDialogs(EntityPlayer player) {
 		for(DialogOption option: options.values())

@@ -56,7 +56,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         boolean hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.width && mouseY < this.y + this.height;
         mc.getTextureManager().bindTexture(this.texture);
 
-        this.drawTexturedModalRect(this.textureX, this.textureY, 0, 0, (int)(this.width*this.scale), (int)(this.height*this.scale));
+        this.drawTexturedModalRect(this.x + this.textureX, this.y + this.textureY, 0, 0, (int)(this.width*this.scale), (int)(this.height*this.scale));
 
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;
