@@ -6,6 +6,8 @@
 package noppes.npcs.client.gui.custom.components;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.renderer.OpenGlHelper;
 import noppes.npcs.client.gui.custom.GuiCustom;
@@ -14,7 +16,9 @@ import noppes.npcs.scripted.gui.ScriptGuiLabel;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
-public class CustomGuiLabel extends GuiLabel implements IGuiComponent {
+import java.util.ArrayList;
+
+public class CustomGuiLabel extends Gui implements IGuiComponent {
     int x, y, width, height;
     GuiCustom parent;
     String fullLabel;
@@ -24,6 +28,31 @@ public class CustomGuiLabel extends GuiLabel implements IGuiComponent {
     int id;
     int border = 2;
     boolean labelBgEnabled = true;
+
+    protected int field_146167_a;
+    protected int field_146161_f;
+    public int field_146162_g;
+    public int field_146174_h;
+    private ArrayList field_146173_k;
+    private boolean field_146170_l;
+    public boolean field_146172_j;
+    private boolean field_146171_m;
+    private int field_146168_n;
+    private int field_146169_o;
+    private int field_146166_p;
+    private int field_146165_q;
+    private FontRenderer field_146164_r;
+    private int field_146163_s;
+    private static final String __OBFID = "CL_00000671";
+
+    public CustomGuiLabel(int id, String fullLabel, int x, int y, int width, int height){
+        this.id = id;
+        this.fullLabel = fullLabel;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
 
     public void setParent(GuiCustom parent) {
         this.parent = parent;
@@ -46,16 +75,10 @@ public class CustomGuiLabel extends GuiLabel implements IGuiComponent {
     }
 
     public static CustomGuiLabel fromComponent(ScriptGuiLabel component) {
-        CustomGuiLabel lbl = new CustomGuiLabel();
+        CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight());
         lbl.scale = 1.0F;
-        lbl.fullLabel = component.getText();
         lbl.color = component.getColor();
         lbl.field_146172_j = true;
-        lbl.id = component.getID();
-        lbl.x = GuiCustom.guiLeft + component.getPosX();
-        lbl.y = GuiCustom.guiTop + component.getPosY();
-        lbl.width = component.getWidth();
-        lbl.height = component.getHeight();
         lbl.setScale(component.getScale());
         if (component.hasHoverText()) {
             lbl.hoverText = component.getHoverText();
