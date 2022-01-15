@@ -139,7 +139,7 @@ public class FactionController implements IFactionHandler {
 	}
 
 	public void saveFaction(Faction faction) {
-		
+
 		if(faction.id < 0){
 			faction.id = getUnusedId();
 			while(hasName(faction.name))
@@ -157,23 +157,12 @@ public class FactionController implements IFactionHandler {
 	}
 
 	public Faction create(Faction faction) {
-		String name = faction.getName();
-		int color = faction.getColor();
-
-		for(faction = new Faction(); this.hasName(name); name = name + "_") {
-		}
-
-		faction.name = name;
-		faction.color = color;
 		this.saveFaction(faction);
 		return faction;
 	}
 
 	public Faction create(String name, int color) {
-		Faction faction;
-		for(faction = new Faction(); this.hasName(name); name = name + "_") {
-		}
-
+		Faction faction = new Faction();
 		faction.name = name;
 		faction.color = color;
 		this.saveFaction(faction);
