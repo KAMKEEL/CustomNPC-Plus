@@ -1604,17 +1604,72 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	// obviously we dont want this
 	@Override
 	public boolean canBePushed() {
-		return false;
+		return this.display.collidesWith == 0;
+	}
+
+	// checks for any entity within a certain boundingbox, eg minecarts
+	@Override
+	protected void collideWithNearbyEntities() {
+		if(this.display.collidesWith != 1) {
+			List list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, this.boundingBox.expand(0.20000000298023224D, 0.0D, 0.20000000298023224D));
+
+			if (list != null && !list.isEmpty()) {
+				for (int i = 0; i < list.size(); ++i) {
+					Entity entity = (Entity) list.get(i);
+
+					if (this.canBePushed() ||
+						(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
+						(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
+					) {
+						super.collideWithEntity(entity);
+					}
+				}
+			}
+		}
+	}
+
+	public void applyEntityCollision(Entity entity)
+	{
+		if (entity.riddenByEntity != this && entity.ridingEntity != this)
+		{
+			double d0 = entity.posX - this.posX;
+			double d1 = entity.posZ - this.posZ;
+			double d2 = MathHelper.abs_max(d0, d1);
+
+			if (d2 >= 0.009999999776482582D)
+			{
+				d2 = (double)MathHelper.sqrt_double(d2);
+				d0 /= d2;
+				d1 /= d2;
+				double d3 = 1.0D / d2;
+
+				if (d3 > 1.0D)
+				{
+					d3 = 1.0D;
+				}
+
+				d0 *= d3;
+				d1 *= d3;
+				d0 *= 0.05000000074505806D;
+				d1 *= 0.05000000074505806D;
+				d0 *= (double)(1.0F - this.entityCollisionReduction);
+				d1 *= (double)(1.0F - this.entityCollisionReduction);
+				if (this.canBePushed() ||
+					(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
+					(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
+				)
+					this.addVelocity(-d0, 0.0D, -d1);
+				entity.addVelocity(d0, 0.0D, d1);
+			}
+		}
 	}
 
 	// not any entity can collide. if you want projectiles to still be
 	// effective, you will have to handle those yourself
 	@Override
-	protected void collideWithEntity(Entity p_82167_1_) {}
+	protected void collideWithEntity(Entity p_82167_1_) {
 
-	// checks for any entity within a certain boundingbox, eg minecarts
-	@Override
-	protected void collideWithNearbyEntities() {}
+	}
 
 	public boolean canFly(){
 		return false;

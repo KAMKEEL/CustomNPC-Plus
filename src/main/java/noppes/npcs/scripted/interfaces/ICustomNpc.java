@@ -729,5 +729,9 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
 
     public String getOverlayTexture();
 
+    public void setCollisionType(int type);
+
+    public int getCollisionType();
+
     public void updateClient();
 }

@@ -82,6 +82,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"}, display.disableLivingAnimation?1:0));
 
+		addLabel(new GuiNpcLabel(6,"Collides With Entities", guiLeft + 185, y + 5));
+		this.addButton(new GuiNpcButton(6, guiLeft + 300, y, 100, 20, new String[]{"gui.yes","gui.no","Only CNPCs","Only Players","CNPCs & Players"}, display.collidesWith));
+
 		y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
@@ -154,6 +157,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(button.id == 5){
 			display.disableLivingAnimation = button.getValue() == 1;
+		}
+		else if(button.id == 6){
+			display.collidesWith = button.getValue();
 		}
 		else if(button.id == 7){
 			display.visible = button.getValue();
