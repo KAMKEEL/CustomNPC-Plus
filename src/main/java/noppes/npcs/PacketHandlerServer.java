@@ -560,7 +560,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.FactionSave){
 			Faction faction = new Faction();
 			faction.readNBT(Server.readNBT(buffer));
-			FactionController.getInstance().create(faction);
+			FactionController.getInstance().saveFaction(faction);
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
