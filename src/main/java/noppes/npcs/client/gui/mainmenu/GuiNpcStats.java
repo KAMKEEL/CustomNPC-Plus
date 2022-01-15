@@ -2,7 +2,6 @@ package noppes.npcs.client.gui.mainmenu;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EnumCreatureAttribute;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataStats;
 import noppes.npcs.client.Client;
@@ -34,19 +33,19 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
         super.initGui();
         int y = guiTop + 10;
         addLabel(new GuiNpcLabel(0,"stats.health", guiLeft + 5, y + 5));
-        addTextField(new GuiNpcTextField(0,this, guiLeft + 85, y, 50, 18, stats.maxHealth+""));
+        addTextField(new GuiNpcTextField(0,this, guiLeft + 85, y, 50, 18, String.format("%.0f", stats.maxHealth) + ""));
         getTextField(0).doublesOnly = true;
-        getTextField(0).setMinMaxDefaultDouble(0,Double.MAX_VALUE,20);
+        getTextField(0).setMinMaxDefaultDouble(0, Double.MAX_VALUE,20);
         addLabel(new GuiNpcLabel(1,"stats.aggro", guiLeft + 140, y + 5));
         addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 220, y, 50, 18, stats.aggroRange+""));
         getTextField(1).integersOnly = true;
-        getTextField(1).setMinMaxDefault(1, Integer.MAX_VALUE, 2);
+        getTextField(1).setMinMaxDefault(1, 96, 2); // Doesn't work past 32 technically (MC Limitations)
         addLabel(new GuiNpcLabel(34,"stats.creaturetype", guiLeft + 275, y + 5));
     	addButton(new GuiNpcButton(8,guiLeft + 355, y, 56, 20, new String[]{"stats.normal","stats.undead","stats.arthropod"} ,stats.creatureType.ordinal()));
 
     	addButton(new GuiNpcButton(0,guiLeft + 82, y+=22, 56, 20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(2,"stats.respawn", guiLeft + 5, y + 5));
-    	
+
     	this.addButton(new GuiNpcButton(2, guiLeft + 82, y+=22, 56, 20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(5,"stats.meleeproperties", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(3, guiLeft + 82, y+=22, 56, 20, "selectServer.edit"));
@@ -64,10 +63,10 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     	addLabel(new GuiNpcLabel(10,"stats.fireimmune", guiLeft + 5, y + 5));
     	addButton(new GuiNpcButton(5,guiLeft + 217, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.canDrown? 1:0));
     	addLabel(new GuiNpcLabel(11,"stats.candrown", guiLeft + 140, y + 5));
-    	addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, stats.healthRegen + "").setFloatsOnly());
+    	addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, String.format("%.0f", stats.healthRegen) + "").setFloatsOnly());
     	addLabel(new GuiNpcLabel(14,"stats.regenhealth", guiLeft + 275, y + 5));
     	
-    	addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y+=22, 56, 20, stats.combatRegen + "").setFloatsOnly());
+    	addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y+=22, 56, 20, String.format("%.0f", stats.combatRegen) + "").setFloatsOnly());
     	addLabel(new GuiNpcLabel(16,"stats.combatregen", guiLeft + 275, y + 5));
     	addButton(new GuiNpcButton(6,guiLeft + 82, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.burnInSun? 1:0));
     	addLabel(new GuiNpcLabel(12,"stats.burninsun", guiLeft + 5, y + 5));

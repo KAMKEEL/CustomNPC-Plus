@@ -28,7 +28,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
     {
         super.initGui();
         addLabel(new GuiNpcLabel(1,"enchantment.arrowDamage", guiLeft + 5, guiTop + 15));
-        addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 45, guiTop + 10, 50, 18, stats.pDamage+""));
+        addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 45, guiTop + 10, 50, 18, String.format("%.0f", stats.pDamage) +""));
         getTextField(1).setFloatsOnly();
         getTextField(1).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 5);
         addLabel(new GuiNpcLabel(2,"enchantment.arrowKnockback", guiLeft + 110, guiTop + 15));

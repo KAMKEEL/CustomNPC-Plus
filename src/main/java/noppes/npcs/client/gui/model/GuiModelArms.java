@@ -35,7 +35,7 @@ public class GuiModelArms extends GuiModelInterface{
 			addLabel(new GuiNpcLabel(8, "Armwear", guiLeft, y + 5, 0xFFFFFF));
 
 			addButton(new GuiNpcButton(9, guiLeft + 50, y += 22, 70, 20, arrSolidArmwear, playerdata.solidArmwear));
-			addLabel(new GuiNpcLabel(9, "Solid Armwear", guiLeft, y + 5, 0xFFFFFF));
+			addLabel(new GuiNpcLabel(9, "Solid", guiLeft, y + 5, 0xFFFFFF));
 		}
 
 		ModelPartData claws = playerdata.getPartData("claws");
