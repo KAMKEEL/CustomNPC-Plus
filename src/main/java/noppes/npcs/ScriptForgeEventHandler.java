@@ -53,7 +53,7 @@ public class ScriptForgeEventHandler {
             } else if(!(event instanceof TickEvent) || ((TickEvent)event).side != Side.CLIENT) {
                 if (event instanceof PlayerEvent) {
                     PlayerEvent ev = (PlayerEvent) event;
-                    if (!(ev.player.worldObj instanceof WorldServer)) {
+                    if (ev.player == null || !(ev.player.worldObj instanceof WorldServer)) {
                         return;
                     }
                 }
