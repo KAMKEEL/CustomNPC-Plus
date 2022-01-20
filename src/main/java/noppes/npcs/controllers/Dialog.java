@@ -60,7 +60,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		else
 			showWheel = true;
 		disableEsc = compound.getBoolean("DialogDisableEsc");
-    	
+		darkenScreen = compound.getBoolean("DialogDarkenScreen");
+
 		NBTTagList options = compound.getTagList("Options", 10);
 		HashMap<Integer,DialogOption> newoptions = new HashMap<Integer,DialogOption>();
 		for(int iii = 0; iii < options.tagCount();iii++){
@@ -91,6 +92,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setBoolean("DialogHideNPC", hideNPC);
 		compound.setBoolean("DialogShowWheel", showWheel);
 		compound.setBoolean("DialogDisableEsc", disableEsc);
+		compound.setBoolean("DialogDarkenScreen", darkenScreen);
 		
 		if(sound != null && !sound.isEmpty())
 			compound.setString("DialogSound", sound);
@@ -134,6 +136,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.hideNPC = hideNPC;
 		dialog.showWheel = showWheel;
 		dialog.disableEsc = disableEsc;
+		dialog.darkenScreen = darkenScreen;
 		
 		for(int slot : options.keySet()){
 			DialogOption option = options.get(slot);
