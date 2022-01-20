@@ -74,6 +74,15 @@ public class EntityCustomFX extends EntityFX {
         location = new ResourceLocation(directory);
 	}
 
+    /*
+        par2 = partial tick time
+        par3 = ActiveRenderInfo.rotationX;
+        par4 = ActiveRenderInfo.rotationZ;
+        par5 = ActiveRenderInfo.rotationYZ;
+        par6 = ActiveRenderInfo.rotationXY;
+        par7 = ActiveRenderInfo.rotationXZ;
+     */
+
 	@Override
     public void renderParticle(Tessellator par1Tessellator, float par2, float par3, float par4, float par5, float par6, float par7)
     {
@@ -121,11 +130,15 @@ public class EntityCustomFX extends EntityFX {
         Minecraft minecraft = Minecraft.getMinecraft();
         EntityPlayer player = minecraft.thePlayer;
 
-        double yaw = (player.rotationYaw/180)*Math.PI;
-        double pitch = (player.rotationPitch/180)*Math.PI;
-
         double angle = Minecraft.getMinecraft().theWorld.getWorldTime()%360;
         double angleRad = (angle/180)*Math.PI;
+
+        double diffX = player.posX - this.startX;
+        double diffY = player.posY - player.getYOffset() - this.startY;
+        double diffZ = player.posZ - this.startZ;
+
+        double yaw = (player.rotationYaw/180)*Math.PI;
+        double pitch = (player.rotationPitch/180)*Math.PI;
 
         double angleX = Math.sin(yaw)*Math.cos(pitch);
         if(Math.abs(angleX) < 0.0001){
@@ -140,13 +153,62 @@ public class EntityCustomFX extends EntityFX {
             angleZ = 0.0D;
         }
 
-        double translateX = 0;
+        double angleXtranslateX = 0.0D;
+        double angleXtranslateY = 0.0D;//(-diffY + Math.cos(angleRad)*diffY) + (-Math.sin(angleRad)*diffZ);
+        double angleXtranslateZ = 0.0D;//(Math.sin(angleRad)*diffY) + (-diffZ + Math.cos(angleRad)*diffZ);
+
+        double angleYtranslateX = 0.0D;//(-diffX + Math.cos(angleRad)*diffX) + (Math.sin(angleRad)*diffZ);
+        double angleYtranslateY = 0.0D;
+        double angleYtranslateZ = 0.0D;//(-Math.sin(angleRad)*diffX) + (-diffZ + Math.cos(angleRad)*diffZ);
+
+        double angleZtranslateX = 0.0D;//(-diffX + Math.cos(angleRad)*diffX) + (-Math.sin(angleRad)*diffY);
+        double angleZtranslateY = 0.0D;//(Math.sin(angleRad)*diffX) + (-diffY + Math.cos(angleRad)*diffY);
+        double angleZtranslateZ = 0.0D;
+
+        double translateX = angleXtranslateX + angleYtranslateX + angleZtranslateX;
+        double translateY = angleXtranslateY + angleYtranslateY + angleZtranslateY;
+        double translateZ = angleXtranslateZ + angleYtranslateZ + angleZtranslateZ;
+
+        //distance in the X & Z plane
+        double distXZ = Math.sqrt(Math.pow(diffX,2) + Math.pow(diffZ,2));
+        //distance in the X & Y plane
+        double distXY = Math.sqrt(Math.pow(diffX,2) + Math.pow(diffY,2));
+        //distance in the Y & Z plane
+        double distYZ = Math.sqrt(Math.pow(diffY,2) + Math.pow(diffZ,2));
+
+        double signDiffX = Math.signum(diffX);
+        double signDiffY = Math.signum(diffY);
+        double signDiffZ = Math.signum(diffZ);
+
+        double angleXtoNorm = Math.sin(Math.acos(diffX/distXZ));
+        double angleZtoNorm = Math.sin(Math.acos(diffZ/distXZ));
+
+        double angleDiffX = (Math.abs(Math.cos(yaw))-angleXtoNorm);
+        double angleDiffZ = (Math.abs(Math.cos(yaw))-angleZtoNorm);
+
+        double translateX = -Math.abs(angleDiffX*angleZ*distXZ)*signDiffX;
         double translateY = 0;
-        double translateZ = 0;
+        double translateZ = -Math.abs(angleDiffX*angleX*distXZ)*signDiffZ + Math.cos(angleRad)*Math.abs(angleDiffX*angleX*distXZ)*signDiffZ;
+
+        if(minecraft.currentScreen == null) {
+            System.out.println();
+            //System.out.printf("diffX: %f, diffY: %f, diffZ: %f\n", diffX, diffY, diffZ);
+            //System.out.printf("angleX: %f, angleY: %f, angleZ: %f\n", angleX, angleY, angleZ);
+            //System.out.printf("angleXtoNorm: %f, angleZtoNorm: %f\n", angleXtoNorm, angleZtoNorm);
+            System.out.printf("Math.sin(yaw): %f\n", Math.sin(yaw));
+            System.out.printf("Math.cos(yaw): %f\n", Math.cos(yaw));
+            //System.out.printf("Math.sin(pitch): %f\n", Math.sin(pitch));
+            //System.out.printf("Math.cos(pitch): %f\n", Math.cos(pitch));
+            System.out.printf("angleDiffX: %f\n", angleDiffX);
+            System.out.printf("angleDiffZ: %f\n", angleDiffZ);
+            System.out.printf("translateX: %f\n", Math.cos(angleRad)*Math.abs(angleDiffX*angleZ*distXZ)*signDiffX);
+            System.out.printf("translateZ: %f\n", Math.cos(angleRad)*Math.abs(angleDiffX*angleX*distXZ)*signDiffZ);
+        }
         */
 
         GL11.glPushMatrix();
             GL11.glColor4f(1, 1, 1, 1.0F);
+
             //GL11.glTranslated(translateX,translateY,translateZ);
             //GL11.glRotated(angle, angleX, angleY, angleZ);
 
