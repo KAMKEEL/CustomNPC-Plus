@@ -79,7 +79,7 @@ public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiList
     	if(button.id == 15){
     		dialog.disableEsc = button.getValue() == 1;
     	}
-		if(button.id == 15){
+		if(button.id == 16){
 			dialog.darkenScreen = button.getValue() == 1;
 		}
     	if(button.id == 13){
