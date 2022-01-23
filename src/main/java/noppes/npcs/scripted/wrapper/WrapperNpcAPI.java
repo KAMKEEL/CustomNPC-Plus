@@ -233,7 +233,10 @@ public class WrapperNpcAPI extends NpcAPI {
     }
 
     public IDamageSource getIDamageSource(IEntity entity) {
-        return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(),entity.getMCEntity()));
+        if(entity.getType() == 1)//if player
+            return new ScriptDamageSource(new EntityDamageSource("player",entity.getMCEntity()));
+        else
+            return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(),entity.getMCEntity()));
     }
 
     public void executeCommand(IWorld world, String command) {

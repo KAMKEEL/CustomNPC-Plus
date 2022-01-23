@@ -41,7 +41,10 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	}
 
 	public void hurt(float damage, ScriptEntity source) {
-		entity.attackEntityFrom(new EntityDamageSource(source.getTypeName(),source.getMCEntity()),damage);
+		if(source.getType() == 1)//if player
+			entity.attackEntityFrom(new EntityDamageSource("player",source.getMCEntity()),damage);
+		else
+			entity.attackEntityFrom(new EntityDamageSource(source.getTypeName(),source.getMCEntity()),damage);
 	}
 
 	public void hurt(float damage, ScriptDamageSource damageSource) {
