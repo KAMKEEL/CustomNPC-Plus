@@ -472,10 +472,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public boolean attackEntityFrom(DamageSource damagesource, float i) {
-        if (this.worldObj.isRemote || CustomNpcs.FreezeNPCs || damagesource.damageType.equals("inWall")){
+        if (this.worldObj.isRemote || CustomNpcs.FreezeNPCs || (damagesource.damageType != null && damagesource.damageType.equals("inWall"))){
             return false;
         }
-        if(damagesource.damageType.equals("outOfWorld") && isKilled()){
+        if(damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()){
         	reset();
         }
         i = stats.resistances.applyResistance(damagesource, i);

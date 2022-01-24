@@ -28,6 +28,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     int id;
     int border = 2;
     boolean labelBgEnabled = true;
+    boolean labelShadowEnabled = false;
 
     protected int field_146167_a;
     protected int field_146161_f;
@@ -45,13 +46,14 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     private int field_146163_s;
     private static final String __OBFID = "CL_00000671";
 
-    public CustomGuiLabel(int id, String fullLabel, int x, int y, int width, int height){
+    public CustomGuiLabel(int id, String fullLabel, int x, int y, int width, int height, boolean shadow){
         this.id = id;
         this.fullLabel = fullLabel;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.labelShadowEnabled = shadow;
     }
 
     public void setParent(GuiCustom parent) {
@@ -75,7 +77,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     }
 
     public static CustomGuiLabel fromComponent(ScriptGuiLabel component) {
-        CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight());
+        CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.hasShadow());
         lbl.scale = 1.0F;
         lbl.color = component.getColor();
         lbl.field_146172_j = true;
@@ -83,6 +85,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         if (component.hasHoverText()) {
             lbl.hoverText = component.getHoverText();
         }
+        lbl.labelShadowEnabled = component.hasShadow();
 
         return lbl;
     }
@@ -90,6 +93,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     public ICustomGuiComponent toComponent() {
         ScriptGuiLabel component = new ScriptGuiLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
         component.setHoverText(this.hoverText);
+        component.enableShadow(this.labelShadowEnabled);
         return component;
     }
 
@@ -100,8 +104,13 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
             GL11.glEnable(GL11.GL_BLEND);
             OpenGlHelper.glBlendFunc(770, 771, 1, 0);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+
             this.drawLabelBackground();
-            this.drawString(Minecraft.getMinecraft().fontRenderer, fullLabel, this.x, this.y, this.color);
+            GL11.glPushMatrix();
+                GL11.glTranslatef(this.x,this.y,0.0F);
+                GL11.glScalef(this.scale, this.scale, this.scale);
+                Minecraft.getMinecraft().fontRenderer.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);
+            GL11.glPopMatrix();
         }
     }
 
@@ -109,8 +118,8 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     {
         if (this.labelBgEnabled)
         {
-            int k = this.width + this.border * 2;
-            int l = this.height + this.border * 2;
+            int k = (int)(this.width*this.scale) + this.border * 2;
+            int l = (int)(this.height*this.scale) + this.border * 2;
             int i1 = this.x - this.border;
             int j1 = this.y - this.border;
             drawRect(i1, j1, i1 + k, j1 + l, this.color);//backColor
