@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.item.ItemStack;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Line;
@@ -53,6 +54,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setSize(int size){
 		if(size < 1)
 			size = 1;
+		if(size > CustomNpcs.NpcSizeLimit)
+			size = CustomNpcs.NpcSizeLimit;
+
 		npc.display.modelSize = size;
 		npc.script.clientNeedsUpdate = true;
 	}
