@@ -13,9 +13,10 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestLocation;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 
-public class QuestLocation extends QuestInterface{
+public class QuestLocation extends QuestInterface implements IQuestLocation {
 	public String location = "";
 	public String location2 = "";
 	public String location3 = "";
@@ -116,6 +117,27 @@ public class QuestLocation extends QuestInterface{
 		}
 
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+	}
+
+	public void setLocation1(String loc1){
+		this.location = loc1;
+	}
+	public String getLocation1(){
+		return location;
+	}
+
+	public void setLocation2(String loc2){
+		this.location2 = loc2;
+	}
+	public String getLocation2(){
+		return location2;
+	}
+
+	public void setLocation3(String loc3){
+		this.location3 = loc3;
+	}
+	public String getLocation3(){
+		return location3;
 	}
 
 	class QuestLocationObjective implements IQuestObjective {

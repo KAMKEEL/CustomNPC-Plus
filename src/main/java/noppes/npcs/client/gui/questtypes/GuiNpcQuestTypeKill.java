@@ -37,29 +37,35 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
     	
     	quest = (QuestKill) q.questInterface;
 
-		setBackground("menubg.png");
-		xSize = 356;
-		ySize = 216;
+		setBackground("largebg.png");
+		bgScale = 1.7F;
+		bgScaleX = 1.1F;
+
+		xSize = 300;
+		ySize = 300;
 		closeOnEsc = true;
 	}
 
 	public void initGui() {
 		super.initGui();
+
+		guiTop -= 20;
+
 		int i = 0;
-		addLabel(new GuiNpcLabel(0, "You can fill in npc or player names too", guiLeft + 4, guiTop + 50));
+		addLabel(new GuiNpcLabel(0, "You can fill in npc or player names too", guiLeft + 4, guiTop + 20));
 		for (String name : quest.targets.keySet()) {
-			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 70 + i * 22, 180, 20, name));
-			this.addTextField(new GuiNpcTextField(i + 3, this, fontRendererObj, guiLeft + 186, guiTop + 70 + i * 22, 24, 20, quest.targets.get(name) + ""));
-			this.getTextField(i+3).integersOnly = true;
-			this.getTextField(i+3).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
+			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 40 + i * 22, 180, 20, name));
+			this.addTextField(new GuiNpcTextField(i + 12, this, fontRendererObj, guiLeft + 186, guiTop + 40 + i * 22, 24, 20, quest.targets.get(name) + ""));
+			this.getTextField(i+12).integersOnly = true;
+			this.getTextField(i+12).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
 			i++;
 		}
 		
-		for(;i < 3; i++){
-			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 70 + i * 22, 180, 20, ""));
-			this.addTextField(new GuiNpcTextField(i + 3, this, fontRendererObj, guiLeft + 186, guiTop + 70 + i * 22, 24, 20, "1"));
-			this.getTextField(i+3).integersOnly = true;
-			this.getTextField(i+3).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
+		for(;i < 12; i++){
+			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 40 + i * 22, 180, 20, ""));
+			this.addTextField(new GuiNpcTextField(i + 12, this, fontRendererObj, guiLeft + 186, guiTop + 40 + i * 22, 24, 20, "1"));
+			this.getTextField(i+12).integersOnly = true;
+			this.getTextField(i+12).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
 		}
         Map<?,?> data = EntityList.stringToClassMapping;
         ArrayList<String> list = new ArrayList<String>();
@@ -78,9 +84,13 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
         scroll.setList(list);
         scroll.setSize(130, 198);
         scroll.guiLeft = guiLeft + 220;
-        scroll.guiTop = guiTop + 14;
+        scroll.guiTop = guiTop + 40;
         addScroll(scroll);
-		this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 140, 98, 20, "gui.back"));
+
+		guiTop += 50;
+		this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 300, 98, 20, "gui.back"));
+		this.addButton(new GuiNpcButton(1, guiLeft + 4, guiTop + 260, 98, 20, new String[]{"Any", "NPCs"}, quest.targetType));
+		guiTop -= 50;
 
     	scroll.visible = GuiNpcTextField.isFieldActive();
 	}
@@ -89,6 +99,9 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 		super.actionPerformed(guibutton);
 		if (guibutton.id == 0) {
 			close();
+		}
+		if (guibutton.id == 1) {
+			quest.targetType = guibutton.displayString.equals("NPCs") ? 1 : 0;
 		}
 	}
     public void mouseClicked(int i, int j, int k)
@@ -101,18 +114,18 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		if(guiNpcTextField.id < 3)
+		if(guiNpcTextField.id < 12)
 			lastSelected = guiNpcTextField;
 
 		saveTargets();
 	}
 	private void saveTargets(){
 		HashMap<String,Integer> map = new HashMap<String,Integer>(); 
-		for(int i = 0; i< 3; i++){
+		for(int i = 0; i< 12; i++){
 			String name = getTextField(i).getText();
 			if(name.isEmpty())
 				continue;
-			map.put(name, getTextField(i+3).getInteger());
+			map.put(name, getTextField(i+12).getInteger());
 		}
 		quest.targets = map;
 	}

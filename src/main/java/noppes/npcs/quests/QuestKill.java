@@ -14,19 +14,23 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestKill;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 
-public class QuestKill extends QuestInterface{
+public class QuestKill extends QuestInterface implements IQuestKill {
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();
+	public int targetType = 0;
 
 	@Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
 		targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
+		targetType = compound.getInteger("TargetType");
 	}
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound compound) {
 		compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
+		compound.setInteger("TargetType",targetType);
 	}
 
 	@Override
@@ -88,6 +92,18 @@ public class QuestKill extends QuestInterface{
 		}
 
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+	}
+
+	public void setTargetType(int type) {
+		if(type < 0)
+			type = 0;
+		if(type > 1)
+			type = 1;
+
+		this.targetType = type;
+	}
+	public int getTargetType() {
+		return this.targetType;
 	}
 
 	class QuestKillObjective implements IQuestObjective {
