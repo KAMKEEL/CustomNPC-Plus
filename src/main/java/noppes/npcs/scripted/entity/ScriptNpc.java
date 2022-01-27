@@ -532,7 +532,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to return (0-8)
 	 * @return The chance of dropping the item in this slot. Returns 100 if the slot is not found.
 	 */
-	public int getLootChance(int slot) {
+	public double getLootChance(int slot) {
 		if(!npc.inventory.dropchance.containsKey(slot))
 			return 100;
 
@@ -544,8 +544,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to change
 	 * @param chance The new chance of dropping the item in this slot
 	 */
-	public void setLootChance(int slot, int chance) {
-		if(slot < 0 || slot > 8)
+	public void setLootChance(int slot, double chance) {
+		if(!npc.inventory.dropchance.containsKey(slot))
 			return;
 
 		if(chance < 0)

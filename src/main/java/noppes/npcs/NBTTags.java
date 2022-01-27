@@ -69,6 +69,17 @@ public class NBTTags {
         }
 		return list;
 	}
+
+	public static HashMap<Integer, Double> getIntegerDoubleMap(
+			NBTTagList tagList) {
+		HashMap<Integer, Double> list = new HashMap<Integer, Double>();
+		for(int i = 0; i < tagList.tagCount(); i++)
+		{
+			NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+			list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getDouble("Double"));
+		}
+		return list;
+	}
 	
 	public static HashMap<Integer, Long> getIntegerLongMap(
 			NBTTagList tagList) {
@@ -234,6 +245,19 @@ public class NBTTags {
 			NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setInteger("Slot", slot);
             nbttagcompound.setInteger("Integer", lines.get(slot));
+			nbttaglist.appendTag(nbttagcompound);
+		}
+		return nbttaglist;
+	}
+
+	public static NBTTagList nbtIntegerDoubleMap(HashMap<Integer, Double> lines) {
+		NBTTagList nbttaglist = new NBTTagList();
+		if(lines == null)
+			return nbttaglist;
+		for (int slot : lines.keySet()) {
+			NBTTagCompound nbttagcompound = new NBTTagCompound();
+			nbttagcompound.setInteger("Slot", slot);
+			nbttagcompound.setDouble("Double", lines.get(slot));
 			nbttaglist.appendTag(nbttagcompound);
 		}
 		return nbttaglist;
