@@ -22,15 +22,24 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	public int targetType = 0;
 
 	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
-		targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
-		targetType = compound.getInteger("TargetType");
+	public void writeEntityToNBT(NBTTagCompound compound) {
+		compound.setTag("QuestKills", NBTTags.nbtStringIntegerMap(targets));
+		//compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
+		compound.setInteger("TargetType",targetType);
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
-		compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
-		compound.setInteger("TargetType",targetType);
+	public void readEntityFromNBT(NBTTagCompound compound) {
+		if(!compound.hasKey("QuestKills")) {
+			targets.clear();
+			HashMap<String,Integer> oldTargets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
+			targets.putAll(oldTargets);
+		} else {
+			targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestKills", 10));
+		}
+
+		//targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
+		targetType = compound.getInteger("TargetType");
 	}
 
 	@Override

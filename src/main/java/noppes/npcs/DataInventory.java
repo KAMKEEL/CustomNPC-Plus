@@ -56,8 +56,9 @@ public class DataInventory implements IInventory{
 			for(int i = 0; i < oldDropChance.entrySet().size(); i++){
 				dropchance.put(i, Double.valueOf(oldDropChance.get(i)));
 			}
+		} else {
+			dropchance = NBTTags.getIntegerDoubleMap(nbttagcompound.getTagList("DoubleDropChance", 10));
 		}
-		dropchance = NBTTags.getIntegerDoubleMap(nbttagcompound.getTagList("DoubleDropChance", 10));
 
 		lootMode = nbttagcompound.getInteger("LootMode");
 	}
