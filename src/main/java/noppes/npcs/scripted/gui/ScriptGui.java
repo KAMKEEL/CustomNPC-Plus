@@ -13,17 +13,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
-import noppes.npcs.scripted.interfaces.IPlayer;
-import noppes.npcs.scripted.interfaces.IButton;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
-import noppes.npcs.scripted.interfaces.IItemSlot;
-import noppes.npcs.scripted.interfaces.ILabel;
-import noppes.npcs.scripted.interfaces.IScroll;
-import noppes.npcs.scripted.interfaces.ITextField;
-import noppes.npcs.scripted.interfaces.ITexturedRect;
-import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptContainer;
@@ -168,6 +159,18 @@ public class ScriptGui implements ICustomGui {
         ScriptGuiScroll component = new ScriptGuiScroll(id, x, y, width, height, list);
         this.components.add(component);
         return (IScroll)this.components.get(this.components.size() - 1);
+    }
+
+    public ILine addLine(int id, int x1, int y1, int x2, int y2, int color, int thickness) {
+        ScriptGuiLine line = new ScriptGuiLine(id, x1, y1, x2, y2, color, thickness);
+        this.components.add(line);
+        return (ILine) this.components.get(this.components.size() - 1);
+    }
+
+    public ILine addLine(int id, int x1, int y1, int x2, int y2) {
+        ScriptGuiLine line = new ScriptGuiLine(id, x1, y1, x2, y2);
+        this.components.add(line);
+        return (ILine) this.components.get(this.components.size() - 1);
     }
 
     public void showPlayerInventory(int x, int y) {

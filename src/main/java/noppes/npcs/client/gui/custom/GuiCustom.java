@@ -429,6 +429,11 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
                 this.components.put(scroll.getID(), scroll);
                 this.addDataHolder(scroll);
                 this.addClickListener(scroll);
+                break;
+            case 6:
+                CustomGuiLine line = CustomGuiLine.fromComponent((ScriptGuiLine) component);
+                this.components.put(line.getID(),line);
+                break;
         }
 
     }

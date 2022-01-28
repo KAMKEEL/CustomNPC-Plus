@@ -112,6 +112,8 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
                 return (new ScriptGuiScroll()).fromNBT(nbt);
             case 5:
                 return (new ScriptGuiItemSlot()).fromNBT(nbt);
+            case 6:
+                return (new ScriptGuiLine()).fromNBT(nbt);
             default:
                 return null;
         }
