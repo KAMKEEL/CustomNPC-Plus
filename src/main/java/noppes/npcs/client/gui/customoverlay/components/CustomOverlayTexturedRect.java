@@ -23,6 +23,9 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
     int textureY;
     float scale;
 
+    int color;
+    float alpha;
+
     public CustomOverlayTexturedRect(int id, String texture, int x, int y, int width, int height) {
         this(id, texture, x, y, width, height, 0, 0);
     }
@@ -52,9 +55,13 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
         mc.getTextureManager().bindTexture(this.texture);
 
         GL11.glPushMatrix();
+            float red = (color >> 16 & 255) / 255f;
+            float green = (color >> 8  & 255) / 255f;
+            float blue = (color & 255) / 255f;
+            GL11.glColor4f(red,green,blue,this.alpha);
+
             GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
 
-            GL11.glColor4f(1.0F,1.0F,1.0F,1.0F);
             GL11.glScalef(this.scale, this.scale, this.scale);
             this.drawTexturedModalRect((int) (this.x/this.scale), (int) (this.y/this.scale),  this.textureX, this.textureY, (int)(this.width), (int)(this.height));
         GL11.glPopMatrix();
@@ -62,8 +69,10 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
 
     public ICustomOverlayComponent toComponent() {
         ScriptOverlayTexturedRect component = new ScriptOverlayTexturedRect(this.id, this.texture.toString(), this.x, this.y, this.width, this.height, this.textureX, this.textureY);
-        component.setScale(this.scale);
+        component.setScale(scale);
         component.setAlignment(alignment);
+        component.setAlpha(alpha);
+        component.setColor(color);
         return component;
     }
 
@@ -77,6 +86,8 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
 
         rect.scale = component.getScale();
         rect.alignment = component.getAlignment();
+        rect.alpha = component.getAlpha();
+        rect.color = component.getColor();
 
         return rect;
     }

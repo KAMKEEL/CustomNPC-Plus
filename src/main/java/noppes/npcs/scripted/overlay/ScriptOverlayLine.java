@@ -9,7 +9,6 @@ public class ScriptOverlayLine extends ScriptOverlayComponent implements IOverla
     int y1;
     int x2;
     int y2;
-    int color = 0;
     int thickness = 2;
 
     public ScriptOverlayLine(){
@@ -48,7 +47,6 @@ public class ScriptOverlayLine extends ScriptOverlayComponent implements IOverla
         nbt.setInteger("Y1",y1);
         nbt.setInteger("X2",x2);
         nbt.setInteger("Y2",y2);
-        nbt.setInteger("Color",color);
         nbt.setInteger("Thickness",thickness);
 
         return nbt;
@@ -60,7 +58,6 @@ public class ScriptOverlayLine extends ScriptOverlayComponent implements IOverla
         y1 = nbt.getInteger("Y1");
         x2 = nbt.getInteger("X2");
         y2 = nbt.getInteger("Y2");
-        color = nbt.getInteger("Color");
         thickness = nbt.getInteger("Thickness");
 
         return this;
@@ -78,9 +75,6 @@ public class ScriptOverlayLine extends ScriptOverlayComponent implements IOverla
     public int getY2(){
         return this.y2;
     }
-    public int getColor(){
-        return this.color;
-    }
     public int getThickness(){
         return this.thickness;
     }
@@ -96,9 +90,6 @@ public class ScriptOverlayLine extends ScriptOverlayComponent implements IOverla
     }
     public void setY2(int y2){
         this.y2 = y2;
-    }
-    public void setColor(int color){
-        this.color = color;
     }
     public void setThickness(int thickness){
         this.thickness = thickness;

@@ -21,6 +21,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     int x, y, width, height;
     String fullLabel;
     int color;
+    float alpha;
     String[] hoverText;
     float scale;
     int border = 2;
@@ -77,6 +78,8 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
 
         lbl.labelShadowEnabled = component.hasShadow();
         lbl.alignment = component.getAlignment();
+        lbl.alpha = component.getAlpha();
+        lbl.color = component.getColor();
 
         return lbl;
     }
@@ -85,6 +88,8 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
         ScriptOverlayLabel component = new ScriptOverlayLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
         component.enableShadow(this.labelShadowEnabled);
         component.setAlignment(alignment);
+        component.setAlpha(alpha);
+        component.setColor(color);
         return component;
     }
 
@@ -98,6 +103,11 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
 
             this.drawLabelBackground();
             GL11.glPushMatrix();
+                float red = (color >> 16 & 255) / 255f;
+                float green = (color >> 8  & 255) / 255f;
+                float blue = (color & 255) / 255f;
+                GL11.glColor4f(red,green,blue,this.alpha);
+
                 GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
 
                 GL11.glTranslatef(this.x,this.y,0.0F);

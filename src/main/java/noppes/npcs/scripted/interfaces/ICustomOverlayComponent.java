@@ -14,4 +14,12 @@ public interface ICustomOverlayComponent {
     int getAlignment();
 
     void setAlignment(int alignment);
+
+    int getColor();
+
+    ICustomOverlayComponent setColor(int color);
+
+    float getAlpha();
+
+    void setAlpha(float alpha);
 }

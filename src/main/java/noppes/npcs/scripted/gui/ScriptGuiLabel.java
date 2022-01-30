@@ -100,7 +100,7 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
         this.setSize(nbt.getIntArray("size")[0], nbt.getIntArray("size")[1]);
         this.setColor(nbt.getInteger("color"));
         this.setScale(nbt.getFloat("scale"));
-        this.enableShadow(this.shadow);
+        this.enableShadow(nbt.getBoolean("shadow"));
         return this;
     }
 }

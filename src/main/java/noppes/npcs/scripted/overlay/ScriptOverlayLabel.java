@@ -9,7 +9,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
     String label;
     int width;
     int height;
-    int color;
     float scale;
     boolean shadow;
 
@@ -56,15 +55,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         return this;
     }
 
-    public int getColor() {
-        return this.color;
-    }
-
-    public IOverlayLabel setColor(int color) {
-        this.color = color;
-        return this;
-    }
-
     public float getScale() {
         return this.scale;
     }
@@ -91,7 +81,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         super.toNBT(nbt);
         nbt.setString("label", this.label);
         nbt.setIntArray("size", new int[]{this.width, this.height});
-        nbt.setInteger("color", this.color);
         nbt.setFloat("scale", this.scale);
         nbt.setBoolean("shadow",this.shadow);
         return nbt;
@@ -101,9 +90,8 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         super.fromNBT(nbt);
         this.setText(nbt.getString("label"));
         this.setSize(nbt.getIntArray("size")[0], nbt.getIntArray("size")[1]);
-        this.setColor(nbt.getInteger("color"));
         this.setScale(nbt.getFloat("scale"));
-        this.enableShadow(this.shadow);
+        this.enableShadow(nbt.getBoolean("shadow"));
         return this;
     }
 }

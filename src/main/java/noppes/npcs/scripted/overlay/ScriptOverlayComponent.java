@@ -6,12 +6,15 @@ import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.scripted.gui.*;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
 import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
+import noppes.npcs.scripted.interfaces.IOverlayTexturedRect;
 
 public abstract class ScriptOverlayComponent implements ICustomOverlayComponent {
     int id;
     int posX;
     int posY;
     int alignment = 0;
+    int color = 0xFFFFFF;
+    float alpha = 1.0F;
     /*  ========ALIGNMENTS========
         0           1           2
 
@@ -54,12 +57,31 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         this.alignment = alignment;
     }
 
+    public int getColor() {
+        return this.color;
+    }
+
+    public ICustomOverlayComponent setColor(int color) {
+        this.color = color;
+        return this;
+    }
+
+    public float getAlpha() {
+        return this.alpha;
+    }
+
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
+    }
+
     public abstract int getType();
 
     public NBTTagCompound toNBT(NBTTagCompound nbt) {
         nbt.setInteger("id", this.id);
         nbt.setIntArray("pos", new int[]{this.posX, this.posY});
         nbt.setInteger("alignment",this.alignment);
+        nbt.setInteger("color", this.color);
+        nbt.setFloat("alpha",this.alpha);
 
         nbt.setInteger("type", this.getType());
         return nbt;
@@ -69,6 +91,8 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         this.setID(nbt.getInteger("id"));
         this.setPos(nbt.getIntArray("pos")[0], nbt.getIntArray("pos")[1]);
         this.setAlignment(nbt.getInteger("alignment"));
+        this.setColor(nbt.getInteger("color"));
+        this.setAlpha(nbt.getInteger("alpha"));
 
         return this;
     }

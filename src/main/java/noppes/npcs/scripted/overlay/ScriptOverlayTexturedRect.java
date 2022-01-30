@@ -2,6 +2,7 @@ package noppes.npcs.scripted.overlay;
 
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.scripted.gui.ScriptGuiComponent;
+import noppes.npcs.scripted.interfaces.IOverlayLabel;
 import noppes.npcs.scripted.interfaces.IOverlayTexturedRect;
 import noppes.npcs.scripted.interfaces.ITexturedRect;
 

@@ -11,10 +11,6 @@ public interface IOverlayLabel extends ICustomOverlayComponent {
 
     IOverlayLabel setSize(int var1, int var2);
 
-    int getColor();
-
-    IOverlayLabel setColor(int var1);
-
     float getScale();
 
     IOverlayLabel setScale(float var1);
