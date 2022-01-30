@@ -92,7 +92,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         this.setPos(nbt.getIntArray("pos")[0], nbt.getIntArray("pos")[1]);
         this.setAlignment(nbt.getInteger("alignment"));
         this.setColor(nbt.getInteger("color"));
-        this.setAlpha(nbt.getInteger("alpha"));
+        this.setAlpha(nbt.getFloat("alpha"));
 
         return this;
     }

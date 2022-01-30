@@ -22,13 +22,15 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     int x, y, width, height;
     GuiCustom parent;
     String fullLabel;
-    int color;
     String[] hoverText;
     float scale;
     int id;
     int border = 2;
     boolean labelBgEnabled = true;
     boolean labelShadowEnabled = false;
+
+    int color;
+    float alpha;
 
     protected int field_146167_a;
     protected int field_146161_f;
@@ -85,6 +87,8 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
             lbl.hoverText = component.getHoverText();
         }
         lbl.labelShadowEnabled = component.hasShadow();
+        lbl.color = component.getColor();
+        lbl.alpha = component.getAlpha();
 
         return lbl;
     }
@@ -93,6 +97,8 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         ScriptGuiLabel component = new ScriptGuiLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
         component.setHoverText(this.hoverText);
         component.enableShadow(this.labelShadowEnabled);
+        component.setColor(this.color);
+        component.setAlpha(this.alpha);
         return component;
     }
 
@@ -106,6 +112,11 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
 
             this.drawLabelBackground();
             GL11.glPushMatrix();
+                float red = (color >> 16 & 255) / 255f;
+                float green = (color >> 8  & 255) / 255f;
+                float blue = (color & 255) / 255f;
+                GL11.glColor4f(red,green,blue,this.alpha);
+
                 GL11.glTranslatef(this.x,this.y,0.0F);
                 GL11.glScalef(this.scale, this.scale, this.scale);
                 Minecraft.getMinecraft().fontRenderer.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);

@@ -7,17 +7,14 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
     String label;
     int width;
     int height;
-    int color;
     float scale;
     boolean shadow;
 
     public ScriptGuiLabel() {
-        this.color = 16777215;
         this.scale = 1.0F;
     }
 
     public ScriptGuiLabel(int id, String label, int x, int y, int width, int height) {
-        this.color = 16777215;
         this.scale = 1.0F;
         this.setID(id);
         this.setText(label);
@@ -54,15 +51,6 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
         return this;
     }
 
-    public int getColor() {
-        return this.color;
-    }
-
-    public ILabel setColor(int color) {
-        this.color = color;
-        return this;
-    }
-
     public float getScale() {
         return this.scale;
     }
@@ -88,7 +76,6 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
         super.toNBT(nbt);
         nbt.setString("label", this.label);
         nbt.setIntArray("size", new int[]{this.width, this.height});
-        nbt.setInteger("color", this.color);
         nbt.setFloat("scale", this.scale);
         nbt.setBoolean("shadow",this.shadow);
         return nbt;
@@ -98,7 +85,6 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
         super.fromNBT(nbt);
         this.setText(nbt.getString("label"));
         this.setSize(nbt.getIntArray("size")[0], nbt.getIntArray("size")[1]);
-        this.setColor(nbt.getInteger("color"));
         this.setScale(nbt.getFloat("scale"));
         this.enableShadow(nbt.getBoolean("shadow"));
         return this;

@@ -13,6 +13,9 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+
 public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     OverlayCustom parent;
     int alignment;
@@ -70,13 +73,13 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     }
 
     public static CustomOverlayLabel fromComponent(ScriptOverlayLabel component) {
-        CustomOverlayLabel lbl = new CustomOverlayLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.hasShadow());
+        CustomOverlayLabel lbl = new CustomOverlayLabel(component.getID(), component.getText(), component.getPosX(), component.getPosY(), component.getWidth(), component.getHeight(), component.getShadow());
         lbl.scale = 1.0F;
         lbl.color = component.getColor();
         lbl.field_146172_j = true;
         lbl.setScale(component.getScale());
 
-        lbl.labelShadowEnabled = component.hasShadow();
+        lbl.labelShadowEnabled = component.getShadow();
         lbl.alignment = component.getAlignment();
         lbl.alpha = component.getAlpha();
         lbl.color = component.getColor();
@@ -86,7 +89,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
 
     public ICustomOverlayComponent toComponent() {
         ScriptOverlayLabel component = new ScriptOverlayLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
-        component.enableShadow(this.labelShadowEnabled);
+        component.setShadow(this.labelShadowEnabled);
         component.setAlignment(alignment);
         component.setAlpha(alpha);
         component.setColor(color);

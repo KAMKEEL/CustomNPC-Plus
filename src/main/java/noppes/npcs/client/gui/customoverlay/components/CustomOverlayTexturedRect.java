@@ -2,12 +2,16 @@ package noppes.npcs.client.gui.customoverlay.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
 import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
 import noppes.npcs.scripted.overlay.ScriptOverlayTexturedRect;
 import org.lwjgl.opengl.GL11;
+
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 
 public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent {
     OverlayCustom parent;

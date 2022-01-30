@@ -16,10 +16,6 @@ public interface ILabel extends ICustomGuiComponent {
 
     ILabel setSize(int var1, int var2);
 
-    int getColor();
-
-    ILabel setColor(int var1);
-
     float getScale();
 
     ILabel setScale(float var1);
