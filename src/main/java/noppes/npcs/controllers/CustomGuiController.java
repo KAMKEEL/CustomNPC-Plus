@@ -3,10 +3,7 @@ package noppes.npcs.controllers;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumGuiType;
@@ -18,6 +15,7 @@ import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 import java.io.IOException;
@@ -40,6 +38,15 @@ public class CustomGuiController {
         } else {
             return false;
         }
+    }
+
+    public static void openOverlay(ScriptPlayer player, ScriptOverlay gui) {
+        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.OVERLAY_DATA, new Object[]{gui.toNBT()});
+    }
+
+    public static boolean updateOverlay(ScriptPlayer player, ScriptOverlay gui) {
+        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.OVERLAY_DATA, new Object[]{gui.toNBT()});
+        return true;
     }
 
     static boolean checkGui(CustomGuiEvent event) {

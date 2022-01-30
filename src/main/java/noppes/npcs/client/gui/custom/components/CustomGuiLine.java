@@ -41,16 +41,17 @@ public class CustomGuiLine extends Gui implements IGuiComponent {
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         double distance = Math.sqrt(Math.pow(x1-x2,2)+Math.pow(y1-y2,2));
 
-        float particleRed = (color >> 16 & 255) / 255f;
-        float particleGreen = (color >> 8  & 255) / 255f;
-        float particleBlue = (color & 255) / 255f;
+        float red = (color >> 16 & 255) / 255f;
+        float green = (color >> 8  & 255) / 255f;
+        float blue = (color & 255) / 255f;
 
         mc.getTextureManager().bindTexture(new ResourceLocation("customnpcs:textures/gui/misc.png"));
         GL11.glPushMatrix();
-            GL11.glColor4f(particleRed,particleGreen,particleBlue,1.0F);
+            GL11.glColor4f(red,green,blue,1.0F);
             GL11.glTranslatef(this.x1,this.y1,0.0F);
-            GL11.glRotatef((float) (Math.sin((x1-x2)/distance)*180/Math.PI),0.0F,0.0F,1.0F);
-            this.drawTexturedModalRect((int) -Math.ceil((double)thickness/2),0,0,0, thickness, (int) distance);
+            GL11.glRotated(-Math.toDegrees(Math.atan2(x2-x1,y2-y1)),0.0F,0.0F,1.0F);
+            GL11.glScaled(thickness, distance,0.0D);
+            this.drawTexturedModalRect(0,0,0,0, 1, 1);
         GL11.glPopMatrix();
     }
 

@@ -1,31 +1,28 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
-package noppes.npcs.client.gui.custom.components;
+package noppes.npcs.client.gui.customoverlay.components;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.renderer.OpenGlHelper;
 import noppes.npcs.client.gui.custom.GuiCustom;
-import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
-import noppes.npcs.scripted.gui.ScriptGuiLabel;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
+import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
+import noppes.npcs.scripted.overlay.ScriptOverlayLabel;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 
-public class CustomGuiLabel extends Gui implements IGuiComponent {
+public class CustomOverlayLabel extends Gui implements IOverlayComponent {
+    OverlayCustom parent;
+    int alignment;
+    int id;
+
     int x, y, width, height;
-    GuiCustom parent;
     String fullLabel;
     int color;
     String[] hoverText;
     float scale;
-    int id;
     int border = 2;
     boolean labelBgEnabled = true;
     boolean labelShadowEnabled = false;
@@ -45,7 +42,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     private FontRenderer field_146164_r;
     private int field_146163_s;
 
-    public CustomGuiLabel(int id, String fullLabel, int x, int y, int width, int height, boolean shadow){
+    public CustomOverlayLabel(int id, String fullLabel, int x, int y, int width, int height, boolean shadow){
         this.id = id;
         this.fullLabel = fullLabel;
         this.x = x;
@@ -55,16 +52,12 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         this.labelShadowEnabled = shadow;
     }
 
-    public void setParent(GuiCustom parent) {
+    public void setParent(OverlayCustom parent) {
         this.parent = parent;
     }
 
-    public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
-        boolean hovered = mouseX >= this.field_146162_g && mouseY >= this.field_146174_h && mouseX < this.field_146162_g + this.field_146167_a && mouseY < this.field_146174_h + this.field_146161_f;
+    public void onRender(Minecraft mc, float partialTicks) {
         this.drawLabel();
-        if (hovered && this.hoverText != null && this.hoverText.length > 0) {
-            this.parent.hoverText = this.hoverText;
-        }
     }
 
     public int getID() {
@@ -75,24 +68,23 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         this.scale = scale;
     }
 
-    public static CustomGuiLabel fromComponent(ScriptGuiLabel component) {
-        CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.hasShadow());
+    public static CustomOverlayLabel fromComponent(ScriptOverlayLabel component) {
+        CustomOverlayLabel lbl = new CustomOverlayLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.hasShadow());
         lbl.scale = 1.0F;
         lbl.color = component.getColor();
         lbl.field_146172_j = true;
         lbl.setScale(component.getScale());
-        if (component.hasHoverText()) {
-            lbl.hoverText = component.getHoverText();
-        }
+
         lbl.labelShadowEnabled = component.hasShadow();
+        lbl.alignment = component.getAlignment();
 
         return lbl;
     }
 
-    public ICustomGuiComponent toComponent() {
-        ScriptGuiLabel component = new ScriptGuiLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
-        component.setHoverText(this.hoverText);
+    public ICustomOverlayComponent toComponent() {
+        ScriptOverlayLabel component = new ScriptOverlayLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
         component.enableShadow(this.labelShadowEnabled);
+        component.setAlignment(alignment);
         return component;
     }
 
@@ -106,6 +98,8 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
 
             this.drawLabelBackground();
             GL11.glPushMatrix();
+                GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
+
                 GL11.glTranslatef(this.x,this.y,0.0F);
                 GL11.glScalef(this.scale, this.scale, this.scale);
                 Minecraft.getMinecraft().fontRenderer.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);

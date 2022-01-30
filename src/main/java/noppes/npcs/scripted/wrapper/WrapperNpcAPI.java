@@ -41,6 +41,7 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.*;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
@@ -274,5 +275,9 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {
         return new ScriptGui(id, width, height, pauseGame);
+    }
+
+    public ICustomOverlay createCustomOverlay(int id) {
+        return new ScriptOverlay(id);
     }
 }
