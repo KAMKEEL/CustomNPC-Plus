@@ -100,18 +100,14 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     {
         if (this.field_146172_j)
         {
-            GL11.glEnable(GL11.GL_BLEND);
-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
             this.drawLabelBackground();
             GL11.glPushMatrix();
+                GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
+
                 float red = (color >> 16 & 255) / 255f;
                 float green = (color >> 8  & 255) / 255f;
                 float blue = (color & 255) / 255f;
                 GL11.glColor4f(red,green,blue,this.alpha);
-
-                GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
 
                 GL11.glTranslatef(this.x,this.y,0.0F);
                 GL11.glScalef(this.scale, this.scale, this.scale);

@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.customoverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.customoverlay.components.CustomOverlayLabel;
@@ -26,14 +27,6 @@ public class OverlayCustom extends Gui {
 
     public ScriptOverlay overlay;
     Map<Integer, IOverlayComponent> components = new HashMap();
-
-    float scale = 1.0F;
-    int x = 0;
-    int y = 0;
-    int textureX = 0;
-    int textureY = 0;
-    int width = 200;
-    int height = 200;
 
     public OverlayCustom(Minecraft mc) {
         this.mc = mc;
@@ -81,20 +74,12 @@ public class OverlayCustom extends Gui {
         scaledWidth = res.getScaledWidth();
         scaledHeight = res.getScaledHeight();
 
-        GL11.glPushMatrix();
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glDisable(GL11.GL_BLEND);
+        Iterator var4 = this.components.values().iterator();
 
-            Iterator var4 = this.components.values().iterator();
-
-            while(var4.hasNext()) {
-                IOverlayComponent component = (IOverlayComponent)var4.next();
-                component.onRender(this.mc, partialTicks);
-            }
-
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glPopMatrix();
+        while(var4.hasNext()) {
+            IOverlayComponent component = (IOverlayComponent)var4.next();
+            component.onRender(this.mc, partialTicks);
+        }
     }
 
     public void setOverlayData(NBTTagCompound compound) {
