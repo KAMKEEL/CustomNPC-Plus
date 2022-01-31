@@ -34,7 +34,6 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     String fullLabel;
     int color;
     float alpha;
-    String[] hoverText;
     float scale;
     int border = 2;
     boolean labelBgEnabled = true;
@@ -44,16 +43,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     protected int field_146161_f;
     public int field_146162_g;
     public int field_146174_h;
-    private ArrayList field_146173_k;
-    private boolean field_146170_l;
     public boolean field_146172_j;
-    private boolean field_146171_m;
-    private int field_146168_n;
-    private int field_146169_o;
-    private int field_146166_p;
-    private int field_146165_q;
-    private FontRenderer field_146164_r;
-    private int field_146163_s;
 
     private boolean randomStyle = false;
     private boolean boldStyle = false;
@@ -120,12 +110,6 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
         lbl.alpha = component.getAlpha();
         lbl.color = component.getColor();
 
-        lbl.strikethroughStyle = component.getStrikethroughStyle();
-        lbl.boldStyle = component.getBoldStyle();
-        lbl.italicStyle = component.getItalicStyle();
-        lbl.randomStyle = component.getRandomStyle();
-        lbl.underlineStyle = component.getUnderlineStyle();
-
         return lbl;
     }
 
@@ -136,11 +120,6 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
         component.setAlpha(alpha);
         component.setColor(color);
 
-        component.setStrikethroughStyle(strikethroughStyle);
-        component.setBoldStyle(boldStyle);
-        component.setItalicStyle(italicStyle);
-        component.setRandomStyle(randomStyle);
-        component.setUnderlineStyle(underlineStyle);
         return component;
     }
 
@@ -181,6 +160,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
 
     public int drawString(String p_85187_1_, int p_85187_2_, int p_85187_3_, int p_85187_4_, boolean p_85187_5_)
     {
+        this.resetStyles();
         int l;
 
         if (p_85187_5_)
@@ -234,27 +214,11 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
             int j;
             int k;
 
-            if (c0 == 167 && i + 1 < p_78255_1_.length())
+            if (c0 == 38 && i + 1 < p_78255_1_.length())
             {
                 j = "0123456789abcdefklmnor".indexOf(p_78255_1_.toLowerCase().charAt(i + 1));
 
-                if (j < 16)
-                {
-                    if (j < 0 || j > 15)
-                    {
-                        j = 15;
-                    }
-
-                    if (p_78255_2_)
-                    {
-                        j += 16;
-                    }
-
-                    k = this.colorCode[j];
-                    this.textColor = k;
-                    setColor((float)(k >> 16) / 255.0F, (float)(k >> 8 & 255) / 255.0F, (float)(k & 255) / 255.0F, this.alpha);
-                }
-                else if (j == 16)
+                if (j == 16)
                 {
                     this.randomStyle = true;
                 }
@@ -276,7 +240,11 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
                 }
                 else if (j == 21)
                 {
-                    setColor(this.red, this.green, this.blue, this.alpha);
+                    this.randomStyle = false;
+                    this.boldStyle = false;
+                    this.strikethroughStyle = false;
+                    this.underlineStyle = false;
+                    this.italicStyle = false;
                 }
 
                 ++i;

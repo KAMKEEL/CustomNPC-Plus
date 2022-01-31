@@ -12,12 +12,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
     float scale;
     boolean shadow;
 
-    boolean randomStyle = false;
-    boolean boldStyle = false;
-    boolean italicStyle = false;
-    boolean underlineStyle = false;
-    boolean strikethroughStyle = false;
-
     public ScriptOverlayLabel() {
         this.color = 16777215;
         this.scale = 1.0F;
@@ -78,38 +72,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         this.shadow = shadow;
     }
 
-    public void setRandomStyle(boolean randomStyle){
-        this.randomStyle = randomStyle;
-    }
-    public void setUnderlineStyle(boolean underlineStyle){
-        this.underlineStyle = underlineStyle;
-    }
-    public void setBoldStyle(boolean boldStyle){
-        this.boldStyle = boldStyle;
-    }
-    public void setItalicStyle(boolean italicStyle){
-        this.italicStyle = italicStyle;
-    }
-    public void setStrikethroughStyle(boolean strikethroughStyle){
-        this.strikethroughStyle = strikethroughStyle;
-    }
-
-    public boolean getRandomStyle(){
-        return this.randomStyle;
-    }
-    public boolean getUnderlineStyle(){
-        return this.underlineStyle;
-    }
-    public boolean getBoldStyle(){
-        return this.boldStyle;
-    }
-    public boolean getItalicStyle(){
-        return this.italicStyle;
-    }
-    public boolean getStrikethroughStyle(){
-        return this.strikethroughStyle;
-    }
-
     @Override
     public int getType() {
         return 1;
@@ -121,12 +83,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         nbt.setIntArray("size", new int[]{this.width, this.height});
         nbt.setFloat("scale", this.scale);
         nbt.setBoolean("shadow",this.shadow);
-
-        nbt.setBoolean("strikethrough",this.strikethroughStyle);
-        nbt.setBoolean("bold",this.boldStyle);
-        nbt.setBoolean("italic",this.italicStyle);
-        nbt.setBoolean("random",this.randomStyle);
-        nbt.setBoolean("underline",this.underlineStyle);
         return nbt;
     }
 
@@ -136,12 +92,6 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         this.setSize(nbt.getIntArray("size")[0], nbt.getIntArray("size")[1]);
         this.setScale(nbt.getFloat("scale"));
         this.setShadow(nbt.getBoolean("shadow"));
-
-        this.setStrikethroughStyle(nbt.getBoolean("strikethrough"));
-        this.setBoldStyle(nbt.getBoolean("bold"));
-        this.setItalicStyle(nbt.getBoolean("italic"));
-        this.setRandomStyle(nbt.getBoolean("random"));
-        this.setUnderlineStyle(nbt.getBoolean("underline"));
         return this;
     }
 }
