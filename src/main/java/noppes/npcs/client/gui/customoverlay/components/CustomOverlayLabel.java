@@ -62,8 +62,6 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     private float red;
     private float green;
     private float blue;
-    private int[] colorCode = new int[32];
-    private int textColor;
 
     private float posX;
     private float posY;
@@ -127,7 +125,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     {
         if (this.field_146172_j)
         {
-            //this.drawLabelBackground();
+            this.drawLabelBackground();
             GL11.glPushMatrix();
                 GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
 
