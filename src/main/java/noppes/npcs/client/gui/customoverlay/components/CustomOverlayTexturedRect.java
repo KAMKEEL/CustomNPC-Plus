@@ -4,9 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
+import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
 import noppes.npcs.scripted.overlay.ScriptOverlayTexturedRect;
 import org.lwjgl.opengl.GL11;
@@ -30,6 +35,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
 
     int color;
     float alpha;
+    float rotation;
 
     public CustomOverlayTexturedRect(int id, String texture, int x, int y, int width, int height) {
         this(id, texture, x, y, width, height, 0, 0);
@@ -46,6 +52,12 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
         this.height = height;
         this.textureX = textureX;
         this.textureY = textureY;
+
+        if(texture.startsWith("https://")){
+            TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+            ITextureObject object = new ImageDownloadAlt(null, texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+            texturemanager.loadTexture(this.texture, object);
+        }
     }
 
     public void setParent(OverlayCustom parent) {
@@ -67,6 +79,8 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
             GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
 
             GL11.glScalef(this.scale, this.scale, this.scale);
+
+            GL11.glRotatef(this.rotation,0.0F,0.0F,1.0F);
 
             int p_73729_1_ = (int) (this.x/this.scale);
             int p_73729_2_ = (int) (this.y/this.scale);
@@ -95,6 +109,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
         component.setAlignment(alignment);
         component.setAlpha(alpha);
         component.setColor(color);
+        component.setRotation(rotation);
         return component;
     }
 
@@ -110,6 +125,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
         rect.alignment = component.getAlignment();
         rect.alpha = component.getAlpha();
         rect.color = component.getColor();
+        rect.rotation = component.getRotation();
 
         return rect;
     }

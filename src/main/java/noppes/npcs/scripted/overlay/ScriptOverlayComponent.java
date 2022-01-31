@@ -15,6 +15,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
     int alignment = 0;
     int color = 0xFFFFFF;
     float alpha = 1.0F;
+    float rotation = 0;
     /*  ========ALIGNMENTS========
         0           1           2
 
@@ -74,6 +75,14 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         this.alpha = alpha;
     }
 
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
     public abstract int getType();
 
     public NBTTagCompound toNBT(NBTTagCompound nbt) {
@@ -82,6 +91,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         nbt.setInteger("alignment",this.alignment);
         nbt.setInteger("color", this.color);
         nbt.setFloat("alpha",this.alpha);
+        nbt.setFloat("rotation",this.rotation);
 
         nbt.setInteger("type", this.getType());
         return nbt;
@@ -93,6 +103,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         this.setAlignment(nbt.getInteger("alignment"));
         this.setColor(nbt.getInteger("color"));
         this.setAlpha(nbt.getFloat("alpha"));
+        this.setRotation(nbt.getInteger("rotation"));
 
         return this;
     }

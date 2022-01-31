@@ -22,4 +22,8 @@ public interface ICustomOverlayComponent {
     float getAlpha();
 
     void setAlpha(float alpha);
+
+    float getRotation();
+
+    void setRotation(float rotation);
 }

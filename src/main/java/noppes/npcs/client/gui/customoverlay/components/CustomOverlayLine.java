@@ -26,6 +26,7 @@ public class CustomOverlayLine extends Gui implements IOverlayComponent {
     int color;
     int thickness;
     float alpha;
+    float rotation;
 
     public CustomOverlayLine(int id, int x1, int y1, int x2, int y2, int color, int thickness){
         this.id = id;
@@ -58,6 +59,7 @@ public class CustomOverlayLine extends Gui implements IOverlayComponent {
             GL11.glTranslatef(this.x1,this.y1,0.0F);
 
             GL11.glRotated(-Math.toDegrees(Math.atan2(x2-x1,y2-y1)),0.0F,0.0F,1.0F);
+            GL11.glRotated(rotation,0.0D,0.0D,1.0D);
             GL11.glScaled(thickness, distance,0.0D);
 
             int p_73729_1_ = 0;
@@ -86,6 +88,7 @@ public class CustomOverlayLine extends Gui implements IOverlayComponent {
         line.setAlignment(alignment);
         line.setAlpha(alpha);
         line.setColor(color);
+        line.setRotation(rotation);
         return line;
     }
 
@@ -94,6 +97,7 @@ public class CustomOverlayLine extends Gui implements IOverlayComponent {
         line.alignment = component.getAlignment();
         line.alpha = component.getAlpha();
         line.color = component.getColor();
+        line.rotation = component.getRotation();
 
         return line;
     }

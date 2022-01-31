@@ -58,6 +58,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     protected final ResourceLocation locationFontTexture;
     protected int[] charWidth = new int[256];
     protected byte[] glyphWidth = new byte[65536];
+    private final int[] colorCode = new int[32];
 
 
     private float red;
@@ -68,10 +69,6 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     private float posY;
 
     public CustomGuiLabel(int id, String fullLabel, int x, int y, int width, int height, boolean shadow){
-        locationFontTexture = new ResourceLocation("textures/font/ascii.png");
-        readFontTexture();
-        readGlyphSizes();
-
         this.id = id;
         this.fullLabel = fullLabel;
         this.x = x;
@@ -79,6 +76,41 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         this.width = width;
         this.height = height;
         this.labelShadowEnabled = shadow;
+
+        locationFontTexture = new ResourceLocation("textures/font/ascii.png");
+        readFontTexture();
+        readGlyphSizes();
+        for (int i = 0; i < 32; ++i)
+        {
+            int j = (i >> 3 & 1) * 85;
+            int k = (i >> 2 & 1) * 170 + j;
+            int l = (i >> 1 & 1) * 170 + j;
+            int i1 = (i >> 0 & 1) * 170 + j;
+
+            if (i == 6)
+            {
+                k += 85;
+            }
+
+            if (Minecraft.getMinecraft().gameSettings.anaglyph)
+            {
+                int j1 = (k * 30 + l * 59 + i1 * 11) / 100;
+                int k1 = (k * 30 + l * 70) / 100;
+                int l1 = (k * 30 + i1 * 70) / 100;
+                k = j1;
+                l = k1;
+                i1 = l1;
+            }
+
+            if (i >= 16)
+            {
+                k /= 4;
+                l /= 4;
+                i1 /= 4;
+            }
+
+            this.colorCode[i] = (k & 255) << 16 | (l & 255) << 8 | i1 & 255;
+        }
     }
 
     public void setParent(GuiCustom parent) {
@@ -198,7 +230,27 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
             {
                 j = "0123456789abcdefklmnor".indexOf(p_78255_1_.toLowerCase().charAt(i + 1));
 
-                if (j == 16)
+                if(j < 16){
+                    this.randomStyle = false;
+                    this.boldStyle = false;
+                    this.strikethroughStyle = false;
+                    this.underlineStyle = false;
+                    this.italicStyle = false;
+
+                    if (j < 0 || j > 15)
+                    {
+                        j = 15;
+                    }
+
+                    if (p_78255_2_)
+                    {
+                        j += 16;
+                    }
+
+                    k = this.colorCode[j];
+                    setColor((float)(k >> 16) / 255.0F, (float)(k >> 8 & 255) / 255.0F, (float)(k & 255) / 255.0F, this.alpha);
+                }
+                else if (j == 16)
                 {
                     this.randomStyle = true;
                 }
@@ -403,7 +455,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
 
     protected void setColor(float r, float g, float b, float a)
     {
-        GL11.glColor4f(r, g, b, alpha);
+        GL11.glColor4f(r, g, b, a);
     }
 
     protected void bindTexture(ResourceLocation location)

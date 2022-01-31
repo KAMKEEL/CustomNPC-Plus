@@ -8,9 +8,14 @@ package noppes.npcs.client.gui.custom.components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
+import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
@@ -48,6 +53,12 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         this.height = height;
         this.textureX = textureX;
         this.textureY = textureY;
+
+        if(texture.startsWith("https://")){
+            TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+            ITextureObject object = new ImageDownloadAlt(null, texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+            texturemanager.loadTexture(this.texture, object);
+        }
     }
 
     public void setParent(GuiCustom parent) {
