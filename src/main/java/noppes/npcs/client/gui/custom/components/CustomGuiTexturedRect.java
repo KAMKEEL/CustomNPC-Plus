@@ -38,6 +38,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
 
     int color;
     float alpha;
+    float rotation;
 
     public CustomGuiTexturedRect(int id, String texture, int x, int y, int width, int height) {
         this(id, texture, x, y, width, height, 0, 0);
@@ -47,8 +48,8 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         this.scale = 1.0F;
         this.id = id;
         this.texture = new ResourceLocation(texture);
-        this.x = GuiCustom.guiLeft + x;
-        this.y = GuiCustom.guiTop + y;
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
         this.textureX = textureX;
@@ -80,7 +81,28 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             GL11.glColor4f(red,green,blue,this.alpha);
 
             GL11.glScalef(this.scale, this.scale, this.scale);
-            this.drawTexturedModalRect((int) (this.x/this.scale), (int) (this.y/this.scale),  this.textureX, this.textureY, (int)(this.width), (int)(this.height));
+
+            GL11.glTranslatef(GuiCustom.guiLeft,GuiCustom.guiTop,0.0F);
+            GL11.glRotatef(this.rotation,0.0F,0.0F,1.0F);
+
+            int p_73729_1_ = (int) (this.x/this.scale);
+            int p_73729_2_ = (int) (this.y/this.scale);
+            int p_73729_3_ = this.textureX;
+            int p_73729_4_ = this.textureY;
+            int p_73729_5_ = (int)(this.width);
+            int p_73729_6_ = (int)(this.height);
+
+            float f = 0.00390625F;
+            float f1 = 0.00390625F;
+            Tessellator tessellator = Tessellator.instance;
+            tessellator.startDrawingQuads();
+            tessellator.setColorOpaque_F(1, 1, 1);
+            tessellator.setColorRGBA_F(red, green, blue, alpha);
+            tessellator.addVertexWithUV((double)(p_73729_1_ + 0), (double)(p_73729_2_ + p_73729_6_), (double)this.zLevel, (double)((float)(p_73729_3_ + 0) * f), (double)((float)(p_73729_4_ + p_73729_6_) * f1));
+            tessellator.addVertexWithUV((double)(p_73729_1_ + p_73729_5_), (double)(p_73729_2_ + p_73729_6_), (double)this.zLevel, (double)((float)(p_73729_3_ + p_73729_5_) * f), (double)((float)(p_73729_4_ + p_73729_6_) * f1));
+            tessellator.addVertexWithUV((double)(p_73729_1_ + p_73729_5_), (double)(p_73729_2_ + 0), (double)this.zLevel, (double)((float)(p_73729_3_ + p_73729_5_) * f), (double)((float)(p_73729_4_ + 0) * f1));
+            tessellator.addVertexWithUV((double)(p_73729_1_ + 0), (double)(p_73729_2_ + 0), (double)this.zLevel, (double)((float)(p_73729_3_ + 0) * f), (double)((float)(p_73729_4_ + 0) * f1));
+            tessellator.draw();
         GL11.glPopMatrix();
 
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
@@ -94,6 +116,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         component.setScale(this.scale);
         component.setColor(color);
         component.setAlpha(alpha);
+        component.setRotation(rotation);
         return component;
     }
 
@@ -112,6 +135,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
 
         rect.color = component.getColor();
         rect.alpha = component.getAlpha();
+        rect.rotation = component.getRotation();
 
         return rect;
     }
