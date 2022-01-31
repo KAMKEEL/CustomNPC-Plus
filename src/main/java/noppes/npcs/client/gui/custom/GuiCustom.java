@@ -130,8 +130,16 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         Iterator var4 = this.components.values().iterator();
 
         while(var4.hasNext()) {
+            GL11.glEnable(GL11.GL_BLEND);
+            OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
+
             IGuiComponent component = (IGuiComponent)var4.next();
             component.onRender(this.mc, mouseX, mouseY, Mouse.getDWheel(), partialTicks);
+
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
         }
 
         if (this.hoverText != null) {
@@ -429,6 +437,11 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
                 this.components.put(scroll.getID(), scroll);
                 this.addDataHolder(scroll);
                 this.addClickListener(scroll);
+                break;
+            case 6:
+                CustomGuiLine line = CustomGuiLine.fromComponent((ScriptGuiLine) component);
+                this.components.put(line.getID(),line);
+                break;
         }
 
     }

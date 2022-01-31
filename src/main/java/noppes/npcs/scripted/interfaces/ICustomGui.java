@@ -44,6 +44,10 @@ public interface ICustomGui {
 
     IScroll addScroll(int var1, int var2, int var3, int var4, int var5, String[] var6);
 
+    ILine addLine(int id, int x1, int y1, int x2, int y2, int color, int thickness);
+
+    ILine addLine(int id, int x1, int y1, int x2, int y2);
+
     IItemSlot addItemSlot(int var1, int var2);
 
     IItemSlot addItemSlot(int var1, int var2, IItemStack var3);

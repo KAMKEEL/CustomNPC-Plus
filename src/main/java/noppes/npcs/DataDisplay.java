@@ -133,6 +133,9 @@ public class DataDisplay {
 		glowTexture = nbttagcompound.getString("GlowTexture");
 		
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
+		if(modelSize > CustomNpcs.NpcSizeLimit)
+			modelSize = CustomNpcs.NpcSizeLimit;
+
 		modelType = nbttagcompound.getInteger("modelType");
 		
 		showName = nbttagcompound.getInteger("ShowName");

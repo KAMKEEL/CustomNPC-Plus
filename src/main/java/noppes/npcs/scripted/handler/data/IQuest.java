@@ -44,4 +44,6 @@ public interface IQuest {
     void save();
 
     boolean getIsRepeatable();
+
+    IQuestInterface getQuestInterface();
 }

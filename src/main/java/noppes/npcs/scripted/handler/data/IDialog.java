@@ -34,5 +34,20 @@ public interface IDialog {
 
     IDialogCategory getCategory();
 
+    void setDarkenScreen(boolean darkenScreen);
+    boolean getDarkenScreen();
+
+    void setDisableEsc(boolean disableEsc);
+    boolean getDisableEsc();
+
+    void setShowWheel(boolean showWheel);
+    boolean getShowWheel();
+
+    void setHideNPC(boolean hideNPC);
+    boolean getHideNPC();
+
+    void setSound(String sound);
+    String getSound();
+
     void save();
 }

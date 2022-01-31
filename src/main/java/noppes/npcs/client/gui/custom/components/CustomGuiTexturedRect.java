@@ -8,12 +8,20 @@ package noppes.npcs.client.gui.custom.components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
+import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
+
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 
 public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     GuiCustom parent;
@@ -27,6 +35,9 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     int textureY;
     float scale;
     String[] hoverText;
+
+    int color;
+    float alpha;
 
     public CustomGuiTexturedRect(int id, String texture, int x, int y, int width, int height) {
         this(id, texture, x, y, width, height, 0, 0);
@@ -42,6 +53,12 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         this.height = height;
         this.textureX = textureX;
         this.textureY = textureY;
+
+        if(texture.startsWith("https://")){
+            TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+            ITextureObject object = new ImageDownloadAlt(null, texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+            texturemanager.loadTexture(this.texture, object);
+        }
     }
 
     public void setParent(GuiCustom parent) {
@@ -57,7 +74,11 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         mc.getTextureManager().bindTexture(this.texture);
 
         GL11.glPushMatrix();
-            GL11.glColor4f(1.0F,1.0F,1.0F,1.0F);
+            float red = (color >> 16 & 255) / 255f;
+            float green = (color >> 8  & 255) / 255f;
+            float blue = (color & 255) / 255f;
+            GL11.glColor4f(red,green,blue,this.alpha);
+
             GL11.glScalef(this.scale, this.scale, this.scale);
             this.drawTexturedModalRect((int) (this.x/this.scale), (int) (this.y/this.scale),  this.textureX, this.textureY, (int)(this.width), (int)(this.height));
         GL11.glPopMatrix();
@@ -71,6 +92,8 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         ScriptGuiTexturedRect component = new ScriptGuiTexturedRect(this.id, this.texture.toString(), this.x, this.y, this.width, this.height, this.textureX, this.textureY);
         component.setHoverText(this.hoverText);
         component.setScale(this.scale);
+        component.setColor(color);
+        component.setAlpha(alpha);
         return component;
     }
 
@@ -86,6 +109,9 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         if (component.hasHoverText()) {
             rect.hoverText = component.getHoverText();
         }
+
+        rect.color = component.getColor();
+        rect.alpha = component.getAlpha();
 
         return rect;
     }

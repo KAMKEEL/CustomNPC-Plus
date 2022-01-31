@@ -25,10 +25,8 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.IContainer;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.IPlayer;
-import noppes.npcs.scripted.interfaces.ITimers;
+import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -459,7 +457,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void closeGui() {
 		((EntityPlayerMP)this.entity).closeContainer();
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, new Object[]{-1, new NBTTagCompound()});
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, -1, new NBTTagCompound());
+	}
+
+	public void showCustomOverlay(ICustomOverlay overlay) {
+		CustomGuiController.openOverlay(this, (ScriptOverlay) overlay);
+	}
+
+	public void closeOverlay(int id) {
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
 	public IQuest[] getFinishedQuests() {

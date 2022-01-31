@@ -112,8 +112,6 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 
 	@Override
 	public void doRender(EntityLiving entityliving, double d, double d1, double d2, float f, float f1){
-		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-
 		super.doRender(entityliving, d, d1, d2, f, f1);
 	}
 

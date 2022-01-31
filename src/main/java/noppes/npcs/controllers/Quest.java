@@ -20,6 +20,7 @@ import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.handler.data.IQuest;
 import noppes.npcs.scripted.handler.data.IQuestCategory;
+import noppes.npcs.scripted.handler.data.IQuestInterface;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.IPlayer;
@@ -241,5 +242,9 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public IContainer getRewards() {
 		return NpcAPI.Instance().getIContainer(this.rewardItems);
+	}
+
+	public IQuestInterface getQuestInterface(){
+		return this.questInterface;
 	}
 }

@@ -299,14 +299,14 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param slot The slot from the NPC's drop list to return (0-8)
      * @return The chance of dropping the item in this slot. Returns 100 if the slot is not found.
      */
-    public int getLootChance(int slot);
+    public double getLootChance(int slot);
 
     /**
      *
      * @param slot The slot from the NPC's drop list to change
      * @param chance The new chance of dropping the item in this slot
      */
-    public void setLootChance(int slot, int chance);
+    public void setLootChance(int slot, double chance);
 
     /**
      *

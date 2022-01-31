@@ -25,6 +25,9 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
     String[] hoverText;
     public boolean multiSelect = false;
 
+    int color;
+    float alpha;
+
     public CustomGuiScrollComponent(Minecraft mc, GuiScreen parent, int id) {
         super(parent, id);
         this.mc = mc;
@@ -48,13 +51,17 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         GL11.glPushMatrix();
-        GL11.glTranslatef(0.0F, 0.0F, (float)this.id);
-        boolean hovered = mouseX >= this.guiLeft && mouseY >= this.guiTop && mouseX < this.guiLeft + this.xSize && mouseY < this.guiTop + this.ySize;
-        super.drawScreen(mouseX, mouseY, partialTicks, mouseWheel);
-        if (hovered && this.hoverText != null && this.hoverText.length > 0) {
-            this.parent.hoverText = this.hoverText;
-        }
+            float red = (color >> 16 & 255) / 255f;
+            float green = (color >> 8  & 255) / 255f;
+            float blue = (color & 255) / 255f;
+            GL11.glColor4f(red,green,blue,this.alpha);
 
+            GL11.glTranslatef(0.0F, 0.0F, (float)this.id);
+            boolean hovered = mouseX >= this.guiLeft && mouseY >= this.guiTop && mouseX < this.guiLeft + this.xSize && mouseY < this.guiTop + this.ySize;
+            super.drawScreen(mouseX, mouseY, partialTicks, mouseWheel);
+            if (hovered && this.hoverText != null && this.hoverText.length > 0) {
+                this.parent.hoverText = this.hoverText;
+            }
         GL11.glPopMatrix();
     }
 
@@ -79,11 +86,15 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
             this.hoverText = component.getHoverText();
         }
 
+        this.color = component.getColor();
+        this.alpha = component.getAlpha();
     }
 
     public ICustomGuiComponent toComponent() {
         ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.width, this.height, (String[])this.getList().toArray(new String[0]));
         component.setHoverText(this.hoverText);
+        component.setColor(color);
+        component.setAlpha(alpha);
         return component;
     }
 
