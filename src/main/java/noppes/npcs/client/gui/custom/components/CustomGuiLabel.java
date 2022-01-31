@@ -45,7 +45,6 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     protected int field_146161_f;
     public int field_146162_g;
     public int field_146174_h;
-    public boolean field_146172_j;
 
     private boolean randomStyle = false;
     private boolean boldStyle = false;
@@ -106,7 +105,6 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.hasShadow());
         lbl.scale = 1.0F;
         lbl.color = component.getColor();
-        lbl.field_146172_j = true;
         lbl.setScale(component.getScale());
         if (component.hasHoverText()) {
             lbl.hoverText = component.getHoverText();
@@ -129,35 +127,15 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
 
     public void drawLabel()
     {
-        if (this.field_146172_j)
-        {
-            this.drawLabelBackground();
-            GL11.glPushMatrix();
-                red = (color >> 16 & 255) / 255f;
-                green = (color >> 8  & 255) / 255f;
-                blue = (color & 255) / 255f;
+        GL11.glPushMatrix();
+            red = (color >> 16 & 255) / 255f;
+            green = (color >> 8  & 255) / 255f;
+            blue = (color & 255) / 255f;
 
-                GL11.glTranslatef(this.x,this.y,0.0F);
-                GL11.glScalef(this.scale, this.scale, this.scale);
-                this.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);
-            GL11.glPopMatrix();
-        }
-    }
-
-    protected void drawLabelBackground()
-    {
-        if (this.labelBgEnabled)
-        {
-            int k = (int)(this.width*this.scale) + this.border * 2;
-            int l = (int)(this.height*this.scale) + this.border * 2;
-            int i1 = this.x - this.border;
-            int j1 = this.y - this.border;
-            drawRect(i1, j1, i1 + k, j1 + l, this.color);//backColor
-            this.drawHorizontalLine(i1, i1 + k, j1, this.color);//ulColor
-            this.drawHorizontalLine(i1, i1 + k, j1 + l, this.color);//brColor
-            this.drawVerticalLine(i1, j1, j1 + l, this.color);//ulColor
-            this.drawVerticalLine(i1 + k, j1, j1 + l, this.color);//brColor
-        }
+            GL11.glTranslatef(this.x,this.y,0.0F);
+            GL11.glScalef(this.scale, this.scale, this.scale);
+            this.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);
+        GL11.glPopMatrix();
     }
 
     public int drawString(String p_85187_1_, int p_85187_2_, int p_85187_3_, int p_85187_4_, boolean p_85187_5_)
