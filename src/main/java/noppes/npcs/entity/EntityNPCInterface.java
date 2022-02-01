@@ -434,7 +434,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	protected void updateAITasks()
 	{
-		super.updateAITasks();
+		try {
+			super.updateAITasks();
+		} catch (ConcurrentModificationException ignored){
+		}
+
 		this.getNavigator().onUpdateNavigation();
 		this.getMoveHelper().onUpdateMoveHelper();
 	}

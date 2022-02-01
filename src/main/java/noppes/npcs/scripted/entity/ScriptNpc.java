@@ -613,10 +613,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setTacticalVariant(int variant){
-		if(variant > EnumNavType.values().length-1)
+		if(variant > EnumNavType.values().length-1 || variant < 0)
 			return;
 
 		npc.ai.tacticalVariant = EnumNavType.values()[variant];
+		npc.ai.directLOS = EnumNavType.values()[variant] != EnumNavType.Stalk && npc.ai.directLOS;
 	}
 
 	public int getTacticalVariant(){
