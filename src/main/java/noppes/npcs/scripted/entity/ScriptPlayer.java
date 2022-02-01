@@ -69,6 +69,22 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, dimensionId);
 	}
 
+	public int getHunger(){
+		return player.getFoodStats().getFoodLevel();
+	}
+
+	public void setHunger(int hunger){
+		player.getFoodStats().setFoodLevel(hunger);
+	}
+
+	public float getSaturation(){
+		return player.getFoodStats().getSaturationLevel();
+	}
+
+	public void setSaturation(float saturation){
+		player.getFoodStats().setFoodSaturationLevel(saturation);
+	}
+
 	public int getDimension(){
 		return player.dimension;
 	}
@@ -327,6 +343,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
             if (is != null && is.isItemEqual(item.item))
             	player.inventory.mainInventory[i] = null;
 		}
+	}
+
+	public void setRotation(float rotationYaw){
+		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, player.rotationPitch, player.dimension);
 	}
 
 	public void setRotation(float rotationYaw, float rotationPitch){

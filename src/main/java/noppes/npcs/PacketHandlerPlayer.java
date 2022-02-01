@@ -3,6 +3,8 @@ package noppes.npcs;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -66,7 +68,31 @@ public class PacketHandlerPlayer{
 				return;
 			}
 
-			EventHooks.onPlayerKeyPressed(player, buffer.readInt(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
+			int button = buffer.readInt();
+			boolean isCtrlPressed = buffer.readBoolean();
+			boolean isShiftPressed = buffer.readBoolean();
+			boolean isAltPressed = buffer.readBoolean();
+			boolean isMetaPressed = buffer.readBoolean();
+			boolean buttonDown = buffer.readBoolean();
+
+			String ints = Server.readString(buffer);
+			String[] split = ints.split(",");
+			int[] keysDown;
+
+			if(ints.length() > 0) {
+				keysDown = new int[split.length];
+				try {
+					for (int i = 0; i < split.length; i++) {
+						keysDown[i] = Integer.parseInt(split[i]);
+					}
+				}
+				catch (NumberFormatException ignored){
+				}
+			} else {
+				keysDown = new int[0];
+			}
+
+			EventHooks.onPlayerKeyPressed(player, button, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, buttonDown, keysDown);
 		}
 		else if(type == EnumPlayerPacket.MouseClicked) {
 			if(ScriptController.Instance.languages.isEmpty()) {
