@@ -185,6 +185,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		this.setMotionZ(z);
 	}
 
+	public boolean isAirborne(){
+		return entity.isAirBorne;
+	}
+
 	/**
 	 * @return The block x position
 	 */
