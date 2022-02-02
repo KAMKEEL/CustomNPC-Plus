@@ -13,9 +13,10 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestLocation;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 
-public class QuestLocation extends QuestInterface{
+public class QuestLocation extends QuestInterface implements IQuestLocation {
 	public String location = "";
 	public String location2 = "";
 	public String location3 = "";
@@ -36,8 +37,8 @@ public class QuestLocation extends QuestInterface{
 	}
 
 	@Override
-	public boolean isCompleted(EntityPlayer player) {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+	public boolean isCompleted(PlayerData playerData) {
+		PlayerQuestData playerdata = playerData.questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return false;
@@ -118,6 +119,27 @@ public class QuestLocation extends QuestInterface{
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
+	public void setLocation1(String loc1){
+		this.location = loc1;
+	}
+	public String getLocation1(){
+		return location;
+	}
+
+	public void setLocation2(String loc2){
+		this.location2 = loc2;
+	}
+	public String getLocation2(){
+		return location2;
+	}
+
+	public void setLocation3(String loc3){
+		this.location3 = loc3;
+	}
+	public String getLocation3(){
+		return location3;
+	}
+
 	class QuestLocationObjective implements IQuestObjective {
 		private final QuestLocation parent;
 		private final EntityPlayer player;
@@ -137,12 +159,12 @@ public class QuestLocation extends QuestInterface{
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= 1) {
-				PlayerData data = PlayerData.get(this.player);
+				PlayerData data = PlayerDataController.instance.getPlayerData(player);
 				QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
 				boolean completed = questData.extraData.getBoolean	(this.nbtName);
 				if ((!completed || progress != 1) && (completed || progress != 0)) {
 					questData.extraData.setBoolean(this.nbtName, progress == 1);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[3]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
 					data.saveNBTData(data.getNBT());
 				}
 			} else {
@@ -155,7 +177,7 @@ public class QuestLocation extends QuestInterface{
 		}
 
 		public boolean isCompleted() {
-			PlayerData data = PlayerData.get(this.player);
+			PlayerData data = PlayerDataController.instance.getPlayerData(player);
 			QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
 			return questData.extraData.getBoolean(this.nbtName);
 		}

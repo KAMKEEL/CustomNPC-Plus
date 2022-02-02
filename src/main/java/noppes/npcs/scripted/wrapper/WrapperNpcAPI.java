@@ -41,6 +41,7 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.*;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
@@ -233,7 +234,10 @@ public class WrapperNpcAPI extends NpcAPI {
     }
 
     public IDamageSource getIDamageSource(IEntity entity) {
-        return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(),entity.getMCEntity()));
+        if(entity.getType() == 1)//if player
+            return new ScriptDamageSource(new EntityDamageSource("player",entity.getMCEntity()));
+        else
+            return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(),entity.getMCEntity()));
     }
 
     public void executeCommand(IWorld world, String command) {
@@ -271,5 +275,9 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {
         return new ScriptGui(id, width, height, pauseGame);
+    }
+
+    public ICustomOverlay createCustomOverlay(int id) {
+        return new ScriptOverlay(id);
     }
 }

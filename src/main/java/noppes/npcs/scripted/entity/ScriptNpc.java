@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.item.ItemStack;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Line;
@@ -53,6 +54,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setSize(int size){
 		if(size < 1)
 			size = 1;
+		if(size > CustomNpcs.NpcSizeLimit)
+			size = CustomNpcs.NpcSizeLimit;
+
 		npc.display.modelSize = size;
 		npc.script.clientNeedsUpdate = true;
 	}
@@ -528,7 +532,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to return (0-8)
 	 * @return The chance of dropping the item in this slot. Returns 100 if the slot is not found.
 	 */
-	public int getLootChance(int slot) {
+	public double getLootChance(int slot) {
 		if(!npc.inventory.dropchance.containsKey(slot))
 			return 100;
 
@@ -540,8 +544,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to change
 	 * @param chance The new chance of dropping the item in this slot
 	 */
-	public void setLootChance(int slot, int chance) {
-		if(slot < 0 || slot > 8)
+	public void setLootChance(int slot, double chance) {
+		if(!npc.inventory.dropchance.containsKey(slot))
 			return;
 
 		if(chance < 0)
@@ -609,10 +613,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setTacticalVariant(int variant){
-		if(variant > EnumNavType.values().length-1)
+		if(variant > EnumNavType.values().length-1 || variant < 0)
 			return;
 
 		npc.ai.tacticalVariant = EnumNavType.values()[variant];
+		npc.ai.directLOS = EnumNavType.values()[variant] != EnumNavType.Stalk && npc.ai.directLOS;
 	}
 
 	public int getTacticalVariant(){

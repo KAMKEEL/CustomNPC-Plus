@@ -262,9 +262,9 @@ public class EventHooks {
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onPlayerKeyPressed(EntityPlayerMP player, int button, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed, boolean buttonDown) {
+    public static void onPlayerKeyPressed(EntityPlayerMP player, int button, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed, boolean buttonDown, int[] heldKeys) {
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        KeyPressedEvent event = new KeyPressedEvent((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), button, isCtrlPressed, isAltPressed, isShiftPressed, isMetaPressed, buttonDown);
+        KeyPressedEvent event = new KeyPressedEvent((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), button, isCtrlPressed, isAltPressed, isShiftPressed, isMetaPressed, buttonDown, heldKeys);
         handler.callScript(EnumScriptType.KEY_PRESSED, event);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }

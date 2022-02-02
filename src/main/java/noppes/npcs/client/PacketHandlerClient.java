@@ -26,6 +26,7 @@ import noppes.npcs.ServerEventsHandler;
 import noppes.npcs.client.ClientProxy.FontContainer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
+import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
@@ -258,6 +259,16 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			boolean isGUIOpen = Minecraft.getMinecraft().currentScreen != null;
 
 			NoppesUtil.isGUIOpen(isGUIOpen);
+		}
+		else if(type == EnumPacketClient.OVERLAY_DATA){
+			OverlayCustom overlayCustom = new OverlayCustom(Minecraft.getMinecraft());
+			overlayCustom.setOverlayData(Server.readNBT(buffer));
+
+			Client.customOverlays.put(overlayCustom.overlay.getID(),overlayCustom);
+		}
+		else if(type == EnumPacketClient.OVERLAY_CLOSE){
+			int id = buffer.readInt();
+			Client.customOverlays.remove(id);
 		}
 	}
 }

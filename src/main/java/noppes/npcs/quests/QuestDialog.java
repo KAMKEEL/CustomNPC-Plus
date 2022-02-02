@@ -14,9 +14,10 @@ import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestDialog;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 
-public class QuestDialog extends QuestInterface{
+public class QuestDialog extends QuestInterface implements IQuestDialog {
 
 	public HashMap<Integer,Integer> dialogs = new HashMap<Integer,Integer>();
 
@@ -31,9 +32,9 @@ public class QuestDialog extends QuestInterface{
 	}
 
 	@Override
-	public boolean isCompleted(EntityPlayer player) {
+	public boolean isCompleted(PlayerData playerData) {
 		for(int dialogId : dialogs.values())
-			if(!PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.contains(dialogId))
+			if(!playerData.dialogData.dialogsRead.contains(dialogId))
 				return false;
 		return true;
 	}
@@ -93,17 +94,17 @@ public class QuestDialog extends QuestInterface{
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= 1) {
-				PlayerData data = PlayerData.get(this.player);
+				PlayerData data = PlayerDataController.instance.getPlayerData(player);
 				boolean completed = data.dialogData.dialogsRead.contains(this.dialog.id);
 				if (progress == 0 && completed) {
 					data.dialogData.dialogsRead.remove(this.dialog.id);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[1]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[1]);
 					data.saveNBTData(data.getNBT());
 				}
 
 				if (progress == 1 && !completed) {
 					data.dialogData.dialogsRead.add(this.dialog.id);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[1]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[1]);
 					data.saveNBTData(data.getNBT());
 				}
 
@@ -117,7 +118,7 @@ public class QuestDialog extends QuestInterface{
 		}
 
 		public boolean isCompleted() {
-			PlayerData data = PlayerData.get(this.player);
+			PlayerData data = PlayerDataController.instance.getPlayerData(player);
 			return data.dialogData.dialogsRead.contains(this.dialog.id);
 		}
 

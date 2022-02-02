@@ -25,10 +25,8 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.IContainer;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.IPlayer;
-import noppes.npcs.scripted.interfaces.ITimers;
+import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -69,6 +67,22 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 			return;
 
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, dimensionId);
+	}
+
+	public int getHunger(){
+		return player.getFoodStats().getFoodLevel();
+	}
+
+	public void setHunger(int hunger){
+		player.getFoodStats().setFoodLevel(hunger);
+	}
+
+	public float getSaturation(){
+		return player.getFoodStats().getSaturationLevel();
+	}
+
+	public void setSaturation(float saturation){
+		player.getFoodStats().setFoodSaturationLevel(saturation);
 	}
 
 	public int getDimension(){
@@ -331,6 +345,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 	}
 
+	public void setRotation(float rotationYaw){
+		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, player.rotationPitch, player.dimension);
+	}
+
 	public void setRotation(float rotationYaw, float rotationPitch){
 		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
 	}
@@ -388,20 +406,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void updatePlayerInventory() {
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-		playerdata.checkQuestCompletion((EntityPlayer)this.entity, EnumQuestType.Item);
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerQuestData questData = playerData.questData;
+		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
 	public boolean checkGUIOpen() {
 		NoppesUtilPlayer.isGUIOpen(player);
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
 		return data.getGUIOpen();
-	}
-
-	public void checkQuestCompleted() {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-		for(EnumQuestType e : EnumQuestType.values())
-			playerdata.checkQuestCompletion((EntityPlayer)this.entity, e);
 	}
 
 	public ScriptDBCPlayer<T> getDBCPlayer() {
@@ -459,7 +472,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void closeGui() {
 		((EntityPlayerMP)this.entity).closeContainer();
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, new Object[]{-1, new NBTTagCompound()});
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, -1, new NBTTagCompound());
+	}
+
+	public void showCustomOverlay(ICustomOverlay overlay) {
+		CustomGuiController.openOverlay(this, (ScriptOverlay) overlay);
+	}
+
+	public void closeOverlay(int id) {
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
 	public IQuest[] getFinishedQuests() {

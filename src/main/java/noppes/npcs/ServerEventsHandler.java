@@ -21,7 +21,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
-import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -43,7 +42,6 @@ import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.roles.RoleFollower;
-import noppes.npcs.scripted.event.ForgeEvent;
 
 public class ServerEventsHandler {
 
@@ -293,11 +291,12 @@ public class ServerEventsHandler {
 	}
 
 	private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerQuestData questData = playerData.questData;
 		boolean change = false;
 		String entityName = EntityList.getEntityString(entity);
 
-		for(QuestData data : playerdata.activeQuests.values()){
+		for(QuestData data : questData.activeQuests.values()){
 			if(data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
 				continue;
 			if(data.quest.type == EnumQuestType.AreaKill && all){
@@ -309,6 +308,8 @@ public class ServerEventsHandler {
 			}
 			String name = entityName;
 			QuestKill quest = (QuestKill) data.quest.questInterface;
+			if(quest.targetType == 1 && !(entity instanceof EntityNPCInterface))
+				continue;
 			if(quest.targets.containsKey(entity.getCommandSenderName()))
 				name = entity.getCommandSenderName();
 			else if(!quest.targets.containsKey(name))
@@ -326,15 +327,16 @@ public class ServerEventsHandler {
 		if(!change)
 			return;
 
-		playerdata.checkQuestCompletion(player,EnumQuestType.Kill);
+		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);
 	}
 
 	@SubscribeEvent
 	public void pickUp(EntityItemPickupEvent event){
 		if(event.entityPlayer.worldObj.isRemote)
 			return;
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(event.entityPlayer).questData;
-		playerdata.checkQuestCompletion(event.entityPlayer, EnumQuestType.Item);
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(event.entityPlayer);
+		PlayerQuestData questData = playerData.questData;
+		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
 	@SubscribeEvent

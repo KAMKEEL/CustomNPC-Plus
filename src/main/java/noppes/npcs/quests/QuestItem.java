@@ -8,11 +8,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
+import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestItem;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 import noppes.npcs.util.ValueUtil;
 
-public class QuestItem extends QuestInterface{
+public class QuestItem extends QuestInterface implements IQuestItem {
 	public NpcMiscInventory items = new NpcMiscInventory(3);
 	public boolean leaveItems = false;
 	public boolean ignoreDamage = false;
@@ -35,8 +37,8 @@ public class QuestItem extends QuestInterface{
 	}
 
 	@Override
-	public boolean isCompleted(EntityPlayer player) {
-		HashMap<Integer,ItemStack> map = getProcessSet(player);
+	public boolean isCompleted(PlayerData playerData) {
+		HashMap<Integer,ItemStack> map = getProcessSet(playerData.player);
 		for(ItemStack reqItem : items.items.values()){
 			boolean done = false;
 			for(ItemStack item : map.values()){
@@ -135,6 +137,27 @@ public class QuestItem extends QuestInterface{
 		}
 
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+	}
+
+	public void setLeaveItems(boolean leaveItems){
+		this.leaveItems = leaveItems;
+	}
+	public boolean getLeaveItems(){
+		return this.leaveItems;
+	}
+
+	public void setIgnoreDamage(boolean ignoreDamage){
+		this.ignoreDamage = ignoreDamage;
+	}
+	public boolean getIgnoreDamage(){
+		return this.ignoreDamage;
+	}
+
+	public void setIgnoreNbt(boolean ignoreNbt){
+		this.ignoreNBT = ignoreNbt;
+	}
+	public boolean getIgnoreNbt(){
+		return this.ignoreNBT;
 	}
 
 	class QuestItemObjective implements IQuestObjective {

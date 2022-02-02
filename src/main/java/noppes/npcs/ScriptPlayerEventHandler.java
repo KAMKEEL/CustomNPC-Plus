@@ -46,15 +46,13 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
 import net.minecraftforge.event.world.WorldEvent.PotentialSpawns;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.ForgeEvent;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.ScriptController;
 import org.lwjgl.input.Mouse;
 
 public class ScriptPlayerEventHandler {
@@ -62,6 +60,9 @@ public class ScriptPlayerEventHandler {
     }
     @SubscribeEvent
     public void onServerTick(TickEvent.PlayerTickEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
 
@@ -71,15 +72,25 @@ public class ScriptPlayerEventHandler {
                 EventHooks.onPlayerTick(handler, scriptPlayer);
             }
 
+            PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
             if(PlayerDataController.instance != null) {
-                if(PlayerDataController.instance.getPlayerData(player).timers.size() > 0)
-                    PlayerDataController.instance.getPlayerData(player).timers.update();
+                if(playerData.timers.size() > 0)
+                    playerData.timers.update();
+            }
+
+            if(player.ticksExisted%(20*CustomNpcs.PlayerQuestCheck) == 0){
+                PlayerQuestData questData = playerData.questData;
+                for(EnumQuestType e : EnumQuestType.values())
+                    questData.checkQuestCompletion(playerData, e);
             }
         }
     }
 
     @SubscribeEvent
     public void invoke(EntityInteractEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -90,6 +101,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(ArrowNockEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -100,6 +114,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(ArrowLooseEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -110,6 +127,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(BlockEvent.BreakEvent event) {
+        if(event.getPlayer() == null || event.getPlayer().worldObj == null)
+            return;
+
         if(!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.getPlayer());
@@ -121,6 +141,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerUseItemEvent.Start event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -129,6 +152,9 @@ public class ScriptPlayerEventHandler {
     }
     @SubscribeEvent
     public void invoke(PlayerUseItemEvent.Tick event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -137,6 +163,9 @@ public class ScriptPlayerEventHandler {
     }
     @SubscribeEvent
     public void invoke(PlayerUseItemEvent.Stop event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -145,6 +174,9 @@ public class ScriptPlayerEventHandler {
     }
     @SubscribeEvent
     public void invoke(PlayerUseItemEvent.Finish event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -154,6 +186,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerDropsEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -163,6 +198,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerPickupXpEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -172,6 +210,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);
@@ -181,6 +222,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerEvent.ItemPickupEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);
@@ -190,6 +234,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerOpenContainerEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer && !(event.entityPlayer.openContainer instanceof ContainerPlayer)) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -199,6 +246,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(UseHoeEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -208,6 +258,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerSleepInBedEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -217,6 +270,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerWakeUpEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -226,6 +282,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(FillBucketEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -235,6 +294,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(BonemealEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -244,6 +306,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(AchievementEvent event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
         if(event.entityPlayer.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
@@ -253,6 +318,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(ItemTossEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);
@@ -262,6 +330,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingFallEvent event) {
+        if(event.entityLiving == null || event.entityLiving.worldObj == null)
+            return;
+
         if(event.entityLiving.worldObj instanceof WorldServer) {
             if (event.entityLiving instanceof EntityPlayer) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -273,6 +344,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingEvent.LivingJumpEvent event) {
+        if(event.entityLiving == null || event.entityLiving.worldObj == null)
+            return;
+
         if(event.entityLiving.worldObj instanceof WorldServer) {
             if (event.entityLiving instanceof EntityPlayer) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -284,6 +358,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(EntityStruckByLightningEvent event) {
+        if(event.entity == null || event.entity.worldObj == null)
+            return;
+
         if(event.entity.worldObj instanceof WorldServer) {
             if (event.entity instanceof EntityPlayer) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -295,6 +372,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlaySoundAtEntityEvent event) {
+        if(event.entity == null || event.entity.worldObj == null)
+            return;
+
         if(event.entity.worldObj instanceof WorldServer) {
             if (event.entity instanceof EntityPlayer) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -306,6 +386,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingDeathEvent event) {
+        if(event.entityLiving == null || event.entityLiving.worldObj == null)
+            return;
+
         if(event.entityLiving.worldObj instanceof WorldServer) {
             Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -324,6 +407,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingHurtEvent event) {
+        if(event.entityLiving == null || event.entityLiving.worldObj == null)
+            return;
+
         if(event.entityLiving.worldObj instanceof WorldServer) {
             Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -344,6 +430,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerEvent.PlayerRespawnEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);
@@ -353,6 +442,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerEvent.PlayerLoggedInEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);
@@ -362,6 +454,9 @@ public class ScriptPlayerEventHandler {
 
     @SubscribeEvent
     public void invoke(PlayerEvent.PlayerLoggedOutEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);
@@ -373,6 +468,9 @@ public class ScriptPlayerEventHandler {
             priority = EventPriority.HIGHEST
     )
     public void invoke(net.minecraftforge.event.ServerChatEvent event) {
+        if(event.player == null || event.player.worldObj == null)
+            return;
+
         if(event.player.worldObj instanceof WorldServer && !event.player.equals(EntityNPCInterface.chateventPlayer)) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.player);

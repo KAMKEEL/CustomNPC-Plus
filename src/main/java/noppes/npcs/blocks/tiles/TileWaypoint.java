@@ -10,6 +10,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
@@ -43,15 +44,16 @@ public class TileWaypoint extends TileEntity {
 		if(toCheck.isEmpty())
 			return;
 		for(EntityPlayer player : toCheck){
-			PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-			for(QuestData data : playerdata.activeQuests.values()){
+			PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+			PlayerQuestData questData = playerData.questData;
+			for(QuestData data : questData.activeQuests.values()){
 				if(data.quest.type != EnumQuestType.Location)
 					continue;
 				QuestLocation quest = (QuestLocation) data.quest.questInterface;
 				if(quest.setFound(data, name)){
 					player.addChatMessage(new ChatComponentTranslation(name + " " + StatCollector.translateToLocal("quest.found")));
 
-					playerdata.checkQuestCompletion(player, EnumQuestType.Location);
+					questData.checkQuestCompletion(playerData, EnumQuestType.Location);
 				}
 			}
 		}

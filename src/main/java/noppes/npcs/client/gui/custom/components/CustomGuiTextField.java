@@ -16,11 +16,15 @@ import noppes.npcs.client.gui.custom.interfaces.IKeyListener;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.scripted.gui.ScriptGuiTextField;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import org.lwjgl.opengl.GL11;
 
 public class CustomGuiTextField extends GuiTextField implements IKeyListener, IDataHolder, IClickListener {
     GuiCustom parent;
     String[] hoverText;
     int id;
+
+    int color;
+    float alpha;
 
     public CustomGuiTextField(int id, int x, int y, int width, int height) {
         super(Minecraft.getMinecraft().fontRenderer, GuiCustom.guiLeft + x, GuiCustom.guiTop + y, width, height);
@@ -34,7 +38,12 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         boolean hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+        float red = (color >> 16 & 255) / 255f;
+        float green = (color >> 8  & 255) / 255f;
+        float blue = (color & 255) / 255f;
+        GL11.glColor4f(red,green,blue,this.alpha);
         this.drawTextBox();
+        GL11.glColor4f(1.0F,1.0F,1.0F,1.0F);
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;
         }
@@ -59,6 +68,8 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
         ScriptGuiTextField component = new ScriptGuiTextField(this.id, this.xPosition - GuiCustom.guiLeft, this.yPosition - GuiCustom.guiTop, this.width, this.height);
         component.setText(this.getText());
         component.setHoverText(this.hoverText);
+        component.setColor(color);
+        component.setAlpha(alpha);
         return component;
     }
 
@@ -71,6 +82,9 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
         if (component.getText() != null && !component.getText().isEmpty()) {
             txt.setText(component.getText());
         }
+
+        txt.color = component.getColor();
+        txt.alpha = component.getAlpha();
 
         return txt;
     }
