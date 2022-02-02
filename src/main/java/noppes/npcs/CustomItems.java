@@ -445,6 +445,9 @@ public class CustomItems {
 			Item.getItemFromBlock(sign).setHasSubtypes(true);
 			Item.getItemFromBlock(beam).setHasSubtypes(true);
 			Item.getItemFromBlock(pedestal).setHasSubtypes(true);
+
+			tabBlocks.item = Item.getItemFromBlock(couchWool);
+			tabBlocks.meta = 1;
 		}
 
 		banjo = new ItemMusicBanjo().setUnlocalizedName("npcBanjo").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcBanjo");
@@ -887,8 +890,6 @@ public class CustomItems {
 			tabArmor.item = cowarmor;
 			tabWeapon.item = CustomItems.shuriken;
 			tabMisc.item = CustomItems.coinGold;
-			tabBlocks.item = Item.getItemFromBlock(couchWool);
-			tabBlocks.meta = 1;
 		}
 		
 		tab.item = wand;
