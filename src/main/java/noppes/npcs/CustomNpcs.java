@@ -78,6 +78,9 @@ public class CustomNpcs {
     @ConfigProp(info = "Set to true if you want the dialog command option to be able to use op commands like tp etc")
     public static boolean NpcUseOpCommands = false;
 
+    @ConfigProp(info = "The amount of time that passes before a player's quests are checked for completion in seconds.")
+    public static int PlayerQuestCheck = 300;
+
     @ConfigProp
     public static boolean InventoryGuiEnabled = true;
 
@@ -176,6 +179,9 @@ public class CustomNpcs {
 
         if(NpcSizeLimit < 1)
             NpcSizeLimit = 1;
+
+        if(PlayerQuestCheck < 1)
+            PlayerQuestCheck = 1;
 
         EnchantInterface.load();
         CustomItems.load();

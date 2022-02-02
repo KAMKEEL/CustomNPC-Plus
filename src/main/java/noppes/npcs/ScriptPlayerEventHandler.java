@@ -78,7 +78,7 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
             }
 
-            if(player.ticksExisted%40 == 0){
+            if(player.ticksExisted%(20*CustomNpcs.PlayerQuestCheck) == 0){
                 PlayerQuestData questData = playerData.questData;
                 for(EnumQuestType e : EnumQuestType.values())
                     questData.checkQuestCompletion(playerData, e);
