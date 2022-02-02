@@ -72,8 +72,14 @@ public class CustomNpcs {
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
 
+    @ConfigProp(info = "Size limit for NPCs. Default 100, larger sizes may cause lag on clients and servers that can't take it!")
+    public static int NpcSizeLimit = 100;
+
     @ConfigProp(info = "Set to true if you want the dialog command option to be able to use op commands like tp etc")
     public static boolean NpcUseOpCommands = false;
+
+    @ConfigProp(info = "The amount of time that passes before a player's quests are checked for completion in seconds.")
+    public static int PlayerQuestCheck = 300;
 
     @ConfigProp
     public static boolean InventoryGuiEnabled = true;
@@ -170,6 +176,12 @@ public class CustomNpcs {
         if (NpcNavRange > 96) {
             NpcNavRange = 96;
         }
+
+        if(NpcSizeLimit < 1)
+            NpcSizeLimit = 1;
+
+        if(PlayerQuestCheck < 1)
+            PlayerQuestCheck = 1;
 
         EnchantInterface.load();
         CustomItems.load();

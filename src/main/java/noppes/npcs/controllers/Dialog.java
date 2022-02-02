@@ -239,4 +239,39 @@ public class Dialog implements ICompatibilty, IDialog {
 	public void setCommand(String command) {
 		this.command = command;
 	}
+
+	public void setDarkenScreen(boolean darkenScreen) {
+		this.darkenScreen = darkenScreen;
+	}
+	public boolean getDarkenScreen() {
+		return this.darkenScreen;
+	}
+
+	public void setDisableEsc(boolean disableEsc) {
+		this.disableEsc = disableEsc;
+	}
+	public boolean getDisableEsc() {
+		return this.disableEsc;
+	}
+
+	public void setShowWheel(boolean showWheel) {
+		this.showWheel = showWheel;
+	}
+	public boolean getShowWheel() {
+		return this.showWheel;
+	}
+
+	public void setHideNPC(boolean hideNPC) {
+		this.hideNPC = hideNPC;
+	}
+	public boolean getHideNPC() {
+		return this.hideNPC;
+	}
+
+	public void setSound(String sound) {
+		this.sound = sound;
+	}
+	public String getSound() {
+		return this.sound;
+	}
 }

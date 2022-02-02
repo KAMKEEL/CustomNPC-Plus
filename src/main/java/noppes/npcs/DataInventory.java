@@ -18,7 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class DataInventory implements IInventory{
 	public HashMap<Integer,ItemStack> items = new HashMap<Integer,ItemStack>();
-	public HashMap<Integer,Integer> dropchance = new HashMap<Integer,Integer>();
+	public HashMap<Integer,Double> dropchance = new HashMap<Integer,Double>();
 	public HashMap<Integer, ItemStack> weapons = new HashMap<Integer, ItemStack>();
 	public HashMap<Integer, ItemStack> armor = new HashMap<Integer, ItemStack>();
 		
@@ -38,7 +38,7 @@ public class DataInventory implements IInventory{
 		nbttagcompound.setTag("NpcInv", NBTTags.nbtItemStackList(items));
 		nbttagcompound.setTag("Armor", NBTTags.nbtItemStackList(getArmor()));
 		nbttagcompound.setTag("Weapons", NBTTags.nbtItemStackList(getWeapons()));
-		nbttagcompound.setTag("DropChance", NBTTags.nbtIntegerIntegerMap(dropchance));
+		nbttagcompound.setTag("DoubleDropChance", NBTTags.nbtIntegerDoubleMap(dropchance));
 		nbttagcompound.setInteger("LootMode", lootMode);
 		
 		return nbttagcompound;
@@ -49,7 +49,17 @@ public class DataInventory implements IInventory{
 		items = NBTTags.getItemStackList(nbttagcompound.getTagList("NpcInv", 10));
 		setArmor(NBTTags.getItemStackList(nbttagcompound.getTagList("Armor", 10)));
 		setWeapons(NBTTags.getItemStackList(nbttagcompound.getTagList("Weapons", 10)));
-		dropchance = NBTTags.getIntegerIntegerMap(nbttagcompound.getTagList("DropChance", 10));
+
+		if(!nbttagcompound.hasKey("DoubleDropChance")) {
+			dropchance.clear();
+			HashMap<Integer, Integer> oldDropChance = NBTTags.getIntegerIntegerMap(nbttagcompound.getTagList("DropChance", 10));
+			for(int i = 0; i < oldDropChance.entrySet().size(); i++){
+				dropchance.put(i, Double.valueOf(oldDropChance.get(i)));
+			}
+		} else {
+			dropchance = NBTTags.getIntegerDoubleMap(nbttagcompound.getTagList("DoubleDropChance", 10));
+		}
+
 		lootMode = nbttagcompound.getInteger("LootMode");
 	}
 	public HashMap<Integer, ItemStack> getWeapons() {
@@ -89,10 +99,10 @@ public class DataInventory implements IInventory{
 			ItemStack item = items.get(i);
 			if(item == null)
 				continue;
-			int dchance = 100;
+			double dchance = 100;
 			if(dropchance.containsKey(i))
 				dchance = dropchance.get(i);
-			int chance = npc.worldObj.rand.nextInt(100) + dchance;
+			double chance = Math.random()*100 + dchance;
 			if(chance >= 100){
 				EntityItem e = getEntityItem(item.copy());
 				if(e != null)

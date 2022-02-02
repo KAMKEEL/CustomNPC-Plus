@@ -4,12 +4,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
 
 public abstract class ScriptGuiComponent implements ICustomGuiComponent {
     int id;
     int posX;
     int posY;
     String[] hoverText;
+
+    int color = 0xFFFFFF;
+    float alpha = 1.0F;
+    float rotation = 0;
 
     public ScriptGuiComponent() {
     }
@@ -55,11 +60,39 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
         return this;
     }
 
+    public int getColor() {
+        return this.color;
+    }
+
+    public ICustomGuiComponent setColor(int color) {
+        this.color = color;
+        return this;
+    }
+
+    public float getAlpha() {
+        return this.alpha;
+    }
+
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
     public abstract int getType();
 
     public NBTTagCompound toNBT(NBTTagCompound nbt) {
         nbt.setInteger("id", this.id);
         nbt.setIntArray("pos", new int[]{this.posX, this.posY});
+        nbt.setInteger("color", this.color);
+        nbt.setFloat("alpha",this.alpha);
+        nbt.setFloat("rotation",this.rotation);
         if (this.hoverText != null) {
             NBTTagList list = new NBTTagList();
             String[] var3 = this.hoverText;
@@ -84,6 +117,9 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
     public ScriptGuiComponent fromNBT(NBTTagCompound nbt) {
         this.setID(nbt.getInteger("id"));
         this.setPos(nbt.getIntArray("pos")[0], nbt.getIntArray("pos")[1]);
+        this.setColor(nbt.getInteger("color"));
+        this.setAlpha(nbt.getFloat("alpha"));
+        this.setRotation(nbt.getFloat("rotation"));
         if (nbt.hasKey("hover")) {
             NBTTagList list = nbt.getTagList("hover", 8);
             String[] hoverText = new String[list.tagCount()];
@@ -112,6 +148,8 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
                 return (new ScriptGuiScroll()).fromNBT(nbt);
             case 5:
                 return (new ScriptGuiItemSlot()).fromNBT(nbt);
+            case 6:
+                return (new ScriptGuiLine()).fromNBT(nbt);
             default:
                 return null;
         }

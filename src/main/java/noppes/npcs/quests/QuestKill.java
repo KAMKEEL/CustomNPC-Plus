@@ -14,24 +14,37 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.handler.data.IQuestKill;
 import noppes.npcs.scripted.handler.data.IQuestObjective;
 
-public class QuestKill extends QuestInterface{
+public class QuestKill extends QuestInterface implements IQuestKill {
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();
-
-	@Override
-	public void readEntityFromNBT(NBTTagCompound compound) {
-		targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
-	}
+	public int targetType = 0;
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound compound) {
-		compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
+		compound.setTag("QuestKills", NBTTags.nbtStringIntegerMap(targets));
+		//compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
+		compound.setInteger("TargetType",targetType);
 	}
 
 	@Override
-	public boolean isCompleted(EntityPlayer player) {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+	public void readEntityFromNBT(NBTTagCompound compound) {
+		if(!compound.hasKey("QuestKills")) {
+			targets.clear();
+			HashMap<String,Integer> oldTargets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
+			targets.putAll(oldTargets);
+		} else {
+			targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestKills", 10));
+		}
+
+		//targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
+		targetType = compound.getInteger("TargetType");
+	}
+
+	@Override
+	public boolean isCompleted(PlayerData playerData) {
+		PlayerQuestData playerdata = playerData.questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return false;
@@ -90,6 +103,18 @@ public class QuestKill extends QuestInterface{
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
+	public void setTargetType(int type) {
+		if(type < 0)
+			type = 0;
+		if(type > 1)
+			type = 1;
+
+		this.targetType = type;
+	}
+	public int getTargetType() {
+		return this.targetType;
+	}
+
 	class QuestKillObjective implements IQuestObjective {
 		private final QuestKill parent;
 		private final EntityPlayer player;
@@ -104,7 +129,7 @@ public class QuestKill extends QuestInterface{
 		}
 
 		public int getProgress() {
-			PlayerData data = PlayerData.get(this.player);
+			PlayerData data = PlayerDataController.instance.getPlayerData(player);
 			PlayerQuestData playerdata = data.questData;
 			QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
 			HashMap<String, Integer> killed = this.parent.getKilled(questdata);
@@ -113,15 +138,15 @@ public class QuestKill extends QuestInterface{
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= this.amount) {
-				PlayerData data = PlayerData.get(this.player);
+				PlayerData data = PlayerDataController.instance.getPlayerData(player);
 				PlayerQuestData playerdata = data.questData;
 				QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
 				HashMap<String, Integer> killed = this.parent.getKilled(questdata);
 				if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
 					killed.put(this.entity, progress);
 					this.parent.setKilled(questdata, killed);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[2]);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[4]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
 					data.saveNBTData(data.getNBT());
 				}
 			} else {

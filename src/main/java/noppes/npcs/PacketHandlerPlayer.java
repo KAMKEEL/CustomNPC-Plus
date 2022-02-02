@@ -3,6 +3,8 @@ package noppes.npcs;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -16,11 +18,7 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
-import noppes.npcs.constants.EnumCompanionTalent;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -66,7 +64,31 @@ public class PacketHandlerPlayer{
 				return;
 			}
 
-			EventHooks.onPlayerKeyPressed(player, buffer.readInt(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean(), buffer.readBoolean());
+			int button = buffer.readInt();
+			boolean isCtrlPressed = buffer.readBoolean();
+			boolean isShiftPressed = buffer.readBoolean();
+			boolean isAltPressed = buffer.readBoolean();
+			boolean isMetaPressed = buffer.readBoolean();
+			boolean buttonDown = buffer.readBoolean();
+
+			String ints = Server.readString(buffer);
+			String[] split = ints.split(",");
+			int[] keysDown;
+
+			if(ints.length() > 0) {
+				keysDown = new int[split.length];
+				try {
+					for (int i = 0; i < split.length; i++) {
+						keysDown[i] = Integer.parseInt(split[i]);
+					}
+				}
+				catch (NumberFormatException ignored){
+				}
+			} else {
+				keysDown = new int[0];
+			}
+
+			EventHooks.onPlayerKeyPressed(player, button, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, buttonDown, keysDown);
 		}
 		else if(type == EnumPlayerPacket.MouseClicked) {
 			if(ScriptController.Instance.languages.isEmpty()) {
@@ -135,8 +157,9 @@ public class PacketHandlerPlayer{
 			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
 		}
 		else if(type == EnumPlayerPacket.CheckQuestCompletion){
-			PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-			playerdata.checkQuestCompletion(player, null);
+			PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+			PlayerQuestData questData = PlayerDataController.instance.getPlayerData(player).questData;
+			questData.checkQuestCompletion(playerData, null);
 		}
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);

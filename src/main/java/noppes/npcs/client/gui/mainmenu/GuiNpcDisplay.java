@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
@@ -56,7 +57,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(2,"display.size", guiLeft + 175, y + 5));
         addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 203, y, 40, 20, display.modelSize + ""));
         getTextField(2).integersOnly = true;
-        getTextField(2).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
+        getTextField(2).setMinMaxDefault(1, CustomNpcs.NpcSizeLimit, 5);
         //addLabel(new GuiNpcLabel(3,"(1-30)", guiLeft + 246 , y + 5));
 
     	y+=23;
