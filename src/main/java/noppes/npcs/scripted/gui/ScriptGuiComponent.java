@@ -14,6 +14,7 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
 
     int color = 0xFFFFFF;
     float alpha = 1.0F;
+    float rotation = 0;
 
     public ScriptGuiComponent() {
     }
@@ -76,6 +77,14 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
         this.alpha = alpha;
     }
 
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
     public abstract int getType();
 
     public NBTTagCompound toNBT(NBTTagCompound nbt) {
@@ -83,6 +92,7 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
         nbt.setIntArray("pos", new int[]{this.posX, this.posY});
         nbt.setInteger("color", this.color);
         nbt.setFloat("alpha",this.alpha);
+        nbt.setFloat("rotation",this.rotation);
         if (this.hoverText != null) {
             NBTTagList list = new NBTTagList();
             String[] var3 = this.hoverText;
@@ -109,6 +119,7 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
         this.setPos(nbt.getIntArray("pos")[0], nbt.getIntArray("pos")[1]);
         this.setColor(nbt.getInteger("color"));
         this.setAlpha(nbt.getFloat("alpha"));
+        this.setRotation(nbt.getFloat("rotation"));
         if (nbt.hasKey("hover")) {
             NBTTagList list = nbt.getTagList("hover", 8);
             String[] hoverText = new String[list.tagCount()];

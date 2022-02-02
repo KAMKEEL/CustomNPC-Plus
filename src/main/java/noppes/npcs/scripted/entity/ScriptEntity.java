@@ -179,6 +179,16 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.velocityChanged = true;
 	}
 
+	public void setMotion(double x, double y, double z){
+		this.setMotionX(x);
+		this.setMotionY(y);
+		this.setMotionZ(z);
+	}
+
+	public boolean isAirborne(){
+		return entity.isAirBorne;
+	}
+
 	/**
 	 * @return The block x position
 	 */
@@ -499,11 +509,15 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 
 	/**
-	 * @return Current rotation of the npc
+	 * @return Current rotation of the entity
 	 */
 	public float getRotation(){
 		return entity.rotationYaw;
 	}
+
+	public void setPitch(float pitch){entity.rotationPitch = pitch;}
+
+	public float getPitch(){return entity.rotationPitch;}
 
 	/**
 	 * @param power How strong the knockback is

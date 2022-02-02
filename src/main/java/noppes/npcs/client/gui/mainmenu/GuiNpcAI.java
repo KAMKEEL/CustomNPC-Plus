@@ -141,7 +141,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 		}
 		else if (button.id == 17) {
 			ai.tacticalVariant = EnumNavType.values()[button.getValue()];
-			ai.directLOS = EnumNavType.values()[button.getValue()] == EnumNavType.Stalk ? false : this.ai.directLOS;
+			ai.directLOS = EnumNavType.values()[button.getValue()] != EnumNavType.Stalk && this.ai.directLOS;
 			initGui();
 		}
 		else if (button.id == 22) {

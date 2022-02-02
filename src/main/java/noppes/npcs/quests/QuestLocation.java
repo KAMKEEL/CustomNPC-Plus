@@ -37,8 +37,8 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 	}
 
 	@Override
-	public boolean isCompleted(EntityPlayer player) {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+	public boolean isCompleted(PlayerData playerData) {
+		PlayerQuestData playerdata = playerData.questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return false;
@@ -159,12 +159,12 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= 1) {
-				PlayerData data = PlayerData.get(this.player);
+				PlayerData data = PlayerDataController.instance.getPlayerData(player);
 				QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
 				boolean completed = questData.extraData.getBoolean	(this.nbtName);
 				if ((!completed || progress != 1) && (completed || progress != 0)) {
 					questData.extraData.setBoolean(this.nbtName, progress == 1);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[3]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
 					data.saveNBTData(data.getNBT());
 				}
 			} else {
@@ -177,7 +177,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		}
 
 		public boolean isCompleted() {
-			PlayerData data = PlayerData.get(this.player);
+			PlayerData data = PlayerDataController.instance.getPlayerData(player);
 			QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
 			return questData.extraData.getBoolean(this.nbtName);
 		}

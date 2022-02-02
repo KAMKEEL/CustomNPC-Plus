@@ -40,6 +40,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
 
     int color;
     float alpha;
+    float rotation;
 
     protected int field_146167_a;
     protected int field_146161_f;
@@ -144,6 +145,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         lbl.labelShadowEnabled = component.hasShadow();
         lbl.color = component.getColor();
         lbl.alpha = component.getAlpha();
+        lbl.rotation = component.getRotation();
 
         return lbl;
     }
@@ -154,6 +156,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         component.enableShadow(this.labelShadowEnabled);
         component.setColor(this.color);
         component.setAlpha(this.alpha);
+        component.setRotation(this.rotation);
         return component;
     }
 
@@ -165,6 +168,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
             blue = (color & 255) / 255f;
 
             GL11.glTranslatef(this.x,this.y,0.0F);
+            GL11.glRotated(rotation,0.0D,0.0D,1.0D);
             GL11.glScalef(this.scale, this.scale, this.scale);
             this.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);
         GL11.glPopMatrix();

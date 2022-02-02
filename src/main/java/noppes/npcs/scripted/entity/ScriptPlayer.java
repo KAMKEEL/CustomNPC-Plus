@@ -69,6 +69,22 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, dimensionId);
 	}
 
+	public int getHunger(){
+		return player.getFoodStats().getFoodLevel();
+	}
+
+	public void setHunger(int hunger){
+		player.getFoodStats().setFoodLevel(hunger);
+	}
+
+	public float getSaturation(){
+		return player.getFoodStats().getSaturationLevel();
+	}
+
+	public void setSaturation(float saturation){
+		player.getFoodStats().setFoodSaturationLevel(saturation);
+	}
+
 	public int getDimension(){
 		return player.dimension;
 	}
@@ -329,6 +345,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 	}
 
+	public void setRotation(float rotationYaw){
+		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, player.rotationPitch, player.dimension);
+	}
+
 	public void setRotation(float rotationYaw, float rotationPitch){
 		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
 	}
@@ -386,20 +406,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void updatePlayerInventory() {
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-		playerdata.checkQuestCompletion((EntityPlayer)this.entity, EnumQuestType.Item);
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerQuestData questData = playerData.questData;
+		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
 	public boolean checkGUIOpen() {
 		NoppesUtilPlayer.isGUIOpen(player);
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
 		return data.getGUIOpen();
-	}
-
-	public void checkQuestCompleted() {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-		for(EnumQuestType e : EnumQuestType.values())
-			playerdata.checkQuestCompletion((EntityPlayer)this.entity, e);
 	}
 
 	public ScriptDBCPlayer<T> getDBCPlayer() {
