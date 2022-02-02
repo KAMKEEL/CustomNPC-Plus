@@ -417,13 +417,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return data.getGUIOpen();
 	}
 
-	public void checkQuestCompleted() {
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-		PlayerQuestData questData = playerData.questData;
-		for(EnumQuestType e : EnumQuestType.values())
-			questData.checkQuestCompletion(playerData, e);
-	}
-
 	public ScriptDBCPlayer<T> getDBCPlayer() {
 		Set keySet = player.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
 		Iterator iterator = keySet.iterator();
