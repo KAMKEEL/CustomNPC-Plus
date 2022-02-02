@@ -79,24 +79,26 @@ public class PlayerQuestData {
 	}
 
 	public QuestData getQuestCompletion(EntityPlayer player,EntityNPCInterface npc) {
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 		for(QuestData data : activeQuests.values()){
 			Quest quest = data.quest;
-			if(quest != null && quest.completion == EnumQuestCompletion.Npc && quest.completerNpc.equals(npc.getCommandSenderName()) && quest.questInterface.isCompleted(player)){
+			if(quest != null && quest.completion == EnumQuestCompletion.Npc && quest.completerNpc.equals(npc.getCommandSenderName()) && quest.questInterface.isCompleted(playerData)){
 				return data;
 			}
 		}
 		return null;
 	}
 
-	public boolean checkQuestCompletion(EntityPlayer player,EnumQuestType type) {
+	public boolean checkQuestCompletion(PlayerData playerData,EnumQuestType type) {
 		boolean bo = false;
+		EntityPlayer player = playerData.player;
 		for(QuestData data : this.activeQuests.values()){
 			if(data.quest.type != type && type != null)
 				continue;
 			
 			QuestInterface inter =  data.quest.questInterface;
-			
-			if(inter.isCompleted(player)){
+
+			if(inter.isCompleted(playerData)){
 				if(!data.isCompleted){
 					if(!data.quest.complete(player,data)){
 						Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.completed", data.quest.title);

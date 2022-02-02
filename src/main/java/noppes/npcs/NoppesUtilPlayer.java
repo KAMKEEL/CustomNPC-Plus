@@ -26,21 +26,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
-import noppes.npcs.controllers.Bank;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.BankData;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.Line;
-import noppes.npcs.controllers.PlayerBankData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.PlayerTransportData;
-import noppes.npcs.controllers.QuestData;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.TransportLocation;
+import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
@@ -303,13 +289,14 @@ public class NoppesUtilPlayer {
         Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
 	}
 	public static void questCompletion(EntityPlayerMP player, int questId) {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-		QuestData data = playerdata.activeQuests.get(questId);
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerQuestData questData = playerData.questData;
+		QuestData data = questData.activeQuests.get(questId);
 
 		if(data == null)
 			return;
 
-		if(!data.quest.questInterface.isCompleted(player))
+		if(!data.quest.questInterface.isCompleted(playerData))
 			return;
 
 		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent(new ScriptPlayer(player), data.quest);

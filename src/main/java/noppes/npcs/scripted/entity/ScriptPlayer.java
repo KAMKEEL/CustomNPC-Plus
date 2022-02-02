@@ -406,8 +406,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void updatePlayerInventory() {
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-		playerdata.checkQuestCompletion((EntityPlayer)this.entity, EnumQuestType.Item);
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerQuestData questData = playerData.questData;
+		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
 	public boolean checkGUIOpen() {
@@ -417,9 +418,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void checkQuestCompleted() {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerQuestData questData = playerData.questData;
 		for(EnumQuestType e : EnumQuestType.values())
-			playerdata.checkQuestCompletion((EntityPlayer)this.entity, e);
+			questData.checkQuestCompletion(playerData, e);
 	}
 
 	public ScriptDBCPlayer<T> getDBCPlayer() {

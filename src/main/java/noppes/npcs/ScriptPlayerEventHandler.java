@@ -46,15 +46,13 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
 import net.minecraftforge.event.world.WorldEvent.PotentialSpawns;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.ForgeEvent;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.ScriptController;
 import org.lwjgl.input.Mouse;
 
 public class ScriptPlayerEventHandler {
@@ -74,9 +72,16 @@ public class ScriptPlayerEventHandler {
                 EventHooks.onPlayerTick(handler, scriptPlayer);
             }
 
+            PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
             if(PlayerDataController.instance != null) {
-                if(PlayerDataController.instance.getPlayerData(player).timers.size() > 0)
-                    PlayerDataController.instance.getPlayerData(player).timers.update();
+                if(playerData.timers.size() > 0)
+                    playerData.timers.update();
+            }
+
+            if(player.ticksExisted%40 == 0){
+                PlayerQuestData questData = playerData.questData;
+                for(EnumQuestType e : EnumQuestType.values())
+                    questData.checkQuestCompletion(playerData, e);
             }
         }
     }

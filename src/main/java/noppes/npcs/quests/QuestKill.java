@@ -43,8 +43,8 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	}
 
 	@Override
-	public boolean isCompleted(EntityPlayer player) {
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+	public boolean isCompleted(PlayerData playerData) {
+		PlayerQuestData playerdata = playerData.questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return false;
@@ -129,7 +129,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		}
 
 		public int getProgress() {
-			PlayerData data = PlayerData.get(this.player);
+			PlayerData data = PlayerDataController.instance.getPlayerData(player);
 			PlayerQuestData playerdata = data.questData;
 			QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
 			HashMap<String, Integer> killed = this.parent.getKilled(questdata);
@@ -138,15 +138,15 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= this.amount) {
-				PlayerData data = PlayerData.get(this.player);
+				PlayerData data = PlayerDataController.instance.getPlayerData(player);
 				PlayerQuestData playerdata = data.questData;
 				QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
 				HashMap<String, Integer> killed = this.parent.getKilled(questdata);
 				if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
 					killed.put(this.entity, progress);
 					this.parent.setKilled(questdata, killed);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[2]);
-					data.questData.checkQuestCompletion(this.player, EnumQuestType.values()[4]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
+					data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
 					data.saveNBTData(data.getNBT());
 				}
 			} else {

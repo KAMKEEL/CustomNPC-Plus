@@ -18,11 +18,7 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
-import noppes.npcs.constants.EnumCompanionTalent;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -161,8 +157,9 @@ public class PacketHandlerPlayer{
 			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
 		}
 		else if(type == EnumPlayerPacket.CheckQuestCompletion){
-			PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
-			playerdata.checkQuestCompletion(player, null);
+			PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+			PlayerQuestData questData = PlayerDataController.instance.getPlayerData(player).questData;
+			questData.checkQuestCompletion(playerData, null);
 		}
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);
