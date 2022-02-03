@@ -53,10 +53,6 @@ public class PlayerEvent extends CustomNPCsEvent {
             this.isMetaPressed = isMetaPressed;
             this.keyDown = keyDown;
             this.keysDown = heldKeys;
-
-            for(int i : keysDown){
-                System.out.println(i);
-            }
         }
     }
 
