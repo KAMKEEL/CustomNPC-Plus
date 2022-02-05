@@ -21,7 +21,6 @@ public class ItemNpcWeaponInterface extends ItemSword implements ItemRenderInter
 		CustomNpcs.proxy.registerItem(this);
 		setCreativeTab(CustomItems.tabWeapon);
 	}
-	
 	public void renderSpecial(){
         GL11.glScalef(0.66f, 0.66f,0.66f);
         GL11.glTranslatef(0.16f, 0.26f, 0.06f);

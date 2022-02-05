@@ -13,7 +13,7 @@ import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class DataAI {
-    private EntityNPCInterface npc;
+	private EntityNPCInterface npc;
 	
 	public int onAttack = 0; //0:fight 1:panic 2:retreat 3:nothing
 	public int doorInteract = 2;
@@ -32,13 +32,6 @@ public class DataAI {
 	public EnumNavType tacticalVariant = EnumNavType.Default;
 	public int useRangeMelee = 0;
 	public int tacticalRadius = 8;
-
-	// Fly Change
-	public int movementType = 0;
-	public double flySpeed = 1.0D;
-	public double flyGravity = 0.0D;
-	public boolean hasFlyLimit = true;
-	public int flyHeightLimit = 2;
 	
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
@@ -100,28 +93,7 @@ public class DataAI {
 		setMovingPath(NBTTags.getIntegerArraySet(compound.getTagList("MovingPathNew",10)));
 		movingPos = compound.getInteger("MovingPos");
 		movingPattern = compound.getInteger("MovingPatern");
-
-		movementType = compound.getInteger("MovingType");
-		if(!compound.hasKey("FlySpeed"))
-			flySpeed = 1.0D;
-		else
-			flySpeed = compound.getDouble("FlySpeed");
-
-		if(!compound.hasKey("FlyGravity"))
-			flyGravity = 0.0D;
-		else
-			flyGravity = compound.getDouble("FlyGravity");
-
-		if(!compound.hasKey("HasFlyLimit"))
-			hasFlyLimit = false;
-		else
-			hasFlyLimit = compound.getBoolean("HasFlyLimit");
-
-		if(!compound.hasKey("FlyHeightLimit"))
-			flyHeightLimit = 5;
-		else
-			flyHeightLimit = compound.getInteger("FlyHeightLimit");
-
+		
 		startPos = compound.getIntArray("StartPosNew");
 		if (startPos == null || startPos.length != 3){
 			startPos = new int[] { 
@@ -167,13 +139,7 @@ public class DataAI {
 		compound.setTag("MovingPathNew", NBTTags.nbtIntegerArraySet(movingPath));
 		compound.setInteger("MovingPos", movingPos);
 		compound.setInteger("MovingPatern", movingPattern);
-
-		compound.setInteger("MovingType", movementType);
-		compound.setDouble("FlySpeed",flySpeed);
-		compound.setDouble("FlyGravity",flyGravity);
-		compound.setBoolean("HasFlyLimit",hasFlyLimit);
-		compound.setInteger("FlyHeightLimit", flyHeightLimit);
-
+		
 		npc.setAvoidWater(avoidsWater);
 		
 		compound.setIntArray("StartPosNew", npc.getStartPos());

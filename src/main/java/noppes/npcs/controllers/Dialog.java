@@ -1,8 +1,6 @@
 package noppes.npcs.controllers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,10 +8,8 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.*;
 
-public class Dialog implements ICompatibilty, IDialog {
+public class Dialog implements ICompatibilty {
 	public int version = VersionCompatibility.ModRev;
 	public int id = -1;
 	public String title = "";
@@ -30,7 +26,6 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean hideNPC = false;
 	public boolean showWheel = false;
 	public boolean disableEsc = false;
-	public boolean darkenScreen = true;
 	
 	public boolean hasDialogs(EntityPlayer player) {
 		for(DialogOption option: options.values())
@@ -60,18 +55,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		else
 			showWheel = true;
 		disableEsc = compound.getBoolean("DialogDisableEsc");
-
-		if(compound.hasKey("DialogDarkScreen")) {
-			darkenScreen = compound.getBoolean("DialogDarkScreen");
-		}
-		else {
-			darkenScreen = true;
-		}
-		// Temporary Remove after Few Versions
-		if(compound.hasKey("DialogDarkenScreen")){
-			compound.removeTag("DialogDarkenScreen");
-		}
-
+    	
 		NBTTagList options = compound.getTagList("Options", 10);
 		HashMap<Integer,DialogOption> newoptions = new HashMap<Integer,DialogOption>();
 		for(int iii = 0; iii < options.tagCount();iii++){
@@ -102,12 +86,6 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setBoolean("DialogHideNPC", hideNPC);
 		compound.setBoolean("DialogShowWheel", showWheel);
 		compound.setBoolean("DialogDisableEsc", disableEsc);
-
-		compound.setBoolean("DialogDarkScreen", darkenScreen);
-		// Temporary Remove after Few Versions
-		if(compound.hasKey("DialogDarkenScreen")){
-			compound.removeTag("DialogDarkenScreen");
-		}
 		
 		if(sound != null && !sound.isEmpty())
 			compound.setString("DialogSound", sound);
@@ -130,7 +108,9 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean hasQuest() {
 		return getQuest() != null;
 	}
-
+	public Quest getQuest() {
+		return QuestController.instance.quests.get(quest);
+	}
 	public boolean hasOtherOptions() {
 		for(DialogOption option: options.values())
 			if(option != null && option.optionType != EnumOptionType.Disabled)
@@ -151,7 +131,6 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.hideNPC = hideNPC;
 		dialog.showWheel = showWheel;
 		dialog.disableEsc = disableEsc;
-		dialog.darkenScreen = darkenScreen;
 		
 		for(int slot : options.keySet()){
 			DialogOption option = options.get(slot);
@@ -169,109 +148,5 @@ public class Dialog implements ICompatibilty, IDialog {
 	public void setVersion(int version) {
 		this.version = version;
 	}
-
-	public int getId() {
-		return this.id;
-	}
-
-	public String getName() {
-		return this.title;
-	}
-
-	public List<IDialogOption> getOptions() {
-		return new ArrayList(this.options.values());
-	}
-
-	public IDialogOption getOption(int slot) {
-		IDialogOption option = (IDialogOption)this.options.get(slot);
-		if (option == null) {
-			throw new CustomNPCsException("There is no DialogOption for slot: " + slot, new Object[0]);
-		} else {
-			return option;
-		}
-	}
-
-	public IAvailability getAvailability() {
-		return this.availability;
-	}
-
-	public IDialogCategory getCategory() {
-		return this.category;
-	}
-
-	public void save() {
-		DialogController.instance.saveDialog(this.category.id, this);
-	}
-
-	public void setName(String name) {
-		this.title = name;
-	}
-
-	public String getText() {
-		return this.text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
-	}
-
-	public void setQuest(IQuest quest) {
-		if (quest == null) {
-			this.quest = -1;
-		} else {
-			if (quest.getId() < 0) {
-				throw new CustomNPCsException("Quest id is lower than 0", new Object[0]);
-			}
-
-			this.quest = quest.getId();
-		}
-
-	}
-
-	public Quest getQuest() {
-		return QuestController.instance == null ? null : (Quest)QuestController.instance.quests.get(this.quest);
-	}
-
-	public String getCommand() {
-		return this.command;
-	}
-
-	public void setCommand(String command) {
-		this.command = command;
-	}
-
-	public void setDarkenScreen(boolean darkenScreen) {
-		this.darkenScreen = darkenScreen;
-	}
-	public boolean getDarkenScreen() {
-		return this.darkenScreen;
-	}
-
-	public void setDisableEsc(boolean disableEsc) {
-		this.disableEsc = disableEsc;
-	}
-	public boolean getDisableEsc() {
-		return this.disableEsc;
-	}
-
-	public void setShowWheel(boolean showWheel) {
-		this.showWheel = showWheel;
-	}
-	public boolean getShowWheel() {
-		return this.showWheel;
-	}
-
-	public void setHideNPC(boolean hideNPC) {
-		this.hideNPC = hideNPC;
-	}
-	public boolean getHideNPC() {
-		return this.hideNPC;
-	}
-
-	public void setSound(String sound) {
-		this.sound = sound;
-	}
-	public String getSound() {
-		return this.sound;
-	}
+	
 }

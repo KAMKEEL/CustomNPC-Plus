@@ -55,9 +55,6 @@ public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiList
 		
 		addButton(new GuiNpcButtonYesNo(15, guiLeft + 120, y += 22, dialog.disableEsc));
 		addLabel(new GuiNpcLabel(15, "dialog.disableEsc", guiLeft + 4, y + 5));
-
-		addButton(new GuiNpcButtonYesNo(16, guiLeft + 120, y += 22, dialog.darkenScreen));
-		addLabel(new GuiNpcLabel(16, "Darken Screen", guiLeft + 4, y + 5));
     	
     	this.addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 192,98, 20, "gui.done"));
     	
@@ -79,9 +76,6 @@ public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiList
     	if(button.id == 15){
     		dialog.disableEsc = button.getValue() == 1;
     	}
-		if(button.id == 16){
-			dialog.darkenScreen = button.getValue() == 1;
-		}
     	if(button.id == 13){
 			setSubGui(new SubGuiMailmanSendSetup(dialog.mail, getParent()));
     	}

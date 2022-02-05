@@ -82,21 +82,15 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
         addButton(new GuiNpcButton(2, guiLeft + 170, guiTop + 50, 82, 20, "spawner.mountplayer"));
 
         if(showingClones == 0 || showingClones == 2){
-			addSideButton(new GuiMenuSideButton(21,guiLeft - 90, this.guiTop + 2, 90,22, "1"));
-			addSideButton(new GuiMenuSideButton(22,guiLeft - 90, this.guiTop + 23, 90,22, "2"));
-			addSideButton(new GuiMenuSideButton(23,guiLeft - 90, this.guiTop + 44, 90,22, "3"));
-			addSideButton(new GuiMenuSideButton(24,guiLeft - 90, this.guiTop + 65, 90,22, "4"));
-			addSideButton(new GuiMenuSideButton(25,guiLeft - 90, this.guiTop + 86, 90,22, "5"));
-			addSideButton(new GuiMenuSideButton(26,guiLeft - 45, this.guiTop + 107, 45,22, "6"));
-			addSideButton(new GuiMenuSideButton(27,guiLeft - 90, this.guiTop + 107, 45,22, "7"));
-			addSideButton(new GuiMenuSideButton(28,guiLeft - 45, this.guiTop + 128, 45,22, "8"));
-			addSideButton(new GuiMenuSideButton(29,guiLeft - 90, this.guiTop + 128, 45,22, "9"));
-			addSideButton(new GuiMenuSideButton(30,guiLeft - 45, this.guiTop + 149, 45,22, "10"));
-			addSideButton(new GuiMenuSideButton(31,guiLeft - 90, this.guiTop + 149, 45,22, "11"));
-			addSideButton(new GuiMenuSideButton(32,guiLeft - 45, this.guiTop + 170, 45,22, "12"));
-			addSideButton(new GuiMenuSideButton(33,guiLeft - 90, this.guiTop + 170, 45,22, "13"));
-			addSideButton(new GuiMenuSideButton(34,guiLeft - 45, this.guiTop + 191, 45,22, "14"));
-			addSideButton(new GuiMenuSideButton(35,guiLeft - 90, this.guiTop + 191, 45,22, "15"));
+        	addSideButton(new GuiMenuSideButton(21,guiLeft - 69, this.guiTop + 2, 70,22, "Tab 1"));
+        	addSideButton(new GuiMenuSideButton(22,guiLeft - 69, this.guiTop + 23, 70,22, "Tab 2"));
+        	addSideButton(new GuiMenuSideButton(23,guiLeft - 69, this.guiTop + 44, 70,22, "Tab 3"));
+        	addSideButton(new GuiMenuSideButton(24,guiLeft - 69, this.guiTop + 65, 70,22, "Tab 4"));
+        	addSideButton(new GuiMenuSideButton(25,guiLeft - 69, this.guiTop + 86, 70,22, "Tab 5"));
+        	addSideButton(new GuiMenuSideButton(26,guiLeft - 69, this.guiTop + 107, 70,22, "Tab 6"));
+        	addSideButton(new GuiMenuSideButton(27,guiLeft - 69, this.guiTop + 128, 70,22, "Tab 7"));
+        	addSideButton(new GuiMenuSideButton(28,guiLeft - 69, this.guiTop + 149, 70,22, "Tab 8"));
+        	addSideButton(new GuiMenuSideButton(29,guiLeft - 69, this.guiTop + 170, 70,22, "Tab 9"));
         	
         	getSideButton(20 + activeTab).active = true;
         	showClones();

@@ -35,11 +35,7 @@ public class SubGuiNpcResistanceProperties extends SubGuiInterface implements IS
         addLabel(new GuiNpcLabel(3,"stats.explosion", guiLeft + 4, guiTop + 81));
         addSlider(new GuiNpcSlider(this, 3, guiLeft + 94, guiTop + 76, (int)(resistances.explosion * 100 - 100)  + "%", resistances.explosion / 2));
 
-        if(resistances.disableDamage){
-			addLabel(new GuiNpcLabel(4,"stats.disabletrue", guiLeft + 4, guiTop + 103));
-		}
-
-		addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));
+    	addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));
     }
     
 	protected void actionPerformed(GuiButton guibutton)

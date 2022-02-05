@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.blocks.tiles.TileRedstoneBlock;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -32,39 +33,39 @@ public class GuiNpcRedstoneBlock extends GuiNPCInterface{
 		if(tile.isDetailed){
 	    	addLabel(new GuiNpcLabel(0,StatCollector.translateToLocal("bard.ondistance") + " X:", guiLeft+ 1, guiTop + 76, 0xffffff));    	
 	    	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft+ 80, guiTop + 71,30,20, tile.onRangeX + ""));
-	    	getTextField(0).integersOnly = true;
+	    	getTextField(0).numbersOnly = true;
 	    	getTextField(0).setMinMaxDefault(0, 50, 6); 	
 	    	addLabel(new GuiNpcLabel(1,"Y:", guiLeft+ 113, guiTop + 76, 0xffffff)); 
 	    	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft+ 122, guiTop + 71,30,20, tile.onRangeY + ""));
-	    	getTextField(1).integersOnly = true;
+	    	getTextField(1).numbersOnly = true;
 	    	getTextField(1).setMinMaxDefault(0, 50, 6); 
 	    	addLabel(new GuiNpcLabel(2,"Z:", guiLeft+ 155, guiTop + 76, 0xffffff)); 
 	    	addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft+ 164, guiTop + 71,30,20, tile.onRangeZ + ""));
-	    	getTextField(2).integersOnly = true;
+	    	getTextField(2).numbersOnly = true;
 	    	getTextField(2).setMinMaxDefault(0, 50, 6);
 	    	
 	    	addLabel(new GuiNpcLabel(3,StatCollector.translateToLocal("bard.offdistance") + " X:", guiLeft - 3, guiTop + 99, 0xffffff));    	
 	    	addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft+ 80, guiTop + 94,30,20, tile.offRangeX + ""));
-	    	getTextField(3).integersOnly = true;
+	    	getTextField(3).numbersOnly = true;
 	    	getTextField(3).setMinMaxDefault(0, 50, 10);  	
 	    	addLabel(new GuiNpcLabel(4,"Y:", guiLeft+ 113, guiTop + 99, 0xffffff)); 
 	    	addTextField(new GuiNpcTextField(4, this, fontRendererObj, guiLeft+ 122, guiTop + 94,30,20, tile.offRangeY + ""));
-	    	getTextField(4).integersOnly = true;
+	    	getTextField(4).numbersOnly = true;
 	    	getTextField(4).setMinMaxDefault(0, 50, 10);  	
 	    	addLabel(new GuiNpcLabel(5,"Z:", guiLeft+ 155, guiTop + 99, 0xffffff)); 
 	    	addTextField(new GuiNpcTextField(5, this, fontRendererObj, guiLeft+ 164, guiTop + 94,30,20, tile.offRangeZ + ""));
-	    	getTextField(5).integersOnly = true;
+	    	getTextField(5).numbersOnly = true;
 	    	getTextField(5).setMinMaxDefault(0, 50, 10);
 		}
 		else{
 	    	addLabel(new GuiNpcLabel(0,"bard.ondistance", guiLeft+ 1, guiTop + 76, 0xffffff));    	
 	    	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft+ 80, guiTop + 71,30,20, tile.onRange + ""));
-	    	getTextField(0).integersOnly = true;
+	    	getTextField(0).numbersOnly = true;
 	    	getTextField(0).setMinMaxDefault(0, 50, 6); 	
 	    	
 	    	addLabel(new GuiNpcLabel(3,"bard.offdistance", guiLeft - 3, guiTop + 99, 0xffffff));    	
 	    	addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft+ 80, guiTop + 94,30,20, tile.offRange + ""));
-	    	getTextField(3).integersOnly = true;
+	    	getTextField(3).numbersOnly = true;
 	    	getTextField(3).setMinMaxDefault(0, 50, 10);  
 		}
         addButton(new GuiNpcButton(0, guiLeft + 40, guiTop + 190,120,20, "Done"));

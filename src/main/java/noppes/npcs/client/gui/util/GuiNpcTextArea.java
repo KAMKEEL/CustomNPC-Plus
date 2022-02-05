@@ -15,7 +15,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
+public class GuiNpcTextArea extends GuiNpcTextField{
 	public boolean inMenu = true;
 	public boolean numbersOnly = false;
 	private int posX,posY,width,height;
@@ -307,24 +307,4 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
         }
         drawTexturedModalRect(x, y, width, 11, 5, 1);
     }
-
-	@Override
-	public int getID() {
-		return 0;
-	}
-
-	@Override
-	public void drawScreen(int var1, int var2) {
-
-	}
-
-	@Override
-	public void updateScreen() {
-
-	}
-
-	@Override
-	public boolean isActive() {
-		return isFieldActive();
-	}
 }

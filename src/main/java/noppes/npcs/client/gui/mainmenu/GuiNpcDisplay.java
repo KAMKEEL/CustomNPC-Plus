@@ -4,16 +4,20 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.GuiNPCTextures;
 import noppes.npcs.client.gui.GuiNpcTextureCloaks;
 import noppes.npcs.client.gui.GuiNpcTextureOverlays;
-import noppes.npcs.client.gui.SubGuiNpcName;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiHoverText;
+import noppes.npcs.client.gui.util.GuiNPCInterface2;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -21,7 +25,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListener, IGuiData{
 
 	private DataDisplay display;
-	public GuiNpcTextField nameText;
 	
 	public GuiNpcDisplay(EntityNPCInterface npc) {
 		super(npc,1);
@@ -32,20 +35,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     public void initGui(){
         super.initGui();
         int y = guiTop + 4;
-
-        // Old Implementation
-//        addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 5, y + 5));
-//        addTextField(new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 50, y, 200, 20, display.name));
-//    	this.addButton(new GuiNpcButton(0, guiLeft + 253, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
-
-		addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 5, y + 5));
-		nameText = new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.name);
-		addTextField(nameText);
-		this.addButton(new GuiNpcButton(0, guiLeft + 253+52, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
-
-
-		this.addButton(new GuiNpcButton(14, guiLeft + 259, y , 20, 20, Character.toString('\u21bb')));
-		this.addButton(new GuiNpcButton(15, guiLeft + 259 + 22, y , 20, 20, Character.toString('\u22EE')));
+        addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 5, y + 5));
+        addTextField(new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 50, y, 200, 20, display.name));
+    	this.addButton(new GuiNpcButton(0, guiLeft + 253, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
 
     	y+=23;
         addLabel(new GuiNpcLabel(11,"gui.title", guiLeft + 5, y + 5));
@@ -56,15 +48,15 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	this.addButton(new GuiNpcButton(1, guiLeft + 50, y,110,20, "selectServer.edit"));
     	addLabel(new GuiNpcLabel(2,"display.size", guiLeft + 175, y + 5));
         addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 203, y, 40, 20, display.modelSize + ""));
-        getTextField(2).integersOnly = true;
-        getTextField(2).setMinMaxDefault(1, CustomNpcs.NpcSizeLimit, 5);
-        //addLabel(new GuiNpcLabel(3,"(1-30)", guiLeft + 246 , y + 5));
+        getTextField(2).numbersOnly = true;
+        getTextField(2).setMinMaxDefault(1, 30, 5);
+        addLabel(new GuiNpcLabel(3,"(1-30)", guiLeft + 246 , y + 5));
 
     	y+=23;
     	addLabel(new GuiNpcLabel(4,"display.texture", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 80, y, 200, 20, display.skinType == 0?display.texture:display.url));
     	this.addButton(new GuiNpcButton(3, guiLeft + 325, y, 38, 20, "mco.template.button.select"));
-    	this.addButton(new GuiNpcButton(2, guiLeft + 283, y, 40, 20, new String[]{"display.texture","display.player", "display.url", "display.urlSix"},display.skinType));
+    	this.addButton(new GuiNpcButton(2, guiLeft + 283, y, 40, 20, new String[]{"display.texture","display.player", "display.url"},display.skinType));
     	getButton(3).setEnabled(display.skinType == 0);
     	if(display.skinType == 1 && display.playerProfile != null)
     		getTextField(3).setText(display.playerProfile.getName());
@@ -81,20 +73,18 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
     	y+=23;
     	addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
-    	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"}, display.disableLivingAnimation?1:0));
+    	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"},display.disableLivingAnimation?1:0));
 
-		addLabel(new GuiNpcLabel(6,"Collides With Entities", guiLeft + 185, y + 5));
-		this.addButton(new GuiNpcButton(6, guiLeft + 300, y, 100, 20, new String[]{"gui.yes","gui.no","Only CNPCs","Only Players","CNPCs & Players"}, display.collidesWith));
-
-		y+=23;
+    	y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
 
     	y+=23;
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
-
-	}
+    
+    	//addExtra(new GuiHoverText(0, "testing", guiLeft, guiTop));
+    }
 
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
@@ -108,10 +98,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			display.modelSize = textfield.getInteger();
 		}
 		else if(textfield.id == 3){
-			// SKIN CHANGE
-			if(display.skinType == 2 || display.skinType == 3){
+			if(display.skinType == 2)
 				display.url = textfield.getText();
-			}
 			else if(display.skinType == 1){
 				if(!textfield.isEmpty()){
 					display.playerProfile = new GameProfile(null, textfield.getText());
@@ -145,11 +133,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		if(button.id == 2){
 			display.skinType = (byte) button.getValue();
-			// System.out.println("Skin Type set to:" + display.skinType);
-			// SKIN CHANGE
-			if (display.skinType != 3){
-				display.url = "";
-			}
+			display.url = "";
 			display.playerProfile = null;
 			initGui();
 		}
@@ -159,15 +143,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		else if(button.id == 5){
 			display.disableLivingAnimation = button.getValue() == 1;
 		}
-		else if(button.id == 6){
-			display.collidesWith = button.getValue();
-		}
 		else if(button.id == 7){
 			display.visible = button.getValue();
 		}
-		// else if(button.id == 300){
-			// display.squareTexture = (byte)button.getValue();
-		// }
 		else if(button.id == 8){
 			NoppesUtil.openGUI(player, new GuiNpcTextureCloaks(npc, this));
 		}
@@ -176,14 +154,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(button.id == 10){
 			display.showBossBar = (byte)button.getValue();
-		}
-		else if(button.id == 14){
-			String name = display.getRandomName();
-			display.setName(name);
-			getTextField(0).setText(name);
-		}
-		else if(button.id == 15){
-			setSubGui(new SubGuiNpcName(display));
 		}
     }
 

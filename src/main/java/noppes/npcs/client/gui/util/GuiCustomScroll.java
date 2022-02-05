@@ -20,7 +20,7 @@ public class GuiCustomScroll extends GuiScreen
     public int id;
     public int guiLeft = 0;
     public int guiTop = 0;
-    public int xSize, ySize;
+    private int xSize, ySize;
     public int selected;
     private HashSet<String> selectedList;
     private int hover;
@@ -280,7 +280,4 @@ public class GuiCustomScroll extends GuiScreen
 		return this;
 	}
 
-    public boolean isMouseOver(int x, int y) {
-        return x >= this.guiLeft && x <= this.guiLeft + this.xSize && y >= this.guiTop && y <= this.guiTop + this.ySize;
-    }
 }

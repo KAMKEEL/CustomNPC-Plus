@@ -1,15 +1,11 @@
 package noppes.npcs.controllers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.scripted.handler.data.IQuest;
-import noppes.npcs.scripted.handler.data.IQuestCategory;
 
-public class QuestCategory implements IQuestCategory {
+public class QuestCategory {
 	public HashMap<Integer,Quest> quests;
 	public int id = -1;
 	public String title = "";
@@ -47,18 +43,4 @@ public class QuestCategory implements IQuestCategory {
         
         return nbttagcompound;
 	}
-
-    public List<IQuest> quests() {
-        return new ArrayList(this.quests.values());
-    }
-
-    public String getName() {
-        return this.title;
-    }
-
-    public IQuest create() {
-        Quest quest = new Quest();
-        quest.category = this;
-        return quest;
-    }
 }

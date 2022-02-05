@@ -7,7 +7,11 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
@@ -22,7 +26,6 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
-import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.ConfigLoader;
 import noppes.npcs.config.ConfigProp;
 import noppes.npcs.controllers.BankController;
@@ -40,7 +43,15 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.enchants.EnchantInterface;
-import noppes.npcs.entity.*;
+import noppes.npcs.entity.EntityChairMount;
+import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.EntityMagicProjectile;
+import noppes.npcs.entity.EntityNPCGolem;
+import noppes.npcs.entity.EntityNpcCrystal;
+import noppes.npcs.entity.EntityNpcDragon;
+import noppes.npcs.entity.EntityNpcPony;
+import noppes.npcs.entity.EntityNpcSlime;
+import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.entity.old.EntityNPCDwarfFemale;
 import noppes.npcs.entity.old.EntityNPCDwarfMale;
 import noppes.npcs.entity.old.EntityNPCElfFemale;
@@ -59,9 +70,8 @@ import noppes.npcs.entity.old.EntityNpcMonsterMale;
 import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.1-beta")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.7.10d")
 public class CustomNpcs {
 
 	@ConfigProp(info = "Disable Chat Bubbles")
@@ -69,17 +79,11 @@ public class CustomNpcs {
 	
     private static int NewEntityStartId = 0;
     
-    @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
+    @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server")
     public static int NpcNavRange = 32;
-
-    @ConfigProp(info = "Size limit for NPCs. Default 100, larger sizes may cause lag on clients and servers that can't take it!")
-    public static int NpcSizeLimit = 100;
 
     @ConfigProp(info = "Set to true if you want the dialog command option to be able to use op commands like tp etc")
     public static boolean NpcUseOpCommands = false;
-
-    @ConfigProp(info = "The amount of time that passes before a player's quests are checked for completion in seconds.")
-    public static int PlayerQuestCheck = 300;
 
     @ConfigProp
     public static boolean InventoryGuiEnabled = true;
@@ -146,8 +150,6 @@ public class CustomNpcs {
     
     public static ConfigLoader Config;
 
-    public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
-
     public CustomNpcs() {
         instance = this;
     }
@@ -173,16 +175,6 @@ public class CustomNpcs {
         if (NpcNavRange < 16) {
             NpcNavRange = 16;
         }
-        if (NpcNavRange > 96) {
-            NpcNavRange = 96;
-        }
-
-        if(NpcSizeLimit < 1)
-            NpcSizeLimit = 1;
-
-        if(PlayerQuestCheck < 1)
-            PlayerQuestCheck = 1;
-
         EnchantInterface.load();
         CustomItems.load();
         
@@ -191,14 +183,6 @@ public class CustomNpcs {
 
         MinecraftForge.EVENT_BUS.register(new ServerEventsHandler());
         MinecraftForge.EVENT_BUS.register(new ScriptController());
-
-        ScriptPlayerEventHandler scriptPlayerEventHandler = new ScriptPlayerEventHandler();
-        MinecraftForge.EVENT_BUS.register(scriptPlayerEventHandler);
-        FMLCommonHandler.instance().bus().register(scriptPlayerEventHandler);
-
-        ScriptForgeEventHandler forgeEventHandler = (new ScriptForgeEventHandler()).registerForgeEvents();
-        MinecraftForge.EVENT_BUS.register(forgeEventHandler);
-        FMLCommonHandler.instance().bus().register(forgeEventHandler);
 
 		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
         
@@ -227,8 +211,6 @@ public class CustomNpcs {
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
 
-
-
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
         registerNewEntity(EntityMagicProjectile.class, "magicprojectile", 64, 3, true);
@@ -243,22 +225,6 @@ public class CustomNpcs {
     }
 
     @EventHandler
-    public void load(FMLInitializationEvent ev) {
-
-        MARKOV_GENERATOR[0] = new MarkovRoman(3);
-        MARKOV_GENERATOR[1] = new MarkovJapanese(4);
-        MARKOV_GENERATOR[2] = new MarkovSlavic(3);
-        MARKOV_GENERATOR[3] = new MarkovWelsh(3);
-        MARKOV_GENERATOR[4] = new MarkovSaami(3);
-        MARKOV_GENERATOR[5] = new MarkovOldNorse(4);
-        MARKOV_GENERATOR[6] = new MarkovAncientGreek(3);
-        MARKOV_GENERATOR[7] = new MarkovAztec(3);
-        MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
-        MARKOV_GENERATOR[9] = new MarkovSpanish(3);
-
-    }
-
-    @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
     	ChunkController.instance.clear();
         new QuestController();
@@ -269,10 +235,7 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         ScriptController.Instance.loadStoredData();
-        ScriptController.Instance.loadForgeScripts();
-        ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
-        WrapperNpcAPI.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){
@@ -336,33 +299,4 @@ public class CustomNpcs {
         return null;
     }
 
-    public static File getWorldSaveDirectory(String s) {
-        try {
-            File dir = new File(".");
-            if (getServer() != null) {
-                if (!getServer().isDedicatedServer()) {
-                    dir = new File(Minecraft.getMinecraft().mcDataDir, "saves");
-                }
-
-                dir = new File(new File(dir, getServer().getFolderName()), "customnpcs");
-            }
-
-            if (s != null) {
-                dir = new File(dir, s);
-            }
-
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            return dir;
-        } catch (Exception var2) {
-            LogWriter.error("Error getting worldsave", var2);
-            return null;
-        }
-    }
-
-    public static MinecraftServer getServer(){
-        return MinecraftServer.getServer();
-    }
 }

@@ -1,50 +1,33 @@
 package noppes.npcs.quests;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Vector;
 
-import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
-import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.IQuestKill;
-import noppes.npcs.scripted.handler.data.IQuestObjective;
 
-public class QuestKill extends QuestInterface implements IQuestKill {
+public class QuestKill extends QuestInterface{
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();
-	public int targetType = 0;
-
-	@Override
-	public void writeEntityToNBT(NBTTagCompound compound) {
-		compound.setTag("QuestKills", NBTTags.nbtStringIntegerMap(targets));
-		//compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
-		compound.setInteger("TargetType",targetType);
-	}
 
 	@Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
-		if(!compound.hasKey("QuestKills")) {
-			targets.clear();
-			HashMap<String,Integer> oldTargets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
-			targets.putAll(oldTargets);
-		} else {
-			targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestKills", 10));
-		}
-
-		//targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
-		targetType = compound.getInteger("TargetType");
+		targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
 	}
 
 	@Override
-	public boolean isCompleted(PlayerData playerData) {
-		PlayerQuestData playerdata = playerData.questData;
+	public void writeEntityToNBT(NBTTagCompound compound) {
+		compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
+	}
+
+	@Override
+	public boolean isCompleted(EntityPlayer player) {
+		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return false;
@@ -91,79 +74,4 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		data.extraData.setTag("Killed", NBTTags.nbtStringIntegerMap(killed));
 	}
 
-	public IQuestObjective[] getObjectives(EntityPlayer player) {
-		List<IQuestObjective> list = new ArrayList();
-		Iterator var3 = this.targets.entrySet().iterator();
-
-		while(var3.hasNext()) {
-			Map.Entry<String, Integer> entry = (Map.Entry)var3.next();
-			list.add(new noppes.npcs.quests.QuestKill.QuestKillObjective(this, player, (String)entry.getKey(), (Integer)entry.getValue()));
-		}
-
-		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
-	}
-
-	public void setTargetType(int type) {
-		if(type < 0)
-			type = 0;
-		if(type > 1)
-			type = 1;
-
-		this.targetType = type;
-	}
-	public int getTargetType() {
-		return this.targetType;
-	}
-
-	class QuestKillObjective implements IQuestObjective {
-		private final QuestKill parent;
-		private final EntityPlayer player;
-		private final String entity;
-		private final int amount;
-
-		public QuestKillObjective(QuestKill parent, EntityPlayer player, String entity, int amount) {
-			this.parent = parent;
-			this.player = player;
-			this.entity = entity;
-			this.amount = amount;
-		}
-
-		public int getProgress() {
-			PlayerData data = PlayerDataController.instance.getPlayerData(player);
-			PlayerQuestData playerdata = data.questData;
-			QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
-			HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-			return !killed.containsKey(this.entity) ? 0 : (Integer)killed.get(this.entity);
-		}
-
-		public void setProgress(int progress) {
-			if (progress >= 0 && progress <= this.amount) {
-				PlayerData data = PlayerDataController.instance.getPlayerData(player);
-				PlayerQuestData playerdata = data.questData;
-				QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
-				HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-				if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
-					killed.put(this.entity, progress);
-					this.parent.setKilled(questdata, killed);
-					data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
-					data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
-					data.saveNBTData(data.getNBT());
-				}
-			} else {
-				throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
-			}
-		}
-
-		public int getMaxProgress() {
-			return this.amount;
-		}
-
-		public boolean isCompleted() {
-			return this.getProgress() >= this.amount;
-		}
-
-		public String getText() {
-			return this.entity + ": " + this.getProgress() + "/" + this.getMaxProgress();
-		}
-	}
 }

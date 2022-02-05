@@ -10,7 +10,8 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
-import noppes.npcs.client.model.part.tails.*;
+import noppes.npcs.client.model.part.tails.ModelDragonTail;
+import noppes.npcs.client.model.part.tails.ModelSquirrelTail;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -25,9 +26,6 @@ public class ModelTail extends ModelScaleRenderer {
 	private ModelRenderer dragon;
 	private ModelRenderer squirrel;
 	private ModelRenderer horse;
-	private ModelRenderer fin;
-	private ModelRenderer rodent;
-	private ModelRenderer feather;
 	
 	private int color = 0xFFFFFF;
 	
@@ -39,7 +37,6 @@ public class ModelTail extends ModelScaleRenderer {
 		this.rotationPointY = 11;
 
 		tail = new ModelRenderer(base, 56, 21);
-		tail.setTextureSize(64, 32);
 		tail.addBox(-1F, 0F, 0F, 2, 9, 2);
 		tail.setRotationPoint(0F, 0, 1F);
 		setRotation(tail, 0.8714253F, 0F, 0F);
@@ -71,11 +68,6 @@ public class ModelTail extends ModelScaleRenderer {
 		this.addChild(dragon = new ModelDragonTail(base));
 
 		this.addChild(squirrel = new ModelSquirrelTail(base));
-
-		this.addChild(fin = new ModelTailFin(base));
-		this.addChild(rodent = new ModelRodentTail(base));
-
-		this.addChild(feather = new ModelFeatherTail(base));
 	}
 
 	public void setData(EntityCustomNpc entity) {
@@ -126,9 +118,6 @@ public class ModelTail extends ModelScaleRenderer {
 		dragon.isHidden = config.type != 1;
 		horse.isHidden = config.type != 2;
 		squirrel.isHidden = config.type != 3;
-        fin.isHidden = config.type != 4;
-        rodent.isHidden = config.type != 5;
-		feather.isHidden = config.type != 6;
 		if(!config.playerTexture){
 			location = config.getResource();
 		}

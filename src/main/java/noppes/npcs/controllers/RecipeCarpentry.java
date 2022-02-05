@@ -1,24 +1,20 @@
 package noppes.npcs.controllers;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.scripted.handler.data.IRecipe;
 
-public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
+public class RecipeCarpentry extends ShapedRecipes{
 	public int id = -1;
 	public String name = "";
     public Availability availability = new Availability();
@@ -226,64 +222,4 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 		}
 		return false;
 	}
-
-    public String getName() {
-        return this.name;
-    }
-
-    public ItemStack getResult() {
-        return this.getRecipeOutput();
-    }
-
-    public boolean isGlobal() {
-        return this.isGlobal;
-    }
-
-    public void setIsGlobal(boolean bo) {
-        this.isGlobal = bo;
-    }
-
-    public boolean getIgnoreNBT() {
-        return this.ignoreNBT;
-    }
-
-    public void setIgnoreNBT(boolean bo) {
-        this.ignoreNBT = bo;
-    }
-
-    public boolean getIgnoreDamage() {
-        return this.ignoreDamage;
-    }
-
-    public void setIgnoreDamage(boolean bo) {
-        this.ignoreDamage = bo;
-    }
-
-    public int getWidth() {
-        return this.recipeWidth;
-    }
-
-    public int getHeight() {
-        return this.recipeHeight;
-    }
-
-    public void save() {
-        try {
-            RecipeController.instance.saveRecipe(this.writeNBT());
-        } catch (IOException var2) {
-        }
-
-    }
-
-    public void delete() {
-        RecipeController.instance.delete(this.id);
-    }
-
-    public ItemStack[] getRecipe() {
-        return this.recipeItems;
-    }
-
-    public int getId() {
-        return this.id;
-    }
 }

@@ -45,10 +45,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public int mouseX, mouseY;
 	
 	public float bgScale = 1;
-	public float bgScaleX = 1;
-	public float bgScaleY = 1;
-	public float bgScaleZ = 1;
-
+	
     public GuiNPCInterface(EntityNPCInterface npc)
     {
     	this.player = Minecraft.getMinecraft().thePlayer;
@@ -105,7 +102,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 		gui.setWorldAndResolution(mc, 350, 250);
 		extra.put(gui.id, gui);
 	}
-
+	
     public void mouseClicked(int i, int j, int k)
     {
 		if(AWTWindow != null)
@@ -147,7 +144,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     	for(GuiNpcTextField tf : textfields.values())
     			tf.textboxKeyTyped(c, i);
 
-        if (closeOnEsc && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))){
+        if (closeOnEsc && (i == 1 || !GuiNpcTextField.isActive() && isInventoryKey(i))){
         	close();
         }
     }
@@ -205,11 +202,11 @@ public abstract class GuiNPCInterface extends GuiScreen
         scrolls.put(scroll.id, scroll);
 	}
 	public GuiCustomScroll getScroll(int id){
-		return scrolls.get(id);
+		return scrolls.get(id); 
 	}
-
+	
     public abstract void save();
-
+    
     @Override
     public void drawScreen(int i, int j, float f){
     	if(AWTWindow != null){
@@ -226,12 +223,12 @@ public abstract class GuiNPCInterface extends GuiScreen
     	mouseY = j;
     	if(drawDefaultBackground && subgui == null)
     		drawDefaultBackground();
-
+    	
     	if(background != null && mc.renderEngine != null){
     		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
     		GL11.glPushMatrix();
     		GL11.glTranslatef(guiLeft, guiTop, 0);
-    		GL11.glScalef(bgScale*bgScaleX, bgScale*bgScaleY, bgScale*bgScaleZ);
+    		GL11.glScalef(bgScale, bgScale, bgScale);
     		mc.renderEngine.bindTexture(background);
     		if(xSize > 256){
     			drawTexturedModalRect(0, 0, 0, 0, 250, ySize);

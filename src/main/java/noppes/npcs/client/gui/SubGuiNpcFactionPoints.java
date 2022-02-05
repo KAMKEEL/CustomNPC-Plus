@@ -28,7 +28,7 @@ public class SubGuiNpcFactionPoints extends SubGuiInterface implements ITextfiel
     	
     	this.addTextField(new GuiNpcTextField(2, this, guiLeft + 8 + fontRendererObj.getStringWidth(getLabel(2).label), guiTop + 28, 70, 20, faction.defaultPoints + ""));
     	getTextField(2).setMaxStringLength(6);
-    	getTextField(2).integersOnly = true;
+    	getTextField(2).numbersOnly = true;
     	
     	String title = StatCollector.translateToLocal("faction.unfriendly") + "<->" + StatCollector.translateToLocal("faction.neutral");
     	addLabel(new GuiNpcLabel(3, title, guiLeft + 4, guiTop + 80));
@@ -38,8 +38,8 @@ public class SubGuiNpcFactionPoints extends SubGuiInterface implements ITextfiel
     	addLabel(new GuiNpcLabel(4, title, guiLeft + 4, guiTop + 105));
     	addTextField(new GuiNpcTextField(4, this, guiLeft +  8 + fontRendererObj.getStringWidth(title), guiTop + 100, 70, 20, faction.friendlyPoints + ""));
 
-    	getTextField(3).integersOnly = true;
-    	getTextField(4).integersOnly = true;
+    	getTextField(3).numbersOnly = true;
+    	getTextField(4).numbersOnly = true;
     	
     	if(getTextField(3).xPosition > getTextField(4).xPosition)
     		getTextField(4).xPosition = getTextField(3).xPosition;

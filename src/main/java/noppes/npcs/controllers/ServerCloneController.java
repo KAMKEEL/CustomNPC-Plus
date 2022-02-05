@@ -13,7 +13,6 @@ import java.util.Map;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -21,17 +20,11 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.handler.ICloneHandler;
-import noppes.npcs.scripted.interfaces.IEntity;
-import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 
-public class ServerCloneController implements ICloneHandler {
+public class ServerCloneController {
 	public static ServerCloneController Instance;
 	
 	public ServerCloneController(){
@@ -199,40 +192,5 @@ public class ServerCloneController implements ICloneHandler {
 			adv.removeTag("MovingPathNew");
 			nbttagcompound.setTag("TransformAI", adv);
 		}
-	}
-
-	public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world) {
-		NBTTagCompound compound = this.getCloneData((ICommandSender)null, name, tab);
-		if (compound == null) {
-			throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
-		} else {
-			Entity entity = NoppesUtilServer.spawnClone(compound, (int)x, (int)y, (int)z, world.getMCWorld());
-			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
-		}
-	}
-
-	public IEntity get(int tab, String name, IWorld world) {
-		NBTTagCompound compound = this.getCloneData((ICommandSender)null, name, tab);
-		if (compound == null) {
-			throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
-		} else {
-			Instance.cleanTags(compound);
-			Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
-			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
-		}
-	}
-
-	public void set(int tab, String name, IEntity entity) {
-		NBTTagCompound compound = new NBTTagCompound();
-		if (!entity.getMCEntity().isEntityAlive()) {
-			throw new CustomNPCsException("Cannot save dead entities", new Object[0]);
-		} else {
-			this.cleanTags(compound);
-			this.saveClone(tab, name, compound);
-		}
-	}
-
-	public void remove(int tab, String name) {
-		this.removeClone(name, tab);
 	}
 }

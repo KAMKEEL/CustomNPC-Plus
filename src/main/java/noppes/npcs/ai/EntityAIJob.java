@@ -16,9 +16,9 @@ public class EntityAIJob extends EntityAIBase {
 			return false;
 		return npc.jobInterface.aiShouldExecute();
 	}
-	
-    public void startExecuting()
-    {
+
+	@Override
+    public void startExecuting(){
     	npc.jobInterface.aiStartExecuting();
     }
     
@@ -29,12 +29,14 @@ public class EntityAIJob extends EntityAIBase {
 			return false;
 		return npc.jobInterface.aiContinueExecute();
     }
-	
-    public void updateTask()
-    {
-    	npc.jobInterface.aiUpdateTask();
+
+	@Override
+    public void updateTask(){
+    	if(npc.jobInterface != null)
+    		npc.jobInterface.aiUpdateTask();
     }
 
+	@Override
     public void resetTask() {
     	if(npc.jobInterface != null)
     		npc.jobInterface.resetTask();

@@ -17,14 +17,14 @@ public class ModelWings extends ModelPartInterface {
 	public ModelWings(ModelMPM base) {
 		super(base);
 		
-		lWing = new Model2DRenderer(base, 48, 32, 16, 32, 64, 32);
+		lWing = new Model2DRenderer(base, 56, 16, 8, 16, 64, 32);
 		lWing.mirror = true;
 		lWing.setRotationPoint(2F, 4, 2F);
 		lWing.setRotationOffset(-16, -12);
         setRotation(lWing, 0.7141593F, -0.5235988F, -0.5090659F);
         this.addChild(lWing);
         
-        rWing = new Model2DRenderer(base, 48, 32, 16, 32, 64, 32);
+        rWing = new Model2DRenderer(base, 56, 16, 8, 16, 64, 32);
         rWing.setRotationPoint(-2F, 4F, 2F);
         rWing.setRotationOffset(-16, -12);
         setRotation(rWing, 0.7141593F, 0.5235988F, 0.5090659F);

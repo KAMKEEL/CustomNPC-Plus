@@ -2,7 +2,6 @@ package noppes.npcs.client.renderer;
 
 import java.lang.reflect.Method;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.entity.NPCRendererHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -10,10 +9,8 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.boss.BossStatus;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.ModelRenderPassHelper;
-import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -24,14 +21,13 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 
 	private RendererLivingEntity renderEntity;
 	private EntityLivingBase entity;
-
+	
 	private ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
-
-	// Default Renderer
+	
 	public RenderCustomNpc() {
 		super(new ModelMPM(0), new ModelMPM(1), new ModelMPM(0.5f));
 	}
-
+	
 	@Override
     public void renderPlayer(EntityNPCInterface npcInterface, double d, double d1, double d2, float f, float f1){
 		EntityCustomNpc npc = (EntityCustomNpc) npcInterface;
@@ -109,11 +105,6 @@ public class RenderCustomNpc extends RenderNPCHumanMale{
 		else
 			super.preRenderCallback(entityliving, f);
     }
-
-	@Override
-	public void doRender(EntityLiving entityliving, double d, double d1, double d2, float f, float f1){
-		super.doRender(entityliving, d, d1, d2, f, f1);
-	}
 
 	@Override
     protected float handleRotationFloat(EntityLivingBase par1EntityLivingBase, float par2){

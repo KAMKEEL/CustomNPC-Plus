@@ -8,7 +8,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.tileentity.TileEntity;
@@ -42,7 +41,7 @@ public class BlockPedestal extends BlockTrigger{
 	    	par1World.markBlockForUpdate(i, j, k);
 	    	updateSurrounding(par1World, i, j, k);
     	}
-    	else if(item == null || item.getItem() == null || item.getItem() instanceof ItemBlock)
+    	else if(item == null || item.getItem() == null || !(item.getItem() instanceof ItemSword))
 			return true;
     	else if(item != null && weapon == null){
     		tile.setInventorySlotContents(0, item);

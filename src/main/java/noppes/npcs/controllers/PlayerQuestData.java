@@ -6,7 +6,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.EventHooks;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
@@ -79,26 +78,24 @@ public class PlayerQuestData {
 	}
 
 	public QuestData getQuestCompletion(EntityPlayer player,EntityNPCInterface npc) {
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 		for(QuestData data : activeQuests.values()){
 			Quest quest = data.quest;
-			if(quest != null && quest.completion == EnumQuestCompletion.Npc && quest.completerNpc.equals(npc.getCommandSenderName()) && quest.questInterface.isCompleted(playerData)){
+			if(quest != null && quest.completion == EnumQuestCompletion.Npc && quest.completerNpc.equals(npc.getCommandSenderName()) && quest.questInterface.isCompleted(player)){
 				return data;
 			}
 		}
 		return null;
 	}
 
-	public boolean checkQuestCompletion(PlayerData playerData,EnumQuestType type) {
+	public boolean checkQuestCompletion(EntityPlayer player,EnumQuestType type) {
 		boolean bo = false;
-		EntityPlayer player = playerData.player;
 		for(QuestData data : this.activeQuests.values()){
 			if(data.quest.type != type && type != null)
 				continue;
 			
 			QuestInterface inter =  data.quest.questInterface;
-
-			if(inter.isCompleted(playerData)){
+			
+			if(inter.isCompleted(player)){
 				if(!data.isCompleted){
 					if(!data.quest.complete(player,data)){
 						Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.completed", data.quest.title);
@@ -106,7 +103,6 @@ public class PlayerQuestData {
 					}
 					data.isCompleted = true;
 					bo = true;
-					EventHooks.onQuestFinished(player,data.quest);
 				}
 			}
 			else

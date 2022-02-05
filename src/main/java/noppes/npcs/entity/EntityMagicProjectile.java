@@ -9,15 +9,15 @@ import net.minecraft.world.World;
 public class EntityMagicProjectile extends EntityProjectile{
 	private EntityPlayer player;
 	private ItemStack equiped;
-
-	public EntityMagicProjectile(World par1World){
-		super(par1World);
-	}
-
+	
+    public EntityMagicProjectile(World par1World){
+        super(par1World);
+    }
+	
 	public EntityMagicProjectile(World par1World,
-								 EntityPlayer player, ItemStack item, boolean isNPC) {
+			EntityPlayer player, ItemStack item, boolean isNPC) {
 		super(par1World, player, item, isNPC);
-
+		
 		this.player = player;
 		this.equiped = player.inventory.getCurrentItem();
 	}
@@ -28,9 +28,9 @@ public class EntityMagicProjectile extends EntityProjectile{
 			this.setDead();
 		super.onUpdate();
 	}
-
+	
 	@Override
-	public String getCommandSenderName(){
-		return StatCollector.translateToLocal("entity.throwableitem.name");
-	}
+    public String getCommandSenderName(){
+        return StatCollector.translateToLocal("entity.throwableitem.name");
+    }
 }

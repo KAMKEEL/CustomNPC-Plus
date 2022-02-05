@@ -33,6 +33,7 @@ import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
 import foxz.commandhelper.permissions.PlayerOnly;
+import foxz.utils.Utils;
 
 @Command(
         name = "noppes",
@@ -88,7 +89,7 @@ public class CmdNoppes extends ChMcLogger {
             return false;
         } 
         try{
-            cmdfaction.selectedFaction = FactionController.getInstance().get(Integer.parseInt(factionname));
+            cmdfaction.selectedFaction = FactionController.getInstance().getFaction(Integer.parseInt(factionname));
         }
         catch(NumberFormatException e){
             cmdfaction.selectedFaction = FactionController.getInstance().getFactionFromName(factionname); // get faction data

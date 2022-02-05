@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerSelector;
+import noppes.npcs.client.gui.GuiNpcSoundSelection;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -81,15 +82,15 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
     	y += 23; 
         addLabel(new GuiNpcLabel(7,StatCollector.translateToLocal("spawner.posoffset")+" X:", guiLeft + 4, y + 5));
     	addTextField(new GuiNpcTextField(7,this, fontRendererObj, guiLeft + 99, y, 24, 20, job.xOffset + ""));
-    	getTextField(7).integersOnly = true;
+    	getTextField(7).numbersOnly = true;
         getTextField(7).setMinMaxDefault(-9, 9, 0);
         addLabel(new GuiNpcLabel(8,"Y:", guiLeft + 125, y + 5));
     	addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 135, y, 24, 20, job.yOffset + ""));
-    	getTextField(8).integersOnly = true;
+    	getTextField(8).numbersOnly = true;
         getTextField(8).setMinMaxDefault(-9, 9, 0);
         addLabel(new GuiNpcLabel(9,"Z:", guiLeft + 161, y + 5));
     	addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 171, y, 24, 20, job.zOffset + ""));
-    	getTextField(9).integersOnly = true;
+    	getTextField(9).numbersOnly = true;
         getTextField(9).setMinMaxDefault(-9, 9, 0);  
         
     	y += 23; 

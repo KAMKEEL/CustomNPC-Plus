@@ -4,7 +4,6 @@ import java.util.Vector;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.EventHooks;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
@@ -31,10 +30,6 @@ public class PlayerQuestController {
 	public static void addActiveQuest(Quest quest, EntityPlayer player) {
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
 		if(canQuestBeAccepted(quest, player)){
-			if (EventHooks.onQuestStarted(player, quest)) {
-				return;
-			}
-
 			data.activeQuests.put(quest.id,new QuestData(quest));	
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);

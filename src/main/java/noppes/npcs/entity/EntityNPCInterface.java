@@ -3,14 +3,33 @@ package noppes.npcs.entity;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+import com.mojang.authlib.GameProfile;
 
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IEntitySelector;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.*;
+import net.minecraft.entity.DataWatcher;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.EnumCreatureAttribute;
+import net.minecraft.entity.IRangedAttackMob;
+import net.minecraft.entity.NPCEntityHelper;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIAttackOnCollide;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAIHurtByTarget;
+import net.minecraft.entity.ai.EntityAILeapAtTarget;
+import net.minecraft.entity.ai.EntityAIOpenDoor;
+import net.minecraft.entity.ai.EntityAIRestrictSun;
+import net.minecraft.entity.ai.EntityAITasks;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
@@ -20,11 +39,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityThrowable;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
@@ -37,6 +55,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
@@ -50,17 +69,36 @@ import noppes.npcs.DataScript;
 import noppes.npcs.DataStats;
 import noppes.npcs.IChatMessages;
 import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.Server;
 import noppes.npcs.VersionCompatibility;
-import noppes.npcs.ai.*;
+import noppes.npcs.ai.EntityAIAmbushTarget;
+import noppes.npcs.ai.EntityAIAnimation;
+import noppes.npcs.ai.EntityAIAttackTarget;
+import noppes.npcs.ai.EntityAIAvoidTarget;
+import noppes.npcs.ai.EntityAIBustDoor;
+import noppes.npcs.ai.EntityAIDodgeShoot;
+import noppes.npcs.ai.EntityAIFindShade;
+import noppes.npcs.ai.EntityAIFollow;
+import noppes.npcs.ai.EntityAIJob;
+import noppes.npcs.ai.EntityAILook;
 import noppes.npcs.ai.EntityAIMoveIndoors;
+import noppes.npcs.ai.EntityAIMovingPath;
+import noppes.npcs.ai.EntityAIOrbitTarget;
 import noppes.npcs.ai.EntityAIPanic;
+import noppes.npcs.ai.EntityAIRangedAttack;
+import noppes.npcs.ai.EntityAIReturn;
+import noppes.npcs.ai.EntityAIRole;
+import noppes.npcs.ai.EntityAISprintToTarget;
+import noppes.npcs.ai.EntityAIStalkTarget;
+import noppes.npcs.ai.EntityAITransform;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
-import noppes.npcs.ai.pathfinder.FlyingMoveHelper;
-import noppes.npcs.ai.pathfinder.PathNavigateFlying;
+import noppes.npcs.ai.EntityAIWaterNav;
+import noppes.npcs.ai.EntityAIWorldLines;
+import noppes.npcs.ai.EntityAIZigZagTarget;
 import noppes.npcs.ai.selector.NPCAttackSelector;
 import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
@@ -86,29 +124,25 @@ import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestData;
 import noppes.npcs.controllers.QuestData;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.TransformData;
-import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.roles.JobFollower;
 import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
-import noppes.npcs.scripted.entity.ScriptNpc;
-import noppes.npcs.scripted.event.ScriptEventAttack;
-import noppes.npcs.scripted.event.ScriptEventDamaged;
-import noppes.npcs.scripted.event.ScriptEventKilled;
-import noppes.npcs.scripted.event.ScriptEventTarget;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.ScriptEventAttack;
+import noppes.npcs.scripted.ScriptEventDamaged;
+import noppes.npcs.scripted.ScriptEventKilled;
+import noppes.npcs.scripted.ScriptEventTarget;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 
 public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData{
-	public ICustomNpc wrappedNPC;
 
-	public static final GameProfileAlt chateventProfile = new GameProfileAlt();
-	public static FakePlayer chateventPlayer;
-	public static FakePlayer CommandPlayer;
+	private static final GameProfileAlt chateventProfile = new GameProfileAlt();
+	private static FakePlayer chateventPlayer;
 	public DataDisplay display;
 	public DataStats stats;
 	public DataAI ai;
@@ -116,7 +150,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataInventory inventory;
 	public DataScript script;
 	public TransformData transform;
-	public DataTimers timers;
 	
 	public String linkedName = "";
 	public long linkedLast = 0;
@@ -133,7 +166,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
-
 	public Faction faction; //should only be used server side
 	
 	private EntityAIRangedAttack aiRange;
@@ -153,20 +185,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateClient = false;
 	public boolean updateAI = false;
 
-//	 Fly Change
-	public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
-	public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
-
 	public EntityNPCInterface(World world) {
 		super(world);
 		try{
-			if (canFly()) {
-				this.getNavigator().setCanSwim(true);
-				this.tasks.addTask(0, new EntityAISwimming(this));
-			} else {
-				this.tasks.addTask(0, new EntityAIWaterNav(this));
-			}
-
 			dialogs = new HashMap<Integer, DialogOption>();
 			if(!CustomNpcs.DefaultInteractLine.isEmpty())
 				advanced.interactLines.lines.put(0, new Line(CustomNpcs.DefaultInteractLine));
@@ -178,10 +199,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setFaction(faction.id);
 			setSize(1, 1);
 			this.updateTasks();
-
-			if (!this.isRemote()) {
-				this.wrappedNPC = new ScriptNpc(this);
-			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -199,12 +216,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		inventory = new DataInventory(this);
 		transform = new TransformData(this);
 		script = new DataScript(this);
-		timers = new DataTimers(this);
+		
         this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
         this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
-		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(this.getSpeed());
+        this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(this.getSpeed());
         this.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(stats.getAttackStrength());
     }
 
@@ -235,7 +252,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		super.onUpdate();
 		if(this.ticksExisted % 10 == 0)
 			script.callScript(EnumScriptType.TICK);
-		this.timers.update();
 	}
 	
 	public void setWorld(World world){
@@ -313,7 +329,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	    			LinkedNpcController.Instance.loadNpcData(this);
 	    		}
 				if(updateClient){
-	    			this.updateClient();
+	    			NBTTagCompound compound = writeSpawnData();
+	    			compound.setInteger("EntityId", getEntityId());
+	    			Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
+	    			updateClient = false;
 	    		}
 	    		if(updateAI){
 	    			updateTasks();
@@ -362,14 +381,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				((JobBard)jobInterface).onLivingUpdate();
         }
     }
-
-	public void updateClient() {
-		NBTTagCompound compound = writeSpawnData();
-		compound.setInteger("EntityId", getEntityId());
-		Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
-		updateClient = false;
-	}
-
     
 	@Override
 	public boolean interact(EntityPlayer player) {
@@ -415,33 +426,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		
 		return true;
 	}
-
-	public PathNavigate getNavigator() {
-		if(canFly())
-			return this.flyNavigator;
-		else {
-			return super.getNavigator();
-		}
-	}
-
-	public EntityMoveHelper getMoveHelper() {
-		if(canFly())
-			return this.flyMoveHelper;
-		else {
-			return super.getMoveHelper();
-		}
-	}
-
-	protected void updateAITasks()
-	{
-		try {
-			super.updateAITasks();
-		} catch (ConcurrentModificationException ignored){
-		}
-
-		this.getNavigator().onUpdateNavigation();
-		this.getMoveHelper().onUpdateMoveHelper();
-	}
 	
 	public void addInteract(EntityLivingBase entity){
 		if( !ai.stopAndInteract || isAttacking() || !entity.isEntityAlive())
@@ -476,10 +460,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public boolean attackEntityFrom(DamageSource damagesource, float i) {
-        if (this.worldObj.isRemote || CustomNpcs.FreezeNPCs || (damagesource.damageType != null && damagesource.damageType.equals("inWall"))){
+        if (this.worldObj.isRemote || CustomNpcs.FreezeNPCs || damagesource.damageType.equals("inWall")){
             return false;
         }
-        if(damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()){
+        if(damagesource.damageType.equals("outOfWorld") && isKilled()){
         	reset();
         }
         i = stats.resistances.applyResistance(damagesource, i);
@@ -566,7 +550,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			if(event.getTarget() == null)
 				entity = null;
 			else
-				entity = event.getTarget().getMCEntity();
+				entity = event.getTarget().getMinecraftEntity();
     	}
 		if (entity != null && entity != this && ai.onAttack != 3 && !isAttacking() && !isRemote()){
 			Line line = advanced.getAttackLine();
@@ -627,7 +611,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if (worldObj == null || worldObj.isRemote)
 			return;
 		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
-
+		
 		clearTasks(tasks);
 		clearTasks(targetTasks);
 		IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
@@ -636,14 +620,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ai.directLOS, false, attackEntitySelector));
         this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
         this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
-
-		if (canFly()) {
-			this.getNavigator().setCanSwim(true);
-			this.tasks.addTask(0, new EntityAISwimming(this));
-		} else {
-			this.tasks.addTask(0, new EntityAIWaterNav(this));
-		}
-
+		
+		this.tasks.addTask(0, new EntityAIWaterNav(this));
 		this.taskCount = 1;
 		this.doorInteractType();
 		this.seekShelter();
@@ -730,9 +708,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	/*
 	 * Branch task function for adjusting NPC door interactivity
 	 */
-	public void doorInteractType(){
-		if(canFly()) //currently flying does not support opening doors
-			return;
+	public void doorInteractType(){			
 		EntityAIBase aiDoor = null;
 		if (this.ai.doorInteract == 1)
 		{
@@ -755,8 +731,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		else if (this.ai.findShelter == 1)
 		{
-			if(!canFly()) // doesnt work when flying
-				this.tasks.addTask(this.taskCount++, new EntityAIRestrictSun(this));
+			this.tasks.addTask(this.taskCount++, new EntityAIRestrictSun(this));
 			this.tasks.addTask(this.taskCount++, new EntityAIFindShade(this));
 		}
 	}
@@ -941,6 +916,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
 	@Override
+	public void addVelocity(double d, double d1, double d2) {
+		if (isWalking() && !isKilled())
+			super.addVelocity(d, d1, d2);
+	}
+
+
+	@Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
 		super.readEntityFromNBT(compound);
 		npcVersion = compound.getInteger("ModRev");
@@ -950,7 +932,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.readToNBT(compound);
 		ai.readToNBT(compound);
 		script.readFromNBT(compound);
-		timers.readFromNBT(compound);
+		
 		advanced.readToNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null) 
             roleInterface.readFromNBT(compound);
@@ -981,7 +963,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.writeToNBT(compound);
 		ai.writeToNBT(compound);
 		script.writeToNBT(compound);
-		timers.writeToNBT(compound);
+		
 		advanced.writeToNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null)
             roleInterface.writeToNBT(compound);
@@ -1293,9 +1275,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public IIcon getItemIcon(ItemStack par1ItemStack, int par2){
-    	// Change Here
-        if (par1ItemStack.getItem() instanceof ItemBow){
-            return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
+        if (par1ItemStack.getItem() == Items.bow){
+            return Items.bow.getIcon(par1ItemStack, par2);
         }
 		EntityPlayer player = CustomNpcs.proxy.getPlayer();
 		if(player == null)
@@ -1426,10 +1407,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			return fac;
 		}
 		else{
-			Faction fac = FactionController.getInstance().get(faction);
+			Faction fac = FactionController.getInstance().getFaction(faction);
 			if (fac == null) {
 				faction = FactionController.getInstance().getFirstFactionId();
-				fac = FactionController.getInstance().get(faction);
+				fac = FactionController.getInstance().getFaction(faction);
 			}
 			return fac;
 		}
@@ -1440,7 +1421,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public void setFaction(int integer) {
 		if(integer < 0|| isRemote())
 			return;
-		Faction faction = FactionController.getInstance().get(integer);
+		Faction faction = FactionController.getInstance().getFaction(integer);
 		if(faction == null)
 			return;
 		String str = faction.id + ":" + faction.color + ":" + faction.name;
@@ -1478,7 +1459,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public NBTTagCompound writeSpawnData() {
 		NBTTagCompound compound = new NBTTagCompound();
 		display.writeToNBT(compound);
-		compound.setDouble("MaxHealth", stats.maxHealth);
+		compound.setInteger("MaxHealth", stats.maxHealth);
 		compound.setTag("Armor", NBTTags.nbtItemStackList(inventory.getArmor()));
 		compound.setTag("Weapons", NBTTags.nbtItemStackList(inventory.getWeapons()));
 		compound.setInteger("Speed", ai.getWalkingSpeed());
@@ -1517,7 +1498,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		} 
 	}
 	public void readSpawnData(NBTTagCompound compound) {
-		stats.maxHealth = compound.getDouble("MaxHealth");
+		stats.maxHealth = compound.getInteger("MaxHealth");
 		ai.setWalkingSpeed(compound.getInteger("Speed"));
 		stats.hideKilledBody = compound.getBoolean("DeadBody");
 		ai.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
@@ -1546,18 +1527,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		display.readToNBT(compound);
 	}
-
-	public Entity func_174793_f() {
-		if (this.worldObj.isRemote) {
-			return this;
-		} else {
-			EntityUtil.Copy(this, CommandPlayer);
-			CommandPlayer.setWorld(this.worldObj);
-			CommandPlayer.setPosition(this.posX, this.posY, this.posZ);
-			return CommandPlayer;
-		}
-	}
-
+	
 	@Override
 	public String getCommandSenderName() {
 		return display.name;
@@ -1599,86 +1569,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     	if(!ai.ignoreCobweb)
     		super.setInWeb();
     }
-
 	@Override
 	public boolean canBeCollidedWith(){
 		return !isKilled();
 	}
-
-	// obviously we dont want this
-	@Override
-	public boolean canBePushed() {
-		return this.display.collidesWith == 0;
-	}
-
-	// checks for any entity within a certain boundingbox, eg minecarts
-	@Override
-	protected void collideWithNearbyEntities() {
-		if(this.display.collidesWith != 1) {
-			List list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, this.boundingBox.expand(0.20000000298023224D, 0.0D, 0.20000000298023224D));
-
-			if (list != null && !list.isEmpty()) {
-				for (int i = 0; i < list.size(); ++i) {
-					Entity entity = (Entity) list.get(i);
-
-					if (this.canBePushed() ||
-						(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
-						(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
-					) {
-						super.collideWithEntity(entity);
-					}
-				}
-			}
-		}
-	}
-
-	public void applyEntityCollision(Entity entity)
-	{
-		if (entity.riddenByEntity != this && entity.ridingEntity != this)
-		{
-			double d0 = entity.posX - this.posX;
-			double d1 = entity.posZ - this.posZ;
-			double d2 = MathHelper.abs_max(d0, d1);
-
-			if (d2 >= 0.009999999776482582D)
-			{
-				d2 = (double)MathHelper.sqrt_double(d2);
-				d0 /= d2;
-				d1 /= d2;
-				double d3 = 1.0D / d2;
-
-				if (d3 > 1.0D)
-				{
-					d3 = 1.0D;
-				}
-
-				d0 *= d3;
-				d1 *= d3;
-				d0 *= 0.05000000074505806D;
-				d1 *= 0.05000000074505806D;
-				d0 *= (double)(1.0F - this.entityCollisionReduction);
-				d1 *= (double)(1.0F - this.entityCollisionReduction);
-				if (this.canBePushed() ||
-					(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
-					(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
-				)
-					this.addVelocity(-d0, 0.0D, -d1);
-				entity.addVelocity(d0, 0.0D, d1);
-			}
-		}
-	}
-
-	// not any entity can collide. if you want projectiles to still be
-	// effective, you will have to handle those yourself
-	@Override
-	protected void collideWithEntity(Entity p_82167_1_) {
-
-	}
-
-	public boolean canFly(){
-		return false;
-	}
-
+	
 	public EntityAIRangedAttack getRangedTask(){
 		return this.aiRange;
 	}
@@ -1698,12 +1593,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
     public boolean isInvisibleToPlayer(EntityPlayer player){
-        return (scriptInvisibleToPlayer(player) || display.visible == 1) && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
+        return display.visible == 1 && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
     }
-
-	public boolean scriptInvisibleToPlayer(EntityPlayer player){
-		return display.invisibleToList != null && display.invisibleToList.contains(player.getPersistentID());
-	}
 
 	@Override
 	public boolean isInvisible(){
@@ -1801,15 +1692,4 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public boolean shouldDismountInWater(Entity rider){
     	return false;
     }
-
-	// Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64
-	public int getModelType()
-	{
-		return this.display.modelType;
-	}
-
-	public void setModelType(int val)
-	{
-		this.display.modelType = val;
-	}
 }

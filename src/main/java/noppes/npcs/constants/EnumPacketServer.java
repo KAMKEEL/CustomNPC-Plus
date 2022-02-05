@@ -34,12 +34,6 @@ public enum EnumPacketServer {
 	
 	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList,
 
-	ScriptPlayerSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
-	ScriptPlayerGet(false),
-
-	ScriptForgeSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
-	ScriptForgeGet(false),
-
 	LinkedGetAll, LinkedRemove(CustomNpcsPermissions.GLOBAL_LINKED), LinkedAdd(CustomNpcsPermissions.GLOBAL_LINKED),
 	ScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), ScriptDataGet(true),
 	PlayerDataRemove(CustomNpcsPermissions.GLOBAL_PLAYERDATA), 
@@ -76,9 +70,7 @@ public enum EnumPacketServer {
 	RemoteTpToNpc,QuestGet, QuestCategoryGet, 
 	SaveTileEntity,
 	NaturalSpawnGetAll, MailOpenSetup,
-	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen,
-
-	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused;
+	DimensionsGet, DimensionTeleport, GetTileEntity, Gui,  ;
 
 	public CustomNpcsPermissions.Permission permission = null;
 	public boolean needsNpc = false;

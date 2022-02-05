@@ -33,7 +33,6 @@ import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityFakeLiving;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.Sys;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener{
 
@@ -42,7 +41,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	private final String[] ignoredTags = {"CanBreakDoors", "Bred", "PlayerCreated", "Tame", "HasReproduced"};
 	
 	private GuiNpcButton prev,next;
-
+	
 	private GuiScreen parent;
 	
 	private HashMap<Integer, String> mapped = new HashMap<Integer, String>();
@@ -62,7 +61,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				e.printStackTrace();
 			} catch (NoSuchMethodException e) {
 			}
-        }
+        } 
 		list = new ArrayList<String>(data.keySet());
 		Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 	}
@@ -110,9 +109,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
     	addButton(new GuiNpcButton(7, guiLeft + 50, y += 22, 50, 20, "selectServer.edit"));
 		addLabel(new GuiNpcLabel(4, "Legs", guiLeft, y + 5, 0xFFFFFF));
-
-		addButton(new GuiNpcButton(250, guiLeft + 50, y += 22, 50, 20, new String[]{"Default","Steve64","Alex"}, this.npc.display.modelType));
-		addLabel(new GuiNpcLabel(250, "Model", guiLeft, y + 5, 0xFFFFFF));
 		
     	addButton(new GuiNpcButton(44, guiLeft + 310, guiTop + 14, 80, 20, "Save Model"));
     	addButton(new GuiNpcButton(45, guiLeft + 310, guiTop + 36, 80, 20, "Load Model"));
@@ -252,7 +248,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	}
     	
     	if(button.id == 1){
-            this.mc.displayGuiScreen(new GuiEntitySelection(this, playerdata, npc));
+            this.mc.displayGuiScreen(new GuiEntitySelection(this, playerdata,npc));
     	}
 
     	if(button.id == 4){
@@ -267,27 +263,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	if(button.id == 7){
             this.mc.displayGuiScreen(new GuiModelLegs(this, npc));
     	}
-
-    	// New Button for Changing Models
-		// URL Swapper
-		if(button.id == 250){
-			if(npc.display.modelType == 0){
-				if (npc.display.skinType == 2){
-					npc.display.skinType = 3;
-				}
-				npc.display.modelType = 1;
-			}
-			else if(npc.display.modelType == 1){
-				npc.display.modelType = 2;
-			}
-			else {
-				if (npc.display.skinType == 3){
-					npc.display.skinType = 2;
-				}
-				npc.display.modelType = 0;
-			}
-		}
-
     	if(button.id == 8){
             this.mc.displayGuiScreen(new GuiModelScale(this, playerdata, npc));
     	}

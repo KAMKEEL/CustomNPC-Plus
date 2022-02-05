@@ -19,7 +19,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -28,17 +27,20 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.controllers.data.ForgeDataScript;
-import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.entity.*;
+import noppes.npcs.scripted.ScriptAnimal;
+import noppes.npcs.scripted.ScriptEntity;
+import noppes.npcs.scripted.ScriptLiving;
+import noppes.npcs.scripted.ScriptLivingBase;
+import noppes.npcs.scripted.ScriptMonster;
+import noppes.npcs.scripted.ScriptPixelmon;
+import noppes.npcs.scripted.ScriptPlayer;
 import noppes.npcs.scripted.ScriptWorld;
-import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ScriptController {
-
+	
 	public static ScriptController Instance;
 	public static boolean HasStart = false;
 	private ScriptEngineManager manager;
@@ -47,15 +49,10 @@ public class ScriptController {
 	public long lastLoaded = 0;
 	public File dir;
 	public NBTTagCompound compound = new NBTTagCompound();
-
+	
 	private boolean loaded = false;
 	public boolean shouldSave = false;
-
-	public PlayerDataScript playerScripts = new PlayerDataScript((EntityPlayer)null);
-	public long lastPlayerUpdate = 0L;
-
-	public ForgeDataScript forgeScripts = new ForgeDataScript();
-
+	
 	public ScriptController(){
 		loaded = false;
 		Instance = this;
@@ -68,78 +65,6 @@ public class ScriptController {
 			String ext = "." + fac.getExtensions().get(0).toLowerCase();
 			LogWriter.info(fac.getLanguageName() + ": " + ext);
 			languages.put(fac.getLanguageName(), ext);
-		}
-	}
-
-	private File forgeScriptsFile() {
-		return new File(this.dir, "forge_scripts.json");
-	}
-
-	public boolean loadForgeScripts() {
-		this.forgeScripts.clear();
-		File file = this.forgeScriptsFile();
-
-		try {
-			if(!file.exists()) {
-				return false;
-			} else {
-				this.forgeScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
-				return true;
-			}
-		} catch (Exception var3) {
-			LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
-			return false;
-		}
-	}
-
-	public void setForgeScripts(NBTTagCompound compound) {
-		this.forgeScripts.readFromNBT(compound);
-		File file = this.forgeScriptsFile();
-
-		try {
-			NBTJsonUtil.SaveFile(file, compound);
-			this.forgeScripts.lastInited = -1L;
-		} catch (IOException var4) {
-			var4.printStackTrace();
-		} catch (JsonException var5) {
-			var5.printStackTrace();
-		}
-
-	}
-
-	private File playerScriptsFile() {
-		return new File(dir, "player_scripts.json");
-	}
-
-	public boolean loadPlayerScripts() {
-		this.playerScripts.clear();
-		File file = this.playerScriptsFile();
-
-		try {
-			if(!file.exists()) {
-				return false;
-			} else {
-				this.playerScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
-				shouldSave = false;
-				return true;
-			}
-		} catch (Exception var3) {
-			LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
-			return false;
-		}
-	}
-
-	public void setPlayerScripts(NBTTagCompound compound) {
-		this.playerScripts.readFromNBT(compound);
-		File file = this.playerScriptsFile();
-
-		try {
-			NBTJsonUtil.SaveFile(file, compound);
-			this.lastPlayerUpdate = System.currentTimeMillis();
-		} catch (IOException var4) {
-			var4.printStackTrace();
-		} catch (JsonException var5) {
-			var5.printStackTrace();
 		}
 	}
 
@@ -178,40 +103,39 @@ public class ScriptController {
 		}
 	}
 	public boolean loadStoredData(){
-		loadCategories();
-		File file = getSavedFile();
-		try {
-			if(!file.exists())
-				return false;
-			this.compound = NBTJsonUtil.LoadFile(file);
-			shouldSave = false;
-		}
-		catch (Exception e) {
+    	loadCategories();
+    	File file = getSavedFile();
+        try {
+        	if(!file.exists())
+        		return false;
+        	this.compound = NBTJsonUtil.LoadFile(file);
+    		shouldSave = false;
+		} 
+        catch (Exception e) {
 			LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-			return false;
-		}
-		return true;
+        	return false;
+        }
+        return true;
 	}
-
+	
 	private File getSavedFile(){
 		return new File(dir, "world_data.json");
 	}
-
 	private String readFile(File file) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		try {
-			StringBuilder sb = new StringBuilder();
-			String line = br.readLine();
+	    BufferedReader br = new BufferedReader(new FileReader(file));
+	    try {
+	        StringBuilder sb = new StringBuilder();
+	        String line = br.readLine();
 
-			while (line != null) {
-				sb.append(line);
-				sb.append("\n");
-				line = br.readLine();
-			}
-			return sb.toString();
-		} finally {
-			br.close();
-		}
+	        while (line != null) {
+	            sb.append(line);
+	            sb.append("\n");
+	            line = br.readLine();
+	        }
+	        return sb.toString();
+	    } finally {
+	        br.close();
+	    }
 	}
 
 	public ScriptEngine getEngineByName(String language) {
@@ -232,7 +156,7 @@ public class ScriptController {
 		}
 		return list;
 	}
-
+	
 	private List<String> getScripts(String language){
 		List<String> list = new ArrayList<String>();
 		String ext = languages.get(language);
@@ -250,7 +174,7 @@ public class ScriptController {
 		if(entity == null)
 			return null;
 		if(entity instanceof EntityNPCInterface)
-			return (ScriptNpc)((EntityNPCInterface) entity).script.dummyNpc;
+			return ((EntityNPCInterface) entity).script.dummyNpc;
 		else{
 			ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
 			if(data != null)
@@ -278,14 +202,14 @@ public class ScriptController {
 	public void saveWorld(WorldEvent.Save event){
 		if(!shouldSave || event.world.isRemote || event.world != MinecraftServer.getServer().worldServers[0])
 			return;
-
+		
 		try {
 			NBTJsonUtil.SaveFile(getSavedFile(), compound);
-		}
+		} 
 		catch (Exception e) {
 			LogWriter.except(e);
-		}
-
+		} 
+		
 		shouldSave = false;
 	}
 }

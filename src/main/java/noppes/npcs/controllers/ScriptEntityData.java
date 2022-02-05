@@ -4,7 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
-import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.ScriptEntity;
 
 public class ScriptEntityData implements IExtendedEntityProperties{
 	public ScriptEntity base;

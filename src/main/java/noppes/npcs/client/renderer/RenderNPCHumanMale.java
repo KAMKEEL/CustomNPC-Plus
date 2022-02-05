@@ -2,8 +2,8 @@ package noppes.npcs.client.renderer;
 
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
-
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -12,13 +12,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Items;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
-import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.ModelNPCMale;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -35,15 +37,10 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmorChestplate;
     protected ModelNPCMale modelArmor;
 
-    protected final ModelNPCMale originalBipedMain;
-    protected final ModelMPM steve = new ModelMPM(0, false);
-    protected final ModelMPM alex = new ModelMPM(0, true);
-
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
         super(mainmodel, 0.5F);
         modelBipedMain = mainmodel;
-        originalBipedMain = mainmodel;
         modelArmorChestplate = armorChest;
         modelArmor = armor;
     }
@@ -113,29 +110,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     public void renderPlayer(EntityNPCInterface npc, double d, double d1, double d2, 
             float f, float f1)
     {
-        // SEEMS TO WORK FOR NOW. Keeps NPC from outsyncing with Creature Models
-        if(npc instanceof EntityCustomNpc){
-            EntityCustomNpc test = (EntityCustomNpc) npc;
-            if(test.modelData.entityClass == null){
-                int modelVal = npc.display.modelType;
-                if(modelVal ==  1){
-                    this.mainModel = steve;
-                    this.modelBipedMain = steve;
-                }
-                else if(modelVal ==  2){
-                    this.mainModel = alex;
-                    this.modelBipedMain = alex;
-                }
-                else{
-                    ((EntityCustomNpc) npc).modelData.bodywear = 0;
-                    ((EntityCustomNpc) npc).modelData.armwear = 0;
-                    ((EntityCustomNpc) npc).modelData.legwear = 0;
-                    this.mainModel = originalModel;
-                    this.modelBipedMain = originalBipedMain;
-                }
-            }
-        }
-
         ItemStack itemstack = npc.getHeldItem();
         modelArmorChestplate.heldItemRight = modelArmor.heldItemRight = modelBipedMain.heldItemRight =
         		itemstack == null ? 0 : npc.hurtResistantTime > 0 ? 3 : 1;
@@ -269,8 +243,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(-var6, -var6, var6);
             }
-            // CHANGE HERE
-            else if (itemstack2.getItem() instanceof ItemBow)
+            else if (itemstack2.getItem() == Items.bow)
             {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
@@ -348,10 +321,10 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             
             IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack2, EQUIPPED);
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
-
-            Class<?> clazz = itemstack2.getItem().getClass();
-            if(clazz.getSimpleName().equals("ItemShield") || clazz.getSimpleName().equals("ItemRotatedShield") || clazz.getSimpleName().equals("ItemClaw"))
+            
+            if(itemstack2.getItem() instanceof ItemShield || itemstack2.getItem() instanceof ItemClaw)
             	GL11.glTranslatef(0.30f, 0, 0f);
+            
             
             if (itemstack2.getItem() instanceof ItemBlock && (is3D || RenderBlocks.renderItemIn3d(Block.getBlockFromItem(itemstack2.getItem()).getRenderType())))
             {
@@ -362,7 +335,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(var6, -var6, var6);
             }
-            else if (itemstack2.getItem() instanceof ItemBow)
+            else if (itemstack2.getItem() == Items.bow)
             {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);

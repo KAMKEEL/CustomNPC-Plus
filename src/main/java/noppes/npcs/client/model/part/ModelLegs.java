@@ -12,7 +12,6 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.part.legs.ModelDigitigradeLegs;
 import noppes.npcs.client.model.part.legs.ModelMermaidLegs;
-import noppes.npcs.client.model.part.legs.ModelMermaidLegs2;
 import noppes.npcs.client.model.part.legs.ModelNagaLegs;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
@@ -28,7 +27,6 @@ public class ModelLegs extends ModelScaleRenderer{
 	private ModelNagaLegs naga;
 	private ModelDigitigradeLegs digitigrade;
 	private ModelMermaidLegs mermaid;
-	private ModelMermaidLegs2 mermaid2;
 
 	private ModelRenderer spiderLeg1;
     private ModelRenderer spiderLeg2;
@@ -59,9 +57,8 @@ public class ModelLegs extends ModelScaleRenderer{
             
     private ModelMPM base;
 	
-	public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2, int textWidth, int textHeight) {
+	public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2) {
 		super(base);
-
 		this.base = base;
 		this.leg1 = leg1;
 		this.leg2 = leg2;
@@ -74,61 +71,51 @@ public class ModelLegs extends ModelScaleRenderer{
         float var1 = 0.0F;
         byte var2 = 15;
         spiderNeck = new ModelRenderer(base, 0, 0);
-        spiderNeck.setTextureSize(64,32);
         spiderNeck.addBox(-3.0F, -3.0F, -3.0F, 6, 6, 6, var1);
         spiderNeck.setRotationPoint(0.0F, (float)var2, 2.0F);
         spider.addChild(spiderNeck);
         
         spiderBody = new ModelRenderer(base, 0, 12);
-        spiderBody.setTextureSize(64,32);
         spiderBody.addBox(-5.0F, -4.0F, -6.0F, 10, 8, 12, var1);
         spiderBody.setRotationPoint(0.0F, (float)var2, 11.0F);
         spider.addChild(spiderBody);
         
         this.spiderLeg1 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg1.setTextureSize(64,32);
         this.spiderLeg1.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg1.setRotationPoint(-4.0F, (float)var2, 4.0F);
         spider.addChild(spiderLeg1);
         
         this.spiderLeg2 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg2.setTextureSize(64,32);
         this.spiderLeg2.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg2.setRotationPoint(4.0F, (float)var2, 4.0F);
         spider.addChild(spiderLeg2);
         
         this.spiderLeg3 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg3.setTextureSize(64,32);
         this.spiderLeg3.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg3.setRotationPoint(-4.0F, (float)var2, 3.0F);
         spider.addChild(spiderLeg3);
         
         this.spiderLeg4 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg4.setTextureSize(64,32);
         this.spiderLeg4.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg4.setRotationPoint(4.0F, (float)var2, 3.0F);
         spider.addChild(spiderLeg4);
         
         this.spiderLeg5 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg5.setTextureSize(64,32);
         this.spiderLeg5.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg5.setRotationPoint(-4.0F, (float)var2, 2.0F);
         spider.addChild(spiderLeg5);
         
         this.spiderLeg6 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg6.setTextureSize(64,32);
         this.spiderLeg6.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg6.setRotationPoint(4.0F, (float)var2, 2.0F);
         spider.addChild(spiderLeg6);
         
         this.spiderLeg7 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg7.setTextureSize(64,32);
         this.spiderLeg7.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg7.setRotationPoint(-4.0F, (float)var2, 1.0F);
         spider.addChild(spiderLeg7);
         
         this.spiderLeg8 = new ModelRenderer(base, 18, 0);
-        this.spiderLeg8.setTextureSize(64,32);
         this.spiderLeg8.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
         this.spiderLeg8.setRotationPoint(4.0F, (float)var2, 1.0F);
         spider.addChild(spiderLeg8);
@@ -212,19 +199,10 @@ public class ModelLegs extends ModelScaleRenderer{
 		naga = new ModelNagaLegs(base);
         this.addChild(naga);
 
-        // Add Mermaid Legs
 		mermaid = new ModelMermaidLegs(base);
-		mermaid2 = new ModelMermaidLegs2(base);
         this.addChild(mermaid);
-		this.addChild(mermaid2);
-
-		boolean mirror = false;
-        if(textHeight != textWidth){
-            mirror = true;
-        }
-
-		digitigrade = new ModelDigitigradeLegs(base, mirror, textWidth, textHeight);
-
+        
+        digitigrade = new ModelDigitigradeLegs(base);
         this.addChild(digitigrade);
 	}
 	public void setRotation(ModelRenderer model, float x, float y, float z) {
@@ -318,18 +296,9 @@ public class ModelLegs extends ModelScaleRenderer{
 			naga.isSneaking = base.isSneak;
 			naga.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 		}
-		else if(part.type == 4 || part.type == 6){
-            mermaid.isRiding = base.isRiding;
-            mermaid.isSleeping = base.isSleeping(entity);
-            mermaid.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
-            mermaid.isSneaking = base.isSneak;
-            mermaid2.isRiding = base.isRiding;
-            mermaid2.isSleeping = base.isSleeping(entity);
-            mermaid2.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
-            mermaid2.isSneaking = base.isSneak;
-            mermaid.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            mermaid2.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-        }
+		else if(part.type == 4){
+			mermaid.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+		}
 		else if(part.type == 5){
 			digitigrade.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 		}
@@ -345,7 +314,7 @@ public class ModelLegs extends ModelScaleRenderer{
 			return;
 		GL11.glPushMatrix();
 		if(part.type == 4)
-			part.playerTexture = false;
+			part.playerTexture = !entity.isInWater();
 		if(!base.isArmor){
 			if(!part.playerTexture){
 				ClientProxy.bindTexture(part.getResource());
@@ -356,19 +325,18 @@ public class ModelLegs extends ModelScaleRenderer{
 	            base.currentlyPlayerTexture = true;
 			}
 		}
-        if(part.type == 0){
-            leg1.setConfig(config, x, y, z);
-            leg1.render(par1);
-            leg2.setConfig(config, -x, y, z);
-            leg2.render(par1);
-        }
+		if(part.type == 0 || part.type == 4 && !entity.isInWater()){
+			leg1.setConfig(config, x, y, z);
+			leg1.render(par1);
+			leg2.setConfig(config, -x, y, z);
+			leg2.render(par1);
+		}
 
 		if(!base.isArmor){
 			naga.isHidden = part.type != 1;
 			spider.isHidden = part.type != 2;
 			horse.isHidden = part.type != 3;
-			mermaid.isHidden = part.type != 4;
-            mermaid2.isHidden = part.type != 6;
+			mermaid.isHidden = part.type != 4 || !entity.isInWater();
 			digitigrade.isHidden = part.type != 5;
 	
 			if(!horse.isHidden){
@@ -384,7 +352,7 @@ public class ModelLegs extends ModelScaleRenderer{
 				x = 0;
 				y *= 2f;
 			}
-			else if(!mermaid.isHidden || !mermaid2.isHidden || !digitigrade.isHidden){
+			else if(!mermaid.isHidden || !digitigrade.isHidden){
 				x = 0;
 				y *= 2f;
 			}

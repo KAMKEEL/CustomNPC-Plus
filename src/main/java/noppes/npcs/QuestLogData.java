@@ -6,8 +6,6 @@ import java.util.Vector;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.Quest;
 
@@ -36,7 +34,7 @@ public class QuestLogData {
 		
 	}
 	public void setData(EntityPlayer player){
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+
         for(Quest quest : PlayerQuestController.getActiveQuests(player))
         {
     		String category = quest.category.title;
@@ -48,7 +46,7 @@ public class QuestLogData {
     		questText.put(category + ":" + quest.title, quest.logText);
 
     		questStatus.put(category + ":" + quest.title, quest.questInterface.getQuestLogStatus(player));
-    		if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData))
+    		if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(player))
     			finish.put(category + ":" + quest.title, quest.completerNpc);
         }
 	}

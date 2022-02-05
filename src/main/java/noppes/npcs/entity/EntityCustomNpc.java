@@ -1,7 +1,6 @@
 package noppes.npcs.entity;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -10,12 +9,9 @@ import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.EntityUtil;
 
-// FLY CHANGE
-// extends EntityNPCInterface
-// extends EntityNPCFlying
-public class EntityCustomNpc extends EntityNPCFlying {
+public class EntityCustomNpc extends EntityNPCInterface{
 	public ModelData modelData = new ModelData();
-
+	
 	public EntityCustomNpc(World world) {
 		super(world);
 	}
@@ -80,6 +76,5 @@ public class EntityCustomNpc extends EntityNPCFlying {
 			this.setPosition(posX, posY, posZ);
 		}
 	}
-
 }
 	

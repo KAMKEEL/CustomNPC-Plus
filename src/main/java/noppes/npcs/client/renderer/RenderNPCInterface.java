@@ -34,14 +34,10 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 
 public class RenderNPCInterface extends RenderLiving{	
 	public static long LastTextureTick = 0;
-
-	public ModelBase originalModel;
-
     public RenderNPCInterface(ModelBase model, float f){
         super(model, f);
-        this.originalModel = model;
     }
-
+    
 	protected void renderName(EntityNPCInterface npc, double d, double d1, double d2) {
 		if (!this.func_110813_b(npc))
 			return;
@@ -73,7 +69,7 @@ public class RenderNPCInterface extends RenderLiving{
     
     public void doRenderShadowAndFire(Entity par1Entity, double par2, double par4, double par6, float par8, float par9){
     	EntityNPCInterface npc = (EntityNPCInterface) par1Entity;
-    	if(!npc.isKilled() && !npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
+    	if(!npc.isKilled())
     		super.doRenderShadowAndFire(par1Entity, par2, par4, par6, par8, par9);
     }
     
@@ -179,6 +175,29 @@ public class RenderNPCInterface extends RenderLiving{
         }
         else {
         	super.rotateCorpse(npc, f, f1, f2);
+//            if(npc.deathTime > 0)
+//            {      
+//                float x = (float) -Math.cos(Math.toRadians(180 - f1));
+//                float y = (float) -Math.sin(Math.toRadians(f1));
+//                x = (x/ 5f) * npc.getModelSize();
+//                y = (y/ 5f) * npc.getModelSize();
+//                GL11.glTranslatef(x, 0, y);
+//                
+//                
+//                float f3 = ((((float)npc.deathTime+ f2) - 1.0F) / 20F) * 1.6F;
+//                f3 = MathHelper.sqrt_float(f3);
+//                if(f3 > 1.0F)
+//                {
+//                    f3 = 1.0F;
+//                }
+//                GL11.glRotatef(f1, 0.0F, 1.0F, 0.0F);  
+//                GL11.glRotatef(f3 * getDeathMaxRotation(npc), 0.0F, 0.0F, 1.0F);
+//                GL11.glRotatef(180F - f1, 0.0F, 1.0F, 0.0F);
+//            }
+//	        else
+//	        {
+//	            GL11.glRotatef(180F - f1, 0.0F, 1.0F, 0.0F);
+//	        }
         }
     }
 
@@ -195,7 +214,6 @@ public class RenderNPCInterface extends RenderLiving{
     @Override
     public void doRender(EntityLiving entityliving, double d, double d1, double d2, float f, float f1){
     	EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-
     	if(npc.isKilled() && npc.stats.hideKilledBody && npc.deathTime > 20){
     		return;
     	}
@@ -207,7 +225,7 @@ public class RenderNPCInterface extends RenderLiving{
     	}
     	super.doRender(entityliving, d, d1, d2, f, f1);
 	}
-
+    
     protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7){
     	super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
     	EntityNPCInterface npc = (EntityNPCInterface) entityliving;
@@ -264,26 +282,22 @@ public class RenderNPCInterface extends RenderLiving{
     
 	@Override
 	public ResourceLocation getEntityTexture(Entity entity) {
-
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
 		if(npc.textureLocation == null){
-			if(npc.display.skinType == 0) {
-				if (!(npc.display.texture).equals("")) {
-					npc.textureLocation = new ResourceLocation(npc.display.texture);
-				}
-			}
+			if(npc.display.skinType == 0)
+				npc.textureLocation = new ResourceLocation(npc.display.texture);
 			else if(LastTextureTick < 5){ //fixes request flood somewhat
 				return AbstractClientPlayer.locationStevePng;
 			}
 			else if(npc.display.skinType == 1 && npc.display.playerProfile != null){
                 Minecraft minecraft = Minecraft.getMinecraft();
-				Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
+                Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
                 if (map.containsKey(Type.SKIN)){
                 	npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture)map.get(Type.SKIN), Type.SKIN);
                 }
 				LastTextureTick = 0;
 			}
-			else if(npc.display.skinType == 2 || npc.display.skinType == 3){
+			else if(npc.display.skinType == 2){
 				try{
 					MessageDigest digest = MessageDigest.getInstance("MD5");
 					byte[] hash = digest.digest(npc.display.url.getBytes("UTF-8"));
@@ -291,19 +305,12 @@ public class RenderNPCInterface extends RenderLiving{
 					for(byte b : hash){
 						sb.append(String.format("%02x", b&0xff));
 					}
-					// SKIN CHANGE
-					if(npc.display.skinType == 2){
-						npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-						loadSkin(null, npc.textureLocation, npc.display.url, false);
-					}
-					else{
-						npc.textureLocation = new ResourceLocation("skins64/" + sb.toString());
-						loadSkin(null, npc.textureLocation, npc.display.url, true);
-					}
+					npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
+					func_110301_a(null, npc.textureLocation, npc.display.url);
 					LastTextureTick = 0;
 				}
 				catch(Exception ex){
-
+					
 				}
 			}
 		}
@@ -312,11 +319,9 @@ public class RenderNPCInterface extends RenderLiving{
 		return npc.textureLocation;
 	}
 
-	// 64x64 Skin is True
-    private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean version){
+    private void func_110301_a(File file, ResourceLocation resource, String par1Str){
         TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(version));
+        ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt());
         texturemanager.loadTexture(resource, object);
     }
-
 }

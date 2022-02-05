@@ -528,7 +528,7 @@ public class RoleCompanion extends RoleInterface {
 	
 	public void setStats(){		
 		ItemStack weapon = npc.inventory.getWeapon();
-		npc.stats.setAttackStrength((float) (1 + getSwordDamage(weapon)));
+		npc.stats.setAttackStrength((int) (1 + getSwordDamage(weapon)));
 		npc.stats.healthRegen = 0;
 		npc.stats.combatRegen = 0;
 		int ranged = getTalentLevel(EnumCompanionTalent.RANGED);

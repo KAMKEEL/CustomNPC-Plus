@@ -80,7 +80,7 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
             addButton(new GuiNpcButton(2, guiLeft + 4, guiTop + 60, 90, 20, new String[]{"gui.increase","gui.decrease"},0));
             
             addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 82, 110, 20, "10"));
-            getTextField(1).integersOnly = true;
+            getTextField(1).numbersOnly = true;
             getTextField(1).setMinMaxDefault(1, 100000, 10);
             
             addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 104, 60, 20, "gui.add"));

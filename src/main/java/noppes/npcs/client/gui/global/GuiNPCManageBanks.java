@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
@@ -62,11 +63,11 @@ public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScr
         getTextField(0).setMaxStringLength(20);
         
         addTextField(new GuiNpcTextField(1,this, this.fontRendererObj, guiLeft+10, guiTop + 80, 16, 16, ""));
-        getTextField(1).integersOnly = true;
+        getTextField(1).numbersOnly = true;
         getTextField(1).setMaxStringLength(1);
         
         addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft+10, guiTop + 110, 16, 16, ""));
-        getTextField(2).integersOnly = true;
+        getTextField(2).numbersOnly = true;
         getTextField(2).setMaxStringLength(1);
     }
 

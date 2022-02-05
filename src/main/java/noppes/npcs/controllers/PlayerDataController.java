@@ -14,13 +14,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.util.CustomNPCsScheduler;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class PlayerDataController {		
 	public static PlayerDataController instance;
+	public Map<String, String> nameUUIDs;
 	
 	public PlayerDataController(){
 		instance = this;
+		nameUUIDs = getUsernameData();
 	}
 	public File getSaveDir(){
 		try{
@@ -72,11 +75,10 @@ public class PlayerDataController {
 		String filename = player;
 		if(filename.isEmpty())
 			filename = "noplayername";
-		filename += ".json";
 		try {
-	        File file = new File(saveDir, filename);
+	        File file = new File(saveDir, filename + ".json");
 	        if(file.exists()){
-		        return NBTJsonUtil.LoadFile(file);
+	        	return NBTJsonUtil.LoadFile(file);
 	        }
 		} catch (Exception e) {
 			LogWriter.error("Error loading: " + filename, e);
@@ -86,20 +88,26 @@ public class PlayerDataController {
 	}
 	
 	public void savePlayerData(PlayerData data){
-		NBTTagCompound compound = data.getNBT();
-		String filename = data.uuid + ".json";
-		try {
-			File saveDir = getSaveDir();
-            File file = new File(saveDir, filename+"_new");
-            File file1 = new File(saveDir, filename);
-            NBTJsonUtil.SaveFile(file, compound);
-            if(file1.exists()){
-                file1.delete();
-            }
-            file.renameTo(file1);
-		} catch (Exception e) {
-			LogWriter.except(e);
-		}
+		final NBTTagCompound compound = data.getNBT();
+		final String filename = data.uuid + ".json";
+		nameUUIDs.put(data.playername, data.uuid);
+		CustomNPCsScheduler.runTack(new Runnable(){
+			@Override
+			public void run() {
+				try {
+					File saveDir = getSaveDir();
+		            File file = new File(saveDir, filename+"_new");
+		            File file1 = new File(saveDir, filename);
+		            NBTJsonUtil.SaveFile(file, compound);
+		            if(file1.exists()){
+		                file1.delete();
+		            }
+		            file.renameTo(file1);
+				} catch (Exception e) {
+					LogWriter.except(e);
+				}
+			}
+		});
 	}
 	
 	public PlayerBankData getBankData(EntityPlayer player, int bankId) {
@@ -122,7 +130,7 @@ public class PlayerDataController {
 		return data;
 	}
 	public String hasPlayer(String username) {
-        for(String name : getUsernameData().keySet()){
+        for(String name : nameUUIDs.keySet()){
         	if(name.equalsIgnoreCase(username))
         		return name;
         }
@@ -134,11 +142,10 @@ public class PlayerDataController {
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
 		PlayerData data = null;
 		if(player == null){
-			Map<String, NBTTagCompound> map = getUsernameData();
-			for(String name : map.keySet()){
+			for(String name : nameUUIDs.keySet()){
 				if(name.equalsIgnoreCase(username)){
 					data = new PlayerData();
-					data.setNBT(map.get(name));
+					data.setNBT(loadPlayerData(nameUUIDs.get(name)));
 					break;
 				}
 			}
@@ -158,15 +165,15 @@ public class PlayerDataController {
 		savePlayerData(data);
 	}
 	
-	public Map<String, NBTTagCompound> getUsernameData(){
-		Map<String, NBTTagCompound> map = new HashMap<String, NBTTagCompound>();
+	private Map<String, String> getUsernameData(){
+		Map<String, String> map = new HashMap<String, String>();
         for(File file : getSaveDir().listFiles()){
         	if(file.isDirectory() || !file.getName().endsWith(".json"))
         		continue;
 			try {
 				NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
 	        	if(compound.hasKey("PlayerName")){
-	        		map.put(compound.getString("PlayerName"), compound);
+	        		map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 5));
 	        	}
 			} catch (Exception e) {
 				LogWriter.error("Error loading: " + file.getAbsolutePath(), e);

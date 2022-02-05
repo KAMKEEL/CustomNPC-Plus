@@ -290,6 +290,12 @@ public class GlyphCache
                 return font.deriveFont(style, fontSize);
             }
         }
+		
+		Font fa = new Font("Arial Unicode MS", Font.PLAIN, fontSize);
+		if(fa.canDisplayUpTo(text, start, limit) != start){
+			usedFonts.add(fa);
+			return fa;
+		}
 
         /* If still not found, try searching through all fonts installed on the system for the first that can layout this string */
         iterator = allFonts.iterator();

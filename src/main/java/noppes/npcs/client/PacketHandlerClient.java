@@ -26,7 +26,6 @@ import noppes.npcs.ServerEventsHandler;
 import noppes.npcs.client.ClientProxy.FontContainer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
-import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
@@ -152,9 +151,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			EnumGuiType gui = EnumGuiType.values()[buffer.readInt()];
 			CustomNpcs.proxy.openGui(NoppesUtil.getLastNpc(), gui, buffer.readInt(), buffer.readInt(), buffer.readInt());
 		}
-		else if(type == EnumPacketClient.SCRIPTED_PARTICLE){
-			NoppesUtil.spawnScriptedParticle(buffer);
-		}
 		else if(type == EnumPacketClient.PARTICLE){
 			NoppesUtil.spawnParticle(buffer);
 		}
@@ -255,20 +251,8 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					player.addChatMessage(new ChatComponentTranslation("Current font is %s", ClientProxy.Font.getName()));
 			}
 		}
-		else if(type == EnumPacketClient.ISGUIOPEN){
-			boolean isGUIOpen = Minecraft.getMinecraft().currentScreen != null;
-
-			NoppesUtil.isGUIOpen(isGUIOpen);
-		}
-		else if(type == EnumPacketClient.OVERLAY_DATA){
-			OverlayCustom overlayCustom = new OverlayCustom(Minecraft.getMinecraft());
-			overlayCustom.setOverlayData(Server.readNBT(buffer));
-
-			Client.customOverlays.put(overlayCustom.overlay.getID(),overlayCustom);
-		}
-		else if(type == EnumPacketClient.OVERLAY_CLOSE){
-			int id = buffer.readInt();
-			Client.customOverlays.remove(id);
-		}
 	}
+
+
+
 }

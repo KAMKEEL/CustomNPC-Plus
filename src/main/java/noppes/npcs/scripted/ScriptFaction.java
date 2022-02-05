@@ -1,8 +1,6 @@
 package noppes.npcs.scripted;
 
 import noppes.npcs.controllers.Faction;
-import noppes.npcs.scripted.entity.ScriptNpc;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 
 public class ScriptFaction {
 	private Faction faction;

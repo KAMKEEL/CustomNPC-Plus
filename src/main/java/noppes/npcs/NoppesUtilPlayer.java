@@ -6,7 +6,6 @@ import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -26,15 +25,24 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.Bank;
+import noppes.npcs.controllers.BankController;
+import noppes.npcs.controllers.BankData;
+import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.DialogOption;
+import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.PlayerBankData;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.PlayerQuestData;
+import noppes.npcs.controllers.PlayerTransportData;
+import noppes.npcs.controllers.QuestData;
+import noppes.npcs.controllers.TransportController;
+import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.entity.ScriptPlayer;
-import noppes.npcs.scripted.event.DialogEvent;
-import noppes.npcs.scripted.event.QuestEvent;
-import noppes.npcs.scripted.interfaces.IItemStack;
 
 public class NoppesUtilPlayer {
 
@@ -101,28 +109,6 @@ public class NoppesUtilPlayer {
 			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
 		}
         player.worldObj.updateEntityWithOptionalForce(player, false);
-	}
-
-	public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, float yaw, float pitch, int dimension){
-		if(player.dimension != dimension){
-			int dim = player.dimension;
-			MinecraftServer server = MinecraftServer.getServer();
-			WorldServer wor = server.worldServerForDimension(dimension);
-			if(wor == null){
-				player.addChatMessage(new ChatComponentText("Broken transporter. Dimenion does not exist"));
-				return;
-			}
-			player.setLocationAndAngles(posX, posY, posZ, yaw, pitch);
-			server.getConfigurationManager().transferPlayerToDimension(player, dimension, new CustomTeleporter(wor));
-			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
-
-			if(!wor.playerEntities.contains(player))
-				wor.spawnEntityInWorld(player);
-		}
-		else{
-			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
-		}
-		player.worldObj.updateEntityWithOptionalForce(player, false);
 	}
 	
 	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
@@ -251,19 +237,13 @@ public class NoppesUtilPlayer {
 		Dialog dialog = DialogController.instance.dialogs.get(dialogId);
 		if(dialog == null)
 			return;
-
-		EventHooks.onDialogOption(new DialogEvent.DialogOption(new ScriptPlayer((EntityPlayerMP) player), dialog));
-		npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "player", player, "dialog", dialogId, "option", optionId + 1);
+		npc.script.callScript(EnumScriptType.DIALOG_OPTION, "player", player, "dialog", dialogId, "option", optionId + 1);
     	
-		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));
+		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions())
 			return;
-		}
 		DialogOption option = dialog.options.get(optionId);
-    	if(option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));
-			return;
-		}
+    	if(option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption)
+    		return;
     	if(option.optionType == EnumOptionType.RoleOption){
     		if(npc.roleInterface != null)
     			npc.roleInterface.interact(player);
@@ -289,61 +269,43 @@ public class NoppesUtilPlayer {
         Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
 	}
 	public static void questCompletion(EntityPlayerMP player, int questId) {
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-		PlayerQuestData questData = playerData.questData;
-		QuestData data = questData.activeQuests.get(questId);
-
+		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return;
-
-		if(!data.quest.questInterface.isCompleted(playerData))
+		
+		if(!data.quest.questInterface.isCompleted(player))
 			return;
-
-		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent(new ScriptPlayer(player), data.quest);
-		event.expReward = data.quest.rewardExp;
-
-		List<IItemStack> list = new ArrayList();
-		Iterator var8 = data.quest.rewardItems.items.values().iterator();
-
-		while(var8.hasNext()) {
-			ItemStack item = (ItemStack)var8.next();
-			if (item.stackSize > 0) {
-				list.add(NpcAPI.Instance().getIItemStack(item));
-			}
-		}
-
-		if (!data.quest.randomReward) {
-			event.itemRewards = (IItemStack[])list.toArray(new IItemStack[list.size()]);
-		} else if (!list.isEmpty()) {
-			event.itemRewards = new IItemStack[]{(IItemStack)list.get(player.getRNG().nextInt(list.size()))};
-		}
-
-		EventHooks.onQuestTurnedIn(event);
-		IItemStack[] var12 = event.itemRewards;
-		int var14 = var12.length;
-
-		for(int var10 = 0; var10 < var14; ++var10) {
-			IItemStack item = var12[var10];
-			if (item != null) {
-				NoppesUtilServer.GivePlayerItem(player, player, item.getMCItemStack());
-			}
-		}
+		
 
 		data.quest.questInterface.handleComplete(player);
 		if(data.quest.rewardExp > 0){
 			player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
-
-			player.addExperience(data.quest.rewardExp);
+            
+            player.addExperience(data.quest.rewardExp);
 		}
 		data.quest.factionOptions.addPoints(player);
 		if(data.quest.mail.isValid()){
 			PlayerDataController.instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
 		}
-
+		if(!data.quest.randomReward){
+			for(ItemStack item : data.quest.rewardItems.items.values()){
+				NoppesUtilServer.GivePlayerItem(player, player, item);
+			}
+		}
+		else{
+			List<ItemStack> list = new ArrayList<ItemStack>();
+			for(ItemStack item : data.quest.rewardItems.items.values()){
+				if(item != null && item.getItem() != null)
+					list.add(item);
+			}
+			if(!list.isEmpty()){
+				NoppesUtilServer.GivePlayerItem(player, player, list.get(player.getRNG().nextInt(list.size())));
+			}
+		}
 		if(!data.quest.command.isEmpty()){
 			NoppesUtilServer.runCommand(player, "QuestCompletion", data.quest.command);
 		}
-
 		PlayerQuestController.setQuestFinished(data.quest, player);
 		if(data.quest.hasNewQuest()) PlayerQuestController.addActiveQuest(data.quest.getNextQuest(), player);
 	}
@@ -413,34 +375,5 @@ public class NoppesUtilPlayer {
 			}
 		}
 	}
-	public static void isGUIOpen(EntityPlayerMP player){
-		Server.sendData(player, EnumPacketClient.ISGUIOPEN);
-	}
 
-	public static List<ItemStack> countStacks(IInventory inv, boolean ignoreDamage, boolean ignoreNBT) {
-		List<ItemStack> list = new ArrayList();
-
-		for(int i = 0; i < inv.getSizeInventory(); ++i) {
-			ItemStack item = inv.getStackInSlot(i);
-			if (!NoppesUtilServer.IsItemStackNull(item)) {
-				boolean found = false;
-				Iterator var7 = list.iterator();
-
-				while(var7.hasNext()) {
-					ItemStack is = (ItemStack)var7.next();
-					if (compareItems(item, is, ignoreDamage, ignoreNBT)) {
-						is.stackSize = is.stackSize + item.stackSize;
-						found = true;
-						break;
-					}
-				}
-
-				if (!found) {
-					list.add(item.copy());
-				}
-			}
-		}
-
-		return list;
-	}
 }

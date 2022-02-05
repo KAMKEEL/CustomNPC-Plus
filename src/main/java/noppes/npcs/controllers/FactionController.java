@@ -6,9 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -17,12 +15,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.scripted.handler.IFactionHandler;
-import noppes.npcs.scripted.handler.data.IFaction;
 
-public class FactionController implements IFactionHandler {
+public class FactionController {
 	public HashMap<Integer,Faction> factions;
 	
 	private static FactionController instance;
@@ -130,16 +124,12 @@ public class FactionController implements IFactionHandler {
 		}
 	}
 
-	public Faction get(int faction) {
+	public Faction getFaction(int faction) {
 		return factions.get(faction);
 	}
 
-	public List<IFaction> list() {
-		return new ArrayList(this.factions.values());
-	}
-
 	public void saveFaction(Faction faction) {
-
+		
 		if(faction.id < 0){
 			faction.id = getUnusedId();
 			while(hasName(faction.name))
@@ -155,19 +145,6 @@ public class FactionController implements IFactionHandler {
 		factions.put(faction.id, faction);
 		saveFactions();
 	}
-
-	public Faction create(Faction faction) {
-		this.saveFaction(faction);
-		return faction;
-	}
-
-	public Faction create(String name, int color) {
-		Faction faction = new Faction();
-		faction.name = name;
-		faction.color = color;
-		this.saveFaction(faction);
-		return faction;
-	}
 	
 	public int getUnusedId(){
 		if(lastUsedID == 0){
@@ -178,20 +155,11 @@ public class FactionController implements IFactionHandler {
 		lastUsedID++;
 		return lastUsedID;
 	}
-	public IFaction delete(int id) {
-		if (id >= 0 && this.factions.size() > 1) {
-			Faction faction = (Faction)this.factions.remove(id);
-			saveFactions();
-			if (faction == null) {
-				return null;
-			} else {
-				this.saveFactions();
-				faction.id = -1;
-				return faction;
-			}
-		} else {
-			return null;
-		}
+	public void removeFaction(int id) {
+		if(id < 0 || factions.size() <= 1)
+			return;
+		factions.remove(id);
+		saveFactions();
 	}
 	
 	public int getFirstFactionId() {

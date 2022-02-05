@@ -27,7 +27,7 @@ public class SubGuiNpcRespawn extends SubGuiInterface implements ITextfieldListe
     	if(stats.respawnTime > 0){
     		addLabel(new GuiNpcLabel(3,"gui.time", guiLeft + 5, guiTop + 57));
     		addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 122, guiTop + 53, 50, 18, stats.respawnTime + ""));
-    		getTextField(2).integersOnly = true;
+    		getTextField(2).numbersOnly = true;
     		getTextField(2).setMinMaxDefault(1, Integer.MAX_VALUE, 20);
     		
     		addLabel(new GuiNpcLabel(4,"stats.deadbody", guiLeft + 4, guiTop + 79));
