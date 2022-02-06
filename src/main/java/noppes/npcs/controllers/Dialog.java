@@ -60,7 +60,17 @@ public class Dialog implements ICompatibilty, IDialog {
 		else
 			showWheel = true;
 		disableEsc = compound.getBoolean("DialogDisableEsc");
-		darkenScreen = compound.getBoolean("DialogDarkenScreen");
+
+		if(compound.hasKey("DialogDarkScreen")) {
+			darkenScreen = compound.getBoolean("DialogDarkScreen");
+		}
+		else {
+			darkenScreen = true;
+		}
+		// Temporary Remove after Few Versions
+		if(compound.hasKey("DialogDarkenScreen")){
+			compound.removeTag("DialogDarkenScreen");
+		}
 
 		NBTTagList options = compound.getTagList("Options", 10);
 		HashMap<Integer,DialogOption> newoptions = new HashMap<Integer,DialogOption>();
@@ -92,7 +102,12 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setBoolean("DialogHideNPC", hideNPC);
 		compound.setBoolean("DialogShowWheel", showWheel);
 		compound.setBoolean("DialogDisableEsc", disableEsc);
-		compound.setBoolean("DialogDarkenScreen", darkenScreen);
+
+		compound.setBoolean("DialogDarkScreen", darkenScreen);
+		// Temporary Remove after Few Versions
+		if(compound.hasKey("DialogDarkenScreen")){
+			compound.removeTag("DialogDarkenScreen");
+		}
 		
 		if(sound != null && !sound.isEmpty())
 			compound.setString("DialogSound", sound);
