@@ -243,6 +243,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		script.setWorld(world);
 	}
 
+	public int getMaxSafePointTries()
+	{
+		return 5;
+	}
+
     @Override
     public boolean attackEntityAsMob(Entity par1Entity){
         float f = stats.getAttackStrength();

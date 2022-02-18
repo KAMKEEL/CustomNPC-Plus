@@ -289,15 +289,15 @@ public class PathNavigateFlying extends PathNavigate {
 
     private Vec3 getEntityPosition()
     {
-        return Vec3.createVectorHelper(this.theEntity.posX, (double)this.getPathableYPos(), this.theEntity.posZ);
+        return Vec3.createVectorHelper(this.theEntity.posX, this.getPathableYPos(), this.theEntity.posZ);
     }
 
     /**
      * Gets the safe pathing Y position for the entity depending on if it can path swim or not
      */
-    private int getPathableYPos()
+    private double getPathableYPos()
     {
-        return (int)(this.theEntity.boundingBox.minY + 0.5D);
+        return this.theEntity.boundingBox.minY + 0.05D;
     }
 
     /**
