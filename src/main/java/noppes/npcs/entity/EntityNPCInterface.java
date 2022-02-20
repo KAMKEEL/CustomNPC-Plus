@@ -1817,4 +1817,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	{
 		this.display.modelType = val;
 	}
+
+	protected void updateLeashedState(){}
 }
