@@ -52,13 +52,13 @@ public class FlyingMoveHelper extends EntityMoveHelper{
                 this.entity.motionZ += (d2 / d5 * speed - this.entity.motionZ) * speed;
 
                 if (heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit) {
-                    this.entity.motionY = ((d1 / d5) * speed);
-                    if(this.entity.motionY < 0 && this.entity.motionY > -6 * this.entity.ai.getWalkingSpeed()/5.0D)
-                        this.entity.motionY *= 5;
+                    this.entity.motionY += (d1 / d5 * speed - this.entity.motionY) * speed;
                 }
+
+                this.entity.velocityChanged = true;
             }
 
-            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),30.0F);
+            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),18.0F);
         }
     }
 
