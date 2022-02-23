@@ -1,14 +1,7 @@
 package noppes.npcs.entity;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.roles.RoleCompanion;
 
 public abstract class EntityNPCFlying extends EntityNPCInterface {
 
