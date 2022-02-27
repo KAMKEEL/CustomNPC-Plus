@@ -73,9 +73,18 @@ public class PlayerDataController {
 	public NBTTagCompound loadPlayerData(String player){
 		File saveDir = getSaveDir();
 		String filename = player;
-		if(filename.isEmpty())
-			filename = "noplayername";
-		filename += ".json";
+		if(filename.isEmpty()) {
+			return new NBTTagCompound();
+		}
+
+		if(CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
+			filename += ".zstd";
+		} else if(CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
+			filename += ".json";
+		} else {
+			filename += ".dat";
+		}
+
 		try {
 			return ensureCompressor(
 				new File(saveDir, filename)
@@ -91,8 +100,8 @@ public class PlayerDataController {
 		NBTTagCompound compound = data.getNBT();
 		String filename;
 
-		if (CustomNpcs.CompressorType.equalsIgnoreCase("lz4")) {
-			filename = data.uuid + ".lz4";
+		if (CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
+			filename = data.uuid + ".zstd";
 		} else if (CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
 			filename = data.uuid + ".json";
 		} else {
@@ -101,15 +110,14 @@ public class PlayerDataController {
 
 		try {
 			File saveDir = getSaveDir();
-            File file = new File(saveDir, filename+"_new");
-            File file1 = new File(saveDir, filename);
+
+            File file = new File(saveDir, filename);
+
+			if (file.exists()) {
+				file.delete();
+			}
 
 			writeCompressor(file, compound);
-
-            if(file1.exists()){
-                file1.delete();
-            }
-            file.renameTo(file1);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -215,7 +223,6 @@ public class PlayerDataController {
 						file.toPath(),
 						compressed,
 						StandardOpenOption.CREATE,
-						StandardOpenOption.TRUNCATE_EXISTING,
 						StandardOpenOption.WRITE
 					);
 				} catch (Exception e) {
@@ -231,24 +238,10 @@ public class PlayerDataController {
 		}
 
 		if (CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
-			if (file.getName().endsWith(".zstd")) {
-				byte[] readCompressed = ZstdCompressor.readCompressed(
-					new RandomAccessFile(file, "r")
-				);
-
-				try (DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(readCompressed))) {
-					return CompressedStreamTools.func_152456_a(dataInputStream, NBTSizeTracker.field_152451_a);
-				}
-			}
-
 			return NBTJsonUtil.LoadFile(file);
 		}
 
-		if (CustomNpcs.CompressorType.equalsIgnoreCase("lz4")) {
-			if (file.getName().endsWith(".json")) {
-				return NBTJsonUtil.LoadFile(file);
-			}
-
+		if (CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
 			byte[] readCompressed = ZstdCompressor.readCompressed(
 				new RandomAccessFile(file, "r")
 			);
