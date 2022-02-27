@@ -29,6 +29,11 @@ minecraft {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+configurations {
+    shade
+    compile.extendsFrom shade
+}
+
 dependencies {
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
@@ -42,7 +47,7 @@ dependencies {
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    compile 'com.github.luben:zstd-jni:1.5.2-2'
+    shade 'com.github.luben:zstd-jni:1.5.2-2'
 }
 
 processResources
@@ -69,4 +74,10 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-sourceSets {main { output.resourcesDir = output.classesDir }}
+jar {
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+}
