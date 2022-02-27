@@ -37,6 +37,10 @@ public class CmdCompressor extends ChMcLogger {
         permissions = {OpOnly.class}
     )
     public boolean onConvert(String[] args) throws ExecutionException, InterruptedException, TimeoutException {
+        if (args.length == 0) {
+            sendmessage("Usage: /noppes compressor update [<filename>|all] [json|zstd]");
+            return true;
+        }
         if (args.length == 1) {
             sendmessage("Please specify the type of compression to use");
             return true;
@@ -56,12 +60,14 @@ public class CmdCompressor extends ChMcLogger {
         File directory = PlayerDataController.instance.getSaveDir();
 
         if (args[0].equalsIgnoreCase("all")) {
+            sendmessage("Converting all files in the current directory to compressed files");
+
             for (File file : directory.listFiles()) {
                 if (file.isDirectory()) {
                     continue;
                 }
 
-                if (!file.getName().endsWith(".json") && type.equalsIgnoreCase("json")) {
+                if (file.getName().endsWith(".json") && type.equalsIgnoreCase("zstd")) {
                     submit(() -> {
                         try {
                             NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
@@ -74,23 +80,20 @@ public class CmdCompressor extends ChMcLogger {
                                 compressed.toPath(),
                                 bytes,
                                 StandardOpenOption.CREATE,
-                                StandardOpenOption.TRUNCATE_EXISTING,
                                 StandardOpenOption.WRITE
                             );
                         } catch (Exception exception) {
                             exception.printStackTrace();
                         }
                     });
-                } else if (!file.getName().endsWith(".zstd") && type.equalsIgnoreCase("zstd")) {
+                }
+
+                if (file.getName().endsWith(".zstd") && type.equalsIgnoreCase("json")) {
                     submit(() -> {
                         try {
                             NBTTagCompound compound = ZstdCompressor.readCompressCompound(
                                 new RandomAccessFile(file, "r")
                             );
-
-                            if (compound == null) {
-                                return;
-                            }
 
                             File compressed = new File(file.getParentFile(), file.getName().replace(".zstd", ".json"));
 
@@ -135,7 +138,6 @@ public class CmdCompressor extends ChMcLogger {
                             compressed.toPath(),
                             bytes,
                             StandardOpenOption.CREATE,
-                            StandardOpenOption.TRUNCATE_EXISTING,
                             StandardOpenOption.WRITE
                         );
 
