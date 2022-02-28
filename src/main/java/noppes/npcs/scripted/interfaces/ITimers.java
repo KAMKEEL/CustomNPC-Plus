@@ -18,5 +18,17 @@ public interface ITimers {
 
     void clear();
 
+    int ticks(int id);
+
+    void setTicks(int id, int ticks);
+
+    int maxTicks(int id);
+
+    void setMaxTicks(int id, int maxTicks);
+
+    boolean repeats(int id);
+
+    void setRepeats(int id, boolean repeat);
+
     int size();
 }

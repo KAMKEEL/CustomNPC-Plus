@@ -55,6 +55,40 @@ public class DataTimers implements ITimers {
         }
     }
 
+    public int ticks(int id){
+        return this.timers.get(Integer.valueOf(id)).ticks;
+    }
+
+    public void setTicks(int id, int ticks){
+        DataTimers.Timer timer = (DataTimers.Timer)this.timers.get(Integer.valueOf(id));
+        if(ticks < 0)
+            ticks = 0;
+        if(ticks > timer.timerTicks)
+            ticks = timer.timerTicks;
+
+        timer.ticks = ticks;
+    }
+
+    public int maxTicks(int id){
+        return this.timers.get(Integer.valueOf(id)).timerTicks;
+    }
+
+    public void setMaxTicks(int id, int maxTicks){
+        DataTimers.Timer timer = (DataTimers.Timer)this.timers.get(Integer.valueOf(id));
+        if(maxTicks < 0)
+            maxTicks = 0;
+
+        timer.timerTicks = maxTicks;
+    }
+
+    public boolean repeats(int id){
+        return this.timers.get(Integer.valueOf(id)).repeat;
+    }
+
+    public void setRepeats(int id, boolean repeat){
+        this.timers.get(Integer.valueOf(id)).repeat = repeat;
+    }
+
     public void writeToNBT(NBTTagCompound compound) {
         NBTTagList list = new NBTTagList();
         Iterator var3 = this.timers.values().iterator();
