@@ -77,6 +77,8 @@ public class DataTimers implements ITimers {
         DataTimers.Timer timer = (DataTimers.Timer)this.timers.get(Integer.valueOf(id));
         if(maxTicks < 0)
             maxTicks = 0;
+        if(timer.ticks > maxTicks)
+            timer.ticks = maxTicks;
 
         timer.timerTicks = maxTicks;
     }
