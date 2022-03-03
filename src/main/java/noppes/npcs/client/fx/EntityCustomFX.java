@@ -139,10 +139,6 @@ public class EntityCustomFX extends EntityFX {
         tessellator.draw();
         GL11.glPushMatrix();
             ClientProxy.bindTexture(location);
-            GL11.glTexParameterf(3553, 10242, 10497.0F);
-            GL11.glTexParameterf(3553, 10243, 10497.0F);
-            GL11.glDisable(2884);
-            GL11.glEnable(3042);
 
             if(move){
                 startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
