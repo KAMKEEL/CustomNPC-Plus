@@ -1,11 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Map;
-
 import me.luizotavio.compressor.ZstdCompressor;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -16,6 +10,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 
 import static me.luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
 
@@ -79,10 +79,8 @@ public class PlayerDataController {
 
 		if(CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
 			filename += ".zstd";
-		} else if(CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
-			filename += ".json";
 		} else {
-			filename += ".dat";
+			filename += ".json";
 		}
 
 		try {
@@ -102,10 +100,8 @@ public class PlayerDataController {
 
 		if (CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
 			filename = data.uuid + ".zstd";
-		} else if (CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
+		} else  {
 			filename = data.uuid + ".json";
-		} else {
-			filename = data.uuid + ".dat";
 		}
 
 		try {
