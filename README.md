@@ -32,7 +32,7 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Custom Part Disabling
 - Markov Name Generator
 - Flying NPCS
-- Better Script Speeds
+- Script Enchanments and Fixes
 - Scripting Additions: [Documentation](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
 
 --- Please Suggest New Features!
@@ -56,5 +56,6 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 [![Discord Badge](https://img.shields.io/badge/CustomNPC-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/rgeWsmQaKa)
 [![Discord Badge](https://img.shields.io/badge/CustomNPC+-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/pQqRTvFeJ5)
 [![Download CustomNPC+](https://img.shields.io/badge/Download⠀CustomNPC⠀Plus!-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/customnpc-plus)
-[![Download CustomNPC+](https://img.shields.io/badge/Download⠀Plugin⠀Mod!-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://github.com/KAMKEEL/Plugin-Mod)
+[![Download PluginMod](https://img.shields.io/badge/Download⠀Plugin⠀Mod!-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://github.com/KAMKEEL/Plugin-Mod)
+<a href="https://ko-fi.com/kamkeel"> <img src="https://i.imgur.com/zvdVbeW.png" alt="Support Me on Kofi"  width="180" height="27"> </a>
 
