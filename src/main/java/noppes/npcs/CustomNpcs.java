@@ -42,7 +42,7 @@ public class CustomNpcs {
 
     private static int NewEntityStartId = 0;
 
-    @ConfigProp(info = "The type of compressor which is used to compress and decompress player data. If you are experiencing issues with the server lagging/crashing, try changing this to 'zstd'")
+    @ConfigProp(info = "*BACKUP BEFORE CHANGING* File Type used with PlayerData. Converting files may reduce lag. To convert existing files: /noppes compressor update [<filename>|all] [json|zstd]")
     public static String CompressorType = "json";
 
     @ConfigProp(info = "The size of IO executors used for compression and decompression. This is the number of threads used for compression and decompression. If you are experiencing issues with the server lagging/crashing, try changing this to a higher number.")
