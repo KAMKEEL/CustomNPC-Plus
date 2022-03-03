@@ -81,3 +81,5 @@ jar {
         }
     }
 }
+
+sourceSets {main { output.resourcesDir = output.classesDir }}
