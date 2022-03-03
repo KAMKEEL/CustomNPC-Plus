@@ -18,25 +18,21 @@ public class ScriptEntityParticle {
     private float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
     private int scaleRateStart = 0, alphaRateStart = 0;
 
-    public float rotation = 0;
     public float rotation1 = 0;
     public float rotation2 = 0;
     public float rotationRate = 0.0F;
     public int rotationRateStart = 0;
 
-    public float rotationX = 0;
     public float rotationX1 = 0;
     public float rotationX2 = 0;
     public float rotationXRate = 0.0F;
     public int rotationXRateStart = 0;
 
-    public float rotationY = 0;
     public float rotationY1 = 0;
     public float rotationY2 = 0;
     public float rotationYRate = 0.0F;
     public int rotationYRateStart = 0;
 
-    public float rotationZ = 0;
     public float rotationZ1 = 0;
     public float rotationZ2 = 0;
     public float rotationZRate = 0.0F;
