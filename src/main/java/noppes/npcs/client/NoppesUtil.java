@@ -98,6 +98,26 @@ public class NoppesUtil {
 		float alphaRate = buffer.readFloat();
 		int alphaRateStart = buffer.readInt();
 
+		float rotation1 = buffer.readFloat();
+		float rotation2 = buffer.readFloat();
+		float rotationRate = buffer.readFloat();
+		int rotationRateStart = buffer.readInt();
+
+		float rotationX1 = buffer.readFloat();
+		float rotationX2 = buffer.readFloat();
+		float rotationXRate = buffer.readFloat();
+		int rotationXRateStart = buffer.readInt();
+
+		float rotationY1 = buffer.readFloat();
+		float rotationY2 = buffer.readFloat();
+		float rotationYRate = buffer.readFloat();
+		int rotationYRateStart = buffer.readInt();
+
+		float rotationZ1 = buffer.readFloat();
+		float rotationZ2 = buffer.readFloat();
+		float rotationZRate = buffer.readFloat();
+		int rotationZRateStart = buffer.readInt();
+
 		int entityID = buffer.readInt();
 
 		World worldObj = Minecraft.getMinecraft().theWorld;
@@ -113,6 +133,10 @@ public class NoppesUtil {
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
 				alpha1, alpha2, alphaRate, alphaRateStart,
+				rotation1, rotation2, rotationRate, rotationRateStart,
+				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
+				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
+				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
 				maxAge
 		);
 

@@ -34,12 +34,36 @@ public interface IEntity<T extends Entity> {
      * @param alpha2 The particle's ending transparency
      * @param scaleRate Multiplier for the particle's transparency growth rate
      * @param alphaRateStart The time at which the particle begins appearing/fading
+     *
+     * @param rotation1 The particle's starting rotation angle with respect to the player's vision
+     * @param rotation2 The particle's final rotation angle with respect to the player's vision
+     * @param rotationRate The rate at which the particle rotates with respect to the player's vision
+     * @param rotationRateStart The time at which the particle begins rotating
+
+     * @param rotationX1 The particle's starting rotation angle with respect to the X-axis
+     * @param rotationX2 The particle's final rotation angle with respect to the X-axis
+     * @param rotationXRate The rate at which the particle rotates with respect to the X-axis
+     * @param rotationXRateStart The time at which the particle begins rotating over the X-axis
+
+     * @param rotationY1 The particle's starting rotation angle with respect to the Y-axis
+     * @param rotationY2 The particle's final rotation angle with respect to the Y-axis
+     * @param rotationYRate The rate at which the particle rotates with respect to the Y-axis
+     * @param rotationYRateStart The time at which the particle begins rotating over the Y-axis
+
+     * @param rotationZ1 The particle's starting rotation angle with respect to the Z-axis
+     * @param rotationZ2 The particle's final rotation angle with respect to the Z-axis
+     * @param rotationZRate The rate at which the particle rotates with respect to the Z-axis
+     * @param rotationZRateStart The time at which the particle begins rotating over the Z-axis
      */
-    public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
-                              double x, double y, double z,
-                              double motionX, double motionY, double motionZ, float gravity,
-                              float scale1, float scale2, float scaleRate, int scaleRateStart,
-                              float alpha1, float alpha2, float alphaRate, int alphaRateStart
+    void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+                       double x, double y, double z,
+                       double motionX, double motionY, double motionZ, float gravity,
+                       float scale1, float scale2, float scaleRate, int scaleRateStart,
+                       float alpha1, float alpha2, float alphaRate, int alphaRateStart,
+                       float rotation1, float rotation2, float rotationRate, int rotationRateStart,
+                       float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
+                       float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
+                       float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart
     );
 
     public double getYOffset();
