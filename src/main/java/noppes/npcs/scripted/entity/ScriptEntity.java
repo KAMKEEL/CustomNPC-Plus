@@ -79,7 +79,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
 				alpha1, alpha2, alphaRate, alphaRateStart,
-				rotation1, rotation2, rotationRate, rotationRateStart,
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,

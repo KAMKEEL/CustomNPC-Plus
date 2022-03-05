@@ -26,12 +26,6 @@ public class EntityCustomFX extends EntityFX {
     public float alphaRate = 0.0F;
     public int alphaRateStart = 0;
 
-    public float rotation = 0;
-    public float rotation1 = 0;
-    public float rotation2 = 0;
-    public float rotationRate = 0.0F;
-    public int rotationRateStart = 0;
-
     public float rotationX = 0;
     public float rotationX1 = 0;
     public float rotationX2 = 0;
@@ -54,7 +48,6 @@ public class EntityCustomFX extends EntityFX {
                           double motionX, double motionY, double motionZ, float gravity,
                           float scale1, float scale2, float scaleRate, int scaleRateStart,
                           float alpha1, float alpha2, float alphaRate, int alphaRateStart,
-                          float rotation1, float rotation2, float rotationRate, int rotationRateStart,
                           float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
                           float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
                           float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
@@ -76,14 +69,6 @@ public class EntityCustomFX extends EntityFX {
         particleAlpha = alpha1;
         if(alpha1 > alpha2)
             this.alphaRate *= -1;
-
-        this.rotation1 = rotation1;
-        this.rotation2 = rotation2;
-        this.rotationRate = Math.abs(rotationRate);
-        this.rotationRateStart = rotationRateStart;
-        rotation = rotation1;
-        if(rotation1 > rotation2)
-            this.rotationRate *= -1;
 
         this.rotationX1 = rotationX1;
         this.rotationX2 = rotationX2;
@@ -158,12 +143,6 @@ public class EntityCustomFX extends EntityFX {
             else if(particleAge >= this.alphaRateStart)
                 particleAlpha += alphaChange;
 
-            float rotationChange = this.rotationRate / (float)particleMaxAge;
-            if((this.rotationRate < 0 && rotation+rotationChange < this.rotation2) || (this.rotationRate > 0 && rotation+rotationChange > this.rotation2))
-                rotation = this.rotation2;
-            else if(particleAge >= this.rotationRateStart)
-                rotation += rotationChange;
-
             float rotationXChange = this.rotationXRate / (float)particleMaxAge;
             if((this.rotationXRate < 0 && rotationX+rotationXChange < this.rotationX2) || (this.rotationXRate > 0 && rotationX+rotationXChange > this.rotationX2))
                 rotationX = this.rotationX2;
@@ -199,10 +178,16 @@ public class EntityCustomFX extends EntityFX {
             double yaw = (player.rotationYaw/180)*Math.PI;
             double pitch = (player.rotationPitch/180)*Math.PI;
 
-            GL11.glRotated(rotation, Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch));
-            GL11.glRotated(rotationX, 1.0,0.0,0.0);
-            GL11.glRotated(rotationY, 0.0,1.0,0.0);
-            GL11.glRotated(rotationZ, 0.0,0.0,1.0);
+            if(Math.abs(rotationX%360) >= 90 && Math.abs(rotationX%360) < 270) {
+                rotationX += 180*Math.signum(rotationX);
+            }
+            if(Math.abs(rotationY%360) >= 90 && Math.abs(rotationY%360) < 270) {
+                rotationY += 180*Math.signum(rotationY);
+            }
+
+            GL11.glRotated(rotationX, Math.cos(yaw)*Math.cos(pitch),0.0,Math.sin(yaw)*Math.cos(pitch));
+            GL11.glRotated(rotationY, -Math.sin(yaw)*Math.sin(pitch), Math.cos(pitch), Math.cos(yaw)*Math.sin(pitch));
+            GL11.glRotated(rotationZ, Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch));
 
             tessellator.startDrawingQuads();
             tessellator.setBrightness(240);

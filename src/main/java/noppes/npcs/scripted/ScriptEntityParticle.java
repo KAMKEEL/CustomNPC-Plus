@@ -18,11 +18,6 @@ public class ScriptEntityParticle {
     private float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
     private int scaleRateStart = 0, alphaRateStart = 0;
 
-    public float rotation1 = 0;
-    public float rotation2 = 0;
-    public float rotationRate = 0.0F;
-    public int rotationRateStart = 0;
-
     public float rotationX1 = 0;
     public float rotationX2 = 0;
     public float rotationXRate = 0.0F;
@@ -49,7 +44,6 @@ public class ScriptEntityParticle {
                 motionX, motionY, motionZ, gravity,
                 scale1, scale2, scaleRate, scaleRateStart,
                 alpha1, alpha2, alphaRate, alphaRateStart,
-                rotation1, rotation2, rotationRate, rotationRateStart,
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
@@ -121,11 +115,6 @@ public class ScriptEntityParticle {
     public int getScaleRateStart() {
         return scaleRateStart;
     }
-
-    public float getRotation1() {return rotation1;}
-    public float getRotation2() {return rotation2;}
-    public float getRotationRate() {return rotationRate;}
-    public int getRotationRateStart() {return rotationRateStart;}
 
     public float getRotationX1() {return rotationX1;}
     public float getRotationX2() {return rotationX2;}
@@ -229,17 +218,6 @@ public class ScriptEntityParticle {
     public void setAlphaRateStart(int alphaRateStart) {
         this.alphaRateStart = alphaRateStart;
     }
-
-    public void setRotation(float rotation1, float rotation2, float rotationRate, int rotationRateStart){
-        this.rotation1 = rotation1;
-        this.rotation2 = rotation2;
-        this.rotationRate = rotationRate;
-        this.rotationRateStart = rotationRateStart;
-    }
-    public void setRotation1(float rotation1) {this.rotation1 = rotation1;}
-    public void setRotation2(float rotation2) {this.rotation2 = rotation2;}
-    public void setRotationRate(float rotationRate) {this.rotationRate = rotationRate;}
-    public void setRotationRateStart(int rotationRateStart) {this.rotationRateStart = rotationRateStart;}
 
     public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart){
         this.rotationX1 = rotationX1;
