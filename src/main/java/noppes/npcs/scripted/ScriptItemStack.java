@@ -224,23 +224,33 @@ public class ScriptItemStack implements IItemStack {
 	}
 
 	public String[] getLore() {
-		NBTTagCompound compound = this.item.getTagCompound().getCompoundTag("display");
-		if (compound != null && compound.func_150299_b("Lore") == 9) {
-			NBTTagList nbttaglist = compound.getTagList("Lore", 8);
-			if (nbttaglist.tagCount() < 1) {
-				return new String[0];
-			} else {
-				List<String> lore = new ArrayList();
+		if (this.item.getTagCompound() != null) {
+			NBTTagCompound compound = this.item.getTagCompound().getCompoundTag("display");
+			if(compound != null && compound.func_150299_b("Lore") == 9) {
+				NBTTagList nbttaglist = compound.getTagList("Lore", 8);
+				if (nbttaglist.tagCount() > 0) {
+					List<String> lore = new ArrayList();
 
-				for(int i = 0; i < nbttaglist.tagCount(); ++i) {
-					lore.add(nbttaglist.getStringTagAt(i));
+					for (int i = 0; i < nbttaglist.tagCount(); ++i) {
+						lore.add(nbttaglist.getStringTagAt(i));
+					}
+
+					return (String[]) ((String[]) lore.toArray(new String[lore.size()]));
 				}
-
-				return (String[])((String[])lore.toArray(new String[lore.size()]));
 			}
-		} else {
-			return new String[0];
 		}
+		return new String[0];
+	}
+
+	public boolean hasLore() {
+		if (this.item.getTagCompound() != null) {
+			NBTTagCompound compound = this.item.getTagCompound().getCompoundTag("display");
+			if (compound != null && compound.func_150299_b("Lore") == 9) {
+				NBTTagList nbttaglist = compound.getTagList("Lore", 8);
+				return nbttaglist.tagCount() > 0;
+			}
+		}
+		return false;
 	}
 
 	public void setLore(String[] lore) {
