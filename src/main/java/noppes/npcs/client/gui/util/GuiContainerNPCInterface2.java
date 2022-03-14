@@ -24,7 +24,9 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
 {
 	private ResourceLocation background = new ResourceLocation("customnpcs","textures/gui/menubg.png");
 	private final ResourceLocation defaultBackground = new ResourceLocation("customnpcs","textures/gui/menubg.png");
-	private GuiNpcMenu menu;
+    private final ResourceLocation defaultBackground2 = new ResourceLocation("customnpcs","textures/gui/menubg2.png");
+
+    private GuiNpcMenu menu;
 	public int menuYOffset = 0;
 
     public GuiContainerNPCInterface2(EntityNPCInterface npc,Container cont)
@@ -74,8 +76,8 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
         mc.renderEngine.bindTexture(background);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 256, 256);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.renderEngine.bindTexture(defaultBackground);
-        drawTexturedModalRect(guiLeft + xSize-200, guiTop, 26, 0, 200, 220);
+        mc.renderEngine.bindTexture(defaultBackground2);
+        drawTexturedModalRect(guiLeft + xSize-256, guiTop, 0, 0, 256, 220);
         
         menu.drawElements(fontRendererObj, i, j, mc, f);
         
