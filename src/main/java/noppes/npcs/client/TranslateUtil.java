@@ -99,7 +99,7 @@ public class TranslateUtil {
 				return null;
 			element = array.get(0);
 		}
-		System.out.println(element.getAsString());
+		// System.out.println(element.getAsString());
 		return element.getAsString();
 	}
 }

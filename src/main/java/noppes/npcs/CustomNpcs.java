@@ -29,7 +29,6 @@ import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
-
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Executors;

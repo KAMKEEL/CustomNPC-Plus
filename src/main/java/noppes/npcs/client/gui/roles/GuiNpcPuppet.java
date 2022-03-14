@@ -163,8 +163,8 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
     	}
     	if(btn.id == 170 || btn.id == 171 || btn.id == 172){
 			if(btn.id == 170){
-				System.out.println(part.rotationX);
-				System.out.println(rotateX.sliderValue);
+				// System.out.println(part.rotationX);
+				/// System.out.println(rotateX.sliderValue);
 				part.rotationX = 0.0f;
 				rotateX.sliderValue = 0.5f;
 				int percent = (int) ((rotateX.sliderValue) * 360);
