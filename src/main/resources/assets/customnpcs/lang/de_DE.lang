@@ -121,7 +121,7 @@ remote.freeze=NPCs einfrieren
 
 spawner.entities=Unternehmen
 spawner.clones=Klone
-spawner.mobspawner=MobSpawner
+spawner.mobspawner=Spawner
 spawner.mount=Geritten von...
 spawner.mountplayer=Geritten von selbst
 

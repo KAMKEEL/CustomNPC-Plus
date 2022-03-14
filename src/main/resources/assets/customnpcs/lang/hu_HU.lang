@@ -54,7 +54,7 @@ remote.freeze=NPC-lefagyasztása
 
 spawner.entities=Entitások
 spawner.clones=Klónok
-spawner.mobspawner=MobSpawner
+spawner.mobspawner=Spawner
 
 display.model=Model
 display.show=Mutat
