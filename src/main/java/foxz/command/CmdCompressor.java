@@ -22,7 +22,7 @@ import static me.luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
 
 @Command(
     name = "compressor",
-    desc = "Convert a file to a compressed file and vice versa",
+    desc = "Convert a file to a compressed file or back to json",
     usage = "update [file|all] [json|zstd]"
 )
 public class CmdCompressor extends ChMcLogger {

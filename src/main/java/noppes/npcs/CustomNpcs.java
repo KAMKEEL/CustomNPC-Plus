@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.1")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.1-beta")
 public class CustomNpcs {
 
     @ConfigProp(info = "Disable Chat Bubbles")
