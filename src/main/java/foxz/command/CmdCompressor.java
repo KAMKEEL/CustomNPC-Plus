@@ -60,7 +60,7 @@ public class CmdCompressor extends ChMcLogger {
         File directory = PlayerDataController.instance.getSaveDir();
 
         if (args[0].equalsIgnoreCase("all")) {
-            sendmessage("Converting all files in the current directory to compressed files");
+            sendmessage("Converting all files in the current directory to " + type + " files");
 
             for (File file : directory.listFiles()) {
                 if (file.isDirectory()) {
@@ -105,7 +105,7 @@ public class CmdCompressor extends ChMcLogger {
                 }
             }
 
-            sendmessage("Done! Almost file was converted.");
+            sendmessage("Done! All files were converted.");
         } else {
             File file = new File(directory, args[0] + ".json");
 
