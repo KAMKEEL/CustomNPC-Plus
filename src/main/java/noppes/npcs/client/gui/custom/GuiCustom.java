@@ -513,7 +513,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     }
 
     protected void keyTyped(char typedChar, int keyCode) {
-        if (keyCode == 1 || keyCode == this.mc.gameSettings.keyBindInventory.getKeyCode())
+        if (keyCode == 1)
         {
             this.mc.thePlayer.closeScreen();
         }

@@ -20,12 +20,14 @@ import noppes.npcs.scripted.handler.data.IQuestObjective;
 public class QuestKill extends QuestInterface implements IQuestKill {
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();
 	public int targetType = 0;
+	public String customTargetType = "noppes.npcs.entity.EntityCustomNpc";
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound compound) {
 		compound.setTag("QuestKills", NBTTags.nbtStringIntegerMap(targets));
 		//compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
 		compound.setInteger("TargetType",targetType);
+		compound.setString("CustomTargetType",customTargetType);
 	}
 
 	@Override
@@ -40,6 +42,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
 		//targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
 		targetType = compound.getInteger("TargetType");
+		customTargetType = compound.getString("CustomTargetType");
 	}
 
 	@Override
@@ -106,8 +109,8 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	public void setTargetType(int type) {
 		if(type < 0)
 			type = 0;
-		if(type > 1)
-			type = 1;
+		if(type > 2)
+			type = 2;
 
 		this.targetType = type;
 	}

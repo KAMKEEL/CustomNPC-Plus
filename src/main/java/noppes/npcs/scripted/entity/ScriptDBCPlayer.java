@@ -445,6 +445,26 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
     }
 
     public void setForm(byte form){
+        if(form < 0)
+            return;
+
+        switch(getRace()){
+            case 0:
+            case 3:
+                if(form > 3)
+                    return;
+                break;
+            case 1:
+            case 2:
+                if(form > 15)
+                    return;
+                break;
+            case 4:
+                if(form > 7)
+                    return;
+                break;
+        }
+
         player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcState",form);
     }
     public byte getForm(){

@@ -46,13 +46,14 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
         addLabel(new GuiNpcLabel(0,"inv.minExp", guiLeft + 118, guiTop + 18));
         addTextField(new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 108, guiTop + 29, 60, 20, npc.inventory.minExp + ""));
         getTextField(0).integersOnly = true;
-        getTextField(0).setMinMaxDefault(0, npc.inventory.maxExp, 0);
         
         addLabel(new GuiNpcLabel(1,"inv.maxExp", guiLeft + 118, guiTop + 52));
         addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 108, guiTop + 63, 60, 20, npc.inventory.maxExp + ""));
         getTextField(1).integersOnly = true;
-        getTextField(1).setMinMaxDefault(npc.inventory.maxExp, Short.MAX_VALUE, 0);
-        
+
+        getTextField(0).setMinMaxDefault(0, getTextField(1).getInteger(), 0);
+        getTextField(1).setMinMaxDefault(getTextField(0).getInteger(), Short.MAX_VALUE, 0);
+
         addButton(new GuiNpcButton(10, guiLeft + 88, guiTop + 88, 80, 20, new String[]{"stats.normal", "inv.auto"}, npc.inventory.lootMode));
 
         addLabel(new GuiNpcLabel(2,"inv.npcInventory", guiLeft + 191, guiTop + 5));
@@ -194,7 +195,9 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
     public void unFocused(GuiNpcTextField textfield) {
         if(textfield.id >= 2){
             chances.put(textfield.id-2, Double.parseDouble(textfield.getText()));
-            this.save();
         }
+        getTextField(0).setMinMaxDefault(0, getTextField(1).getInteger(), 0);
+        getTextField(1).setMinMaxDefault(getTextField(0).getInteger(), Short.MAX_VALUE, 0);
+        this.save();
     }
 }

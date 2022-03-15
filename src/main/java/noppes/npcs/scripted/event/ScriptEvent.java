@@ -11,4 +11,12 @@ class ScriptEvent{
 	public boolean isCancelled(){
 		return isCancelled;
 	}
+
+	public void setCanceled(boolean bo){
+		isCancelled = bo;
+	}
+
+	public boolean isCanceled(){
+		return isCancelled;
+	}
 }
