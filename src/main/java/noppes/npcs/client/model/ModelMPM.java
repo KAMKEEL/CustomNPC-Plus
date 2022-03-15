@@ -98,7 +98,6 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBodywear = (new ModelScaleRenderer(this, 16, 32));
 		this.bipedBodywear.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1 + 0.5F);
 		this.bipedBody.addChild(this.bipedBodywear);
-		// this.bipedBodywear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
 		// Steve 64x64 Model or Alex 64x64 Model
 		if (arms){
@@ -114,13 +113,14 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedRightArmWear = (new ModelScaleRenderer(this, 40, 32));
 			this.bipedRightArmWear.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
 			this.bipedRightArm.addChild(this.bipedRightArmWear);
-			this.solidRightArmWear = new ModelLimbWear(this,"arm","right");
+
+			this.solidRightArmWear = new ModelLimbWear(this,"arm","right", true);
 			this.bipedRightArm.addChild(this.solidRightArmWear);
 
 			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
 			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
 			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
-			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left");
+			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left", true);
 			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
 		else{
@@ -136,13 +136,13 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedRightArmWear = (new ModelScaleRenderer(this, 40, 32));
 			this.bipedRightArmWear.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 			this.bipedRightArm.addChild(this.bipedRightArmWear);
-			this.solidRightArmWear = new ModelLimbWear(this,"arm","right");
+			this.solidRightArmWear = new ModelLimbWear(this,"arm","right", false);
 			this.bipedRightArm.addChild(this.solidRightArmWear);
 
 			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
 			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
-			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left");
+			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left", false);
 			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
 
@@ -157,13 +157,13 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightLegWear = (new ModelScaleRenderer(this, 0, 32));
 		this.bipedRightLegWear.addBox(-2.08F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 		this.bipedRightLeg.addChild(this.bipedRightLegWear);
-		this.solidRightLegWear = new ModelLimbWear(this,"leg","right");
+		this.solidRightLegWear = new ModelLimbWear(this,"leg","right", false);
 		this.bipedRightLeg.addChild(this.solidRightLegWear);
 
 		this.bipedLeftLegWear = new ModelScaleRenderer(this, 0, 48);
 		this.bipedLeftLegWear.addBox(-1.92F, 0.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
 		this.bipedLeftLeg.addChild(this.bipedLeftLegWear);
-		this.solidLeftLegWear = new ModelLimbWear(this,"leg","left");
+		this.solidLeftLegWear = new ModelLimbWear(this,"leg","left", false);
 		this.bipedLeftLeg.addChild(this.solidLeftLegWear);
 
 
