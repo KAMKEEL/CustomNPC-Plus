@@ -84,10 +84,4 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
         super.drawGuiContainerBackgroundLayer(f, i, j);
     }
 
-//    @Override
-//    protected void drawSlotInventory(Slot par1Slot)
-//    {this.dra
-//        if(subgui == null)
-//        	super.drawSlotInventory(par1Slot);
-//    } //TODO fix
 }
