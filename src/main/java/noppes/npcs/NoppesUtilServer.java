@@ -312,11 +312,14 @@ public class NoppesUtilServer {
 		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
-	public static void spawnScriptedParticle(Entity entity, String directory, int HEXcolor, int amount, int maxAge,
+	public static void spawnScriptedParticle(String directory, int HEXcolor, int amount, int maxAge,
 											 double x, double y, double z,
 											 double motionX, double motionY, double motionZ, float gravity,
 											 float scale1, float scale2, float scaleRate, int scaleRateStart,
 											 float alpha1, float alpha2, float alphaRate, int alphaRateStart,
+											 float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
+											 float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
+											 float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
 											 int entityID
 	){
 		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE,
@@ -325,6 +328,9 @@ public class NoppesUtilServer {
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
 				alpha1, alpha2, alphaRate, alphaRateStart,
+				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
+				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
+				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
 				entityID
 		);
 	}

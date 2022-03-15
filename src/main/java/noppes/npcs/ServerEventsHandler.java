@@ -308,7 +308,16 @@ public class ServerEventsHandler {
 			}
 			String name = entityName;
 			QuestKill quest = (QuestKill) data.quest.questInterface;
-			if(quest.targetType == 1 && !(entity instanceof EntityNPCInterface))
+
+			Class entityType = EntityNPCInterface.class;
+			if(quest.targetType == 2) {
+				try {
+					entityType = Class.forName(quest.customTargetType);
+				} catch (ClassNotFoundException notFoundException) {
+					continue;
+				}
+			}
+			if(quest.targetType > 0 && !(entityType.isInstance(entity)))
 				continue;
 			if(quest.targets.containsKey(entity.getCommandSenderName()))
 				name = entity.getCommandSenderName();

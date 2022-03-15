@@ -13,4 +13,10 @@ public class CustomNPCsEvent extends Event{
 
     public CustomNPCsEvent() {
     }
+
+    public void setCancelled(boolean bo){
+        this.setCanceled(bo);
+    }
+
+    public boolean isCancelled(){return this.isCanceled();}
 }

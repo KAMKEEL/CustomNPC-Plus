@@ -29,48 +29,36 @@ public class FlyingMoveHelper extends EntityMoveHelper{
         if (this.update) {
             this.update = false;
 
-            double speed = this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
-            double speedMult = 0.6000000238418579D / 0.5D;
+            double speed = this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue() * this.entity.ai.flySpeed;
 
             double d0 = this.posX - this.entity.posX;
-            double d1 = this.posY - this.entity.posY;
+            double d1 = this.posY - MathHelper.floor_double(this.entity.boundingBox.minY + 0.05D);
             double d2 = this.posZ - this.entity.posZ;
             double d4 = d0 * d0 + d1 * d1 + d2 * d2;
+            double d5 = MathHelper.sqrt_double(d4);
 
-            if (this.entity.hurtTime == 0 && d4 > 0.5D) {
-                if (this.posY != this.entity.posY) {
-                    if (this.entity.motionY * Math.signum(this.entity.posY - this.posY) > 0.0D) {
-                        this.entity.motionY = 0.0D;
+            double heightOffGround = 0;
+            if(this.entity.ai.hasFlyLimit) {
+                for (int blockY = (int) this.posY; blockY > 0; blockY--) {
+                    heightOffGround = this.posY - blockY;
+                    if (this.entity.worldObj.getBlock((int) this.posX, blockY, (int) this.posZ) != Blocks.air || heightOffGround > this.entity.ai.flyHeightLimit){
+                        break;
                     }
-
-                    double verticalSpeed = Math.abs(this.entity.posY - this.posY);
-                    if(verticalSpeed > speed * speedMult)
-                        verticalSpeed = speed * speedMult;
-                    verticalSpeed += this.entity.ai.flySpeed/2.0D;
-
-                    if(verticalSpeed > Math.abs(this.entity.posY - this.posY))
-                        verticalSpeed = Math.abs(this.entity.posY - this.posY);
-
-                    int blockY = (int) this.posY;
-                    double heightOffGround = 0;
-                    if(this.entity.ai.hasFlyLimit) {
-                        for (blockY = (int) this.posY; blockY > 0; blockY--) {
-                            heightOffGround = this.posY - blockY;
-                            if (this.entity.worldObj.getBlock((int) this.posX, blockY, (int) this.posZ) != Blocks.air || heightOffGround > this.entity.ai.flyHeightLimit){
-                                break;
-                            }
-                        }
-                    }
-                    if(heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit)
-                        this.entity.motionY -= Math.signum(this.entity.posY - this.posY) * verticalSpeed;
                 }
-
-                double d5 = MathHelper.sqrt_double(d4);
-                this.entity.motionX += (d0 / d5 * speed - this.entity.motionX) * speed * speedMult;
-                this.entity.motionZ += (d2 / d5 * speed - this.entity.motionZ) * speed * speedMult;
             }
 
-            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),30.0F);
+            if (this.entity.hurtTime == 0 && d4 > 0.5D) {
+                this.entity.motionX += (d0 / d5 * speed - this.entity.motionX) * speed;
+                this.entity.motionZ += (d2 / d5 * speed - this.entity.motionZ) * speed;
+
+                if (heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit) {
+                    this.entity.motionY += (d1 / d5 * speed - this.entity.motionY) * speed;
+                }
+
+                this.entity.velocityChanged = true;
+            }
+
+            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),18.0F);
         }
     }
 

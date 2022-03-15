@@ -88,8 +88,12 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
         addScroll(scroll);
 
 		guiTop += 50;
-		this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 300, 98, 20, "gui.back"));
-		this.addButton(new GuiNpcButton(1, guiLeft + 4, guiTop + 260, 98, 20, new String[]{"Any", "NPCs"}, quest.targetType));
+		this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 310, 98, 20, "gui.back"));
+		this.addButton(new GuiNpcButton(1, guiLeft + 4, guiTop + 260, 98, 20, new String[]{"Any", "NPCs", "Custom"}, quest.targetType));
+
+		this.addTextField(new GuiNpcTextField(36, this, fontRendererObj, guiLeft + 4, guiTop + 282, 180, 20, quest.customTargetType));
+		this.getTextField(36).setVisible(this.getButton(1).getValue() == 2);
+
 		guiTop -= 50;
 
     	scroll.visible = GuiNpcTextField.isFieldActive();
@@ -101,7 +105,8 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 			close();
 		}
 		if (guibutton.id == 1) {
-			quest.targetType = guibutton.displayString.equals("NPCs") ? 1 : 0;
+			quest.targetType = this.getButton(1).getValue();
+			this.getTextField(36).setVisible(this.getButton(1).getValue() == 2);
 		}
 	}
     public void mouseClicked(int i, int j, int k)
@@ -116,6 +121,9 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
 		if(guiNpcTextField.id < 12)
 			lastSelected = guiNpcTextField;
+
+		if(guiNpcTextField.id == 36)
+			quest.customTargetType = guiNpcTextField.getText();
 
 		saveTargets();
 	}

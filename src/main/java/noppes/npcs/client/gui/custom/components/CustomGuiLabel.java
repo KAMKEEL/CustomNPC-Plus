@@ -119,7 +119,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     }
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
-        boolean hovered = mouseX >= this.field_146162_g && mouseY >= this.field_146174_h && mouseX < this.field_146162_g + this.field_146167_a && mouseY < this.field_146174_h + this.field_146161_f;
+        boolean hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.field_146167_a && mouseY < this.y + this.field_146161_f;
         this.drawLabel();
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;
@@ -146,6 +146,8 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         lbl.color = component.getColor();
         lbl.alpha = component.getAlpha();
         lbl.rotation = component.getRotation();
+        lbl.field_146167_a = component.getWidth();
+        lbl.field_146161_f = component.getHeight();
 
         return lbl;
     }

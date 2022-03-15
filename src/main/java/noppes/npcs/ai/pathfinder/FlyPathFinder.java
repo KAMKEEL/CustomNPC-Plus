@@ -166,79 +166,27 @@ public class FlyPathFinder extends PathFinder
             b0 = 1;
         }
 
-        FlyPathPoint pathpoint3 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
-        FlyPathPoint pathpoint4 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
-        FlyPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
-        FlyPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+        for(int y = -1; y <= 1; y ++) {
+            FlyPathPoint pathpoint3 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+            FlyPathPoint pathpoint4 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0);
+            FlyPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0);
+            FlyPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0);
 
-        FlyPathPoint pathpoint7 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord + 1, p_75860_3_, b0);
-        FlyPathPoint pathpoint8 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
-        FlyPathPoint pathpoint9 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
-        FlyPathPoint pathpoint10 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint3;
+            }
 
-        FlyPathPoint pathpoint11 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord + 1, p_75860_3_, b0);
-        FlyPathPoint pathpoint12 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
-        FlyPathPoint pathpoint13 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
-        FlyPathPoint pathpoint14 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint4;
+            }
 
-        if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint3;
-        }
+            if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint5;
+            }
 
-        if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint4;
-        }
-
-        if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint5;
-        }
-
-        if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint6;
-        }
-
-        if (pathpoint7 != null && !pathpoint7.isFirst && pathpoint7.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint7;
-        }
-
-        if (pathpoint8 != null && !pathpoint8.isFirst && pathpoint8.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint8;
-        }
-
-        if (pathpoint9 != null && !pathpoint9.isFirst && pathpoint9.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint9;
-        }
-
-        if (pathpoint10 != null && !pathpoint10.isFirst && pathpoint10.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint10;
-        }
-
-        if (pathpoint11 != null && !pathpoint11.isFirst && pathpoint11.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint11;
-        }
-
-        if (pathpoint12 != null && !pathpoint12.isFirst && pathpoint12.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint12;
-        }
-
-        if (pathpoint13 != null && !pathpoint13.isFirst && pathpoint13.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint13;
-        }
-
-        if (pathpoint14 != null && !pathpoint14.isFirst && pathpoint14.distanceTo(p_75860_4_) < p_75860_5_)
-        {
-            this.pathOptions[i++] = pathpoint14;
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint6;
+            }
         }
 
         return i;
