@@ -17,7 +17,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.5.1-beta"
+version = "1.5.1"
 group= "com.yourname.modid" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -28,6 +28,11 @@ minecraft {
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
+configurations {
+    shade
+    compile.extendsFrom shade
+}
 
 dependencies {
     // you may put jars on which you depend on in ./libs
@@ -42,7 +47,7 @@ dependencies {
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
+    shade 'com.github.luben:zstd-jni:1.5.2-2'
 }
 
 processResources
@@ -62,6 +67,18 @@ processResources
     // copy everything else, thats not the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)) {
+            exclude 'META-INF', 'META-INF/**'
+        }
     }
 }
 

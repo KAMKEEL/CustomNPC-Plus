@@ -39,8 +39,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
     
 	public GuiNpcMobSpawner(int i, int j, int k) {
 		super();
-        xSize = 384;
-
+        xSize = 354;
         posX = i;
         posY = j;
         posZ = k;
@@ -53,6 +52,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
     {
         super.initGui();
         guiTop += 10;
+        guiLeft += 30;
         
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0);
@@ -69,36 +69,37 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
         GuiMenuTopButton button;
         addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
         button.active = showingClones == 0;
-        addTopButton(button = new GuiMenuTopButton(4, button, "spawner.entities"));
-        button.active = showingClones == 1;
         addTopButton(button = new GuiMenuTopButton(5, button, "gui.server"));
         button.active = showingClones == 2;
+		addTopButton(button = new GuiMenuTopButton(4, button, "spawner.entities"));
+		button.active = showingClones == 1;
         
-        addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 82, 20, "item.monsterPlacer.name"));
+        addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 52, 20, "item.monsterPlacer.name"));
         
-        addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 100, 82, 20, "spawner.mobspawner"));
+        addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 100, 52, 20, "spawner.mobspawner"));
         
         if(showingClones == 0 || showingClones == 2){
 
-			addSideButton(new GuiMenuSideButton(21,guiLeft - 90, this.guiTop + 2, 90,22, "1"));
-			addSideButton(new GuiMenuSideButton(22,guiLeft - 90, this.guiTop + 23, 90,22, "2"));
-			addSideButton(new GuiMenuSideButton(23,guiLeft - 90, this.guiTop + 44, 90,22, "3"));
-			addSideButton(new GuiMenuSideButton(24,guiLeft - 90, this.guiTop + 65, 90,22, "4"));
-			addSideButton(new GuiMenuSideButton(25,guiLeft - 90, this.guiTop + 86, 90,22, "5"));
-			addSideButton(new GuiMenuSideButton(26,guiLeft - 90, this.guiTop + 107, 45,22, "6"));
-			addSideButton(new GuiMenuSideButton(27,guiLeft - 45, this.guiTop + 107, 45,22, "7"));
-			addSideButton(new GuiMenuSideButton(28,guiLeft - 90, this.guiTop + 128, 45,22, "8"));
-			addSideButton(new GuiMenuSideButton(29,guiLeft - 45, this.guiTop + 128, 45,22, "9"));
-			addSideButton(new GuiMenuSideButton(30,guiLeft - 90, this.guiTop + 149, 45,22, "10"));
-			addSideButton(new GuiMenuSideButton(31,guiLeft - 45, this.guiTop + 149, 45,22, "11"));
-			addSideButton(new GuiMenuSideButton(32,guiLeft - 90, this.guiTop + 170, 45,22, "12"));
-			addSideButton(new GuiMenuSideButton(33,guiLeft - 45, this.guiTop + 170, 45,22, "13"));
-			addSideButton(new GuiMenuSideButton(34,guiLeft - 90, this.guiTop + 191, 45,22, "14"));
-			addSideButton(new GuiMenuSideButton(35,guiLeft - 45, this.guiTop + 191, 45,22, "15"));
+			addSideButton(new GuiMenuSideButton(21,guiLeft - 70, this.guiTop + 2, 70,22, "1"));
+			addSideButton(new GuiMenuSideButton(22,guiLeft - 70, this.guiTop + 23, 70,22, "2"));
+			addSideButton(new GuiMenuSideButton(23,guiLeft - 70, this.guiTop + 44, 70,22, "3"));
+			addSideButton(new GuiMenuSideButton(24,guiLeft - 70, this.guiTop + 65, 70,22, "4"));
+			addSideButton(new GuiMenuSideButton(25,guiLeft - 70, this.guiTop + 86, 70,22, "5"));
+			addSideButton(new GuiMenuSideButton(26,guiLeft - 70, this.guiTop + 107, 35,22, "6"));
+			addSideButton(new GuiMenuSideButton(27,guiLeft - 35, this.guiTop + 107, 35,22, "7"));
+			addSideButton(new GuiMenuSideButton(28,guiLeft - 70, this.guiTop + 128, 35,22, "8"));
+			addSideButton(new GuiMenuSideButton(29,guiLeft - 35, this.guiTop + 128, 35,22, "9"));
+			addSideButton(new GuiMenuSideButton(30,guiLeft - 70, this.guiTop + 149, 35,22, "10"));
+			addSideButton(new GuiMenuSideButton(31,guiLeft - 35, this.guiTop + 149, 35,22, "11"));
+			addSideButton(new GuiMenuSideButton(32,guiLeft - 70, this.guiTop + 170, 35,22, "12"));
+			addSideButton(new GuiMenuSideButton(33,guiLeft - 35, this.guiTop + 170, 35,22, "13"));
+			addSideButton(new GuiMenuSideButton(34,guiLeft - 70, this.guiTop + 191, 35,22, "14"));
+			addSideButton(new GuiMenuSideButton(35,guiLeft - 35, this.guiTop + 191, 35,22, "15"));
 
 
 
-			addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 82, 20, "gui.remove"));
+			// addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 82, 20, "gui.remove"));
+			addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 52, 20, "gui.remove"));
 
         	getSideButton(20 + activeTab).active = true;
         	showClones();

@@ -106,7 +106,11 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public T getMCEntity(){
 		return entity;
 	}
-	
+
+	public T getMinecraftEntity(){
+		return getMCEntity();
+	}
+
 	/**
 	 * Makes the entity swing its hand
 	 */

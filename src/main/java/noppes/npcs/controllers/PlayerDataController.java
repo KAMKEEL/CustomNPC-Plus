@@ -1,20 +1,23 @@
 package noppes.npcs.controllers;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
+import me.luizotavio.compressor.ZstdCompressor;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
+
+import static me.luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
 
 public class PlayerDataController {		
 	public static PlayerDataController instance;
@@ -70,14 +73,20 @@ public class PlayerDataController {
 	public NBTTagCompound loadPlayerData(String player){
 		File saveDir = getSaveDir();
 		String filename = player;
-		if(filename.isEmpty())
-			filename = "noplayername";
-		filename += ".json";
+		if(filename.isEmpty()) {
+			return new NBTTagCompound();
+		}
+
+		if(CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
+			filename += ".zstd";
+		} else {
+			filename += ".json";
+		}
+
 		try {
-	        File file = new File(saveDir, filename);
-	        if(file.exists()){
-		        return NBTJsonUtil.LoadFile(file);
-	        }
+			return ensureCompressor(
+				new File(saveDir, filename)
+			);
 		} catch (Exception e) {
 			LogWriter.error("Error loading: " + filename, e);
 		}
@@ -87,16 +96,24 @@ public class PlayerDataController {
 	
 	public void savePlayerData(PlayerData data){
 		NBTTagCompound compound = data.getNBT();
-		String filename = data.uuid + ".json";
+		String filename;
+
+		if (CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
+			filename = data.uuid + ".zstd";
+		} else  {
+			filename = data.uuid + ".json";
+		}
+
 		try {
 			File saveDir = getSaveDir();
-            File file = new File(saveDir, filename+"_new");
-            File file1 = new File(saveDir, filename);
-            NBTJsonUtil.SaveFile(file, compound);
-            if(file1.exists()){
-                file1.delete();
-            }
-            file.renameTo(file1);
+
+            File file = new File(saveDir, filename);
+
+			if (file.exists()) {
+				file.delete();
+			}
+
+			writeCompressor(file, compound);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -164,7 +181,8 @@ public class PlayerDataController {
         	if(file.isDirectory() || !file.getName().endsWith(".json"))
         		continue;
 			try {
-				NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+				NBTTagCompound compound = ensureCompressor(file);
+
 	        	if(compound.hasKey("PlayerName")){
 	        		map.put(compound.getString("PlayerName"), compound);
 	        	}
@@ -177,5 +195,58 @@ public class PlayerDataController {
 	
 	public boolean hasMail(EntityPlayer player) {
 		return getPlayerData(player).mailData.hasMail();
+	}
+
+	private void writeCompressor(File file, NBTTagCompound compound) {
+		if (compound == null) {
+			throw new IllegalArgumentException("Compound cannot be null!");
+		}
+
+		if (CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
+			IO_EXECUTOR.submit(() -> {
+				try {
+					NBTJsonUtil.SaveFile(file, compound);
+				} catch (IOException | JsonException e) {
+					e.printStackTrace();
+				}
+			});
+		} else if (CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
+			IO_EXECUTOR.submit(() -> {
+				try {
+					byte[] compressed = ZstdCompressor.writeCompound(compound);
+
+					Files.write(
+						file.toPath(),
+						compressed,
+						StandardOpenOption.CREATE,
+						StandardOpenOption.WRITE
+					);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+		}
+	}
+
+	private NBTTagCompound ensureCompressor(File file) throws JsonException, IOException {
+		if (!file.exists()) {
+			return new NBTTagCompound();
+		}
+
+		if (CustomNpcs.CompressorType.equalsIgnoreCase("json")) {
+			return NBTJsonUtil.LoadFile(file);
+		}
+
+		if (CustomNpcs.CompressorType.equalsIgnoreCase("zstd")) {
+			byte[] readCompressed = ZstdCompressor.readCompressed(
+				new RandomAccessFile(file, "r")
+			);
+
+			try (DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(readCompressed))) {
+				return CompressedStreamTools.func_152456_a(dataInputStream, NBTSizeTracker.field_152451_a);
+			}
+		}
+
+		throw new IOException("Unknown compressor type: " + CustomNpcs.CompressorType);
 	}
 }
