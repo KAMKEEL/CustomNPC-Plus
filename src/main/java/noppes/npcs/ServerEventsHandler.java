@@ -257,7 +257,7 @@ public class ServerEventsHandler {
 				if(line != null)
 					npc.saySurrounding(line.formatTarget(event.entityLiving));
 
-				npc.script.callScript(EnumScriptType.KILLS, "target", event.entityLiving);
+				EventHooks.onNPCKilledEntity(npc,event.entityLiving);
 			}
 
 			EntityPlayer player = null;

@@ -270,6 +270,7 @@ public class CustomNpcs {
         new LinkedNpcController();
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();
+        ScriptController.Instance.loadNPCScripts();
         ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
         WrapperNpcAPI.clearCache();

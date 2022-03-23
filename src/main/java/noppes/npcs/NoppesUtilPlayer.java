@@ -253,7 +253,7 @@ public class NoppesUtilPlayer {
 			return;
 
 		EventHooks.onDialogOption(new DialogEvent.DialogOption(new ScriptPlayer((EntityPlayerMP) player), dialog));
-		npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "player", player, "dialog", dialogId, "option", optionId + 1);
+		EventHooks.onNPCDialogClosed(npc,player,dialogId,optionId+1,dialog);
     	
 		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
 			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));

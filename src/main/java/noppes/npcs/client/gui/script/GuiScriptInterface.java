@@ -35,6 +35,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.NPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import org.apache.commons.lang3.StringUtils;
 
@@ -147,6 +148,22 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("customGuiSlot");
                 hookList.add("customGuiScroll");
                 hookList.add("customGuiTextfield");
+
+            }
+            else if(handler instanceof NPCDataScript) {
+                hookList.add("init");
+                hookList.add("tick");
+                hookList.add("interact");
+                hookList.add("dialog");
+                hookList.add("damaged");
+                hookList.add("killed");
+                hookList.add("meleeAttack");
+                hookList.add("rangedLaunched");
+                hookList.add("target");
+                hookList.add("collide");
+                hookList.add("kills");
+                hookList.add("dialogClose");
+                hookList.add("timer");
             }
             else if(handler instanceof ForgeDataScript) {
                 hooks.setSize(238, 198);

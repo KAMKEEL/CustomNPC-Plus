@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.controllers.Dialog;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.*;
 
@@ -51,6 +52,10 @@ public class NpcEvent extends CustomNPCsEvent {
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
+
+        public String getType(){
+            return damageSource.getMCDamageSource().damageType;
+        }
     }
 
     public static class RangedLaunchedEvent extends NpcEvent {
@@ -58,7 +63,7 @@ public class NpcEvent extends CustomNPCsEvent {
         public float damage;
         //public List<IProjectile> projectiles = new ArrayList();
 
-        public RangedLaunchedEvent(ICustomNpc npc, EntityLivingBase target, float damage) {
+        public RangedLaunchedEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
             this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
@@ -70,7 +75,7 @@ public class NpcEvent extends CustomNPCsEvent {
         public final IEntityLivingBase target;
         public float damage;
 
-        public MeleeAttackEvent(ICustomNpc npc, EntityLivingBase target, float damage) {
+        public MeleeAttackEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
             this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
@@ -99,6 +104,10 @@ public class NpcEvent extends CustomNPCsEvent {
             this.type = damagesource.damageType;
             this.source = NpcAPI.Instance().getIEntity(entity);
         }
+
+        public String getType(){
+            return damageSource.getMCDamageSource().damageType;
+        }
     }
 
     @Cancelable
@@ -108,6 +117,34 @@ public class NpcEvent extends CustomNPCsEvent {
         public InteractEvent(ICustomNpc npc, EntityPlayer player) {
             super(npc);
             this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+        }
+    }
+
+    public static class DialogEvent extends NpcEvent {
+        public final IPlayer player;
+        public final int id;
+        public final Dialog dialog;
+
+        public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, Dialog dialog) {
+            super(npc);
+            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.id = id;
+            this.dialog = dialog;
+        }
+    }
+
+    public static class DialogClosedEvent extends NpcEvent {
+        public final IPlayer player;
+        public final int id;
+        public final int optionId;
+        public final Dialog dialog;
+
+        public DialogClosedEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
+            super(npc);
+            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.id = id;
+            this.optionId = optionId;
+            this.dialog = dialog;
         }
     }
 
