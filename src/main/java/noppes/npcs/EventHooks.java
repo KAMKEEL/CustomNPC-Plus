@@ -51,12 +51,18 @@ public class EventHooks {
     }
 
     public static void onNPCInit(EntityNPCInterface npc) {
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         noppes.npcs.scripted.event.NpcEvent.InitEvent event = new noppes.npcs.scripted.event.NpcEvent.InitEvent(npc.wrappedNPC);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.INIT, event);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onNPCUpdate(EntityNPCInterface npc) {
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         noppes.npcs.scripted.event.NpcEvent.UpdateEvent event = new noppes.npcs.scripted.event.NpcEvent.UpdateEvent(npc.wrappedNPC);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.TICK, event);
         npc.script.callScript(EnumScriptType.TICK);
@@ -64,6 +70,9 @@ public class EventHooks {
     }
 
     public static void onNPCDialog(EntityNPCInterface npc, EntityPlayer player, int id, Dialog dialog) {
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, id, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG, event);
         npc.script.callScript(EnumScriptType.DIALOG, "event", new ScriptEventDialog(), "player", player, "dialog", dialog.id);
@@ -71,6 +80,9 @@ public class EventHooks {
     }
 
     public static void onNPCDialogClosed(EntityNPCInterface npc, EntityPlayer player, int dialogId, int optionId, Dialog dialog) {
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         NpcEvent.DialogClosedEvent event = new NpcEvent.DialogClosedEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG_CLOSE, event);
         npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "player", player, "dialog", dialogId, "option", optionId + 1);
@@ -78,6 +90,9 @@ public class EventHooks {
     }
 
     public static boolean onNPCInteract(EntityNPCInterface npc, EntityPlayer player) {
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
         NpcEvent.InteractEvent event = new NpcEvent.InteractEvent(npc.wrappedNPC,player);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.INTERACT, event);
         boolean result = npc.script.callScript(EnumScriptType.INTERACT, "player", player);
@@ -86,6 +101,9 @@ public class EventHooks {
     }
 
     public static boolean onNPCMeleeAttack(EntityNPCInterface npc, float damage, EntityLivingBase target){
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
         NpcEvent.MeleeAttackEvent event = new NpcEvent.MeleeAttackEvent(npc.wrappedNPC,damage,target);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.ATTACK_MELEE, event);
         boolean result = npc.script.callScript(EnumScriptType.ATTACK, "event", event, "target", target);
@@ -94,6 +112,9 @@ public class EventHooks {
     }
 
     public static boolean onNPCRangedAttack(EntityNPCInterface npc, float damage, EntityLivingBase target){
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
         NpcEvent.RangedLaunchedEvent event = new NpcEvent.RangedLaunchedEvent(npc.wrappedNPC,damage,target);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.RANGED_LAUNCHED, event);
         boolean result = npc.script.callScript(EnumScriptType.ATTACK, "event", event, "target", target);
@@ -102,6 +123,9 @@ public class EventHooks {
     }
 
     public static void onNPCKilledEntity(EntityNPCInterface npc, EntityLivingBase entity){
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         NpcEvent.KilledEntityEvent event = new NpcEvent.KilledEntityEvent(npc.wrappedNPC,entity);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.KILLS, event);
         npc.script.callScript(EnumScriptType.KILLS, "target", entity);
@@ -109,6 +133,9 @@ public class EventHooks {
     }
 
     public static boolean onNPCTarget(EntityNPCInterface npc, EntityLivingBase target){
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
         NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(npc.wrappedNPC,target);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.TARGET, event);
         boolean result = npc.script.callScript(EnumScriptType.TARGET, "event", event);
@@ -117,6 +144,9 @@ public class EventHooks {
     }
 
     public static void onNPCCollide(EntityNPCInterface npc, Entity entity){
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         NpcEvent.CollideEvent event = new NpcEvent.CollideEvent(npc.wrappedNPC,entity);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.COLLIDE, event);
         npc.script.callScript(EnumScriptType.COLLIDE, "entity", entity);
@@ -124,6 +154,9 @@ public class EventHooks {
     }
 
     public static boolean onNPCDamaged(EntityNPCInterface npc, Entity source, float damage, DamageSource damagesource, ScriptEventDamaged damagedEvent){
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
         NpcEvent.DamagedEvent event = new NpcEvent.DamagedEvent(npc.wrappedNPC,source,damage,damagesource);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DAMAGED, event);
         boolean result = npc.script.callScript(EnumScriptType.DAMAGED, "event", damagedEvent);
@@ -132,6 +165,9 @@ public class EventHooks {
     }
 
     public static boolean onNPCKilled(EntityNPCInterface npc, DamageSource damagesource, Entity entity, ScriptEventKilled killedEvent){
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
         NpcEvent.DiedEvent event = new NpcEvent.DiedEvent(npc.wrappedNPC,damagesource,entity);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.KILLED, event);
         boolean result = npc.script.callScript(EnumScriptType.KILLED, "event", killedEvent);
@@ -140,6 +176,9 @@ public class EventHooks {
     }
 
     public static void onNPCTimer(EntityNPCInterface npc, int id) {
+        if(npc == null || npc.wrappedNPC == null)
+            return;
+
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
         ScriptEventTimer scriptEvent = new ScriptEventTimer(id);
         npc.script.callScript(EnumScriptType.TIMER, "event", scriptEvent);
