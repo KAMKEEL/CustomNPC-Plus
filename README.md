@@ -9,7 +9,7 @@ Link to CurseForge: [HERE](https://www.curseforge.com/minecraft/mc-mods/customnp
 ### ❗ Notice
 I am not the original creator of CustomNPC. The original creator is @[Noppes](https://github.com/Noppes). I have been permitted to update the 1.7.10 and post my results on GitHub. The original mod that is updated to the latest versions of Minecraft can be found on these links: [CurseForge](https://www.curseforge.com/minecraft/mc-mods/custom-npcs), [kodevelopment](http://www.kodevelopment.nl/minecraft/customnpcs)
 
-### 🔹 First Release! V1.0 (Installation) 
+### 🔹 Installation
 This mod is an ***update*** to CustomNPC and not an add-on. Do not install CustomNPC with CustomNPC-Plus. CustomNPC-Plus does not remove any functional features from the original mod. It expands upon CustomNPC with original features and backported features from newer versions. Simply drag CustomNPC-Plus into any client/server mods folder to utilize. Please **backup** before using as this could still have unforeseen errors. Report any bugs if found, thank you and enjoy.
 
 ### ❓ Features:
@@ -32,7 +32,8 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Custom Part Disabling
 - Markov Name Generator
 - Flying NPCS
-- Better Script Speeds
+- PlayerData Storage Options [JSON/Zstd]
+- Script Enchanments and Fixes
 - Scripting Additions: [Documentation](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
 
 --- Please Suggest New Features!
@@ -56,5 +57,6 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 [![Discord Badge](https://img.shields.io/badge/CustomNPC-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/rgeWsmQaKa)
 [![Discord Badge](https://img.shields.io/badge/CustomNPC+-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/pQqRTvFeJ5)
 [![Download CustomNPC+](https://img.shields.io/badge/Download⠀CustomNPC⠀Plus!-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/customnpc-plus)
-[![Download CustomNPC+](https://img.shields.io/badge/Download⠀Plugin⠀Mod!-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://github.com/KAMKEEL/Plugin-Mod)
+[![Download PluginMod](https://img.shields.io/badge/Download⠀Plugin⠀Mod!-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://github.com/KAMKEEL/Plugin-Mod)
+<a href="https://ko-fi.com/kamkeel"> <img src="https://i.imgur.com/zvdVbeW.png" alt="Support Me on Kofi"  width="180" height="27"> </a>
 

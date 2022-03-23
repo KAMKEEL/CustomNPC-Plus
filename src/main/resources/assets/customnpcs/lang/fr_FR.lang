@@ -55,7 +55,7 @@ remote.freeze=Geler Pnj
 
 spawner.entities=Entités
 spawner.clones=Clones
-spawner.mobspawner=MobSpawner
+spawner.mobspawner=Spawner
 
 display.model=Modèle
 display.show=Montrer

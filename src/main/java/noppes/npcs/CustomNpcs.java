@@ -1,8 +1,6 @@
 package noppes.npcs;
 
-import java.io.File;
-import java.util.Set;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -12,6 +10,7 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
+import me.luizotavio.compressor.executor.IOExecutor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -25,50 +24,29 @@ import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.ConfigLoader;
 import noppes.npcs.config.ConfigProp;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.ChunkController;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.GlobalDataController;
-import noppes.npcs.controllers.LinkedNpcController;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.TransportController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
-import noppes.npcs.entity.old.EntityNPCDwarfFemale;
-import noppes.npcs.entity.old.EntityNPCDwarfMale;
-import noppes.npcs.entity.old.EntityNPCElfFemale;
-import noppes.npcs.entity.old.EntityNPCElfMale;
-import noppes.npcs.entity.old.EntityNPCEnderman;
-import noppes.npcs.entity.old.EntityNPCFurryFemale;
-import noppes.npcs.entity.old.EntityNPCFurryMale;
-import noppes.npcs.entity.old.EntityNPCHumanFemale;
-import noppes.npcs.entity.old.EntityNPCHumanMale;
-import noppes.npcs.entity.old.EntityNPCOrcFemale;
-import noppes.npcs.entity.old.EntityNPCOrcMale;
-import noppes.npcs.entity.old.EntityNPCVillager;
-import noppes.npcs.entity.old.EntityNpcEnderchibi;
-import noppes.npcs.entity.old.EntityNpcMonsterFemale;
-import noppes.npcs.entity.old.EntityNpcMonsterMale;
-import noppes.npcs.entity.old.EntityNpcNagaFemale;
-import noppes.npcs.entity.old.EntityNpcNagaMale;
-import noppes.npcs.entity.old.EntityNpcSkeleton;
+import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import java.io.File;
+import java.util.Set;
+import java.util.concurrent.Executors;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.1-beta")
 public class CustomNpcs {
 
-	@ConfigProp(info = "Disable Chat Bubbles")
+    @ConfigProp(info = "Disable Chat Bubbles")
     public static boolean EnableChatBubbles = true;
-	
+
     private static int NewEntityStartId = 0;
-    
+
+    @ConfigProp(info = "*BACKUP BEFORE CHANGING* File Type used with PlayerData. Converting files may reduce lag. To convert existing files: /noppes compressor update [<filename>|all] [json|zstd]")
+    public static String CompressorType = "json";
+
+    @ConfigProp(info = "The size of IO executors used for compression and decompression. This is the number of threads used for compression and decompression. If you are experiencing issues with the server lagging/crashing, try changing this to a higher number.")
+    public static int CompressorThreads = 2;
+
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
 
@@ -227,14 +205,19 @@ public class CustomNpcs {
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
 
-
+        IOExecutor.IO_EXECUTOR = Executors.newFixedThreadPool(
+            CompressorThreads,
+            new ThreadFactoryBuilder()
+                .setNameFormat("CustomNpcs-IO-%d")
+                .build()
+        );
 
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
         registerNewEntity(EntityMagicProjectile.class, "magicprojectile", 64, 3, true);
 
         new RecipeController();
-        
+
         ForgeChunkManager.setForcedChunkLoadingCallback(this, new ChunkController());
 
         new CustomNpcsPermissions();
