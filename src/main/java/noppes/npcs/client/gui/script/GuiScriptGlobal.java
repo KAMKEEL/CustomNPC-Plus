@@ -7,6 +7,7 @@ package noppes.npcs.client.gui.script;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import org.lwjgl.opengl.GL11;
@@ -23,9 +24,17 @@ public class GuiScriptGlobal extends GuiNPCInterface {
 
     public void initGui() {
         super.initGui();
-        this.addButton(new GuiNpcButton(0, this.guiLeft + 38, this.guiTop + 20, 100, 20, "Players"));
-        this.addButton(new GuiNpcButton(1, this.guiLeft + 38, this.guiTop + 50, 100, 20, "Forge"));
-        this.addButton(new GuiNpcButton(2, this.guiLeft + 38, this.guiTop + 80, 100, 20, "All NPCs"));
+        GuiNpcButton playerButton = new GuiNpcButton(0, this.guiLeft + 38, this.guiTop + 20, 100, 20, "Players");
+        playerButton.setEnabled(CustomNpcs.GlobalPlayerScripts && CustomNpcs.ScriptingEnabled);
+        this.addButton(playerButton);
+
+        GuiNpcButton forgeButton = new GuiNpcButton(1, this.guiLeft + 38, this.guiTop + 50, 100, 20, "Forge");
+        forgeButton.setEnabled(CustomNpcs.GlobalForgeScripts && CustomNpcs.ScriptingEnabled);
+        this.addButton(forgeButton);
+
+        GuiNpcButton npcButton = new GuiNpcButton(2, this.guiLeft + 38, this.guiTop + 80, 100, 20, "All NPCs");
+        npcButton.setEnabled(CustomNpcs.GlobalNPCScripts && CustomNpcs.ScriptingEnabled);
+        this.addButton(npcButton);
     }
 
     public void drawScreen(int i, int j, float f) {
