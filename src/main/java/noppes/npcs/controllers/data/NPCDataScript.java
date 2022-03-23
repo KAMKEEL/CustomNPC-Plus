@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
@@ -90,7 +91,7 @@ public class NPCDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return ScriptController.Instance.npcScripts.enabled && ScriptController.HasStart && (this.npc == null || !this.npc.worldObj.isRemote);
+        return CustomNpcs.GlobalNPCScripts && ScriptController.Instance.npcScripts.enabled && ScriptController.HasStart && (this.npc == null || !this.npc.worldObj.isRemote);
     }
     public boolean isClient() {
         return this.npc.isClientWorld();

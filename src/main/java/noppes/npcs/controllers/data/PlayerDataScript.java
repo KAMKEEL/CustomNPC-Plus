@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
@@ -106,7 +107,7 @@ public class PlayerDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
+        return CustomNpcs.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
     }
     public boolean isClient() {
         return this.player.isClientWorld();

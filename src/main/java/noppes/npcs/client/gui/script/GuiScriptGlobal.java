@@ -25,7 +25,7 @@ public class GuiScriptGlobal extends GuiNPCInterface {
         super.initGui();
         this.addButton(new GuiNpcButton(0, this.guiLeft + 38, this.guiTop + 20, 100, 20, "Players"));
         this.addButton(new GuiNpcButton(1, this.guiLeft + 38, this.guiTop + 50, 100, 20, "Forge"));
-        this.addButton(new GuiNpcButton(2, this.guiLeft + 38, this.guiTop + 80, 100, 20, "NPCs"));
+        this.addButton(new GuiNpcButton(2, this.guiLeft + 38, this.guiTop + 80, 100, 20, "All NPCs"));
     }
 
     public void drawScreen(int i, int j, float f) {
