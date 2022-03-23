@@ -5,7 +5,6 @@ import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
@@ -13,7 +12,6 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.interfaces.ICustomNpc;
 
 import javax.annotation.CheckForNull;

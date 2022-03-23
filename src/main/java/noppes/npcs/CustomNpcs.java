@@ -47,16 +47,16 @@ public class CustomNpcs {
     @ConfigProp(info = "The size of IO executors used for compression and decompression. This is the number of threads used for compression and decompression. If you are experiencing issues with the server lagging/crashing, try changing this to a higher number.")
     public static int CompressorThreads = 2;
 
-    @ConfigProp(info = "Enables/Disables ALL scripting. True by default")
+    @ConfigProp(info = "Enables/Disables ALL scripting. You can still see and write code in the scripter, but these scripts won't run. True by default")
     public static boolean ScriptingEnabled = true;
 
-    @ConfigProp(info = "Enables global player event scripts to be used in the scripter. True by default")
+    @ConfigProp(info = "Enables global player event scripts to be used in the scripter. You can still see and write code in the scripter, but these scripts won't run. True by default.")
     public static boolean GlobalPlayerScripts = true;
 
-    @ConfigProp(info = "Enables global forge event scripts to be used in the scripter. True by default")
+    @ConfigProp(info = "Enables global forge event scripts to be used in the scripter. You can still see and write code in the scripter, but these scripts won't run. True by default.")
     public static boolean GlobalForgeScripts = true;
 
-    @ConfigProp(info = "Enables global NPC scripts to be used in the scripter. False by default, use with caution!")
+    @ConfigProp(info = "Enables global NPC scripts to be used in the scripter. You can still see and write code in the scripter, but these scripts won't run. False by default, use with caution!")
     public static boolean GlobalNPCScripts = false;
 
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
