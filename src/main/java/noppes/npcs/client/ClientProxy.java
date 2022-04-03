@@ -355,7 +355,7 @@ public class ClientProxy extends CommonProxy {
 		else if(gui == EnumGuiType.PlayerTransporter)
 			return new GuiTransportSelection(npc);
 
-		else if(gui == EnumGuiType.Script)
+		else if(gui == EnumGuiType.Script && CustomNpcs.ScriptingEnabled)
 			return new GuiScript(npc);
 
 		else if(gui == EnumGuiType.PlayerAnvil)

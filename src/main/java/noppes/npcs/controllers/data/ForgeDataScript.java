@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
@@ -84,7 +85,7 @@ public class ForgeDataScript implements IScriptHandler {
     }
 
     public boolean getEnabled() {
-        return this.enabled;
+        return CustomNpcs.GlobalForgeScripts && this.enabled;
     }
 
     public void setEnabled(boolean bo) {

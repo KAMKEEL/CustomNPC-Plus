@@ -40,20 +40,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
-import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.DataAI;
-import noppes.npcs.DataAdvanced;
-import noppes.npcs.DataDisplay;
-import noppes.npcs.DataInventory;
-import noppes.npcs.DataScript;
-import noppes.npcs.DataStats;
-import noppes.npcs.IChatMessages;
-import noppes.npcs.NBTTags;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.NpcDamageSource;
-import noppes.npcs.Server;
-import noppes.npcs.VersionCompatibility;
+import noppes.npcs.*;
 import noppes.npcs.ai.*;
 import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIPanic;
@@ -233,8 +220,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	@Override
 	public void onUpdate(){
 		super.onUpdate();
-		if(this.ticksExisted % 10 == 0)
-			script.callScript(EnumScriptType.TICK);
+		if(this.ticksExisted % 10 == 0) {
+			EventHooks.onNPCUpdate(this);
+		}
 		this.timers.update();
 	}
 	
@@ -257,7 +245,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
     	if(par1Entity instanceof EntityLivingBase){
 	        ScriptEventAttack event = new ScriptEventAttack(f, (EntityLivingBase)par1Entity, false);
-			if(script.callScript(EnumScriptType.ATTACK, "event", event, "target", par1Entity))
+			if(EventHooks.onNPCMeleeAttack(this, f, (EntityLivingBase)par1Entity))
 				return false;
 			f = event.getDamage();
     	}
@@ -398,8 +386,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				return true;
 			}
 		}
-		
-		if(script.callScript(EnumScriptType.INTERACT, "player", player) || isAttacking() || isKilled() || faction.isAggressiveToPlayer(player))
+
+		if(EventHooks.onNPCInteract(this, player) || isAttacking() || isKilled() || faction.isAggressiveToPlayer(player))
 			return false;
 
 		addInteract(player);
@@ -515,7 +503,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		else if (attackingEntity instanceof EntityPlayer && faction.isFriendlyToPlayer((EntityPlayer) attackingEntity))
 			return false;
 		ScriptEventDamaged result = new ScriptEventDamaged(i, attackingEntity, damagesource);
-		if(script.callScript(EnumScriptType.DAMAGED, "event", result) || isKilled())
+		if(EventHooks.onNPCDamaged(this, attackingEntity, i, damagesource, result) || isKilled())
 			return false;
 		i = result.getDamage();
 		
@@ -565,7 +553,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     		return;
     	if(getAttackTarget() != entity && entity != null){
 	    	ScriptEventTarget event = new ScriptEventTarget(entity);
-			if(script.callScript(EnumScriptType.TARGET, "event", event))
+			if(EventHooks.onNPCTarget(this,entity))
 				return;
 			
 			if(event.getTarget() == null)
@@ -590,7 +578,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         	return;
         }
         ScriptEventAttack event = new ScriptEventAttack(stats.pDamage, entity, true);
-		if(script.callScript(EnumScriptType.ATTACK, "event", event, "target", entity))
+		if(EventHooks.onNPCRangedAttack(this, f, (EntityLivingBase)entity))
 			return;
 		for(int i = 0; i < this.stats.shotCount; i++)
 		{
@@ -919,7 +907,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
 	public void saySurrounding(Line line) {
-		if (line == null || line.text == null)
+		if (line == null || line.text == null || getFakePlayer() == null)
 			return;
 		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.text, new ChatComponentTranslation(line.text.replace("%", "%%")));
         if (MinecraftForge.EVENT_BUS.post(event) || event.component == null){
@@ -1072,7 +1060,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		
 		if(jobInterface != null)
 			jobInterface.reset();
-		
+
+		EventHooks.onNPCInit(this);
 		script.callScript(EnumScriptType.INIT);
 	}
 
@@ -1095,8 +1084,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         for (int i = 0; i < list.size(); ++i){
             Entity entity = (Entity)list.get(i);
-            if (entity.isEntityAlive())
-    			script.callScript(EnumScriptType.COLLIDE, "entity", entity);
+            if (entity.isEntityAlive()) {
+				EventHooks.onNPCCollide(this,entity);
+			}
         }
         
     }
@@ -1223,7 +1213,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			attackingEntity = ((EntityThrowable) entity).getThrower();
 				
 		ScriptEventKilled result = new ScriptEventKilled(attackingEntity, damagesource);
-		if(script.callScript(EnumScriptType.KILLED, "event", result))
+		if(EventHooks.onNPCKilled(this,damagesource,attackingEntity,result))
 			return;
 		if(!isRemote()){
 			if(this.recentlyHit > 0)

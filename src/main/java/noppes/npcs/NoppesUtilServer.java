@@ -203,7 +203,7 @@ public class NoppesUtilServer {
         if(!data.dialogsRead.contains(dialog.id))
         	data.dialogsRead.add(dialog.id);
 		setEditingNpc(player, npc);
-		npc.script.callScript(EnumScriptType.DIALOG, "event", new ScriptEventDialog(), "player", player, "dialog", dialog.id);
+		EventHooks.onNPCDialog(npc, player, dialog.id, dialog);
 	}
 	public static void runCommand(EntityPlayer player, String name, String command){
         runCommand(player, name, command, player);

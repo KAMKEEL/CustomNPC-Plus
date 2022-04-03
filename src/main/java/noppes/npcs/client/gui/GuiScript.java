@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataScript;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.Client;

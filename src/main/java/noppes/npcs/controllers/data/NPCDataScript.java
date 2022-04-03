@@ -1,47 +1,36 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
 package noppes.npcs.controllers.data;
-import java.lang.reflect.Array;
-import java.util.*;
-import java.util.Map.Entry;
+
 import com.google.common.base.Preconditions;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
-import cpw.mods.fml.common.eventhandler.Event;
-import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.EventHooks;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.entity.ScriptPlayer;
-import noppes.npcs.scripted.event.PlayerEvent;
-import noppes.npcs.scripted.interfaces.IPlayer;
-import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.ICustomNpc;
+
 import javax.annotation.CheckForNull;
-import javax.script.ScriptEngine;
-public class PlayerDataScript implements IScriptHandler {
+import java.lang.reflect.Array;
+import java.util.*;
+
+public class NPCDataScript implements IScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
-    private EntityPlayer player;
-    private IPlayer playerAPI;
-    private long lastPlayerUpdate = 0L;
+    private EntityNPCInterface npc;
+    private ICustomNpc npcAPI;
     public long lastInited = -1L;
     public boolean enabled = false;
     private Map<Long, String> console = new TreeMap();
     public List<Integer> errored = new ArrayList();
 
-    public PlayerDataScript(EntityPlayer player) {
-        if(player != null) {
-            this.player = player;
+    public NPCDataScript(EntityNPCInterface npc) {
+        if(npc != null) {
+            this.npc = npc;
         }
     }
     public void clear() {
@@ -66,36 +55,29 @@ public class PlayerDataScript implements IScriptHandler {
     public void callScript(EnumScriptType type, Event event) {
         if (this.isEnabled()) {
             ScriptContainer script;
-            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
+            if (ScriptController.Instance.lastLoaded > this.lastInited) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 errored.clear();
-
-                this.lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
-
-                if (type != EnumScriptType.INIT) {
-                    noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent)event;
-                    EventHooks.onPlayerInit(this, (ScriptPlayer) playerEvent.player);
-                }
             }
 
-            for(int i = 0; i < ScriptController.Instance.playerScripts.scripts.size(); ++i) {
-                script = (ScriptContainer)ScriptController.Instance.playerScripts.scripts.get(i);
+            for(int i = 0; i < ScriptController.Instance.npcScripts.scripts.size(); ++i) {
+                script = (ScriptContainer)ScriptController.Instance.npcScripts.scripts.get(i);
                 if (!errored.contains(i)) {
-                    if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.playerScripts.errored.contains(i))
+                    if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.npcScripts.errored.contains(i))
                         return;
 
                     script.run(type, event);
 
                     if (script.errored) {
-                        ScriptController.Instance.playerScripts.errored.add(i);
+                        ScriptController.Instance.npcScripts.errored.add(i);
                     }
 
                     Iterator var8 = script.console.entrySet().iterator();
 
                     while(var8.hasNext()) {
-                        Entry<Long, String> entry = (Entry)var8.next();
-                        if (!ScriptController.Instance.playerScripts.console.containsKey(entry.getKey())) {
-                            ScriptController.Instance.playerScripts.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
+                        Map.Entry<Long, String> entry = (Map.Entry)var8.next();
+                        if (!ScriptController.Instance.npcScripts.console.containsKey(entry.getKey())) {
+                            ScriptController.Instance.npcScripts.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
                         }
                     }
 
@@ -107,20 +89,20 @@ public class PlayerDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return CustomNpcs.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
+        return CustomNpcs.GlobalNPCScripts && ScriptController.Instance.npcScripts.enabled && ScriptController.HasStart && (this.npc == null || !this.npc.worldObj.isRemote);
     }
     public boolean isClient() {
-        return this.player.isClientWorld();
+        return this.npc.isClientWorld();
     }
     public boolean getEnabled() {
-        return ScriptController.Instance.playerScripts.enabled;
+        return ScriptController.Instance.npcScripts.enabled;
     }
     public void setEnabled(boolean bo) {
-        ScriptController.Instance.playerScripts.enabled = bo;
+        ScriptController.Instance.npcScripts.enabled = bo;
         this.enabled = bo;
     }
     public String getLanguage() {
-        return ScriptController.Instance.playerScripts.scriptLanguage;
+        return ScriptController.Instance.npcScripts.scriptLanguage;
     }
     public void setLanguage(String lang) {
         this.scriptLanguage = lang;
@@ -129,18 +111,18 @@ public class PlayerDataScript implements IScriptHandler {
         return this.scripts;
     }
     public String noticeString() {
-        if(this.player == null) {
+        if(this.npc == null) {
             return "Global script";
         } else {
-            BlockPos pos = new BlockPos(this.player);
-            return PlayerDataScript.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
+            BlockPos pos = new BlockPos(this.npc);
+            return NPCDataScript.toStringHelper(this.npc).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
     }
-    public IPlayer getPlayer() {
-        if (this.playerAPI == null) {
-            this.playerAPI = (IPlayer) NpcAPI.Instance().getIEntity(this.player);
+    public ICustomNpc getNpc() {
+        if (this.npcAPI == null) {
+            this.npcAPI = (ICustomNpc) NpcAPI.Instance().getIEntity(this.npc);
         }
-        return this.playerAPI;
+        return this.npcAPI;
     }
     public Map<Long, String> getConsoleText() {
         return this.console;
@@ -150,61 +132,61 @@ public class PlayerDataScript implements IScriptHandler {
     }
     public static final class ToStringHelper {
         private final String className;
-        private final PlayerDataScript.ToStringHelper.ValueHolder holderHead;
-        private PlayerDataScript.ToStringHelper.ValueHolder holderTail;
+        private final NPCDataScript.ToStringHelper.ValueHolder holderHead;
+        private NPCDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
         private boolean omitEmptyValues;
         private ToStringHelper(String className) {
-            this.holderHead = new PlayerDataScript.ToStringHelper.ValueHolder();
+            this.holderHead = new NPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
             this.className = (String) Preconditions.checkNotNull(className);
         }
-        public PlayerDataScript.ToStringHelper omitNullValues() {
+        public NPCDataScript.ToStringHelper omitNullValues() {
             this.omitNullValues = true;
             return this;
         }
-        public PlayerDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
+        public NPCDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
             return this.addHolder(name, value);
         }
-        public PlayerDataScript.ToStringHelper add(String name, boolean value) {
+        public NPCDataScript.ToStringHelper add(String name, boolean value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper add(String name, char value) {
+        public NPCDataScript.ToStringHelper add(String name, char value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper add(String name, double value) {
+        public NPCDataScript.ToStringHelper add(String name, double value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper add(String name, float value) {
+        public NPCDataScript.ToStringHelper add(String name, float value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper add(String name, int value) {
+        public NPCDataScript.ToStringHelper add(String name, int value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper add(String name, long value) {
+        public NPCDataScript.ToStringHelper add(String name, long value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper addValue(@CheckForNull Object value) {
+        public NPCDataScript.ToStringHelper addValue(@CheckForNull Object value) {
             return this.addHolder(value);
         }
-        public PlayerDataScript.ToStringHelper addValue(boolean value) {
+        public NPCDataScript.ToStringHelper addValue(boolean value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper addValue(char value) {
+        public NPCDataScript.ToStringHelper addValue(char value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper addValue(double value) {
+        public NPCDataScript.ToStringHelper addValue(double value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper addValue(float value) {
+        public NPCDataScript.ToStringHelper addValue(float value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper addValue(int value) {
+        public NPCDataScript.ToStringHelper addValue(int value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public PlayerDataScript.ToStringHelper addValue(long value) {
+        public NPCDataScript.ToStringHelper addValue(long value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
         private static boolean isEmpty(Object value) {
@@ -235,9 +217,9 @@ public class PlayerDataScript implements IScriptHandler {
             boolean omitEmptyValuesSnapshot = this.omitEmptyValues;
             String nextSeparator = "";
             StringBuilder builder = (new StringBuilder(32)).append(this.className).append('{');
-            for(PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
+            for(NPCDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
                 Object value = valueHolder.value;
-                if (!(valueHolder instanceof PlayerDataScript.ToStringHelper.UnconditionalValueHolder)) {
+                if (!(valueHolder instanceof NPCDataScript.ToStringHelper.UnconditionalValueHolder)) {
                     if (value == null) {
                         if (omitNullValuesSnapshot) {
                             continue;
@@ -261,39 +243,39 @@ public class PlayerDataScript implements IScriptHandler {
             }
             return builder.append('}').toString();
         }
-        private PlayerDataScript.ToStringHelper.ValueHolder addHolder() {
-            PlayerDataScript.ToStringHelper.ValueHolder valueHolder = new PlayerDataScript.ToStringHelper.ValueHolder();
+        private NPCDataScript.ToStringHelper.ValueHolder addHolder() {
+            NPCDataScript.ToStringHelper.ValueHolder valueHolder = new NPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
-        private PlayerDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
-            PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
+        private NPCDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
+            NPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             return this;
         }
-        private PlayerDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
-            PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
+        private NPCDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
+            NPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             valueHolder.name = (String)Preconditions.checkNotNull(name);
             return this;
         }
-        private PlayerDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
-            PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new PlayerDataScript.ToStringHelper.UnconditionalValueHolder();
+        private NPCDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
+            NPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new NPCDataScript.ToStringHelper.UnconditionalValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
-        private PlayerDataScript.ToStringHelper addUnconditionalHolder(Object value) {
-            PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
+        private NPCDataScript.ToStringHelper addUnconditionalHolder(Object value) {
+            NPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             return this;
         }
-        private PlayerDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
-            PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
+        private NPCDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
+            NPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             valueHolder.name = (String)Preconditions.checkNotNull(name);
             return this;
         }
-        private static final class UnconditionalValueHolder extends PlayerDataScript.ToStringHelper.ValueHolder {
+        private static final class UnconditionalValueHolder extends NPCDataScript.ToStringHelper.ValueHolder {
             private UnconditionalValueHolder() {
                 super();
             }
@@ -304,12 +286,12 @@ public class PlayerDataScript implements IScriptHandler {
             @CheckForNull
             Object value;
             @CheckForNull
-            PlayerDataScript.ToStringHelper.ValueHolder next;
+            NPCDataScript.ToStringHelper.ValueHolder next;
             private ValueHolder() {
             }
         }
     }
-    public static PlayerDataScript.ToStringHelper toStringHelper(Object self) {
-        return new PlayerDataScript.ToStringHelper(self.getClass().getSimpleName());
+    public static NPCDataScript.ToStringHelper toStringHelper(Object self) {
+        return new NPCDataScript.ToStringHelper(self.getClass().getSimpleName());
     }
 }

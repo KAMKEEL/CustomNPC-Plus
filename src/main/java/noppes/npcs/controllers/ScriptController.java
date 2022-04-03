@@ -29,6 +29,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.NPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.entity.*;
@@ -55,6 +56,8 @@ public class ScriptController {
 	public long lastPlayerUpdate = 0L;
 
 	public ForgeDataScript forgeScripts = new ForgeDataScript();
+
+	public NPCDataScript npcScripts = new NPCDataScript((EntityNPCInterface) null);
 
 	public ScriptController(){
 		loaded = false;
@@ -111,6 +114,10 @@ public class ScriptController {
 		return new File(dir, "player_scripts.json");
 	}
 
+	private File npcScriptsFile() {
+		return new File(dir, "npc_scripts.json");
+	}
+
 	public boolean loadPlayerScripts() {
 		this.playerScripts.clear();
 		File file = this.playerScriptsFile();
@@ -136,6 +143,37 @@ public class ScriptController {
 		try {
 			NBTJsonUtil.SaveFile(file, compound);
 			this.lastPlayerUpdate = System.currentTimeMillis();
+		} catch (IOException var4) {
+			var4.printStackTrace();
+		} catch (JsonException var5) {
+			var5.printStackTrace();
+		}
+	}
+
+	public boolean loadNPCScripts() {
+		this.npcScripts.clear();
+		File file = this.npcScriptsFile();
+
+		try {
+			if(!file.exists()) {
+				return false;
+			} else {
+				this.npcScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+				shouldSave = false;
+				return true;
+			}
+		} catch (Exception var3) {
+			LogWriter.error("Error loading: " + file.getAbsolutePath(), var3);
+			return false;
+		}
+	}
+
+	public void setNPCScripts(NBTTagCompound compound) {
+		this.npcScripts.readFromNBT(compound);
+		File file = this.npcScriptsFile();
+
+		try {
+			NBTJsonUtil.SaveFile(file, compound);
 		} catch (IOException var4) {
 			var4.printStackTrace();
 		} catch (JsonException var5) {

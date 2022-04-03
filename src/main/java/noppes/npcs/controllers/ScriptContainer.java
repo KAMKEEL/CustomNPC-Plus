@@ -110,10 +110,16 @@ public class ScriptContainer {
     }
 
     public void run(EnumScriptType type, Event event) {
+        if(!CustomNpcs.ScriptingEnabled)
+            return;
+
         this.run((String)type.function, (Object)event);
     }
 
     public void run(String type, Object event) {
+        if(!CustomNpcs.ScriptingEnabled)
+            return;
+
         if (!this.errored && this.hasCode() && !this.unknownFunctions.contains(type)) {
             this.setEngine(this.handler.getLanguage());
             if (this.engine != null) {

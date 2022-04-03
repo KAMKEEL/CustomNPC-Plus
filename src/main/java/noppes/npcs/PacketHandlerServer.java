@@ -41,6 +41,7 @@ import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.NPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -102,7 +103,7 @@ public class PacketHandlerServer{
 			else if(type.hasPermission() && !CustomNpcsPermissions.Instance.hasPermission(player, type.permission)){
 				//player doesnt have permission to do this
 			}			
-			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
+			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
@@ -118,6 +119,8 @@ public class PacketHandlerServer{
 						featherPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
 						playerScriptPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave)
+						npcScriptPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
 						forgeScriptPackets(type, buffer, player);
 					else if (item.getItem() == CustomItems.scripter)
@@ -169,6 +172,18 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
 			ScriptController.Instance.setForgeScripts(Server.readNBT(buffer));
+		}
+	}
+
+	private void npcScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		NBTTagCompound compound;
+		if(type == EnumPacketServer.ScriptNPCGet) {
+			NPCDataScript data = ScriptController.Instance.npcScripts;
+			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		} else if(type == EnumPacketServer.ScriptNPCSave) {
+			ScriptController.Instance.setNPCScripts(Server.readNBT(buffer));
 		}
 	}
 

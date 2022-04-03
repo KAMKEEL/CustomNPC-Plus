@@ -85,6 +85,86 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID
 		);
 	}
+	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+							  double x, double y, double z,
+							  double motionX, double motionY, double motionZ, float gravity,
+							  float scale1, float scale2, float scaleRate, int scaleRateStart,
+							  float alpha1, float alpha2, float alphaRate, int alphaRateStart
+	) {
+		int entityID = entity.getEntityId();
+		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				alpha1, alpha2, alphaRate, alphaRateStart,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				entityID
+		);
+	}
+	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+							  double x, double y, double z,
+							  double motionX, double motionY, double motionZ, float gravity,
+							  float scale1, float scale2, float scaleRate, int scaleRateStart
+	) {
+		int entityID = entity.getEntityId();
+		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				scale1, scale2, scaleRate, scaleRateStart,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				entityID
+		);
+	}
+	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+							  double x, double y, double z,
+							  double motionX, double motionY, double motionZ, float gravity
+	) {
+		int entityID = entity.getEntityId();
+		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				motionX, motionY, motionZ, gravity,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				entityID
+		);
+	}
+	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+							  double x, double y, double z
+							  ) {
+		int entityID = entity.getEntityId();
+		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+				x, y, z,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				entityID
+		);
+	}
+	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge
+	) {
+		int entityID = entity.getEntityId();
+		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+				0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				entityID
+		);
+	}
 	public void spawnParticle(ScriptEntityParticle entityParticle) { entityParticle.spawnOnEntity(this); }
 
 	public double getYOffset() { return entity.getYOffset(); }

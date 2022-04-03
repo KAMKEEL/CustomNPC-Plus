@@ -74,7 +74,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void setHunger(int hunger){
-		player.getFoodStats().setFoodLevel(hunger);
+		int prevHunger = this.getHunger();
+		if(hunger < 0)
+			hunger = 0;
+
+		player.getFoodStats().addStats(hunger-prevHunger,0);
 	}
 
 	public float getSaturation(){
@@ -82,7 +86,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void setSaturation(float saturation){
-		player.getFoodStats().setFoodSaturationLevel(saturation);
+		float prevSaturation = this.getHunger();
+		if(saturation < 0)
+			saturation = 0;
+
+		player.getFoodStats().addStats(0,saturation-prevSaturation);
 	}
 
 	public int getDimension(){

@@ -40,6 +40,9 @@ public enum EnumPacketServer {
 	ScriptForgeSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptForgeGet(false),
 
+	ScriptNPCSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
+	ScriptNPCGet(false),
+
 	LinkedGetAll, LinkedRemove(CustomNpcsPermissions.GLOBAL_LINKED), LinkedAdd(CustomNpcsPermissions.GLOBAL_LINKED),
 	ScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), ScriptDataGet(true),
 	PlayerDataRemove(CustomNpcsPermissions.GLOBAL_PLAYERDATA), 

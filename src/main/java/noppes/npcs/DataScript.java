@@ -109,6 +109,7 @@ public class DataScript implements IScriptHandler {
 			return false;
 		if(!hasInited){
 			hasInited = true;
+			EventHooks.onNPCInit(this.npc);
 			callScript(EnumScriptType.INIT);
 		}
 		ScriptContainer script = scripts.get(type.ordinal());

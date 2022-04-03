@@ -51,7 +51,20 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return false;
+
 		HashMap<String,Integer> killed = getKilled(data);
+		int completed = 0;
+		for(String entityName : targets.keySet()){
+			int amount = 0;
+			if(killed.containsKey(entityName))
+				amount = killed.get(entityName);
+			if(amount >= targets.get(entityName)){
+				completed++;
+			}
+		}
+		if(completed >= targets.keySet().size())
+			return true;
+
 		if(killed.size() != targets.size())
 			return false;
 		for(String entity : killed.keySet()){
