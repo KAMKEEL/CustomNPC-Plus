@@ -260,17 +260,17 @@ public class ModelLimbWear extends ModelScaleRenderer {
         this.addChild(back);
 
         Model2DRenderer right = new Model2DRenderer(base, 8, 36, 4, 12, 64, 64);
-        right.setRotationPoint(0.15f+x, 12.55f+y, 2.55f);
+        right.setRotationPoint(0.62f+x, 12.55f+y, -2.55f);
         right.setScale(0.96f,0.82f);
         right.setThickness(thick);
-        setRotation(right, 0, (float)(Math.PI/2f), 0);
+        setRotation(right, 0, (float)(Math.PI/-2f), 0);
         this.addChild(right);
 
         Model2DRenderer left = new Model2DRenderer(base, 0, 36, 4, 12, 64, 64);
-        left.setRotationPoint(-4.03f+x, 12.55f+y, -2.55f);
+        left.setRotationPoint(-4.53f+x, 12.55f+y, 2.55f);
         left.setScale(0.96f,0.82f);
         left.setThickness(thick);
-        setRotation(left, 0, (float)(Math.PI/-2f), 0);
+        setRotation(left, 0, (float)(Math.PI/2f), 0);
         this.addChild(left);
 
 
@@ -308,17 +308,17 @@ public class ModelLimbWear extends ModelScaleRenderer {
         this.addChild(back);
 
         Model2DRenderer right = new Model2DRenderer(base, 8, 52, 4, 12, 64, 64);
-        right.setRotationPoint(0.15f+x, 12.55f+y, 2.55f);
+        right.setRotationPoint(0.62f+x, 12.55f+y, -2.55f);
         right.setScale(0.96f,0.82f);
         right.setThickness(thick);
-        setRotation(right, 0, (float)(Math.PI/2f), 0);
+        setRotation(right, 0, (float)(Math.PI/-2f), 0);
         this.addChild(right);
 
         Model2DRenderer left = new Model2DRenderer(base, 0, 52, 4, 12, 64, 64);
-        left.setRotationPoint(-4.03f+x, 12.55f+y, -2.55f);
+        left.setRotationPoint(-4.53f+x, 12.55f+y, 2.55f);
         left.setScale(0.96f,0.82f);
         left.setThickness(thick);
-        setRotation(left, 0, (float)(Math.PI/-2f), 0);
+        setRotation(left, 0, (float)(Math.PI/2f), 0);
         this.addChild(left);
 
 
