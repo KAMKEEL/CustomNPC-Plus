@@ -255,7 +255,13 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glTranslatef(x, cnpc.modelData.getBodyY(), 0);
             }
 		    this.modelBipedMain.bipedRightArm.postRender(0.0625F);
-		    GL11.glTranslatef(-0.0625F, 0.4375F + y, 0.0625F);
+
+            if(npc.getModelType() == 2){
+                GL11.glTranslatef(-0.0125F, 0.4375F + y, 0.0625F);
+            }
+            else {
+                GL11.glTranslatef(-0.0625F, 0.4375F + y, 0.0625F);
+            }
 
             IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack2, EQUIPPED);
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
@@ -342,8 +348,15 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glTranslatef(x, cnpc.modelData.getBodyY(), 0);
             }
 		    this.modelBipedMain.bipedLeftArm.postRender(0.0625F);
-		    GL11.glTranslatef(0.0625F, 0.4375F + y, 0.0625F);
-            float var6;
+
+            if(npc.getModelType() == 2){
+                GL11.glTranslatef(0.0125F, 0.4375F + y, 0.0625F);
+            }
+            else {
+                GL11.glTranslatef(0.0625F, 0.4375F + y, 0.0625F);
+            }
+
+		    float var6;
             
             IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack2, EQUIPPED);
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
