@@ -1288,7 +1288,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public IIcon getItemIcon(ItemStack par1ItemStack, int par2){
-    	// Change Here
         if (par1ItemStack.getItem() instanceof ItemBow){
             return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
         }
