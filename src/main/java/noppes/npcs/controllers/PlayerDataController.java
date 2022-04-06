@@ -1,6 +1,6 @@
 package noppes.npcs.controllers;
 
-import me.luizotavio.compressor.ZstdCompressor;
+import luizotavio.compressor.ZstdCompressor;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTSizeTracker;
@@ -17,7 +17,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
-import static me.luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
+import static luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
 
 public class PlayerDataController {		
 	public static PlayerDataController instance;

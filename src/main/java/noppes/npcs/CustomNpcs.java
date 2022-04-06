@@ -10,7 +10,7 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
-import me.luizotavio.compressor.executor.IOExecutor;
+import luizotavio.compressor.executor.IOExecutor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;

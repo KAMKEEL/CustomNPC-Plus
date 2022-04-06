@@ -1,4 +1,4 @@
-package me.luizotavio.compressor.executor;
+package luizotavio.compressor.executor;
 
 import java.util.concurrent.ExecutorService;
 

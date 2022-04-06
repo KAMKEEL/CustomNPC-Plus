@@ -4,7 +4,7 @@ import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
-import me.luizotavio.compressor.ZstdCompressor;
+import luizotavio.compressor.ZstdCompressor;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.util.NBTJsonUtil;
@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static me.luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
+import static luizotavio.compressor.executor.IOExecutor.IO_EXECUTOR;
 
 @Command(
     name = "compressor",
