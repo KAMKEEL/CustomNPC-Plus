@@ -221,12 +221,9 @@ public class RenderNPCInterface extends RenderLiving{
 			float f1 = 1.0F;
 
 			GL11.glEnable(GL11.GL_BLEND);
-
 			// Overlay & Glow
 			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-
 			GL11.glDisable(GL11.GL_LIGHTING);
-
 
 			if (npc.isInvisible())
 			{
@@ -249,7 +246,6 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glPopMatrix();
 			GL11.glEnable(GL11.GL_LIGHTING);
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
-
 
 			GL11.glDepthFunc(GL11.GL_LEQUAL);
 			GL11.glDisable(GL11.GL_BLEND);
