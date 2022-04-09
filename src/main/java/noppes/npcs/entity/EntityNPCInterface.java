@@ -140,7 +140,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean updateClient = false;
 	public boolean updateAI = false;
 
-//	 Fly Change
 	public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
 	public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 

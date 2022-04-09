@@ -12,11 +12,21 @@ import noppes.npcs.controllers.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class VersionCompatibility {
-	public static int ModRev = 16;
+	public static int ModRev = 17;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
 			return;
+		if(npc.npcVersion < 17){
+			// Fix DialogDarkenScreen
+			if(compound.hasKey("DialogDarkenScreen")){
+				compound.removeTag("DialogDarkenScreen");
+			}
+			// Remove MPM Texture Requirement
+			String texture = compound.getString("Texture");
+			texture = texture.replace("moreplayermodels:textures", "customnpcs:textures/parts");
+			compound.setString("Texture", texture);
+		}
 		if(npc.npcVersion < 12){
 			CompatabilityFix(compound, npc.advanced.writeToNBT(new NBTTagCompound()));
 			CompatabilityFix(compound, npc.ai.writeToNBT(new NBTTagCompound()));
