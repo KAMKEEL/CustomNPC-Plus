@@ -399,7 +399,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
 		}
 		else if (dialog != null){
-			NoppesUtilServer.openDialog(player, this, dialog);
+			NoppesUtilServer.openDialog(player, this, dialog, 0);
 		}
 		else if(roleInterface != null)
 			roleInterface.interact(player);
@@ -1062,7 +1062,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			jobInterface.reset();
 
 		EventHooks.onNPCInit(this);
-		script.callScript(EnumScriptType.INIT);
 	}
 
     public void onCollide() {	

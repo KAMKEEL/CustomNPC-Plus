@@ -123,6 +123,6 @@ public class CmdDialog extends ChMcLogger {
     	option.dialogId = diagid;
 		option.title = dialog.title;
     	npc.dialogs.put(0, option);
-    	NoppesUtilServer.openDialog(player, npc, dialog);
+    	NoppesUtilServer.openDialog(player, npc, dialog, 0);
     }
 }
