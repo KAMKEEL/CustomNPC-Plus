@@ -177,7 +177,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
         		npc.textureCloakLocation = new ResourceLocation(npc.display.cloakTexture);
         	}
         	bindTexture((ResourceLocation) npc.textureCloakLocation);
-            //AbstractClientPlayer.func_110307_b(, null);
             GL11.glPushMatrix();
             GL11.glTranslatef(0.0F, 0.0F, 0.125F);
             double d = (npc.field_20066_r + (npc.field_20063_u - npc.field_20066_r) * (double)f) - (npc.prevPosX + (npc.posX - npc.prevPosX) * (double)f);
@@ -193,13 +192,12 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 f14 = 0.0F;
             }
             float f16 = npc.prevRotationYaw + (npc.rotationYaw - npc.prevRotationYaw) * f;
-            //f13 += MathHelper.sin((entityplayer.prevDistanceWalkedModified + (entityplayer.distanceWalkedModified - entityplayer.prevDistanceWalkedModified) * f) * 6F) * 32F * f16;
             float f13 = 5f;
             if (npc.isSneaking())
             {
                 f13 += 25F;
             }
-            //System.out.println(entityplayer.prevDistanceWalkedModified);
+
             GL11.glRotatef(6F + f14 / 2.0F + f13, 1.0F, 0.0F, 0.0F);
             GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
             GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
