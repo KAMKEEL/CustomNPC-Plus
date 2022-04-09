@@ -123,12 +123,14 @@ public class NpcEvent extends CustomNPCsEvent {
     public static class DialogEvent extends NpcEvent {
         public final IPlayer player;
         public final int id;
+        public final int optionId;
         public final Dialog dialog;
 
-        public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, Dialog dialog) {
+        public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
             this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
             this.id = id;
+            this.optionId = optionId;
             this.dialog = dialog;
         }
     }

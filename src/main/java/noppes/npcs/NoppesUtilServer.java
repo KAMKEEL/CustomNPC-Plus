@@ -180,7 +180,7 @@ public class NoppesUtilServer {
         return item;
     }
 	
-	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia){
+	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia, int optionId){
 		Dialog dialog = dia.copy(player);
 
 		EventHooks.onDialogOpen(new DialogEvent.DialogOpen(new ScriptPlayer((EntityPlayerMP) player), dialog));
@@ -203,7 +203,7 @@ public class NoppesUtilServer {
         if(!data.dialogsRead.contains(dialog.id))
         	data.dialogsRead.add(dialog.id);
 		setEditingNpc(player, npc);
-		EventHooks.onNPCDialog(npc, player, dialog.id, dialog);
+		EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog);
 	}
 	public static void runCommand(EntityPlayer player, String name, String command){
         runCommand(player, name, command, player);
