@@ -113,7 +113,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		if(dialog == null)
 			return;
 
-		NoppesUtilServer.openDialog(player, new EntityDialogNpc(this.player.worldObj), dialog);
+		NoppesUtilServer.openDialog(player, new EntityDialogNpc(this.player.worldObj), dialog, 0);
 	}
 	
 	public boolean hasReadDialog(int id){

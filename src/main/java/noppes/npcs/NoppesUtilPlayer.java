@@ -271,7 +271,7 @@ public class NoppesUtilPlayer {
     			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
     	}
     	else if(option.optionType == EnumOptionType.DialogOption){
-    		NoppesUtilServer.openDialog(player, npc, option.getDialog());
+    		NoppesUtilServer.openDialog(player, npc, option.getDialog(), optionId+1);
     	}
     	else if(option.optionType == EnumOptionType.CommandBlock){
 			Server.sendData(player, EnumPacketClient.GUI_CLOSE);

@@ -56,6 +56,7 @@ public class EventHooks {
 
         noppes.npcs.scripted.event.NpcEvent.InitEvent event = new noppes.npcs.scripted.event.NpcEvent.InitEvent(npc.wrappedNPC);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.INIT, event);
+        npc.script.callScript(EnumScriptType.INIT);
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
@@ -69,13 +70,13 @@ public class EventHooks {
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onNPCDialog(EntityNPCInterface npc, EntityPlayer player, int id, Dialog dialog) {
+    public static void onNPCDialog(EntityNPCInterface npc, EntityPlayer player, int dialogId, int optionId, Dialog dialog) {
         if(npc == null || npc.wrappedNPC == null)
             return;
 
-        NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, id, dialog);
+        NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG, event);
-        npc.script.callScript(EnumScriptType.DIALOG, "event", new ScriptEventDialog(), "player", player, "dialog", dialog.id);
+        npc.script.callScript(EnumScriptType.DIALOG, "event", new ScriptEventDialog(player,dialogId,optionId,dialog));
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
@@ -85,7 +86,7 @@ public class EventHooks {
 
         NpcEvent.DialogClosedEvent event = new NpcEvent.DialogClosedEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG_CLOSE, event);
-        npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "player", player, "dialog", dialogId, "option", optionId + 1);
+        npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "event", new ScriptEventDialog(player,dialogId,optionId,dialog));
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
@@ -106,7 +107,7 @@ public class EventHooks {
 
         NpcEvent.MeleeAttackEvent event = new NpcEvent.MeleeAttackEvent(npc.wrappedNPC,damage,target);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.ATTACK_MELEE, event);
-        boolean result = npc.script.callScript(EnumScriptType.ATTACK, "event", event, "target", target);
+        boolean result = npc.script.callScript(EnumScriptType.ATTACK, "event", new ScriptEventAttack(damage,target,false), "target", target);
         WrapperNpcAPI.EVENT_BUS.post(event);
         return result;
     }
@@ -117,7 +118,7 @@ public class EventHooks {
 
         NpcEvent.RangedLaunchedEvent event = new NpcEvent.RangedLaunchedEvent(npc.wrappedNPC,damage,target);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.RANGED_LAUNCHED, event);
-        boolean result = npc.script.callScript(EnumScriptType.ATTACK, "event", event, "target", target);
+        boolean result = npc.script.callScript(EnumScriptType.ATTACK, "event", new ScriptEventAttack(damage,target,true), "target", target);
         WrapperNpcAPI.EVENT_BUS.post(event);
         return result;
     }
@@ -138,7 +139,7 @@ public class EventHooks {
 
         NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(npc.wrappedNPC,target);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.TARGET, event);
-        boolean result = npc.script.callScript(EnumScriptType.TARGET, "event", event);
+        boolean result = npc.script.callScript(EnumScriptType.TARGET, "event", new ScriptEventTarget(target));
         WrapperNpcAPI.EVENT_BUS.post(event);
         return result;
     }
