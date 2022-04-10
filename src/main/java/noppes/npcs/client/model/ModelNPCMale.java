@@ -28,10 +28,15 @@ public class ModelNPCMale extends ModelBiped
         init(f, 0.0F);
     }
 
-    public ModelNPCMale(float f, boolean arms)
+    public ModelNPCMale(float f, boolean alex, boolean fakeSteve)
     {
         super(f, 0.0F, 64, 64);
-        init(f, 0.0F, arms);
+        if(fakeSteve){
+            init(f, 0.0F);
+        }
+        else{
+            init(f, 0.0F, alex);
+        }
     }
 
     @Override

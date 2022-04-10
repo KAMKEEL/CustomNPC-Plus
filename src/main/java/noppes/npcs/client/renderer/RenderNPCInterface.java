@@ -293,7 +293,6 @@ public class RenderNPCInterface extends RenderLiving{
 					for(byte b : hash){
 						sb.append(String.format("%02x", b&0xff));
 					}
-					// SKIN CHANGE
 					if(npc.display.skinType == 2){
 						npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
 						loadSkin(null, npc.textureLocation, npc.display.url, false);

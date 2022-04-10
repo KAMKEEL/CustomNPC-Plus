@@ -4,6 +4,7 @@ import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
 import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -11,7 +12,6 @@ import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.init.Items;
 import net.minecraft.item.*;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
@@ -23,8 +23,6 @@ import noppes.npcs.client.model.ModelNPCMale;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.items.ItemClaw;
-import noppes.npcs.items.ItemShield;
 
 import org.lwjgl.opengl.GL11;
 
@@ -36,8 +34,9 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmor;
 
     protected final ModelNPCMale originalBipedMain;
-    protected final ModelMPM steve = new ModelMPM(0, false);
-    protected final ModelMPM alex = new ModelMPM(0, true);
+    protected final static ModelMPM steve32fake = new ModelMPM(0, true);
+    protected final static ModelMPM steve64 = new ModelMPM(0, false, false);
+    protected final static ModelMPM alex = new ModelMPM(0, true, false);
 
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
@@ -113,14 +112,14 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     public void renderPlayer(EntityNPCInterface npc, double d, double d1, double d2, 
             float f, float f1)
     {
-        // SEEMS TO WORK FOR NOW. Keeps NPC from outsyncing with Creature Models
+        // SEEMS TO WORK FOR NOW. Keeps NPC from out-syncing with Creature Models
         if(npc instanceof EntityCustomNpc){
             EntityCustomNpc test = (EntityCustomNpc) npc;
             if(test.modelData.entityClass == null){
                 int modelVal = npc.display.modelType;
                 if(modelVal ==  1){
-                    this.mainModel = steve;
-                    this.modelBipedMain = steve;
+                    this.mainModel = steve64;
+                    this.modelBipedMain = steve64;
                 }
                 else if(modelVal ==  2){
                     this.mainModel = alex;
