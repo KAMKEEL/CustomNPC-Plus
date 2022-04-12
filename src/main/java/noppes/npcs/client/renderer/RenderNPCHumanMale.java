@@ -34,9 +34,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected ModelNPCMale modelArmor;
 
     protected final ModelNPCMale originalBipedMain;
-    protected final static ModelMPM steve32fake = new ModelMPM(0, true);
-    protected final static ModelMPM steve64 = new ModelMPM(0, false, false);
-    protected final static ModelMPM alex = new ModelMPM(0, true, false);
+    protected final static ModelMPM steve64 = new ModelMPM(0, false);
+    protected final static ModelMPM alex = new ModelMPM(0, true);
 
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
@@ -112,7 +111,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     public void renderPlayer(EntityNPCInterface npc, double d, double d1, double d2, 
             float f, float f1)
     {
-        // SEEMS TO WORK FOR NOW. Keeps NPC from out-syncing with Creature Models
         if(npc instanceof EntityCustomNpc){
             EntityCustomNpc test = (EntityCustomNpc) npc;
             if(test.modelData.entityClass == null){
