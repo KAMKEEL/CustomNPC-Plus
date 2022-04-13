@@ -17,7 +17,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.5.2"
+version = "1.5.3"
 group= "com.yourname.modid" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -34,6 +34,16 @@ configurations {
     compile.extendsFrom shade
 }
 
+// List of all supported OS for zstd compression (This is include only for anyone which is not using the default compression)
+def supportedOS = [
+        "linux_amd64",
+        "linux_i386",
+        "win_amd64",
+        "win_x86",
+        "darwin_x86_64",
+        "darwin_aarch64"
+]
+
 dependencies {
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
@@ -47,7 +57,12 @@ dependencies {
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-    shade 'com.github.luben:zstd-jni:1.5.2-2'
+//    shade 'com.github.luben:zstd-jni:1.5.2-2' - Remove almost implementations of zstd
+
+    for (os in supportedOS) {
+        shade ("com.github.luben:zstd-jni:1.5.2-2:${os}")
+    }
+
 }
 
 processResources

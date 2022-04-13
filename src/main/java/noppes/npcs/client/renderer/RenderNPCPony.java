@@ -219,7 +219,6 @@ public class RenderNPCPony extends RenderNPCInterface
             float f4 = 0.375F * f;
             GL11.glScalef(f4, -f4, f4);
         } else
-            // CHANGE HERE
         if(itemstack.getItem() instanceof ItemBow)
         {
             GL11.glTranslatef(0.0F, 0.125F, 0.3125F);

@@ -1,4 +1,4 @@
-package me.luizotavio.compressor;
+package luizotavio.compressor;
 
 import com.github.luben.zstd.Zstd;
 import net.minecraft.nbt.CompressedStreamTools;

@@ -35,9 +35,6 @@ public class ModelPartData {
 		type = compound.getByte("Type");
 		color = compound.getInteger("Color");
 		texture = compound.getString("Texture");
-		if(texture.contains("moreplayermodels:textures")){
-			texture = texture.replace("moreplayermodels:textures", "customnpcs:textures/parts");
-		}
 		playerTexture = compound.getBoolean("PlayerTexture");
 		location = null;
 	}
