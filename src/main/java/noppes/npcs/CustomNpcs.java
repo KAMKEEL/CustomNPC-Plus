@@ -31,7 +31,7 @@ import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.4")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6-beta")
 public class CustomNpcs {
 
     @ConfigProp(info = "Disable Chat Bubbles")
