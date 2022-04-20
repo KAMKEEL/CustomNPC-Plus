@@ -37,7 +37,7 @@ import foxz.commandhelper.permissions.PlayerOnly;
 @Command(
         name = "noppes",
         desc = "noppes root command",
-        sub = {CmdClone.class, CmdScript.class, CmdQuest.class, CmdDialog.class, CmdConfig.class, CmdCompressor.class}
+        sub = {CmdClone.class, CmdScript.class, CmdQuest.class, CmdDialog.class, CmdConfig.class}
 )
 public class CmdNoppes extends ChMcLogger {
 
