@@ -76,7 +76,10 @@ public class EventHooks {
 
         NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG, event);
-        npc.script.callScript(EnumScriptType.DIALOG, "event", new ScriptEventDialog(player,dialogId,optionId,dialog));
+
+        ScriptEventDialog npcEvent = new ScriptEventDialog(player,dialogId,optionId,dialog);
+        npc.script.callScript(EnumScriptType.DIALOG, "event", npcEvent, "player", npcEvent.getPlayer(), "dialog", npcEvent.getDialogId(), "option", npcEvent.getOptionId(), "dialogObj", npcEvent.getDialog());
+
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
@@ -86,7 +89,10 @@ public class EventHooks {
 
         NpcEvent.DialogClosedEvent event = new NpcEvent.DialogClosedEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG_CLOSE, event);
-        npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "event", new ScriptEventDialog(player,dialogId,optionId,dialog));
+
+        ScriptEventDialog npcEvent = new ScriptEventDialog(player,dialogId,optionId,dialog);
+        npc.script.callScript(EnumScriptType.DIALOG_CLOSE, "event", npcEvent, "player", npcEvent.getPlayer(), "dialog", npcEvent.getDialogId(), "option", npcEvent.getOptionId(), "dialogObj", npcEvent.getDialog());
+
         WrapperNpcAPI.EVENT_BUS.post(event);
     }
 

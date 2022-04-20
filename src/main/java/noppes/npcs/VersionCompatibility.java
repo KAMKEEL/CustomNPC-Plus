@@ -12,11 +12,22 @@ import noppes.npcs.controllers.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class VersionCompatibility {
-	public static int ModRev = 17;
+	public static int ModRev = 18;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
 			return;
+		if(npc.npcVersion < 18){
+
+			// Fix 64-Texture (Reorganization)
+
+			// Fix CloakTexture (Reorganization)
+			String cloakTexture = compound.getString("CloakTexture");
+			cloakTexture = cloakTexture.replace("/cloak/Daybreak/", "/cloak/Guilds/Daybreak/");
+			cloakTexture = cloakTexture.replace("/cloak/Created/", "/cloak/Extras/");
+			cloakTexture = cloakTexture.replace("/cloak/Color Capes/", "/cloak/Color/");
+			compound.setString("CloakTexture", cloakTexture);
+		}
 		if(npc.npcVersion < 17){
 			// Fix DialogDarkenScreen
 			if(compound.hasKey("DialogDarkenScreen")){

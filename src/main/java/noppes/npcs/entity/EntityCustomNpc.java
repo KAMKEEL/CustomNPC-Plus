@@ -10,9 +10,6 @@ import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.EntityUtil;
 
-// FLY CHANGE
-// extends EntityNPCInterface
-// extends EntityNPCFlying
 public class EntityCustomNpc extends EntityNPCFlying {
 	public ModelData modelData = new ModelData();
 

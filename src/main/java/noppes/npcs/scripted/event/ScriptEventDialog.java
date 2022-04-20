@@ -6,19 +6,19 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.IPlayer;
 
 public class ScriptEventDialog extends ScriptEvent{
-	public EntityPlayer player;
+	public IPlayer player;
 	public int dialog;
 	public int option;
 	public Dialog dialogObj;
 
 	public ScriptEventDialog(EntityPlayer player, int dialog, int option, Dialog dialogObj){
-		this.player = player;
+		this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
 		this.dialog = dialog;
 		this.option = option;
 		this.dialogObj = dialogObj;
 	}
 
-	public EntityPlayer getPlayer() {
+	public IPlayer getPlayer() {
 		return player;
 	}
 
