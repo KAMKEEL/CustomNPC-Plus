@@ -360,6 +360,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public void setRotation(float rotationYaw, float rotationPitch){
 		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
 	}
+
+	public void swingHand(){
+		NoppesUtilPlayer.swingPlayerArm(player);
+	}
 	
 	/**
 	 * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements

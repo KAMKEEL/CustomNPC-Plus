@@ -124,6 +124,10 @@ public class NoppesUtilPlayer {
 		}
 		player.worldObj.updateEntityWithOptionalForce(player, false);
 	}
+
+	public static void swingPlayerArm(EntityPlayerMP player){
+		Server.sendData(player, EnumPacketClient.SWING_PLAYER_ARM);
+	}
 	
 	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
     	ItemStack currency = currencyInv.getStackInSlot(0);

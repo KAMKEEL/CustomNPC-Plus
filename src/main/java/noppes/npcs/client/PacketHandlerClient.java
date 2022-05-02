@@ -270,5 +270,8 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			int id = buffer.readInt();
 			Client.customOverlays.remove(id);
 		}
+		else if(type == EnumPacketClient.SWING_PLAYER_ARM){
+			Minecraft.getMinecraft().thePlayer.swingItem();
+		}
 	}
 }
