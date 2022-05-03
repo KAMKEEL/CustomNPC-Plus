@@ -25,6 +25,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 public class ModelMPM extends ModelNPCMale{
 	private ModelPartInterface wings;
@@ -65,13 +66,10 @@ public class ModelMPM extends ModelNPCMale{
 	public boolean isArmor;
 	public float alpha = 1;
 
-	// Check Legacy Code for Old Version
-
-	// Updated False = 64x32 Skin
 	// Steve 64x64 and Alex 64x64
-	public ModelMPM(float par1, boolean arms) {
+	public ModelMPM(float par1, boolean alex) {
 
-		super(par1, arms);
+		super(par1, alex);
 		isArmor = par1 > 0;
 		float par2 = 0;
 
@@ -101,7 +99,7 @@ public class ModelMPM extends ModelNPCMale{
 		// this.bipedBodywear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
 		// Steve 64x64 Model or Alex 64x64 Model
-		if (arms){
+		if (alex){
 			// Alex Version
 			this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
 			this.bipedRightArm.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1);

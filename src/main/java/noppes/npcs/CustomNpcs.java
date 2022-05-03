@@ -10,7 +10,6 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
-import luizotavio.compressor.executor.IOExecutor;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -31,21 +30,14 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import java.io.File;
 import java.util.Set;
-import java.util.concurrent.Executors;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.3")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.5.4")
 public class CustomNpcs {
 
     @ConfigProp(info = "Disable Chat Bubbles")
     public static boolean EnableChatBubbles = true;
 
     private static int NewEntityStartId = 0;
-
-    @ConfigProp(info = "*BACKUP BEFORE CHANGING* File Type used with PlayerData. Converting files may reduce lag. To convert existing files: /noppes compressor update [<filename>|all] [json|zstd]")
-    public static String CompressorType = "json";
-
-    @ConfigProp(info = "The size of IO executors used for compression and decompression. This is the number of threads used for compression and decompression. If you are experiencing issues with the server lagging/crashing, try changing this to a higher number.")
-    public static int CompressorThreads = 2;
 
     @ConfigProp(info = "Enables/Disables ALL scripting. You can still see and write code in the scripter, but these scripts won't run. True by default")
     public static boolean ScriptingEnabled = true;
@@ -216,13 +208,6 @@ public class CustomNpcs {
         registerNpc(EntityNPCEnderman.class, "npcEnderman");
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
-
-        IOExecutor.IO_EXECUTOR = Executors.newFixedThreadPool(
-            CompressorThreads,
-            new ThreadFactoryBuilder()
-                .setNameFormat("CustomNpcs-IO-%d")
-                .build()
-        );
 
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
