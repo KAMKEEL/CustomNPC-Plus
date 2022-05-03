@@ -28,10 +28,10 @@ public class ModelNPCMale extends ModelBiped
         init(f, 0.0F);
     }
 
-    public ModelNPCMale(float f, boolean arms)
+    public ModelNPCMale(float f, boolean alex)
     {
         super(f, 0.0F, 64, 64);
-        init(f, 0.0F, arms);
+        init(f, 0.0F, alex);
     }
 
     @Override

@@ -17,7 +17,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.5.3"
+version = "1.5.4"
 group= "com.yourname.modid" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -29,27 +29,12 @@ minecraft {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-configurations {
-    shade
-    compile.extendsFrom shade
-}
-
-// List of all supported OS for zstd compression (This is include only for anyone which is not using the default compression)
-def supportedOS = [
-        "linux_amd64",
-        "linux_i386",
-        "win_amd64",
-        "win_x86",
-        "darwin_x86_64",
-        "darwin_aarch64"
-]
-
 dependencies {
     // you may put jars on which you depend on in ./libs
     // or you may define them like so..
     //compile "some.group:artifact:version:classifier"
     //compile "some.group:artifact:version"
-      
+
     // real examples
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
@@ -57,44 +42,26 @@ dependencies {
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-//    shade 'com.github.luben:zstd-jni:1.5.2-2' - Remove almost implementations of zstd
-
-    for (os in supportedOS) {
-        shade ("com.github.luben:zstd-jni:1.5.2-2:${os}")
-    }
-
 }
 
 processResources
-{
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+        {
+            // this will ensure that this task is redone when the versions change.
+            inputs.property "version", project.version
+            inputs.property "mcversion", project.minecraft.version
 
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-    }
-}
+            // replace stuff in mcmod.info, nothing else
+            from(sourceSets.main.resources.srcDirs) {
+                include 'mcmod.info'
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
+                // replace version and mcversion
+                expand 'version':project.version, 'mcversion':project.minecraft.version
+            }
 
-jar {
-    configurations.shade.each { dep ->
-        from(project.zipTree(dep)) {
-            exclude 'META-INF', 'META-INF/**'
+            // copy everything else, thats not the mcmod.info
+            from(sourceSets.main.resources.srcDirs) {
+                exclude 'mcmod.info'
+            }
         }
-    }
-}
 
 sourceSets {main { output.resourcesDir = output.classesDir }}
