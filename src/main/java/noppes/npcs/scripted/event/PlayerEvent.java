@@ -41,18 +41,16 @@ public class PlayerEvent extends CustomNPCsEvent {
         public final boolean isAltPressed;
         public final boolean isShiftPressed;
         public final boolean isMetaPressed;
-        public final boolean repeatKey;
         public final boolean keyDown;
         public final int[] keysDown;
 
-        public KeyPressedEvent(IPlayer player, int key, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, boolean repeatKey, boolean keyDown, int[] heldKeys) {
+        public KeyPressedEvent(IPlayer player, int key, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, boolean keyDown, int[] heldKeys) {
             super(player);
             this.key = key;
             this.isCtrlPressed = isCtrlPressed;
             this.isAltPressed = isAltPressed;
             this.isShiftPressed = isShiftPressed;
             this.isMetaPressed = isMetaPressed;
-            this.repeatKey = repeatKey;
             this.keyDown = keyDown;
             this.keysDown = heldKeys;
         }

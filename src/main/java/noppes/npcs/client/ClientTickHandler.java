@@ -63,25 +63,26 @@ public class ClientTickHandler{
 				mc.setIngameFocus();
 		}
 
-		int key = Keyboard.getEventKey();
-		boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
-		boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
-		boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
-		boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
-		boolean repeatKey = Keyboard.isRepeatEvent();
-		boolean keyDown = Keyboard.isKeyDown(key);
+		if(!Keyboard.isRepeatEvent()) {
+			int key = Keyboard.getEventKey();
+			boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
+			boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
+			boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
+			boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
+			boolean keyDown = Keyboard.isKeyDown(key);
 
-		StringBuilder keysDownString = new StringBuilder();
-		for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
-			if (Keyboard.isKeyDown(i)) {
-				keysDownString.append(Integer.valueOf(i)).append(",");
+			StringBuilder keysDownString = new StringBuilder();
+			for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
+				if (Keyboard.isKeyDown(i)) {
+					keysDownString.append(Integer.valueOf(i)).append(",");
+				}
 			}
-		}
-		if (keysDownString.length() > 0) {//Removes last comma for later parsing
-			keysDownString.deleteCharAt(keysDownString.length() - 1);
-		}
+			if (keysDownString.length() > 0) {//Removes last comma for later parsing
+				keysDownString.deleteCharAt(keysDownString.length() - 1);
+			}
 
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, new Object[]{Integer.valueOf(key), Boolean.valueOf(isCtrlPressed), Boolean.valueOf(isShiftPressed), Boolean.valueOf(isAltPressed), Boolean.valueOf(isMetaPressed), Boolean.valueOf(repeatKey), Boolean.valueOf(keyDown), keysDownString.toString()});
+			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, new Object[]{Integer.valueOf(key), Boolean.valueOf(isCtrlPressed), Boolean.valueOf(isShiftPressed), Boolean.valueOf(isAltPressed), Boolean.valueOf(isMetaPressed), Boolean.valueOf(keyDown), keysDownString.toString()});
+		}
 	}
 
 	private boolean isIgnoredKey(int key) {
