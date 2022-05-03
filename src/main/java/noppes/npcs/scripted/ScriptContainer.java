@@ -6,11 +6,13 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.IItemStack;
 
@@ -86,5 +88,17 @@ public class ScriptContainer implements IContainer {
 
     public boolean isCustomGUI() {
         return this.container instanceof ContainerCustomGui;
+    }
+
+    public void detectAndSendChanges() {
+        container.detectAndSendChanges();
+    }
+
+    public void putStackInSlot(int slot, ScriptItemStack itemStack){
+        container.putStackInSlot(slot,itemStack.getMCItemStack());
+    }
+
+    public boolean isPlayerNotUsingContainer(ScriptPlayer player){
+        return container.isPlayerNotUsingContainer((EntityPlayerMP) player.getMCEntity());
     }
 }

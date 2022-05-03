@@ -5,8 +5,11 @@
 
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 
 public interface IContainer {
     int getSize();
@@ -24,4 +27,10 @@ public interface IContainer {
     IItemStack[] getItems();
 
     boolean isCustomGUI();
+
+    void detectAndSendChanges();
+
+    void putStackInSlot(int slot, ScriptItemStack itemStack);
+
+    boolean isPlayerNotUsingContainer(ScriptPlayer player);
 }
