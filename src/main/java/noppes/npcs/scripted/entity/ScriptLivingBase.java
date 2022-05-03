@@ -117,6 +117,10 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void swingHand(){
 		entity.swingItem();
 	}
+
+	public String getLookVec(){
+		return entity.getLookVec().toString();
+	}
 	
 	/**
 	 * Works the same as the <a href="http://minecraft.gamepedia.com/Commands#effect">/effect command</a>

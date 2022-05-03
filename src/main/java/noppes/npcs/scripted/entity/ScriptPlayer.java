@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -17,10 +18,7 @@ import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityDialogNpc;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptItemStack;
-import noppes.npcs.scripted.ScriptPixelmonPlayerData;
+import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
@@ -363,6 +361,34 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void swingHand(){
 		NoppesUtilPlayer.swingPlayerArm(player);
+	}
+
+	public void stopUsingItem(){
+		player.stopUsingItem();
+	}
+
+	public void clearItemInUse(){
+		player.clearItemInUse();
+	}
+
+	public void playSound(String name, float volume, float pitch){
+		player.playSound(name, volume, pitch);
+	}
+
+	public void mountEntity(Entity ridingEntity){
+		player.mountEntity(ridingEntity);
+	}
+
+	public ScriptEntity dropOneItem(boolean dropStack){
+		return new ScriptEntity(player.dropOneItem(dropStack));
+	}
+
+	public boolean canHarvestBlock(ScriptBlock block){
+		return player.canHarvestBlock(block.getMCBlock());
+	}
+
+	public boolean interactWith(ScriptEntity entity){
+		return player.interactWith(entity.getMCEntity());
 	}
 	
 	/**

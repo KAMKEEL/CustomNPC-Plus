@@ -627,6 +627,22 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.hurtResistantTime = ticks;
 	};
 
+	public void setInvisible(boolean invisible){
+		entity.setInvisible(invisible);
+	}
+
+	public void setSneaking(boolean sneaking){
+		entity.setSneaking(sneaking);
+	}
+
+	public void setSprinting(boolean sprinting){
+		entity.setSprinting(sprinting);
+	}
+
+	public String getUniqueID(){
+		return entity.getUniqueID().toString();
+	}
+
 	public boolean hasCollided() {
 		return entity.isCollided;
 	}
