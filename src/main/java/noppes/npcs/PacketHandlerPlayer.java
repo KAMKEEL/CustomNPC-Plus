@@ -69,6 +69,7 @@ public class PacketHandlerPlayer{
 			boolean isShiftPressed = buffer.readBoolean();
 			boolean isAltPressed = buffer.readBoolean();
 			boolean isMetaPressed = buffer.readBoolean();
+			boolean repeatKey = buffer.readBoolean();
 			boolean buttonDown = buffer.readBoolean();
 
 			String ints = Server.readString(buffer);
@@ -88,7 +89,7 @@ public class PacketHandlerPlayer{
 				keysDown = new int[0];
 			}
 
-			EventHooks.onPlayerKeyPressed(player, button, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, buttonDown, keysDown);
+			EventHooks.onPlayerKeyPressed(player, button, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, repeatKey, buttonDown, keysDown);
 		}
 		else if(type == EnumPlayerPacket.MouseClicked) {
 			if(ScriptController.Instance.languages.isEmpty()) {
