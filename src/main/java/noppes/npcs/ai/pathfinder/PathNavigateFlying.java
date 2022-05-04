@@ -118,7 +118,7 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public FlyPathEntity getPathToXYZ(double p_75488_1_, double p_75488_3_, double p_75488_5_)
     {
-        return !this.canNavigate() ? null : this.getEntityPathToXYZ(this.theEntity, MathHelper.floor_double(p_75488_1_), (int)p_75488_3_, MathHelper.floor_double(p_75488_5_), this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
+        return this.getEntityPathToXYZ(this.theEntity, MathHelper.floor_double(p_75488_1_), (int)p_75488_3_, MathHelper.floor_double(p_75488_5_), this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
     }
 
     /**
@@ -135,7 +135,7 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public FlyPathEntity getPathToEntityLiving(Entity p_75494_1_)
     {
-        return !this.canNavigate() ? null : this.getPathEntityToEntity(this.theEntity, p_75494_1_, this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
+        return this.getPathEntityToEntity(this.theEntity, p_75494_1_, this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
     }
 
     /**
@@ -202,10 +202,7 @@ public class PathNavigateFlying extends PathNavigate {
 
         if (!this.noPath())
         {
-            if (this.canNavigate())
-            {
-                this.pathFollow();
-            }
+            this.pathFollow();
 
             if (!this.noPath())
             {
@@ -223,15 +220,6 @@ public class PathNavigateFlying extends PathNavigate {
     {
         Vec3 vec3 = this.getEntityPosition();
         int i = this.currentPath.getCurrentPathLength();
-
-        for (int j = this.currentPath.getCurrentPathIndex(); j < this.currentPath.getCurrentPathLength(); ++j)
-        {
-            if (this.currentPath.getPathPointFromIndex(j).yCoord != (int)vec3.yCoord)
-            {
-                i = j;
-                break;
-            }
-        }
 
         float f = this.theEntity.width * this.theEntity.width;
         int k;
@@ -301,23 +289,6 @@ public class PathNavigateFlying extends PathNavigate {
     }
 
     /**
-     * If on ground or swimming and can swim
-     */
-    private boolean canNavigate()
-    {
-        return true;
-    }
-
-    /**
-     * Returns true when an entity could stand at a position, including solid blocks under the entire entity. Args:
-     * xOffset, yOffset, zOffset, entityXSize, entityYSize, entityZSize, originPosition, vecX, vecZ
-     */
-    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        return true;
-    }
-
-    /**
      * Trims path data from the end to the first sun covered block
      */
     private void removeSunnyPath()
@@ -343,112 +314,11 @@ public class PathNavigateFlying extends PathNavigate {
      */
     private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int p_75493_3_, int p_75493_4_, int p_75493_5_)
     {
-        int l = MathHelper.floor_double(p_75493_1_.xCoord);
-        int i1 = MathHelper.floor_double(p_75493_1_.zCoord);
         double d0 = p_75493_2_.xCoord - p_75493_1_.xCoord;
         double d1 = p_75493_2_.zCoord - p_75493_1_.zCoord;
         double d2 = d0 * d0 + d1 * d1;
 
-        if (d2 < 1.0E-8D)
-        {
-            return false;
-        }
-        else
-        {
-            double d3 = 1.0D / Math.sqrt(d2);
-            d0 *= d3;
-            d1 *= d3;
-            p_75493_3_ += 2;
-            p_75493_5_ += 2;
-
-            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, p_75493_3_, p_75493_4_, p_75493_5_, p_75493_1_, d0, d1))
-            {
-                return false;
-            }
-            else
-            {
-                p_75493_3_ -= 2;
-                p_75493_5_ -= 2;
-                double d4 = 1.0D / Math.abs(d0);
-                double d5 = 1.0D / Math.abs(d1);
-                double d6 = (double)(l * 1) - p_75493_1_.xCoord;
-                double d7 = (double)(i1 * 1) - p_75493_1_.zCoord;
-
-                if (d0 >= 0.0D)
-                {
-                    ++d6;
-                }
-
-                if (d1 >= 0.0D)
-                {
-                    ++d7;
-                }
-
-                d6 /= d0;
-                d7 /= d1;
-                int j1 = d0 < 0.0D ? -1 : 1;
-                int k1 = d1 < 0.0D ? -1 : 1;
-                int l1 = MathHelper.floor_double(p_75493_2_.xCoord);
-                int i2 = MathHelper.floor_double(p_75493_2_.zCoord);
-                int j2 = l1 - l;
-                int k2 = i2 - i1;
-
-                do
-                {
-                    if (j2 * j1 <= 0 && k2 * k1 <= 0)
-                    {
-                        return true;
-                    }
-
-                    if (d6 < d7)
-                    {
-                        d6 += d4;
-                        l += j1;
-                        j2 = l1 - l;
-                    }
-                    else
-                    {
-                        d7 += d5;
-                        i1 += k1;
-                        k2 = i2 - i1;
-                    }
-                }
-                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, p_75493_3_, p_75493_4_, p_75493_5_, p_75493_1_, d0, d1));
-
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Returns true if an entity does not collide with any solid blocks at the position. Args: xOffset, yOffset,
-     * zOffset, entityXSize, entityYSize, entityZSize, originPosition, vecX, vecZ
-     */
-    private boolean isPositionClear(int p_75496_1_, int p_75496_2_, int p_75496_3_, int p_75496_4_, int p_75496_5_, int p_75496_6_, Vec3 p_75496_7_, double p_75496_8_, double p_75496_10_)
-    {
-        for (int k1 = p_75496_1_; k1 < p_75496_1_ + p_75496_4_; ++k1)
-        {
-            for (int l1 = p_75496_2_; l1 < p_75496_2_ + p_75496_5_; ++l1)
-            {
-                for (int i2 = p_75496_3_; i2 < p_75496_3_ + p_75496_6_; ++i2)
-                {
-                    double d2 = (double)k1 + 0.5D - p_75496_7_.xCoord;
-                    double d3 = (double)i2 + 0.5D - p_75496_7_.zCoord;
-
-                    if (d2 * p_75496_8_ + d3 * p_75496_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(k1, l1, i2);
-
-                        if (!block.getBlocksMovement(this.worldObj, k1, l1, i2))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
+        return !(d2 < 1.0E-8D);
     }
 
     public FlyPathEntity getPathEntityToEntity(Entity p_72865_1_, Entity p_72865_2_, float p_72865_3_, boolean p_72865_4_, boolean p_72865_5_, boolean p_72865_6_, boolean p_72865_7_)

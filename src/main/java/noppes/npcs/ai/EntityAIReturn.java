@@ -29,8 +29,12 @@ public class EntityAIReturn extends EntityAIBase
     /**
      * Returns whether the EntityAIBase should begin execution.
      */
-    public boolean shouldExecute(){
-    	if(npc.hasOwner() || !npc.ai.returnToStart || npc.isKilled() || !npc.getNavigator().noPath() || npc.isInteracting()){
+    public boolean shouldExecute() {
+		if (npc.getNavigator().noPath() || (!npc.isAttacking() && wasAttacked)){
+			return true;
+		}
+
+    	if(npc.hasOwner() || !npc.ai.returnToStart || npc.isKilled() || npc.isInteracting()){
     		return false;
     	}
     	
@@ -51,9 +55,6 @@ public class EntityAIReturn extends EntityAIBase
 	    		preAttackPos = new double[]{npc.posX, npc.posY, npc.posZ};
     		}
     		return false;
-    	}
-    	if(!npc.isAttacking() && wasAttacked){
-    		return true;
     	}
 
     	if(npc.ai.movingType == EnumMovingType.MovingPath && npc.ai.getDistanceSqToPathPoint() < CustomNpcs.NpcNavRange * CustomNpcs.NpcNavRange)

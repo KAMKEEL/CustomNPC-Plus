@@ -29,10 +29,10 @@ public class FlyingMoveHelper extends EntityMoveHelper{
         if (this.update) {
             this.update = false;
 
-            double speed = this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue() * this.entity.ai.flySpeed;
+            double speed = this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
 
             double d0 = this.posX - this.entity.posX;
-            double d1 = this.posY - MathHelper.floor_double(this.entity.boundingBox.minY + 0.05D);
+            double d1 = this.posY - this.entity.posY;//MathHelper.floor_double(this.entity.boundingBox.minY + 0.05D);
             double d2 = this.posZ - this.entity.posZ;
             double d4 = d0 * d0 + d1 * d1 + d2 * d2;
             double d5 = MathHelper.sqrt_double(d4);
@@ -48,17 +48,17 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             }
 
             if (this.entity.hurtTime == 0 && d4 > 0.5D) {
-                this.entity.motionX += (d0 / d5 * speed - this.entity.motionX) * speed;
-                this.entity.motionZ += (d2 / d5 * speed - this.entity.motionZ) * speed;
+                this.entity.motionX += (speed * (d0 / d5) - this.entity.motionX) * speed;
+                this.entity.motionZ += (speed * (d2 / d5) - this.entity.motionZ) * speed;
 
                 if (heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit) {
-                    this.entity.motionY += (d1 / d5 * speed - this.entity.motionY) * speed;
+                    this.entity.motionY += ((speed + this.entity.ai.flySpeed/10.0D + 0.05) * (d1 / d5) - this.entity.motionY) * (speed + this.entity.ai.flySpeed/10.0D + 0.05);
                 }
 
                 this.entity.velocityChanged = true;
             }
 
-            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),18.0F);
+            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),15.0F);
         }
     }
 

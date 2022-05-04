@@ -232,7 +232,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public int getMaxSafePointTries()
 	{
-		return 5;
+		return 10;
 	}
 
     @Override
@@ -426,13 +426,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	protected void updateAITasks()
 	{
+		this.getNavigator().onUpdateNavigation();
+		this.getMoveHelper().onUpdateMoveHelper();
+
 		try {
 			super.updateAITasks();
 		} catch (ConcurrentModificationException ignored){
 		}
-
-		this.getNavigator().onUpdateNavigation();
-		this.getMoveHelper().onUpdateMoveHelper();
 	}
 	
 	public void addInteract(EntityLivingBase entity){
@@ -631,7 +631,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		if (canFly()) {
 			this.getNavigator().setCanSwim(true);
-			this.tasks.addTask(0, new EntityAISwimming(this));
 		} else {
 			this.tasks.addTask(0, new EntityAIWaterNav(this));
 		}
