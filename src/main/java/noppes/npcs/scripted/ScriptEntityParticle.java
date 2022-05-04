@@ -33,6 +33,8 @@ public class ScriptEntityParticle {
     public float rotationZRate = 0.0F;
     public int rotationZRateStart = 0;
 
+    public boolean facePlayer = true;
+
     public ScriptEntityParticle(String directory){
         this.directory = directory;
     }
@@ -47,9 +49,13 @@ public class ScriptEntityParticle {
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
+                facePlayer,
                 entityID
         );
     }
+
+    public boolean getFacePlayer() { return facePlayer; }
+    public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
 
     public String getDirectory() {
         return directory;

@@ -44,6 +44,8 @@ public class EntityCustomFX extends EntityFX {
     public float rotationZRate = 0.0F;
     public int rotationZRateStart = 0;
 
+    public boolean facePlayer = true;
+
 	public EntityCustomFX(Entity entity, String directory, int HEXColor, double x, double y, double z,
                           double motionX, double motionY, double motionZ, float gravity,
                           float scale1, float scale2, float scaleRate, int scaleRateStart,
@@ -51,7 +53,7 @@ public class EntityCustomFX extends EntityFX {
                           float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
                           float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
                           float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-                          int age) {
+                          int age, boolean facePlayer) {
 		super(entity.worldObj, x, y, z, motionX, motionY, motionZ);
 
         this.scale1 = scale1;
@@ -116,6 +118,8 @@ public class EntityCustomFX extends EntityFX {
         }
 
         location = new ResourceLocation(directory);
+
+        this.facePlayer = facePlayer;
 	}
 
 	@Override
@@ -178,16 +182,29 @@ public class EntityCustomFX extends EntityFX {
             double yaw = (player.rotationYaw/180)*Math.PI;
             double pitch = (player.rotationPitch/180)*Math.PI;
 
-            if(Math.abs(rotationX%360) >= 90 && Math.abs(rotationX%360) < 270) {
-                rotationX += 180*Math.signum(rotationX);
-            }
-            if(Math.abs(rotationY%360) >= 90 && Math.abs(rotationY%360) < 270) {
-                rotationY += 180*Math.signum(rotationY);
-            }
+            if(facePlayer) {
+                if (Math.abs(rotationX % 360) >= 90 && Math.abs(rotationX % 360) < 270) {
+                    rotationX += 180 * Math.signum(rotationX);
+                }
+                if (Math.abs(rotationY % 360) >= 90 && Math.abs(rotationY % 360) < 270) {
+                    rotationY += 180 * Math.signum(rotationY);
+                }
 
-            GL11.glRotated(rotationX, Math.cos(yaw)*Math.cos(pitch),0.0,Math.sin(yaw)*Math.cos(pitch));
-            GL11.glRotated(rotationY, -Math.sin(yaw)*Math.sin(pitch), Math.cos(pitch), Math.cos(yaw)*Math.sin(pitch));
-            GL11.glRotated(rotationZ, Math.sin(yaw)*Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw)*Math.cos(pitch));
+                GL11.glRotated(rotationX, Math.cos(yaw) * Math.cos(pitch), 0.0, Math.sin(yaw) * Math.cos(pitch));
+                GL11.glRotated(rotationY, -Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch));
+                GL11.glRotated(rotationZ, Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+            } else {
+                GL11.glRotated(player.rotationYaw % 360, 0.0, 1.0, 0.0);
+                GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
+                GL11.glRotated(rotationX, Math.cos(yaw), 0.0, Math.sin(yaw));
+                GL11.glRotated(rotationZ, Math.sin(yaw), 0.0, -Math.cos(yaw));
+                GL11.glRotated((90 - player.rotationPitch), Math.cos(yaw), 0.0, Math.sin(yaw));
+            }
+            /*
+            if(Minecraft.getMinecraft().currentScreen == null){
+                System.out.println();
+            }
+             */
 
             tessellator.startDrawingQuads();
             tessellator.setBrightness(240);

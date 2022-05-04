@@ -320,6 +320,7 @@ public class NoppesUtilServer {
 											 float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
 											 float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
 											 float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
+											 boolean facePlayer,
 											 int entityID
 	){
 		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE,
@@ -331,6 +332,7 @@ public class NoppesUtilServer {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
+				facePlayer,
 				entityID
 		);
 	}
