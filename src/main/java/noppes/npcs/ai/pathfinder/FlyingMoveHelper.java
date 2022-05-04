@@ -30,9 +30,10 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             this.update = false;
 
             double speed = this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
+            double verticalSpeed = this.speed * this.entity.ai.flySpeed/8.0D;
 
             double d0 = this.posX - this.entity.posX;
-            double d1 = this.posY - this.entity.posY;//MathHelper.floor_double(this.entity.boundingBox.minY + 0.05D);
+            double d1 = this.posY - this.entity.posY;
             double d2 = this.posZ - this.entity.posZ;
             double d4 = d0 * d0 + d1 * d1 + d2 * d2;
             double d5 = MathHelper.sqrt_double(d4);
@@ -52,7 +53,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
                 this.entity.motionZ += (speed * (d2 / d5) - this.entity.motionZ) * speed;
 
                 if (heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit) {
-                    this.entity.motionY += ((speed + this.entity.ai.flySpeed/10.0D + 0.05) * (d1 / d5) - this.entity.motionY) * (speed + this.entity.ai.flySpeed/10.0D + 0.05);
+                    this.entity.motionY = verticalSpeed * (d1 / d5);
                 }
 
                 this.entity.velocityChanged = true;
