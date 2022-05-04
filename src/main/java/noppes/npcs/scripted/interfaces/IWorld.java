@@ -1,5 +1,7 @@
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -18,6 +20,8 @@ public interface IWorld {
      */
     public long getTotalTime();
 
+    boolean areAllPlayersAsleep();
+
     /**
      * @param x World position x
      * @param y World position y
@@ -25,6 +29,66 @@ public interface IWorld {
      * @return The block at the given position. Returns null if there isn't a block
      */
     public IBlock getBlock(int x, int y, int z);
+
+    IBlock getTopBlock(int x, int z);
+
+    public boolean isBlockFreezable(int x, int y, int z);
+
+    public boolean isBlockFreezableNaturally(int x, int y, int z);
+
+    public boolean canBlockFreeze(int x, int y, int z, boolean adjacentToWater);
+
+    public boolean canBlockFreezeBody(int x, int y, int z, boolean adjacentToWater);
+
+    public boolean canSnowAt(int x, int y, int z, boolean checkLight);
+
+    public boolean canSnowAtBody(int x, int y, int z, boolean checkLight);
+
+    public int getHeightValue(int x, int z);
+
+    public int getChunkHeightMapMinimum(int x, int z);
+
+    public int getBlockMetadata(int x, int y, int z);
+
+    public boolean setBlockMetadataWithNotify(int x, int y, int z, int metadata, int flag);
+
+    public boolean canBlockSeeTheSky(int x, int y, int z);
+
+    public int getFullBlockLightValue(int x, int y, int z);
+
+    public int getBlockLightValue(int x, int y, int z);
+
+    public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch);
+
+    public void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch);
+
+    public ScriptEntity getEntityByID(int id);
+
+    public boolean spawnEntityInWorld(ScriptEntity entity);
+
+    public ScriptPlayer getClosestPlayerToEntity(ScriptEntity entity, double range);
+
+    public ScriptPlayer getClosestPlayer(double x, double y, double z, double range);
+
+    public ScriptPlayer getClosestVulnerablePlayerToEntity(ScriptEntity entity, double range);
+
+    public ScriptPlayer getClosestVulnerablePlayer(double x, double y, double z, double range);
+
+    public int countEntities(ScriptEntity entity);
+
+    public void setTileEntity(int x, int y, int z, ScriptTileEntity tileEntity);
+
+    public void removeTileEntity(int x, int y, int z);
+
+    public boolean isBlockFullCube(int x, int y, int z);
+
+    public long getSeed();
+
+    public void setSpawnLocation(int x, int y, int z);
+
+    public boolean canLightningStrikeAt(int x, int y, int z);
+
+    boolean isBlockHighHumidity(int x, int y, int z);
 
     /**
      * @param x World position x
@@ -55,6 +119,8 @@ public interface IWorld {
      * @return The Player with name. Null is returned when the player isnt found
      */
     public ScriptPlayer getPlayer(String name);
+
+    ScriptPlayer getPlayerByUUID(String uuid);
 
     /**
      * @param time The world time to be set

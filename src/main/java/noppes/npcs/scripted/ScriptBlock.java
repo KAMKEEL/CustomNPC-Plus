@@ -34,6 +34,7 @@ public class ScriptBlock implements IBlock {
     }
 
     protected void setTile(TileEntity tile) {
+        world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),new ScriptTileEntity(tile));
         this.tile = tile;
     }
 
@@ -110,6 +111,15 @@ public class ScriptBlock implements IBlock {
 
     public boolean hasTileEntity() {
         return this.tile != null;
+    }
+
+    public ScriptTileEntity getTileEntity() {
+        return new ScriptTileEntity(this.tile);
+    }
+
+    public void setTileEntity(ScriptTileEntity tileEntity){
+        world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),tileEntity);
+        this.tile = tileEntity.getMCTileEntity();
     }
 
     public TileEntity getMCTileEntity() {

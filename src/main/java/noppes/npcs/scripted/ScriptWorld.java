@@ -3,11 +3,13 @@ package noppes.npcs.scripted;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -29,6 +31,7 @@ import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IWorld;
+import sun.font.Script;
 
 public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
@@ -54,6 +57,10 @@ public class ScriptWorld implements IWorld {
 	public long getTotalTime(){
 		return world.getTotalWorldTime();
 	}
+
+	public boolean areAllPlayersAsleep(){
+		return world.areAllPlayersAsleep();
+	}
 	
 	/**
 	 * @param x World position x
@@ -66,6 +73,130 @@ public class ScriptWorld implements IWorld {
 		if(block == null || block.isAir(world, x, y, z))
 			return null;
 		return new ScriptBlock(world, block, new BlockPos(x,y,z));
+	}
+
+	public boolean isBlockFreezable(int x, int y, int z){
+		return world.isBlockFreezable(x,y,z);
+	}
+
+	public boolean isBlockFreezableNaturally(int x, int y, int z){
+		return world.isBlockFreezableNaturally(x,y,z);
+	}
+
+	public boolean canBlockFreeze(int x, int y, int z, boolean adjacentToWater){
+		return world.canBlockFreeze(x,y,z,adjacentToWater);
+	}
+
+	public boolean canBlockFreezeBody(int x, int y, int z, boolean adjacentToWater){
+		return world.canBlockFreezeBody(x,y,z,adjacentToWater);
+	}
+
+	public boolean canSnowAt(int x, int y, int z, boolean checkLight){
+		return world.func_147478_e(x,y,z,checkLight);
+	}
+
+	public boolean canSnowAtBody(int x, int y, int z, boolean checkLight){
+		return world.canSnowAtBody(x,y,z,checkLight);
+	}
+
+	public IBlock getTopBlock(int x, int z){
+		int y;
+		for (y = 63; !world.isAirBlock(x, y + 1, z); ++y) {;}
+		Block block = world.getBlock(x, y, z);
+
+		return new ScriptBlock(world, block, new BlockPos(x,y,z));
+	}
+
+	public int getHeightValue(int x, int z){
+		return world.getHeightValue(x,z);
+	}
+
+	public int getChunkHeightMapMinimum(int x, int z){
+		return world.getChunkHeightMapMinimum(x,z);
+	}
+
+	public int getBlockMetadata(int x, int y, int z){
+		return world.getBlockMetadata(x,y,z);
+	}
+
+	public boolean setBlockMetadataWithNotify(int x, int y, int z, int metadata, int flag){
+		return world.setBlockMetadataWithNotify(x,y,z,metadata,flag);
+	}
+
+	public boolean canBlockSeeTheSky(int x, int y, int z){
+		return world.canBlockSeeTheSky(x,y,z);
+	}
+
+	public int getFullBlockLightValue(int x, int y, int z){
+		return world.getFullBlockLightValue(x,y,z);
+	}
+
+	public int getBlockLightValue(int x, int y, int z){
+		return world.getBlockLightValue(x,y,z);
+	}
+
+	public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch){
+		world.playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
+	}
+
+	public void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch){
+		world.playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
+	}
+
+	public ScriptEntity getEntityByID(int id){
+		return (ScriptEntity) NpcAPI.Instance().getIEntity(world.getEntityByID(id));
+	}
+
+	public boolean spawnEntityInWorld(ScriptEntity entity){
+		return world.spawnEntityInWorld(entity.getMCEntity());
+	}
+
+	public ScriptPlayer getClosestPlayerToEntity(ScriptEntity entity, double range){
+		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
+	}
+
+	public ScriptPlayer getClosestPlayer(double x, double y, double z, double range){
+		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayer(x,y,z, range));
+	}
+
+	public ScriptPlayer getClosestVulnerablePlayerToEntity(ScriptEntity entity, double range){
+		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
+	}
+
+	public ScriptPlayer getClosestVulnerablePlayer(double x, double y, double z, double range){
+		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayer(x,y,z, range));
+	}
+
+	public int countEntities(ScriptEntity entity){
+		return world.countEntities(entity.getMCEntity().getClass());
+	}
+
+	public void setTileEntity(int x, int y, int z, ScriptTileEntity tileEntity){
+		world.setTileEntity(x,y,z,tileEntity.getMCTileEntity());
+	}
+
+	public void removeTileEntity(int x, int y, int z){
+		world.removeTileEntity(x,y,z);
+	}
+
+	public boolean isBlockFullCube(int x, int y, int z){
+		return world.func_147469_q(x,y,z);
+	}
+
+	public long getSeed(){
+		return world.getSeed();
+	}
+
+	public void setSpawnLocation(int x, int y, int z){
+		world.setSpawnLocation(x,y,z);
+	}
+
+	public boolean canLightningStrikeAt(int x, int y, int z){
+		return world.canLightningStrikeAt(x,y,z);
+	}
+
+	public boolean isBlockHighHumidity(int x, int y, int z){
+		return world.isBlockHighHumidity(x,y,z);
 	}
 
 	/**
@@ -129,6 +260,10 @@ public class ScriptWorld implements IWorld {
 			return null;
 		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(player);
 	}
+
+	public ScriptPlayer getPlayerByUUID(String uuid){
+		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.func_152378_a(UUID.fromString(uuid)));
+	}
 	
 	/**
 	 * @param time The world time to be set
@@ -136,7 +271,7 @@ public class ScriptWorld implements IWorld {
 	public void setTime(long time){
 		world.setWorldTime(time);
 	}
-	
+
 	/**
 	 * @return Whether or not its daytime
 	 */

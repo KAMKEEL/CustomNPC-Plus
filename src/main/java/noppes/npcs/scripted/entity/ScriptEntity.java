@@ -167,6 +167,14 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 	public void spawnParticle(ScriptEntityParticle entityParticle) { entityParticle.spawnOnEntity(this); }
 
+	public int getEntityId(){
+		return entity.getEntityId();
+	}
+
+	public String getUniqueID(){
+		return entity.getUniqueID().toString();
+	}
+
 	public double getYOffset() { return entity.getYOffset(); }
 
 	/**
@@ -637,10 +645,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public void setSprinting(boolean sprinting){
 		entity.setSprinting(sprinting);
-	}
-
-	public String getUniqueID(){
-		return entity.getUniqueID().toString();
 	}
 
 	public boolean hasCollided() {

@@ -265,6 +265,24 @@ public class WrapperNpcAPI extends NpcAPI {
         return new ScriptItemStack(new ItemStack(item, size, damage));
     }
 
+    public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch){
+        entity.getWorld().getMCWorld().playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
+    }
+
+    public void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch){
+        player.getWorld().getMCWorld().playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
+    }
+
+    public String getMOTD()
+    {
+        return MinecraftServer.getServer().getMOTD();
+    }
+
+    public void setMOTD(String motd)
+    {
+        MinecraftServer.getServer().setMOTD(motd);
+    }
+
     public ScriptEntityParticle createEntityParticle(String directory){
         return new ScriptEntityParticle(directory);
     }
