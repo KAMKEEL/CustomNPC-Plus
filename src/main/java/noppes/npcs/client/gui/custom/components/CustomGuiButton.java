@@ -53,7 +53,7 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
 
         if(texture.startsWith("https://")){
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            ITextureObject object = new ImageDownloadAlt(null, texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+            ITextureObject object = new ImageDownloadAlt(null, texture, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
             texturemanager.loadTexture(this.texture, object);
         }
     }

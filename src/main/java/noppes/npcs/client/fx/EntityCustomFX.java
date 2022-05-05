@@ -3,10 +3,15 @@ package noppes.npcs.client.fx;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.ITextureObject;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.SkinManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.ImageDownloadAlt;
+import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import org.lwjgl.opengl.GL11;
 
 public class EntityCustomFX extends EntityFX {
@@ -118,6 +123,11 @@ public class EntityCustomFX extends EntityFX {
         }
 
         location = new ResourceLocation(directory);
+        if(directory.startsWith("https://")){
+            TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+            ITextureObject object = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
+            texturemanager.loadTexture(this.location, object);
+        }
 
         this.facePlayer = facePlayer;
 	}
