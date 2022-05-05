@@ -126,70 +126,63 @@ public class EntityCustomFX extends EntityFX {
     public void renderParticle(Tessellator tessellator, float partialTick, float cosYaw, float cosPitch, float sinYaw, float sinSinPitch, float cosSinPitch)
     {
         tessellator.draw();
+
+        if(move){
+            startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
+            startY = (float)(entity.prevPosY + (entity.posY - entity.prevPosY) * (double)partialTick);
+            startZ = (float)(entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTick);
+        }
+
+        float scaleChange = this.scaleRate / (float)particleMaxAge;
+        if((this.scaleRate < 0 && particleScale+scaleChange < this.scale2) || (this.scaleRate > 0 && particleScale+scaleChange > this.scale2))
+            particleScale = this.scale2;
+        else if(particleAge >= this.scaleRateStart)
+            particleScale += scaleChange;
+
+        float alphaChange = this.alphaRate / (float)particleMaxAge;
+        if((this.alphaRate < 0 && particleAlpha+alphaChange < this.alpha2) || (this.alphaRate > 0 && particleAlpha+alphaChange > this.alpha2))
+            particleAlpha = this.alpha2;
+        else if(particleAge >= this.alphaRateStart)
+            particleAlpha += alphaChange;
+
+        float rotationXChange = this.rotationXRate / (float)particleMaxAge;
+        if((this.rotationXRate < 0 && rotationX+rotationXChange < this.rotationX2) || (this.rotationXRate > 0 && rotationX+rotationXChange > this.rotationX2))
+            rotationX = this.rotationX2;
+        else if(particleAge >= this.rotationXRateStart)
+            rotationX += rotationXChange;
+
+        float rotationYChange = this.rotationYRate / (float)particleMaxAge;
+        if((this.rotationYRate < 0 && rotationY+rotationYChange < this.rotationY2) || (this.rotationYRate > 0 && rotationY+rotationYChange > this.rotationY2))
+            rotationY = this.rotationY2;
+        else if(particleAge >= this.rotationYRateStart)
+            rotationY += rotationYChange;
+
+        float rotationZChange = this.rotationZRate / (float)particleMaxAge;
+        if((this.rotationZRate < 0 && rotationZ+rotationZChange < this.rotationZ2) || (this.rotationZRate > 0 && rotationZ+rotationZChange > this.rotationZ2))
+            rotationZ = this.rotationZ2;
+        else if(particleAge >= this.rotationZRateStart)
+            rotationZ += rotationZChange;
+
+        float u1 = 0.0f;
+        float u2 = 1.0f;
+        float v1 = 0.0f;
+        float v2 = 1.0f;
+
+        float renderScale = 0.1F * particleScale;
+
+        float posX = (float)(((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX);
+        float posY = (float)(((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY);
+        float posZ = (float)(((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ);
+
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        double yaw = (player.rotationYaw/180)*Math.PI;
+        double pitch = (player.rotationPitch/180)*Math.PI;
+
         GL11.glPushMatrix();
             ClientProxy.bindTexture(location);
-
-            if(move){
-                startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
-                startY = (float)(entity.prevPosY + (entity.posY - entity.prevPosY) * (double)partialTick);
-                startZ = (float)(entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTick);
-            }
-
-            float scaleChange = this.scaleRate / (float)particleMaxAge;
-            if((this.scaleRate < 0 && particleScale+scaleChange < this.scale2) || (this.scaleRate > 0 && particleScale+scaleChange > this.scale2))
-                particleScale = this.scale2;
-            else if(particleAge >= this.scaleRateStart)
-                particleScale += scaleChange;
-
-            float alphaChange = this.alphaRate / (float)particleMaxAge;
-            if((this.alphaRate < 0 && particleAlpha+alphaChange < this.alpha2) || (this.alphaRate > 0 && particleAlpha+alphaChange > this.alpha2))
-                particleAlpha = this.alpha2;
-            else if(particleAge >= this.alphaRateStart)
-                particleAlpha += alphaChange;
-
-            float rotationXChange = this.rotationXRate / (float)particleMaxAge;
-            if((this.rotationXRate < 0 && rotationX+rotationXChange < this.rotationX2) || (this.rotationXRate > 0 && rotationX+rotationXChange > this.rotationX2))
-                rotationX = this.rotationX2;
-            else if(particleAge >= this.rotationXRateStart)
-                rotationX += rotationXChange;
-
-            float rotationYChange = this.rotationYRate / (float)particleMaxAge;
-            if((this.rotationYRate < 0 && rotationY+rotationYChange < this.rotationY2) || (this.rotationYRate > 0 && rotationY+rotationYChange > this.rotationY2))
-                rotationY = this.rotationY2;
-            else if(particleAge >= this.rotationYRateStart)
-                rotationY += rotationYChange;
-
-            float rotationZChange = this.rotationZRate / (float)particleMaxAge;
-            if((this.rotationZRate < 0 && rotationZ+rotationZChange < this.rotationZ2) || (this.rotationZRate > 0 && rotationZ+rotationZChange > this.rotationZ2))
-                rotationZ = this.rotationZ2;
-            else if(particleAge >= this.rotationZRateStart)
-                rotationZ += rotationZChange;
-
-            float u1 = 0.0f;
-            float u2 = 1.0f;
-            float v1 = 0.0f;
-            float v2 = 1.0f;
-
-            float renderScale = 0.1F * particleScale;
-
-            float posX = (float)(((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX);
-            float posY = (float)(((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY);
-            float posZ = (float)(((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ);
-
             GL11.glTranslated((double)posX, (double)posY, (double)posZ);
 
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            double yaw = (player.rotationYaw/180)*Math.PI;
-            double pitch = (player.rotationPitch/180)*Math.PI;
-
             if(facePlayer) {
-                if (Math.abs(rotationX % 360) >= 90 && Math.abs(rotationX % 360) < 270) {
-                    rotationX += 180 * Math.signum(rotationX);
-                }
-                if (Math.abs(rotationY % 360) >= 90 && Math.abs(rotationY % 360) < 270) {
-                    rotationY += 180 * Math.signum(rotationY);
-                }
-
                 GL11.glRotated(rotationX, Math.cos(yaw) * Math.cos(pitch), 0.0, Math.sin(yaw) * Math.cos(pitch));
                 GL11.glRotated(rotationY, -Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch));
                 GL11.glRotated(rotationZ, Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
@@ -200,11 +193,6 @@ public class EntityCustomFX extends EntityFX {
                 GL11.glRotated(rotationZ, Math.sin(yaw), 0.0, -Math.cos(yaw));
                 GL11.glRotated((90 - player.rotationPitch), Math.cos(yaw), 0.0, Math.sin(yaw));
             }
-            /*
-            if(Minecraft.getMinecraft().currentScreen == null){
-                System.out.println();
-            }
-             */
 
             tessellator.startDrawingQuads();
             tessellator.setBrightness(240);
@@ -214,7 +202,33 @@ public class EntityCustomFX extends EntityFX {
             tessellator.addVertexWithUV(( - cosYaw * renderScale) + sinSinPitch * renderScale,  + cosPitch * renderScale, ( - sinYaw * renderScale) + cosSinPitch * renderScale, u2, v1);
             tessellator.addVertexWithUV( + cosYaw * renderScale + sinSinPitch * renderScale,  + cosPitch * renderScale,  + sinYaw * renderScale + cosSinPitch * renderScale,     u1, v1);
             tessellator.addVertexWithUV(( + cosYaw * renderScale) - sinSinPitch * renderScale,  - cosPitch * renderScale, ( + sinYaw * renderScale) - cosSinPitch * renderScale, u1, v2);
+            tessellator.draw();
+        GL11.glPopMatrix();
 
+        GL11.glPushMatrix();
+            ClientProxy.bindTexture(location);
+            GL11.glTranslated((double)posX, (double)posY, (double)posZ);
+
+            if(facePlayer) {
+                GL11.glRotated(rotationX, Math.cos(yaw) * Math.cos(pitch), 0.0, Math.sin(yaw) * Math.cos(pitch));
+                GL11.glRotated(180 + rotationY, -Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch));
+                GL11.glRotated(rotationZ, Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+            } else {
+                GL11.glRotated(player.rotationYaw % 360, 0.0, 1.0, 0.0);
+                GL11.glRotated(rotationY + 180, 0.0, 1.0, 0.0);
+                GL11.glRotated(180 - rotationX, Math.cos(yaw), 0.0, Math.sin(yaw));
+                GL11.glRotated(rotationZ, Math.sin(yaw), 0.0, -Math.cos(yaw));
+                GL11.glRotated((90 - player.rotationPitch), Math.cos(yaw), 0.0, Math.sin(yaw));
+            }
+
+            tessellator.startDrawingQuads();
+            tessellator.setBrightness(240);
+            tessellator.setColorOpaque_F(1, 1, 1);
+            tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
+            tessellator.addVertexWithUV( - cosYaw * renderScale - sinSinPitch * renderScale,  - cosPitch * renderScale,  - sinYaw * renderScale - cosSinPitch * renderScale,     u2, v2);
+            tessellator.addVertexWithUV(( - cosYaw * renderScale) + sinSinPitch * renderScale,  + cosPitch * renderScale, ( - sinYaw * renderScale) + cosSinPitch * renderScale, u2, v1);
+            tessellator.addVertexWithUV( + cosYaw * renderScale + sinSinPitch * renderScale,  + cosPitch * renderScale,  + sinYaw * renderScale + cosSinPitch * renderScale,     u1, v1);
+            tessellator.addVertexWithUV(( + cosYaw * renderScale) - sinSinPitch * renderScale,  - cosPitch * renderScale, ( + sinYaw * renderScale) - cosSinPitch * renderScale, u1, v2);
             tessellator.draw();
         GL11.glPopMatrix();
 
