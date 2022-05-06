@@ -210,7 +210,6 @@ public class EntityCustomFX extends EntityFX {
     {
         tessellator.draw();
         ClientProxy.bindTexture(location);
-        GL11.glDisable(GL11.GL_BLEND);
 
         if(imageDownloadAlt != null && isUrl && !gotWidthHeight){
             getURLWidthHeight();
