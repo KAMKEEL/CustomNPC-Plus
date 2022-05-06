@@ -115,6 +115,12 @@ public class NoppesUtil {
 
 		boolean facePlayer = buffer.readBoolean();
 
+		int width = buffer.readInt();
+		int height = buffer.readInt();
+		int offsetX = buffer.readInt();
+		int offsetY = buffer.readInt();
+		int animRate = buffer.readInt();
+
 		int entityID = buffer.readInt();
 
 		World worldObj = Minecraft.getMinecraft().theWorld;
@@ -133,7 +139,8 @@ public class NoppesUtil {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				maxAge, facePlayer
+				maxAge, facePlayer,
+				width, height, offsetX, offsetY, animRate
 		);
 
 		for(int i = 0; i < amount; i++){

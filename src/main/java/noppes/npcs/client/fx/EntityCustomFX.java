@@ -5,7 +5,10 @@ import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
+import net.minecraft.client.resources.data.TextureMetadataSection;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
@@ -13,6 +16,11 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import org.lwjgl.opengl.GL11;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class EntityCustomFX extends EntityFX {
     private Entity entity;
@@ -51,6 +59,19 @@ public class EntityCustomFX extends EntityFX {
 
     public boolean facePlayer = true;
 
+    private int totalWidth, totalHeight;
+    public int width, height;
+    public int offsetX, offsetY;
+
+    private int timeSinceStart;
+    public int animRate;
+    public int animPosX;
+    public int animPosY;
+
+    private ImageDownloadAlt imageDownloadAlt = null;
+    private boolean isUrl = false;
+    private boolean gotWidthHeight = false;
+
 	public EntityCustomFX(Entity entity, String directory, int HEXColor, double x, double y, double z,
                           double motionX, double motionY, double motionZ, float gravity,
                           float scale1, float scale2, float scaleRate, int scaleRateStart,
@@ -58,7 +79,7 @@ public class EntityCustomFX extends EntityFX {
                           float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
                           float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
                           float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-                          int age, boolean facePlayer) {
+                          int age, boolean facePlayer, int width, int height, int offsetX, int offsetY, int animRate) {
 		super(entity.worldObj, x, y, z, motionX, motionY, motionZ);
 
         this.scale1 = scale1;
@@ -123,19 +144,67 @@ public class EntityCustomFX extends EntityFX {
         }
 
         location = new ResourceLocation(directory);
+
+        this.width = width;
+        this.height = height;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.animRate = animRate;
+
         if(directory.startsWith("https://")){
+            isUrl = true;
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            ITextureObject object = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
-            texturemanager.loadTexture(this.location, object);
+            imageDownloadAlt = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
+            texturemanager.loadTexture(this.location, imageDownloadAlt);
+        } else {
+            try {
+                getWidthHeight();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         this.facePlayer = facePlayer;
 	}
 
-	@Override
+    @Override
+    public void onUpdate() {
+        ++this.timeSinceStart;
+
+        if (this.timeSinceStart == this.particleMaxAge)
+        {
+            this.setDead();
+        }
+
+        this.prevPosX = this.posX;
+        this.prevPosY = this.posY;
+        this.prevPosZ = this.posZ;
+
+        this.motionY -= 0.04D * (double)this.particleGravity;
+        this.moveEntity(this.motionX, this.motionY, this.motionZ);
+
+        if(animRate > 0 && timeSinceStart%animRate == 0 && timeSinceStart > 0 && gotWidthHeight){
+            animPosX += width;
+            if(animPosX + width > totalWidth) {
+                animPosX = offsetX;
+                animPosY += height;
+                if(animPosY > totalHeight) {
+                    animPosY = offsetY;
+                }
+            }
+        }
+    }
+
+    @Override
     public void renderParticle(Tessellator tessellator, float partialTick, float cosYaw, float cosPitch, float sinYaw, float sinSinPitch, float cosSinPitch)
     {
         tessellator.draw();
+        ClientProxy.bindTexture(location);
+        GL11.glDisable(GL11.GL_BLEND);
+
+        if(imageDownloadAlt != null && isUrl && !gotWidthHeight){
+            getURLWidthHeight();
+        }
 
         if(move){
             startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
@@ -173,78 +242,86 @@ public class EntityCustomFX extends EntityFX {
         else if(particleAge >= this.rotationZRateStart)
             rotationZ += rotationZChange;
 
-        float u1 = 0.0f;
-        float u2 = 1.0f;
-        float v1 = 0.0f;
-        float v2 = 1.0f;
-
-        float renderScale = 0.1F * particleScale;
-
-        float posX = (float)(((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX);
-        float posY = (float)(((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY);
-        float posZ = (float)(((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ);
-
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        double yaw = (player.rotationYaw/180)*Math.PI;
-        double pitch = (player.rotationPitch/180)*Math.PI;
-
-        GL11.glPushMatrix();
-            ClientProxy.bindTexture(location);
-            GL11.glTranslated((double)posX, (double)posY, (double)posZ);
-
-            if(facePlayer) {
-                GL11.glRotated(rotationX, Math.cos(yaw) * Math.cos(pitch), 0.0, Math.sin(yaw) * Math.cos(pitch));
-                GL11.glRotated(rotationY, -Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch));
-                GL11.glRotated(rotationZ, Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-            } else {
-                GL11.glRotated(player.rotationYaw % 360, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationX, Math.cos(yaw), 0.0, Math.sin(yaw));
-                GL11.glRotated(rotationZ, Math.sin(yaw), 0.0, -Math.cos(yaw));
-                GL11.glRotated((90 - player.rotationPitch), Math.cos(yaw), 0.0, Math.sin(yaw));
-            }
-
-            tessellator.startDrawingQuads();
-            tessellator.setBrightness(240);
-            tessellator.setColorOpaque_F(1, 1, 1);
-            tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
-            tessellator.addVertexWithUV( - cosYaw * renderScale - sinSinPitch * renderScale,  - cosPitch * renderScale,  - sinYaw * renderScale - cosSinPitch * renderScale,     u2, v2);
-            tessellator.addVertexWithUV(( - cosYaw * renderScale) + sinSinPitch * renderScale,  + cosPitch * renderScale, ( - sinYaw * renderScale) + cosSinPitch * renderScale, u2, v1);
-            tessellator.addVertexWithUV( + cosYaw * renderScale + sinSinPitch * renderScale,  + cosPitch * renderScale,  + sinYaw * renderScale + cosSinPitch * renderScale,     u1, v1);
-            tessellator.addVertexWithUV(( + cosYaw * renderScale) - sinSinPitch * renderScale,  - cosPitch * renderScale, ( + sinYaw * renderScale) - cosSinPitch * renderScale, u1, v2);
-            tessellator.draw();
-        GL11.glPopMatrix();
-
-        GL11.glPushMatrix();
-            ClientProxy.bindTexture(location);
-            GL11.glTranslated((double)posX, (double)posY, (double)posZ);
-
-            if(facePlayer) {
-                GL11.glRotated(rotationX, Math.cos(yaw) * Math.cos(pitch), 0.0, Math.sin(yaw) * Math.cos(pitch));
-                GL11.glRotated(180 + rotationY, -Math.sin(yaw) * Math.sin(pitch), Math.cos(pitch), Math.cos(yaw) * Math.sin(pitch));
-                GL11.glRotated(rotationZ, Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-            } else {
-                GL11.glRotated(player.rotationYaw % 360, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationY + 180, 0.0, 1.0, 0.0);
-                GL11.glRotated(180 - rotationX, Math.cos(yaw), 0.0, Math.sin(yaw));
-                GL11.glRotated(rotationZ, Math.sin(yaw), 0.0, -Math.cos(yaw));
-                GL11.glRotated((90 - player.rotationPitch), Math.cos(yaw), 0.0, Math.sin(yaw));
-            }
-
-            tessellator.startDrawingQuads();
-            tessellator.setBrightness(240);
-            tessellator.setColorOpaque_F(1, 1, 1);
-            tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
-            tessellator.addVertexWithUV( - cosYaw * renderScale - sinSinPitch * renderScale,  - cosPitch * renderScale,  - sinYaw * renderScale - cosSinPitch * renderScale,     u2, v2);
-            tessellator.addVertexWithUV(( - cosYaw * renderScale) + sinSinPitch * renderScale,  + cosPitch * renderScale, ( - sinYaw * renderScale) + cosSinPitch * renderScale, u2, v1);
-            tessellator.addVertexWithUV( + cosYaw * renderScale + sinSinPitch * renderScale,  + cosPitch * renderScale,  + sinYaw * renderScale + cosSinPitch * renderScale,     u1, v1);
-            tessellator.addVertexWithUV(( + cosYaw * renderScale) - sinSinPitch * renderScale,  - cosPitch * renderScale, ( + sinYaw * renderScale) - cosSinPitch * renderScale, u1, v2);
-            tessellator.draw();
-        GL11.glPopMatrix();
+        renderParticleSide(true, tessellator, partialTick);
+        renderParticleSide(false, tessellator, partialTick);
 
         GL11.glColor4f(1, 1, 1, 1.0F);
         ClientProxy.bindTexture(resource);
         tessellator.startDrawingQuads();
+    }
+
+    public void renderParticleSide(boolean front, Tessellator tessellator, float partialTick){
+        float u1 = (float)offsetX/(float)totalWidth + (float)animPosX/(float)totalWidth;
+        float u2 = u1 + (float)width/(float)totalWidth;
+        float v1 = (float)offsetY/(float)totalHeight + (float)animPosY/(float)totalHeight;
+        float v2 = v1 + (float)height/(float)totalHeight;
+
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        float renderScale = 0.1F * particleScale;
+        float posX = (float)(((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX);
+        float posY = (float)(((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY);
+        float posZ = (float)(((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ);
+
+        GL11.glPushMatrix();
+            GL11.glTranslated(posX,posY,posZ);
+            GL11.glScalef(renderScale, renderScale, renderScale);
+            if(facePlayer) {
+                GL11.glRotated(180 - player.rotationYaw, 0.0, 1.0, 0.0);
+                GL11.glRotated(-player.rotationPitch + 90, 1.0, 0.0, 0.0);
+
+                GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
+                GL11.glRotated(rotationZ, 0.0, 1.0, 0.0);
+                GL11.glRotated(rotationY + (!front ? 180 : 0), 0.0, 0.0, 1.0);
+            } else {
+                GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
+                GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
+                GL11.glRotated(rotationZ + (!front ? 180 : 0), 0.0, 0.0, 1.0);
+            }
+
+            tessellator.startDrawingQuads();
+            tessellator.setBrightness(240);
+            tessellator.setColorOpaque_F(1, 1, 1);
+            tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
+            tessellator.addVertexWithUV( (u2-u1)/2,  0,  (v2-v1)/2, u2, v2);
+            tessellator.addVertexWithUV( (u2-u1)/2,  0, -(v2-v1)/2, u2, v1);
+            tessellator.addVertexWithUV( -(u2-u1)/2,  0,  -(v2-v1)/2, u1, v1);
+            tessellator.addVertexWithUV( -(u2-u1)/2,  0, (v2-v1)/2, u1, v2);
+            tessellator.draw();
+        GL11.glPopMatrix();
+    }
+
+    public void getWidthHeight() throws IOException {
+        InputStream inputstream = null;
+
+        try {
+            IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
+            inputstream = iresource.getInputStream();
+            BufferedImage bufferedimage = ImageIO.read(inputstream);
+            gotWidthHeight = true;
+            this.totalWidth = bufferedimage.getWidth();
+            this.totalHeight = bufferedimage.getHeight();
+            correctWidthHeight();
+        } finally {
+            if (inputstream != null) {
+                inputstream.close();
+            }
+        }
+    }
+
+    public void getURLWidthHeight(){
+        if(imageDownloadAlt.getBufferedImage() != null) {
+            gotWidthHeight = true;
+            this.totalWidth = imageDownloadAlt.getBufferedImage().getWidth();
+            this.totalHeight = imageDownloadAlt.getBufferedImage().getHeight();
+            correctWidthHeight();
+        }
+    }
+
+    public void correctWidthHeight(){
+        totalWidth = Math.max(totalWidth, 1);
+        totalHeight = Math.max(totalHeight, 1);
+        this.width = width < 0 ? totalWidth : width;
+        this.height = height < 0 ? totalHeight : height;
     }
     
     public int getFXLayer(){

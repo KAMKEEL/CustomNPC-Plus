@@ -33,6 +33,10 @@ public class ScriptEntityParticle {
     public float rotationZRate = 0.0F;
     public int rotationZRateStart = 0;
 
+    public int width = -1, height = -1;
+    public int offsetX = 0, offsetY = 0;
+    public int animRate = 0;
+
     public boolean facePlayer = true;
 
     public ScriptEntityParticle(String directory){
@@ -49,10 +53,27 @@ public class ScriptEntityParticle {
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer,
+                facePlayer, width, height, offsetX, offsetY, animRate,
                 entityID
         );
     }
+
+    public void setSize(int width, int height){
+        this.width = width;
+        this.height = height;
+    }
+    public int getWidth() { return width; }
+    public int getHeight() { return height; }
+
+    public void setOffset(int offsetX, int offsetY){
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+    }
+    public int getOffsetX() { return offsetX; }
+    public int getOffsetY() { return offsetY; }
+
+    public void setAnimRate(int animRate) { this.animRate = animRate; }
+    public int getAnimRate() { return animRate; }
 
     public boolean getFacePlayer() { return facePlayer; }
     public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }

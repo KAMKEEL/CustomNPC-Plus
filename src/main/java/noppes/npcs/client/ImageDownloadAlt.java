@@ -76,6 +76,10 @@ public class ImageDownloadAlt extends SimpleTexture
         }
     }
 
+    public BufferedImage getBufferedImage(){
+        return this.bufferedImage;
+    }
+
     public void loadTexture(IResourceManager resourceManager) throws IOException
     {
         if (this.bufferedImage == null && this.textureLocation != null)
