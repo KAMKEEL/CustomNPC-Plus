@@ -24,10 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class CustomFX extends EntityFX {
-    private Entity entity = null;
+    private final Entity entity;
     private final ResourceLocation location;
     private static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
-    private boolean move = true;
     private float startX = 0, startY = 0, startZ = 0;
 
     public float scale1 = 1.0F;
@@ -209,7 +208,7 @@ public class CustomFX extends EntityFX {
             getURLWidthHeight();
         }
 
-        if(move && entity != null){
+        if(entity != null){
             startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
             startY = (float)(entity.prevPosY + (entity.posY - entity.prevPosY) * (double)partialTick);
             startZ = (float)(entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTick);
