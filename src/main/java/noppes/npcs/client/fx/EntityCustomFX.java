@@ -65,8 +65,10 @@ public class EntityCustomFX extends EntityFX {
 
     private int timeSinceStart;
     public int animRate;
-    public int animPosX;
-    public int animPosY;
+    public boolean animLoop;
+    public int animStart,animEnd;
+    private int animPosX;
+    private int animPosY;
 
     private ImageDownloadAlt imageDownloadAlt = null;
     private boolean isUrl = false;
@@ -79,7 +81,9 @@ public class EntityCustomFX extends EntityFX {
                           float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
                           float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
                           float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-                          int age, boolean facePlayer, int width, int height, int offsetX, int offsetY, int animRate) {
+                          int age, boolean facePlayer, int width, int height, int offsetX, int offsetY,
+                          int animRate, boolean animLoop, int animStart, int animEnd
+    ) {
 		super(entity.worldObj, x, y, z, motionX, motionY, motionZ);
 
         this.scale1 = scale1;
@@ -149,7 +153,13 @@ public class EntityCustomFX extends EntityFX {
         this.height = height;
         this.offsetX = offsetX;
         this.offsetY = offsetY;
+
         this.animRate = animRate;
+        this.animLoop = animLoop;
+        this.animStart = animStart;
+        this.animEnd = animEnd;
+        if(this.animEnd < this.animStart)
+            this.animEnd = this.animStart + this.particleMaxAge;
 
         if(directory.startsWith("https://")){
             isUrl = true;
@@ -183,12 +193,12 @@ public class EntityCustomFX extends EntityFX {
         this.motionY -= 0.04D * (double)this.particleGravity;
         this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
-        if(animRate > 0 && timeSinceStart%animRate == 0 && timeSinceStart > 0 && gotWidthHeight){
+        if(animRate > 0 && timeSinceStart%animRate == 0 && timeSinceStart > 0 && gotWidthHeight && timeSinceStart >= animStart && timeSinceStart <= animEnd && (animLoop || animPosY <= totalHeight)){
             animPosX += width;
-            if(animPosX + width > totalWidth) {
+            if (animPosX + width > totalWidth) {
                 animPosX = offsetX;
                 animPosY += height;
-                if(animPosY > totalHeight) {
+                if (animPosY > totalHeight && animLoop) {
                     animPosY = offsetY;
                 }
             }

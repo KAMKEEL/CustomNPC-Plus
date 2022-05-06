@@ -119,7 +119,11 @@ public class NoppesUtil {
 		int height = buffer.readInt();
 		int offsetX = buffer.readInt();
 		int offsetY = buffer.readInt();
+
 		int animRate = buffer.readInt();
+		boolean animLoop = buffer.readBoolean();
+		int animStart = buffer.readInt();
+		int animEnd = buffer.readInt();
 
 		int entityID = buffer.readInt();
 
@@ -140,7 +144,8 @@ public class NoppesUtil {
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
 				maxAge, facePlayer,
-				width, height, offsetX, offsetY, animRate
+				width, height, offsetX, offsetY,
+				animRate, animLoop, animStart, animEnd
 		);
 
 		for(int i = 0; i < amount; i++){

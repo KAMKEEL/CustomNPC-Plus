@@ -35,7 +35,10 @@ public class ScriptEntityParticle {
 
     public int width = -1, height = -1;
     public int offsetX = 0, offsetY = 0;
+
     public int animRate = 0;
+    public boolean animLoop = true;
+    public int animStart = 0, animEnd = -1;
 
     public boolean facePlayer = true;
 
@@ -53,7 +56,8 @@ public class ScriptEntityParticle {
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, width, height, offsetX, offsetY, animRate,
+                facePlayer, width, height, offsetX, offsetY,
+                animRate, animLoop, animStart, animEnd,
                 entityID
         );
     }
@@ -72,8 +76,20 @@ public class ScriptEntityParticle {
     public int getOffsetX() { return offsetX; }
     public int getOffsetY() { return offsetY; }
 
+    public void setAnim(int animRate, boolean animLoop, int animStart, int animEnd){
+        this.animRate = animRate;
+        this.animLoop = animLoop;
+        this.animStart = animStart;
+        this.animEnd = animEnd;
+    }
     public void setAnimRate(int animRate) { this.animRate = animRate; }
     public int getAnimRate() { return animRate; }
+    public void setAnimLoop(boolean animLoop) { this.animLoop = animLoop; }
+    public boolean getAnimLoop() { return animLoop; }
+    public void setAnimStart(int animStart) { this.animStart = animStart; }
+    public int getAnimStart() { return animStart; }
+    public void setAnimEnd(int animEnd) { this.animEnd = animEnd; }
+    public int getAnimEnd() { return animEnd; }
 
     public boolean getFacePlayer() { return facePlayer; }
     public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
