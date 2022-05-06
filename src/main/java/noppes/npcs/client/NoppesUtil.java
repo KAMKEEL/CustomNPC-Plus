@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
@@ -23,7 +22,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
-import noppes.npcs.client.fx.EntityCustomFX;
+import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -130,11 +129,8 @@ public class NoppesUtil {
 		World worldObj = Minecraft.getMinecraft().theWorld;
 		Entity entity = worldObj.getEntityByID(entityID);
 
-		if(entity == null)
-			return;
-
-		EntityCustomFX fx = new EntityCustomFX(
-				entity,
+		CustomFX fx = new CustomFX(
+				worldObj, entity,
 				directory, HEXcolor,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,

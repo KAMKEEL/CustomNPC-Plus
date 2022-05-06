@@ -21,7 +21,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
@@ -31,7 +30,6 @@ import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IWorld;
-import sun.font.Script;
 
 public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
@@ -335,8 +333,8 @@ public class ScriptWorld implements IWorld {
 	 * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
 	 * @return Returns ScriptEntityParticle object
 	 */
-	public ScriptEntityParticle createEntityParticle(String directory){
-		return new ScriptEntityParticle(directory);
+	public ScriptParticle createEntityParticle(String directory){
+		return new ScriptParticle(directory);
 	}
 	
 	/**

@@ -1,9 +1,6 @@
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptEntity;
@@ -175,7 +172,7 @@ public interface IWorld {
      * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
      * @return Returns ScriptEntityParticle object
      */
-    public ScriptEntityParticle createEntityParticle(String directory);
+    public ScriptParticle createEntityParticle(String directory);
 
     /**
      * @param key Get temp data for this key

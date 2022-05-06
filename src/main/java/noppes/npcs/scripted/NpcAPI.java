@@ -10,11 +10,8 @@ import java.io.File;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -91,7 +88,9 @@ public abstract class NpcAPI {
 
     public abstract ScriptItemStack createItem(String id, int damage, int size);
 
-    public abstract ScriptEntityParticle createEntityParticle(String directory);
+    public abstract ScriptParticle createParticle(String directory);
+
+    public abstract ScriptParticle createEntityParticle(String directory);
 
     public abstract int getServerTime();
 }

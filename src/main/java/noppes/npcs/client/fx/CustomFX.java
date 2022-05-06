@@ -12,6 +12,7 @@ import net.minecraft.client.resources.data.TextureMetadataSection;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.World;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
@@ -22,8 +23,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class EntityCustomFX extends EntityFX {
-    private Entity entity;
+public class CustomFX extends EntityFX {
+    private Entity entity = null;
     private final ResourceLocation location;
     private static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
     private boolean move = true;
@@ -74,17 +75,17 @@ public class EntityCustomFX extends EntityFX {
     private boolean isUrl = false;
     private boolean gotWidthHeight = false;
 
-	public EntityCustomFX(Entity entity, String directory, int HEXColor, double x, double y, double z,
-                          double motionX, double motionY, double motionZ, float gravity,
-                          float scale1, float scale2, float scaleRate, int scaleRateStart,
-                          float alpha1, float alpha2, float alphaRate, int alphaRateStart,
-                          float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
-                          float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
-                          float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-                          int age, boolean facePlayer, int width, int height, int offsetX, int offsetY,
-                          int animRate, boolean animLoop, int animStart, int animEnd
+	public CustomFX(World worldObj, Entity entity, String directory, int HEXColor, double x, double y, double z,
+                    double motionX, double motionY, double motionZ, float gravity,
+                    float scale1, float scale2, float scaleRate, int scaleRateStart,
+                    float alpha1, float alpha2, float alphaRate, int alphaRateStart,
+                    float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
+                    float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
+                    float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
+                    int age, boolean facePlayer, int width, int height, int offsetX, int offsetY,
+                    int animRate, boolean animLoop, int animStart, int animEnd
     ) {
-		super(entity.worldObj, x, y, z, motionX, motionY, motionZ);
+		super(worldObj, x, y, z, motionX, motionY, motionZ);
 
         this.scale1 = scale1;
         this.scale2 = scale2;
@@ -139,13 +140,6 @@ public class EntityCustomFX extends EntityFX {
         particleRed = (HEXColor >> 16 & 255) / 255f;
         particleGreen = (HEXColor >> 8  & 255) / 255f;
         particleBlue = (HEXColor & 255) / 255f;
-        
-        if(Math.floor(Math.random()*3) == 1){
-        	move = false;
-            this.startX = (float) entity.posX;
-            this.startY = (float) entity.posY;
-            this.startZ = (float) entity.posZ;
-        }
 
         location = new ResourceLocation(directory);
 
@@ -215,7 +209,7 @@ public class EntityCustomFX extends EntityFX {
             getURLWidthHeight();
         }
 
-        if(move){
+        if(move && entity != null){
             startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
             startY = (float)(entity.prevPosY + (entity.posY - entity.prevPosY) * (double)partialTick);
             startZ = (float)(entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTick);
@@ -267,9 +261,9 @@ public class EntityCustomFX extends EntityFX {
 
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         float renderScale = 0.1F * particleScale;
-        float posX = (float)(((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX);
-        float posY = (float)(((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY);
-        float posZ = (float)(((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ);
+        float posX = (float)((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX;
+        float posY = (float)((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY;
+        float posZ = (float)((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ;
 
         GL11.glPushMatrix();
             GL11.glTranslated(posX,posY,posZ);

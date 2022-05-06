@@ -283,8 +283,12 @@ public class WrapperNpcAPI extends NpcAPI {
         MinecraftServer.getServer().setMOTD(motd);
     }
 
-    public ScriptEntityParticle createEntityParticle(String directory){
-        return new ScriptEntityParticle(directory);
+    public ScriptParticle createParticle(String directory){
+        return new ScriptParticle(directory);
+    }
+
+    public ScriptParticle createEntityParticle(String directory){
+        return new ScriptParticle(directory);
     }
 
     public int getServerTime() {

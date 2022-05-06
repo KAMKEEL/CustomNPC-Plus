@@ -16,7 +16,6 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -177,7 +176,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID
 		);
 	}
-	public void spawnParticle(ScriptEntityParticle entityParticle) { entityParticle.spawnOnEntity(this); }
+	public void spawnParticle(ScriptParticle entityParticle) { entityParticle.spawnOnEntity(this); }
 
 	public int getEntityId(){
 		return entity.getEntityId();

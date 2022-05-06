@@ -6,7 +6,7 @@ import noppes.npcs.scripted.entity.ScriptEntity;
 /**
  * Created by luisc on 9/8/2021.
  */
-public class ScriptEntityParticle {
+public class ScriptParticle {
     private String directory;
     private int HEXcolor = 0xFFFFFF;
     private int amount = 1;
@@ -42,7 +42,7 @@ public class ScriptEntityParticle {
 
     public boolean facePlayer = true;
 
-    public ScriptEntityParticle(String directory){
+    public ScriptParticle(String directory){
         this.directory = directory;
     }
 
@@ -59,6 +59,21 @@ public class ScriptEntityParticle {
                 facePlayer, width, height, offsetX, offsetY,
                 animRate, animLoop, animStart, animEnd,
                 entityID
+        );
+    }
+
+    public void spawnInWorld(double x, double y, double z){
+        NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+                x, y, z,
+                motionX, motionY, motionZ, gravity,
+                scale1, scale2, scaleRate, scaleRateStart,
+                alpha1, alpha2, alphaRate, alphaRateStart,
+                rotationX1, rotationX2, rotationXRate, rotationXRateStart,
+                rotationY1, rotationY2, rotationYRate, rotationYRateStart,
+                rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
+                facePlayer, width, height, offsetX, offsetY,
+                animRate, animLoop, animStart, animEnd,
+                -1
         );
     }
 
