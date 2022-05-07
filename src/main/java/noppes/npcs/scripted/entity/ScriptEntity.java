@@ -83,7 +83,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
 				true, -1, -1, 0,0,
 				0, true, 0, 0,
-				entityID
+				entityID, entity.dimension
 		);
 	}
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
@@ -103,7 +103,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				true, -1, -1, 0,0,
 				0, true, 0, 0,
-				entityID
+				entityID, entity.dimension
 		);
 	}
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
@@ -122,7 +122,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				true, -1, -1, 0,0,
 				0, true, 0, 0,
-				entityID
+				entityID, entity.dimension
 		);
 	}
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
@@ -140,7 +140,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				true, -1, -1, 0,0,
 				0, true, 0, 0,
-				entityID
+				entityID, entity.dimension
 		);
 	}
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
@@ -157,7 +157,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				true, -1, -1, 0,0,
 				0, true, 0, 0,
-				entityID
+				entityID, entity.dimension
 		);
 	}
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge
@@ -173,7 +173,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				true, -1, -1, 0,0,
 				0, true, 0, 0,
-				entityID
+				entityID, entity.dimension
 		);
 	}
 	public void spawnParticle(ScriptParticle entityParticle) { entityParticle.spawnOnEntity(this); }

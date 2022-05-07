@@ -19,6 +19,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
@@ -125,9 +126,13 @@ public class NoppesUtil {
 		int animEnd = buffer.readInt();
 
 		int entityID = buffer.readInt();
+		int dimensionID = buffer.readInt();
 
-		World worldObj = Minecraft.getMinecraft().theWorld;
+		World worldObj = DimensionManager.getWorld(dimensionID);
+
 		Entity entity = worldObj.getEntityByID(entityID);
+		if(entity != null)
+			worldObj = entity.worldObj;
 
 		CustomFX fx = new CustomFX(
 				worldObj, entity,

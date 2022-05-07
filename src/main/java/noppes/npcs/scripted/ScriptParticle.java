@@ -58,11 +58,11 @@ public class ScriptParticle {
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
                 facePlayer, width, height, offsetX, offsetY,
                 animRate, animLoop, animStart, animEnd,
-                entityID
+                entityID, entity.getWorld().getDimensionID()
         );
     }
 
-    public void spawnInWorld(double x, double y, double z){
+    public void spawnInWorld(ScriptWorld world){
         NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
                 x, y, z,
                 motionX, motionY, motionZ, gravity,
@@ -73,7 +73,22 @@ public class ScriptParticle {
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
                 facePlayer, width, height, offsetX, offsetY,
                 animRate, animLoop, animStart, animEnd,
-                -1
+                -1, world.getDimensionID()
+        );
+    }
+
+    public void spawnInWorld(ScriptWorld world, double x, double y, double z){
+        NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+                x, y, z,
+                motionX, motionY, motionZ, gravity,
+                scale1, scale2, scaleRate, scaleRateStart,
+                alpha1, alpha2, alphaRate, alphaRateStart,
+                rotationX1, rotationX2, rotationXRate, rotationXRateStart,
+                rotationY1, rotationY2, rotationYRate, rotationYRateStart,
+                rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
+                facePlayer, width, height, offsetX, offsetY,
+                animRate, animLoop, animStart, animEnd,
+                -1, world.getDimensionID()
         );
     }
 

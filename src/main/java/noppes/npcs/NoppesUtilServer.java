@@ -322,7 +322,7 @@ public class NoppesUtilServer {
 											 float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
 											 boolean facePlayer, int width, int height, int offsetX, int offsetY,
 											 int animRate, boolean animLoop, int animStart, int animEnd,
-											 int entityID
+											 int entityID, int dimensionID
 	){
 		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE,
 				directory, HEXcolor, amount, maxAge,
@@ -335,7 +335,7 @@ public class NoppesUtilServer {
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
 				facePlayer, width, height, offsetX, offsetY,
 				animRate, animLoop, animStart, animEnd,
-				entityID
+				entityID, dimensionID
 		);
 	}
 
