@@ -333,20 +333,9 @@ public class ScriptWorld implements IWorld {
 	 * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/bubble.png"
 	 * @return Returns ScriptParticle object
 	 */
+	@Deprecated
 	public ScriptParticle createEntityParticle(String directory){
 		return new ScriptParticle(directory);
-	}
-
-	public ScriptParticle createParticle(String directory){
-		return new ScriptParticle(directory);
-	}
-
-	public void spawnParticle(ScriptParticle particle){
-		particle.spawnInWorld(this);
-	}
-
-	public void spawnParticle(ScriptParticle particle, double x, double y, double z){
-		particle.spawnInWorld(this,x,y,z);
 	}
 
 	/**

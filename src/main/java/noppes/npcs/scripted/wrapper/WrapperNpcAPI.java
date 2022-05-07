@@ -287,6 +287,7 @@ public class WrapperNpcAPI extends NpcAPI {
         return new ScriptParticle(directory);
     }
 
+    @Deprecated
     public ScriptParticle createEntityParticle(String directory){
         return new ScriptParticle(directory);
     }

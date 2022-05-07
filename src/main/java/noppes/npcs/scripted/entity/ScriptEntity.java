@@ -62,6 +62,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param scaleRate Multiplier for the particle's transparency growth rate
 	 * @param alphaRateStart The time at which the particle begins appearing/fading
 	 */
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
@@ -73,7 +74,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 							  float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -86,6 +89,8 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
@@ -93,7 +98,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 							  float alpha1, float alpha2, float alphaRate, int alphaRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -106,13 +113,17 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
 							  float scale1, float scale2, float scaleRate, int scaleRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -125,12 +136,16 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				0, 0, 0, 0,
@@ -143,11 +158,15 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z
 							  ) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
@@ -160,10 +179,14 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,

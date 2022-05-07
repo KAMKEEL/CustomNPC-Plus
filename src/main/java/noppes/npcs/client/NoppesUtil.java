@@ -75,7 +75,11 @@ public class NoppesUtil {
 
 		String directory = Server.readString(buffer);
 
-		int HEXcolor = buffer.readInt();
+		int HEXColor = buffer.readInt();
+		int HEXColor2 = buffer.readInt();
+		float colorRate = buffer.readFloat();
+		int colorRateStart = buffer.readInt();
+
 		int amount = buffer.readInt();
 		int maxAge = buffer.readInt();
 
@@ -136,7 +140,8 @@ public class NoppesUtil {
 
 		CustomFX fx = new CustomFX(
 				worldObj, entity,
-				directory, HEXcolor,
+				directory,
+				HEXColor,HEXColor2,colorRate,colorRateStart,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,

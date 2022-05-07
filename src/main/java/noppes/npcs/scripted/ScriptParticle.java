@@ -8,7 +8,12 @@ import noppes.npcs.scripted.entity.ScriptEntity;
  */
 public class ScriptParticle {
     private String directory;
-    private int HEXcolor = 0xFFFFFF;
+
+    private int HEXColor = 0xFFFFFF;
+    private int HEXColor2 = 0xFFFFFF;
+    private float HEXColorRate = 0.0f;
+    private int HEXColorStart = 0;
+
     private int amount = 1;
     private int maxAge = 20;
     private double x = 0,y = 0,z = 0;
@@ -48,7 +53,9 @@ public class ScriptParticle {
 
     public void spawnOnEntity(ScriptEntity entity){
         int entityID = entity.getMCEntity().getEntityId();
-        NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+        NoppesUtilServer.spawnScriptedParticle(directory,
+                HEXColor, HEXColor2, HEXColorRate, HEXColorStart,
+                amount, maxAge,
                 x, y, z,
                 motionX, motionY, motionZ, gravity,
                 scale1, scale2, scaleRate, scaleRateStart,
@@ -63,7 +70,9 @@ public class ScriptParticle {
     }
 
     public void spawnInWorld(ScriptWorld world){
-        NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+        NoppesUtilServer.spawnScriptedParticle(directory,
+                HEXColor, HEXColor2, HEXColorRate, HEXColorStart,
+                amount, maxAge,
                 x, y, z,
                 motionX, motionY, motionZ, gravity,
                 scale1, scale2, scaleRate, scaleRateStart,
@@ -78,7 +87,9 @@ public class ScriptParticle {
     }
 
     public void spawnInWorld(ScriptWorld world, double x, double y, double z){
-        NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+        NoppesUtilServer.spawnScriptedParticle(directory,
+                HEXColor, HEXColor2, HEXColorRate, HEXColorStart,
+                amount, maxAge,
                 x, y, z,
                 motionX, motionY, motionZ, gravity,
                 scale1, scale2, scaleRate, scaleRateStart,
@@ -128,8 +139,41 @@ public class ScriptParticle {
         return directory;
     }
 
-    public int getHEXcolor() {
-        return HEXcolor;
+    public void setHEXColor(int HEXColor) {
+        this.HEXColor = HEXColor;
+    }
+    public int getHEXColor() {
+        return HEXColor;
+    }
+    public void setHEXColor(int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart) {
+        this.HEXColor = HEXColor;
+        this.HEXColor2 = HEXColor2;
+        this.HEXColorRate = HEXColorRate;
+        this.HEXColorStart = HEXColorStart;
+    }
+    public int getHEXColor1() {
+        return HEXColor;
+    }
+    public int getHEXColor2() {
+        return HEXColor2;
+    }
+    public float getHEXColorRate() {
+        return HEXColorRate;
+    }
+    public int getHEXColorStart() {
+        return HEXColorStart;
+    }
+    public void setHEXColor1(int HEXColor) {
+        this.HEXColor = HEXColor;
+    }
+    public void setHEXColor2(int HEXColor2) {
+        this.HEXColor2 = HEXColor2;
+    }
+    public void setHEXColorRate(float HEXColorRate) {
+        this.HEXColorRate = HEXColorRate;
+    }
+    public void setHEXColorStart(int HEXColorStart) {
+        this.HEXColorStart = HEXColorStart;
     }
 
     public int getAmount() {
@@ -206,10 +250,6 @@ public class ScriptParticle {
 
     public void setDirectory(String directory) {
         this.directory = directory;
-    }
-
-    public void setHEXColor(int HEXcolor) {
-        this.HEXcolor = HEXcolor;
     }
 
     public void setAmount(int amount) {

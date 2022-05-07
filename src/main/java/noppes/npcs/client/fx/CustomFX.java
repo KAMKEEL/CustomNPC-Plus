@@ -70,11 +70,18 @@ public class CustomFX extends EntityFX {
     private int animPosX;
     private int animPosY;
 
+    public int HEXColor = 0xFFFFFF;
+    public int HEXColor2 = 0xFFFFFF;
+    public float HEXColorRate = 0.0F;
+    public int HEXColorStart = 0;
+
     private ImageDownloadAlt imageDownloadAlt = null;
     private boolean isUrl = false;
     private boolean gotWidthHeight = false;
 
-	public CustomFX(World worldObj, Entity entity, String directory, int HEXColor, double x, double y, double z,
+	public CustomFX(World worldObj, Entity entity, String directory,
+                    int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart,
+                    double x, double y, double z,
                     double motionX, double motionY, double motionZ, float gravity,
                     float scale1, float scale2, float scaleRate, int scaleRateStart,
                     float alpha1, float alpha2, float alphaRate, int alphaRateStart,
@@ -85,6 +92,14 @@ public class CustomFX extends EntityFX {
                     int animRate, boolean animLoop, int animStart, int animEnd
     ) {
 		super(worldObj, x, y, z, motionX, motionY, motionZ);
+
+        this.HEXColor = HEXColor;
+        this.HEXColor2 = HEXColor2;
+        this.HEXColorRate = HEXColorRate;
+        this.HEXColorStart = HEXColorStart;
+        particleRed = (HEXColor >> 16 & 255) / 255f;
+        particleGreen = (HEXColor >> 8  & 255) / 255f;
+        particleBlue = (HEXColor & 255) / 255f;
 
         this.scale1 = scale1;
         this.scale2 = scale2;
@@ -135,10 +150,6 @@ public class CustomFX extends EntityFX {
 
 		this.entity = entity;
         noClip = true;
-
-        particleRed = (HEXColor >> 16 & 255) / 255f;
-        particleGreen = (HEXColor >> 8  & 255) / 255f;
-        particleBlue = (HEXColor & 255) / 255f;
 
         location = new ResourceLocation(directory);
 
@@ -196,6 +207,13 @@ public class CustomFX extends EntityFX {
                 }
             }
         }
+
+        particleRed = (HEXColor >> 16 & 255) / 255f;
+        particleGreen = (HEXColor >> 8  & 255) / 255f;
+        particleBlue = (HEXColor & 255) / 255f;
+
+        if(timeSinceStart >= HEXColorStart)
+            HEXColor = lerpColor(HEXColor, HEXColor2, HEXColorRate);
     }
 
     @Override
@@ -217,31 +235,31 @@ public class CustomFX extends EntityFX {
         float scaleChange = this.scaleRate / (float)particleMaxAge;
         if((this.scaleRate < 0 && particleScale+scaleChange < this.scale2) || (this.scaleRate > 0 && particleScale+scaleChange > this.scale2))
             particleScale = this.scale2;
-        else if(particleAge >= this.scaleRateStart)
+        else if(timeSinceStart >= this.scaleRateStart)
             particleScale += scaleChange;
 
         float alphaChange = this.alphaRate / (float)particleMaxAge;
         if((this.alphaRate < 0 && particleAlpha+alphaChange < this.alpha2) || (this.alphaRate > 0 && particleAlpha+alphaChange > this.alpha2))
             particleAlpha = this.alpha2;
-        else if(particleAge >= this.alphaRateStart)
+        else if(timeSinceStart >= this.alphaRateStart)
             particleAlpha += alphaChange;
 
         float rotationXChange = this.rotationXRate / (float)particleMaxAge;
         if((this.rotationXRate < 0 && rotationX+rotationXChange < this.rotationX2) || (this.rotationXRate > 0 && rotationX+rotationXChange > this.rotationX2))
             rotationX = this.rotationX2;
-        else if(particleAge >= this.rotationXRateStart)
+        else if(timeSinceStart >= this.rotationXRateStart)
             rotationX += rotationXChange;
 
         float rotationYChange = this.rotationYRate / (float)particleMaxAge;
         if((this.rotationYRate < 0 && rotationY+rotationYChange < this.rotationY2) || (this.rotationYRate > 0 && rotationY+rotationYChange > this.rotationY2))
             rotationY = this.rotationY2;
-        else if(particleAge >= this.rotationYRateStart)
+        else if(timeSinceStart >= this.rotationYRateStart)
             rotationY += rotationYChange;
 
         float rotationZChange = this.rotationZRate / (float)particleMaxAge;
         if((this.rotationZRate < 0 && rotationZ+rotationZChange < this.rotationZ2) || (this.rotationZRate > 0 && rotationZ+rotationZChange > this.rotationZ2))
             rotationZ = this.rotationZ2;
-        else if(particleAge >= this.rotationZRateStart)
+        else if(timeSinceStart >= this.rotationZRateStart)
             rotationZ += rotationZChange;
 
         renderParticleSide(true, tessellator, partialTick);
@@ -324,6 +342,22 @@ public class CustomFX extends EntityFX {
         totalHeight = Math.max(totalHeight, 1);
         this.width = width < 0 ? totalWidth : width;
         this.height = height < 0 ? totalHeight : height;
+    }
+
+    public int lerpColor(int from, int to, float ratio) {
+        float ar = (from & 0xFF0000) >> 16;
+        float ag = (from & 0x00FF00) >> 8;
+        float ab = (from & 0x0000FF);
+
+        float br = (to & 0xFF0000) >> 16;
+        float bg = (to & 0x00FF00) >> 8;
+        float bb = (to & 0x0000FF);
+
+        float rr = ar + ratio * (br - ar);
+        float rg = ag + ratio * (bg - ag);
+        float rb = ab + ratio * (bb - ab);
+
+        return (int)(((int)rr << 16) + ((int)rg << 8) + (rb));
     }
     
     public int getFXLayer(){
