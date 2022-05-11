@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
+import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -51,9 +52,6 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer entityPlayer)
     {
-        if(!world.isRemote)
-            return stack;
-
         if(entityPlayer.isSneaking()) {
             CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, entityPlayer);
         }
@@ -114,6 +112,26 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
         return true;
+    }
+
+    public EnumAction getItemUseAction(ItemStack stack)
+    {
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        if (istack instanceof ScriptCustomItem) {
+            switch (((ScriptCustomItem) istack).getItemUseAction()) {
+                case 0:
+                    return EnumAction.none;
+                case 1:
+                    return EnumAction.block;
+                case 2:
+                    return EnumAction.bow;
+                case 3:
+                    return EnumAction.eat;
+                case 4:
+                    return EnumAction.drink;
+            }
+        }
+        return super.getItemUseAction(stack);
     }
 
     @Override

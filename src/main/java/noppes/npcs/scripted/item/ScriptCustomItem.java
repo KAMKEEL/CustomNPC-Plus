@@ -26,7 +26,9 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
     public int durabilityColor = -1;
     public int itemColor = 0x8B4513;
     public int stackSize = 64;
+
     public int maxItemUseDuration = 20;
+    public int itemUseAction = 0; //0: none, 1: block, 2: bow, 3: eat, 4: drink
 
     public boolean isTool = false;
     public int digSpeed = 1;
@@ -241,9 +243,18 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         return this.maxItemUseDuration;
     }
 
-    public void setMaxItemUseDuration(int duration){
+    public void setMaxItemUseDuration(int duration) {
         this.maxItemUseDuration = duration;
         saveItemData();
+    }
+
+    public void setItemUseAction(int action) {
+        this.itemUseAction = action;
+        saveItemData();
+    }
+
+    public int getItemUseAction() {
+        return this.itemUseAction;
     }
 
     public int getEnchantability(){
@@ -396,6 +407,9 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         compound.setInteger("DigSpeed", this.digSpeed);
         compound.setInteger("ArmorType", this.armorType);
         compound.setInteger("Enchantability", this.enchantability);
+
+        compound.setInteger("MaxItemUseDuration", this.maxItemUseDuration);
+        compound.setInteger("ItemUseAction", this.itemUseAction);
         return compound;
     }
 
@@ -428,6 +442,9 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         this.digSpeed = compound.getInteger("DigSpeed");
         this.armorType = compound.getInteger("ArmorType");
         this.enchantability = compound.getInteger("Enchantability");
+
+        this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
+        this.itemUseAction = compound.getInteger("ItemUseAction");
     }
 
     public void saveScriptData() {
