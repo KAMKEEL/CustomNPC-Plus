@@ -16,337 +16,346 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return Returns the current npcs size 1-30
      */
-    public int getSize();
+    int getSize();
 
     /**
      * @param size The size of the npc (1-30) default is 5
      */
-    public void setSize(int size);
+    void setSize(int size);
 
     /**
      * @return Returns the current npcs modelType of the NPC
      */
-    public int getModelType();
+    int getModelType();
 
     /**
      * @param modelType The modelType of the NPC. 0: Steve, 1: Steve64, 2: Alex
      */
-    public void setModelType(int modelType);
+    void setModelType(int modelType);
 
     /**
      * @return The npcs name
      */
-    public String getName();
+    String getName();
 
-    public void setRotation(float rotation);
+    void setRotation(float rotation);
+    
+    void setRotationType(int rotationType);
+    
+    int getRotationType();
+    
     /**
      * @param name The name of the npc
      */
-    public void setName(String name);
+    void setName(String name);
 
     /**
      * @since 1.7.10
      * @return The npcs title
      */
-    public String getTitle();
+    String getTitle();
 
     /**
      * @since 1.7.10
      * @param title The title of the npc
      */
-    public void setTitle(String title);
+    void setTitle(String title);
 
     /**
      * @return The npcs texture
      */
-    public String getTexture();
+    String getTexture();
 
     /**
      * @param texture The texture of the npc
      */
-    public void setTexture(String texture);
+    void setTexture(String texture);
 
     /**
      * @return Home position x
      */
-    public int getHomeX();
+    int getHomeX();
 
     /**
      * @param x The home x position
      */
-    public void setHomeX(int x);
+    void setHomeX(int x);
 
     /**
      * @return Home position x
      */
-    public int getHomeY();
+    int getHomeY();
 
     /**
      * @param y The home y position
      */
-    public void setHomeY(int y);
+    void setHomeY(int y);
 
     /**
      * @return Home position x
      */
-    public int getHomeZ();
+    int getHomeZ();
 
     /**
      * @param z The home x position
      */
-    public void setHomeZ(int z);
+    void setHomeZ(int z);
 
     /**
      * @param x The home x position
      * @param y The home y position
      * @param z The home z position
      */
-    public void setHome(int x, int y, int z);
+    void setHome(int x, int y, int z);
     /**
      * @param health New max health
      */
-    public void setMaxHealth(double health);
+    void setMaxHealth(double health);
 
     /**
      * @param bo Whether or not the npc will try to return to his home position
      */
-    public void setReturnToHome(boolean bo);
+    void setReturnToHome(boolean bo);
 
     /**
      * @return Whether or not the npc returns home
      */
-    public boolean getReturnToHome();
+    boolean getReturnToHome();
 
     /**
      * @return The faction of the npc
      */
-    public ScriptFaction getFaction();
+    ScriptFaction getFaction();
 
     /**
      * @param id The id of the new faction
      */
-    public void setFaction(int id);
+    void setFaction(int id);
 
     /**
      *
      * @param attackOtherFactions True if you want the NPC to attack other factions, false otherwise.
      */
-    public void setAttackFactions(boolean attackOtherFactions);
+    void setAttackFactions(boolean attackOtherFactions);
 
     /**
      *
      * @return Returns true if the NPC attacks other factions, false otherwise.
      */
-    public boolean getAttackFactions();
+    boolean getAttackFactions();
 
     /**
      *
      * @param defendFaction True if the NPC should defend faction members, false otherwise.
      */
-    public void setDefendFaction(boolean defendFaction);
+    void setDefendFaction(boolean defendFaction);
 
     /**
      *
      * @return Returns true if the NPC should defend faction members, false otherwise.
      */
-    public boolean getDefendFaction();
+    boolean getDefendFaction();
 
-    public int getType();
+    int getType();
 
-    public boolean typeOf(int type);
+    boolean typeOf(int type);
 
     /**
      * @param target The targeted npc
      * @param item The item you want to shoot
      * @param accuracy Accuracy of the shot (0-100)
      */
-    public void shootItem(ScriptLivingBase target, ScriptItemStack item, int accuracy);
+    void shootItem(ScriptLivingBase target, ScriptItemStack item, int accuracy);
 
     /**
      * @param message The message the npc will say
      */
-    public void say(String message);
+    void say(String message);
 
     /**
      * @param message The message the npc will say
      */
-    public void say(ScriptPlayer player, String message);
+    void say(ScriptPlayer player, String message);
 
     /**
      * Kill the npc, doesnt't despawn it
      */
-    public void kill();
+    void kill();
 
     /**
      * Basically completely resets the npc. This will also call the Init script
      */
-    public void reset();
+    void reset();
 
     /**
      * @return Returns the npcs current role
      */
-    public ScriptRoleInterface getRole();
+    ScriptRoleInterface getRole();
+
+    void setRole(int role);
 
     /**
      * @return Returns the npcs current job
      */
-    public ScriptJobInterface getJob();
+    ScriptJobInterface getJob();
+
+    void setJob(int job);
 
     /**
      * @return The item held in the right hand
      */
-    public IItemStack getRightItem();
+    IItemStack getRightItem();
 
     /**
      * @param item Item to be held in the right hand
      */
-    public void setRightItem(ScriptItemStack item);
+    void setRightItem(ScriptItemStack item);
 
     /**
      * @return The item held in the left hand
      */
-    public IItemStack getLefttItem();
+    IItemStack getLefttItem();
 
     /**
      * @param item Item to be held in the left hand
      */
-    public void setLeftItem(ScriptItemStack item);
+    void setLeftItem(ScriptItemStack item);
 
     /**
      * @return Returns the projectile the npc uses
      */
-    public IItemStack getProjectileItem();
+    IItemStack getProjectileItem();
 
     /**
      * @param item Item to be used as projectile
      */
-    public void setProjectileItem(ScriptItemStack item);
+    void setProjectileItem(ScriptItemStack item);
 
     /**
      *
      * @return Returns true if the NPC can aim while shooting.
      */
-    public boolean canAimWhileShooting();
+    boolean canAimWhileShooting();
 
     /**
      *
      * @param aimWhileShooting Set to true if you want the NPC to aim while shooting, false otherwise.
      */
-    public void aimWhileShooting(boolean aimWhileShooting);
+    void aimWhileShooting(boolean aimWhileShooting);
 
-    public void setMinProjectileDelay(int minDelay);
-    public int getMinProjectileDelay();
+    void setMinProjectileDelay(int minDelay);
+    int getMinProjectileDelay();
 
-    public void setMaxProjectileDelay(int maxDelay);
-    public int getMaxProjectileDelay();
+    void setMaxProjectileDelay(int maxDelay);
+    int getMaxProjectileDelay();
 
-    public void setRangedRage(int rangedRange);
-    public int getRangedRage();
+    void setRangedRage(int rangedRange);
+    int getRangedRage();
 
-    public void setFireRate(int rate);
-    public int getFireRate();
+    void setFireRate(int rate);
+    int getFireRate();
 
-    public void setBurstCount(int burstCount);
-    public int getBurstCount();
+    void setBurstCount(int burstCount);
+    int getBurstCount();
 
-    public void setShotCount(int shotCount);
-    public int getShotCount();
+    void setShotCount(int shotCount);
+    int getShotCount();
 
-    public void setAccuracy(int accuracy);
-    public int getAccuracy();
+    void setAccuracy(int accuracy);
+    int getAccuracy();
 
     /**
      *
      * @return The directory of the sound that plays when a projectile is shot
      */
-    public String getFireSound();
+    String getFireSound();
 
     /**
      *
      * @param fireSound The new directory of the sound that plays when a projectile is shot
      */
-    public void setFireSound(String fireSound);
+    void setFireSound(String fireSound);
 
     /**
      * @param slot The armor slot to return. 0:head, 1:body, 2:legs, 3:boots
      * @return Returns the worn armor in slot
      */
-    public IItemStack getArmor(int slot);
+    IItemStack getArmor(int slot);
 
     /**
      * @param slot The armor slot to set. 0:head, 1:body, 2:legs, 3:boots
      * @param item Item to be set as armor
      */
-    public void setArmor(int slot, ScriptItemStack item);
+    void setArmor(int slot, ScriptItemStack item);
 
     /**
      *
      * @param slot The slot from the NPC's drop list to return (0-8)
      * @return The item in the NPC's drop list slot
      */
-    public IItemStack getLootItem(int slot);
+    IItemStack getLootItem(int slot);
 
     /**
      *
      * @param slot The slot from the NPC's drop list to change
      * @param item The item the drop list slot will be changed to
      */
-    public void setLootItem(int slot, ScriptItemStack item);
+    void setLootItem(int slot, ScriptItemStack item);
 
     /**
      *
      * @param slot The slot from the NPC's drop list to return (0-8)
      * @return The chance of dropping the item in this slot. Returns 100 if the slot is not found.
      */
-    public double getLootChance(int slot);
+    double getLootChance(int slot);
 
     /**
      *
      * @param slot The slot from the NPC's drop list to change
      * @param chance The new chance of dropping the item in this slot
      */
-    public void setLootChance(int slot, double chance);
+    void setLootChance(int slot, double chance);
 
     /**
      *
      * @return The NPC's loot mode. 0 = Normal, 1 = Auto Pickup
      */
-    public int getLootMode();
+    int getLootMode();
 
     /**
      *
      * @param lootMode The NPC's loot mode. 0 = Normal, 1 = Auto Pickup
      */
-    public void setLootMode(int lootMode);
+    void setLootMode(int lootMode);
 
     /**
      *
      * @param lootXP The new minimum XP gained from killing the NPC. If greater than the max XP, it will be set to it.
      */
-    public void setMinLootXP(int lootXP);
+    void setMinLootXP(int lootXP);
 
     /**
      *
      * @param lootXP The new maximum XP gained from killing the NPC. If less than the min XP, it will be set to it.
      */
-    public void setMaxLootXP(int lootXP);
+    void setMaxLootXP(int lootXP);
 
     /**
      *
      * @return The minimum XP gained from killing the NPC.
      */
-    public int getMinLootXP();
+    int getMinLootXP();
 
     /**
      *
      * @return The maximum XP gained from killing the NPC.
      */
-    public int getMaxLootXP();
+    int getMaxLootXP();
 
     /**
      * @param type The AnimationType
      */
-    public void setAnimation(int type);
+    void setAnimation(int type);
 
     /**
      *
@@ -360,7 +369,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      *                6 - None
      *
      */
-    public void setTacticalVariant(int variant);
+    void setTacticalVariant(int variant);
 
     /**
      *
@@ -374,43 +383,43 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      *                6 - None
      *
      */
-    public int getTacticalVariant();
+    int getTacticalVariant();
 
     /**
      *
      * @param variant Sets the NPC's tactical variant by name.
      */
-    public void setTacticalVariant(String variant);
+    void setTacticalVariant(String variant);
 
     /**
      *
      * @return Returns the name of the NPc's tactical variant.
      */
-    public String getTacticalVariantName();
+    String getTacticalVariantName();
 
     /**
      *
      * @param tacticalRadius Sets the radius in which the tactical variant is affected, if any. Effective for all tactical variants except Rush and None.
      */
-    public void setTacticalRadius(int tacticalRadius);
+    void setTacticalRadius(int tacticalRadius);
 
     /**
      *
      * @return Gets the radius in which the tactical variant is affected, if any. Effective for all tactical variants except Rush and None.
      */
-    public int getTacticalRadius();
+    int getTacticalRadius();
 
     /**
      *
      * @param ignore True if the NPC goes through cobwebs
      */
-    public void setIgnoreCobweb(boolean ignore);
+    void setIgnoreCobweb(boolean ignore);
 
     /**
      *
      * @return True if the NPC goes through cobwebs
      */
-    public boolean getIgnoreCobweb();
+    boolean getIgnoreCobweb();
 
     /**
      *
@@ -420,7 +429,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      *          2 - Retreat
      *          3 - Nothing
      */
-    public void setOnFoundEnemy(int onAttack);
+    void setOnFoundEnemy(int onAttack);
 
     /**
      *
@@ -430,7 +439,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      *          2 - Retreat
      *          3 - Nothing
      */
-    public int onFoundEnemy();
+    int onFoundEnemy();
 
     /**
      *
@@ -439,7 +448,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      *          1 - Sunlight
      *          2 - Disabled
      */
-    public void setShelterFrom(int shelterFrom);
+    void setShelterFrom(int shelterFrom);
 
     /**
      *
@@ -448,36 +457,36 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      *          1 - Sunlight
      *          2 - Disabled
      */
-    public int getShelterFrom();
+    int getShelterFrom();
 
     /**
      *
      * @return Whether the NPC has a living animation
      */
-    public boolean hasLivingAnimation();
+    boolean hasLivingAnimation();
 
     /**
      *
      * @param livingAnimation True if you want the NPC to have a living animation, false otherwise
      */
-    public void setLivingAnimation(boolean livingAnimation);
+    void setLivingAnimation(boolean livingAnimation);
 
     /**
      * @param type The visibility type of the npc, 0:visible, 1:invisible, 2:semi-visible
      */
-    public void setVisibleType(int type);
+    void setVisibleType(int type);
 
     /**
      * @return The visibility type of the npc, 0:visible, 1:invisible, 2:semi-visible
      */
-    public int getVisibleType();
+    int getVisibleType();
 
     /**
      *
      * @param player The player this NPC becomes visible/invisible to
      * @param visible True if you want the NPC to be invisible to the player, false otherwise
      */
-    public void setVisibleTo(ScriptPlayer player, boolean visible);
+    void setVisibleTo(ScriptPlayer player, boolean visible);
 
     /**
      *
@@ -486,251 +495,253 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * If setVisibleTo(player,visible) was not called to make this NPC invisible to the player at any point
      * in the NPC's life, this function will return true regardless of the value of isVisible().
      */
-    public boolean isVisibleTo(ScriptPlayer player);
+    boolean isVisibleTo(ScriptPlayer player);
 
     /**
      * @param type The visibility type of the name, 0:visible, 1:invisible, 2:when-attacking
      */
-    public void setShowName(int type);
+    void setShowName(int type);
 
     /**
      * @return Returns the visibility type of the name, 0:visible, 1:invisible, 2:when-attacking
      */
-    public int getShowName();
+    int getShowName();
 
     /**
      * @return Returns the visiblity of the boss bar, 0:invisible, 1:visible, 2:when-attacking
      */
-    public int getShowBossBar();
+    int getShowBossBar();
 
     /**
      * @param type The visibility type of the boss bar, 0:invisible, 1:visible, 2:when-attacking
      */
-    public void setShowBossBar(int type);
+    void setShowBossBar(int type);
 
     /**
      * @return The melee strength
      */
-    public float getMeleeStrength();
+    float getMeleeStrength();
 
     /**
      * @param strength The melee strength
      */
-    public void setMeleeStrength(float strength);
+    void setMeleeStrength(float strength);
 
     /**
      * @return The melee speed
      */
-    public int getMeleeSpeed();
+    int getMeleeSpeed();
 
     /**
      * @param speed The melee speed
      */
-    public void setMeleeSpeed(int speed);
+    void setMeleeSpeed(int speed);
 
     /**
      * @return The ranged strength
      */
-    public float getRangedStrength();
+    float getRangedStrength();
 
     /**
      * @param strength The ranged strength
      */
-    public void setRangedStrength(float strength);
+    void setRangedStrength(float strength);
 
     /**
      * @return The ranged speed
      */
-    public int getRangedSpeed();
+    int getRangedSpeed();
 
     /**
      * @param speed The ranged speed
      */
-    public void setRangedSpeed(int speed);
+    void setRangedSpeed(int speed);
 
     /**
      * @return The ranged burst count
      */
-    public int getRangedBurst();
+    int getRangedBurst();
 
     /**
      * @param count The ranged burst count
      */
-    public void setRangedBurst(int count);
+    void setRangedBurst(int count);
 
     /**
      *
      * @return The amount of ticks before this entity respawns
      */
-    public int getRespawnTime();
+    int getRespawnTime();
 
     /**
      *
      * @param time The new amount of ticks before this entity respawns
      */
-    public void setRespawnTime(int time);
+    void setRespawnTime(int time);
 
     /**
      *
      * @return Respawn: 0 - Yes (Always), 1 - Day, 2 - Night, 3 - No (Dies permanently)
      */
-    public int getRespawnCycle();
+    int getRespawnCycle();
 
     /**
      *
      * @param cycle Sets when the NPC respawns. Respawn: 0 - Yes (Always), 1 - Day, 2 - Night, 3 - No (Dies permanently)
      */
-    public void setRespawnCycle(int cycle);
+    void setRespawnCycle(int cycle);
 
     /**
      *
      * @return Whether the NPC is hidden when it dies
      */
-    public boolean getHideKilledBody();
+    boolean getHideKilledBody();
 
     /**
      *
      * @param hide True if the NPC is hidden when it dies. False otherwise.
      */
-    public void hideKilledBody(boolean hide);
+    void hideKilledBody(boolean hide);
 
     /**
      *
      * @return Returns true if the NPC naturally despawns.
      */
-    public boolean naturallyDespawns();
+    boolean naturallyDespawns();
 
     /**
      *
      * @param canDespawn True if the NPC should naturally despawn. False otherwise.
      */
-    public void setNaturallyDespawns(boolean canDespawn);
+    void setNaturallyDespawns(boolean canDespawn);
 
     /**
      * @param player The player to give the item to
      * @param item The item given to the player
      */
-    public void giveItem(ScriptPlayer player, ScriptItemStack item);
+    void giveItem(ScriptPlayer player, ScriptItemStack item);
 
 
     /**
      * On servers the enable-command-block option in the server.properties needs to be set to true
      * @param command The command to be executed
      */
-    public void executeCommand(String command);
+    void executeCommand(String command);
 
-    public void setHeadScale(float x, float y, float z);
+    void setHeadScale(float x, float y, float z);
 
-    public void setBodyScale(float x, float y, float z);
+    void setBodyScale(float x, float y, float z);
 
-    public void setArmsScale(float x, float y, float z);
+    void setArmsScale(float x, float y, float z);
 
-    public void setLegsScale(float x, float y, float z);
+    void setLegsScale(float x, float y, float z);
 
     /**
      * @since 1.7.10c
      * @param resistance Explosion resistance (0-2) default is 1
      */
-    public void setExplosionResistance(float resistance);
+    void setExplosionResistance(float resistance);
 
     /**
      * @since 1.7.10c
      * @return Returns Explosion Resistance
      */
-    public float getExplosionResistance();
+    float getExplosionResistance();
 
     /**
      * @param resistance Melee resistance (0-2) default is 1
      */
-    public void setMeleeResistance(float resistance);
+    void setMeleeResistance(float resistance);
 
     /**
      * @return Returns Melee Resistance
      */
-    public float getMeleeResistance();
+    float getMeleeResistance();
 
     /**
      * @param resistance Arrow resistance (0-2) default is 1
      */
-    public void setArrowResistance(float resistance);
+    void setArrowResistance(float resistance);
 
     /**
      * @return Returns Arrow Resistance
      */
-    public float getArrowResistance();
+    float getArrowResistance();
 
     /**
      * @param resistance Knockback resistance (0-2) default is 1
      */
-    public void setKnockbackResistance(float resistance);
+    void setKnockbackResistance(float resistance);
 
     /**
      * @return Returns Knockback Resistance
      */
-    public float getKnockbackResistance();
+    float getKnockbackResistance();
 
     /**
      * @param type Retaliation type. 0:normal, 1:panic, 2:retreat, 3:nothing
      */
-    public void setRetaliateType(int type);
+    void setRetaliateType(int type);
 
     /**
      * @return Returns the combat health regen per second
      */
-    public float getCombatRegen();
+    float getCombatRegen();
 
     /**
      * @param regen The combat health regen per second
      */
-    public void setCombatRegen(float regen);
+    void setCombatRegen(float regen);
 
     /**
      * @return Returns the health regen per second when not in combat
      */
-    public float getHealthRegen();
+    float getHealthRegen();
 
     /**
      * @param regen The health regen per second when not in combat
      */
-    public void setHealthRegen(float regen);
+    void setHealthRegen(float regen);
 
-    public long getAge();
+    long getAge();
 
-    public void setFly(int fly);
+    ITimers getTimers();
 
-    public boolean canFly();
+    void setFly(int fly);
 
-    public void setFlySpeed(double flySpeed);
+    boolean canFly();
 
-    public double getFlySpeed(double flySpeed);
+    void setFlySpeed(double flySpeed);
 
-    public void setFlyGravity(double flyGravity);
+    double getFlySpeed(double flySpeed);
 
-    public double getFlyGravity(double flyGravity);
+    void setFlyGravity(double flyGravity);
 
-    public void setSpeed(int speed);
+    double getFlyGravity(double flyGravity);
 
-    public int getSpeed();
+    void setSpeed(int speed);
 
-    public void setSkinType(byte type);
+    int getSpeed();
 
-    public byte getSkinType();
+    void setSkinType(byte type);
 
-    public void setSkinUrl(String url);
+    byte getSkinType();
 
-    public String getSkinUrl();
+    void setSkinUrl(String url);
 
-    public void setCloakTexture(String cloakTexture);
+    String getSkinUrl();
 
-    public String getCloakTexture();
+    void setCloakTexture(String cloakTexture);
 
-    public void setOverlayTexture(String overlayTexture);
+    String getCloakTexture();
 
-    public String getOverlayTexture();
+    void setOverlayTexture(String overlayTexture);
 
-    public void setCollisionType(int type);
+    String getOverlayTexture();
 
-    public int getCollisionType();
+    void setCollisionType(int type);
 
-    public void updateClient();
+    int getCollisionType();
+
+    void updateClient();
 }

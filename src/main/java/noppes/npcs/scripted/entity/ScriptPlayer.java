@@ -449,6 +449,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
+	@Deprecated
 	public boolean checkGUIOpen() {
 		NoppesUtilPlayer.isGUIOpen(player);
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);

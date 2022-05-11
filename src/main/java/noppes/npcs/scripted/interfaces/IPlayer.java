@@ -1,103 +1,131 @@
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.Server;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.controllers.*;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptBlock;
+import noppes.npcs.scripted.entity.ScriptDBCPlayer;
+import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.handler.data.IQuest;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> {
     /**
      * @return Returns the displayed name of the player
      */
-    public String getDisplayName();
+    String getDisplayName();
 
     /**
      * @return Returns the players name
      */
-    public String getName();
+    String getName();
 
-    public void setPosition(double x, double y, double z);
+    void setPosition(double x, double y, double z);
 
-    public void setPosition(double x, double y, double z, int dimensionId);
+    void setPosition(double x, double y, double z, int dimensionId);
 
-    public boolean hasFinishedQuest(int id);
+    int getHunger();
 
-    public boolean hasActiveQuest(int id);
+    void setHunger(int hunger);
 
-    public void showDialog(int id);
+    float getSaturation();
 
-    public boolean hasReadDialog(int id);
+    void setSaturation(float saturation);
+
+    int getDimension();
+
+    boolean hasFinishedQuest(int id);
+
+    boolean hasActiveQuest(int id);
+
+    void showDialog(int id);
+
+    boolean hasReadDialog(int id);
 
     /**
      * Add the quest from active quest list
      * @param id The Quest ID
      */
-    public void startQuest(int id);
+    void startQuest(int id);
 
     /**
      * Add the quest from finished quest list
      * @param id The Quest ID
      */
-    public void finishQuest(int id);
+    void finishQuest(int id);
     /**
      * Removes the quest from active quest list
      * @param id The Quest ID
      */
-    public void stopQuest(int id);
+    void stopQuest(int id);
 
     /**
      * Removes the quest from active and finished quest list
      * @param id The Quest ID
      */
-    public void removeQuest(int id);
+    void removeQuest(int id);
 
-    public int getType();
+    int getType();
 
-    public boolean typeOf(int type);
+    boolean typeOf(int type);
     /**
      * @param faction The faction id
      * @param points The points to increase. Use negative values to decrease
      */
-    public void addFactionPoints(int faction, int points);
+    void addFactionPoints(int faction, int points);
 
     /**
      * @param faction The faction id
      * @return  points
      */
-    public int getFactionPoints(int faction);
+    int getFactionPoints(int faction);
 
     /**
      * @param message The message you want to send
      */
-    public void sendMessage(String message);
+    void sendMessage(String message);
 
     /**
      * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure
      */
-    public int getMode();
+    int getMode();
 
     /**
      * @param type The gamemode type. 0:SURVIVAL, 1:CREATIVE, 2:ADVENTURE
      */
-    public void setMode(int type);
+    void setMode(int type);
 
     /**
      * @param item The item to be checked
      * @return How many of this item the player has
      */
-    public int inventoryItemCount(ScriptItemStack item);
+    int inventoryItemCount(ScriptItemStack item);
 
     /**
      * @since 1.7.10d
      * @return Returns a IItemStack array size 36
      */
-    public IItemStack[] getInventory();
+    IItemStack[] getInventory();
 
     /**
      * @param item The Item type to be removed
      * @param amount How many will be removed
      * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
      */
-    public boolean removeItem(ScriptItemStack item, int amount);
+    boolean removeItem(ScriptItemStack item, int amount);
 
     /**
      * @since 1.7.10c
@@ -106,7 +134,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param amount How many will be removed
      * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given or item doesnt exist
      */
-    public boolean removeItem(String id, int damage, int amount);
+    boolean removeItem(String id, int damage, int amount);
 
     /**
      * @since 1.7.10c
@@ -114,7 +142,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param amount The amount of the item to be added
      * @return Returns whether or not it gave the item succesfully
      */
-    public boolean giveItem(ScriptItemStack item, int amount);
+    boolean giveItem(ScriptItemStack item, int amount);
 
     /**
      * @since 1.7.10c
@@ -123,7 +151,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param amount The amount of the item to be added
      * @return Returns whether or not it gave the item succesfully
      */
-    public boolean giveItem(String id, int damage, int amount);
+    boolean giveItem(String id, int damage, int amount);
 
     /**
      * Same as the /spawnpoint command
@@ -131,49 +159,82 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param y The y position
      * @param z The z position
      */
-    public void setSpawnpoint(int x, int y, int z);
+    void setSpawnpoint(int x, int y, int z);
 
-    public void resetSpawnpoint();
+    void resetSpawnpoint();
 
     /**
      * @param item The item to be removed from the players inventory
      */
-    public void removeAllItems(ScriptItemStack item);
+    void removeAllItems(ScriptItemStack item);
 
+    void setRotation(float rotationYaw, float rotationPitch);
+
+    void stopUsingItem();
+
+    void clearItemInUse();
+
+    void playSound(String name, float volume, float pitch);
+
+    void mountEntity(Entity ridingEntity);
+
+    ScriptEntity dropOneItem(boolean dropStack);
+
+    boolean canHarvestBlock(ScriptBlock block);
+
+    boolean interactWith(ScriptEntity entity);
 
     /**
      * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements
      * @return Returns whether or not the player has this achievement
      */
-    public boolean hasAchievement(String achievement);
+    boolean hasAchievement(String achievement);
 
     /**
      * @param permission Bukkit/Cauldron permission
      * @return Returns whether or not the player has the permission
      */
-    public boolean hasBukkitPermission(String permission);
+    boolean hasBukkitPermission(String permission);
 
     /**
      * @since 1.7.10c
      * @return Returns the exp level
      */
-    public int getExpLevel();
+    int getExpLevel();
 
     /**
      * @since 1.7.10c
      * @param level The new exp level you want to set
      */
-    public void setExpLevel(int level);
+    void setExpLevel(int level);
 
     /**
      * Requires pixelmon to be installed
      * @since 1.7.10d
      */
-    public ScriptPixelmonPlayerData getPixelmonData();
+    ScriptPixelmonPlayerData getPixelmonData();
 
-    public ITimers getTimers();
+    ITimers getTimers();
 
-    public void updatePlayerInventory();
+    void updatePlayerInventory();
 
-    public boolean checkGUIOpen();
+    ScriptDBCPlayer<T> getDBCPlayer();
+
+    boolean blocking();
+
+    IQuest[] getActiveQuests();
+
+    IContainer getOpenContainer();
+
+    void showCustomGui(ICustomGui gui);
+
+    ICustomGui getCustomGui();
+
+    void closeGui();
+
+    void showCustomOverlay(ICustomOverlay overlay);
+
+    void closeOverlay(int id);
+
+    IQuest[] getFinishedQuests();
 }

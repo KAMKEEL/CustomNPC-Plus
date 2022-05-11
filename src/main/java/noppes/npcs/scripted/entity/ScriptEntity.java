@@ -200,6 +200,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				entityID, entity.dimension
 		);
 	}
+
 	public void spawnParticle(ScriptParticle entityParticle) { entityParticle.spawnOnEntity(this); }
 
 	public int getEntityId(){
@@ -355,6 +356,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public void setPos(IPos pos) {
 		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
+	}
+
+	public int getDimension(){
+		return entity.dimension;
 	}
 
 	/**

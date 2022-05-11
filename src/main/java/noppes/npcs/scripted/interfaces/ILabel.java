@@ -19,4 +19,8 @@ public interface ILabel extends ICustomGuiComponent {
     float getScale();
 
     ILabel setScale(float var1);
+
+    boolean getShadow();
+
+    void setShadow(boolean shadow);
 }

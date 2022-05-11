@@ -1,5 +1,8 @@
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.scripted.overlay.ScriptOverlayComponent;
+
 public interface ICustomOverlayComponent {
     int getID();
 
@@ -26,4 +29,8 @@ public interface ICustomOverlayComponent {
     float getRotation();
 
     void setRotation(float rotation);
+
+    NBTTagCompound toNBT(NBTTagCompound nbt);
+
+    ScriptOverlayComponent fromNBT(NBTTagCompound nbt);
 }

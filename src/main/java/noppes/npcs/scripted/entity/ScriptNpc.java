@@ -317,6 +317,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptRoleTransporter(npc);
 		return new ScriptRoleInterface(npc);
 	}
+
 	public void setRole(int role){
 		for (EnumRoleType e : EnumRoleType.values()) {
 			if (e.ordinal() == role) {
@@ -348,6 +349,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptJobSpawner(npc);
 		return new ScriptJobInterface(npc);
 	}
+
 	public void setJob(int job){
 		for (EnumJobType e : EnumJobType.values()) {
 			if (e.ordinal() == job) {

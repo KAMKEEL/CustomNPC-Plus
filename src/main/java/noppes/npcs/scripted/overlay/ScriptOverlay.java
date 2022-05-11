@@ -37,10 +37,6 @@ public class ScriptOverlay implements ICustomOverlay {
         return this.components;
     }
 
-    public PlayerDataScript getScriptHandler() {
-        return ScriptController.Instance.playerScripts;//this.scriptHandler;
-    }
-
     public int getDefaultAlignment(){
         return this.defaultAlignment;
     }

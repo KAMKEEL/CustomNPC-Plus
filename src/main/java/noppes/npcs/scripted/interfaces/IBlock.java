@@ -6,7 +6,10 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.block.Block;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptTileEntity;
 
 public interface IBlock {
     int getX();
@@ -33,9 +36,17 @@ public interface IBlock {
 
     IWorld getWorld();
 
+    boolean hasTileEntity();
+
+    ScriptTileEntity getTileEntity();
+
+    void setTileEntity(ScriptTileEntity tileEntity);
+
     TileEntity getMCTileEntity();
 
     Block getMCBlock();
 
     String getDisplayName();
+
+    INbt getTileEntityNBT();
 }

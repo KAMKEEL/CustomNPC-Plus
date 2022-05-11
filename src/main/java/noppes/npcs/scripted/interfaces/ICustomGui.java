@@ -5,6 +5,8 @@
 
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 import java.util.List;
 
 public interface ICustomGui {
@@ -61,4 +63,14 @@ public interface ICustomGui {
     void updateComponent(ICustomGuiComponent var1);
 
     void update(IPlayer var1);
+
+    boolean getShowPlayerInv();
+
+    int getPlayerInvX();
+
+    int getPlayerInvY();
+
+    ICustomGui fromNBT(NBTTagCompound tag);
+
+    NBTTagCompound toNBT();
 }

@@ -6,274 +6,344 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.math.BlockPos;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptBlockPos;
+import noppes.npcs.scripted.ScriptParticle;
+import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.item.ScriptItemStack;
 
 public interface IEntity<T extends Entity> {
-    public double getYOffset();
+    
+    void spawnParticle(ScriptParticle entityParticle);
+
+    int getEntityId();
+
+    String getUniqueID();
+    
+    double getYOffset();
 
     /**
      * @return The entities width
      */
-    public double getWidth();
+    double getWidth();
 
     /**
      * @return The entities height
      */
-    public double getHeight();
+    double getHeight();
 
     /**
      * @return The entities x position
      */
-    public double getX();
+    double getX();
 
     /**
      * @param x The entities x position
      */
-    public void setX(double x);
+    void setX(double x);
 
     /**
      * @return The entities y position
      */
-    public double getY();
+    double getY();
 
     /**
      * @param y The entities y position
      */
-    public void setY(double y);
+    void setY(double y);
 
     /**
      * @return The entities x position
      */
-    public double getZ();
+    double getZ();
 
     /**
      * @param z The entities x position
      */
-    public void setZ(double z);
+    void setZ(double z);
 
+    /**
+     * @return The entities z motion
+     */
+    double getMotionX();
+
+    /**
+     * @param x The entities x motion
+     */
+    void setMotionX(double x);
+
+    /**
+     * @return The entities x motion
+     */
+    double getMotionY();
+
+    /**
+     * @param y The entities y motion
+     */
+    void setMotionY(double y);
+
+    /**
+     * @return The entities y motion
+     */
+    double getMotionZ();
+
+    /**
+     * @param z The entities z motion
+     */
+    void setMotionZ(double z);
+
+    void setMotion(double x, double y, double z);
+
+    boolean isAirborne();
+    
     /**
      * @return The block x position
      */
-    public int getBlockX();
+    int getBlockX();
 
     /**
      * @return The block y position
      */
-    public int getBlockY();
+    int getBlockY();
 
     /**
      * @return The block z position
      */
-    public int getBlockZ();
+    int getBlockZ();
 
     /**
      * @param x The x position
      * @param y The y position
      * @param z The z position
      */
-    public void setPosition(double x, double y, double z);
+    void setPosition(double x, double y, double z);
 
+    IPos getPos();
+
+    void setPos(IPos pos);
+
+    int getDimension();
 
     /**
      * @param range The search range for entities around this entity
      * @return Array of entities within range
      */
-    public ScriptEntity[] getSurroundingEntities(int range);
+    ScriptEntity[] getSurroundingEntities(int range);
 
     /**
      * @param range The search range for entities around this entity
      * @param type The EntityType you want to find
      * @return Array of entities within range
      */
-    public ScriptEntity[] getSurroundingEntities(int range, int type);
+    ScriptEntity[] getSurroundingEntities(int range, int type);
 
     /**
      * @return Whether the entity is alive or not
      */
-    public boolean isAlive();
+    boolean isAlive();
 
     /**
      * @param key Get temp data for this key
      * @return Returns the stored temp data
      */
-    public Object getTempData(String key);
+    Object getTempData(String key);
 
     /**
      * Tempdata gets cleared when the entity gets unloaded or the world restarts
      * @param key The key for the data stored
      * @param value The data stored
      */
-    public void setTempData(String key, Object value);
+    void setTempData(String key, Object value);
 
     /**
      * @param key The key thats going to be tested against the temp data
      * @return Whether or not temp data containes the key
      */
-    public boolean hasTempData(String key);
+    boolean hasTempData(String key);
 
     /**
      * @param key The key for the temp data to be removed
      */
-    public void removeTempData(String key);
+    void removeTempData(String key);
 
     /**
      * Remove all tempdata
      */
-    public void clearTempData();
+    void clearTempData();
 
     /**
      * @param key The key of the data to be returned
      * @return Returns the stored data
      */
-    public Object getStoredData(String key);
+    Object getStoredData(String key);
 
     /**
      * Stored data persists through world restart. Unlike tempdata only Strings and Numbers can be saved
      * @param key The key for the data stored
      * @param value The data stored. This data can be either a Number or a String. Other data is not stored
      */
-    public void setStoredData(String key, Object value);
+    void setStoredData(String key, Object value);
 
     /**
      * @param key The key of the data to be checked
      * @return Returns whether or not the stored data contains the key
      */
-    public boolean hasStoredData(String key);
+    boolean hasStoredData(String key);
 
     /**
      * @param key The key of the data to be removed
      */
-    public void removeStoredData(String key);
+    void removeStoredData(String key);
 
     /**
      * Remove all stored data
      */
-    public void clearStoredData();
+    void clearStoredData();
 
     /**
      * @return The age of this entity in ticks
      */
-    public long getAge();
+    long getAge();
 
     /**
      * Despawns this entity. Removes it permanently
      */
-    public void despawn();
+    void despawn();
 
     /**
      * @return Return whether or not this entity is standing in water
      */
-    public boolean inWater();
+    boolean inWater();
 
     /**
      * @return Return whether or not this entity is standing in lava
      */
-    public boolean inLava();
+    boolean inLava();
 
     /**
      * @return Return whether or not this entity is standing in fire
      */
-    public boolean inFire();
+    boolean inFire();
 
     /**
      * @return Return whether or not this entity is on fire
      */
-    public boolean isBurning();
+    boolean isBurning();
 
     /**
      * @param ticks Amount of world ticks this entity will burn. 20 ticks equals 1 second
      */
-    public void setBurning(int ticks);
+    void setBurning(int ticks);
 
     /**
      * Removes fire from this entity
      */
-    public void extinguish();
+    void extinguish();
 
     /**
      * @return Name as which it's registered in minecraft
      */
-    public String getTypeName();
+    String getTypeName();
 
     /**
      * @param item Item to be dropped
      */
-    public void dropItem(ScriptItemStack item);
+    void dropItem(ScriptItemStack item);
 
     /**
      * @return Return the rider
      */
-    public ScriptEntity getRider();
+    ScriptEntity getRider();
 
     /**
      * @param entity The entity to ride this entity
      */
-    public void setRider(ScriptEntity entity);
+    void setRider(ScriptEntity entity);
 
     /**
      * @return Return the entity, this entity is riding
      */
-    public ScriptEntity getMount();
+    ScriptEntity getMount();
 
     /**
      * @param entity The entity this entity will mount
      */
-    public void setMount(ScriptEntity entity);
+    void setMount(ScriptEntity entity);
 
     /**
      * @see noppes.npcs.scripted.constants.EntityType
      * @return Returns the EntityType of this entity
      */
-    public int getType();
+    int getType();
 
     /**
      * @since 1.7.10c
      * @param type @EntityType to check
      * @return Returns whether the entity is type of the given @EntityType
      */
-    public boolean typeOf(int type);
+    boolean typeOf(int type);
 
     /**
      * @param rotation The rotation to be set (0-360)
      */
-    public void setRotation(float rotation);
+    void setRotation(float rotation);
 
     /**
      * @return Current rotation of the npc
      */
-    public float getRotation();
+    float getRotation();
+
+    public void setPitch(float pitch);
+
+    public float getPitch();
 
     /**
      * @param power How strong the knockback is
      * @param direction The direction in which he flies back (0-360). Usually based on getRotation()
      */
-    public void knockback(int power, float direction);
+    void knockback(int power, float direction);
 
-    public void knockback(int xpower, int ypower, int zpower, float direction);
+    void knockback(int xpower, int ypower, int zpower, float direction);
 
-    public void setImmune(int ticks);
+    void setImmune(int ticks);
 
-    public boolean hasCollided();
+    public void setInvisible(boolean invisible);
+
+    public void setSneaking(boolean sneaking);
+
+    public void setSprinting(boolean sprinting);
+
+    boolean hasCollided();
 
     /**
      * @since 1.7.10c
      * @return Returns whether or not this entity is sneaking
      */
-    public boolean isSneaking();
+    boolean isSneaking();
 
     /**
      * @since 1.7.10c
      * @return Returns whether or not this entity is sprinting
      */
-    public boolean isSprinting();
+    boolean isSprinting();
 
     /**
      * @since 1.7.10c
      * Expert users only
      * @return Returns minecrafts entity
      */
-    public T getMCEntity();
+    T getMCEntity();
+
+    public INbt getNbt();
+
+    public INbt getAllNbt();
+
+    public void setNbt(INbt nbt);
 
     void storeAsClone(int tab, String name);
+
+    ScriptWorld getWorld();
 }

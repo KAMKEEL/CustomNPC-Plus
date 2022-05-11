@@ -14,4 +14,8 @@ public interface IOverlayLabel extends ICustomOverlayComponent {
     float getScale();
 
     IOverlayLabel setScale(float var1);
+
+    boolean getShadow();
+
+    void setShadow(boolean shadow);
 }

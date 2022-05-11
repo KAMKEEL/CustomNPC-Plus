@@ -10,6 +10,8 @@ import net.minecraft.util.DamageSource;
 public interface IDamageSource {
     String getType();
 
+    boolean isUnblockable();
+
     boolean isProjectile();
 
     IEntity getTrueSource();
