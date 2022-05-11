@@ -21,7 +21,7 @@ import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptNbt;
-import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.INbt;
 
 public class ScriptItemStack implements IItemStack {

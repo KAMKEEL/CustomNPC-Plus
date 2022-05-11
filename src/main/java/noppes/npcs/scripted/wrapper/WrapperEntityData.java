@@ -15,7 +15,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.scripted.entity.*;
-import noppes.npcs.scripted.interfaces.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 public class WrapperEntityData{
     public IEntity base;

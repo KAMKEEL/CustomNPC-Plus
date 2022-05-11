@@ -5,8 +5,8 @@ import java.util.Vector;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.scripted.handler.data.IQuestInterface;
-import noppes.npcs.scripted.handler.data.IQuestObjective;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestInterface;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 
 public abstract class QuestInterface implements IQuestInterface {
 	public int questId;

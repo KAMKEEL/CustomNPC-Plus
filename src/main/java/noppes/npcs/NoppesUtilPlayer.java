@@ -22,7 +22,6 @@ import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
@@ -34,7 +33,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
-import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public class NoppesUtilPlayer {
 

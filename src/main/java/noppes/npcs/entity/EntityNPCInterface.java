@@ -61,7 +61,6 @@ import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.DialogOption;
@@ -86,7 +85,7 @@ import noppes.npcs.scripted.event.ScriptEventAttack;
 import noppes.npcs.scripted.event.ScriptEventDamaged;
 import noppes.npcs.scripted.event.ScriptEventKilled;
 import noppes.npcs.scripted.event.ScriptEventTarget;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 

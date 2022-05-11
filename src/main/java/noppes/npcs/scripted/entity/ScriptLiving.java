@@ -2,7 +2,7 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.EntityLiving;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.interfaces.IEntityLiving;
+import noppes.npcs.scripted.interfaces.entity.IEntityLiving;
 
 public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> implements IEntityLiving {
 

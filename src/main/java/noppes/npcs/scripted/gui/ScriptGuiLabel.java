@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.gui;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.ILabel;
+import noppes.npcs.scripted.interfaces.gui.ILabel;
 
 public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
     String label;

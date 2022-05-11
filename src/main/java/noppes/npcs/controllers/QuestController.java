@@ -10,9 +10,9 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.scripted.handler.IQuestHandler;
-import noppes.npcs.scripted.handler.data.IQuest;
-import noppes.npcs.scripted.handler.data.IQuestCategory;
+import noppes.npcs.scripted.interfaces.handler.IQuestHandler;
+import noppes.npcs.scripted.interfaces.handler.data.IQuest;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class QuestController implements IQuestHandler {

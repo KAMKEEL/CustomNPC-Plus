@@ -2,11 +2,12 @@ package noppes.npcs.scripted;
 
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.interfaces.IParticle;
 
 /**
  * Created by luisc on 9/8/2021.
  */
-public class ScriptParticle {
+public class ScriptParticle implements IParticle {
     private String directory;
 
     private int HEXColor = 0xFFFFFF;
@@ -139,41 +140,13 @@ public class ScriptParticle {
         return directory;
     }
 
+    @Deprecated
     public void setHEXColor(int HEXColor) {
         this.HEXColor = HEXColor;
     }
+    @Deprecated
     public int getHEXColor() {
         return HEXColor;
-    }
-    public void setHEXColor(int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart) {
-        this.HEXColor = HEXColor;
-        this.HEXColor2 = HEXColor2;
-        this.HEXColorRate = HEXColorRate;
-        this.HEXColorStart = HEXColorStart;
-    }
-    public int getHEXColor1() {
-        return HEXColor;
-    }
-    public int getHEXColor2() {
-        return HEXColor2;
-    }
-    public float getHEXColorRate() {
-        return HEXColorRate;
-    }
-    public int getHEXColorStart() {
-        return HEXColorStart;
-    }
-    public void setHEXColor1(int HEXColor) {
-        this.HEXColor = HEXColor;
-    }
-    public void setHEXColor2(int HEXColor2) {
-        this.HEXColor2 = HEXColor2;
-    }
-    public void setHEXColorRate(float HEXColorRate) {
-        this.HEXColorRate = HEXColorRate;
-    }
-    public void setHEXColorStart(int HEXColorStart) {
-        this.HEXColorStart = HEXColorStart;
     }
 
     public int getAmount() {
@@ -205,6 +178,19 @@ public class ScriptParticle {
     }
     public float getGravity() {
         return gravity;
+    }
+
+    public int getHEXColor1() {
+        return HEXColor;
+    }
+    public int getHEXColor2() {
+        return HEXColor2;
+    }
+    public float getHEXColorRate() {
+        return HEXColorRate;
+    }
+    public int getHEXColorStart() {
+        return HEXColorStart;
     }
 
     public float getAlpha1() {
@@ -294,23 +280,23 @@ public class ScriptParticle {
         this.gravity = gravity;
     }
 
-    public void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart){
-        this.scale1 = scale1;
-        this.scale2 = scale2;
-        this.scaleRate = scaleRate;
-        this.scaleRateStart = scaleRateStart;
+    public void setHEXColor(int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart) {
+        this.HEXColor = HEXColor;
+        this.HEXColor2 = HEXColor2;
+        this.HEXColorRate = HEXColorRate;
+        this.HEXColorStart = HEXColorStart;
     }
-    public void setScale1(float scale1) {
-        this.scale1 = scale1;
+    public void setHEXColor1(int HEXColor) {
+        this.HEXColor = HEXColor;
     }
-    public void setScale2(float scale2) {
-        this.scale2 = scale2;
+    public void setHEXColor2(int HEXColor2) {
+        this.HEXColor2 = HEXColor2;
     }
-    public void setScaleRate(float scaleRate) {
-        this.scaleRate = scaleRate;
+    public void setHEXColorRate(float HEXColorRate) {
+        this.HEXColorRate = HEXColorRate;
     }
-    public void setScaleRateStart(int scaleRateStart) {
-        this.scaleRateStart = scaleRateStart;
+    public void setHEXColorStart(int HEXColorStart) {
+        this.HEXColorStart = HEXColorStart;
     }
 
     public void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart){
@@ -330,6 +316,25 @@ public class ScriptParticle {
     }
     public void setAlphaRateStart(int alphaRateStart) {
         this.alphaRateStart = alphaRateStart;
+    }
+
+    public void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart){
+        this.scale1 = scale1;
+        this.scale2 = scale2;
+        this.scaleRate = scaleRate;
+        this.scaleRateStart = scaleRateStart;
+    }
+    public void setScale1(float scale1) {
+        this.scale1 = scale1;
+    }
+    public void setScale2(float scale2) {
+        this.scale2 = scale2;
+    }
+    public void setScaleRate(float scaleRate) {
+        this.scaleRate = scaleRate;
+    }
+    public void setScaleRateStart(int scaleRateStart) {
+        this.scaleRateStart = scaleRateStart;
     }
 
     public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart){

@@ -13,8 +13,8 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.scripted.handler.IRecipeHandler;
-import noppes.npcs.scripted.handler.data.IRecipe;
+import noppes.npcs.scripted.interfaces.handler.IRecipeHandler;
+import noppes.npcs.scripted.interfaces.handler.data.IRecipe;
 
 public class RecipeController implements IRecipeHandler {
 	private static Collection<RecipeCarpentry> prevRecipes;

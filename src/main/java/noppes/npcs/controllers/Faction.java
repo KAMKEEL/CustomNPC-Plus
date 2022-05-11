@@ -8,9 +8,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.IFaction;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
-import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.IFaction;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class Faction implements IFaction {
 	public String name = "";

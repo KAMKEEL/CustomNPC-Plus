@@ -6,6 +6,7 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.util.DamageSource;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 public interface IDamageSource {
     String getType();

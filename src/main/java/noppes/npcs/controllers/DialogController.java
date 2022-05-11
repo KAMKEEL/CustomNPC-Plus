@@ -11,9 +11,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.scripted.handler.IDialogHandler;
-import noppes.npcs.scripted.handler.data.IDialog;
-import noppes.npcs.scripted.handler.data.IDialogCategory;
+import noppes.npcs.scripted.interfaces.handler.IDialogHandler;
+import noppes.npcs.scripted.interfaces.handler.data.IDialog;
+import noppes.npcs.scripted.interfaces.handler.data.IDialogCategory;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class DialogController implements IDialogHandler {

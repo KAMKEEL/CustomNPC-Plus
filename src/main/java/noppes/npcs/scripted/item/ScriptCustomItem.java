@@ -10,7 +10,7 @@ import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.interfaces.ICustomItem;
+import noppes.npcs.scripted.interfaces.item.ICustomItem;
 
 import java.util.*;
 

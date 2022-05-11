@@ -1,8 +1,7 @@
 package noppes.npcs.scripted.overlay;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.gui.ScriptGuiComponent;
-import noppes.npcs.scripted.interfaces.IOverlayLine;
+import noppes.npcs.scripted.interfaces.overlay.IOverlayLine;
 
 public class ScriptOverlayLine extends ScriptOverlayComponent implements IOverlayLine {
     int x1;

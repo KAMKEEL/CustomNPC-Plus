@@ -16,6 +16,10 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
 
 public class PlayerEvent extends CustomNPCsEvent {

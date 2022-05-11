@@ -14,8 +14,8 @@ import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.IQuestDialog;
-import noppes.npcs.scripted.handler.data.IQuestObjective;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestDialog;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 
 public class QuestDialog extends QuestInterface implements IQuestDialog {
 

@@ -1,9 +1,9 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.IItemStack;
-import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class CustomGuiEvent extends Event {
     public final IPlayer player;

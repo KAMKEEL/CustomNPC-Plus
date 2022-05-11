@@ -1,6 +1,5 @@
 package noppes.npcs.scripted.entity;
 
-import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.*;
@@ -8,11 +7,11 @@ import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;

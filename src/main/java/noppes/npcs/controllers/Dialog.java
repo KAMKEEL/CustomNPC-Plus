@@ -11,7 +11,7 @@ import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.*;
+import noppes.npcs.scripted.interfaces.handler.data.*;
 
 public class Dialog implements ICompatibilty, IDialog {
 	public int version = VersionCompatibility.ModRev;

@@ -13,12 +13,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.scripted.interfaces.*;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.scripted.interfaces.gui.*;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.scripted.interfaces.ICustomGui;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public class ScriptGui implements ICustomGui {
     int id;

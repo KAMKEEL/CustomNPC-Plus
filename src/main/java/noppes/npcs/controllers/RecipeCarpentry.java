@@ -1,10 +1,7 @@
 package noppes.npcs.controllers;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.inventory.InventoryCrafting;
@@ -16,7 +13,7 @@ import net.minecraft.world.World;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.scripted.handler.data.IRecipe;
+import noppes.npcs.scripted.interfaces.handler.data.IRecipe;
 
 public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 	public int id = -1;

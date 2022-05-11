@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.gui;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.ITextField;
+import noppes.npcs.scripted.interfaces.gui.ITextField;
 
 public class ScriptGuiTextField extends ScriptGuiComponent implements ITextField {
     int width;

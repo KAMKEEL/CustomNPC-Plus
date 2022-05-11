@@ -1,13 +1,9 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import net.minecraft.item.ItemStack;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.ICustomItem;
-import noppes.npcs.scripted.interfaces.IEntity;
-import noppes.npcs.scripted.interfaces.IItemStack;
-import noppes.npcs.scripted.interfaces.IPlayer;
-import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.interfaces.item.ICustomItem;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class ItemEvent extends CustomNPCsEvent {
     public ICustomItem item;

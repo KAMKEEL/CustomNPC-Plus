@@ -14,7 +14,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 

@@ -5,12 +5,11 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.customoverlay.components.CustomOverlayLabel;
 import noppes.npcs.client.gui.customoverlay.components.CustomOverlayLine;
 import noppes.npcs.client.gui.customoverlay.components.CustomOverlayTexturedRect;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
-import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
+import noppes.npcs.scripted.interfaces.overlay.ICustomOverlayComponent;
 import noppes.npcs.scripted.overlay.*;
 import org.lwjgl.opengl.GL11;
 

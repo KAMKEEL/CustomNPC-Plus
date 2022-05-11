@@ -14,6 +14,11 @@ import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public class NpcEvent extends CustomNPCsEvent {
     public final ICustomNpc npc;

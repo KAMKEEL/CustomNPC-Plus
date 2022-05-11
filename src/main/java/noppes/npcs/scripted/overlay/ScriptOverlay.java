@@ -4,14 +4,9 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.scripted.entity.ScriptPlayer;
-import noppes.npcs.scripted.gui.ScriptGuiComponent;
-import noppes.npcs.scripted.gui.ScriptGuiItemSlot;
-import noppes.npcs.scripted.gui.ScriptGuiLabel;
-import noppes.npcs.scripted.gui.ScriptGuiLine;
-import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.overlay.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;

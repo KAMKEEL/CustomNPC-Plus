@@ -20,7 +20,9 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.*;
-import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public abstract class NpcAPI {
     private static NpcAPI instance = null;

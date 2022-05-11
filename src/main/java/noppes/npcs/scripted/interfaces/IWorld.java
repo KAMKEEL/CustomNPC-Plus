@@ -5,6 +5,8 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
 
 public interface IWorld {

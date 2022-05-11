@@ -7,6 +7,7 @@ package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 

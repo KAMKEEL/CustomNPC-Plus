@@ -15,7 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.scripted.gui.ScriptGuiLabel;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;

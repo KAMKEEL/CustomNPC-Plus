@@ -25,7 +25,7 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.item.ScriptItemStack;

@@ -6,8 +6,8 @@ import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.scripted.handler.data.IDialog;
-import noppes.npcs.scripted.handler.data.IDialogCategory;
+import noppes.npcs.scripted.interfaces.handler.data.IDialog;
+import noppes.npcs.scripted.interfaces.handler.data.IDialogCategory;
 
 public class DialogCategory implements IDialogCategory {
 

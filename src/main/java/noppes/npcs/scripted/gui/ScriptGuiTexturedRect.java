@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.gui;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.ITexturedRect;
+import noppes.npcs.scripted.interfaces.gui.ITexturedRect;
 
 public class ScriptGuiTexturedRect extends ScriptGuiComponent implements ITexturedRect {
     int width;

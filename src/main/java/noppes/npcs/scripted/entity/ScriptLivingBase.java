@@ -2,16 +2,15 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.wrapper.ScriptDamageSource;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 

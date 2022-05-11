@@ -11,8 +11,8 @@ import noppes.npcs.constants.EnumAvailabilityFactionType;
 import noppes.npcs.constants.EnumAvailabilityQuest;
 import noppes.npcs.constants.EnumDayTime;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.IAvailability;
-import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.IAvailability;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class Availability implements ICompatibilty, IAvailability {
 	public int version = VersionCompatibility.ModRev;
