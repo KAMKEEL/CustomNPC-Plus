@@ -19,6 +19,7 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
     public long lastInited = -1L;
+    public boolean loaded = false;
 
     public boolean durabilityShow = false;
     public double durabilityValue = 1.0D;
@@ -26,7 +27,11 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
     public int itemColor = 0x8B4513;
     public int stackSize = 64;
     public int maxItemUseDuration = 20;
-    public boolean loaded = false;
+
+    public boolean isTool = false;
+    public int digSpeed = 1;
+    public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
+    public int enchantability;
 
     public String texture = "minecraft:textures/items/iron_pickaxe.png";
     public int width = -1, height = -1;
@@ -160,6 +165,33 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         return this.stackSize;
     }
 
+    public void setArmorType(int armorType){
+        this.armorType = armorType;
+        saveItemData();
+    }
+
+    public int getArmorType(){
+        return this.armorType;
+    }
+
+    public void setIsTool(boolean isTool){
+        this.isTool = isTool;
+        saveItemData();
+    }
+
+    public boolean isTool(){
+        return this.isTool;
+    }
+
+    public void setDigSpeed(int digSpeed){
+        this.digSpeed = digSpeed;
+        saveItemData();
+    }
+
+    public int getDigSpeed(){
+        return this.digSpeed;
+    }
+
     public void setMaxStackSize(int size) {
         if (size >= 1 && size <= 64) {
             this.stackSize = size;
@@ -211,6 +243,15 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
 
     public void setMaxItemUseDuration(int duration){
         this.maxItemUseDuration = duration;
+        saveItemData();
+    }
+
+    public int getEnchantability(){
+        return this.enchantability;
+    }
+
+    public void setEnchantability(int enchantability){
+        this.enchantability = enchantability;
         saveItemData();
     }
 
@@ -350,6 +391,11 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
 
         compound.setInteger("Width", this.width);
         compound.setInteger("Height", this.height);
+
+        compound.setBoolean("IsTool", this.isTool);
+        compound.setInteger("DigSpeed", this.digSpeed);
+        compound.setInteger("ArmorType", this.armorType);
+        compound.setInteger("Enchantability", this.enchantability);
         return compound;
     }
 
@@ -377,6 +423,11 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
 
         this.width = compound.getInteger("Width");
         this.height = compound.getInteger("Height");
+
+        this.isTool = compound.getBoolean("IsTool");
+        this.digSpeed = compound.getInteger("DigSpeed");
+        this.armorType = compound.getInteger("ArmorType");
+        this.enchantability = compound.getInteger("Enchantability");
     }
 
     public void saveScriptData() {

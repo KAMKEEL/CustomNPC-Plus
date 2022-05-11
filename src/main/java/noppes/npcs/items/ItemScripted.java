@@ -3,6 +3,7 @@ package noppes.npcs.items;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -10,8 +11,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
@@ -20,8 +19,6 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
-
-import java.util.HashMap;
 
 public class ItemScripted extends Item implements ItemRenderInterface {
     public ItemScripted() {
@@ -85,6 +82,34 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     public int getItemStackLimit(ItemStack stack) {
         IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
         return istack instanceof ScriptCustomItem ? (new ScriptCustomItem(stack)).getMaxStackSize() : super.getItemStackLimit(stack);
+    }
+
+    public boolean isItemTool(ItemStack stack)
+    {
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        return istack instanceof ScriptCustomItem ? (new ScriptCustomItem(stack)).isTool() : super.isItemTool(stack);
+    }
+
+    public float getDigSpeed(ItemStack stack, Block block, int metadata)
+    {
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        return istack instanceof ScriptCustomItem ? (new ScriptCustomItem(stack)).getDigSpeed() : super.getDigSpeed(stack, block, metadata);
+    }
+
+    public boolean isValidArmor(ItemStack stack, int armorType, Entity entity)
+    {
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+
+        if((new ScriptCustomItem(stack)).getArmorType() == -1)
+            return true;
+
+        return istack instanceof ScriptCustomItem ? armorType == (new ScriptCustomItem(stack)).getArmorType() : super.isValidArmor(stack, armorType, entity);
+    }
+
+    public int getItemEnchantability(ItemStack stack)
+    {
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        return istack instanceof ScriptCustomItem ? (new ScriptCustomItem(stack)).getEnchantability() : super.getItemEnchantability(stack);
     }
 
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
