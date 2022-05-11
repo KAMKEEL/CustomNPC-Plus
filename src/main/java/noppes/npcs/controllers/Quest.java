@@ -17,13 +17,13 @@ import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.quests.QuestLocation;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestCategory;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestInterface;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class Quest implements ICompatibilty, IQuest {
 	public int version = VersionCompatibility.ModRev;

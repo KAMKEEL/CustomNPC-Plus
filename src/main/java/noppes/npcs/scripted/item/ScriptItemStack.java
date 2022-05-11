@@ -19,10 +19,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptNbt;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.INbt;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptItemStack implements IItemStack {
 	public ItemStack item;

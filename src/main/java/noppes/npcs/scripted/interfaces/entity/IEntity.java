@@ -6,10 +6,6 @@
 package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.BlockPos;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.entity.ScriptEntity;

@@ -18,10 +18,8 @@ import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.scripted.NpcAPI;
-import scala.Char;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptContainer {
     private static final String lock = "lock";

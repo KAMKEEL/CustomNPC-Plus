@@ -30,8 +30,8 @@ import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {

@@ -1,6 +1,5 @@
 package noppes.npcs;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -27,7 +26,8 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.old.*;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.scripted.wrapper.NpcAPI;
+
 import java.io.File;
 import java.util.Set;
 
@@ -257,7 +257,7 @@ public class CustomNpcs {
         ScriptController.Instance.loadNPCScripts();
         ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
-        WrapperNpcAPI.clearCache();
+        NpcAPI.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){

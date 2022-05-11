@@ -16,6 +16,7 @@ import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptContainer implements IContainer {
     private IInventory inventory;

@@ -45,7 +45,7 @@ import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
-import noppes.npcs.scripted.interfaces.item.ICustomItem;
+import noppes.npcs.scripted.interfaces.item.IItemCustom;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -55,12 +55,12 @@ import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
 
-public class WrapperNpcAPI extends NpcAPI {
+public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap(10);
     public static final EventBus EVENT_BUS = new EventBus();
-    private static NpcAPI instance = null;
+    private static AbstractNpcAPI instance = null;
 
-    public WrapperNpcAPI() {
+    public NpcAPI() {
     }
 
     public static void clearCache() {
@@ -163,9 +163,9 @@ public class WrapperNpcAPI extends NpcAPI {
         }
     }
 
-    public static NpcAPI Instance() {
+    public static AbstractNpcAPI Instance() {
         if (instance == null) {
-            instance = new WrapperNpcAPI();
+            instance = new NpcAPI();
         }
 
         return instance;
@@ -177,10 +177,20 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public IItemStack getIItemStack(ItemStack itemstack) {
         if(itemstack.getItem() instanceof ItemScripted){
-            return (ICustomItem) (itemstack.stackSize > 0 ? new ScriptCustomItem(itemstack) : new ScriptCustomItem(new ItemStack(Item.getItemById(0))));
+            return (IItemCustom) (itemstack.stackSize > 0 ? new ScriptCustomItem(itemstack) : new ScriptCustomItem(new ItemStack(Item.getItemById(0))));
         } else {
             return (IItemStack) (itemstack.stackSize > 0 ? new ScriptItemStack(itemstack) : new ScriptItemStack(new ItemStack(Item.getItemById(0))));
         }
+    }
+
+    public IItemStack createItem(String id, int damage, int size){
+        Item item = (Item)Item.itemRegistry.getObject(id);
+        if(item == null)
+            return null;
+        if(item instanceof ItemScripted)
+            return new ScriptCustomItem(new ItemStack(item, size, damage));
+        else
+            return new ScriptItemStack(new ItemStack(item, size, damage));
     }
 
     public IWorld getIWorld(WorldServer world) {
@@ -268,16 +278,6 @@ public class WrapperNpcAPI extends NpcAPI {
         }
 
         return arr;
-    }
-
-    public IItemStack createItem(String id, int damage, int size){
-        Item item = (Item)Item.itemRegistry.getObject(id);
-        if(item == null)
-            return null;
-        if(item instanceof ItemScripted)
-            return new ScriptCustomItem(new ItemStack(item, size, damage));
-        else
-            return new ScriptItemStack(new ItemStack(item, size, damage));
     }
 
     public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch){

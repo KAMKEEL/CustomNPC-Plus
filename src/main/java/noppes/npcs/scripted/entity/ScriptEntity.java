@@ -29,6 +29,7 @@ import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -740,6 +741,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 
 	public ScriptWorld getWorld() {
-		return (ScriptWorld)NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
+		return (ScriptWorld) NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
 	}
 }

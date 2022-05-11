@@ -1,6 +1,6 @@
 package noppes.npcs.scripted.interfaces.item;
 
-public interface ICustomItem extends IItemStack {
+public interface IItemCustom extends IItemStack {
     String getTexture();
 
     void setTexture(String var2);

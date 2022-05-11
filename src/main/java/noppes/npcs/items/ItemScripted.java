@@ -19,10 +19,10 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 import org.lwjgl.opengl.GL11;
 
 public class ItemScripted extends Item implements ItemRenderInterface {

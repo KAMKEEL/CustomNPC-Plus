@@ -21,9 +21,6 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
-
-import javax.script.ScriptEngine;
 
 public class ForgeDataScript implements IScriptHandler {
     private List<ScriptContainer> scripts = new ArrayList();

@@ -28,7 +28,7 @@ import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -247,7 +247,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		for(int i = 0; i < player.inventory.mainInventory.length; i++){
 			ItemStack item = player.inventory.mainInventory[i];
 			if(item != null)
-				items[i] = WrapperNpcAPI.Instance().getIItemStack(item);
+				items[i] = NpcAPI.Instance().getIItemStack(item);
 		}
 		return items;
 	}

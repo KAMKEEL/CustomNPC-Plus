@@ -10,13 +10,12 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 import java.io.IOException;
 
@@ -78,7 +77,7 @@ public class CustomGuiController {
             getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_BUTTON, event);
         }
 
-        WrapperNpcAPI.EVENT_BUS.post(event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onSlotChange(CustomGuiEvent.SlotEvent event) {
@@ -87,7 +86,7 @@ public class CustomGuiController {
             getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_SLOT, event);
         }
 
-        WrapperNpcAPI.EVENT_BUS.post(event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onCustomGuiUnfocused(CustomGuiEvent.UnfocusedEvent event) {
@@ -96,7 +95,7 @@ public class CustomGuiController {
             getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_TEXTFIELD, event);
         }
 
-        WrapperNpcAPI.EVENT_BUS.post(event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onScrollClick(CustomGuiEvent.ScrollEvent event) {
@@ -105,7 +104,7 @@ public class CustomGuiController {
             getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_SCROLL, event);
         }
 
-        WrapperNpcAPI.EVENT_BUS.post(event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onClose(CustomGuiEvent.CloseEvent event) {
@@ -113,7 +112,7 @@ public class CustomGuiController {
             ScriptController.Instance.playerScripts.callScript(EnumScriptType.CUSTOM_GUI_CLOSED, event);
         }
 
-        WrapperNpcAPI.EVENT_BUS.post(event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static ScriptGui getOpenGui(EntityPlayer player) {

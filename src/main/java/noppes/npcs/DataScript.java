@@ -15,7 +15,6 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ScriptEvent;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.ScriptWorld;
@@ -24,7 +23,7 @@ import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class DataScript implements IScriptHandler {
 	public List<ScriptContainer> scripts = new ArrayList();
@@ -134,7 +133,7 @@ public class DataScript implements IScriptHandler {
 		ScriptEvent result = (ScriptEvent) engine.get("event");
 		if(result == null)
 			engine.put("event", result = new ScriptEvent());
-		engine.put("API", new WrapperNpcAPI());
+		engine.put("API", new NpcAPI());
 		engine.put("EntityType", entities);
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);

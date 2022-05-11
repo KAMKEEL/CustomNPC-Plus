@@ -11,8 +11,8 @@ import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 import noppes.npcs.scripted.wrapper.ScriptDamageSource;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -174,7 +174,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 * @return The item the entity is holding
 	 */
 	public IItemStack getHeldItem(){
-		return WrapperNpcAPI.Instance().getIItemStack(entity.getHeldItem());
+		return NpcAPI.Instance().getIItemStack(entity.getHeldItem());
 	}
 	
 	/**
@@ -192,7 +192,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 * @return The item in the given slot
 	 */
 	public IItemStack getArmor(int slot){
-		return WrapperNpcAPI.Instance().getIItemStack(entity.getEquipmentInSlot(slot + 1));
+		return NpcAPI.Instance().getIItemStack(entity.getEquipmentInSlot(slot + 1));
 	}
 	
 	/**

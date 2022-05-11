@@ -10,11 +10,11 @@ import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.interfaces.item.ICustomItem;
+import noppes.npcs.scripted.interfaces.item.IItemCustom;
 
 import java.util.*;
 
-public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IScriptHandler {
+public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;

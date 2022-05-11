@@ -24,10 +24,10 @@ import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 
-public abstract class NpcAPI {
-    private static NpcAPI instance = null;
+public abstract class AbstractNpcAPI {
+    private static AbstractNpcAPI instance = null;
 
-    public NpcAPI() {
+    public AbstractNpcAPI() {
     }
 
     public abstract ICustomNpc createNPC(World var1);
@@ -64,15 +64,15 @@ public abstract class NpcAPI {
         return Loader.isModLoaded("customnpcs");
     }
 
-    public static NpcAPI Instance() {
+    public static AbstractNpcAPI Instance() {
         if (instance != null) {
             return instance;
         } else if (!IsAvailable()) {
             return null;
         } else {
             try {
-                Class c = Class.forName("noppes.npcs.scripted.wrapper.WrapperNpcAPI");
-                instance = (NpcAPI) c.getMethod("Instance").invoke((Object) null);
+                Class c = Class.forName("noppes.npcs.scripted.wrapper.NpcAPI");
+                instance = (AbstractNpcAPI) c.getMethod("Instance").invoke((Object) null);
             } catch (Exception var1) {
                 var1.printStackTrace();
             }

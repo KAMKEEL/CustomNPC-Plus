@@ -28,7 +28,7 @@ import noppes.npcs.scripted.roles.ScriptRoleInterface;
 import noppes.npcs.scripted.roles.ScriptRoleMailman;
 import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -362,7 +362,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return The item held in the right hand
 	 */
 	public IItemStack getRightItem(){
-		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.getWeapon());
+		return NpcAPI.Instance().getIItemStack(npc.inventory.getWeapon());
 	}
 	
 	/**
@@ -380,7 +380,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return The item held in the left hand
 	 */
 	public IItemStack getLefttItem(){
-		return WrapperNpcAPI.Instance().getIItemStack(npc.getOffHand());
+		return NpcAPI.Instance().getIItemStack(npc.getOffHand());
 	}
 	
 	/**
@@ -398,7 +398,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return Returns the projectile the npc uses
 	 */
 	public IItemStack getProjectileItem(){
-		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.getProjectile());
+		return NpcAPI.Instance().getIItemStack(npc.inventory.getProjectile());
 	}
 	
 	/**
@@ -483,7 +483,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 */
 	@Override
 	public IItemStack getArmor(int slot){
-		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.armor.get(slot));
+		return NpcAPI.Instance().getIItemStack(npc.inventory.armor.get(slot));
 	}
 	
 	/**
@@ -506,7 +506,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return
 	 */
 	public IItemStack getLootItem(int slot) {
-		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.getStackInSlot(slot+7));
+		return NpcAPI.Instance().getIItemStack(npc.inventory.getStackInSlot(slot+7));
 	}
 
 	/**

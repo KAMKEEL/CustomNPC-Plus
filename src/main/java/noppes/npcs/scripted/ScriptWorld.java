@@ -31,7 +31,7 @@ import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
@@ -325,7 +325,7 @@ public class ScriptWorld implements IWorld {
 	 * @return Returns the item
 	 */
 	public IItemStack createItem(String id, int damage, int size){
-		return WrapperNpcAPI.Instance().createItem(id,damage,size);
+		return NpcAPI.Instance().createItem(id,damage,size);
 	}
 
 	/**

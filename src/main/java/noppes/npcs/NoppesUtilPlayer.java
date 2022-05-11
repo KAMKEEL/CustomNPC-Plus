@@ -29,11 +29,11 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class NoppesUtilPlayer {
 

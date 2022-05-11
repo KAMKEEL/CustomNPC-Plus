@@ -15,12 +15,13 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.items.ItemScripted;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.wrapper.NpcAPI;
+
 import java.util.HashMap;
 
 public class ScriptItemEventHandler {

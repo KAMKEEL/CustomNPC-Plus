@@ -1,19 +1,19 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import noppes.npcs.scripted.interfaces.item.ICustomItem;
+import noppes.npcs.scripted.interfaces.item.IItemCustom;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class ItemEvent extends CustomNPCsEvent {
-    public ICustomItem item;
+    public IItemCustom item;
 
-    public ItemEvent(ICustomItem item) {
+    public ItemEvent(IItemCustom item) {
         this.item = item;
     }
 
     public static class InitEvent extends ItemEvent {
-        public InitEvent(ICustomItem item) {
+        public InitEvent(IItemCustom item) {
             super(item);
         }
     }
@@ -21,7 +21,7 @@ public class ItemEvent extends CustomNPCsEvent {
     public static class UpdateEvent extends ItemEvent {
         public IEntity entity;
 
-        public UpdateEvent(ICustomItem item, IEntity entity) {
+        public UpdateEvent(IItemCustom item, IEntity entity) {
             super(item);
             this.entity = entity;
         }
@@ -32,7 +32,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public IEntity entity;
         public IPlayer player;
 
-        public TossedEvent(ICustomItem item, IPlayer player, IEntity entity) {
+        public TossedEvent(IItemCustom item, IPlayer player, IEntity entity) {
             super(item);
             this.entity = entity;
             this.player = player;
@@ -42,7 +42,7 @@ public class ItemEvent extends CustomNPCsEvent {
     public static class PickedUpEvent extends ItemEvent {
         public IPlayer player;
 
-        public PickedUpEvent(ICustomItem item, IPlayer player) {
+        public PickedUpEvent(IItemCustom item, IPlayer player) {
             super(item);
             this.player = player;
         }
@@ -51,7 +51,7 @@ public class ItemEvent extends CustomNPCsEvent {
     @Cancelable
     public static class SpawnEvent extends ItemEvent {
         public IEntity entity;
-        public SpawnEvent(ICustomItem item, IEntity entity){
+        public SpawnEvent(IItemCustom item, IEntity entity){
             super(item);
             this.entity = entity;
         }
@@ -63,7 +63,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public final Object target;
         public IPlayer player;
 
-        public InteractEvent(ICustomItem item, IPlayer player, int type, Object target) {
+        public InteractEvent(IItemCustom item, IPlayer player, int type, Object target) {
             super(item);
             this.type = type;
             this.target = target;
@@ -77,7 +77,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public final Object target;
         public IEntity swingingEntity;
 
-        public AttackEvent(ICustomItem item, IEntity swingingEntity, int type, Object target) {
+        public AttackEvent(IItemCustom item, IEntity swingingEntity, int type, Object target) {
             super(item);
             this.type = type;
             this.target = target;
@@ -89,7 +89,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public final IPlayer player;
         public final int duration;
 
-        public StartUsingItem(ICustomItem item, IPlayer player, int duration){
+        public StartUsingItem(IItemCustom item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -99,7 +99,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public final IPlayer player;
         public final int duration;
 
-        public UsingItem(ICustomItem item, IPlayer player, int duration){
+        public UsingItem(IItemCustom item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -109,7 +109,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public final IPlayer player;
         public final int duration;
 
-        public StopUsingItem(ICustomItem item, IPlayer player, int duration){
+        public StopUsingItem(IItemCustom item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -119,7 +119,7 @@ public class ItemEvent extends CustomNPCsEvent {
         public final IPlayer player;
         public final int duration;
 
-        public FinishUsingItem(ICustomItem item, IPlayer player, int duration){
+        public FinishUsingItem(IItemCustom item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
