@@ -4,6 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
@@ -160,20 +161,5 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     @Override
     public void renderSpecial() {
         GL11.glTranslatef(0.135F, 0.2F, 0.07F);
-    }
-
-    public void renderCustomAttributes(ItemStack itemStack) {
-        ScriptCustomItem scriptCustomItem = GetWrapper(itemStack);
-
-        GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
-        GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
-        GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
-        GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
-
-        int color = scriptCustomItem.getColor();
-        float itemRed = (color >> 16 & 255) / 255f;
-        float itemGreen = (color >> 8  & 255) / 255f;
-        float itemBlue = (color & 255) / 255f;
-        GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
     }
 }

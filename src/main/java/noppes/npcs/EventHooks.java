@@ -36,10 +36,7 @@ import noppes.npcs.scripted.event.PlayerEvent.LoginEvent;
 import noppes.npcs.scripted.event.PlayerEvent.LogoutEvent;
 import noppes.npcs.scripted.event.PlayerEvent.PickUpEvent;
 import noppes.npcs.scripted.event.PlayerEvent.DropEvent;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.IEntity;
-import noppes.npcs.scripted.interfaces.IItemStack;
-import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
@@ -93,6 +90,30 @@ public class EventHooks {
 
     public static boolean onScriptItemAttack(ScriptCustomItem handler, noppes.npcs.scripted.event.ItemEvent.AttackEvent event) {
         handler.callScript(EnumScriptType.ATTACK, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onStartUsingCustomItem(ScriptCustomItem handler, IPlayer player, int duration) {
+        ItemEvent.StartUsingItem event = new ItemEvent.StartUsingItem(handler, player, duration);
+        handler.callScript(EnumScriptType.START_USING_ITEM, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onUsingCustomItem(ScriptCustomItem handler, IPlayer player, int duration) {
+        ItemEvent.UsingItem event = new ItemEvent.UsingItem(handler, player, duration);
+        handler.callScript(EnumScriptType.USING_ITEM, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onStopUsingCustomItem(ScriptCustomItem handler, IPlayer player, int duration) {
+        ItemEvent.StopUsingItem event = new ItemEvent.StopUsingItem(handler, player, duration);
+        handler.callScript(EnumScriptType.STOP_USING_ITEM, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onFinishUsingCustomItem(ScriptCustomItem handler, IPlayer player, int duration) {
+        ItemEvent.FinishUsingItem event = new ItemEvent.FinishUsingItem(handler, player, duration);
+        handler.callScript(EnumScriptType.FINISH_USING_ITEM, event);
         return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 

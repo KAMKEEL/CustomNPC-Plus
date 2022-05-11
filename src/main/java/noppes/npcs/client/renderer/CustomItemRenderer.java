@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -33,7 +32,8 @@ public class CustomItemRenderer implements IItemRenderer {
     private static final ResourceLocation enchant = new ResourceLocation("textures/misc/enchanted_item_glint.png");
     private final Random random = new Random();
 
-    private int itemRenderTicks = 0;
+    private int entityRenderTicks = 1;
+    private int item3dRenderTicks = 1;
 
     @Override
     public boolean handleRenderType(ItemStack item, ItemRenderType type) {
@@ -80,7 +80,22 @@ public class CustomItemRenderer implements IItemRenderer {
         }
 
         if (type == ItemRenderType.ENTITY) {
-            ((ItemScripted) itemStack.getItem()).renderCustomAttributes(itemStack);
+            GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
+
+            GL11.glRotatef(scriptCustomItem.rotationXRate * entityRenderTicks%360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.rotationYRate * entityRenderTicks%360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks%360, 0, 0, 1);
+
+            GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+
+            int color = scriptCustomItem.getColor();
+            float itemRed = (color >> 16 & 255) / 255f;
+            float itemGreen = (color >> 8  & 255) / 255f;
+            float itemBlue = (color & 255) / 255f;
+            GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
+
             EntityItem entityItem = (EntityItem) data[1];
             renderEntityCustomItem(scriptCustomItem, itemStack, entityItem);
             return;
@@ -91,7 +106,21 @@ public class CustomItemRenderer implements IItemRenderer {
 
         ((ItemRenderInterface) itemStack.getItem()).renderSpecial();
         GL11.glTranslatef(scriptCustomItem.translateX, scriptCustomItem.translateY, scriptCustomItem.translateZ);
-        ((ItemScripted) itemStack.getItem()).renderCustomAttributes(itemStack);
+        GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
+        GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
+        GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
+
+        GL11.glRotatef(scriptCustomItem.rotationXRate * item3dRenderTicks %360, 1, 0, 0);
+        GL11.glRotatef(scriptCustomItem.rotationYRate * item3dRenderTicks %360, 0, 1, 0);
+        GL11.glRotatef(scriptCustomItem.rotationZRate * item3dRenderTicks %360, 0, 0, 1);
+
+        GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+
+        int color = scriptCustomItem.getColor();
+        float itemRed = (color >> 16 & 255) / 255f;
+        float itemGreen = (color >> 8  & 255) / 255f;
+        float itemBlue = (color & 255) / 255f;
+        GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
 
         GL11.glRotatef(-20.0F, 0.0F, 0.0F, 1.0F);
         GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
@@ -102,9 +131,9 @@ public class CustomItemRenderer implements IItemRenderer {
     }
 
     public void renderEntityCustomItem(ScriptCustomItem scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
-        this.itemRenderTicks++;
+        this.entityRenderTicks++;
         int pass = 0;
-        float bobbingY = (float)(Math.sin((float)this.itemRenderTicks/40.0F) + 1) * scriptCustomItem.scaleY/6.0F;
+        float bobbingY = (float)(Math.sin((float)this.entityRenderTicks /40.0F) + 1) * scriptCustomItem.scaleY/6.0F;
 
         GL11.glPushMatrix();
             GL11.glTranslatef(0.0F, bobbingY, 0.0F);
@@ -342,6 +371,8 @@ public class CustomItemRenderer implements IItemRenderer {
     }
 
     public void renderItem3d(ScriptCustomItem scriptCustomItem, EntityLivingBase entityLivingBase, ItemStack itemStack) {
+        item3dRenderTicks++;
+
         Minecraft mc = Minecraft.getMinecraft();
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;

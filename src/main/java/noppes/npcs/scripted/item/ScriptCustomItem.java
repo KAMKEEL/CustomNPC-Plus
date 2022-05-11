@@ -41,6 +41,7 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
     public float translateX, translateY, translateZ;
     public float scaleX = 1.0F, scaleY = 1.0F, scaleZ = 1.0F;
     public float rotationX, rotationY, rotationZ;
+    public float rotationXRate, rotationYRate, rotationZRate;
 
     public ScriptCustomItem(ItemStack item) {
         super(item);
@@ -273,6 +274,13 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         saveItemData();
     }
 
+    public void setRotationRate(float rotationXRate, float rotationYRate, float rotationZRate){
+        this.rotationXRate = rotationXRate;
+        this.rotationYRate = rotationYRate;
+        this.rotationZRate = rotationZRate;
+        saveItemData();
+    }
+
     public void setScale(float scaleX, float scaleY, float scaleZ){
         this.scaleX = scaleX;
         this.scaleY = scaleY;
@@ -299,6 +307,21 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
 
     public void setRotationZ(float rotationZ) {
         this.rotationZ = rotationZ;
+        saveItemData();
+    }
+
+    public void setRotationXRate(float rotationXRate) {
+        this.rotationXRate = rotationXRate;
+        saveItemData();
+    }
+
+    public void setRotationYRate(float rotationYRate) {
+        this.rotationYRate = rotationYRate;
+        saveItemData();
+    }
+
+    public void setRotationZRate(float rotationZRate) {
+        this.rotationZRate = rotationZRate;
         saveItemData();
     }
 
@@ -342,6 +365,18 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
 
     public float getRotationZ() {
         return rotationZ;
+    }
+
+    public float getRotationXRate() {
+        return rotationXRate;
+    }
+
+    public float getRotationYRate() {
+        return rotationYRate;
+    }
+
+    public float getRotationZRate() {
+        return rotationZRate;
     }
 
     public float getScaleX() {
@@ -392,6 +427,10 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         compound.setFloat("RotationY",this.rotationY);
         compound.setFloat("RotationZ",this.rotationZ);
 
+        compound.setFloat("RotationXRate",this.rotationXRate);
+        compound.setFloat("RotationYRate",this.rotationYRate);
+        compound.setFloat("RotationZRate",this.rotationZRate);
+
         compound.setFloat("ScaleX",this.scaleX);
         compound.setFloat("ScaleY",this.scaleY);
         compound.setFloat("ScaleZ",this.scaleZ);
@@ -426,6 +465,10 @@ public class ScriptCustomItem extends ScriptItemStack implements ICustomItem, IS
         this.rotationX = compound.getFloat("RotationX");
         this.rotationY = compound.getFloat("RotationY");
         this.rotationZ = compound.getFloat("RotationZ");
+
+        this.rotationXRate = compound.getFloat("RotationXRate");
+        this.rotationYRate = compound.getFloat("RotationYRate");
+        this.rotationZRate = compound.getFloat("RotationZRate");
 
         this.scaleX = compound.getFloat("ScaleX");
         this.scaleY = compound.getFloat("ScaleY");

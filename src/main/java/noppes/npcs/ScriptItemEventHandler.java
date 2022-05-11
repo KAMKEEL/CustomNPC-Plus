@@ -12,10 +12,13 @@ import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IPlayer;
@@ -107,6 +110,51 @@ public class ScriptItemEventHandler {
                     event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
                 }
             } catch(Exception e) {}
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Start event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
+        if(event.entityPlayer.worldObj instanceof WorldServer) {
+            ScriptCustomItem handler = ItemScripted.GetWrapper(event.item);
+            ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
+            event.setCanceled(EventHooks.onStartUsingCustomItem(handler, scriptPlayer, event.duration));
+        }
+    }
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Tick event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
+        if(event.entityPlayer.worldObj instanceof WorldServer && event.item.getItem() == CustomItems.scripted_item) {
+            ScriptCustomItem handler = ItemScripted.GetWrapper(event.item);
+            ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
+            event.setCanceled(EventHooks.onUsingCustomItem(handler, scriptPlayer, event.duration));
+        }
+    }
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Stop event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
+        if(event.entityPlayer.worldObj instanceof WorldServer && event.item.getItem() == CustomItems.scripted_item) {
+            ScriptCustomItem handler = ItemScripted.GetWrapper(event.item);
+            ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
+            event.setCanceled(EventHooks.onStopUsingCustomItem(handler, scriptPlayer, event.duration));
+        }
+    }
+    @SubscribeEvent
+    public void invoke(PlayerUseItemEvent.Finish event) {
+        if(event.entityPlayer == null || event.entityPlayer.worldObj == null)
+            return;
+
+        if(event.entityPlayer.worldObj instanceof WorldServer && event.item.getItem() == CustomItems.scripted_item) {
+            ScriptCustomItem handler = ItemScripted.GetWrapper(event.item);
+            ScriptPlayer scriptPlayer = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(event.entityPlayer);
+            EventHooks.onFinishUsingCustomItem(handler, scriptPlayer, event.duration);
         }
     }
 }
