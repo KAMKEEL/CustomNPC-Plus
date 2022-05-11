@@ -1,4 +1,4 @@
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.item;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,12 +18,16 @@ import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptNbt;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.INbt;
 
 public class ScriptItemStack implements IItemStack {
 	public ItemStack item;
-	
+	private NBTTagCompound storedData = new NBTTagCompound();
+
 	public ScriptItemStack(ItemStack item){
 		this.item = item;
 	}
@@ -69,7 +73,12 @@ public class ScriptItemStack implements IItemStack {
 	public String getItemName(){
 		return item.getItem().getItemStackDisplayName(item);
 	}
-	
+
+
+	public int getMaxStackSize() {
+		return this.item.getMaxStackSize();
+	}
+
 	/**
 	 * @param size The size of the itemstack. A number between 1 and 64
 	 */
@@ -136,7 +145,7 @@ public class ScriptItemStack implements IItemStack {
 	}
 
 	public INbt removeTags() {
-		ScriptNbt nbt = (ScriptNbt)NpcAPI.Instance().getINbt(item.stackTagCompound);
+		ScriptNbt nbt = (ScriptNbt) NpcAPI.Instance().getINbt(item.stackTagCompound);
 		item.stackTagCompound = null;
 		return nbt;
 	}
@@ -361,6 +370,14 @@ public class ScriptItemStack implements IItemStack {
 		this.item.writeToNBT(compound);
 		return NpcAPI.Instance().getINbt(compound);
 	}
+
+	public NBTTagCompound getMCNbt() {
+		NBTTagCompound compound = new NBTTagCompound();
+		this.item.writeToNBT(compound);
+		return compound;
+	}
+
+	public void setMCNbt(NBTTagCompound compound) {}
 
 	/**
 	 * No support is given for this method. Dont use if you dont know what you are doing.

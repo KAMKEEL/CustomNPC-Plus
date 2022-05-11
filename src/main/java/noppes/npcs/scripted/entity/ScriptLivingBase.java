@@ -7,12 +7,13 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import net.minecraft.util.MathHelper;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntityLivingBase;
 import noppes.npcs.scripted.wrapper.ScriptDamageSource;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -173,11 +174,8 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 * @since 1.7.10c
 	 * @return The item the entity is holding
 	 */
-	public ScriptItemStack getHeldItem(){
-		ItemStack item = entity.getHeldItem();
-		if(item == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getHeldItem(){
+		return WrapperNpcAPI.Instance().getIItemStack(entity.getHeldItem());
 	}
 	
 	/**
@@ -194,11 +192,8 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 * @param slot Slot of what armor piece to get, 0:boots, 1:pants, 2:body, 3:head
 	 * @return The item in the given slot
 	 */
-	public ScriptItemStack getArmor(int slot){
-		ItemStack item = entity.getEquipmentInSlot(slot + 1);
-		if(item == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getArmor(int slot){
+		return WrapperNpcAPI.Instance().getIItemStack(entity.getEquipmentInSlot(slot + 1));
 	}
 	
 	/**

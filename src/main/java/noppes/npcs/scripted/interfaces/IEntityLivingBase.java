@@ -2,7 +2,7 @@ package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
 
 public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T> {
@@ -82,7 +82,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @since 1.7.10c
      * @return The item the entity is holding
      */
-    public ScriptItemStack getHeldItem();
+    public IItemStack getHeldItem();
 
     /**
      * Note not all Living Entities support this
@@ -96,7 +96,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @param slot Slot of what armor piece to get, 0:boots, 1:pants, 2:body, 3:head
      * @return The item in the given slot
      */
-    public ScriptItemStack getArmor(int slot);
+    public IItemStack getArmor(int slot);
 
     /**
      * Note not all Living Entities support this

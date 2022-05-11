@@ -26,10 +26,15 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 
 public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
@@ -322,11 +327,8 @@ public class ScriptWorld implements IWorld {
 	 * @param size The number of items in the item
 	 * @return Returns the item
 	 */
-	public ScriptItemStack createItem(String id, int damage, int size){
-		Item item = (Item)Item.itemRegistry.getObject(id);
-		if(item == null)
-			return null;
-		return new ScriptItemStack(new ItemStack(item, size, damage));		
+	public IItemStack createItem(String id, int damage, int size){
+		return WrapperNpcAPI.Instance().createItem(id,damage,size);
 	}
 
 	/**

@@ -8,7 +8,8 @@ import noppes.npcs.controllers.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.ICustomNpc;
@@ -28,6 +29,7 @@ import noppes.npcs.scripted.roles.ScriptRoleInterface;
 import noppes.npcs.scripted.roles.ScriptRoleMailman;
 import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -358,11 +360,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The item held in the right hand
 	 */
-	public ScriptItemStack getRightItem(){
-		ItemStack item = npc.inventory.getWeapon();
-		if(item == null || item.getItem() == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getRightItem(){
+		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.getWeapon());
 	}
 	
 	/**
@@ -379,11 +378,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The item held in the left hand
 	 */
-	public ScriptItemStack getLefttItem(){
-		ItemStack item = npc.getOffHand();
-		if(item == null || item.getItem() == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getLefttItem(){
+		return WrapperNpcAPI.Instance().getIItemStack(npc.getOffHand());
 	}
 	
 	/**
@@ -400,11 +396,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return Returns the projectile the npc uses
 	 */
-	public ScriptItemStack getProjectileItem(){
-		ItemStack item = npc.inventory.getProjectile();
-		if(item == null || item.getItem() == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getProjectileItem(){
+		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.getProjectile());
 	}
 	
 	/**
@@ -488,11 +481,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return Returns the worn armor in slot
 	 */
 	@Override
-	public ScriptItemStack getArmor(int slot){
-		ItemStack item = npc.inventory.armor.get(slot);
-		if(item == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getArmor(int slot){
+		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.armor.get(slot));
 	}
 	
 	/**
@@ -514,8 +504,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to return (0-8)
 	 * @return
 	 */
-	public ScriptItemStack getLootItem(int slot) {
-		return new ScriptItemStack(npc.inventory.getStackInSlot(slot+7));
+	public IItemStack getLootItem(int slot) {
+		return WrapperNpcAPI.Instance().getIItemStack(npc.inventory.getStackInSlot(slot+7));
 	}
 
 	/**

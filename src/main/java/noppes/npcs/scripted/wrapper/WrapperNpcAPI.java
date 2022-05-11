@@ -32,6 +32,7 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.*;
+import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -41,6 +42,8 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.*;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
@@ -167,8 +170,11 @@ public class WrapperNpcAPI extends NpcAPI {
     }
 
     public IItemStack getIItemStack(ItemStack itemstack) {
-        return (IItemStack)(itemstack != null && itemstack.stackSize > 0 ? new ScriptItemStack(itemstack) : new ScriptItemStack(new ItemStack(Item.getItemById(0))));
-
+        if(itemstack.getItem() instanceof ItemScripted){
+            return (ICustomItem) (itemstack != null && itemstack.stackSize > 0 ? new ScriptCustomItem(itemstack) : new ScriptCustomItem(new ItemStack(Item.getItemById(0))));
+        } else {
+            return (IItemStack) (itemstack != null && itemstack.stackSize > 0 ? new ScriptItemStack(itemstack) : new ScriptItemStack(new ItemStack(Item.getItemById(0))));
+        }
     }
 
     public IWorld getIWorld(WorldServer world) {
@@ -258,11 +264,14 @@ public class WrapperNpcAPI extends NpcAPI {
         return arr;
     }
 
-    public ScriptItemStack createItem(String id, int damage, int size){
+    public IItemStack createItem(String id, int damage, int size){
         Item item = (Item)Item.itemRegistry.getObject(id);
         if(item == null)
             return null;
-        return new ScriptItemStack(new ItemStack(item, size, damage));
+        if(item instanceof ItemScripted)
+            return new ScriptCustomItem(new ItemStack(item, size, damage));
+        else
+            return new ScriptItemStack(new ItemStack(item, size, damage));
     }
 
     public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch){

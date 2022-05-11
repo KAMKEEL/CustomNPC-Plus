@@ -6,9 +6,8 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.EntityCreature;
-import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.roles.*;
@@ -196,7 +195,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return The item held in the right hand
      */
-    public ScriptItemStack getRightItem();
+    public IItemStack getRightItem();
 
     /**
      * @param item Item to be held in the right hand
@@ -206,7 +205,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return The item held in the left hand
      */
-    public ScriptItemStack getLefttItem();
+    public IItemStack getLefttItem();
 
     /**
      * @param item Item to be held in the left hand
@@ -216,7 +215,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return Returns the projectile the npc uses
      */
-    public ScriptItemStack getProjectileItem();
+    public IItemStack getProjectileItem();
 
     /**
      * @param item Item to be used as projectile
@@ -272,7 +271,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param slot The armor slot to return. 0:head, 1:body, 2:legs, 3:boots
      * @return Returns the worn armor in slot
      */
-    public ScriptItemStack getArmor(int slot);
+    public IItemStack getArmor(int slot);
 
     /**
      * @param slot The armor slot to set. 0:head, 1:body, 2:legs, 3:boots
@@ -285,7 +284,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param slot The slot from the NPC's drop list to return (0-8)
      * @return The item in the NPC's drop list slot
      */
-    public ScriptItemStack getLootItem(int slot);
+    public IItemStack getLootItem(int slot);
 
     /**
      *

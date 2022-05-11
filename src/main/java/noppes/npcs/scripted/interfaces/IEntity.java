@@ -7,7 +7,7 @@ package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.Entity;
 import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 public interface IEntity<T extends Entity> {
     public double getYOffset();

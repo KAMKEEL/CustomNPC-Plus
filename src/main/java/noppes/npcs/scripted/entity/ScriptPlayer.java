@@ -1,7 +1,6 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,11 +19,12 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
+import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -238,12 +238,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @since 1.7.10d
 	 * @return Returns a IItemStack array size 36
 	 */
-	public ScriptItemStack[] getInventory(){
-		ScriptItemStack[] items = new ScriptItemStack[36];
+	public IItemStack[] getInventory(){
+		IItemStack[] items = new IItemStack[36];
 		for(int i = 0; i < player.inventory.mainInventory.length; i++){
 			ItemStack item = player.inventory.mainInventory[i];
 			if(item != null)
-				items[i] = new ScriptItemStack(item);
+				items[i] = WrapperNpcAPI.Instance().getIItemStack(item);
 		}
 		return items;
 	}

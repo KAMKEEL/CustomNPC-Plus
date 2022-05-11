@@ -54,6 +54,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 
 public class PacketHandlerServer{
 
@@ -123,6 +124,8 @@ public class PacketHandlerServer{
 						npcScriptPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
 						forgeScriptPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
+						itemScriptPackets(type, buffer, player);
 					else if (item.getItem() == CustomItems.scripter)
 						scriptPackets(type, buffer, player, npc);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
@@ -184,6 +187,26 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else if(type == EnumPacketServer.ScriptNPCSave) {
 			ScriptController.Instance.setNPCScripts(Server.readNBT(buffer));
+		}
+	}
+
+	private void itemScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		if (type == EnumPacketServer.ScriptItemDataGet) {
+			ScriptCustomItem iw = new ScriptCustomItem(player.getHeldItem());
+			NBTTagCompound compound = iw.getMCNbt();
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
+		} else if (type == EnumPacketServer.ScriptItemDataSave) {
+			if (!player.capabilities.isCreativeMode) {
+				return;
+			}
+
+			NBTTagCompound compound = Server.readNBT(buffer);
+			ScriptCustomItem wrapper = new ScriptCustomItem(player.getHeldItem());
+			wrapper.setMCNbt(compound);
+			wrapper.lastInited = -1L;
+			wrapper.saveScriptData();
+			player.sendContainerToPlayer(player.inventoryContainer);
 		}
 	}
 

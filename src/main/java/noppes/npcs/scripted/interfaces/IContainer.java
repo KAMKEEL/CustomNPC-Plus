@@ -5,10 +5,9 @@
 
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 
 public interface IContainer {

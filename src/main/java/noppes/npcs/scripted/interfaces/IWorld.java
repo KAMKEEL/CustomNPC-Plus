@@ -5,6 +5,7 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 public interface IWorld {
     /**
@@ -166,7 +167,7 @@ public interface IWorld {
      * @param size The number of items in the item
      * @return Returns the item
      */
-    public ScriptItemStack createItem(String id, int damage, int size);
+    public IItemStack createItem(String id, int damage, int size);
 
     /**
      * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"

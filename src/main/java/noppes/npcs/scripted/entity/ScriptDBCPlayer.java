@@ -5,11 +5,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptItemStack;
-
-import java.util.ArrayList;
-import java.util.Locale;
+import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
     public T player;
@@ -430,7 +427,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         return compound.getCompoundTag("JRMCEP").getString("extracode");
     }
 
-    public ScriptItemStack[] getInventory(){
+    public IItemStack[] getInventory(){
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
 

@@ -2,7 +2,7 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.RoleType;
 import foxz.utils.Market;
 

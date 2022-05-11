@@ -43,6 +43,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 

@@ -20,6 +20,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 public abstract class NpcAPI {
     private static NpcAPI instance = null;
@@ -86,7 +87,7 @@ public abstract class NpcAPI {
 
     public abstract ScriptPlayer[] getAllServerPlayers();
 
-    public abstract ScriptItemStack createItem(String id, int damage, int size);
+    public abstract IItemStack createItem(String id, int damage, int size);
 
     public abstract ScriptParticle createParticle(String directory);
 

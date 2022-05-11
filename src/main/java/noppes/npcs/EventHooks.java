@@ -21,11 +21,10 @@ import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.ForgeDataScript;
-import noppes.npcs.controllers.data.NPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.*;
-import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.PlayerEvent.ChatEvent;
@@ -40,6 +39,8 @@ import noppes.npcs.scripted.interfaces.ICustomGui;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.wrapper.WrapperNpcAPI;
 import noppes.npcs.constants.EnumScriptType;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,50 @@ import java.util.ArrayList;
 
 public class EventHooks {
     public EventHooks() {
+    }
+
+    public static void onScriptItemInit(ScriptCustomItem handler) {
+        if (!handler.isClient()) {
+            noppes.npcs.scripted.event.ItemEvent.InitEvent event = new noppes.npcs.scripted.event.ItemEvent.InitEvent(handler);
+            handler.callScript(EnumScriptType.INIT, event);
+            WrapperNpcAPI.EVENT_BUS.post(event);
+        }
+    }
+
+    public static void onScriptItemUpdate(ScriptCustomItem handler, EntityPlayer player) {
+        if (!handler.isClient()) {
+            noppes.npcs.scripted.event.ItemEvent.UpdateEvent event = new noppes.npcs.scripted.event.ItemEvent.UpdateEvent(handler, (ScriptPlayer)ScriptController.Instance.getScriptForEntity(player));
+            handler.callScript(EnumScriptType.TICK, event);
+            WrapperNpcAPI.EVENT_BUS.post(event);
+        }
+    }
+
+    public static boolean onScriptItemTossed(ScriptCustomItem handler, EntityPlayer player, EntityItem entity) {
+        ItemEvent.TossedEvent event = new ItemEvent.TossedEvent(handler, (ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), (ScriptEntity)NpcAPI.Instance().getIEntity(entity));
+        handler.callScript(EnumScriptType.TOSSED, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptItemPickedUp(ScriptCustomItem handler, EntityPlayer player) {
+        ItemEvent.PickedUpEvent event = new ItemEvent.PickedUpEvent(handler, (ScriptPlayer)ScriptController.Instance.getScriptForEntity(player));
+        handler.callScript(EnumScriptType.PICKEDUP, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptItemSpawn(ScriptCustomItem handler, EntityItem entity) {
+        ItemEvent.SpawnEvent event = new ItemEvent.SpawnEvent(handler, (ScriptEntity)NpcAPI.Instance().getIEntity(entity));
+        handler.callScript(EnumScriptType.SPAWN, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptItemInteract(ScriptCustomItem handler, noppes.npcs.scripted.event.ItemEvent.InteractEvent event) {
+        handler.callScript(EnumScriptType.INTERACT, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptItemAttack(ScriptCustomItem handler, noppes.npcs.scripted.event.ItemEvent.AttackEvent event) {
+        handler.callScript(EnumScriptType.ATTACK, event);
+        return WrapperNpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onNPCInit(EntityNPCInterface npc) {

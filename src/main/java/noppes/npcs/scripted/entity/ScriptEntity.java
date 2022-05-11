@@ -28,6 +28,7 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;

@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 
 public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> {
@@ -90,7 +90,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @since 1.7.10d
      * @return Returns a IItemStack array size 36
      */
-    public ScriptItemStack[] getInventory();
+    public IItemStack[] getInventory();
 
     /**
      * @param item The Item type to be removed
