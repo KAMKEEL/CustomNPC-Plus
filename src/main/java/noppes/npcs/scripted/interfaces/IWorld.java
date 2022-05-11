@@ -60,7 +60,7 @@ public interface IWorld {
 
     public void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch);
 
-    public ScriptEntity getEntityByID(int id);
+    public IEntity getEntityByID(int id);
 
     public boolean spawnEntityInWorld(ScriptEntity entity);
 

@@ -20,7 +20,6 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.world.ChunkDataEvent;
@@ -37,6 +36,7 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.NPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.apache.commons.lang3.StringUtils;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
@@ -164,6 +164,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("kills");
                 hookList.add("dialogClose");
                 hookList.add("timer");
+            }
+            else if(handler instanceof ScriptCustomItem) {
+                hookList.add("init");
+                hookList.add("tick");
+                hookList.add("tossed");
+                hookList.add("pickedUp");
+                hookList.add("spawn");
+                hookList.add("interact");
+                hookList.add("attack");
+                //hookList.add("");
+                //hookList.add("");
             }
             else if(handler instanceof ForgeDataScript) {
                 hooks.setSize(238, 198);

@@ -171,9 +171,9 @@ public class WrapperNpcAPI extends NpcAPI {
 
     public IItemStack getIItemStack(ItemStack itemstack) {
         if(itemstack.getItem() instanceof ItemScripted){
-            return (ICustomItem) (itemstack != null && itemstack.stackSize > 0 ? new ScriptCustomItem(itemstack) : new ScriptCustomItem(new ItemStack(Item.getItemById(0))));
+            return (ICustomItem) (itemstack.stackSize > 0 ? new ScriptCustomItem(itemstack) : new ScriptCustomItem(new ItemStack(Item.getItemById(0))));
         } else {
-            return (IItemStack) (itemstack != null && itemstack.stackSize > 0 ? new ScriptItemStack(itemstack) : new ScriptItemStack(new ItemStack(Item.getItemById(0))));
+            return (IItemStack) (itemstack.stackSize > 0 ? new ScriptItemStack(itemstack) : new ScriptItemStack(new ItemStack(Item.getItemById(0))));
         }
     }
 

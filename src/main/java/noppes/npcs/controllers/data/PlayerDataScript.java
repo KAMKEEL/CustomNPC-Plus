@@ -138,7 +138,7 @@ public class PlayerDataScript implements IScriptHandler {
     }
     public IPlayer getPlayer() {
         if (this.playerAPI == null) {
-            this.playerAPI = (IPlayer) NpcAPI.Instance().getIEntity(this.player);
+            this.playerAPI = (IPlayer) ScriptController.Instance.getScriptForEntity(this.player);
         }
         return this.playerAPI;
     }

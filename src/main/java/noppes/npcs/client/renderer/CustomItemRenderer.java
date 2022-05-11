@@ -79,13 +79,23 @@ public class CustomItemRenderer implements IItemRenderer {
             return;
         }
 
-        ((ItemScripted) itemStack.getItem()).renderCustomAttributes(itemStack);
-
         if (type == ItemRenderType.ENTITY) {
+            ((ItemScripted) itemStack.getItem()).renderCustomAttributes(itemStack);
             EntityItem entityItem = (EntityItem) data[1];
             renderEntityCustomItem(scriptCustomItem, itemStack, entityItem);
             return;
         }
+
+        GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
+        GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
+
+        ((ItemRenderInterface) itemStack.getItem()).renderSpecial();
+        GL11.glTranslatef(scriptCustomItem.translateX, scriptCustomItem.translateY, scriptCustomItem.translateZ);
+        ((ItemScripted) itemStack.getItem()).renderCustomAttributes(itemStack);
+
+        GL11.glRotatef(-20.0F, 0.0F, 0.0F, 1.0F);
+        GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
+        GL11.glTranslatef(-0.09375F, 0.0625F, 0.0F);
 
         EntityLivingBase entityLivingBase = (EntityLivingBase) data[1];
         renderItem3d(scriptCustomItem, entityLivingBase, itemStack);
@@ -347,6 +357,13 @@ public class CustomItemRenderer implements IItemRenderer {
         }
 
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+
+        float f4 = 0.0F;
+        float f5 = 0.3F;
+        GL11.glTranslatef(-f4, -f5, 0.0F);
+        GL11.glRotatef(50.0F, 0.0F, 1.0F, 0.0F);
+        GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
+        GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
 
         renderCustomItemIn2D(itemStack, tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 0.0625F);
 

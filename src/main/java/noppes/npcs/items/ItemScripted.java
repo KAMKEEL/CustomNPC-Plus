@@ -4,6 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,9 +16,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.EventHooks;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.interfaces.IItemStack;
+import noppes.npcs.scripted.interfaces.IPlayer;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
 
@@ -27,6 +32,12 @@ public class ItemScripted extends Item implements ItemRenderInterface {
         setCreativeTab(CustomItems.tab);
         CustomNpcs.proxy.registerItem(this);
         setHasSubtypes(true);
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity player, int p_77663_4_, boolean p_77663_5_) {
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        EventHooks.onScriptItemUpdate((ScriptCustomItem) istack, (EntityPlayer) player);
     }
 
     @SideOnly(Side.CLIENT)
@@ -57,6 +68,16 @@ public class ItemScripted extends Item implements ItemRenderInterface {
         }
         entityPlayer.setItemInUse(stack, this.getMaxItemUseDuration(stack));
         return stack;
+    }
+
+    @Override
+    public boolean onEntitySwing(EntityLivingBase entityLivingBase, ItemStack stack){
+        if(entityLivingBase instanceof EntityClientPlayerMP)
+            return false;
+
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, ScriptController.Instance.getScriptForEntity(entityLivingBase), 2, null);
+        return EventHooks.onScriptItemAttack((ScriptCustomItem) istack, eve);
     }
 
     public int getMaxItemUseDuration(ItemStack stack){
@@ -111,7 +132,9 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     }
 
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
-        return true;
+        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
+        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, ScriptController.Instance.getScriptForEntity(attacker), 1, ScriptController.Instance.getScriptForEntity(target));
+        return EventHooks.onScriptItemAttack((ScriptCustomItem) istack, eve);
     }
 
     public EnumAction getItemUseAction(ItemStack stack)
@@ -135,12 +158,13 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     }
 
     @Override
-    public void renderSpecial() {}
+    public void renderSpecial() {
+        GL11.glTranslatef(0.135F, 0.2F, 0.07F);
+    }
 
     public void renderCustomAttributes(ItemStack itemStack) {
         ScriptCustomItem scriptCustomItem = GetWrapper(itemStack);
 
-        GL11.glTranslatef(scriptCustomItem.translateX, scriptCustomItem.translateY, scriptCustomItem.translateZ);
         GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
         GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
         GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);

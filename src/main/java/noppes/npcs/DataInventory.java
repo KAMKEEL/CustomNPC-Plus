@@ -19,8 +19,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 public class DataInventory implements IInventory{
 	public HashMap<Integer,ItemStack> items = new HashMap<Integer,ItemStack>();
 	public HashMap<Integer,Double> dropchance = new HashMap<Integer,Double>();
-	public HashMap<Integer, ItemStack> weapons = new HashMap<Integer, ItemStack>();
-	public HashMap<Integer, ItemStack> armor = new HashMap<Integer, ItemStack>();
+	public HashMap<Integer,ItemStack> weapons = new HashMap<Integer, ItemStack>();
+	public HashMap<Integer,ItemStack> armor = new HashMap<Integer, ItemStack>();
 		
 	public int minExp = 0;
 	public int maxExp = 0;

@@ -6,6 +6,7 @@
 package noppes.npcs.scripted.wrapper;
 
 import net.minecraft.util.DamageSource;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.interfaces.IDamageSource;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.IEntity;
@@ -34,10 +35,10 @@ public class ScriptDamageSource implements IDamageSource {
     }
 
     public IEntity getTrueSource() {
-        return NpcAPI.Instance().getIEntity(this.source.getEntity());
+        return ScriptController.Instance.getScriptForEntity(this.source.getEntity());
     }
 
     public IEntity getImmediateSource() {
-        return NpcAPI.Instance().getIEntity(this.source.getSourceOfDamage());
+        return ScriptController.Instance.getScriptForEntity(this.source.getSourceOfDamage());
     }
 }

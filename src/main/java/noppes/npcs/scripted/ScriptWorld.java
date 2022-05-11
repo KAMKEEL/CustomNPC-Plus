@@ -30,6 +30,7 @@ import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -146,8 +147,8 @@ public class ScriptWorld implements IWorld {
 		world.playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
 	}
 
-	public ScriptEntity getEntityByID(int id){
-		return (ScriptEntity) NpcAPI.Instance().getIEntity(world.getEntityByID(id));
+	public IEntity getEntityByID(int id){
+		return ScriptController.Instance.getScriptForEntity(world.getEntityByID(id));
 	}
 
 	public boolean spawnEntityInWorld(ScriptEntity entity){
@@ -155,19 +156,19 @@ public class ScriptWorld implements IWorld {
 	}
 
 	public ScriptPlayer getClosestPlayerToEntity(ScriptEntity entity, double range){
-		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
+		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
 	}
 
 	public ScriptPlayer getClosestPlayer(double x, double y, double z, double range){
-		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayer(x,y,z, range));
+		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestPlayer(x,y,z, range));
 	}
 
 	public ScriptPlayer getClosestVulnerablePlayerToEntity(ScriptEntity entity, double range){
-		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
+		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
 	}
 
 	public ScriptPlayer getClosestVulnerablePlayer(double x, double y, double z, double range){
-		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayer(x,y,z, range));
+		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestVulnerablePlayer(x,y,z, range));
 	}
 
 	public int countEntities(ScriptEntity entity){
@@ -265,7 +266,7 @@ public class ScriptWorld implements IWorld {
 	}
 
 	public ScriptPlayer getPlayerByUUID(String uuid){
-		return (ScriptPlayer) NpcAPI.Instance().getIEntity(world.func_152378_a(UUID.fromString(uuid)));
+		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.func_152378_a(UUID.fromString(uuid)));
 	}
 	
 	/**

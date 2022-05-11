@@ -182,6 +182,10 @@ public class CustomNpcs {
         MinecraftForge.EVENT_BUS.register(forgeEventHandler);
         FMLCommonHandler.instance().bus().register(forgeEventHandler);
 
+        ScriptItemEventHandler scriptItemEventHandler = new ScriptItemEventHandler();
+        MinecraftForge.EVENT_BUS.register(scriptItemEventHandler);
+        FMLCommonHandler.instance().bus().register(scriptItemEventHandler);
+
 		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
         
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");

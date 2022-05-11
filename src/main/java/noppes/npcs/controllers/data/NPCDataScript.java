@@ -120,7 +120,7 @@ public class NPCDataScript implements IScriptHandler {
     }
     public ICustomNpc getNpc() {
         if (this.npcAPI == null) {
-            this.npcAPI = (ICustomNpc) NpcAPI.Instance().getIEntity(this.npc);
+            this.npcAPI = (ICustomNpc) ScriptController.Instance.getScriptForEntity(this.npc);
         }
         return this.npcAPI;
     }

@@ -207,7 +207,7 @@ public class ServerCloneController implements ICloneHandler {
 			throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
 		} else {
 			Entity entity = NoppesUtilServer.spawnClone(compound, (int)x, (int)y, (int)z, world.getMCWorld());
-			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
+			return entity == null ? null : ScriptController.Instance.getScriptForEntity(entity);
 		}
 	}
 
@@ -218,7 +218,7 @@ public class ServerCloneController implements ICloneHandler {
 		} else {
 			Instance.cleanTags(compound);
 			Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
-			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
+			return entity == null ? null : ScriptController.Instance.getScriptForEntity(entity);
 		}
 	}
 

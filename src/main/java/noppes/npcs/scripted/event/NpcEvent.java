@@ -11,6 +11,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.*;
 
@@ -35,7 +36,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public CollideEvent(ICustomNpc npc, Entity entity) {
             super(npc);
-            this.entity = NpcAPI.Instance().getIEntity(entity);
+            this.entity = ScriptController.Instance.getScriptForEntity(entity);
         }
     }
 
@@ -48,7 +49,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public DamagedEvent(ICustomNpc npc, Entity source, float damage, DamageSource damagesource) {
             super(npc);
-            this.source = NpcAPI.Instance().getIEntity(source);
+            this.source = ScriptController.Instance.getScriptForEntity(source);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
@@ -65,7 +66,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public RangedLaunchedEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
-            this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
+            this.target = (IEntityLivingBase)ScriptController.Instance.getScriptForEntity(target);
             this.damage = damage;
         }
     }
@@ -77,7 +78,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public MeleeAttackEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
-            this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
+            this.target = (IEntityLivingBase)ScriptController.Instance.getScriptForEntity(target);
             this.damage = damage;
         }
     }
@@ -87,7 +88,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public KilledEntityEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
-            this.entity = (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase)ScriptController.Instance.getScriptForEntity(entity);
         }
     }
 
@@ -102,7 +103,7 @@ public class NpcEvent extends CustomNPCsEvent {
             super(npc);
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
             this.type = damagesource.damageType;
-            this.source = NpcAPI.Instance().getIEntity(entity);
+            this.source = ScriptController.Instance.getScriptForEntity(entity);
         }
 
         public String getType(){
@@ -116,7 +117,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public InteractEvent(ICustomNpc npc, EntityPlayer player) {
             super(npc);
-            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.player = (IPlayer)ScriptController.Instance.getScriptForEntity(player);
         }
     }
 
@@ -128,7 +129,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
-            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.player = (IPlayer)ScriptController.Instance.getScriptForEntity(player);
             this.id = id;
             this.optionId = optionId;
             this.dialog = dialog;
@@ -143,7 +144,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public DialogClosedEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
-            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.player = (IPlayer)ScriptController.Instance.getScriptForEntity(player);
             this.id = id;
             this.optionId = optionId;
             this.dialog = dialog;
@@ -156,7 +157,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public TargetLostEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
-            this.entity = (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase) ScriptController.Instance.getScriptForEntity(entity);
         }
     }
 
@@ -166,7 +167,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public TargetEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
-            this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase) ScriptController.Instance.getScriptForEntity(entity);
         }
     }
 

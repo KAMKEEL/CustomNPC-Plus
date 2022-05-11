@@ -12,6 +12,7 @@ import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.interfaces.*;
@@ -133,7 +134,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public DamagedEvent(IPlayer player, Entity source, float damage, DamageSource damagesource) {
             super(player);
-            this.source = NpcAPI.Instance().getIEntity(source);
+            this.source = ScriptController.Instance.getScriptForEntity(source);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
@@ -194,7 +195,7 @@ public class PlayerEvent extends CustomNPCsEvent {
             super(player);
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
             this.type = damagesource.getDamageType();
-            this.source = NpcAPI.Instance().getIEntity(entity);
+            this.source = ScriptController.Instance.getScriptForEntity(entity);
         }
     }
 
@@ -218,7 +219,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public DamagedEntityEvent(IPlayer player, Entity target, float damage, DamageSource damagesource) {
             super(player);
-            this.target = NpcAPI.Instance().getIEntity(target);
+            this.target = ScriptController.Instance.getScriptForEntity(target);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }

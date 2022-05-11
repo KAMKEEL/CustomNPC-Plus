@@ -20,11 +20,11 @@ public class ItemEvent extends CustomNPCsEvent {
     }
 
     public static class UpdateEvent extends ItemEvent {
-        public IPlayer player;
+        public IEntity entity;
 
-        public UpdateEvent(ScriptCustomItem item, IPlayer player) {
+        public UpdateEvent(ScriptCustomItem item, IEntity entity) {
             super(item);
-            this.player = player;
+            this.entity = entity;
         }
     }
 
@@ -76,13 +76,13 @@ public class ItemEvent extends CustomNPCsEvent {
     public static class AttackEvent extends ItemEvent {
         public final int type;//1: Hit, 2: Whiff //TODO: Implement type 2
         public final Object target;
-        public IPlayer player;
+        public IEntity swingingEntity;
 
-        public AttackEvent(ScriptCustomItem item, IPlayer player, int type, Object target) {
+        public AttackEvent(ScriptCustomItem item, IEntity swingingEntity, int type, Object target) {
             super(item);
             this.type = type;
             this.target = target;
-            this.player = player;
+            this.swingingEntity = swingingEntity;
         }
     }
 
