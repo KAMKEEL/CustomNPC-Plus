@@ -12,15 +12,12 @@ import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 public class PlayerEvent extends CustomNPCsEvent {
     public final IPlayer player;
@@ -138,7 +135,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public DamagedEvent(IPlayer player, Entity source, float damage, DamageSource damagesource) {
             super(player);
-            this.source = ScriptController.Instance.getScriptForEntity(source);
+            this.source = NpcAPI.Instance().getIEntity(source);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
@@ -185,7 +182,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public KilledEntityEvent(IPlayer player, EntityLivingBase entity) {
             super(player);
-            this.entity = new ScriptLivingBase<>(entity);//NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
         }
     }
 
@@ -199,7 +196,7 @@ public class PlayerEvent extends CustomNPCsEvent {
             super(player);
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
             this.type = damagesource.getDamageType();
-            this.source = ScriptController.Instance.getScriptForEntity(entity);
+            this.source = NpcAPI.Instance().getIEntity(entity);
         }
     }
 
@@ -223,7 +220,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public DamagedEntityEvent(IPlayer player, Entity target, float damage, DamageSource damagesource) {
             super(player);
-            this.target = ScriptController.Instance.getScriptForEntity(target);
+            this.target = NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
@@ -378,7 +375,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public UseHoe(IPlayer player, ItemStack item, int x, int y, int z) {
             super(player);
-            this.hoe = new ScriptItemStack(item);
+            this.hoe = NpcAPI.Instance().getIItemStack(item);
             this.x = x;
             this.y = y;
             this.z = z;
@@ -422,8 +419,8 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public FillBucket(IPlayer player, ItemStack current, ItemStack result) {
             super(player);
-            this.current = new ScriptItemStack(current);
-            this.result = new ScriptItemStack(result);
+            this.current = NpcAPI.Instance().getIItemStack(current);
+            this.result = NpcAPI.Instance().getIItemStack(result);
         }
     }
 

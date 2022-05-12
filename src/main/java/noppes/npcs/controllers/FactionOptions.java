@@ -1,12 +1,8 @@
 package noppes.npcs.controllers;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
-import noppes.npcs.EventHooks;
-import noppes.npcs.scripted.entity.ScriptPlayer;
-import noppes.npcs.scripted.event.FactionEvent;
 
 public class FactionOptions {
 

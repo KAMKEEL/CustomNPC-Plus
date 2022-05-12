@@ -51,8 +51,9 @@ import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 public class PacketHandlerServer{
@@ -78,22 +79,22 @@ public class PacketHandlerServer{
 				return;
 			}  else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
 				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiButton((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiSlotChange && player.openContainer instanceof ContainerCustomGui) {
 				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiSlot((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+				EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if(type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
 				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiUnfocused((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
+				EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiScrollClick && player.openContainer instanceof ContainerCustomGui) {
 				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiScrollClick((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
+				EventHooks.onCustomGuiScrollClick((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiClose) {
-				EventHooks.onCustomGuiClose((ScriptPlayer)ScriptController.Instance.getScriptForEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
+				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
 				return;
 			}
 

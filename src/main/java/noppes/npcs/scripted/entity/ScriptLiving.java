@@ -1,8 +1,10 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.EntityLiving;
-import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IEntityLiving;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 
 public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> implements IEntityLiving {
 
@@ -18,17 +20,17 @@ public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> im
 	}
 
 	@Override
-	public void setAttackTarget(ScriptLivingBase living){
+	public void setAttackTarget(IEntityLivingBase living){
 		if(living == null)
 			entity.setAttackTarget(null);
 		else
-			entity.setAttackTarget(living.entity);
+			entity.setAttackTarget(living.getMCEntity());
 		super.setAttackTarget(living);
 	}
 
 	@Override
-	public ScriptLivingBase getAttackTarget(){
-		ScriptLivingBase base = (ScriptLivingBase)ScriptController.Instance.getScriptForEntity(entity.getAttackTarget());
+	public IEntityLivingBase getAttackTarget(){
+		IEntityLivingBase base = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity.getAttackTarget());
 		return (base != null)? base: super.getAttackTarget();
 	}
 	
@@ -58,7 +60,7 @@ public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> im
 	}
 	
 	@Override
-	public boolean canSeeEntity(ScriptEntity entity){
-		return this.entity.getEntitySenses().canSee(entity.entity);
+	public boolean canSeeEntity(IEntity entity){
+		return this.entity.getEntitySenses().canSee(entity.getMCEntity());
 	}
 }

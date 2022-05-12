@@ -2,8 +2,8 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobHealer;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.constants.JobType;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 
 public class ScriptJobHealer extends ScriptJobInterface{
 	private JobHealer job;
@@ -12,7 +12,7 @@ public class ScriptJobHealer extends ScriptJobInterface{
 		this.job = (JobHealer) npc.jobInterface;
 	}
 	
-	public void heal(ScriptLivingBase entity, float amount){
+	public void heal(IEntityLivingBase entity, float amount){
 		job.heal(entity.getMCEntity(), amount);
 	}
 	

@@ -10,12 +10,12 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.io.IOException;
 
@@ -23,14 +23,14 @@ public class CustomGuiController {
     public CustomGuiController() {
     }
 
-    public static void openGui(ScriptPlayer player, ScriptGui gui) {
+    public static void openGui(IPlayer player, ScriptGui gui) {
         EntityPlayerMP entityPlayerMP = (EntityPlayerMP) player.getMCEntity();
         entityPlayerMP.openGui(CustomNpcs.instance, EnumGuiType.CustomGui.ordinal(), player.getWorld().getMCWorld(), gui.getSlots().size(), 0, 0);
         ((ContainerCustomGui)((EntityPlayerMP)player.getMCEntity()).openContainer).setGui(gui, (EntityPlayer)player.getMCEntity());
         Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
     }
 
-    public static boolean updateGui(ScriptPlayer player, ScriptGui gui) {
+    public static boolean updateGui(IPlayer player, ScriptGui gui) {
         if (((EntityPlayerMP)player.getMCEntity()).openContainer instanceof ContainerCustomGui) {
             Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
             return true;
@@ -39,11 +39,11 @@ public class CustomGuiController {
         }
     }
 
-    public static void openOverlay(ScriptPlayer player, ScriptOverlay gui) {
+    public static void openOverlay(IPlayer player, ScriptOverlay gui) {
         Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.OVERLAY_DATA, new Object[]{gui.toNBT()});
     }
 
-    public static boolean updateOverlay(ScriptPlayer player, ScriptOverlay gui) {
+    public static boolean updateOverlay(IPlayer player, ScriptOverlay gui) {
         Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.OVERLAY_DATA, new Object[]{gui.toNBT()});
         return true;
     }

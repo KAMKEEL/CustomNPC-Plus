@@ -3,7 +3,7 @@
 // (powered by FernFlower decompiler)
 //
 
-package noppes.npcs.scripted.wrapper;
+package noppes.npcs.scripted;
 
 import net.minecraft.util.DamageSource;
 import noppes.npcs.controllers.ScriptController;
@@ -34,10 +34,10 @@ public class ScriptDamageSource implements IDamageSource {
     }
 
     public IEntity getTrueSource() {
-        return ScriptController.Instance.getScriptForEntity(this.source.getEntity());
+        return NpcAPI.Instance().getIEntity(this.source.getEntity());
     }
 
     public IEntity getImmediateSource() {
-        return ScriptController.Instance.getScriptForEntity(this.source.getSourceOfDamage());
+        return NpcAPI.Instance().getIEntity(this.source.getSourceOfDamage());
     }
 }

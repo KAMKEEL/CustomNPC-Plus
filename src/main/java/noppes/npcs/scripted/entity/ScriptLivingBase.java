@@ -6,13 +6,12 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
-import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
-import noppes.npcs.scripted.wrapper.NpcAPI;
-import noppes.npcs.scripted.wrapper.ScriptDamageSource;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptDamageSource;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -40,7 +39,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		entity.attackEntityFrom(DamageSource.generic,damage);
 	}
 
-	public void hurt(float damage, ScriptEntity source) {
+	public void hurt(float damage, IEntity source) {
 		if(source.getType() == 1)//if player
 			entity.attackEntityFrom(new EntityDamageSource("player",source.getMCEntity()),damage);
 		else
@@ -67,18 +66,18 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	/**
 	 * @param living Entity which this entity will attack
 	 */
-	public void setAttackTarget(ScriptLivingBase living){
+	public void setAttackTarget(IEntityLivingBase living){
 		if(living == null)
 			entity.setRevengeTarget(null);
 		else
-			entity.setRevengeTarget(living.entity);
+			entity.setRevengeTarget(living.getMCEntity());
 	}
 		
 	/**
 	 * @return The entity which this entity is attacking
 	 */
-	public ScriptLivingBase getAttackTarget(){
-		return (ScriptLivingBase)ScriptController.Instance.getScriptForEntity(entity.getAITarget());
+	public IEntityLivingBase getAttackTarget(){
+		return (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity.getAITarget());
 	}
 	
 	@Override
@@ -89,14 +88,14 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 
 	@Override
 	public boolean typeOf(int type){
-		return type == EntityType.LIVING?true:super.typeOf(type);
+		return type == EntityType.LIVING || super.typeOf(type);
 	}
 	/**
 	 * @param entity Entity to check
 	 * @return Whether or not this entity can see the given entity
 	 */
-	public boolean canSeeEntity(ScriptEntity entity){
-		return this.entity.canEntityBeSeen(entity.entity);
+	public boolean canSeeEntity(IEntity entity){
+		return this.entity.canEntityBeSeen(entity.getMCEntity());
 	}
 		
 	/**
@@ -182,8 +181,8 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 * @since 1.7.10c
 	 * @param item The item to be set
 	 */
-	public void setHeldItem(ScriptItemStack item){
-		entity.setCurrentItemOrArmor(0, item == null?null:item.item);
+	public void setHeldItem(IItemStack item){
+		entity.setCurrentItemOrArmor(0, item == null?null:item.getMCItemStack());
 	}
 	
 	/**
@@ -201,7 +200,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 * @param slot Slot of what armor piece to set, 0:boots, 1:pants, 2:body, 3:head
 	 * @param item Item to be set
 	 */
-	public void setArmor(int slot, ScriptItemStack item){
-		entity.setCurrentItemOrArmor(slot + 1, item == null?null:item.item);
+	public void setArmor(int slot, IItemStack item){
+		entity.setCurrentItemOrArmor(slot + 1, item == null?null:item.getMCItemStack());
 	}
 }

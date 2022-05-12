@@ -11,6 +11,7 @@ import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 
 import javax.annotation.CheckForNull;
@@ -119,7 +120,7 @@ public class NPCDataScript implements IScriptHandler {
     }
     public ICustomNpc getNpc() {
         if (this.npcAPI == null) {
-            this.npcAPI = (ICustomNpc) ScriptController.Instance.getScriptForEntity(this.npc);
+            this.npcAPI = (ICustomNpc) NpcAPI.Instance().getIEntity(this.npc);
         }
         return this.npcAPI;
     }

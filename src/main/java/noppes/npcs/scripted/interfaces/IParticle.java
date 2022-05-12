@@ -2,11 +2,11 @@ package noppes.npcs.scripted.interfaces;
 
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.ScriptWorld;
-import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 public interface IParticle {
 
-    void spawnOnEntity(ScriptEntity entity);
+    void spawnOnEntity(IEntity entity);
 
     void spawnInWorld(ScriptWorld world);
 

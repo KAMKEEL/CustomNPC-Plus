@@ -284,36 +284,8 @@ public class ScriptController {
 		return list;
 	}
 
-	public ScriptEntity getScriptForEntity(Entity entity) {
-		if(entity == null)
-			return null;
-		if(entity instanceof EntityNPCInterface)
-			return (ScriptNpc)((EntityNPCInterface) entity).script.dummyNpc;
-		else{
-			ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
-			if(data != null)
-				return data.base;
-			if(entity instanceof EntityPlayerMP)
-				data = new ScriptEntityData(new ScriptPlayer((EntityPlayerMP) entity));
-			else if(PixelmonHelper.isPixelmon(entity))
-				return new ScriptPixelmon((EntityTameable) entity);
-			else if(entity instanceof EntityAnimal)
-				data = new ScriptEntityData(new ScriptAnimal((EntityAnimal) entity));
-			else if(entity instanceof EntityMob)
-				data = new ScriptEntityData(new ScriptMonster((EntityMob) entity));
-			else if(entity instanceof EntityLiving)
-				data = new ScriptEntityData(new ScriptLiving((EntityLiving) entity));
-			else if(entity instanceof EntityLivingBase)
-				data = new ScriptEntityData(new ScriptLivingBase((EntityLivingBase)entity));
-			else
-				data = new ScriptEntityData(new ScriptEntity(entity));
-			entity.registerExtendedProperties("ScriptedObject", data);
-			return data.base;
-		}
-	}
-
 	@SubscribeEvent
-	public void saveWorld(WorldEvent.Save event){
+	public void invoke(WorldEvent.Save event){
 		if(!shouldSave || event.world.isRemote || event.world != MinecraftServer.getServer().worldServers[0])
 			return;
 

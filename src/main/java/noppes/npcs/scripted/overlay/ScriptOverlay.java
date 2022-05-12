@@ -4,7 +4,6 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.overlay.*;
 
@@ -113,7 +112,7 @@ public class ScriptOverlay implements ICustomOverlay {
     }
 
     public void update(IPlayer player) {
-        CustomGuiController.updateOverlay((ScriptPlayer)player, this);
+        CustomGuiController.updateOverlay(player, this);
     }
 
     public ICustomOverlay fromNBT(NBTTagCompound tag) {

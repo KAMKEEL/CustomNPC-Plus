@@ -3,11 +3,9 @@ package noppes.npcs.scripted.interfaces;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.*;
-import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.item.ScriptItemStack;
 
 public interface IWorld {
     /**
@@ -58,25 +56,25 @@ public interface IWorld {
 
     int getBlockLightValue(int x, int y, int z);
 
-    void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch);
+    void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch);
 
-    void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch);
+    void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
 
     IEntity getEntityByID(int id);
 
-    boolean spawnEntityInWorld(ScriptEntity entity);
+    boolean spawnEntityInWorld(IEntity entity);
 
-    ScriptPlayer getClosestPlayerToEntity(ScriptEntity entity, double range);
+    IPlayer getClosestPlayerToEntity(IEntity entity, double range);
 
-    ScriptPlayer getClosestPlayer(double x, double y, double z, double range);
+    IPlayer getClosestPlayer(double x, double y, double z, double range);
 
-    ScriptPlayer getClosestVulnerablePlayerToEntity(ScriptEntity entity, double range);
+    IPlayer getClosestVulnerablePlayerToEntity(IEntity entity, double range);
 
-    ScriptPlayer getClosestVulnerablePlayer(double x, double y, double z, double range);
+    IPlayer getClosestVulnerablePlayer(double x, double y, double z, double range);
 
-    int countEntities(ScriptEntity entity);
+    int countEntities(IEntity entity);
 
-    void setTileEntity(int x, int y, int z, ScriptTileEntity tileEntity);
+    void setTileEntity(int x, int y, int z, ITileEntity tileEntity);
 
     void removeTileEntity(int x, int y, int z);
 
@@ -105,7 +103,7 @@ public interface IWorld {
      * @param z World position z
      * @param item The block to be set
      */
-    void setBlock(int x, int y, int z, ScriptItemStack item);
+    void setBlock(int x, int y, int z, IItemStack item);
 
     /**
      * @param x World position x
@@ -118,9 +116,9 @@ public interface IWorld {
      * @param name The name of the player to be returned
      * @return The Player with name. Null is returned when the player isnt found
      */
-    ScriptPlayer getPlayer(String name);
+    IPlayer getPlayer(String name);
 
-    ScriptPlayer getPlayerByUUID(String uuid);
+    IPlayer getPlayerByUUID(String uuid);
 
     /**
      * @param time The world time to be set
@@ -173,9 +171,9 @@ public interface IWorld {
 
     /**
      * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
-     * @return Returns ScriptEntityParticle object
+     * @return Returns IEntityParticle object
      */
-    ScriptParticle createEntityParticle(String directory);
+    IParticle createEntityParticle(String directory);
 
     /**
      * @param key Get temp data for this key
@@ -245,7 +243,7 @@ public interface IWorld {
      */
     void explode(double x, double y, double z, float range, boolean fire, boolean grief);
 
-    ScriptPlayer[] getAllServerPlayers();
+    IPlayer[] getAllServerPlayers();
 
     /**
      * @since 1.7.10c
@@ -264,7 +262,7 @@ public interface IWorld {
      * @param name Name of the cloned entity
      * @return Returns the entity which was spawned
      */
-    ScriptEntity spawnClone(int x, int y, int z, int tab, String name);
+    IEntity spawnClone(int x, int y, int z, int tab, String name);
 
     ScriptScoreboard getScoreboard();
 

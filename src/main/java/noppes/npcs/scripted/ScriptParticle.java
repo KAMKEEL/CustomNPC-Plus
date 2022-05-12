@@ -1,12 +1,9 @@
 package noppes.npcs.scripted;
 
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 
-/**
- * Created by luisc on 9/8/2021.
- */
 public class ScriptParticle implements IParticle {
     private String directory;
 
@@ -52,7 +49,7 @@ public class ScriptParticle implements IParticle {
         this.directory = directory;
     }
 
-    public void spawnOnEntity(ScriptEntity entity){
+    public void spawnOnEntity(IEntity entity){
         int entityID = entity.getMCEntity().getEntityId();
         NoppesUtilServer.spawnScriptedParticle(directory,
                 HEXColor, HEXColor2, HEXColorRate, HEXColorStart,

@@ -1,11 +1,11 @@
 package noppes.npcs.scripted.roles;
 
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class ScriptRoleFollower extends ScriptRoleInterface{
 	private RoleFollower role;
@@ -18,7 +18,7 @@ public class ScriptRoleFollower extends ScriptRoleInterface{
 	 * @since 1.7.10c
 	 * @param player Player who is set as the owner. If null given everything resets
 	 */
-	public void setOwner(ScriptPlayer player){
+	public void setOwner(IPlayer player){
 		if(player == null || player.getMCEntity() == null){
 			role.setOwner(null);
 			return;
@@ -31,11 +31,11 @@ public class ScriptRoleFollower extends ScriptRoleInterface{
 	 * @since 1.7.10c
 	 * @return Returns the followers owner. Returns null if he has no owner or the owner is offline
 	 */
-	public ScriptPlayer getOwner(){
+	public IPlayer getOwner(){
 		if(role.owner == null)
 			return null;
 		
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(role.owner);
+		return (IPlayer) NpcAPI.Instance().getIEntity(role.owner);
 	}
 	
 	/**

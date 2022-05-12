@@ -18,6 +18,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.handler.ICloneHandler;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -199,7 +200,7 @@ public class ServerCloneController implements ICloneHandler {
 			throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
 		} else {
 			Entity entity = NoppesUtilServer.spawnClone(compound, (int)x, (int)y, (int)z, world.getMCWorld());
-			return entity == null ? null : ScriptController.Instance.getScriptForEntity(entity);
+			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
 		}
 	}
 
@@ -210,7 +211,7 @@ public class ServerCloneController implements ICloneHandler {
 		} else {
 			Instance.cleanTags(compound);
 			Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
-			return entity == null ? null : ScriptController.Instance.getScriptForEntity(entity);
+			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
 		}
 	}
 

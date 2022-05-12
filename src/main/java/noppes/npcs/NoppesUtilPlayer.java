@@ -29,11 +29,11 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 public class NoppesUtilPlayer {
 
@@ -255,16 +255,16 @@ public class NoppesUtilPlayer {
 		if(dialog == null)
 			return;
 
-		EventHooks.onDialogOption(new DialogEvent.DialogOption(new ScriptPlayer((EntityPlayerMP) player), dialog));
+		EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 		EventHooks.onNPCDialogClosed(npc,player,dialogId,optionId+1,dialog);
     	
 		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));
+			EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 			return;
 		}
 		DialogOption option = dialog.options.get(optionId);
     	if(option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-			EventHooks.onDialogClosed(new DialogEvent.DialogClosed(new ScriptPlayer((EntityPlayerMP) player), dialog));
+			EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 			return;
 		}
     	if(option.optionType == EnumOptionType.RoleOption){
@@ -302,7 +302,7 @@ public class NoppesUtilPlayer {
 		if(!data.quest.questInterface.isCompleted(playerData))
 			return;
 
-		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent(new ScriptPlayer(player), data.quest);
+		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
 		event.expReward = data.quest.rewardExp;
 
 		List<IItemStack> list = new ArrayList();

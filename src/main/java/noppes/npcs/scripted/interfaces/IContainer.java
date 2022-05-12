@@ -7,9 +7,8 @@ package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 
 public interface IContainer {
     int getSize();
@@ -30,7 +29,7 @@ public interface IContainer {
 
     void detectAndSendChanges();
 
-    void putStackInSlot(int slot, ScriptItemStack itemStack);
+    void putStackInSlot(int slot, IItemStack itemStack);
 
-    boolean isPlayerNotUsingContainer(ScriptPlayer player);
+    boolean isPlayerNotUsingContainer(IPlayer player);
 }

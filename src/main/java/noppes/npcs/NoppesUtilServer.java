@@ -72,9 +72,9 @@ import noppes.npcs.controllers.TransportLocation;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.DialogEvent;
-import noppes.npcs.scripted.event.ScriptEventDialog;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -183,7 +183,7 @@ public class NoppesUtilServer {
 	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia, int optionId){
 		Dialog dialog = dia.copy(player);
 
-		EventHooks.onDialogOpen(new DialogEvent.DialogOpen(new ScriptPlayer((EntityPlayerMP) player), dialog));
+		EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 
 		if(npc instanceof EntityDialogNpc){
 			dialog.hideNPC = true;

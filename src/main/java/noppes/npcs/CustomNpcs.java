@@ -26,7 +26,7 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.old.*;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
 import java.util.Set;

@@ -2,8 +2,8 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobFollower;
-import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.constants.JobType;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 
 public class ScriptJobFollower extends ScriptJobInterface{
 	private JobFollower job;
@@ -20,10 +20,10 @@ public class ScriptJobFollower extends ScriptJobInterface{
 		job.name = name;
 	}
 	
-	public ScriptNpc getFollowingNpc(){
+	public ICustomNpc getFollowingNpc(){
 		if(!isFollowing())
 			return null;
-		return (ScriptNpc)job.following.script.dummyNpc;
+		return job.following.script.dummyNpc;
 	}
 	
 	public boolean isFollowing(){

@@ -8,10 +8,9 @@ package noppes.npcs.scripted.interfaces.entity;
 import net.minecraft.entity.Entity;
 import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.scripted.ScriptWorld;
-import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public interface IEntity<T extends Entity> {
     
@@ -129,14 +128,14 @@ public interface IEntity<T extends Entity> {
      * @param range The search range for entities around this entity
      * @return Array of entities within range
      */
-    ScriptEntity[] getSurroundingEntities(int range);
+    IEntity[] getSurroundingEntities(int range);
 
     /**
      * @param range The search range for entities around this entity
      * @param type The EntityType you want to find
      * @return Array of entities within range
      */
-    ScriptEntity[] getSurroundingEntities(int range, int type);
+    IEntity[] getSurroundingEntities(int range, int type);
 
     /**
      * @return Whether the entity is alive or not
@@ -249,27 +248,27 @@ public interface IEntity<T extends Entity> {
     /**
      * @param item Item to be dropped
      */
-    void dropItem(ScriptItemStack item);
+    void dropItem(IItemStack item);
 
     /**
      * @return Return the rider
      */
-    ScriptEntity getRider();
+    IEntity getRider();
 
     /**
      * @param entity The entity to ride this entity
      */
-    void setRider(ScriptEntity entity);
+    void setRider(IEntity entity);
 
     /**
      * @return Return the entity, this entity is riding
      */
-    ScriptEntity getMount();
+    IEntity getMount();
 
     /**
      * @param entity The entity this entity will mount
      */
-    void setMount(ScriptEntity entity);
+    void setMount(IEntity entity);
 
     /**
      * @see noppes.npcs.scripted.constants.EntityType

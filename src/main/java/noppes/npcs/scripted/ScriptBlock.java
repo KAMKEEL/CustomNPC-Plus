@@ -15,7 +15,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.interfaces.*;
-import noppes.npcs.scripted.wrapper.NpcAPI;
 import noppes.npcs.util.LRUHashMap;
 
 public class ScriptBlock implements IBlock {

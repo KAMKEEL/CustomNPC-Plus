@@ -2,7 +2,7 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
-import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.RoleType;
 import foxz.utils.Market;
 
@@ -19,7 +19,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	 * @param currency2 Currency item number two
 	 * @param sold Item to be sold by this npc
 	 */
-	public void setSellOption(int slot, ScriptItemStack currency, ScriptItemStack currency2, ScriptItemStack sold){
+	public void setSellOption(int slot, IItemStack currency, IItemStack currency2, IItemStack sold){
 		if(sold == null || slot >= 18 || slot < 0)
 			return;
 		if(currency == null)
@@ -42,7 +42,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	 * @param currency Currency item
 	 * @param sold Item to be sold by this npc
 	 */
-	public void setSellOption(int slot, ScriptItemStack currency, ScriptItemStack sold){
+	public void setSellOption(int slot, IItemStack currency, IItemStack sold){
 		setSellOption(slot, currency, null, sold);
 	}
 	

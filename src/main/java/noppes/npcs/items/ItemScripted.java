@@ -22,7 +22,7 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptCustomItem;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 import org.lwjgl.opengl.GL11;
 
 public class ItemScripted extends Item implements ItemRenderInterface {
@@ -75,7 +75,7 @@ public class ItemScripted extends Item implements ItemRenderInterface {
             return false;
 
         IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
-        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, ScriptController.Instance.getScriptForEntity(entityLivingBase), 2, null);
+        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, NpcAPI.Instance().getIEntity(entityLivingBase), 2, null);
         return EventHooks.onScriptItemAttack((ScriptCustomItem) istack, eve);
     }
 
@@ -132,7 +132,7 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker) {
         IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
-        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, ScriptController.Instance.getScriptForEntity(attacker), 1, ScriptController.Instance.getScriptForEntity(target));
+        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, NpcAPI.Instance().getIEntity(attacker), 1, NpcAPI.Instance().getIEntity(target));
         return EventHooks.onScriptItemAttack((ScriptCustomItem) istack, eve);
     }
 
@@ -157,7 +157,9 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     }
 
     @Override
-    public void renderSpecial() {
-        GL11.glTranslatef(0.135F, 0.2F, 0.07F);
+    public void renderSpecial() {}
+
+    public void renderOffset(ScriptCustomItem scriptCustomItem) {
+        GL11.glTranslatef(0.135F * scriptCustomItem.scaleX, 0.2F * scriptCustomItem.scaleY, 0.07F * scriptCustomItem.scaleZ);
     }
 }

@@ -12,11 +12,9 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptContainer implements IContainer {
     private IInventory inventory;
@@ -96,11 +94,11 @@ public class ScriptContainer implements IContainer {
         container.detectAndSendChanges();
     }
 
-    public void putStackInSlot(int slot, ScriptItemStack itemStack){
+    public void putStackInSlot(int slot, IItemStack itemStack){
         container.putStackInSlot(slot,itemStack.getMCItemStack());
     }
 
-    public boolean isPlayerNotUsingContainer(ScriptPlayer player){
+    public boolean isPlayerNotUsingContainer(IPlayer player){
         return container.isPlayerNotUsingContainer((EntityPlayerMP) player.getMCEntity());
     }
 }

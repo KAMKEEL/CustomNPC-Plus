@@ -2,26 +2,26 @@ package noppes.npcs.scripted.event;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 
 public class ScriptEventDamaged extends ScriptEvent{
 
 	private float damage;
 	private boolean clear = false;
-	private ScriptLivingBase source;
+	private IEntityLivingBase source;
 	private DamageSource damagesource;
 	
 	public ScriptEventDamaged(float damage, EntityLivingBase attackingEntity, DamageSource damagesource){
 		this.damage = damage;
 		this.damagesource = damagesource;
-		this.source = (ScriptLivingBase)ScriptController.Instance.getScriptForEntity(attackingEntity);
+		this.source = (IEntityLivingBase) NpcAPI.Instance().getIEntity(attackingEntity);
 	}
 	
 	/**
 	 * @return The source of the damage
 	 */
-	public ScriptLivingBase getSource(){
+	public IEntityLivingBase getSource(){
 		return source;
 	}
 	

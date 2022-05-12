@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
+import noppes.npcs.CustomItems;
 import noppes.npcs.items.ItemRenderInterface;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -104,7 +105,7 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
         GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
 
-        ((ItemRenderInterface) itemStack.getItem()).renderSpecial();
+        ((ItemScripted) itemStack.getItem()).renderOffset(scriptCustomItem);
         GL11.glTranslatef(scriptCustomItem.translateX, scriptCustomItem.translateY, scriptCustomItem.translateZ);
         GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
         GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);

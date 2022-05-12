@@ -6,7 +6,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.ITileEntity;
-import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
     protected T tileEntity;

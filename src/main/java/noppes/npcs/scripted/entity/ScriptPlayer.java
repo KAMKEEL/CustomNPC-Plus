@@ -20,15 +20,15 @@ import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
-import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -229,10 +229,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param item The item to be checked
 	 * @return How many of this item the player has
 	 */
-	public int inventoryItemCount(ScriptItemStack item){
+	public int inventoryItemCount(IItemStack item){
 		int i = 0;
 		for(ItemStack is : player.inventory.mainInventory){
-            if (is != null && is.isItemEqual(item.item))
+            if (is != null && is.isItemEqual(item.getMCItemStack()))
             	i += is.stackSize;
 		}
 		return i;
@@ -257,7 +257,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param amount How many will be removed
 	 * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
 	 */
-	public boolean removeItem(ScriptItemStack item, int amount){
+	public boolean removeItem(IItemStack item, int amount){
 		int count = inventoryItemCount(item);
 		if(amount  > count)
 			return false;
@@ -266,7 +266,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		else{
 			for(int i = 0; i < player.inventory.mainInventory.length; i++){
 				ItemStack is = player.inventory.mainInventory[i];
-	            if (is != null && is.isItemEqual(item.item)){
+	            if (is != null && is.isItemEqual(item.getMCItemStack())){
 	            	if(amount > is.stackSize){
 	                	player.inventory.mainInventory[i] = null;
 	                	amount -= is.stackSize;
@@ -293,7 +293,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Item item = (Item)Item.itemRegistry.getObject(id);
 		if(item == null)
 			return false;		
-		return removeItem(new ScriptItemStack(new ItemStack(item, 1, damage)), amount);
+		return removeItem(NpcAPI.Instance().getIItemStack(new ItemStack(item, 1, damage)), amount);
 	}
 
 	/**
@@ -302,7 +302,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param amount The amount of the item to be added
 	 * @return Returns whether or not it gave the item succesfully
 	 */
-	public boolean giveItem(ScriptItemStack item, int amount){
+	public boolean giveItem(IItemStack item, int amount){
 		if(item != null && item.getMCItemStack() != null) {
 			item.setStackSize(amount);
 			boolean bool = this.player.inventory.addItemStackToInventory(item.getMCItemStack());
@@ -347,10 +347,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	/**
 	 * @param item The item to be removed from the players inventory
 	 */
-	public void removeAllItems(ScriptItemStack item){
+	public void removeAllItems(IItemStack item){
 		for(int i = 0; i < player.inventory.mainInventory.length; i++){
 			ItemStack is = player.inventory.mainInventory[i];
-            if (is != null && is.isItemEqual(item.item))
+            if (is != null && is.isItemEqual(item.getMCItemStack()))
             	player.inventory.mainInventory[i] = null;
 		}
 	}
@@ -383,15 +383,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		player.mountEntity(ridingEntity);
 	}
 
-	public ScriptEntity dropOneItem(boolean dropStack){
-		return new ScriptEntity(player.dropOneItem(dropStack));
+	public IEntity dropOneItem(boolean dropStack){
+		return NpcAPI.Instance().getIEntity(player.dropOneItem(dropStack));
 	}
 
 	public boolean canHarvestBlock(ScriptBlock block){
 		return player.canHarvestBlock(block.getMCBlock());
 	}
 
-	public boolean interactWith(ScriptEntity entity){
+	public boolean interactWith(IEntity entity){
 		return player.interactWith(entity.getMCEntity());
 	}
 	

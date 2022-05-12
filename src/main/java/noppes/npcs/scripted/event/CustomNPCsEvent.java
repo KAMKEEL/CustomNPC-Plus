@@ -6,7 +6,7 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.scripted.AbstractNpcAPI;
+import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
 
 public class CustomNPCsEvent extends Event{
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();

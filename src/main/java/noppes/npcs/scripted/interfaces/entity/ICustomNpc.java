@@ -9,9 +9,6 @@ import net.minecraft.entity.EntityCreature;
 import noppes.npcs.scripted.ScriptFaction;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.ITimers;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.roles.*;
 
 public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
@@ -167,7 +164,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param item The item you want to shoot
      * @param accuracy Accuracy of the shot (0-100)
      */
-    void shootItem(ScriptLivingBase target, ScriptItemStack item, int accuracy);
+    void shootItem(IEntityLivingBase target, IItemStack item, int accuracy);
 
     /**
      * @param message The message the npc will say
@@ -177,7 +174,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @param message The message the npc will say
      */
-    void say(ScriptPlayer player, String message);
+    void say(IPlayer player, String message);
 
     /**
      * Kill the npc, doesnt't despawn it
@@ -211,7 +208,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @param item Item to be held in the right hand
      */
-    void setRightItem(ScriptItemStack item);
+    void setRightItem(IItemStack item);
 
     /**
      * @return The item held in the left hand
@@ -221,7 +218,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @param item Item to be held in the left hand
      */
-    void setLeftItem(ScriptItemStack item);
+    void setLeftItem(IItemStack item);
 
     /**
      * @return Returns the projectile the npc uses
@@ -231,7 +228,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @param item Item to be used as projectile
      */
-    void setProjectileItem(ScriptItemStack item);
+    void setProjectileItem(IItemStack item);
 
     /**
      *
@@ -288,7 +285,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param slot The armor slot to set. 0:head, 1:body, 2:legs, 3:boots
      * @param item Item to be set as armor
      */
-    void setArmor(int slot, ScriptItemStack item);
+    void setArmor(int slot, IItemStack item);
 
     /**
      *
@@ -302,7 +299,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param slot The slot from the NPC's drop list to change
      * @param item The item the drop list slot will be changed to
      */
-    void setLootItem(int slot, ScriptItemStack item);
+    void setLootItem(int slot, IItemStack item);
 
     /**
      *
@@ -488,7 +485,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param player The player this NPC becomes visible/invisible to
      * @param visible True if you want the NPC to be invisible to the player, false otherwise
      */
-    void setVisibleTo(ScriptPlayer player, boolean visible);
+    void setVisibleTo(IPlayer player, boolean visible);
 
     /**
      *
@@ -497,7 +494,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * If setVisibleTo(player,visible) was not called to make this NPC invisible to the player at any point
      * in the NPC's life, this function will return true regardless of the value of isVisible().
      */
-    boolean isVisibleTo(ScriptPlayer player);
+    boolean isVisibleTo(IPlayer player);
 
     /**
      * @param type The visibility type of the name, 0:visible, 1:invisible, 2:when-attacking
@@ -621,7 +618,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param player The player to give the item to
      * @param item The item given to the player
      */
-    void giveItem(ScriptPlayer player, ScriptItemStack item);
+    void giveItem(IPlayer player, IItemStack item);
 
 
     /**

@@ -80,6 +80,7 @@ import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.ScriptEventAttack;
 import noppes.npcs.scripted.event.ScriptEventDamaged;
@@ -165,7 +166,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			this.updateTasks();
 
 			if (!this.isRemote()) {
-				this.wrappedNPC = new ScriptNpc(this);
+				this.wrappedNPC = new ScriptNpc<>(this);
 			}
 		}
 		catch(Exception e){

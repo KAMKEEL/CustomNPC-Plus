@@ -1,8 +1,10 @@
 package noppes.npcs.scripted;
 
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.controllers.Faction;
-import noppes.npcs.scripted.entity.ScriptNpc;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class ScriptFaction {
 	private Faction faction;
@@ -33,19 +35,19 @@ public class ScriptFaction {
 		return faction.color;
 	}
 	
-	public boolean isFriendlyToPlayer(ScriptPlayer player){
-		return faction.isFriendlyToPlayer(player.player);
+	public boolean isFriendlyToPlayer(IPlayer player){
+		return faction.isFriendlyToPlayer((EntityPlayer) player.getMCEntity());
 	}
 	
-	public boolean isNeutralToPlayer(ScriptPlayer player){
-		return faction.isNeutralToPlayer(player.player);
+	public boolean isNeutralToPlayer(IPlayer player){
+		return faction.isNeutralToPlayer((EntityPlayer) player.getMCEntity());
 	}
 	
-	public boolean isAggressiveToPlayer(ScriptPlayer player){
-		return faction.isAggressiveToPlayer(player.player);
+	public boolean isAggressiveToPlayer(IPlayer player){
+		return faction.isAggressiveToPlayer((EntityPlayer) player.getMCEntity());
 	}
 	
-	public boolean isAggressiveToNpc(ScriptNpc npc){
-		return faction.isAggressiveToNpc(npc.npc);
+	public boolean isAggressiveToNpc(ICustomNpc npc){
+		return faction.isAggressiveToNpc((EntityNPCInterface) npc.getMCEntity());
 	}
 }

@@ -3,7 +3,7 @@
 // (powered by FernFlower decompiler)
 //
 
-package noppes.npcs.scripted;
+package noppes.npcs.scripted.interfaces;
 
 import java.io.File;
 
@@ -18,10 +18,9 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.entity.ScriptPlayer;
-import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public abstract class AbstractNpcAPI {
@@ -71,7 +70,7 @@ public abstract class AbstractNpcAPI {
             return null;
         } else {
             try {
-                Class c = Class.forName("noppes.npcs.scripted.wrapper.NpcAPI");
+                Class c = Class.forName("noppes.npcs.scripted.NpcAPI");
                 instance = (AbstractNpcAPI) c.getMethod("Instance").invoke((Object) null);
             } catch (Exception var1) {
                 var1.printStackTrace();
@@ -87,13 +86,13 @@ public abstract class AbstractNpcAPI {
 
     public abstract INbt getINbt(NBTTagCompound entityData);
 
-    public abstract ScriptPlayer[] getAllServerPlayers();
+    public abstract IPlayer[] getAllServerPlayers();
 
     public abstract IItemStack createItem(String id, int damage, int size);
 
-    public abstract ScriptParticle createParticle(String directory);
+    public abstract IParticle createParticle(String directory);
 
-    public abstract ScriptParticle createEntityParticle(String directory);
+    public abstract IParticle createEntityParticle(String directory);
 
     public abstract int getServerTime();
 }

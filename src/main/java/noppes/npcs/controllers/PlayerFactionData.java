@@ -7,8 +7,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.FactionEvent;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class PlayerFactionData {
 	public HashMap<Integer,Integer> factionData = new HashMap<Integer,Integer>();
@@ -51,7 +52,7 @@ public class PlayerFactionData {
 	}
 
 	public void increasePoints(int factionId, int points, EntityPlayer player) {
-		EventHooks.onFactionPoints(new FactionEvent.FactionPoints(new ScriptPlayer((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points));
+		EventHooks.onFactionPoints(new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points));
 		if(!factionData.containsKey(factionId)){
 			Faction faction = FactionController.getInstance().get(factionId);
 			factionData.put(factionId, faction == null? -1 : faction.defaultPoints);

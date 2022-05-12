@@ -3,7 +3,7 @@
 // (powered by FernFlower decompiler)
 //
 
-package noppes.npcs.scripted.wrapper;
+package noppes.npcs.scripted;
 
 import java.io.File;
 import java.util.List;
@@ -33,13 +33,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.*;
 import noppes.npcs.items.ItemScripted;
-import noppes.npcs.scripted.*;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptContainer;
 import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.handler.*;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
@@ -47,6 +46,7 @@ import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.item.IItemCustom;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import noppes.npcs.scripted.item.ScriptItemStack;
@@ -270,21 +270,21 @@ public class NpcAPI extends AbstractNpcAPI {
         return CustomNpcs.MARKOV_GENERATOR[dictionary].fetch(gender);
     }
 
-    public ScriptPlayer[] getAllServerPlayers(){
+    public IPlayer[] getAllServerPlayers(){
         List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
-        ScriptPlayer[] arr = new ScriptPlayer[list.size()];
+        IPlayer[] arr = new IPlayer[list.size()];
         for(int i = 0; i < list.size(); i++){
-            arr[i] = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(list.get(i));
+            arr[i] = (IPlayer) NpcAPI.Instance().getIEntity(list.get(i));
         }
 
         return arr;
     }
 
-    public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch){
+    public void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch){
         entity.getWorld().getMCWorld().playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
     }
 
-    public void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch){
+    public void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch){
         player.getWorld().getMCWorld().playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
     }
 
@@ -298,12 +298,12 @@ public class NpcAPI extends AbstractNpcAPI {
         MinecraftServer.getServer().setMOTD(motd);
     }
 
-    public ScriptParticle createParticle(String directory){
+    public IParticle createParticle(String directory){
         return new ScriptParticle(directory);
     }
 
     @Deprecated
-    public ScriptParticle createEntityParticle(String directory){
+    public IParticle createEntityParticle(String directory){
         return new ScriptParticle(directory);
     }
 

@@ -22,11 +22,10 @@ import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptNbt;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.INbt;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptItemStack implements IItemStack {
 	public ItemStack item;
-	private NBTTagCompound storedData = new NBTTagCompound();
 
 	public ScriptItemStack(ItemStack item){
 		this.item = item;

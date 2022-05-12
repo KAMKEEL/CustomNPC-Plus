@@ -1,11 +1,8 @@
 package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityLivingBase;
-import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
-import noppes.npcs.scripted.wrapper.ScriptDamageSource;
+import noppes.npcs.scripted.ScriptDamageSource;
 
 public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T> {
     /**
@@ -20,7 +17,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
 
     void hurt(float damage);
 
-    void hurt(float damage, ScriptEntity source);
+    void hurt(float damage, IEntity source);
 
     void hurt(float damage, ScriptDamageSource damageSource);
 
@@ -36,12 +33,12 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
     /**
      * @param living Entity which this entity will attack
      */
-    void setAttackTarget(ScriptLivingBase living);
+    void setAttackTarget(IEntityLivingBase living);
 
     /**
      * @return The entity which this entity is attacking
      */
-    ScriptLivingBase getAttackTarget();
+    IEntityLivingBase getAttackTarget();
 
     int getType();
 
@@ -51,7 +48,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @param entity Entity to check
      * @return Whether or not this entity can see the given entity
      */
-    boolean canSeeEntity(ScriptEntity entity);
+    boolean canSeeEntity(IEntity entity);
 
     /**
      * Expert use only
@@ -97,7 +94,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @since 1.7.10c
      * @param item The item to be set
      */
-    void setHeldItem(ScriptItemStack item);
+    void setHeldItem(IItemStack item);
 
     /**
      * Note not all Living Entities support this
@@ -112,5 +109,5 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @param slot Slot of what armor piece to set, 0:boots, 1:pants, 2:body, 3:head
      * @param item Item to be set
      */
-    void setArmor(int slot, ScriptItemStack item);
+    void setArmor(int slot, IItemStack item);
 }

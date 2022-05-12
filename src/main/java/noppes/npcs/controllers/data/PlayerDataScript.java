@@ -18,7 +18,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 import javax.annotation.CheckForNull;
@@ -69,7 +69,7 @@ public class PlayerDataScript implements IScriptHandler {
 
                 if (type != EnumScriptType.INIT) {
                     noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent)event;
-                    EventHooks.onPlayerInit(this, (ScriptPlayer) playerEvent.player);
+                    EventHooks.onPlayerInit(this, playerEvent.player);
                 }
             }
 
@@ -133,7 +133,7 @@ public class PlayerDataScript implements IScriptHandler {
     }
     public IPlayer getPlayer() {
         if (this.playerAPI == null) {
-            this.playerAPI = (IPlayer) ScriptController.Instance.getScriptForEntity(this.player);
+            this.playerAPI = (IPlayer) NpcAPI.Instance().getIEntity(this.player);
         }
         return this.playerAPI;
     }

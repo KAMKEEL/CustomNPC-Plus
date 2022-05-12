@@ -24,14 +24,13 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.ITileEntity;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.wrapper.NpcAPI;
 
 public class ScriptWorld implements IWorld {
 	private static Map<String,Object> tempData = new HashMap<String,Object>();
@@ -135,43 +134,43 @@ public class ScriptWorld implements IWorld {
 		return world.getBlockLightValue(x,y,z);
 	}
 
-	public void playSoundAtEntity(ScriptEntity entity, String sound, float volume, float pitch){
+	public void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch){
 		world.playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
 	}
 
-	public void playSoundToNearExcept(ScriptPlayer player, String sound, float volume, float pitch){
+	public void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch){
 		world.playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
 	}
 
 	public IEntity getEntityByID(int id){
-		return ScriptController.Instance.getScriptForEntity(world.getEntityByID(id));
+		return NpcAPI.Instance().getIEntity(world.getEntityByID(id));
 	}
 
-	public boolean spawnEntityInWorld(ScriptEntity entity){
+	public boolean spawnEntityInWorld(IEntity entity){
 		return world.spawnEntityInWorld(entity.getMCEntity());
 	}
 
-	public ScriptPlayer getClosestPlayerToEntity(ScriptEntity entity, double range){
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
+	public IPlayer getClosestPlayerToEntity(IEntity entity, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
 	}
 
-	public ScriptPlayer getClosestPlayer(double x, double y, double z, double range){
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestPlayer(x,y,z, range));
+	public IPlayer getClosestPlayer(double x, double y, double z, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayer(x,y,z, range));
 	}
 
-	public ScriptPlayer getClosestVulnerablePlayerToEntity(ScriptEntity entity, double range){
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
+	public IPlayer getClosestVulnerablePlayerToEntity(IEntity entity, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
 	}
 
-	public ScriptPlayer getClosestVulnerablePlayer(double x, double y, double z, double range){
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.getClosestVulnerablePlayer(x,y,z, range));
+	public IPlayer getClosestVulnerablePlayer(double x, double y, double z, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayer(x,y,z, range));
 	}
 
-	public int countEntities(ScriptEntity entity){
+	public int countEntities(IEntity entity){
 		return world.countEntities(entity.getMCEntity().getClass());
 	}
 
-	public void setTileEntity(int x, int y, int z, ScriptTileEntity tileEntity){
+	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){
 		world.setTileEntity(x,y,z,tileEntity.getMCTileEntity());
 	}
 
@@ -230,12 +229,12 @@ public class ScriptWorld implements IWorld {
 	 * @param z World position z
 	 * @param item The block to be set
 	 */
-	public void setBlock(int x, int y, int z, ScriptItemStack item){
+	public void setBlock(int x, int y, int z, IItemStack item){
 		if(item == null){
 			removeBlock(x, y, z);
 			return;
 		}
-		Block block = Block.getBlockFromItem(item.item.getItem());
+		Block block = Block.getBlockFromItem(item.getMCItemStack().getItem());
 		if(block == null || block == Blocks.air)
 			return;
 		world.setBlock(x, y, z, block);
@@ -254,15 +253,15 @@ public class ScriptWorld implements IWorld {
 	 * @param name The name of the player to be returned
 	 * @return The Player with name. Null is returned when the player isnt found
 	 */
-	public ScriptPlayer getPlayer(String name){
+	public IPlayer getPlayer(String name){
 		EntityPlayer player = world.getPlayerEntityByName(name);
 		if(player == null)
 			return null;
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(player);
+		return (IPlayer) NpcAPI.Instance().getIEntity(player);
 	}
 
-	public ScriptPlayer getPlayerByUUID(String uuid){
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(world.func_152378_a(UUID.fromString(uuid)));
+	public IPlayer getPlayerByUUID(String uuid){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.func_152378_a(UUID.fromString(uuid)));
 	}
 	
 	/**
@@ -333,8 +332,8 @@ public class ScriptWorld implements IWorld {
 	 * @return Returns ScriptParticle object
 	 */
 	@Deprecated
-	public ScriptParticle createEntityParticle(String directory){
-		return new ScriptParticle(directory);
+	public IParticle createEntityParticle(String directory){
+		return NpcAPI.Instance().createEntityParticle(directory);
 	}
 
 	/**
@@ -440,11 +439,11 @@ public class ScriptWorld implements IWorld {
 		world.newExplosion(null, x, y, z, range, fire, grief);
 	}
 	
-	public ScriptPlayer[] getAllServerPlayers(){
+	public IPlayer[] getAllServerPlayers(){
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
-		ScriptPlayer[] arr = new ScriptPlayer[list.size()];
+		IPlayer[] arr = new IPlayer[list.size()];
 		for(int i = 0; i < list.size(); i++){
-			arr[i] = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(list.get(i));
+			arr[i] = (IPlayer) NpcAPI.Instance().getIEntity(list.get(i));
 		}
 		
 		return arr;
@@ -469,14 +468,14 @@ public class ScriptWorld implements IWorld {
 	 * @param name Name of the cloned entity
 	 * @return Returns the entity which was spawned
 	 */
-	public ScriptEntity spawnClone(int x, int y, int z, int tab, String name){
+	public IEntity spawnClone(int x, int y, int z, int tab, String name){
 		NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
 		if(compound == null)
 			return null;
 		Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, world);
 		if(entity == null)
 			return null;
-		return ScriptController.Instance.getScriptForEntity(entity);
+		return NpcAPI.Instance().getIEntity(entity);
 	}
 	
 	public ScriptScoreboard getScoreboard(){

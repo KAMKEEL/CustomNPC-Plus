@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.scripted.interfaces.gui.IItemSlot;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptGuiItemSlot extends ScriptGuiComponent implements IItemSlot {
     IItemStack stack;

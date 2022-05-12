@@ -23,7 +23,7 @@ import noppes.npcs.scripted.interfaces.handler.data.IQuestInterface;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 public class Quest implements ICompatibilty, IQuest {
 	public int version = VersionCompatibility.ModRev;

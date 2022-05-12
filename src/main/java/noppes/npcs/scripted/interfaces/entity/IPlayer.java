@@ -4,13 +4,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.scripted.ScriptBlock;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
-import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
-import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 
 public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> {
@@ -103,7 +101,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param item The item to be checked
      * @return How many of this item the player has
      */
-    int inventoryItemCount(ScriptItemStack item);
+    int inventoryItemCount(IItemStack item);
 
     /**
      * @since 1.7.10d
@@ -116,7 +114,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param amount How many will be removed
      * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
      */
-    boolean removeItem(ScriptItemStack item, int amount);
+    boolean removeItem(IItemStack item, int amount);
 
     /**
      * @since 1.7.10c
@@ -133,7 +131,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param amount The amount of the item to be added
      * @return Returns whether or not it gave the item succesfully
      */
-    boolean giveItem(ScriptItemStack item, int amount);
+    boolean giveItem(IItemStack item, int amount);
 
     /**
      * @since 1.7.10c
@@ -157,7 +155,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     /**
      * @param item The item to be removed from the players inventory
      */
-    void removeAllItems(ScriptItemStack item);
+    void removeAllItems(IItemStack item);
 
     void setRotation(float rotationYaw, float rotationPitch);
 
@@ -169,11 +167,11 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void mountEntity(Entity ridingEntity);
 
-    ScriptEntity dropOneItem(boolean dropStack);
+    IEntity dropOneItem(boolean dropStack);
 
     boolean canHarvestBlock(ScriptBlock block);
 
-    boolean interactWith(ScriptEntity entity);
+    boolean interactWith(IEntity entity);
 
     /**
      * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements

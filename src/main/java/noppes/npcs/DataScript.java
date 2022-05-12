@@ -16,14 +16,13 @@ import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.event.ScriptEvent;
-import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.NpcAPI;
 
 public class DataScript implements IScriptHandler {
 	public List<ScriptContainer> scripts = new ArrayList();
@@ -47,7 +46,7 @@ public class DataScript implements IScriptHandler {
 		}
 
 		this.npc = npc;
-		dummyNpc = new ScriptNpc<>(npc);
+		dummyNpc = (ICustomNpc) NpcAPI.Instance().getIEntity(npc);
 
 		if(npc.worldObj instanceof WorldServer)
 			dummyWorld = NpcAPI.Instance().getIWorld((WorldServer) npc.worldObj);//new ScriptWorld((WorldServer) npc.worldObj);
@@ -119,7 +118,7 @@ public class DataScript implements IScriptHandler {
 		for(int i = 0; i + 1 < obs.length; i += 2){
 			Object ob = obs[i + 1];
 			if(ob instanceof Entity)
-				ob = ScriptController.Instance.getScriptForEntity((Entity)ob);
+				ob = NpcAPI.Instance().getIEntity((Entity)ob);
 			script.engine.put(obs[i].toString(), ob);
 		}
 

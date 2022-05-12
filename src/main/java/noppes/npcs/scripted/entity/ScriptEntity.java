@@ -20,7 +20,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.*;
@@ -28,8 +27,8 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.item.ScriptItemStack;
-import noppes.npcs.scripted.wrapper.NpcAPI;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -367,14 +366,14 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param range The search range for entities around this entity
 	 * @return Array of entities within range
 	 */
-	public ScriptEntity[] getSurroundingEntities(int range){
+	public IEntity[] getSurroundingEntities(int range){
 		List<Entity> entities = entity.worldObj.getEntitiesWithinAABB(Entity.class, entity.boundingBox.expand(range, range, range));
-		List<ScriptEntity> list = new ArrayList<ScriptEntity>();
+		List<IEntity> list = new ArrayList<IEntity>();
 		for(Entity living : entities){
 			if(living != entity)
-				list.add(ScriptController.Instance.getScriptForEntity(living));
+				list.add(NpcAPI.Instance().getIEntity(living));
 		}
-		return list.toArray(new ScriptEntity[list.size()]);
+		return list.toArray(new IEntity[list.size()]);
 	}
 
 	/**
@@ -382,7 +381,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param type The EntityType you want to find
 	 * @return Array of entities within range
 	 */
-	public ScriptEntity[] getSurroundingEntities(int range, int type){
+	public IEntity[] getSurroundingEntities(int range, int type){
 		Class cls = Entity.class;
 		if(type == EntityType.LIVING)
 			cls = EntityLivingBase.class;
@@ -396,12 +395,12 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 			cls = EntityNPCInterface.class;
 
 		List<Entity> entities = entity.worldObj.getEntitiesWithinAABB(cls, entity.boundingBox.expand(range, range, range));
-		List<ScriptEntity> list = new ArrayList<ScriptEntity>();
+		List<IEntity> list = new ArrayList<IEntity>();
 		for(Entity living : entities){
 			if(living != entity)
-				list.add(ScriptController.Instance.getScriptForEntity(living));
+				list.add(NpcAPI.Instance().getIEntity(living));
 		}
-		return list.toArray(new ScriptEntity[list.size()]);
+		return list.toArray(new IEntity[list.size()]);
 	}
 
 
@@ -581,23 +580,23 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	/**
 	 * @param item Item to be dropped
 	 */
-	public void dropItem(ScriptItemStack item){
-		entity.entityDropItem(item.item, 0);
+	public void dropItem(IItemStack item){
+		entity.entityDropItem(item.getMCItemStack(), 0);
 	}
 
 	/**
 	 * @return Return the rider
 	 */
-	public ScriptEntity getRider(){
-		return ScriptController.Instance.getScriptForEntity(entity.riddenByEntity);
+	public IEntity getRider(){
+		return NpcAPI.Instance().getIEntity(entity.riddenByEntity);
 	}
 
 	/**
 	 * @param entity The entity to ride this entity
 	 */
-	public void setRider(ScriptEntity entity){
+	public void setRider(IEntity entity){
 		if(entity != null){
-			entity.entity.mountEntity(this.entity);;
+			entity.getMCEntity().mountEntity(this.entity);;
 		}
 		else if(this.entity.riddenByEntity != null)
 			this.entity.riddenByEntity.mountEntity(null);
@@ -606,18 +605,18 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	/**
 	 * @return Return the entity, this entity is riding
 	 */
-	public ScriptEntity getMount(){
-		return ScriptController.Instance.getScriptForEntity(entity.ridingEntity);
+	public IEntity getMount(){
+		return NpcAPI.Instance().getIEntity(entity.ridingEntity);
 	}
 
 	/**
 	 * @param entity The entity this entity will mount
 	 */
-	public void setMount(ScriptEntity entity){
+	public void setMount(IEntity entity){
 		if(entity == null)
 			this.entity.mountEntity(null);
 		else
-			this.entity.mountEntity(entity.entity);
+			this.entity.mountEntity(entity.getMCEntity());
 	}
 
 	/**

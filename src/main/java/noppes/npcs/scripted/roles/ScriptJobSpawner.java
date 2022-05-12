@@ -3,11 +3,11 @@ package noppes.npcs.scripted.roles;
 import java.util.ArrayList;
 
 import net.minecraft.entity.EntityLivingBase;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.JobType;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 
 public class ScriptJobSpawner extends ScriptJobInterface{
 	private JobSpawner job;
@@ -26,12 +26,12 @@ public class ScriptJobSpawner extends ScriptJobInterface{
 	 * @param number The entity going to be spawned (1-6)
 	 * @return Returns spawned entity
 	 */
-	public ScriptLivingBase spawnEntity(int number){
+	public IEntityLivingBase spawnEntity(int number){
 		EntityLivingBase base = job.spawnEntity(number);
 		if(base == null)
 			return null;
 		
-		return (ScriptLivingBase) ScriptController.Instance.getScriptForEntity(base);
+		return (IEntityLivingBase) NpcAPI.Instance().getIEntity(base);
 	}
 	
 	/**
