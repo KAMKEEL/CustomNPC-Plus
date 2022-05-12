@@ -15,6 +15,7 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.ScriptEvent;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
@@ -46,7 +47,10 @@ public class DataScript implements IScriptHandler {
 		}
 
 		this.npc = npc;
-		dummyNpc = (ICustomNpc) NpcAPI.Instance().getIEntity(npc);
+		if (npc.wrappedNPC == null) {
+			npc.wrappedNPC = new ScriptNpc(this.npc);
+		}
+		dummyNpc = npc.wrappedNPC;
 
 		if(npc.worldObj instanceof WorldServer)
 			dummyWorld = NpcAPI.Instance().getIWorld((WorldServer) npc.worldObj);//new ScriptWorld((WorldServer) npc.worldObj);

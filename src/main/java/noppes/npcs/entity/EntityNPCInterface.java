@@ -165,7 +165,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setSize(1, 1);
 			this.updateTasks();
 
-			if (!this.isRemote()) {
+			if (!this.isRemote() && this.wrappedNPC == null) {
 				this.wrappedNPC = new ScriptNpc<>(this);
 			}
 		}
