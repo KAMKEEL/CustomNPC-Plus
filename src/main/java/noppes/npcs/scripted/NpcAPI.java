@@ -20,8 +20,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
@@ -48,8 +47,7 @@ import noppes.npcs.scripted.interfaces.item.IItemCustom;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
-import noppes.npcs.scripted.item.ScriptCustomItem;
-import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
@@ -176,21 +174,35 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IItemStack getIItemStack(ItemStack itemstack) {
-        if(itemstack.getItem() instanceof ItemScripted){
-            return (IItemCustom) (itemstack.stackSize > 0 ? new ScriptCustomItem(itemstack) : new ScriptCustomItem(new ItemStack(Item.getItemById(0))));
+        if (itemstack.getItem() instanceof ItemScripted) {
+            return new ScriptCustomItem(itemstack);
+        } else if(itemstack.getItem() instanceof ItemArmor) {
+            return new ScriptItemArmor(itemstack);
+        } else if(itemstack.getItem() instanceof ItemBook) {
+            return new ScriptItemBook(itemstack);
+        } else if(itemstack.getItem() instanceof ItemBlock) {
+            return new ScriptItemBlock(itemstack);
         } else {
-            return (IItemStack) (itemstack.stackSize > 0 ? new ScriptItemStack(itemstack) : new ScriptItemStack(new ItemStack(Item.getItemById(0))));
+            return new ScriptItemStack(itemstack);
         }
     }
 
-    public IItemStack createItem(String id, int damage, int size){
-        Item item = (Item)Item.itemRegistry.getObject(id);
-        if(item == null)
+    public IItemStack createItem(String id, int damage, int size) {
+        Item item = (Item) Item.itemRegistry.getObject(id);
+        if (item == null)
             return null;
-        if(item instanceof ItemScripted)
+
+        if (item instanceof ItemScripted) {
             return new ScriptCustomItem(new ItemStack(item, size, damage));
-        else
+        } else if(item instanceof ItemArmor) {
+            return new ScriptItemArmor(new ItemStack(item, size, damage));
+        } else if(item instanceof ItemBook) {
+            return new ScriptItemBook(new ItemStack(item, size, damage));
+        } else if(item instanceof ItemBlock) {
+            return new ScriptItemBlock(new ItemStack(item, size, damage));
+        } else {
             return new ScriptItemStack(new ItemStack(item, size, damage));
+        }
     }
 
     public IWorld getIWorld(WorldServer world) {

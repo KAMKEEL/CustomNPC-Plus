@@ -13,11 +13,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraftforge.common.IPlantable;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptNbt;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
@@ -30,7 +32,15 @@ public class ScriptItemStack implements IItemStack {
 	public ScriptItemStack(ItemStack item){
 		this.item = item;
 	}
-	
+
+	public int getType() {
+		if (this.item.getItem() instanceof IPlantable) {
+			return 5;
+		} else {
+			return this.item.getItem() instanceof ItemSword ? 4 : 0;
+		}
+	}
+
 	/**
 	 * @return The minecraft name for this item
 	 */
