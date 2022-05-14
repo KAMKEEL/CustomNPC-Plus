@@ -76,10 +76,6 @@ public class FlyPathFinder extends PathFinder
             flag = this.isPathingInWater;
             this.isPathingInWater = false;
         }
-        else
-        {
-            i = MathHelper.floor_double(p_75857_1_.boundingBox.minY + 0.5D);
-        }
 
         FlyPathPoint pathpoint2 = this.openPoint(MathHelper.floor_double(p_75857_1_.boundingBox.minX), i, MathHelper.floor_double(p_75857_1_.boundingBox.minZ));
         FlyPathPoint pathpoint = this.openPoint(MathHelper.floor_double(p_75857_2_ - (double)(p_75857_1_.width / 2.0F)), MathHelper.floor_double(p_75857_4_), MathHelper.floor_double(p_75857_6_ - (double)(p_75857_1_.width / 2.0F)));
@@ -172,6 +168,13 @@ public class FlyPathFinder extends PathFinder
             FlyPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0);
             FlyPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0);
 
+            FlyPathPoint pathpoint7 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0);
+
+            FlyPathPoint pathpoint8 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+            FlyPathPoint pathpoint9 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            FlyPathPoint pathpoint10 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            FlyPathPoint pathpoint11 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+
             if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_) {
                 this.pathOptions[i++] = pathpoint3;
             }
@@ -186,6 +189,26 @@ public class FlyPathFinder extends PathFinder
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_) {
                 this.pathOptions[i++] = pathpoint6;
+            }
+
+            if (pathpoint7 != null && !pathpoint7.isFirst && pathpoint7.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint7;
+            }
+
+            if (pathpoint8 != null && !pathpoint8.isFirst && pathpoint8.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint8;
+            }
+
+            if (pathpoint9 != null && !pathpoint9.isFirst && pathpoint9.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint9;
+            }
+
+            if (pathpoint10 != null && !pathpoint10.isFirst && pathpoint10.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint10;
+            }
+
+            if (pathpoint11 != null && !pathpoint11.isFirst && pathpoint11.distanceTo(p_75860_4_) < p_75860_5_) {
+                this.pathOptions[i++] = pathpoint11;
             }
         }
 

@@ -226,7 +226,7 @@ public class PathNavigateFlying extends PathNavigate {
 
                 if (vec3 != null)
                 {
-                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
+                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord + 0.5D, vec3.zCoord, this.speed);
                 }
             }
         }
@@ -328,7 +328,7 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int p_75493_3_, int p_75493_4_, int p_75493_5_)
+    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int entityXSize, int entityYSize, int entityZSize)
     {
         int l = MathHelper.floor_double(p_75493_1_.xCoord);
         int i1 = MathHelper.floor_double(p_75493_1_.zCoord);
@@ -345,17 +345,17 @@ public class PathNavigateFlying extends PathNavigate {
             double d3 = 1.0D / Math.sqrt(d2);
             d0 *= d3;
             d1 *= d3;
-            p_75493_3_ += 2;
-            p_75493_5_ += 2;
+            entityXSize += 2;
+            entityZSize += 2;
 
-            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, p_75493_3_, p_75493_4_, p_75493_5_, p_75493_1_, d0, d1))
+            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1))
             {
                 return false;
             }
             else
             {
-                p_75493_3_ -= 2;
-                p_75493_5_ -= 2;
+                entityXSize -= 2;
+                entityZSize -= 2;
                 double d4 = 1.0D / Math.abs(d0);
                 double d5 = 1.0D / Math.abs(d1);
                 double d6 = (double)(l * 1) - p_75493_1_.xCoord;
@@ -400,7 +400,7 @@ public class PathNavigateFlying extends PathNavigate {
                         k2 = i2 - i1;
                     }
                 }
-                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, p_75493_3_, p_75493_4_, p_75493_5_, p_75493_1_, d0, d1));
+                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1));
 
                 return false;
             }
