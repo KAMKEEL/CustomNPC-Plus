@@ -323,7 +323,17 @@ public class FlyPathFinder extends PathFinder
 
                     if(block == Blocks.air)
                     {
-                        return 2;
+                        boolean heightClear = true;
+                        for (int currentY = blockY; currentY < Math.ceil(blockY + entity.height); ++currentY) {
+                            Block b = entity.worldObj.getBlock(l, currentY, j1);
+                            if (b != Blocks.air) {
+                               heightClear = false;
+                               break;
+                            }
+                        }
+                        if (heightClear) {
+                            return 2;
+                        }
                     }
 
                     if (block == Blocks.trapdoor)
