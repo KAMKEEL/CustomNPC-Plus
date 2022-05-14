@@ -174,6 +174,9 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IItemStack getIItemStack(ItemStack itemstack) {
+        if(itemstack == null)
+            return null;
+
         if (itemstack.getItem() instanceof ItemScripted) {
             return new ScriptCustomItem(itemstack);
         } else if(itemstack.getItem() instanceof ItemArmor) {
@@ -192,17 +195,7 @@ public class NpcAPI extends AbstractNpcAPI {
         if (item == null)
             return null;
 
-        if (item instanceof ItemScripted) {
-            return new ScriptCustomItem(new ItemStack(item, size, damage));
-        } else if(item instanceof ItemArmor) {
-            return new ScriptItemArmor(new ItemStack(item, size, damage));
-        } else if(item instanceof ItemBook) {
-            return new ScriptItemBook(new ItemStack(item, size, damage));
-        } else if(item instanceof ItemBlock) {
-            return new ScriptItemBlock(new ItemStack(item, size, damage));
-        } else {
-            return new ScriptItemStack(new ItemStack(item, size, damage));
-        }
+        return getIItemStack(new ItemStack(item, size, damage));
     }
 
     public IWorld getIWorld(WorldServer world) {

@@ -262,7 +262,7 @@ public class FlyPathFinder extends PathFinder
     /**
      * Returns a mapped point or creates and adds one
      */
-    private final FlyPathPoint openPoint(int p_75854_1_, int p_75854_2_, int p_75854_3_)
+    private FlyPathPoint openPoint(int p_75854_1_, int p_75854_2_, int p_75854_3_)
     {
         int l = FlyPathPoint.makeHash(p_75854_1_, p_75854_2_, p_75854_3_);
         FlyPathPoint pathpoint = (FlyPathPoint)this.pointMap.lookup(l);

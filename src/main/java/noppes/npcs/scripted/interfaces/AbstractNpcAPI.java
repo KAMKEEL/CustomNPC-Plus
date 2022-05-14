@@ -10,24 +10,42 @@ import java.io.File;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.controllers.*;
+import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.handler.*;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
 
 public abstract class AbstractNpcAPI {
     private static AbstractNpcAPI instance = null;
 
     public AbstractNpcAPI() {
     }
+
+    public abstract IFactionHandler getFactions();
+
+    public abstract IRecipeHandler getRecipes();
+
+    public abstract IQuestHandler getQuests();
+
+    public abstract IDialogHandler getDialogs();
+
+    public abstract ICloneHandler getClones();
 
     public abstract ICustomNpc createNPC(World var1);
 
@@ -90,9 +108,21 @@ public abstract class AbstractNpcAPI {
 
     public abstract IItemStack createItem(String id, int damage, int size);
 
+    public abstract void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch);
+
+    public abstract void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
+
+    public abstract String getMOTD();
+
+    public abstract void setMOTD(String motd);
+
     public abstract IParticle createParticle(String directory);
 
     public abstract IParticle createEntityParticle(String directory);
 
     public abstract int getServerTime();
+
+    public abstract ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame);
+
+    public abstract ICustomOverlay createCustomOverlay(int id);
 }
