@@ -36,8 +36,19 @@ public class DataDisplay {
 	public GameProfile playerProfile;
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
+
 	public String glowTexture = "";
-	
+	public float overlaySize = 1.0F;
+	public float overlayScaleX = 1.0F;
+	public float overlayScaleY = 1.0F;
+
+	public String poweredTexture = "";
+	public float poweredSize = 1.0F;
+	public float poweredSpeedX = 1.0F;
+	public float poweredSpeedY = 1.0F;
+	public float poweredScaleX = 1.0F;
+	public float poweredScaleY = 1.0F;
+
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
 	
 	public int modelSize = 5;
@@ -73,10 +84,21 @@ public class DataDisplay {
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
 		nbttagcompound.setString("CloakTexture", cloakTexture);
-		nbttagcompound.setString("GlowTexture", glowTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
 
-        if (this.playerProfile != null)
+		nbttagcompound.setString("GlowTexture", glowTexture);
+		nbttagcompound.setFloat("OverlaySize", overlaySize);
+		nbttagcompound.setFloat("OverlayScaleX", overlayScaleX);
+		nbttagcompound.setFloat("OverlayScaleY", overlayScaleY);
+
+		nbttagcompound.setString("PoweredTexture", poweredTexture);
+		nbttagcompound.setFloat("PoweredSize", poweredSize);
+		nbttagcompound.setFloat("PoweredSpeedX", poweredSpeedX);
+		nbttagcompound.setFloat("PoweredSpeedY", poweredSpeedY);
+		nbttagcompound.setFloat("PoweredScaleX", poweredScaleX);
+		nbttagcompound.setFloat("PoweredScaleY", poweredScaleY);
+
+		if (this.playerProfile != null)
         {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
             NBTUtil.func_152460_a(nbttagcompound1, this.playerProfile);
@@ -130,8 +152,27 @@ public class DataDisplay {
         
 		texture = nbttagcompound.getString("Texture");
 		cloakTexture = nbttagcompound.getString("CloakTexture");
+
+		overlayScaleX = overlayScaleX == 0 ? 1.0F : overlayScaleX;
+		overlayScaleY = overlayScaleY == 0 ? 1.0F : overlayScaleY;
+		overlaySize = overlaySize == 0 ? 1.0F : overlaySize;
 		glowTexture = nbttagcompound.getString("GlowTexture");
-		
+		overlaySize = nbttagcompound.getFloat("OverlaySize");
+		overlayScaleX = nbttagcompound.getFloat("OverlayScaleX");
+		overlayScaleY = nbttagcompound.getFloat("OverlayScaleY");
+
+		poweredScaleX = poweredScaleX == 0 ? 1.0F : poweredScaleX;
+		poweredScaleY = poweredScaleY == 0 ? 1.0F : poweredScaleY;
+		poweredSpeedX = poweredSpeedX == 0 ? 1.0F : poweredSpeedX;
+		poweredSpeedY = poweredSpeedY == 0 ? 1.0F : poweredSpeedY;
+		poweredSize = poweredSize == 0 ? 1.0F : poweredSize;
+		poweredTexture = nbttagcompound.getString("PoweredTexture");
+		poweredSize = nbttagcompound.getFloat("PoweredSize");
+		poweredSpeedX = nbttagcompound.getFloat("PoweredSpeedX");
+		poweredSpeedY = nbttagcompound.getFloat("PoweredSpeedY");
+		poweredScaleX = nbttagcompound.getFloat("PoweredScaleX");
+		poweredScaleY = nbttagcompound.getFloat("PoweredScaleY");
+
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		if(modelSize > CustomNpcs.NpcSizeLimit)
 			modelSize = CustomNpcs.NpcSizeLimit;

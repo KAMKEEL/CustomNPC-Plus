@@ -738,6 +738,10 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
 
     String getOverlayTexture();
 
+    void setPoweredTexture(String poweredTexture);
+
+    String getPoweredTexture();
+
     void setCollisionType(int type);
 
     int getCollisionType();

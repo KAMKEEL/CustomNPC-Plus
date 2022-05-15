@@ -19,6 +19,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
@@ -34,7 +35,6 @@ import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 
 public class RenderNPCInterface extends RenderLiving{
 	public static long LastTextureTick = 0;
-
 	public ModelBase originalModel;
 
 	public RenderNPCInterface(ModelBase model, float f){
@@ -213,42 +213,95 @@ public class RenderNPCInterface extends RenderLiving{
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
 		if (!npc.display.glowTexture.isEmpty())
 		{
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
 			if(npc.textureGlowLocation == null){
 				npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
 			}
 			bindTexture((ResourceLocation) npc.textureGlowLocation);
 			float f1 = 1.0F;
 
-			GL11.glEnable(GL11.GL_BLEND);
 			// Overlay & Glow
+			GL11.glDepthFunc(GL11.GL_LEQUAL);
+			GL11.glEnable(GL11.GL_BLEND);
 			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
 			GL11.glDisable(GL11.GL_LIGHTING);
 
-			if (npc.isInvisible())
-			{
-				GL11.glDepthMask(false);
-			}
-			else
-			{
-				GL11.glDepthMask(true);
-			}
+			GL11.glDepthMask(!npc.isInvisible());
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
 			GL11.glPushMatrix();
-			GL11.glScalef(1.001f, 1.001f, 1.001f);
-			if(mainModel instanceof ModelMPM){
-				((ModelMPM)mainModel).isArmor = true;
-				mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-				((ModelMPM)mainModel).isArmor = false;
-			}
-			else
-				mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+				GL11.glMatrixMode(GL11.GL_TEXTURE);
+				GL11.glLoadIdentity();
+				GL11.glScalef(npc.display.overlayScaleX, npc.display.overlayScaleY, 1.0F);
+
+				GL11.glMatrixMode(GL11.GL_MODELVIEW);
+				float scale = 1.001f * npc.display.overlaySize;
+				GL11.glScalef(scale, scale, scale);
+				if(mainModel instanceof ModelMPM){
+					((ModelMPM)mainModel).isArmor = true;
+					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					((ModelMPM)mainModel).isArmor = false;
+				}
+				else
+					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
 			GL11.glPopMatrix();
+
+			GL11.glMatrixMode(GL11.GL_TEXTURE);
+			GL11.glLoadIdentity();
+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
 			GL11.glEnable(GL11.GL_LIGHTING);
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
-
 			GL11.glDepthFunc(GL11.GL_LEQUAL);
 			GL11.glDisable(GL11.GL_BLEND);
+		}
+
+		if (!npc.display.poweredTexture.isEmpty())
+		{
+			if(npc.texturePoweredLocation == null){
+				npc.texturePoweredLocation = new ResourceLocation(npc.display.poweredTexture);
+			}
+
+			bindTexture((ResourceLocation) npc.texturePoweredLocation);
+			float f1 = 1.0F;
+
+			// Overlay & Glow
+			GL11.glDepthFunc(GL11.GL_LEQUAL);
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+			GL11.glDisable(GL11.GL_LIGHTING);
+
+			GL11.glDepthMask(!npc.isInvisible());
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+			GL11.glPushMatrix();
+				GL11.glMatrixMode(GL11.GL_TEXTURE);
+				GL11.glLoadIdentity();
+				GL11.glTranslatef(npc.renderTicksPowered * 0.001F * npc.display.poweredSpeedX, npc.renderTicksPowered * 0.001F * npc.display.poweredSpeedY, 0.0F);
+				GL11.glScalef(npc.display.poweredScaleX, npc.display.poweredScaleY, 1.0F);
+
+				GL11.glMatrixMode(GL11.GL_MODELVIEW);
+				float scale = 1.001f * npc.display.poweredSize;
+				GL11.glScalef(scale, scale, scale);
+				GL11.glEnable(GL11.GL_BLEND);
+				if(mainModel instanceof ModelMPM){
+					((ModelMPM)mainModel).isArmor = true;
+					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					((ModelMPM)mainModel).isArmor = false;
+				}
+				else
+					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+			GL11.glPopMatrix();
+
+			GL11.glMatrixMode(GL11.GL_TEXTURE);
+			GL11.glLoadIdentity();
+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+			GL11.glEnable(GL11.GL_LIGHTING);
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
+			GL11.glDepthFunc(GL11.GL_LEQUAL);
+			GL11.glDisable(GL11.GL_BLEND);
+
+			npc.renderTicksPowered++;
 		}
 	}
 	@Override
