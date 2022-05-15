@@ -226,7 +226,7 @@ public class PathNavigateFlying extends PathNavigate {
 
                 if (vec3 != null)
                 {
-                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord + 0.5D, vec3.zCoord, this.speed);
+                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
                 }
             }
         }

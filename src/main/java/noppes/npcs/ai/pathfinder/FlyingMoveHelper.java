@@ -54,6 +54,9 @@ public class FlyingMoveHelper extends EntityMoveHelper{
 
                 if (heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit) {
                     this.entity.motionY = verticalSpeed * (d1 / d5);
+                    if (this.entity.motionY > 0) {
+                        this.entity.motionY += 0.1D;
+                    }
                 }
 
                 this.entity.velocityChanged = true;
