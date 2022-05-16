@@ -15,6 +15,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
@@ -35,6 +36,7 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.Sys;
@@ -68,6 +70,19 @@ public class NoppesUtil {
 	        	worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
 	        }
 		}
+	}
+
+	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
+		HashMap<Integer, SkinOverlayData> skinOverlays = new HashMap<>();
+		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
+		
+		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
+			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
+			String tagString = skinOverlayList.getCompoundTagAt(i).getString("SkinOverlayTexture");
+
+			skinOverlays.put(tagID,new SkinOverlayData(new ResourceLocation(tagString)));
+		}
+		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}
 
 	public static void spawnScriptedParticle(ByteBuf buffer){

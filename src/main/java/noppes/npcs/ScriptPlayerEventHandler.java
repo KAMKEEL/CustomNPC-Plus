@@ -12,7 +12,10 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -26,12 +29,15 @@ import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+
+import java.util.List;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {
@@ -426,6 +432,16 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
+
+            //Loads other players' and own player's skin overlays if they have them
+            List<EntityPlayerMP> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+            for (EntityPlayerMP playerMP : list) {
+                if (playerMP.getEntityData().hasKey("SkinOverlayData")) {
+                    NBTTagCompound data = new NBTTagCompound();
+                    data.setTag("SkinOverlayData",playerMP.getEntityData().getTagList("SkinOverlayData",10));
+                    Server.sendData(playerMP, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+                }
+            }
         }
     }
 

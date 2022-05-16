@@ -87,7 +87,9 @@ public enum EnumPacketServer {
 	NaturalSpawnGetAll, MailOpenSetup,
 	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen,
 
-	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused;
+	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
+
+	SERVER_UPDATE_SKIN_OVERLAYS;
 
 	public CustomNpcsPermissions.Permission permission = null;
 	public boolean needsNpc = false;

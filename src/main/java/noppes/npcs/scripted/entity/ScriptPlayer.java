@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
@@ -526,8 +527,44 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
-	public void setPlayerOverlay(String texture) {
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.PLAYER_OVERLAY, texture);
+	public void addSkinOverlay(int id, String overlayString) {
+		if (overlayString != null) {
+			NBTTagCompound data = new NBTTagCompound();
+			NBTTagCompound compound = new NBTTagCompound();
+
+			compound.setString("SkinOverlayTexture", overlayString);
+			compound.setInteger("SkinOverlayID", id);
+
+			if (!player.getEntityData().hasKey("SkinOverlayData")) {
+				NBTTagList tagList = new NBTTagList();
+				tagList.appendTag(compound);
+				player.getEntityData().setTag("SkinOverlayData", tagList);
+			} else {
+				for (int i = 0; i < player.getEntityData().getTagList("SkinOverlayData", 10).tagCount(); i++) {
+					int tagID = player.getEntityData().getTagList("SkinOverlayData", 10).getCompoundTagAt(i).getInteger("SkinOverlayID");
+					if (tagID == id) {
+						player.getEntityData().getTagList("SkinOverlayData", 10).removeTag(i);
+					}
+				}
+				player.getEntityData().getTagList("SkinOverlayData", 10).appendTag(compound);
+			}
+			data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
+			Server.sendData((EntityPlayerMP) this.entity, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+		}
+	}
+
+	public void removeSkinOverlay(int id) {
+		if (player.getEntityData().hasKey("SkinOverlayData")) {
+			NBTTagCompound data = new NBTTagCompound();
+			for (int i = 0; i < player.getEntityData().getTagList("SkinOverlayData",10).tagCount(); i++) {
+				int tagID = player.getEntityData().getTagList("SkinOverlayData",10).getCompoundTagAt(i).getInteger("SkinOverlayID");
+				if (tagID == id) {
+					player.getEntityData().getTagList("SkinOverlayData",10).removeTag(i);
+				}
+			}
+			data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
+			Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+		}
 	}
 
 	public IQuest[] getFinishedQuests() {

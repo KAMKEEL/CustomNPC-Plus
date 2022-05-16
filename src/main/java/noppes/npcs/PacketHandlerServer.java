@@ -128,6 +128,8 @@ public class PacketHandlerServer{
 						itemScriptPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
 						getScriptsEnabled(type, buffer, player);
+					else if (type == EnumPacketServer.SERVER_UPDATE_SKIN_OVERLAYS)
+						updateSkinOverlays(player);
 					else if (item.getItem() == CustomItems.scripter)
 						scriptPackets(type, buffer, player, npc);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
@@ -141,6 +143,12 @@ public class PacketHandlerServer{
 
 	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		NoppesUtilServer.isGUIOpen(buffer, player);
+	}
+
+	public void updateSkinOverlays(EntityPlayerMP player) {
+		NBTTagCompound data = new NBTTagCompound();
+		data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
+		Server.sendData(player, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
 	}
 
 	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {

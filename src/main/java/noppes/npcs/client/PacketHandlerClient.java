@@ -16,7 +16,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.CustomNpcs;
@@ -274,11 +273,8 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		else if(type == EnumPacketClient.SWING_PLAYER_ARM){
 			Minecraft.getMinecraft().thePlayer.swingItem();
 		}
-		else if(type == EnumPacketClient.PLAYER_OVERLAY) {
-			String overlayString = Server.readString(buffer);
-			if (overlayString != null) {
-				Client.playerOverlay = new ResourceLocation(overlayString);
-			}
+		else if(type == EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS) {
+			NoppesUtil.updateSkinOverlayData(player, Server.readNBT(buffer));
 		}
 	}
 }
