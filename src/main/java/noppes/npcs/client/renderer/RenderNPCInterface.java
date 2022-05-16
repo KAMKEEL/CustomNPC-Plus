@@ -211,7 +211,7 @@ public class RenderNPCInterface extends RenderLiving{
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7){
 		super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-		if (!npc.display.glowTexture.isEmpty())
+		if (!npc.display.glowTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
 		{
 			if(npc.textureGlowLocation == null){
 				npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
@@ -232,7 +232,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glDisable(GL11.GL_LIGHTING);
 
 			GL11.glDepthMask(!npc.isInvisible());
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, npc.isInvisible() ? 0.2F : 1.0F);
 
 			GL11.glPushMatrix();
 				GL11.glMatrixMode(GL11.GL_TEXTURE);
@@ -261,7 +261,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glDisable(GL11.GL_BLEND);
 		}
 
-		if (!npc.display.poweredTexture.isEmpty())
+		if (!npc.display.poweredTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
 		{
 			if(npc.texturePoweredLocation == null){
 				npc.texturePoweredLocation = new ResourceLocation(npc.display.poweredTexture);
@@ -282,7 +282,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glDisable(GL11.GL_LIGHTING);
 
 			GL11.glDepthMask(!npc.isInvisible());
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, npc.isInvisible() ? 0.2F : 1.0F);
 
 			GL11.glPushMatrix();
 				GL11.glMatrixMode(GL11.GL_TEXTURE);
