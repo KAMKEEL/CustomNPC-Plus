@@ -126,6 +126,8 @@ public class PacketHandlerServer{
 						forgeScriptPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
 						itemScriptPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
+						getScriptsEnabled(type, buffer, player);
 					else if (item.getItem() == CustomItems.scripter)
 						scriptPackets(type, buffer, player, npc);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
@@ -139,6 +141,24 @@ public class PacketHandlerServer{
 
 	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		NoppesUtilServer.isGUIOpen(buffer, player);
+	}
+
+	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
+		if (type == EnumPacketServer.ScriptGlobalGuiDataGet) {
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setBoolean("ScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
+			compound.setBoolean("PlayerScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
+			compound.setBoolean("GlobalNPCScriptsEnabled", CustomNpcs.GlobalNPCScripts);
+			compound.setBoolean("ForgeScriptsEnabled", CustomNpcs.GlobalForgeScripts);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if (type == EnumPacketServer.ScriptGlobalGuiDataSave) {
+			NBTTagCompound compound = Server.readNBT(buffer);
+			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("ScriptsEnabled");
+			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("PlayerScriptsEnabled");
+			CustomNpcs.GlobalNPCScripts = compound.getBoolean("GlobalNPCScriptsEnabled");
+			CustomNpcs.GlobalForgeScripts = compound.getBoolean("ForgeScriptsEnabled");
+		}
 	}
 
 	private void scriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {

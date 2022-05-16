@@ -34,6 +34,9 @@ public enum EnumPacketServer {
 	
 	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList,
 
+	ScriptGlobalGuiDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
+	ScriptGlobalGuiDataGet(false),
+
 	ScriptPlayerSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptPlayerGet(false),
 
