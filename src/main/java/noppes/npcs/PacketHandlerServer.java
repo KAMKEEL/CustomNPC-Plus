@@ -179,6 +179,7 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptPlayerGet) {
 			PlayerDataScript data = ScriptController.Instance.playerScripts;
 			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setBoolean("ScriptEnabled", ScriptController.Instance.playerScripts.getEnabled());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
@@ -191,6 +192,7 @@ public class PacketHandlerServer{
 		if (type == EnumPacketServer.ScriptForgeGet) {
 			ForgeDataScript data = ScriptController.Instance.forgeScripts;
 			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setBoolean("ScriptEnabled", ScriptController.Instance.forgeScripts.getEnabled());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
@@ -203,6 +205,7 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptNPCGet) {
 			NPCDataScript data = ScriptController.Instance.npcScripts;
 			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setBoolean("ScriptEnabled", ScriptController.Instance.npcScripts.getEnabled());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else if(type == EnumPacketServer.ScriptNPCSave) {
