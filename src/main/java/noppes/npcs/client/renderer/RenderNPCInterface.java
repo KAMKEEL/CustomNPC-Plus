@@ -215,7 +215,13 @@ public class RenderNPCInterface extends RenderLiving{
 		{
 			if(npc.textureGlowLocation == null){
 				npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
+			} else {
+				String locationString = npc.textureGlowLocation.getResourceDomain() + ":" + npc.textureGlowLocation.getResourcePath();
+				if (!locationString.equals(npc.display.glowTexture)) {
+					npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
+				}
 			}
+
 			bindTexture((ResourceLocation) npc.textureGlowLocation);
 			float f1 = 1.0F;
 
@@ -259,6 +265,11 @@ public class RenderNPCInterface extends RenderLiving{
 		{
 			if(npc.texturePoweredLocation == null){
 				npc.texturePoweredLocation = new ResourceLocation(npc.display.poweredTexture);
+			} else {
+				String locationString = npc.texturePoweredLocation.getResourceDomain() + ":" + npc.texturePoweredLocation.getResourcePath();
+				if (!locationString.equals(npc.display.poweredTexture)) {
+					npc.texturePoweredLocation = new ResourceLocation(npc.display.poweredTexture);
+				}
 			}
 
 			bindTexture((ResourceLocation) npc.texturePoweredLocation);

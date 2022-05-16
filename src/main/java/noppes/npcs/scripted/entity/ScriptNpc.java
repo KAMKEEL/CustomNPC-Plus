@@ -1096,40 +1096,36 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void setOverlayTexture(String overlayTexture) {
 		npc.display.glowTexture = overlayTexture;
-		npc.updateClient = true;
+		npc.script.clientNeedsUpdate = true;
 	}
 	public String getOverlayTexture() {return npc.display.glowTexture;}
 
 	public void setOverlaySize(float size) {
 		npc.display.overlaySize = size;
-		npc.updateClient = true;
 	}
 	public float getOverlaySize() {return npc.display.overlaySize;}
 
 	public void setOverlayScale(float scaleX, float scaleY) {
 		npc.display.overlayScaleX = scaleX;
 		npc.display.overlayScaleY = scaleY;
-		npc.updateClient = true;
 	}
 	public float getOverlayTextureScaleX() {return npc.display.overlayScaleX;}
 	public float getOverlayTextureScaleY() {return npc.display.overlayScaleY;}
 
 	public void setPoweredTexture(String poweredTexture) {
 		npc.display.poweredTexture = poweredTexture;
-		npc.updateClient = true;
+		npc.script.clientNeedsUpdate = true;
 	}
 	public String getPoweredTexture() {return npc.display.poweredTexture;}
 
 	public void setPoweredSize(float size) {
 		npc.display.poweredSize = size;
-		npc.updateClient = true;
 	}
 	public float getPoweredSize() {return npc.display.poweredSize;}
 
 	public void setPoweredScale(float scaleX, float scaleY) {
 		npc.display.poweredScaleX = scaleX;
 		npc.display.poweredScaleY = scaleY;
-		npc.updateClient = true;
 	}
 	public float getPoweredTextureScaleX() {return npc.display.poweredScaleX;}
 	public float getPoweredTextureScaleY() {return npc.display.poweredScaleY;}
@@ -1137,7 +1133,6 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setPoweredSpeed(float speedX, float speedY) {
 		npc.display.poweredSpeedX = speedX;
 		npc.display.poweredSpeedY = speedY;
-		npc.updateClient = true;
 	}
 	public float getPoweredSpeedX() {return npc.display.poweredSpeedX;}
 	public float getPoweredSpeedY() {return npc.display.poweredSpeedY;}
