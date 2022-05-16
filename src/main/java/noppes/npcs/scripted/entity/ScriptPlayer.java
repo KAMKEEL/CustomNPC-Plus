@@ -526,6 +526,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
+	public void setPlayerOverlay(String texture) {
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.PLAYER_OVERLAY, texture);
+	}
+
 	public IQuest[] getFinishedQuests() {
 		PlayerQuestData data = this.getData().questData;
 		List<IQuest> quests = new ArrayList();
