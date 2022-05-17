@@ -96,39 +96,15 @@ public interface IParticle {
     void setGravity(float gravity);
 
     void setHEXColor(int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart);
-    void setHEXColor1(int HEXColor);
-    void setHEXColor2(int HEXColor2);
-    void setHEXColorRate(float HEXColorRate);
-    void setHEXColorStart(int HEXColorStart);
 
     void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart);
-    void setAlpha1(float alpha1);
-    void setAlpha2(float alpha2);
-    void setAlphaRate(float alphaRate);
-    void setAlphaRateStart(int alphaRateStart);
 
     void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart);
-    void setScale1(float scale1);
-    void setScale2(float scale2);
-    void setScaleRate(float scaleRate);
-    void setScaleRateStart(int scaleRateStart);
 
     void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart);
-    void setRotationX1(float rotationX1);
-    void setRotationX2(float rotationX2);
-    void setRotationXRate(float rotationXRate);
-    void setRotationXRateStart(int rotationXRateStart);
 
     void setRotationY(float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart);
-    void setRotationY1(float rotationY1);
-    void setRotationY2(float rotationY2);
-    void setRotationYRate(float rotationYRate);
-    void setRotationYRateStart(int rotationYRateStart);
 
     void setRotationZ(float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart);
-    void setRotationZ1(float rotationZ1);
-    void setRotationZ2(float rotationZ2);
-    void setRotationZRate(float rotationZRate);
-    void setRotationZRateStart(int rotationZRateStart);
     
 }

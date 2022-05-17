@@ -283,35 +283,11 @@ public class ScriptParticle implements IParticle {
         this.HEXColorRate = HEXColorRate;
         this.HEXColorStart = HEXColorStart;
     }
-    public void setHEXColor1(int HEXColor) {
-        this.HEXColor = HEXColor;
-    }
-    public void setHEXColor2(int HEXColor2) {
-        this.HEXColor2 = HEXColor2;
-    }
-    public void setHEXColorRate(float HEXColorRate) {
-        this.HEXColorRate = HEXColorRate;
-    }
-    public void setHEXColorStart(int HEXColorStart) {
-        this.HEXColorStart = HEXColorStart;
-    }
 
     public void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart){
         this.alpha1 = alpha1;
         this.alpha2 = alpha2;
         this.alphaRate = alphaRate;
-        this.alphaRateStart = alphaRateStart;
-    }
-    public void setAlpha1(float alpha1) {
-        this.alpha1 = alpha1;
-    }
-    public void setAlpha2(float alpha2) {
-        this.alpha2 = alpha2;
-    }
-    public void setAlphaRate(float alphaRate) {
-        this.alphaRate = alphaRate;
-    }
-    public void setAlphaRateStart(int alphaRateStart) {
         this.alphaRateStart = alphaRateStart;
     }
 
@@ -321,18 +297,6 @@ public class ScriptParticle implements IParticle {
         this.scaleRate = scaleRate;
         this.scaleRateStart = scaleRateStart;
     }
-    public void setScale1(float scale1) {
-        this.scale1 = scale1;
-    }
-    public void setScale2(float scale2) {
-        this.scale2 = scale2;
-    }
-    public void setScaleRate(float scaleRate) {
-        this.scaleRate = scaleRate;
-    }
-    public void setScaleRateStart(int scaleRateStart) {
-        this.scaleRateStart = scaleRateStart;
-    }
 
     public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart){
         this.rotationX1 = rotationX1;
@@ -340,10 +304,6 @@ public class ScriptParticle implements IParticle {
         this.rotationXRate = rotationXRate;
         this.rotationXRateStart = rotationXRateStart;
     }
-    public void setRotationX1(float rotationX1) {this.rotationX1 = rotationX1;}
-    public void setRotationX2(float rotationX2) {this.rotationX2 = rotationX2;}
-    public void setRotationXRate(float rotationXRate) {this.rotationXRate = rotationXRate;}
-    public void setRotationXRateStart(int rotationXRateStart) {this.rotationXRateStart = rotationXRateStart;}
 
     public void setRotationY(float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart){
         this.rotationY1 = rotationY1;
@@ -351,10 +311,6 @@ public class ScriptParticle implements IParticle {
         this.rotationYRate = rotationYRate;
         this.rotationYRateStart = rotationYRateStart;
     }
-    public void setRotationY1(float rotationY1) {this.rotationY1 = rotationY1;}
-    public void setRotationY2(float rotationY2) {this.rotationY2 = rotationY2;}
-    public void setRotationYRate(float rotationYRate) {this.rotationYRate = rotationYRate;}
-    public void setRotationYRateStart(int rotationYRateStart) {this.rotationYRateStart = rotationYRateStart;}
 
     public void setRotationZ(float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart){
         this.rotationZ1 = rotationZ1;
@@ -362,8 +318,4 @@ public class ScriptParticle implements IParticle {
         this.rotationZRate = rotationZRate;
         this.rotationZRateStart = rotationZRateStart;
     }
-    public void setRotationZ1(float rotationZ1) {this.rotationZ1 = rotationZ1;}
-    public void setRotationZ2(float rotationZ2) {this.rotationZ2 = rotationZ2;}
-    public void setRotationZRate(float rotationZRate) {this.rotationZRate = rotationZRate;}
-    public void setRotationZRateStart(int rotationZRateStart) {this.rotationZRateStart = rotationZRateStart;}
 }
