@@ -101,6 +101,30 @@ public class ScriptParticle implements IParticle {
         );
     }
 
+    public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
+    public boolean getFacePlayer() { return facePlayer; }
+
+    public String getDirectory() {
+        return directory;
+    }
+    public void setDirectory(String directory) {
+        this.directory = directory;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setMaxAge(int maxAge) {
+        this.maxAge = maxAge;
+    }
+    public int getMaxAge() {
+        return maxAge;
+    }
+
     public void setSize(int width, int height){
         this.width = width;
         this.height = height;
@@ -121,39 +145,16 @@ public class ScriptParticle implements IParticle {
         this.animStart = animStart;
         this.animEnd = animEnd;
     }
-    public void setAnimRate(int animRate) { this.animRate = animRate; }
     public int getAnimRate() { return animRate; }
-    public void setAnimLoop(boolean animLoop) { this.animLoop = animLoop; }
     public boolean getAnimLoop() { return animLoop; }
-    public void setAnimStart(int animStart) { this.animStart = animStart; }
     public int getAnimStart() { return animStart; }
-    public void setAnimEnd(int animEnd) { this.animEnd = animEnd; }
     public int getAnimEnd() { return animEnd; }
 
-    public boolean getFacePlayer() { return facePlayer; }
-    public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
-
-    public String getDirectory() {
-        return directory;
+    public void setPosition(double x, double y, double z){
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
-
-    @Deprecated
-    public void setHEXColor(int HEXColor) {
-        this.HEXColor = HEXColor;
-    }
-    @Deprecated
-    public int getHEXColor() {
-        return HEXColor;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public int getMaxAge() {
-        return maxAge;
-    }
-
     public double getX() {
         return x;
     }
@@ -164,6 +165,12 @@ public class ScriptParticle implements IParticle {
         return z;
     }
 
+    public void setMotion(double motionX, double motionY, double motionZ, float gravity){
+        this.motionX = motionX;
+        this.motionY = motionY;
+        this.motionZ = motionZ;
+        this.gravity = gravity;
+    }
     public double getMotionX() {
         return motionX;
     }
@@ -177,6 +184,12 @@ public class ScriptParticle implements IParticle {
         return gravity;
     }
 
+    public void setHEXColor(int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart) {
+        this.HEXColor = HEXColor;
+        this.HEXColor2 = HEXColor2;
+        this.HEXColorRate = HEXColorRate;
+        this.HEXColorStart = HEXColorStart;
+    }
     public int getHEXColor1() {
         return HEXColor;
     }
@@ -190,6 +203,12 @@ public class ScriptParticle implements IParticle {
         return HEXColorStart;
     }
 
+    public void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart){
+        this.alpha1 = alpha1;
+        this.alpha2 = alpha2;
+        this.alphaRate = alphaRate;
+        this.alphaRateStart = alphaRateStart;
+    }
     public float getAlpha1() {
         return alpha1;
     }
@@ -203,6 +222,12 @@ public class ScriptParticle implements IParticle {
         return alphaRateStart;
     }
 
+    public void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart){
+        this.scale1 = scale1;
+        this.scale2 = scale2;
+        this.scaleRate = scaleRate;
+        this.scaleRateStart = scaleRateStart;
+    }
     public float getScale1() {
         return scale1;
     }
@@ -216,94 +241,16 @@ public class ScriptParticle implements IParticle {
         return scaleRateStart;
     }
 
-    public float getRotationX1() {return rotationX1;}
-    public float getRotationX2() {return rotationX2;}
-    public float getRotationXRate() {return rotationXRate;}
-    public int getRotationXRateStart() {return rotationXRateStart;}
-
-    public float getRotationY1() {return rotationY1;}
-    public float getRotationY2() {return rotationY2;}
-    public float getRotationYRate() {return rotationYRate;}
-    public int getRotationYRateStart() {return rotationYRateStart;}
-
-    public float getRotationZ1() {return rotationZ1;}
-    public float getRotationZ2() {return rotationZ2;}
-    public float getRotationZRate() {return rotationZRate;}
-    public int getRotationZRateStart() {return rotationZRateStart;}
-
-    public void setDirectory(String directory) {
-        this.directory = directory;
-    }
-
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
-
-    public void setMaxAge(int maxAge) {
-        this.maxAge = maxAge;
-    }
-
-    public void setPosition(double x, double y, double z){
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-    public void setX(double x) {
-        this.x = x;
-    }
-    public void setY(double y) {
-        this.y = y;
-    }
-    public void setZ(double z) {
-        this.z = z;
-    }
-
-    public void setMotion(double motionX, double motionY, double motionZ, float gravity){
-        this.motionX = motionX;
-        this.motionY = motionY;
-        this.motionZ = motionZ;
-        this.gravity = gravity;
-    }
-    public void setMotionX(double motionX) {
-        this.motionX = motionX;
-    }
-    public void setMotionY(double motionY) {
-        this.motionY = motionY;
-    }
-    public void setMotionZ(double motionZ) {
-        this.motionZ = motionZ;
-    }
-    public void setGravity(float gravity) {
-        this.gravity = gravity;
-    }
-
-    public void setHEXColor(int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart) {
-        this.HEXColor = HEXColor;
-        this.HEXColor2 = HEXColor2;
-        this.HEXColorRate = HEXColorRate;
-        this.HEXColorStart = HEXColorStart;
-    }
-
-    public void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart){
-        this.alpha1 = alpha1;
-        this.alpha2 = alpha2;
-        this.alphaRate = alphaRate;
-        this.alphaRateStart = alphaRateStart;
-    }
-
-    public void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart){
-        this.scale1 = scale1;
-        this.scale2 = scale2;
-        this.scaleRate = scaleRate;
-        this.scaleRateStart = scaleRateStart;
-    }
-
     public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart){
         this.rotationX1 = rotationX1;
         this.rotationX2 = rotationX2;
         this.rotationXRate = rotationXRate;
         this.rotationXRateStart = rotationXRateStart;
     }
+    public float getRotationX1() {return rotationX1;}
+    public float getRotationX2() {return rotationX2;}
+    public float getRotationXRate() {return rotationXRate;}
+    public int getRotationXRateStart() {return rotationXRateStart;}
 
     public void setRotationY(float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart){
         this.rotationY1 = rotationY1;
@@ -311,11 +258,28 @@ public class ScriptParticle implements IParticle {
         this.rotationYRate = rotationYRate;
         this.rotationYRateStart = rotationYRateStart;
     }
+    public float getRotationY1() {return rotationY1;}
+    public float getRotationY2() {return rotationY2;}
+    public float getRotationYRate() {return rotationYRate;}
+    public int getRotationYRateStart() {return rotationYRateStart;}
 
     public void setRotationZ(float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart){
         this.rotationZ1 = rotationZ1;
         this.rotationZ2 = rotationZ2;
         this.rotationZRate = rotationZRate;
         this.rotationZRateStart = rotationZRateStart;
+    }
+    public float getRotationZ1() {return rotationZ1;}
+    public float getRotationZ2() {return rotationZ2;}
+    public float getRotationZRate() {return rotationZRate;}
+    public int getRotationZRateStart() {return rotationZRateStart;}
+
+    @Deprecated
+    public void setHEXColor(int HEXColor) {
+        this.HEXColor = HEXColor;
+    }
+    @Deprecated
+    public int getHEXColor() {
+        return HEXColor;
     }
 }
