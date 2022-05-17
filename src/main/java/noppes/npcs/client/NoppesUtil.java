@@ -80,8 +80,9 @@ public class NoppesUtil {
 			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
 			String tagString = skinOverlayList.getCompoundTagAt(i).getString("SkinOverlayTexture");
 			boolean glow = skinOverlayList.getCompoundTagAt(i).getBoolean("SkinOverlayGlow");
+			float alpha = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlayAlpha");
 
-			skinOverlays.put(tagID,new SkinOverlayData(new ResourceLocation(tagString),glow));
+			skinOverlays.put(tagID,new SkinOverlayData(new ResourceLocation(tagString),glow,alpha));
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}

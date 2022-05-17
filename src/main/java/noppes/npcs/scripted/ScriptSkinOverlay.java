@@ -5,6 +5,7 @@ import noppes.npcs.scripted.interfaces.ISkinOverlay;
 public class ScriptSkinOverlay implements ISkinOverlay {
     public String texture;
     public boolean glow;
+    public float alpha = 1.0F;
 
     public ScriptSkinOverlay(String texture) {
         this.texture = texture;
@@ -22,5 +23,12 @@ public class ScriptSkinOverlay implements ISkinOverlay {
     }
     public boolean getGlow() {
         return glow;
+    }
+
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
+    }
+    public float getAlpha() {
+        return alpha;
     }
 }
