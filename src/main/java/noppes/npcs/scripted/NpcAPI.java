@@ -316,16 +316,14 @@ public class NpcAPI extends AbstractNpcAPI {
         return MinecraftServer.getServer().getTickCounter();
     }
 
-    public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {
-        return new ScriptGui(id, width, height, pauseGame);
-    }
-
     public boolean arePlayerScriptsEnabled() {
         return CustomNpcs.GlobalPlayerScripts;
     }
+
     public boolean areForgeScriptsEnabled() {
         return CustomNpcs.GlobalForgeScripts;
     }
+
     public boolean areGlobalNPCScriptsEnabled() {
         return CustomNpcs.GlobalNPCScripts;
     }
@@ -333,14 +331,24 @@ public class NpcAPI extends AbstractNpcAPI {
     public void enablePlayerScripts(boolean enable) {
         CustomNpcs.GlobalPlayerScripts = enable;
     }
+
     public void enableForgeScripts(boolean enable) {
         CustomNpcs.GlobalForgeScripts = enable;
     }
+
     public void enableGlobalNPCScripts(boolean enable) {
         CustomNpcs.GlobalNPCScripts = enable;
     }
 
+    public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {
+        return new ScriptGui(id, width, height, pauseGame);
+    }
+
     public ICustomOverlay createCustomOverlay(int id) {
         return new ScriptOverlay(id);
+    }
+
+    public ISkinOverlay createSkinOverlay(String texture) {
+        return new ScriptSkinOverlay(texture);
     }
 }

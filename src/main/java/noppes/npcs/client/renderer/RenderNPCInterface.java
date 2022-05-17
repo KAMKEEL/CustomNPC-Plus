@@ -230,6 +230,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glEnable(GL11.GL_BLEND);
 			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
 			GL11.glDisable(GL11.GL_LIGHTING);
+			Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
 
 			GL11.glDepthMask(!npc.isInvisible());
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, npc.isInvisible() ? 0.2F : 1.0F);
@@ -259,6 +260,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
 			GL11.glDepthFunc(GL11.GL_LEQUAL);
 			GL11.glDisable(GL11.GL_BLEND);
+			Minecraft.getMinecraft().entityRenderer.enableLightmap((double)0);
 		}
 
 		if (!npc.display.poweredTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
@@ -280,6 +282,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glEnable(GL11.GL_BLEND);
 			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
 			GL11.glDisable(GL11.GL_LIGHTING);
+			Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
 
 			GL11.glDepthMask(!npc.isInvisible());
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, npc.isInvisible() ? 0.2F : 1.0F);
@@ -311,6 +314,7 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
 			GL11.glDepthFunc(GL11.GL_LEQUAL);
 			GL11.glDisable(GL11.GL_BLEND);
+			Minecraft.getMinecraft().entityRenderer.enableLightmap((double)0);
 
 			npc.renderTicksPowered++;
 		}

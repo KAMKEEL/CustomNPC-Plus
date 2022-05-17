@@ -20,6 +20,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
@@ -122,7 +123,21 @@ public abstract class AbstractNpcAPI {
 
     public abstract int getServerTime();
 
+    public abstract boolean arePlayerScriptsEnabled();
+
+    public abstract boolean areForgeScriptsEnabled();
+
+    public abstract boolean areGlobalNPCScriptsEnabled();
+
+    public abstract void enablePlayerScripts(boolean enable);
+
+    public abstract void enableForgeScripts(boolean enable);
+
+    public abstract void enableGlobalNPCScripts(boolean enable);
+
     public abstract ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame);
 
     public abstract ICustomOverlay createCustomOverlay(int id);
+
+    public abstract ISkinOverlay createSkinOverlay(String texture);
 }

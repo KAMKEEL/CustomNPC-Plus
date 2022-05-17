@@ -527,13 +527,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
-	public void addSkinOverlay(int id, String overlayString) {
-		if (overlayString != null) {
+	public void setSkinOverlay(int id, ScriptSkinOverlay overlay) {
+		if (overlay != null) {
 			NBTTagCompound data = new NBTTagCompound();
 			NBTTagCompound compound = new NBTTagCompound();
 
-			compound.setString("SkinOverlayTexture", overlayString);
 			compound.setInteger("SkinOverlayID", id);
+			compound.setString("SkinOverlayTexture", overlay.getTexture());
+			compound.setBoolean("SkinOverlayGlow", overlay.getGlow());
 
 			if (!player.getEntityData().hasKey("SkinOverlayData")) {
 				NBTTagList tagList = new NBTTagList();
