@@ -14,7 +14,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
     public RenderCNPCPlayer() {
     }
 
-    private boolean preRenderOverlay(boolean firstPerson, EntityPlayer player, ResourceLocation overlayLocation, boolean glow, float alpha, float size, float speedX, float speedY, float scaleX, float scaleY) {
+    private boolean preRenderOverlay(boolean firstPerson, EntityPlayer player, ResourceLocation overlayLocation, boolean glow,
+                                     float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
+                                     float offsetX, float offsetY, float offsetZ) {
         try {
             this.bindTexture(overlayLocation);
         } catch (Exception exception) {
@@ -23,8 +25,20 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         float renderTicks;
         if (firstPerson) {
+            if (!Client.fpSkinOverlayTicks.containsKey(player.getUniqueID())) {
+                Client.fpSkinOverlayTicks.put(player.getUniqueID(), 1L);
+            } else {
+                long ticks = Client.fpSkinOverlayTicks.get(player.getUniqueID());
+                Client.fpSkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
+            }
             renderTicks = Client.fpSkinOverlayTicks.get(player.getUniqueID());
         } else {
+            if (!Client.entitySkinOverlayTicks.containsKey(player.getUniqueID())) {
+                Client.entitySkinOverlayTicks.put(player.getUniqueID(), 1L);
+            } else {
+                long ticks = Client.entitySkinOverlayTicks.get(player.getUniqueID());
+                Client.entitySkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
+            }
             renderTicks = Client.entitySkinOverlayTicks.get(player.getUniqueID());;
         }
 
@@ -49,6 +63,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         float scale = 1.005f * size;
+        GL11.glTranslatef(offsetX, offsetY, offsetZ);
         GL11.glScalef(scale, scale, scale);
 
         return true;
@@ -77,14 +92,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
             this.mainModel.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
 
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-                if (!Client.entitySkinOverlayTicks.containsKey(player.getUniqueID())) {
-                    Client.entitySkinOverlayTicks.put(player.getUniqueID(), 1L);
-                } else {
-                    long ticks = Client.entitySkinOverlayTicks.get(player.getUniqueID());
-                    Client.entitySkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
-                }
                 for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (!preRenderOverlay(false, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size, overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY))
+                    if (!preRenderOverlay(false, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
+                            overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
+                            overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
+                            ))
                         return;
                     this.mainModel.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
                     postRenderOverlay(player);
@@ -122,14 +134,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.modelBipedMain.bipedRightArm.render(0.0625F);
 
         if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-            if (!Client.fpSkinOverlayTicks.containsKey(player.getUniqueID())) {
-                Client.fpSkinOverlayTicks.put(player.getUniqueID(), 1L);
-            } else {
-                long ticks = Client.fpSkinOverlayTicks.get(player.getUniqueID());
-                Client.fpSkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
-            }
             for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                if (!preRenderOverlay(true, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size, overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY))
+                if (!preRenderOverlay(false, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
+                        overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
+                        overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
+                ))
                     return;
                 this.modelBipedMain.onGround = 0.0F;
                 this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);

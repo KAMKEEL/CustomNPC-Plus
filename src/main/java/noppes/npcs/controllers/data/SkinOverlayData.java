@@ -14,7 +14,12 @@ public class SkinOverlayData {
     public float scaleX = 1.0F;
     public float scaleY = 1.0F;
 
-    public SkinOverlayData(ResourceLocation location, boolean glow, float alpha, float size, float speedX, float speedY, float scaleX, float scaleY) {
+    public float offsetX = 0.0F;
+    public float offsetY = 0.0F;
+    public float offsetZ = 0.0F;
+
+    public SkinOverlayData(ResourceLocation location, boolean glow, float alpha, float size, float speedX, float speedY,
+                           float scaleX, float scaleY, float offsetX, float offsetY, float offsetZ) {
         this.location = location;
         this.glow = glow;
         this.alpha = alpha;
@@ -23,5 +28,8 @@ public class SkinOverlayData {
         this.speedY = speedY;
         this.scaleX = scaleX;
         this.scaleY = scaleY;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.offsetZ = offsetZ;
     }
 }

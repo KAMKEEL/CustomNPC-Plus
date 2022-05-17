@@ -22,4 +22,9 @@ public interface ISkinOverlay {
     void setSpeed(float speedX, float speedY);
     float getSpeedX();
     float getSpeedY();
+
+    void setOffset(float offsetX, float offsetY, float offsetZ);
+    float getOffsetX();
+    float getOffsetY();
+    float getOffsetZ();
 }

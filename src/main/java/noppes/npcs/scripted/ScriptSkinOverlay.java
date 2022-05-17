@@ -14,6 +14,10 @@ public class ScriptSkinOverlay implements ISkinOverlay {
     public float scaleX = 1.0F;
     public float scaleY = 1.0F;
 
+    public float offsetX = 0.0F;
+    public float offsetY = 0.0F;
+    public float offsetZ = 0.0F;
+
     public ScriptSkinOverlay(String texture) {
         this.texture = texture;
     }
@@ -68,4 +72,18 @@ public class ScriptSkinOverlay implements ISkinOverlay {
         return speedY;
     }
 
+    public void setOffset(float offsetX, float offsetY, float offsetZ) {
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.offsetZ = offsetZ;
+    }
+    public float getOffsetX() {
+        return offsetX;
+    }
+    public float getOffsetY() {
+        return offsetY;
+    }
+    public float getOffsetZ() {
+        return offsetZ;
+    }
 }
