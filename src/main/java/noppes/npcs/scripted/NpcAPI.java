@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -121,12 +122,16 @@ public class NpcAPI extends AbstractNpcAPI {
         return new ScriptBlock(world, world.getBlock(pos.getX(),pos.getY(),pos.getZ()), pos);
     }
 
+    public IBlock getIBlock(World world, Block block, BlockPos pos) {
+        return new ScriptBlock(world, block, pos);
+    }
+
     public IBlock getIBlock(World world, int x, int y, int z) {
         return new ScriptBlock(world, world.getBlock(x, y, z), new BlockPos(x,y,z));
     }
 
-    public INbt getINbt(NBTTagCompound compound) {
-        return compound == null?new ScriptNbt(new NBTTagCompound()):new ScriptNbt(compound);
+    public INbt getINbt(NBTTagCompound nbtTagCompound) {
+        return nbtTagCompound == null?new ScriptNbt(new NBTTagCompound()):new ScriptNbt(nbtTagCompound);
     }
 
     public INbt stringToNbt(String str) {
@@ -272,6 +277,7 @@ public class NpcAPI extends AbstractNpcAPI {
         //if(!world.getMCWorld().isRemote)
             NoppesUtilServer.runCommand(world.getMCWorld(), "API", command);
     }
+
     public String getRandomName(int dictionary, int gender) {
         return CustomNpcs.MARKOV_GENERATOR[dictionary].fetch(gender);
     }

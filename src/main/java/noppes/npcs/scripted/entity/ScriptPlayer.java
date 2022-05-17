@@ -388,7 +388,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return NpcAPI.Instance().getIEntity(player.dropOneItem(dropStack));
 	}
 
-	public boolean canHarvestBlock(ScriptBlock block){
+	public boolean canHarvestBlock(IBlock block){
 		return player.canHarvestBlock(block.getMCBlock());
 	}
 

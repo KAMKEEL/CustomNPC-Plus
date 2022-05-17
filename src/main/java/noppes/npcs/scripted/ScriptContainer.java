@@ -94,10 +94,6 @@ public class ScriptContainer implements IContainer {
         container.detectAndSendChanges();
     }
 
-    public void putStackInSlot(int slot, IItemStack itemStack){
-        container.putStackInSlot(slot,itemStack.getMCItemStack());
-    }
-
     public boolean isPlayerNotUsingContainer(IPlayer player){
         return container.isPlayerNotUsingContainer((EntityPlayerMP) player.getMCEntity());
     }

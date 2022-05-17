@@ -4,6 +4,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.ITileEntity;
 
@@ -32,8 +33,8 @@ public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
         return this.tileEntity.getDistanceFrom(x,y,z);
     }
 
-    public ScriptBlock getBlockType(){
-        return new ScriptBlock(tileEntity.getWorldObj(), tileEntity.getBlockType(), new BlockPos(tileEntity.xCoord,tileEntity.yCoord,tileEntity.zCoord));
+    public IBlock getBlockType(){
+        return NpcAPI.Instance().getIBlock(tileEntity.getWorldObj(), tileEntity.getBlockType(), new BlockPos(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord));
     }
 
     public boolean isInvalid(){

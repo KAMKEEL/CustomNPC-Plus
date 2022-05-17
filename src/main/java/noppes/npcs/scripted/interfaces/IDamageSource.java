@@ -11,7 +11,7 @@ import noppes.npcs.scripted.interfaces.entity.IEntity;
 public interface IDamageSource {
     /**
      *
-     * @return Returns the damage type of the damage source as a string. Ex: "lava", "explosion", "magic", "outOfWorld", etc.
+     * @return The damage type of the damage source as a string. Ex: "lava", "explosion", "magic", "outOfWorld", etc.
      */
     String getType();
 
@@ -21,19 +21,19 @@ public interface IDamageSource {
 
     /**
      *
-     * @return Returns the entity source of where the damage source originated. If a player was shot by an arrow from a skeleton, this would return an IEntity object of the skeleton.
+     * @return The entity source of where the damage source originated. If a player was shot by an arrow from a skeleton, this would return an IEntity object of the skeleton.
      */
     IEntity getTrueSource();
 
     /**
      *
-     * @return Returns the entity source of where the damage source originated. If a player was shot by an arrow from a skeleton, this would return an IEntity object of the arrow.
+     * @return The entity source of where the damage source originated. If a player was shot by an arrow from a skeleton, this would return an IEntity object of the arrow.
      */
     IEntity getImmediateSource();
 
     /**
      *
-     * @return Returns a non-script, obfuscated MC damage source object.
+     * @return An obfuscated MC damage source object.
      */
     DamageSource getMCDamageSource();
 }

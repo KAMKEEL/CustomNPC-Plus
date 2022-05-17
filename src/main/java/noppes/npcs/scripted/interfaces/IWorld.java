@@ -28,6 +28,10 @@ public interface IWorld {
      */
     IBlock getBlock(int x, int y, int z);
 
+    /**
+     *
+     * @return The top-most block in the world as an IBlock object.
+     */
     IBlock getTopBlock(int x, int z);
 
     boolean isBlockFreezable(int x, int y, int z);
@@ -42,10 +46,19 @@ public interface IWorld {
 
     boolean canSnowAtBody(int x, int y, int z, boolean checkLight);
 
+    /**
+     * @return The Y-value of the world at this x & z value based on the height map of the world.
+     */
     int getHeightValue(int x, int z);
 
+    /**
+     * @return The minimum Y-value of the world at this x & z value based on the height map of the world.
+     */
     int getChunkHeightMapMinimum(int x, int z);
 
+    /**
+     * @return The metadata of the block at this position.
+     */
     int getBlockMetadata(int x, int y, int z);
 
     boolean setBlockMetadataWithNotify(int x, int y, int z, int metadata, int flag);
@@ -72,12 +85,27 @@ public interface IWorld {
 
     IPlayer getClosestVulnerablePlayer(double x, double y, double z, double range);
 
+    /**
+     *
+     * @param entity The entity whose type will be used as a parameter
+     * @return The amount of entities of the given type in the world.
+     */
     int countEntities(IEntity entity);
 
+    /**
+     * Sets the block's tile entity at the given position.
+     */
     void setTileEntity(int x, int y, int z, ITileEntity tileEntity);
 
+    /**
+     * Removes the block's tile entity at the given position.
+     */
     void removeTileEntity(int x, int y, int z);
 
+    /**
+     *
+     * @return True if the block at this position is of cubic shape. (Not a stair, slab, etc.)
+     */
     boolean isBlockFullCube(int x, int y, int z);
 
     long getSeed();
@@ -173,6 +201,7 @@ public interface IWorld {
      * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
      * @return Returns IEntityParticle object
      */
+    @Deprecated
     IParticle createEntityParticle(String directory);
 
     /**
@@ -266,6 +295,10 @@ public interface IWorld {
 
     ScriptScoreboard getScoreboard();
 
+    /**
+     *
+     * @return An obfuscated MC BlockPos object.
+     */
     BlockPos getMCBlockPos(int x, int y, int z);
 
     /**
@@ -275,5 +308,9 @@ public interface IWorld {
      */
     WorldServer getMCWorld();
 
+    /**
+     *
+     * @return The ID of this world's dimension. 0 for overworld, 1 for End, -1 for Nether, etc.
+     */
     int getDimensionID();
 }

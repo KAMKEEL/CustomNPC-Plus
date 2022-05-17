@@ -24,13 +24,13 @@ public interface IContainer {
 
     /**
      *
-     * @return Returns a non-script, obfuscated MC inventory object.
+     * @return An obfuscated MC inventory object.
      */
     IInventory getMCInventory();
 
     /**
      *
-     * @return Returns a non-script, obfuscated MC container object.
+     * @return An obfuscated MC container object.
      */
     Container getMCContainer();
 
@@ -39,25 +39,26 @@ public interface IContainer {
      * @param itemStack The item stack to be searched in the container
      * @param ignoreDamage Whether damage should be ignored when searching
      * @param ignoreNBT Whether NBT values should be ignored when searching
-     * @return Returns the amount of the item stack found, based on the flags given above.
+     * @return The amount of the item stack found, based on the flags given above.
      */
     int count(IItemStack itemStack, boolean ignoreDamage, boolean ignoreNBT);
 
     /**
      *
-     * @return Returns a list of all item stacks in the container as a list of IItemStack objects.
+     * @return A list of all item stacks in the container as a list of IItemStack objects.
      */
     IItemStack[] getItems();
 
     /**
      *
-     * @return Returns true if this container belongs to a Custom GUI.
+     * @return True if this container belongs to a Custom GUI.
      */
     boolean isCustomGUI();
 
+    /**
+     * Sends changes to be reflected on the player's client.
+     */
     void detectAndSendChanges();
-
-    void putStackInSlot(int slot, IItemStack itemStack);
 
     boolean isPlayerNotUsingContainer(IPlayer player);
 }

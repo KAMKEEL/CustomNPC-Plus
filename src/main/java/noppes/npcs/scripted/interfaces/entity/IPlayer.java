@@ -169,7 +169,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     IEntity dropOneItem(boolean dropStack);
 
-    boolean canHarvestBlock(ScriptBlock block);
+    boolean canHarvestBlock(IBlock block);
 
     boolean interactWith(IEntity entity);
 

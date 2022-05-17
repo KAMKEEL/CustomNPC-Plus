@@ -200,7 +200,7 @@ public class ScriptNbt implements INbt {
     }
 
     public boolean isEqual(INbt nbt) {
-        return nbt == null?false:this.compound.equals(nbt.getMCNBT());
+        return nbt != null && this.compound.equals(nbt.getMCNBT());
     }
 
     public void clear() {

@@ -9,6 +9,7 @@ import java.io.File;
 
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -32,6 +33,10 @@ import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 
+/**
+ * This object stores functions available to all scripting handlers through the "API" keyword.
+ *
+ */
 public abstract class AbstractNpcAPI {
     private static AbstractNpcAPI instance = null;
 
@@ -50,11 +55,17 @@ public abstract class AbstractNpcAPI {
 
     public abstract ICustomNpc createNPC(World var1);
 
+    /**
+     *
+     * Spawns a new NPC in the world at the given coordinates and returns an ICustomNpc object of it.
+     */
     public abstract ICustomNpc spawnNPC(World var1, int var2, int var3, int var4);
 
     public abstract IEntity getIEntity(Entity var1);
 
     public abstract IBlock getIBlock(World var1, BlockPos var2);
+
+    public abstract IBlock getIBlock(World world, Block block, BlockPos pos);
 
     public abstract IBlock getIBlock(World world, int x, int y, int z);
 
@@ -101,9 +112,28 @@ public abstract class AbstractNpcAPI {
 
     public abstract void executeCommand(IWorld var1, String var2);
 
-    public abstract String getRandomName(int var1, int var2);
+    /**
+     * Generates a new name as a String using the Markov name generator.
+     *
+     * @param dictionary An integer representing which dictionary to use:
+     *                   0: Roman
+     *                   1: Japanese
+     *                   2: Slavic
+     *                   3: Welsh
+     *                   4: Saami
+     *                   5: Old Norse
+     *                   6: Ancient Greek
+     *                   7: Aztec
+     *                   8: CustomNPCs Classic
+     *                   9: Spanish
+     * @param gender The gender of the name:
+     *                   0: Random
+     *                   1: Male
+     *                   2: Female
+     */
+    public abstract String getRandomName(int dictionary, int gender);
 
-    public abstract INbt getINbt(NBTTagCompound entityData);
+    public abstract INbt getINbt(NBTTagCompound nbtTagCompound);
 
     public abstract IPlayer[] getAllServerPlayers();
 
@@ -113,14 +143,30 @@ public abstract class AbstractNpcAPI {
 
     public abstract void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
 
+    /**
+     *
+     * @return Returns the server's Message of The Day.
+     */
     public abstract String getMOTD();
 
+    /**
+     * @param motd The server's new Message of The Day.
+     */
     public abstract void setMOTD(String motd);
 
+    /**
+     *
+     * @return A new IParticle object initialized with the given texture.
+     */
     public abstract IParticle createParticle(String directory);
 
+    @Deprecated
     public abstract IParticle createEntityParticle(String directory);
 
+    /**
+     *
+     * @return The uptime of the server in MC ticks.
+     */
     public abstract int getServerTime();
 
     public abstract boolean arePlayerScriptsEnabled();
@@ -135,9 +181,25 @@ public abstract class AbstractNpcAPI {
 
     public abstract void enableGlobalNPCScripts(boolean enable);
 
+    /**
+     *
+     * @param id The id of the custom GUI.
+     * @param width The width of the GUI in pixels.
+     * @param height The height of the GUI in pixels.
+     * @param pauseGame Whether the GUI pauses the game or not.
+     * @return A new ICustomGui object with the given attributes.
+     */
     public abstract ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame);
 
+    /**
+     *
+     * @return  A new ICustomOverlay overlay object with the given ID.
+     */
     public abstract ICustomOverlay createCustomOverlay(int id);
 
+    /**
+     *
+     * @return A new ISkinOverlay object initialized with the given texture.
+     */
     public abstract ISkinOverlay createSkinOverlay(String texture);
 }

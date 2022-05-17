@@ -17,7 +17,7 @@ public class ScriptParticle implements IParticle {
     private double x = 0,y = 0,z = 0;
     private double motionX = 0,motionY = 0,motionZ = 0;
     private float gravity = 0;
-    private float scale1 = 1.0f,scale2 = 1.0f,scaleRate = 0.0f;
+    private float scale1 = 20.0f,scale2 = 20.0f,scaleRate = 0.0f;
     private float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
     private int scaleRateStart = 0, alphaRateStart = 0;
 

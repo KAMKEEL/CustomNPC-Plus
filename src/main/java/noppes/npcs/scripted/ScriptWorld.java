@@ -71,7 +71,7 @@ public class ScriptWorld implements IWorld {
 		Block block = world.getBlock(x, y, z);
 		if(block == null || block.isAir(world, x, y, z))
 			return null;
-		return new ScriptBlock(world, block, new BlockPos(x,y,z));
+		return NpcAPI.Instance().getIBlock(world, block, new BlockPos(x,y,z));
 	}
 
 	public boolean isBlockFreezable(int x, int y, int z){
@@ -103,7 +103,7 @@ public class ScriptWorld implements IWorld {
 		for (y = 63; !world.isAirBlock(x, y + 1, z); ++y) {;}
 		Block block = world.getBlock(x, y, z);
 
-		return new ScriptBlock(world, block, new BlockPos(x,y,z));
+		return NpcAPI.Instance().getIBlock(world, block, new BlockPos(x,y,z));
 	}
 
 	public int getHeightValue(int x, int z){
