@@ -7,6 +7,7 @@ package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityCreature;
 import noppes.npcs.scripted.ScriptFaction;
+import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.roles.*;
@@ -718,6 +719,14 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
 
     double getFlyGravity(double flyGravity);
 
+    void setFlyHeightLimit(int flyHeightLimit);
+
+    int getFlyHeightLimit(int flyHeightLimit);
+
+    void limitFlyHeight(boolean limit);
+
+    boolean isFlyHeightLimited(boolean limit);
+
     void setSpeed(int speed);
 
     int getSpeed();
@@ -737,6 +746,10 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     void setOverlayTexture(String overlayTexture);
 
     String getOverlayTexture();
+
+    void setSkinOverlay(int id, ISkinOverlay overlay);
+
+    void removeSkinOverlay(int id);
 
     void setCollisionType(int type);
 

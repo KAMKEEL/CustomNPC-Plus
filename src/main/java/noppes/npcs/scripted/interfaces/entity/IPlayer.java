@@ -225,5 +225,9 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void closeOverlay(int id);
 
+    void setSkinOverlay(int id, ISkinOverlay overlay);
+
+    void removeSkinOverlay(int id);
+
     IQuest[] getFinishedQuests();
 }
