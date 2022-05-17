@@ -19,7 +19,6 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
@@ -28,6 +27,7 @@ import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
@@ -214,21 +214,21 @@ public class RenderNPCInterface extends RenderLiving{
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
 
 		if (!npc.display.skinOverlays.isEmpty()) {
-			for (SkinOverlayData overlayData : npc.display.skinOverlays.values()) {
+			for (ISkinOverlay overlayData : npc.display.skinOverlays.values()) {
 				try {
-					if (overlayData.location == null) {
-						overlayData.location = new ResourceLocation(overlayData.directory);
+					if (overlayData.getLocation() == null) {
+						overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
 					} else {
-						String str = npc.display.skinOverlays.get(0).location.getResourceDomain()+":"+npc.display.skinOverlays.get(0).location.getResourcePath();
-						if (!str.equals(overlayData.directory)) {
-							overlayData.location = new ResourceLocation(overlayData.directory);
+						String str = npc.display.skinOverlays.get(0).getLocation().getResourceDomain()+":"+npc.display.skinOverlays.get(0).getLocation().getResourcePath();
+						if (!str.equals(overlayData.getTexture())) {
+							overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
 						}
 					}
 
-					this.bindTexture(overlayData.location);
+					this.bindTexture(overlayData.getLocation());
 
 					// Overlay & Glow
-					if (overlayData.glow) {
+					if (overlayData.getGlow()) {
 						GL11.glDepthFunc(GL11.GL_LEQUAL);
 						GL11.glEnable(GL11.GL_BLEND);
 						GL11.glDisable(GL11.GL_LIGHTING);
@@ -236,19 +236,19 @@ public class RenderNPCInterface extends RenderLiving{
 						Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
 					}
 
-					GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.alpha);
+					GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
 
 					GL11.glDepthMask(!npc.isInvisible());
 
 					GL11.glPushMatrix();
 						GL11.glMatrixMode(GL11.GL_TEXTURE);
 						GL11.glLoadIdentity();
-						GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.speedX, npc.display.overlayRenderTicks * 0.001F * overlayData.speedY, 0.0F);
-						GL11.glScalef(overlayData.scaleX, overlayData.scaleY, 1.0F);
+						GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
+						GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
 
 						GL11.glMatrixMode(GL11.GL_MODELVIEW);
-						float scale = 1.005f * overlayData.size;
-						GL11.glTranslatef(overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ);
+						float scale = 1.005f * overlayData.getSize();
+						GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
 						GL11.glScalef(scale, scale, scale);
 						if(mainModel instanceof ModelMPM){
 							((ModelMPM)mainModel).isArmor = true;

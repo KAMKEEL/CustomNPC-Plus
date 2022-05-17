@@ -1,5 +1,7 @@
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.util.ResourceLocation;
+
 public interface ISkinOverlay {
     void setTexture(String texture);
 
@@ -27,4 +29,7 @@ public interface ISkinOverlay {
     float getOffsetX();
     float getOffsetY();
     float getOffsetZ();
+
+    ResourceLocation getLocation();
+    void setLocation(ResourceLocation location);
 }

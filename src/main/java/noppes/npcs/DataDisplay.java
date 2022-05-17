@@ -2,17 +2,15 @@ package noppes.npcs;
 
 import java.util.*;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import noppes.npcs.util.ValueUtil;
 
 import com.google.common.collect.Iterables;
@@ -36,7 +34,7 @@ public class DataDisplay {
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 
-	public HashMap<Integer, SkinOverlayData> skinOverlays = new HashMap<>();
+	public HashMap<Integer, ISkinOverlay> skinOverlays = new HashMap<>();
 	public long overlayRenderTicks = 0;
 
 	public String glowTexture = "";
@@ -71,20 +69,20 @@ public class DataDisplay {
 	public NBTTagCompound writeOverlaysToNBT(NBTTagCompound nbttagcompound) {
 		NBTTagList overlayList = new NBTTagList();
 		if (!npc.display.skinOverlays.isEmpty()) {
-			for (Map.Entry<Integer,SkinOverlayData> overlayData : npc.display.skinOverlays.entrySet()) {
+			for (Map.Entry<Integer,ISkinOverlay> overlayData : npc.display.skinOverlays.entrySet()) {
 				NBTTagCompound compound = new NBTTagCompound();
 				compound.setInteger("SkinOverlayID", overlayData.getKey());
-				compound.setString("SkinOverlayTexture", overlayData.getValue().directory);
-				compound.setBoolean("SkinOverlayGlow", overlayData.getValue().glow);
-				compound.setFloat("SkinOverlayAlpha", overlayData.getValue().alpha);
-				compound.setFloat("SkinOverlaySize", overlayData.getValue().size);
-				compound.setFloat("SkinOverlaySpeedX", overlayData.getValue().speedX);
-				compound.setFloat("SkinOverlaySpeedY", overlayData.getValue().speedY);
-				compound.setFloat("SkinOverlayScaleX", overlayData.getValue().scaleX);
-				compound.setFloat("SkinOverlayScaleY", overlayData.getValue().scaleY);
-				compound.setFloat("SkinOverlayOffsetX", overlayData.getValue().offsetX);
-				compound.setFloat("SkinOverlayOffsetY", overlayData.getValue().offsetY);
-				compound.setFloat("SkinOverlayOffsetZ", overlayData.getValue().offsetZ);
+				compound.setString("SkinOverlayTexture", overlayData.getValue().getTexture());
+				compound.setBoolean("SkinOverlayGlow", overlayData.getValue().getGlow());
+				compound.setFloat("SkinOverlayAlpha", overlayData.getValue().getAlpha());
+				compound.setFloat("SkinOverlaySize", overlayData.getValue().getSize());
+				compound.setFloat("SkinOverlaySpeedX", overlayData.getValue().getSpeedX());
+				compound.setFloat("SkinOverlaySpeedY", overlayData.getValue().getSpeedY());
+				compound.setFloat("SkinOverlayScaleX", overlayData.getValue().getScaleX());
+				compound.setFloat("SkinOverlayScaleY", overlayData.getValue().getScaleY());
+				compound.setFloat("SkinOverlayOffsetX", overlayData.getValue().getOffsetX());
+				compound.setFloat("SkinOverlayOffsetY", overlayData.getValue().getOffsetY());
+				compound.setFloat("SkinOverlayOffsetZ", overlayData.getValue().getOffsetZ());
 				overlayList.appendTag(compound);
 			}
 		}

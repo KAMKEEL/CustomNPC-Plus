@@ -1,6 +1,5 @@
 package noppes.npcs.client.renderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -94,11 +93,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
                     if (overlayData.location == null) {
-                        overlayData.location = new ResourceLocation(overlayData.directory);
+                        overlayData.location = new ResourceLocation(overlayData.texture);
                     } else {
                         String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
-                        if (!str.equals(overlayData.directory)) {
-                            overlayData.location = new ResourceLocation(overlayData.directory);
+                        if (!str.equals(overlayData.texture)) {
+                            overlayData.location = new ResourceLocation(overlayData.texture);
                         }
                     }
 
@@ -145,11 +144,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
         if (Client.skinOverlays.containsKey(player.getUniqueID())) {
             for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
                 if (overlayData.location == null) {
-                    overlayData.location = new ResourceLocation(overlayData.directory);
+                    overlayData.location = new ResourceLocation(overlayData.texture);
                 } else {
                     String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
-                    if (!str.equals(overlayData.directory)) {
-                        overlayData.location = new ResourceLocation(overlayData.directory);
+                    if (!str.equals(overlayData.texture)) {
+                        overlayData.location = new ResourceLocation(overlayData.texture);
                     }
                 }
 

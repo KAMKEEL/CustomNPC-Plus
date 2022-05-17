@@ -4,7 +4,6 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.Client;
@@ -79,7 +78,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
     	addLabel(new GuiNpcLabel(9,"display.overlay", guiLeft + 5, y + 5));
 
-        addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).directory : ""));
+        addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).getTexture() : ""));
     	this.addButton(new GuiNpcButton(9, guiLeft + 283, y, 80, 20, "display.selectTexture"));
 
     	y+=23;

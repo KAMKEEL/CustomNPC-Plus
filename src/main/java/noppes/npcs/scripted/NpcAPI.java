@@ -31,6 +31,7 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -349,6 +350,6 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public ISkinOverlay createSkinOverlay(String texture) {
-        return new ScriptSkinOverlay(texture);
+        return new SkinOverlayData(texture);
     }
 }

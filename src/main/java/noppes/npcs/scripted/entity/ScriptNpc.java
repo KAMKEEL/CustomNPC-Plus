@@ -1,19 +1,14 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Line;
 import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.ScriptSkinOverlay;
 import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
@@ -41,7 +36,6 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
@@ -1109,16 +1103,12 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		if (!npc.display.skinOverlays.containsKey(0))
 			return "";
 
-		return npc.display.skinOverlays.get(0).directory;
+		return npc.display.skinOverlays.get(0).getTexture();
 	}
 
 	public void setSkinOverlay(int id, ISkinOverlay overlay) {
 		if (overlay != null) {
-			npc.display.skinOverlays.put(id, new SkinOverlayData(
-				overlay.getTexture(),overlay.getGlow(),overlay.getAlpha(),overlay.getSize(),
-				overlay.getSpeedX(),overlay.getSpeedY(),overlay.getScaleX(),overlay.getScaleY(),
-				overlay.getOffsetX(),overlay.getOffsetY(),overlay.getOffsetZ()
-			));
+			npc.display.skinOverlays.put(id, overlay);
 		}
 	}
 
