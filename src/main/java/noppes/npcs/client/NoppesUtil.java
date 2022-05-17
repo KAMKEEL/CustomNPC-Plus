@@ -81,8 +81,13 @@ public class NoppesUtil {
 			String tagString = skinOverlayList.getCompoundTagAt(i).getString("SkinOverlayTexture");
 			boolean glow = skinOverlayList.getCompoundTagAt(i).getBoolean("SkinOverlayGlow");
 			float alpha = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlayAlpha");
+			float size = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlaySize");
+			float speedX = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlaySpeedX");
+			float speedY = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlaySpeedY");
+			float scaleX = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlayScaleX");
+			float scaleY = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlayScaleY");
 
-			skinOverlays.put(tagID,new SkinOverlayData(new ResourceLocation(tagString),glow,alpha));
+			skinOverlays.put(tagID,new SkinOverlayData(new ResourceLocation(tagString),glow,alpha,size,speedX,speedY,scaleX,scaleY));
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}

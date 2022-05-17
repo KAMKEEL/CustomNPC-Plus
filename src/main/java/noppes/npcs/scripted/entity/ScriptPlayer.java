@@ -536,6 +536,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 			compound.setString("SkinOverlayTexture", overlay.getTexture());
 			compound.setBoolean("SkinOverlayGlow", overlay.getGlow());
 			compound.setFloat("SkinOverlayAlpha", overlay.getAlpha());
+			compound.setFloat("SkinOverlaySize", overlay.getSize());
+			compound.setFloat("SkinOverlaySpeedX", overlay.getSpeedX());
+			compound.setFloat("SkinOverlaySpeedY", overlay.getSpeedY());
+			compound.setFloat("SkinOverlayScaleX", overlay.getScaleX());
+			compound.setFloat("SkinOverlayScaleY", overlay.getScaleY());
 
 			if (!player.getEntityData().hasKey("SkinOverlayData")) {
 				NBTTagList tagList = new NBTTagList();

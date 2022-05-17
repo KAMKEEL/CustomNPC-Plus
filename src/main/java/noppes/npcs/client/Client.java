@@ -17,7 +17,10 @@ import noppes.npcs.controllers.data.SkinOverlayData;
 
 public class Client {
 	public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
+
 	public static HashMap<UUID, HashMap<Integer, SkinOverlayData>> skinOverlays = new HashMap<>();
+	public static HashMap<UUID, Long> fpSkinOverlayTicks = new HashMap<>();
+	public static HashMap<UUID, Long> entitySkinOverlayTicks = new HashMap<>();
 
 	public static void sendData(EnumPacketServer enu, Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();

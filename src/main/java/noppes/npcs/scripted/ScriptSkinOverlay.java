@@ -6,6 +6,13 @@ public class ScriptSkinOverlay implements ISkinOverlay {
     public String texture;
     public boolean glow;
     public float alpha = 1.0F;
+    public float size = 1.0F;
+
+    public float speedX = 0.0F;
+    public float speedY = 0.0F;
+
+    public float scaleX = 1.0F;
+    public float scaleY = 1.0F;
 
     public ScriptSkinOverlay(String texture) {
         this.texture = texture;
@@ -31,4 +38,34 @@ public class ScriptSkinOverlay implements ISkinOverlay {
     public float getAlpha() {
         return alpha;
     }
+
+    public void setSize(float size) {
+        this.size = size;
+    }
+    public float getSize() {
+        return size;
+    }
+
+    public void setScale(float scaleX, float scaleY) {
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+    }
+    public float getScaleX() {
+        return scaleX;
+    }
+    public float getScaleY() {
+        return scaleY;
+    }
+
+    public void setSpeed(float speedX, float speedY) {
+        this.speedX = speedX;
+        this.speedY = speedY;
+    }
+    public float getSpeedX() {
+        return speedX;
+    }
+    public float getSpeedY() {
+        return speedY;
+    }
+
 }

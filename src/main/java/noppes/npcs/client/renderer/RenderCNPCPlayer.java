@@ -1,6 +1,6 @@
 package noppes.npcs.client.renderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,16 +11,23 @@ import noppes.npcs.controllers.data.SkinOverlayData;
 import org.lwjgl.opengl.GL11;
 
 public class RenderCNPCPlayer extends RenderPlayer {
-
     public RenderCNPCPlayer() {
     }
 
-    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow, float alpha) {
+    private boolean preRenderOverlay(boolean firstPerson, EntityPlayer player, ResourceLocation overlayLocation, boolean glow, float alpha, float size, float speedX, float speedY, float scaleX, float scaleY) {
         try {
             this.bindTexture(overlayLocation);
         } catch (Exception exception) {
             return false;
         }
+
+        float renderTicks;
+        if (firstPerson) {
+            renderTicks = Client.fpSkinOverlayTicks.get(player.getUniqueID());
+        } else {
+            renderTicks = Client.entitySkinOverlayTicks.get(player.getUniqueID());;
+        }
+
         // Overlay & Glow
         if (glow) {
             GL11.glDepthFunc(GL11.GL_LEQUAL);
@@ -37,10 +44,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glPushMatrix();
         GL11.glMatrixMode(GL11.GL_TEXTURE);
         GL11.glLoadIdentity();
-        GL11.glScalef(1.0F, 1.0F, 1.0F);
+        GL11.glTranslatef(renderTicks * 0.001F * speedX, renderTicks * 0.001F * speedY, 0.0F);
+        GL11.glScalef(scaleX, scaleY, 1.0F);
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        float scale = 1.005f;
+        float scale = 1.005f * size;
         GL11.glScalef(scale, scale, scale);
 
         return true;
@@ -69,8 +77,14 @@ public class RenderCNPCPlayer extends RenderPlayer {
             this.mainModel.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
 
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
+                if (!Client.entitySkinOverlayTicks.containsKey(player.getUniqueID())) {
+                    Client.entitySkinOverlayTicks.put(player.getUniqueID(), 1L);
+                } else {
+                    long ticks = Client.entitySkinOverlayTicks.get(player.getUniqueID());
+                    Client.entitySkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
+                }
                 for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.alpha))
+                    if (!preRenderOverlay(false, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size, overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY))
                         return;
                     this.mainModel.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
                     postRenderOverlay(player);
@@ -108,8 +122,14 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.modelBipedMain.bipedRightArm.render(0.0625F);
 
         if (Client.skinOverlays.containsKey(player.getUniqueID())) {
+            if (!Client.fpSkinOverlayTicks.containsKey(player.getUniqueID())) {
+                Client.fpSkinOverlayTicks.put(player.getUniqueID(), 1L);
+            } else {
+                long ticks = Client.fpSkinOverlayTicks.get(player.getUniqueID());
+                Client.fpSkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
+            }
             for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.alpha))
+                if (!preRenderOverlay(true, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size, overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY))
                     return;
                 this.modelBipedMain.onGround = 0.0F;
                 this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
