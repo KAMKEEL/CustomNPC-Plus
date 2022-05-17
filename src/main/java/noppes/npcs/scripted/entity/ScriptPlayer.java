@@ -527,7 +527,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
-	public void setSkinOverlay(int id, ScriptSkinOverlay overlay) {
+	public void setSkinOverlay(int id, ISkinOverlay overlay) {
+		if (id < 0) {
+			throw new CustomNPCsException("Skin overlay ID must be greater than 0.");
+		}
+
 		if (overlay != null) {
 			NBTTagCompound data = new NBTTagCompound();
 			NBTTagCompound compound = new NBTTagCompound();
@@ -559,7 +563,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 				player.getEntityData().getTagList("SkinOverlayData", 10).appendTag(compound);
 			}
 			data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
-			Server.sendData((EntityPlayerMP) this.entity, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+			Server.sendData((EntityPlayerMP) this.entity, EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, data);
 		}
 	}
 
@@ -573,7 +577,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 				}
 			}
 			data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
-			Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+			Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, data);
 		}
 	}
 

@@ -12,11 +12,13 @@ import net.minecraft.client.renderer.entity.NPCRendererHelper;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.ModelData;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 
 import org.lwjgl.opengl.GL11;
@@ -127,7 +129,8 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    	else{
 	    		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	    	}
-	    	npc.display.glowTexture = "";
+	    	//npc.display.glowTexture = "";
+            npc.display.skinOverlays.remove(0);
 			npc.textureLocation = null;
 			npc.textureGlowLocation = null;
 			npc.updateHitbox();

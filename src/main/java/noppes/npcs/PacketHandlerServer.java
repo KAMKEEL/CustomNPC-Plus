@@ -148,7 +148,7 @@ public class PacketHandlerServer{
 	public void updateSkinOverlays(EntityPlayerMP player) {
 		NBTTagCompound data = new NBTTagCompound();
 		data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
-		Server.sendData(player, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+		Server.sendData(player, EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, data);
 	}
 
 	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {

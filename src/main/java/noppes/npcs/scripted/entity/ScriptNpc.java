@@ -1,13 +1,20 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptFaction;
+import noppes.npcs.scripted.ScriptSkinOverlay;
+import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
@@ -34,6 +41,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
@@ -1095,47 +1103,28 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setOverlayTexture(String overlayTexture) {
-		npc.display.glowTexture = overlayTexture;
-		npc.script.clientNeedsUpdate = true;
+		this.setSkinOverlay(0, NpcAPI.Instance().createSkinOverlay(overlayTexture));
 	}
-	public String getOverlayTexture() {return npc.display.glowTexture;}
+	public String getOverlayTexture() {
+		if (!npc.display.skinOverlays.containsKey(0))
+			return "";
 
-	public void setOverlaySize(float size) {
-		npc.display.overlaySize = size;
+		return npc.display.skinOverlays.get(0).directory;
 	}
-	public float getOverlaySize() {return npc.display.overlaySize;}
 
-	public void setOverlayScale(float scaleX, float scaleY) {
-		npc.display.overlayScaleX = scaleX;
-		npc.display.overlayScaleY = scaleY;
+	public void setSkinOverlay(int id, ISkinOverlay overlay) {
+		if (overlay != null) {
+			npc.display.skinOverlays.put(id, new SkinOverlayData(
+				overlay.getTexture(),overlay.getGlow(),overlay.getAlpha(),overlay.getSize(),
+				overlay.getSpeedX(),overlay.getSpeedY(),overlay.getScaleX(),overlay.getScaleY(),
+				overlay.getOffsetX(),overlay.getOffsetY(),overlay.getOffsetZ()
+			));
+		}
 	}
-	public float getOverlayTextureScaleX() {return npc.display.overlayScaleX;}
-	public float getOverlayTextureScaleY() {return npc.display.overlayScaleY;}
 
-	public void setPoweredTexture(String poweredTexture) {
-		npc.display.poweredTexture = poweredTexture;
-		npc.script.clientNeedsUpdate = true;
+	public void removeSkinOverlay(int id) {
+		npc.display.skinOverlays.remove(id);
 	}
-	public String getPoweredTexture() {return npc.display.poweredTexture;}
-
-	public void setPoweredSize(float size) {
-		npc.display.poweredSize = size;
-	}
-	public float getPoweredSize() {return npc.display.poweredSize;}
-
-	public void setPoweredScale(float scaleX, float scaleY) {
-		npc.display.poweredScaleX = scaleX;
-		npc.display.poweredScaleY = scaleY;
-	}
-	public float getPoweredTextureScaleX() {return npc.display.poweredScaleX;}
-	public float getPoweredTextureScaleY() {return npc.display.poweredScaleY;}
-
-	public void setPoweredSpeed(float speedX, float speedY) {
-		npc.display.poweredSpeedX = speedX;
-		npc.display.poweredSpeedY = speedY;
-	}
-	public float getPoweredSpeedX() {return npc.display.poweredSpeedX;}
-	public float getPoweredSpeedY() {return npc.display.poweredSpeedY;}
 
 	public void setCollisionType(int type){
 		npc.display.collidesWith = type;

@@ -13,6 +13,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -37,6 +39,7 @@ import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.Quest;
 import noppes.npcs.controllers.data.SkinOverlayData;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.Sys;
@@ -90,7 +93,7 @@ public class NoppesUtil {
 			float offsetY = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlayOffsetY");
 			float offsetZ = skinOverlayList.getCompoundTagAt(i).getFloat("SkinOverlayOffsetZ");
 
-			skinOverlays.put(tagID,new SkinOverlayData(new ResourceLocation(tagString),glow,alpha,size,speedX,speedY,scaleX,scaleY,offsetX,offsetY,offsetZ));
+			skinOverlays.put(tagID,new SkinOverlayData(tagString,glow,alpha,size,speedX,speedY,scaleX,scaleY,offsetX,offsetY,offsetZ));
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}

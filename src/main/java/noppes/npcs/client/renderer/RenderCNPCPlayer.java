@@ -93,6 +93,15 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+                    if (overlayData.location == null) {
+                        overlayData.location = new ResourceLocation(overlayData.directory);
+                    } else {
+                        String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
+                        if (!str.equals(overlayData.directory)) {
+                            overlayData.location = new ResourceLocation(overlayData.directory);
+                        }
+                    }
+
                     if (!preRenderOverlay(false, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
                             overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                             overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
@@ -135,6 +144,15 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (Client.skinOverlays.containsKey(player.getUniqueID())) {
             for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+                if (overlayData.location == null) {
+                    overlayData.location = new ResourceLocation(overlayData.directory);
+                } else {
+                    String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
+                    if (!str.equals(overlayData.directory)) {
+                        overlayData.location = new ResourceLocation(overlayData.directory);
+                    }
+                }
+
                 if (!preRenderOverlay(false, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
                         overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                         overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ

@@ -21,6 +21,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -30,6 +31,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityFakeLiving;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -229,7 +231,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	    	    		npc.display.texture = NPCRendererHelper.getTexture(render,entity);
 	    	    	}
 	    		}
-		    	npc.display.glowTexture = "";
+		    	//npc.display.glowTexture = "";
+				npc.display.skinOverlays.remove(0);
 				npc.textureLocation = null;
 				npc.textureGlowLocation = null;
 				npc.updateHitbox();
@@ -336,7 +339,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
         	else{
         		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
         	}
-        	npc.display.glowTexture = "";
+        	//npc.display.glowTexture = "";
+			npc.display.skinOverlays.remove(0);
     		npc.textureLocation = null;
     		npc.textureGlowLocation = null;
     		npc.updateHitbox();

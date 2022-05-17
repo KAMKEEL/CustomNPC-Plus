@@ -120,7 +120,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
-	public long renderTicksPowered = 0;
 
 	public Faction faction; //should only be used server side
 	
@@ -131,7 +130,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public ResourceLocation textureLocation = null;
 	public ResourceLocation textureGlowLocation = null;
-	public ResourceLocation texturePoweredLocation = null;
 	public ResourceLocation textureCloakLocation = null;
 	
 	public EnumAnimation currentAnimation = EnumAnimation.NONE;

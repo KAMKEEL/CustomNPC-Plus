@@ -4,23 +4,27 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.util.ResourceLocation;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.opengl.GL11;
 
 public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     public GuiNpcTextureOverlays(EntityNPCInterface npc,GuiScreen parent){
-    	super(npc, parent, npc.display.glowTexture.isEmpty()?"customnpcs:textures/overlays/":npc.display.glowTexture);
-    	title = "Select Overlay";
+    	//super(npc, parent, npc.display.glowTexture.isEmpty()?"customnpcs:textures/overlays/":npc.display.glowTexture);
+        super(npc, parent, npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).directory : "");
+        title = "Select Overlay";
     	this.parent = parent;
     }
 
     public void initGui(){
     	super.initGui();
-        int index = npc.display.glowTexture.lastIndexOf("/");
+        String str = npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).directory : "";
+        int index = str.lastIndexOf("/");
         if(index > 0){
-        	String asset = npc.display.glowTexture.substring(index + 1);
-        	if(npc.display.glowTexture.equals(assets.getAsset(asset)))
+        	String asset = str.substring(index + 1);
+        	if(str.equals(assets.getAsset(asset)))
         		slot.selected = asset;
         }
     }
@@ -73,8 +77,13 @@ public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     @Override
     public void elementClicked(){
     	if(dataTextures.contains(slot.selected) && slot.selected != null){
-    		npc.display.glowTexture = assets.getAsset(slot.selected);
+    		//npc.display.glowTexture = assets.getAsset(slot.selected);
     		npc.textureGlowLocation = null;
+
+            npc.display.skinOverlays.put(0,new SkinOverlayData(
+                    assets.getAsset(slot.selected), true, 0.8F, 1.0F, 0.0F, 0.0F,
+                    1.0F, 1.0F, 0.0F, 0.0F, 0.0F
+            ));
     	}
     }
 

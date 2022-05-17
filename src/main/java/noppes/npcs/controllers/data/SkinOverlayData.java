@@ -3,7 +3,8 @@ package noppes.npcs.controllers.data;
 import net.minecraft.util.ResourceLocation;
 
 public class SkinOverlayData {
-    public ResourceLocation location;
+    public ResourceLocation location = null;
+    public String directory;
     public boolean glow;
     public float alpha = 1.0F;
     public float size = 1.0F;
@@ -18,9 +19,9 @@ public class SkinOverlayData {
     public float offsetY = 0.0F;
     public float offsetZ = 0.0F;
 
-    public SkinOverlayData(ResourceLocation location, boolean glow, float alpha, float size, float speedX, float speedY,
+    public SkinOverlayData(String directory, boolean glow, float alpha, float size, float speedX, float speedY,
                            float scaleX, float scaleY, float offsetX, float offsetY, float offsetZ) {
-        this.location = location;
+        this.directory = directory;
         this.glow = glow;
         this.alpha = alpha;
         this.size = size;

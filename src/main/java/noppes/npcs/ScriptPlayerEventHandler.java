@@ -439,7 +439,7 @@ public class ScriptPlayerEventHandler {
                 if (playerMP.getEntityData().hasKey("SkinOverlayData")) {
                     NBTTagCompound data = new NBTTagCompound();
                     data.setTag("SkinOverlayData",playerMP.getEntityData().getTagList("SkinOverlayData",10));
-                    Server.sendData(playerMP, EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS, data);
+                    Server.sendData(playerMP, EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, data);
                 }
             }
         }

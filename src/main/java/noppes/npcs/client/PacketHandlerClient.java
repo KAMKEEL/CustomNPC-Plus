@@ -273,7 +273,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		else if(type == EnumPacketClient.SWING_PLAYER_ARM){
 			Minecraft.getMinecraft().thePlayer.swingItem();
 		}
-		else if(type == EnumPacketClient.CLIENT_UPDATE_SKIN_OVERLAYS) {
+		else if(type == EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS) {
 			NoppesUtil.updateSkinOverlayData(player, Server.readNBT(buffer));
 		}
 	}

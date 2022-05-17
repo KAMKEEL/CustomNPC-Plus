@@ -24,6 +24,7 @@ import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -208,115 +209,69 @@ public class RenderNPCInterface extends RenderLiving{
 		super.doRender(entityliving, d, d1, d2, f, f1);
 	}
 
-	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7){
+	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
 		super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-		if (!npc.display.glowTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
-		{
-			if(npc.textureGlowLocation == null){
-				npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
-			} else {
-				String locationString = npc.textureGlowLocation.getResourceDomain() + ":" + npc.textureGlowLocation.getResourcePath();
-				if (!locationString.equals(npc.display.glowTexture)) {
-					npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
+
+		if (!npc.display.skinOverlays.isEmpty()) {
+			for (SkinOverlayData overlayData : npc.display.skinOverlays.values()) {
+				try {
+					if (overlayData.location == null) {
+						overlayData.location = new ResourceLocation(overlayData.directory);
+					} else {
+						String str = npc.display.skinOverlays.get(0).location.getResourceDomain()+":"+npc.display.skinOverlays.get(0).location.getResourcePath();
+						if (!str.equals(overlayData.directory)) {
+							overlayData.location = new ResourceLocation(overlayData.directory);
+						}
+					}
+
+					this.bindTexture(overlayData.location);
+
+					// Overlay & Glow
+					if (overlayData.glow) {
+						GL11.glDepthFunc(GL11.GL_LEQUAL);
+						GL11.glEnable(GL11.GL_BLEND);
+						GL11.glDisable(GL11.GL_LIGHTING);
+						GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_DST_ALPHA);
+						Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
+					}
+
+					GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.alpha);
+
+					GL11.glDepthMask(!npc.isInvisible());
+
+					GL11.glPushMatrix();
+						GL11.glMatrixMode(GL11.GL_TEXTURE);
+						GL11.glLoadIdentity();
+						GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.speedX, npc.display.overlayRenderTicks * 0.001F * overlayData.speedY, 0.0F);
+						GL11.glScalef(overlayData.scaleX, overlayData.scaleY, 1.0F);
+
+						GL11.glMatrixMode(GL11.GL_MODELVIEW);
+						float scale = 1.005f * overlayData.size;
+						GL11.glTranslatef(overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ);
+						GL11.glScalef(scale, scale, scale);
+						if(mainModel instanceof ModelMPM){
+							((ModelMPM)mainModel).isArmor = true;
+							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+							((ModelMPM)mainModel).isArmor = false;
+						}
+						else
+							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					GL11.glPopMatrix();
+
+					GL11.glMatrixMode(GL11.GL_TEXTURE);
+					GL11.glLoadIdentity();
+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+					GL11.glEnable(GL11.GL_LIGHTING);
+					GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+					GL11.glDepthFunc(GL11.GL_LEQUAL);
+					GL11.glDisable(GL11.GL_BLEND);
+					Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
+				} catch (Exception ignored) {
 				}
 			}
-
-			bindTexture((ResourceLocation) npc.textureGlowLocation);
-			float f1 = 1.0F;
-
-			// Overlay & Glow
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
-
-			GL11.glDepthMask(!npc.isInvisible());
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, npc.isInvisible() ? 0.2F : 1.0F);
-
-			GL11.glPushMatrix();
-				GL11.glMatrixMode(GL11.GL_TEXTURE);
-				GL11.glLoadIdentity();
-				GL11.glScalef(npc.display.overlayScaleX, npc.display.overlayScaleY, 1.0F);
-
-				GL11.glMatrixMode(GL11.GL_MODELVIEW);
-				float scale = 1.001f * npc.display.overlaySize;
-				GL11.glScalef(scale, scale, scale);
-				if(mainModel instanceof ModelMPM){
-					((ModelMPM)mainModel).isArmor = true;
-					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-					((ModelMPM)mainModel).isArmor = false;
-				}
-				else
-					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-			GL11.glPopMatrix();
-
-			GL11.glMatrixMode(GL11.GL_TEXTURE);
-			GL11.glLoadIdentity();
-			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
-			GL11.glDisable(GL11.GL_BLEND);
-			Minecraft.getMinecraft().entityRenderer.enableLightmap((double)0);
-		}
-
-		if (!npc.display.poweredTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
-		{
-			if(npc.texturePoweredLocation == null){
-				npc.texturePoweredLocation = new ResourceLocation(npc.display.poweredTexture);
-			} else {
-				String locationString = npc.texturePoweredLocation.getResourceDomain() + ":" + npc.texturePoweredLocation.getResourcePath();
-				if (!locationString.equals(npc.display.poweredTexture)) {
-					npc.texturePoweredLocation = new ResourceLocation(npc.display.poweredTexture);
-				}
-			}
-
-			bindTexture((ResourceLocation) npc.texturePoweredLocation);
-			float f1 = 1.0F;
-
-			// Overlay & Glow
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-			GL11.glDisable(GL11.GL_LIGHTING);
-			Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
-
-			GL11.glDepthMask(!npc.isInvisible());
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, npc.isInvisible() ? 0.2F : 1.0F);
-
-			GL11.glPushMatrix();
-				GL11.glMatrixMode(GL11.GL_TEXTURE);
-				GL11.glLoadIdentity();
-				GL11.glTranslatef(npc.renderTicksPowered * 0.001F * npc.display.poweredSpeedX, npc.renderTicksPowered * 0.001F * npc.display.poweredSpeedY, 0.0F);
-				GL11.glScalef(npc.display.poweredScaleX, npc.display.poweredScaleY, 1.0F);
-
-				GL11.glMatrixMode(GL11.GL_MODELVIEW);
-				float scale = 1.001f * npc.display.poweredSize;
-				GL11.glScalef(scale, scale, scale);
-				GL11.glEnable(GL11.GL_BLEND);
-				if(mainModel instanceof ModelMPM){
-					((ModelMPM)mainModel).isArmor = true;
-					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-					((ModelMPM)mainModel).isArmor = false;
-				}
-				else
-					mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-			GL11.glPopMatrix();
-
-			GL11.glMatrixMode(GL11.GL_TEXTURE);
-			GL11.glLoadIdentity();
-			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
-			GL11.glDisable(GL11.GL_BLEND);
-			Minecraft.getMinecraft().entityRenderer.enableLightmap((double)0);
-
-			npc.renderTicksPowered++;
+			npc.display.overlayRenderTicks++;
 		}
 	}
 	@Override
