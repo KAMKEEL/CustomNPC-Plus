@@ -62,8 +62,8 @@ public class ScriptBlock implements IBlock {
         return this.block.isAir(this.world.getMCWorld(), getX(), getY(), getZ());
     }
 
-    public ScriptBlock setBlock(String name) {
-        Block block = (Block)Block.blockRegistry.getObject(new ResourceLocation(name));
+    public ScriptBlock setBlock(String blockName) {
+        Block block = (Block)Block.blockRegistry.getObject(new ResourceLocation(blockName));
         if(block == null) {
             return this;
         } else {
@@ -113,11 +113,11 @@ public class ScriptBlock implements IBlock {
         return this.tile != null;
     }
 
-    public ScriptTileEntity getTileEntity() {
+    public ITileEntity getTileEntity() {
         return new ScriptTileEntity(this.tile);
     }
 
-    public void setTileEntity(ScriptTileEntity tileEntity){
+    public void setTileEntity(ITileEntity tileEntity){
         world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),tileEntity);
         this.tile = tileEntity.getMCTileEntity();
     }

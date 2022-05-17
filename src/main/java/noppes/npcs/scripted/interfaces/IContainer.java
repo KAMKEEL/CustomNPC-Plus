@@ -13,18 +13,46 @@ import noppes.npcs.scripted.interfaces.item.IItemStack;
 public interface IContainer {
     int getSize();
 
-    IItemStack getSlot(int var1);
+    IItemStack getSlot(int slot);
 
+    /**
+     *
+     * @param slot The slot to be replaced
+     * @param item The item replacing the previous item in that slot, as an IItemStack object
+     */
     void setSlot(int slot, IItemStack item);
 
+    /**
+     *
+     * @return Returns a non-script, obfuscated MC inventory object.
+     */
     IInventory getMCInventory();
 
+    /**
+     *
+     * @return Returns a non-script, obfuscated MC container object.
+     */
     Container getMCContainer();
 
-    int count(IItemStack var1, boolean var2, boolean var3);
+    /**
+     *
+     * @param itemStack The item stack to be searched in the container
+     * @param ignoreDamage Whether damage should be ignored when searching
+     * @param ignoreNBT Whether NBT values should be ignored when searching
+     * @return Returns the amount of the item stack found, based on the flags given above.
+     */
+    int count(IItemStack itemStack, boolean ignoreDamage, boolean ignoreNBT);
 
+    /**
+     *
+     * @return Returns a list of all item stacks in the container as a list of IItemStack objects.
+     */
     IItemStack[] getItems();
 
+    /**
+     *
+     * @return Returns true if this container belongs to a Custom GUI.
+     */
     boolean isCustomGUI();
 
     void detectAndSendChanges();
