@@ -618,7 +618,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         int j = 5095183;
                         h1 = 1.0F;
                         ////renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodycm);
-                        //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"N");
+                        ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"N");
 
                         ////renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodycm);
                         ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
