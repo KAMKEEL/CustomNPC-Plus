@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
@@ -28,7 +27,6 @@ import org.lwjgl.util.glu.Project;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 
 public class RenderCNPCPlayer extends RenderPlayer {
     public OverlayRenderHelper itemRenderer = new OverlayRenderHelper(Minecraft.getMinecraft());
@@ -47,7 +45,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.setRenderManager(RenderManager.instance);
     }
 
-    private boolean preRenderOverlay(float partialTickTime, EntityPlayer player, ResourceLocation overlayLocation, boolean glow,
+    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow,
                                      float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
                                      float offsetX, float offsetY, float offsetZ) {
         try {
@@ -56,15 +54,13 @@ public class RenderCNPCPlayer extends RenderPlayer {
             return false;
         }
 
-        if (partialTickTime == 0) {
-            if (!Client.entitySkinOverlayTicks.containsKey(player.getUniqueID())) {
-                Client.entitySkinOverlayTicks.put(player.getUniqueID(), 1L);
-            } else {
-                long ticks = Client.entitySkinOverlayTicks.get(player.getUniqueID());
-                Client.entitySkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
-            }
-            partialTickTime = Client.entitySkinOverlayTicks.get(player.getUniqueID());;
+        if (!Client.entitySkinOverlayTicks.containsKey(player.getUniqueID())) {
+            Client.entitySkinOverlayTicks.put(player.getUniqueID(), 1L);
+        } else {
+            long ticks = Client.entitySkinOverlayTicks.get(player.getUniqueID());
+            Client.entitySkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
         }
+        float partialTickTime = Client.entitySkinOverlayTicks.get(player.getUniqueID());
 
         // Overlay & Glow
         if (glow) {
@@ -124,7 +120,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
 
-                    if (!preRenderOverlay(0, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
+                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
                             overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                             overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                             ))
@@ -324,7 +320,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     }
                 }
 
-                if (!preRenderOverlay(partialTickTime, player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
+                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
                         overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                         overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                 ))
@@ -656,18 +652,18 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                             ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc1);
-                            ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
+                            //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
 
 
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc1);
                             ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc2);
-                            ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
+                            //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
 
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc2);
                             //ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc3);
-                            ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
+                            //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
 
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc3);
                             //ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
@@ -676,7 +672,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                             //ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
                             h1 = 1.0F;
                             //GL11.glColor3f(h1 + (float)renderPlayerJBRA.getField("r2").get(null), h1 + (float)renderPlayerJBRA.getField("g2").get(null), h1 + (float)renderPlayerJBRA.getField("b2").get(null));
-                            ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
+                            //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
 
                             //GL11.glColor3f(h1 + (float)renderPlayerJBRA.getField("r2").get(null), h1 + (float)renderPlayerJBRA.getField("g2").get(null), h1 + (float)renderPlayerJBRA.getField("b2").get(null));
                             //ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
