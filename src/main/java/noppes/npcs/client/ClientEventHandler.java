@@ -3,7 +3,6 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
@@ -26,8 +25,15 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
         if (!(event.renderer instanceof RenderCNPCPlayer)) {
+            renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
             renderCNPCPlayer.doRender(event.entityPlayer, 0, 0, 0, 0.0F, event.partialRenderTick);
         }
+    }
+
+    @SubscribeEvent
+    public void cancelSpecials(RenderPlayerEvent.Specials.Pre event) {
+        if (event.renderer instanceof RenderCNPCPlayer)
+            event.setCanceled(true);
     }
 
     @SubscribeEvent

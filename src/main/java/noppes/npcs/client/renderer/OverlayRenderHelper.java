@@ -19,13 +19,12 @@ import net.minecraft.world.storage.MapData;
 import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.client.MinecraftForgeClient;
-import noppes.npcs.controllers.data.SkinOverlayData;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.*;
 
-public class RenderCNPCPlayerItemRenderer extends ItemRenderer {
+public class OverlayRenderHelper extends ItemRenderer {
     private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
     private static final ResourceLocation RES_MAP_BACKGROUND = new ResourceLocation("textures/map/map_background.png");
     private static final ResourceLocation RES_UNDERWATER_OVERLAY = new ResourceLocation("textures/misc/underwater.png");
@@ -40,7 +39,7 @@ public class RenderCNPCPlayerItemRenderer extends ItemRenderer {
     /** The index of the currently held item (0-8, or -1 if not yet updated) */
     private int equippedItemSlot = -1;
 
-    public RenderCNPCPlayerItemRenderer(Minecraft mc) {
+    public OverlayRenderHelper(Minecraft mc) {
         super(mc);
         this.mc = mc;
     }

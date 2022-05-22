@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
@@ -19,7 +20,6 @@ public class Client {
 	public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
 
 	public static HashMap<UUID, HashMap<Integer, SkinOverlayData>> skinOverlays = new HashMap<>();
-	public static HashMap<UUID, Long> fpSkinOverlayTicks = new HashMap<>();
 	public static HashMap<UUID, Long> entitySkinOverlayTicks = new HashMap<>();
 
 	public static void sendData(EnumPacketServer enu, Object... obs) {
