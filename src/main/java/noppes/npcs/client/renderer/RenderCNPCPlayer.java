@@ -67,7 +67,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
             GL11.glDepthFunc(GL11.GL_LEQUAL);
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glDisable(GL11.GL_LIGHTING);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_DST_ALPHA);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
             Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
             RenderHelper.disableStandardItemLighting();
         }
@@ -99,6 +100,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
         GL11.glDisable(GL11.GL_BLEND);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
         RenderHelper.enableStandardItemLighting();
     }
@@ -362,7 +364,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         Object modelMain = renderPlayerJBRA.getField("modelMain").get(playerRenderer);
         ModelBiped model = ((ModelBiped) modelMain);
 
-        float headOffsetY = 0.0005F;
+        float headOffsetY = 0.00051F;
         model.bipedHead.offsetY += headOffsetY;
 
         float armOffsetX = -0.00125F;
