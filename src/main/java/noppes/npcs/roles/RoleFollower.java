@@ -35,6 +35,7 @@ public class RoleFollower extends RoleInterface{
 		super(npc);
 		inventory = new NpcMiscInventory(3);
 		rates = new HashMap<Integer, Integer>();
+		npc.stats.canDespawn = false;
 	}
 
 	@Override

@@ -139,7 +139,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public boolean updateClient = false;
 	public boolean updateAI = false;
-
+	public boolean projectilesKeepTerrain = false;
+	
 	public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
 	public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 
@@ -956,6 +957,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		totalTicksAlive = compound.getLong("TotalTicksAlive");
 		
 		linkedName = compound.getString("LinkedNpcName");
+		
+		projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
+		
 		if(!isRemote())
 			LinkedNpcController.Instance.loadNpcData(this);
 		
@@ -987,6 +991,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		compound.setLong("TotalTicksAlive", totalTicksAlive);		
 		compound.setInteger("ModRev", npcVersion);
 		compound.setString("LinkedNpcName", linkedName);
+		compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
 	}
 
 	public void updateHitbox() {

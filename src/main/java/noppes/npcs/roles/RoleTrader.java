@@ -24,10 +24,15 @@ public class RoleTrader extends RoleInterface{
 	
 	public boolean toSave = false;
 	
+	public int[] purchases;
+	public int[] disableSlot;
+	
 	public RoleTrader(EntityNPCInterface npc) {
 		super(npc);
 		inventoryCurrency = new NpcMiscInventory(36);
 		inventorySold = new NpcMiscInventory(18);
+		purchases = new int[18];
+		disableSlot = new int[18];
 	}
 
 	@Override
@@ -46,6 +51,8 @@ public class RoleTrader extends RoleInterface{
     	nbttagcompound.setTag("TraderSold", inventorySold.getToNBT());
         nbttagcompound.setBoolean("TraderIgnoreDamage", ignoreDamage);
         nbttagcompound.setBoolean("TraderIgnoreNBT", ignoreNBT);
+        nbttagcompound.setIntArray("Purchases", purchases);
+        nbttagcompound.setIntArray("DisableSlot", disableSlot);
         return nbttagcompound;
 	}
 
@@ -67,7 +74,16 @@ public class RoleTrader extends RoleInterface{
 		inventorySold.setFromNBT(nbttagcompound.getCompoundTag("TraderSold"));
         ignoreDamage = nbttagcompound.getBoolean("TraderIgnoreDamage");
         ignoreNBT = nbttagcompound.getBoolean("TraderIgnoreNBT");
-        
+        purchases = nbttagcompound.getIntArray("Purchases");
+        if (purchases == null || purchases.length < 18) {
+        	purchases = new int[18];
+        	for (int i = 0; i < purchases.length; ++i) purchases[i] = 0;
+        }
+        disableSlot = nbttagcompound.getIntArray("DisableSlot");
+        if (disableSlot == null || disableSlot.length < 18) {
+        	disableSlot = new int[18];
+        	for (int i = 0; i < disableSlot.length; ++i) disableSlot[i] = 0;
+        }
 	}
 	
 	@Override

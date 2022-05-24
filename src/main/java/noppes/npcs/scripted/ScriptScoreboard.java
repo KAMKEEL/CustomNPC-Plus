@@ -152,6 +152,16 @@ public class ScriptScoreboard {
 		return teams;
 	}
 	
+	public ScriptScoreboardTeam getTeamByName(String name) {
+		ScriptScoreboardTeam[] teams = getTeams();
+		for (int i = 0; i < teams.length; i++) {
+			if (teams[i].getName().equals(name)) {
+				return teams[i];
+			}
+		}
+		return null;
+	}
+	
 	public boolean hasTeam(String name){
 		return board.getPlayersTeam(name) != null;
 	}

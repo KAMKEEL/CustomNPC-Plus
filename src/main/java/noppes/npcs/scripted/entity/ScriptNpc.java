@@ -269,6 +269,16 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.shoot(target.entity, accuracy, item.item, false);
 	}
 	
+	public void setProjectilesKeepTerrain(boolean t) {
+		npc.projectilesKeepTerrain = t;
+	}
+	
+	public boolean getProjectilesKeepTerrain() {
+		return npc.projectilesKeepTerrain;
+	}
+
+
+	
 	/**
 	 * @param message The message the npc will say
 	 */
@@ -524,7 +534,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param item The item the drop list slot will be changed to
 	 */
 	public void setLootItem(int slot, ScriptItemStack item) {
-		npc.inventory.setInventorySlotContents(slot+7, item.item);
+		if (item == null) npc.inventory.setInventorySlotContents(slot+7, null);
+		else npc.inventory.setInventorySlotContents(slot+7, item.item);
 	}
 
 	/**
@@ -998,6 +1009,13 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 */
 	public void setHealthRegen(float regen){
 		npc.stats.healthRegen = (float)(Math.floor(regen));
+	}
+	
+	public boolean getCanDrown() {
+		return npc.stats.canDrown;
+	}
+	public void setCanDrown(boolean d) {
+		npc.stats.canDrown = d;
 	}
 	
 	@Override

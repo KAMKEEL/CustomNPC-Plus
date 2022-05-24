@@ -3,6 +3,7 @@ package noppes.npcs.scripted;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -18,11 +19,14 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
+import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.entity.ScriptEntity;
@@ -93,6 +97,14 @@ public class ScriptWorld implements IWorld {
 		return null;
 	}
 	
+	public void setBlock(int x, int y, int z, Block block){
+		if(block == null || block == Blocks.air){
+			removeBlock(x, y, z);
+			return;
+		}
+		world.setBlock(x, y, z, block);
+	}
+	
 	/**
 	 * @param x World position x
 	 * @param y World position y
@@ -117,6 +129,61 @@ public class ScriptWorld implements IWorld {
 	 */
 	public void removeBlock(int x, int y, int z){
 		world.setBlock(x, y, z, Blocks.air);
+	}
+	
+	public Vec3 rayCastBlockPos(Vec3 pos, Vec3 look, int maxDistance) {
+		Vec3 currentPos = pos; int rep = 0;
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(look.xCoord, look.yCoord, look.zCoord);
+			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			//System.out.println("Checking block at ["+(int)currentPos.xCoord+","+(int)currentPos.yCoord+","+(int)currentPos.zCoord+"]");
+			if (block == null) continue;
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-pos.xCoord,2)
+					+Math.pow(currentPos.yCoord-pos.yCoord,2)
+					+Math.pow(currentPos.zCoord-pos.zCoord,2)
+					, 0.5);
+			//System.out.println("current distance check: "+distance+" on rep "+rep);
+			if (distance > maxDistance) return null;
+			return currentPos;
+		}
+		//System.out.println("ScriptWorld:WARNING: Repeated a ray cast to many times");
+		return null;
+	}
+	
+	public Vec3 getNearestAir(Vec3 pos, int maxHeight) {
+		if (pos == null) return null;
+		Vec3 currentPos = pos;
+		IBlock block = null; int rep = 0;
+		while (rep++ < maxHeight) {
+			//check +x
+			currentPos = currentPos.addVector(1, 0, 0);
+			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			if (block == null) break;
+			//check -x
+			currentPos = currentPos.addVector(-2, 0, 0);
+			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			if (block == null) break;
+			//check +z
+			currentPos = currentPos.addVector(1, 0, 1);
+			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			if (block == null) break;
+			//check -z
+			currentPos = currentPos.addVector(0, 0, -2);
+			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			if (block == null) break;
+			//check up 1
+			currentPos = currentPos.addVector(0, 1, 1);
+			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			if (block == null) break;
+		}
+		Vec3 posInt = Vec3.createVectorHelper((int)currentPos.xCoord, 
+				(int)currentPos.yCoord, (int)currentPos.zCoord);
+		return posInt;
+	}
+	
+	public boolean canSeeSky(int x, int y, int z) {
+		return world.canBlockSeeTheSky(x, y, z);
 	}
 	
 	/**
@@ -317,6 +384,13 @@ public class ScriptWorld implements IWorld {
 		return arr;
 	}
 	
+	public String[] getPlayerNames() {
+		ScriptPlayer[] players = getAllServerPlayers();
+		String[] names = new String[players.length];
+		for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
+		return names;
+	}
+	
 	/**
 	 * @since 1.7.10c
 	 * @param x Position x
@@ -345,6 +419,40 @@ public class ScriptWorld implements IWorld {
 			return null;
 		return ScriptController.Instance.getScriptForEntity(entity);
 	}
+	
+	public boolean spawnEntity(Entity e) {
+		if (world.spawnEntityInWorld(e)) return true;
+		return false;
+	}
+	
+	/**
+	 * Create a new default faction
+	 * @param name The name of the new faction. If the name already exists an '_' will be added at the end
+	 * @return The faction object which was created
+	 */
+    public ScriptFaction createFaction(String name) {
+    	//System.out.println("Attempting to create new faction "+name);
+    	int maxValue = 0xFFFFFF;
+    	Random r = new Random();
+    	int randomColor = r.nextInt(maxValue + 1);
+    	
+    	Faction fac = new Faction(-1, name, randomColor, 1000);
+    	FactionController.getInstance().saveFaction(fac);
+		
+		return new ScriptFaction(fac);
+    }
+    
+    public ScriptFaction getFactionFromName(String name) {
+    	Faction f = FactionController.getInstance().getFactionFromName(name);
+    	if (f == null) return null;
+    	return new ScriptFaction(f);
+    }
+    
+    public ScriptFaction getFactionFromId(int id) {
+    	Faction f = FactionController.getInstance().get(id);
+    	if (f == null) return null;
+    	return new ScriptFaction(f);
+    }
 	
 	public ScriptScoreboard getScoreboard(){
 		return new ScriptScoreboard();

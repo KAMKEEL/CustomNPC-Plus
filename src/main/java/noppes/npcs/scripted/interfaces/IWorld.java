@@ -1,5 +1,8 @@
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -42,13 +45,27 @@ public interface IWorld {
      * @param item The block to be set
      */
     public void setBlock(int x, int y, int z, ScriptItemStack item);
-
+    
+    /**
+	 * @param x World position x
+	 * @param y World position y
+	 * @param z World position z
+	 * @param block The block to be set
+	 */
+	public void setBlock(int x, int y, int z, Block block);
+    
     /**
      * @param x World position x
      * @param y World position y
      * @param z World position z
      */
     public void removeBlock(int x, int y, int z);
+    
+    public Vec3 rayCastBlockPos(Vec3 pos, Vec3 look, int maxDistance);
+    
+    public Vec3 getNearestAir(Vec3 pos, int maxHeight);
+    
+    public boolean canSeeSky(int x, int y, int z);
 
     /**
      * @param name The name of the player to be returned
@@ -180,6 +197,8 @@ public interface IWorld {
     public void explode(double x, double y, double z, float range, boolean fire, boolean grief);
 
     public ScriptPlayer[] getAllServerPlayers();
+    
+    public String[] getPlayerNames();
 
     /**
      * @since 1.7.10c
@@ -199,7 +218,20 @@ public interface IWorld {
      * @return Returns the entity which was spawned
      */
     public ScriptEntity spawnClone(int x, int y, int z, int tab, String name);
-
+    
+    public boolean spawnEntity(Entity e);
+    
+    /**
+	 * Create a new default faction
+	 * @param name The name of the new faction. If the name already exists an '_' will be added at the end
+	 * @return The faction object which was created
+	 */
+    public ScriptFaction createFaction(String name);
+    
+    public ScriptFaction getFactionFromName(String name);
+    
+    public ScriptFaction getFactionFromId(int id);
+    
     public ScriptScoreboard getScoreboard();
 
     BlockPos getMCBlockPos(int x, int y, int z);

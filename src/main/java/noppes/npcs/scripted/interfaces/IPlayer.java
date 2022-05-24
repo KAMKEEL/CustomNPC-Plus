@@ -1,6 +1,8 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.Vec3;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 
@@ -26,6 +28,10 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     public void showDialog(int id);
 
     public boolean hasReadDialog(int id);
+    
+    public void readDialog(int id);
+    
+    public void unreadDialog(int id);
 
     /**
      * Add the quest from active quest list
@@ -58,7 +64,11 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param points The points to increase. Use negative values to decrease
      */
     public void addFactionPoints(int faction, int points);
-
+    /**
+	 * @param faction The faction id
+	 * @param points The new point value for this faction
+	 */
+	public void setFactionPoints(int faction, int points);
     /**
      * @param faction The faction id
      * @return  points
@@ -69,7 +79,11 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param message The message you want to send
      */
     public void sendMessage(String message);
-
+    
+    public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined);
+    
+    public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
+    
     /**
      * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure
      */
@@ -139,6 +153,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param item The item to be removed from the players inventory
      */
     public void removeAllItems(ScriptItemStack item);
+    
+    public void clearInventory();
 
 
     /**
@@ -170,6 +186,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @since 1.7.10d
      */
     public ScriptPixelmonPlayerData getPixelmonData();
+    
+    public Vec3 getLookingAtBlock(int maxDistance);
 
     public ITimers getTimers();
 

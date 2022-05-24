@@ -15,8 +15,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -24,7 +24,12 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.*;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptBlockPos;
+import noppes.npcs.scripted.ScriptEntityParticle;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
@@ -313,6 +318,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	public void setPos(IPos pos) {
 		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
 	}
+	
+	public int getDimension() {
+		return entity.dimension;
+	}
 
 	/**
 	 * @param range The search range for entities around this entity
@@ -413,6 +422,8 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		NBTBase base = compound.getTag(key);
 		if(base instanceof NBTPrimitive)
 			return ((NBTPrimitive)base).func_150286_g();
+		else if (base instanceof NBTTagIntArray)
+			return ((NBTTagIntArray)base).func_150302_c();
 		return ((NBTTagString)base).func_150285_a_();
 	}
 
@@ -428,6 +439,12 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		}
 		else if(value instanceof String)
 			compound.setString(key, (String)value);
+		saveStoredCompound(compound);
+	}
+	
+	public void setStoredData(String key, int[] array){
+		NBTTagCompound compound = getStoredCompound();
+		compound.setIntArray(key, array);
 		saveStoredCompound(compound);
 	}
 
@@ -527,6 +544,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 */
 	public String getTypeName(){
 		return EntityList.getEntityString(entity);
+	}
+	
+	public void playSound(String name, float volume, float pitch) {
+		entity.playSound(name, volume, pitch);
 	}
 
 	/**

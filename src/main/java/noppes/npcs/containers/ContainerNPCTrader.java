@@ -66,6 +66,7 @@ public class ContainerNPCTrader extends ContainerNpcInterface{
         NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i + 18), role.ignoreDamage, role.ignoreNBT);
         ItemStack soldItem = item.copy();
         givePlayer(soldItem, entityplayer);
+        ++role.purchases[i];
         return soldItem;
     	
     }
@@ -74,7 +75,7 @@ public class ContainerNPCTrader extends ContainerNpcInterface{
 		ItemStack currency2 = role.inventoryCurrency.getStackInSlot(slot + 18);
 		if(currency == null && currency2 == null)
 			return true;
-		
+		if (role.disableSlot[slot] > 0) return false; 
 		if(currency == null){
 			currency = currency2;
 			currency2 = null;

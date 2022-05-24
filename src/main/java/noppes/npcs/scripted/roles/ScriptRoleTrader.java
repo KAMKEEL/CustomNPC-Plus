@@ -47,6 +47,32 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	}
 	
 	/**
+	 * @param slot
+	 * @return The item being sold in this slot.
+	 */
+	public ScriptItemStack getSellOption(int slot) {
+		if (slot >= 18 || slot < 0) return null;
+		if (role.inventorySold.items.get(slot) == null) return null;
+		return new ScriptItemStack(role.inventorySold.items.get(slot));
+	}
+	
+	/**
+	 * @param slot
+	 * @return a ScriptItemStack array of size 2 which contains the currency of this trade
+	 */
+	public ScriptItemStack[] getCurrency(int slot) {
+		if (slot >= 18 || slot < 0) return null;
+		ScriptItemStack[] currency = new ScriptItemStack[2];
+		if (role.inventoryCurrency.items.get(slot) != null) {
+			currency[0] = new ScriptItemStack(role.inventoryCurrency.items.get(slot));
+		}
+		if (role.inventoryCurrency.items.get(slot + 18) != null) {
+			currency[1] = new ScriptItemStack(role.inventoryCurrency.items.get(slot + 18));
+		}
+		return currency;
+	}
+	
+	/**
 	 * @param slot Slot number 0-17
 	 */
 	public void removeSellOption(int slot){
@@ -69,6 +95,25 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	 */
 	public String getMarket(){
 		return role.marketName;
+	}
+	
+	public int getPurchaseNum(int slot) {
+		if(slot >= 18 || slot < 0) return -1;
+		return role.purchases[slot];
+	}
+	
+	public void resetPurchaseNum() {
+		for (int i = 0; i < role.purchases.length; ++i) role.purchases[i] = 0;
+	}
+	
+	public void disableSlot(int slot) {
+		if(slot >= 18 || slot < 0) return;
+		role.disableSlot[slot] = 1;
+	}
+	
+	public void enableSlot(int slot) {
+		if(slot >= 18 || slot < 0) return;
+		role.disableSlot[slot] = 0;
 	}
 
 	@Override

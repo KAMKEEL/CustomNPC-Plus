@@ -15,6 +15,7 @@ public class JobFollower extends JobInterface{
 
 	public JobFollower(EntityNPCInterface npc) {
 		super(npc);
+		npc.stats.canDespawn = false;
 	}
 
 	@Override

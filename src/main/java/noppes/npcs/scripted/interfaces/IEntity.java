@@ -129,7 +129,8 @@ public interface IEntity<T extends Entity> {
      * @param z The z position
      */
     public void setPosition(double x, double y, double z);
-
+    
+    public int getDimension();
 
     /**
      * @param range The search range for entities around this entity
@@ -190,6 +191,8 @@ public interface IEntity<T extends Entity> {
      * @param value The data stored. This data can be either a Number or a String. Other data is not stored
      */
     public void setStoredData(String key, Object value);
+    
+    public void setStoredData(String key, int[] array);
 
     /**
      * @param key The key of the data to be checked
@@ -251,6 +254,8 @@ public interface IEntity<T extends Entity> {
      * @return Name as which it's registered in minecraft
      */
     public String getTypeName();
+    
+    public void playSound(String name, float volume, float pitch);
 
     /**
      * @param item Item to be dropped

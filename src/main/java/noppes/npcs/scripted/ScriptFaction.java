@@ -1,11 +1,17 @@
 package noppes.npcs.scripted;
 
 import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 
 public class ScriptFaction {
+	
 	private Faction faction;
+
+	public void saveFaction() {
+		FactionController.getInstance().saveFaction(faction);
+	}
 	
 	public ScriptFaction(Faction faction){
 		this.faction = faction;
@@ -25,12 +31,56 @@ public class ScriptFaction {
 		return faction.name;
 	}
 	
+	public void setName(String name) {
+		faction.name = name;
+	}
+	
 	public int getDefaultPoints(){
 		return faction.defaultPoints;
+	}
+	
+	public void setDefaultPoints(int p) {
+		faction.defaultPoints = p;
+	}
+	
+	public int getFriendlyPoints() {
+		return faction.friendlyPoints;
+	}
+	
+	public void setFriendlyPoints(int p) {
+		faction.friendlyPoints = p;
+	}
+	
+	public int getNeutralPoints() {
+		return faction.neutralPoints;
+	}
+	
+	public void setNeutralPoints(int p) {
+		faction.neutralPoints = p;
+	}
+	
+	public boolean getHideFaction() {
+		return faction.hideFaction;
+	}
+	
+	public void setHideFaction(boolean b) {
+		faction.hideFaction = b;
+	}
+	
+	public boolean getGetsAttacked() {
+		return faction.getsAttacked;
+	}
+	
+	public void setGetsAttacked(boolean b) {
+		faction.getsAttacked = b;
 	}
 		
 	public int getColor(){
 		return faction.color;
+	}
+	
+	public void setColor(int c) {
+		faction.color = c;
 	}
 	
 	public boolean isFriendlyToPlayer(ScriptPlayer player){
@@ -47,5 +97,32 @@ public class ScriptFaction {
 	
 	public boolean isAggressiveToNpc(ScriptNpc npc){
 		return faction.isAggressiveToNpc(npc.npc);
+	}
+	
+	public int[] getFactionEnemies() {
+		if (faction.attackFactions == null) return null;
+		int[] r = new int[faction.attackFactions.size()];
+		Object[] objects = faction.attackFactions.toArray();
+		for (int i = 0; i < r.length; ++i) {
+			r[i] = (Integer)objects[i];
+		}
+		return r;
+	}
+	
+	public boolean isEnemyFaction(int id) {
+		if (faction.attackFactions == null) return false;
+		int[] enemies = getFactionEnemies();
+		for (int i = 0; i < enemies.length; ++i) {
+			if (enemies[i] == id) return true;
+		}
+		return false;
+	}
+	
+	public void addFactionEnemy(int id) {
+		if (!faction.attackFactions.contains(id)) faction.attackFactions.add(id);
+	}
+	
+	public void removeFactionEnemy(int id) {
+		faction.attackFactions.remove(id);
 	}
 }

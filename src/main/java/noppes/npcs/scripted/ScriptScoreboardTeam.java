@@ -44,6 +44,10 @@ public class ScriptScoreboardTeam {
 		return list.toArray(new String[list.size()]);
 	}
 	
+	public int getTeamsize() {
+		return team.getMembershipCollection().size();
+	}
+	
 	public void clearPlayers(){
         List<String> list = new ArrayList<String>(team.getMembershipCollection());
         for(String player : list){
