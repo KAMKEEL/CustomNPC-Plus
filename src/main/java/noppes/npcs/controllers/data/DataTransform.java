@@ -16,7 +16,7 @@ import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public class TransformData {
+public class DataTransform {
 	public NBTTagCompound display;
 	public NBTTagCompound ai;
 	public NBTTagCompound advanced;
@@ -31,7 +31,7 @@ public class TransformData {
 	
 	public boolean editingModus = false;
 	
-	public TransformData(EntityNPCInterface npc){
+	public DataTransform(EntityNPCInterface npc){
 		this.npc = npc;
 	}
 

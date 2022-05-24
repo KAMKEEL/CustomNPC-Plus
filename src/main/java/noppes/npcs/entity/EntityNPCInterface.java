@@ -72,7 +72,7 @@ import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
-import noppes.npcs.controllers.data.TransformData;
+import noppes.npcs.controllers.data.DataTransform;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.roles.JobFollower;
@@ -101,7 +101,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataAdvanced advanced;
 	public DataInventory inventory;
 	public DataScript script;
-	public TransformData transform;
+	public DataTransform transform;
 	public DataTimers timers;
 	
 	public String linkedName = "";
@@ -182,7 +182,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai = new DataAI(this);		
 		advanced = new DataAdvanced(this);
 		inventory = new DataInventory(this);
-		transform = new TransformData(this);
+		transform = new DataTransform(this);
 		script = new DataScript(this);
 		timers = new DataTimers(this);
         this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
