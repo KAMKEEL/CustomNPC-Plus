@@ -12,12 +12,12 @@ import noppes.npcs.Server;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.constants.EnumPacketServer;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
-import noppes.npcs.controllers.data.SkinOverlayData;
+import noppes.npcs.controllers.data.SkinOverlay;
 
 public class Client {
 	public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
 
-	public static HashMap<UUID, HashMap<Integer, SkinOverlayData>> skinOverlays = new HashMap<>();
+	public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
 	public static HashMap<UUID, Long> entitySkinOverlayTicks = new HashMap<>();
 
 	public static void sendData(EnumPacketServer enu, Object... obs) {

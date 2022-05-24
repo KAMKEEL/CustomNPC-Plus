@@ -21,7 +21,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -31,11 +30,9 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityFakeLiving;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.Sys;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener{
 

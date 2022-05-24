@@ -36,7 +36,7 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.Dialog;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.data.SkinOverlayData;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.Sys;
@@ -73,12 +73,12 @@ public class NoppesUtil {
 	}
 
 	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
-		HashMap<Integer, SkinOverlayData> skinOverlays = new HashMap<>();
+		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
 		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
 		
 		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
 			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
-			skinOverlays.put(tagID, (SkinOverlayData) SkinOverlayData.overlayFromNBT(skinOverlayList.getCompoundTagAt(i)));
+			skinOverlays.put(tagID, (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i)));
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}

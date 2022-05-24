@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.model;
 import java.util.Collections;
 import java.util.Vector;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -12,13 +11,11 @@ import net.minecraft.client.renderer.entity.NPCRendererHelper;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.ModelData;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.controllers.data.SkinOverlayData;
 import noppes.npcs.entity.EntityCustomNpc;
 
 import org.lwjgl.opengl.GL11;

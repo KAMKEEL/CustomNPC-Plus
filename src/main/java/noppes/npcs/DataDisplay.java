@@ -8,10 +8,9 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
-import noppes.npcs.controllers.data.SkinOverlayData;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
-import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import noppes.npcs.util.ValueUtil;
 
 import com.google.common.collect.Iterables;
@@ -140,7 +139,7 @@ public class DataDisplay {
 		if (!nbttagcompound.hasKey("SkinOverlayData") && !glowTexture.isEmpty()) {
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
-			(new SkinOverlayData(glowTexture)).writeToNBT(nbttagcompound);
+			(new SkinOverlay(glowTexture)).writeToNBT(nbttagcompound);
 
 			if (!nbttagcompound.hasKey("SkinOverlayData")) {
 				NBTTagList tagList = new NBTTagList();

@@ -6,11 +6,10 @@ package noppes.npcs.entity.old;
 
 import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.ModelData;
 import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.controllers.data.SkinOverlayData;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 
 public class EntityNPCEnderman extends EntityNpcEnderchibi
@@ -20,7 +19,7 @@ public class EntityNPCEnderman extends EntityNpcEnderchibi
         super(world);
         display.texture = "customnpcs:textures/entity/enderman/enderman.png";
         //display.glowTexture = ;
-		display.skinOverlayData.overlayList.put(0,new SkinOverlayData(
+		display.skinOverlayData.overlayList.put(0,new SkinOverlay(
 				"customnpcs:textures/overlays/ender_eyes.png", true, 1.0F, 1.0F, 0.0F, 0.0F,
 				1.0F, 1.0F, 0.0F, 0.0F, 0.0F
 		));

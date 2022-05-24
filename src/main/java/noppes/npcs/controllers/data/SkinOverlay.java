@@ -1,12 +1,11 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.scripted.interfaces.ISkinOverlay;
 
-public class SkinOverlayData implements ISkinOverlay {
+public class SkinOverlay implements ISkinOverlay {
     public DataSkinOverlays parent;
     public ResourceLocation location = null;
     public String texture;
@@ -24,15 +23,15 @@ public class SkinOverlayData implements ISkinOverlay {
     public float offsetY = 0.0F;
     public float offsetZ = 0.0F;
 
-    public SkinOverlayData() {
+    public SkinOverlay() {
     }
 
-    public SkinOverlayData(String texture) {
+    public SkinOverlay(String texture) {
         this.texture = texture;
     }
 
-    public SkinOverlayData(String texture, boolean glow, float alpha, float size, float speedX, float speedY,
-                           float scaleX, float scaleY, float offsetX, float offsetY, float offsetZ) {
+    public SkinOverlay(String texture, boolean glow, float alpha, float size, float speedX, float speedY,
+                       float scaleX, float scaleY, float offsetX, float offsetY, float offsetZ) {
         this.texture = texture;
         this.glow = glow;
         this.alpha = alpha;
@@ -157,7 +156,7 @@ public class SkinOverlayData implements ISkinOverlay {
     }
 
     public static ISkinOverlay overlayFromNBT(NBTTagCompound compound) {
-        SkinOverlayData overlay = new SkinOverlayData();
+        SkinOverlay overlay = new SkinOverlay();
         overlay.readFromNBT(compound);
         return overlay;
     }

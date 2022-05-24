@@ -21,7 +21,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.data.SkinOverlayData;
+import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
 
@@ -112,7 +112,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         if (!p_77036_1_.isInvisible())
         {
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-                for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+                for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
                     if (overlayData.location == null) {
                         overlayData.location = new ResourceLocation(overlayData.texture);
                     } else {
@@ -312,7 +312,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         renderplayer.renderFirstPersonArm(player);
 
         if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-            for (SkinOverlayData overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+            for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
                 if (overlayData.location == null) {
                     overlayData.location = new ResourceLocation(overlayData.texture);
                 } else {
