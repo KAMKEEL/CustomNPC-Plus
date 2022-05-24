@@ -29,8 +29,8 @@ public class DataSkinOverlays implements IOverlayHandler {
             skinOverlay.parent = this;
             skinOverlays.put(tagID, skinOverlay);
         }
-
         this.overlayList = skinOverlays;
+        this.updateClient();
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
