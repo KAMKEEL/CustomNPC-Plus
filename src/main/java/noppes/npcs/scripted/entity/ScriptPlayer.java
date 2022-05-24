@@ -22,6 +22,7 @@ import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
@@ -32,12 +33,10 @@ import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
+	public HashMap<Integer, ISkinOverlay> skinOverlays = new HashMap<>();
 	public T player;
 	private PlayerData data;
 
@@ -527,58 +526,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
-	public void setSkinOverlay(int id, ISkinOverlay overlay) {
-		if (id < 0) {
-			throw new CustomNPCsException("Skin overlay ID must be greater than 0.");
-		}
-
-		if (overlay != null) {
-			NBTTagCompound data = new NBTTagCompound();
-			NBTTagCompound compound = new NBTTagCompound();
-
-			compound.setInteger("SkinOverlayID", id);
-			compound.setString("SkinOverlayTexture", overlay.getTexture());
-			compound.setBoolean("SkinOverlayGlow", overlay.getGlow());
-			compound.setFloat("SkinOverlayAlpha", overlay.getAlpha());
-			compound.setFloat("SkinOverlaySize", overlay.getSize());
-			compound.setFloat("SkinOverlaySpeedX", overlay.getSpeedX());
-			compound.setFloat("SkinOverlaySpeedY", overlay.getSpeedY());
-			compound.setFloat("SkinOverlayScaleX", overlay.getScaleX());
-			compound.setFloat("SkinOverlayScaleY", overlay.getScaleY());
-			compound.setFloat("SkinOverlayOffsetX", overlay.getOffsetX());
-			compound.setFloat("SkinOverlayOffsetY", overlay.getOffsetY());
-			compound.setFloat("SkinOverlayOffsetZ", overlay.getOffsetZ());
-
-			if (!player.getEntityData().hasKey("SkinOverlayData")) {
-				NBTTagList tagList = new NBTTagList();
-				tagList.appendTag(compound);
-				player.getEntityData().setTag("SkinOverlayData", tagList);
-			} else {
-				for (int i = 0; i < player.getEntityData().getTagList("SkinOverlayData", 10).tagCount(); i++) {
-					int tagID = player.getEntityData().getTagList("SkinOverlayData", 10).getCompoundTagAt(i).getInteger("SkinOverlayID");
-					if (tagID == id) {
-						player.getEntityData().getTagList("SkinOverlayData", 10).removeTag(i);
-					}
-				}
-				player.getEntityData().getTagList("SkinOverlayData", 10).appendTag(compound);
-			}
-			data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
-			Server.sendData((EntityPlayerMP) this.entity, EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, data);
-		}
-	}
-
-	public void removeSkinOverlay(int id) {
-		if (player.getEntityData().hasKey("SkinOverlayData")) {
-			NBTTagCompound data = new NBTTagCompound();
-			for (int i = 0; i < player.getEntityData().getTagList("SkinOverlayData",10).tagCount(); i++) {
-				int tagID = player.getEntityData().getTagList("SkinOverlayData",10).getCompoundTagAt(i).getInteger("SkinOverlayID");
-				if (tagID == id) {
-					player.getEntityData().getTagList("SkinOverlayData",10).removeTag(i);
-				}
-			}
-			data.setTag("SkinOverlayData",player.getEntityData().getTagList("SkinOverlayData",10));
-			Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, data);
-		}
+	public IOverlayHandler getOverlays() {
+		return this.getData().skinOverlays;
 	}
 
 	public IQuest[] getFinishedQuests() {

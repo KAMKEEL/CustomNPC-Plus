@@ -130,7 +130,7 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	    	}
 	    	//npc.display.glowTexture = "";
-            npc.display.skinOverlays.remove(0);
+            npc.display.skinOverlayData.overlayList.remove(0);
 			npc.textureLocation = null;
 			npc.textureGlowLocation = null;
 			npc.updateHitbox();

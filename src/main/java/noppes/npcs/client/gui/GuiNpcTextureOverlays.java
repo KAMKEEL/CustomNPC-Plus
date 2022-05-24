@@ -12,14 +12,14 @@ import org.lwjgl.opengl.GL11;
 public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     public GuiNpcTextureOverlays(EntityNPCInterface npc,GuiScreen parent){
     	//super(npc, parent, npc.display.glowTexture.isEmpty()?"customnpcs:textures/overlays/":npc.display.glowTexture);
-        super(npc, parent, npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).getTexture() : "");
+        super(npc, parent, npc.display.skinOverlayData.overlayList.containsKey(0) ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : "");
         title = "Select Overlay";
     	this.parent = parent;
     }
 
     public void initGui(){
     	super.initGui();
-        String str = npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).getTexture() : "";
+        String str = npc.display.skinOverlayData.overlayList.containsKey(0) ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : "";
         int index = str.lastIndexOf("/");
         if(index > 0){
         	String asset = str.substring(index + 1);
@@ -79,8 +79,8 @@ public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     		//npc.display.glowTexture = assets.getAsset(slot.selected);
     		npc.textureGlowLocation = null;
 
-            npc.display.skinOverlays.put(0,new SkinOverlayData(
-                    assets.getAsset(slot.selected), true, 0.8F, 1.0F, 0.0F, 0.0F,
+            npc.display.skinOverlayData.overlayList.put(0,new SkinOverlayData(
+                    assets.getAsset(slot.selected), true, 1.0F, 1.0F, 0.0F, 0.0F,
                     1.0F, 1.0F, 0.0F, 0.0F, 0.0F
             ));
     	}

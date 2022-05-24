@@ -213,13 +213,13 @@ public class RenderNPCInterface extends RenderLiving{
 		super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
 
-		if (!npc.display.skinOverlays.isEmpty()) {
-			for (ISkinOverlay overlayData : npc.display.skinOverlays.values()) {
+		if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
+			for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 				try {
 					if (overlayData.getLocation() == null) {
 						overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
 					} else {
-						String str = npc.display.skinOverlays.get(0).getLocation().getResourceDomain()+":"+npc.display.skinOverlays.get(0).getLocation().getResourcePath();
+						String str = npc.display.skinOverlayData.overlayList.get(0).getLocation().getResourceDomain()+":"+npc.display.skinOverlayData.overlayList.get(0).getLocation().getResourcePath();
 						if (!str.equals(overlayData.getTexture())) {
 							overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
 						}

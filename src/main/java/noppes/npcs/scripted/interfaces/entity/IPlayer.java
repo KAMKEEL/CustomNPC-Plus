@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.scripted.ScriptBlock;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
+import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
@@ -225,9 +226,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void closeOverlay(int id);
 
-    void setSkinOverlay(int id, ISkinOverlay overlay);
-
-    void removeSkinOverlay(int id);
+    IOverlayHandler getOverlays();
 
     IQuest[] getFinishedQuests();
 }

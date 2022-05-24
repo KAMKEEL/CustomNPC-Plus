@@ -11,6 +11,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.util.NBTJsonUtil;
@@ -27,6 +28,7 @@ public class PlayerData implements IExtendedEntityProperties{
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData();
 	public PlayerMailData mailData = new PlayerMailData();
 	public DataTimers timers = new DataTimers(this);
+	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
 
 	public EntityNPCInterface editingNpc;
 	public NBTTagCompound cloned;
@@ -64,6 +66,7 @@ public class PlayerData implements IExtendedEntityProperties{
 		itemgiverData.loadNBTData(data);
 		mailData.loadNBTData(data);
 		timers.readFromNBT(data);
+		skinOverlays.readFromNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -100,6 +103,7 @@ public class PlayerData implements IExtendedEntityProperties{
 		itemgiverData.saveNBTData(compound);
 		mailData.saveNBTData(compound);
 		timers.writeToNBT(compound);
+		skinOverlays.writeToNBT(compound);
 
 		compound.setString("PlayerName", playername);
 		compound.setString("UUID", uuid);

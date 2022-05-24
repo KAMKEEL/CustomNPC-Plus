@@ -12,6 +12,7 @@ import noppes.npcs.scripted.ScriptFaction;
 import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
@@ -1097,23 +1098,19 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setOverlayTexture(String overlayTexture) {
-		this.setSkinOverlay(0, NpcAPI.Instance().createSkinOverlay(overlayTexture));
+		this.getOverlays().add(0, NpcAPI.Instance().createSkinOverlay(overlayTexture));
+		npc.updateClient = true;
 	}
+
 	public String getOverlayTexture() {
-		if (!npc.display.skinOverlays.containsKey(0))
+		if (!npc.display.skinOverlayData.overlayList.containsKey(0))
 			return "";
 
-		return npc.display.skinOverlays.get(0).getTexture();
+		return npc.display.skinOverlayData.overlayList.get(0).getTexture();
 	}
 
-	public void setSkinOverlay(int id, ISkinOverlay overlay) {
-		if (overlay != null) {
-			npc.display.skinOverlays.put(id, overlay);
-		}
-	}
-
-	public void removeSkinOverlay(int id) {
-		npc.display.skinOverlays.remove(id);
+	public IOverlayHandler getOverlays() {
+		return npc.display.skinOverlayData;
 	}
 
 	public void setCollisionType(int type){

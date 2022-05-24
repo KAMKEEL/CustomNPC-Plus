@@ -78,7 +78,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
     	addLabel(new GuiNpcLabel(9,"display.overlay", guiLeft + 5, y + 5));
 
-        addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, npc.display.skinOverlays.containsKey(0) ? npc.display.skinOverlays.get(0).getTexture() : ""));
+        addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, npc.display.skinOverlayData.overlayList.containsKey(0) ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : ""));
     	this.addButton(new GuiNpcButton(9, guiLeft + 283, y, 80, 20, "display.selectTexture"));
 
     	y+=23;
@@ -131,8 +131,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		else if(textfield.id == 9){
 			npc.textureGlowLocation = null;
 			//display.glowTexture = textfield.getText();
-			npc.display.skinOverlays.put(0,new SkinOverlayData(
-					textfield.getText(), true, 0.8F, 1.0F, 0.0F, 0.0F,
+			npc.display.skinOverlayData.overlayList.put(0,new SkinOverlayData(
+					textfield.getText(), true, 1.0F, 1.0F, 0.0F, 0.0F,
 					1.0F, 1.0F, 0.0F, 0.0F, 0.0F
 			));
 		}

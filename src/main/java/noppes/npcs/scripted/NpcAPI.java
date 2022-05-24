@@ -45,7 +45,6 @@ import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
-import noppes.npcs.scripted.interfaces.item.IItemCustom;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
