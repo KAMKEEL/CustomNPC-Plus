@@ -8,7 +8,7 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.TransformData;
+import noppes.npcs.controllers.data.TransformData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCNightSetup extends GuiNPCInterface2 implements IGuiData

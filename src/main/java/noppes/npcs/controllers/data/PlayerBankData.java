@@ -1,9 +1,10 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.HashMap;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.controllers.BankController;
 
 public class PlayerBankData{
 	public HashMap<Integer,BankData> banks;

@@ -21,8 +21,8 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogOption;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.input.Keyboard;

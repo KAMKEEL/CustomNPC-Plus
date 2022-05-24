@@ -2,9 +2,9 @@ package foxz.command;
 
 import java.util.List;
 
-import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerFactionData;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerFactionData;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;

@@ -7,10 +7,10 @@ import java.util.List;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.Availability;
-import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.data.Availability;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 

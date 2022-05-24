@@ -17,6 +17,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.scripted.interfaces.handler.IFactionHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IFaction;
 

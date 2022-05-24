@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.NpcMiscInventory;
+import noppes.npcs.controllers.QuestController;
 
 public class PlayerMail implements IInventory{
 	public String subject = "";

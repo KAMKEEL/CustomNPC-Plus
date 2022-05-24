@@ -11,7 +11,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.containers.ContainerNpcQuestTypeItem;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestItem;
 

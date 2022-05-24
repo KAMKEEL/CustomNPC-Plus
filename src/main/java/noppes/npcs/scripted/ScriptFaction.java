@@ -1,7 +1,7 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;

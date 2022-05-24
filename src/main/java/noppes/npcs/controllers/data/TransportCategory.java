@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.HashMap;
 import java.util.Vector;

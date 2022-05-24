@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.scripted.interfaces.handler.data.IRecipe;
 
 public class RecipeCarpentry extends ShapedRecipes implements IRecipe {

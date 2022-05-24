@@ -14,8 +14,8 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogOption;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogOption;
 
 public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, ITextfieldListener, GuiSelectionListener, ISubGuiListener{
 	private DialogOption option;

@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -7,6 +7,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.controllers.RecipeController;
+
 public class RecipesDefault {
 	public static void addRecipe(String name, Object ob, boolean isGlobal, Object... recipe){
 		ItemStack item;

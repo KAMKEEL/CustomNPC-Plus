@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestInterface;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 

@@ -13,6 +13,8 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipesDefault;
 import noppes.npcs.scripted.interfaces.handler.IRecipeHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IRecipe;
 
@@ -75,7 +77,7 @@ public class RecipeController implements IRecipeHandler {
 	private void loadDefaultRecipes(int i) {
 		if(i == version)
 			return;
-		RecipesDefault.loadDefaultRecipes(i);	
+		RecipesDefault.loadDefaultRecipes(i);
 		saveCategories();
 	}
 

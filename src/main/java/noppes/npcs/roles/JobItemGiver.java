@@ -12,11 +12,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.controllers.Availability;
+import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.GlobalDataController;
-import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerItemGiverData;
+import noppes.npcs.controllers.data.PlayerItemGiverData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class JobItemGiver extends JobInterface{

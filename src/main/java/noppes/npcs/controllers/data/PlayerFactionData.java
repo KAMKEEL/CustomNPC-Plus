@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.HashMap;
 
@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
+import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;

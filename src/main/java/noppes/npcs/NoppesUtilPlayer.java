@@ -26,6 +26,7 @@ import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
 import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;

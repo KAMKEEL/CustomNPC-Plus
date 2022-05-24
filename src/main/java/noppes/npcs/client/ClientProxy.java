@@ -131,7 +131,7 @@ import noppes.npcs.client.renderer.blocks.BlockWeaponRackRenderer;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 
 import noppes.npcs.items.ItemScripted;

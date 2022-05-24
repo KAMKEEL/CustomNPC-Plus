@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -6,6 +6,8 @@ import java.util.Iterator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.interfaces.handler.data.IFaction;
@@ -72,7 +74,7 @@ public class Faction implements IFaction {
 	}
 
 	public boolean isFriendlyToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;		
+		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;
 		return data.getFactionPoints(id) >= friendlyPoints;
 	}
 

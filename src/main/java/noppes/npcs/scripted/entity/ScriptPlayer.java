@@ -5,7 +5,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
@@ -17,6 +16,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
@@ -134,7 +134,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
         if(data.questData.activeQuests.containsKey(id))
         	return;
-        QuestData questdata = new QuestData(quest);        
+        QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);

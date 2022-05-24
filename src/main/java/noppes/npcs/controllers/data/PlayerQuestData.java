@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.HashMap;
 
@@ -11,6 +11,8 @@ import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
 

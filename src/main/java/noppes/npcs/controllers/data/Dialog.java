@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +10,8 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumOptionType;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.interfaces.handler.data.*;
 

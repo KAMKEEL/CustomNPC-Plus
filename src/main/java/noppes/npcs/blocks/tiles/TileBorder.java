@@ -14,7 +14,7 @@ import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
-import noppes.npcs.controllers.Availability;
+import noppes.npcs.controllers.data.Availability;
 
 public class TileBorder extends TileEntity implements IEntitySelector{
 	public Availability availability = new Availability();

@@ -25,7 +25,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;

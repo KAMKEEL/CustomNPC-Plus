@@ -1,8 +1,9 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumOptionType;
+import noppes.npcs.controllers.DialogController;
 
 public class DialogOption {
 	public int dialogId = -1;

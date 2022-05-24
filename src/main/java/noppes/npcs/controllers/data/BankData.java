@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.controllers.data;
 
 import java.util.HashMap;
 
@@ -15,6 +15,7 @@ import noppes.npcs.Server;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.containers.ContainerNPCBankInterface;
+import noppes.npcs.controllers.BankController;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class BankData {

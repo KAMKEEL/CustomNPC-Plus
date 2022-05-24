@@ -6,7 +6,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.quests.QuestItem;
 
 public class ContainerNpcQuestTypeItem extends Container

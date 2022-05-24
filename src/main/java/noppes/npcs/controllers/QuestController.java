@@ -10,6 +10,8 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.scripted.interfaces.handler.IQuestHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestCategory;
