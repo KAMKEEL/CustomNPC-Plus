@@ -432,16 +432,6 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
-
-            //Loads other players' and own player's skin overlays if they have them
-            /*
-            List<EntityPlayerMP> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
-            for (EntityPlayerMP playerMP : list) {
-                if (playerMP.getEntityData().hasKey("SkinOverlayData")) {
-                    NBTTagCompound data = new NBTTagCompound();
-                    data.setTag("SkinOverlayData",playerMP.getEntityData().getTagList("SkinOverlayData",10));
-                }
-            }*/
         }
     }
 
