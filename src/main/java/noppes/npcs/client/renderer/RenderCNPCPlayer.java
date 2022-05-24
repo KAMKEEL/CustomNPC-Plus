@@ -63,12 +63,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
         float partialTickTime = Client.entitySkinOverlayTicks.get(player.getUniqueID());
 
         // Overlay & Glow
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
+
         if (glow) {
-            GL11.glDepthFunc(GL11.GL_LEQUAL);
-            GL11.glEnable(GL11.GL_BLEND);
             GL11.glDisable(GL11.GL_LIGHTING);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
             Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
             RenderHelper.disableStandardItemLighting();
         }
@@ -98,7 +98,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glDepthFunc(GL11.GL_LEQUAL);
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
         Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
