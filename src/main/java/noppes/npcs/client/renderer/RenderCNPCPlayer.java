@@ -29,7 +29,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 public class RenderCNPCPlayer extends RenderPlayer {
-    public OverlayRenderHelper itemRenderer = new OverlayRenderHelper(Minecraft.getMinecraft());
+    public RenderCNPCHand itemRenderer = new RenderCNPCHand(Minecraft.getMinecraft());
     public float tempRenderPartialTicks;
     private float debugCamFOV;
     private float prevDebugCamFOV;
