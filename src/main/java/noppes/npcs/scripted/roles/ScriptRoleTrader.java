@@ -97,20 +97,43 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 		return role.marketName;
 	}
 	
+	/**
+	 * @param slot
+	 * @return the number of times an item has been sold on that slot
+	 */
 	public int getPurchaseNum(int slot) {
 		if(slot >= 18 || slot < 0) return -1;
 		return role.purchases[slot];
 	}
 	
+	/**
+	 * Sets the purchase count of all slots to 0
+	 */
 	public void resetPurchaseNum() {
 		for (int i = 0; i < role.purchases.length; ++i) role.purchases[i] = 0;
 	}
 	
+	/**
+	 * sets the purchase num for that slot to 0
+	 * @param slot
+	 */
+	public void resetPurchaseNum(int slot) {
+		role.purchases[slot] = 0;
+	}
+	
+	/**
+	 * prevent an item from being sold on that slot
+	 * @param slot
+	 */
 	public void disableSlot(int slot) {
 		if(slot >= 18 || slot < 0) return;
 		role.disableSlot[slot] = 1;
 	}
 	
+	/**
+	 * allow an item to be sold on that slot
+	 * @param slot
+	 */
 	public void enableSlot(int slot) {
 		if(slot >= 18 || slot < 0) return;
 		role.disableSlot[slot] = 0;
