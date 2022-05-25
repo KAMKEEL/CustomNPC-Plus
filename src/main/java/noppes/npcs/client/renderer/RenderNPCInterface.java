@@ -1,6 +1,9 @@
 package noppes.npcs.client.renderer;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.Map;
 
@@ -13,6 +16,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -31,6 +35,8 @@ import org.lwjgl.opengl.GL11;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+
+import javax.imageio.ImageIO;
 
 
 public class RenderNPCInterface extends RenderLiving{
@@ -292,49 +298,78 @@ public class RenderNPCInterface extends RenderLiving{
 	public ResourceLocation getEntityTexture(Entity entity) {
 
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
-		if(npc.textureLocation == null){
-			if(npc.display.skinType == 0) {
+		if (npc.textureLocation == null) {
+			if (npc.display.skinType == 0) {
 				if (!(npc.display.texture).equals("")) {
-					npc.textureLocation = new ResourceLocation(npc.display.texture);
+					//npc.textureLocation = new ResourceLocation(npc.display.texture);
+					try {
+						npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
+					} catch (IOException ignored) {}
 				}
-			}
-			else if(LastTextureTick < 5){ //fixes request flood somewhat
+			} else if(LastTextureTick < 5) { //fixes request flood somewhat
 				return AbstractClientPlayer.locationStevePng;
-			}
-			else if(npc.display.skinType == 1 && npc.display.playerProfile != null){
+			} else if(npc.display.skinType == 1 && npc.display.playerProfile != null) {
 				Minecraft minecraft = Minecraft.getMinecraft();
 				Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
 				if (map.containsKey(Type.SKIN)){
 					npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture)map.get(Type.SKIN), Type.SKIN);
 				}
 				LastTextureTick = 0;
-			}
-			else if(npc.display.skinType == 2 || npc.display.skinType == 3){
-				try{
+			} else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
+				try {
 					MessageDigest digest = MessageDigest.getInstance("MD5");
 					byte[] hash = digest.digest(npc.display.url.getBytes("UTF-8"));
 					StringBuilder sb = new StringBuilder(2*hash.length);
-					for(byte b : hash){
+					for (byte b : hash) {
 						sb.append(String.format("%02x", b&0xff));
 					}
-					if(npc.display.skinType == 2){
+					if (npc.display.skinType == 2) {
 						npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
 						loadSkin(null, npc.textureLocation, npc.display.url, false);
-					}
-					else{
+					} else {
 						npc.textureLocation = new ResourceLocation("skins64/" + sb.toString());
 						loadSkin(null, npc.textureLocation, npc.display.url, true);
 					}
 					LastTextureTick = 0;
-				}
-				catch(Exception ex){
-
-				}
+				} catch(Exception ignored){}
+			} else {
+				return AbstractClientPlayer.locationStevePng;
 			}
 		}
-		if(npc.textureLocation == null)
-			return AbstractClientPlayer.locationStevePng;
 		return npc.textureLocation;
+	}
+
+	private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
+		if (npc.display.modelType != 0) {
+			return location;
+		}
+
+		InputStream inputstream = null;
+
+		try {
+			IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
+			inputstream = iresource.getInputStream();
+
+			BufferedImage bufferedimage = ImageIO.read(inputstream);
+
+			int totalWidth = bufferedimage.getWidth();
+			int totalHeight = bufferedimage.getHeight();
+
+			if (totalHeight > 32) {
+				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
+
+				TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+				ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+				object.setBufferedImage(bufferedimage);
+				texturemanager.loadTexture(location, object);
+			}
+
+			return location;
+		} finally {
+			if (inputstream != null) {
+				inputstream.close();
+			}
+		}
 	}
 
 	// 64x64 Skin is True
