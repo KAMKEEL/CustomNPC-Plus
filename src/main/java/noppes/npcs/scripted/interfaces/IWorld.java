@@ -28,6 +28,12 @@ public interface IWorld {
      * @return The block at the given position. Returns null if there isn't a block
      */
     public IBlock getBlock(int x, int y, int z);
+    
+    /**
+	 * @param pos
+	 * @return The block at the given position. Returns null if there isn't a block
+	 */
+    public IBlock getBlock(IPos pos);
 
     /**
      * @param x World position x
@@ -53,6 +59,8 @@ public interface IWorld {
 	 * @param block The block to be set
 	 */
 	public void setBlock(int x, int y, int z, Block block);
+	
+	public void setBlock(int x, int y, int z, IBlock block);
     
     /**
      * @param x World position x
@@ -63,7 +71,7 @@ public interface IWorld {
     
     public IBlock rayCastBlock(Vec3 pos, Vec3 look, int maxDistance);
     
-    public Vec3 getNearestAir(Vec3 pos, int maxHeight);
+    public IPos getNearestAir(IPos pos, int maxHeight);
     
     public boolean canSeeSky(int x, int y, int z);
 

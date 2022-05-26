@@ -28,6 +28,7 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.IWorld;
 
 public class ScriptWorld implements IWorld {
@@ -66,6 +67,14 @@ public class ScriptWorld implements IWorld {
 		if(block == null || block.isAir(world, x, y, z))
 			return null;
 		return new ScriptBlock(world, block, new BlockPos(x,y,z));
+	}
+	
+	/**
+	 * @param pos
+	 * @return The block at the given position. Returns null if there isn't a block
+	 */
+	public IBlock getBlock(IPos pos){
+		return getBlock(pos.getX(), pos.getY(), pos.getZ());
 	}
 
 	/**
@@ -155,35 +164,33 @@ public class ScriptWorld implements IWorld {
 		return null;
 	}
 	
-	public Vec3 getNearestAir(Vec3 pos, int maxHeight) {
+	public IPos getNearestAir(IPos pos, int maxHeight) {
 		if (pos == null) return null;
-		Vec3 currentPos = pos;
+		IPos currentPos = pos;
 		IBlock block = null; int rep = 0;
 		while (rep++ < maxHeight) {
 			//check +x
-			currentPos = currentPos.addVector(1, 0, 0);
-			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			currentPos = currentPos.add(1, 0, 0);
+			block = getBlock(currentPos);
 			if (block == null) break;
 			//check -x
-			currentPos = currentPos.addVector(-2, 0, 0);
-			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			currentPos = currentPos.add(-2, 0, 0);
+			block = getBlock(currentPos);
 			if (block == null) break;
 			//check +z
-			currentPos = currentPos.addVector(1, 0, 1);
-			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			currentPos = currentPos.add(1, 0, 1);
+			block = getBlock(currentPos);
 			if (block == null) break;
 			//check -z
-			currentPos = currentPos.addVector(0, 0, -2);
-			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			currentPos = currentPos.add(0, 0, -2);
+			block = getBlock(currentPos);
 			if (block == null) break;
 			//check up 1
-			currentPos = currentPos.addVector(0, 1, 1);
-			block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			currentPos = currentPos.add(0, 1, 1);
+			block = getBlock(currentPos);
 			if (block == null) break;
 		}
-		Vec3 posInt = Vec3.createVectorHelper((int)currentPos.xCoord, 
-				(int)currentPos.yCoord, (int)currentPos.zCoord);
-		return posInt;
+		return currentPos;
 	}
 	
 	public boolean canSeeSky(int x, int y, int z) {
