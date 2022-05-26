@@ -144,17 +144,18 @@ public class ScriptWorld implements IWorld {
 		world.setBlock(x, y, z, Blocks.air);
 	}
 	
-	public IBlock rayCastBlock(Vec3 pos, Vec3 look, int maxDistance) {
-		Vec3 currentPos = pos; int rep = 0;
+	public IBlock rayCastBlock(double[] pos, double[] look, int maxDistance) {
+		if (pos.length != 3 || look.length != 3) return null;
+		Vec3 currentPos = Vec3.createVectorHelper(pos[0], pos[1], pos[2]); int rep = 0;
 		while (rep++ < maxDistance + 10) {
-			currentPos = currentPos.addVector(look.xCoord, look.yCoord, look.zCoord);
+			currentPos = currentPos.addVector(look[0], look[1], look[2]);
 			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
 			//System.out.println("Checking block at ["+(int)currentPos.xCoord+","+(int)currentPos.yCoord+","+(int)currentPos.zCoord+"]");
 			if (block == null) continue;
 			double distance = Math.pow(
-					Math.pow(currentPos.xCoord-pos.xCoord,2)
-					+Math.pow(currentPos.yCoord-pos.yCoord,2)
-					+Math.pow(currentPos.zCoord-pos.zCoord,2)
+					Math.pow(currentPos.xCoord-pos[0],2)
+					+Math.pow(currentPos.yCoord-pos[1],2)
+					+Math.pow(currentPos.zCoord-pos[2],2)
 					, 0.5);
 			//System.out.println("current distance check: "+distance+" on rep "+rep);
 			if (distance > maxDistance) return null;

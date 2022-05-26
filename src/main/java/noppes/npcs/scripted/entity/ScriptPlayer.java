@@ -479,10 +479,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 	
 	public IBlock getLookingAtBlock(int maxDistance) {
-		Vec3 posVec = Vec3.createVectorHelper(player.posX, 
-				player.posY+player.getEyeHeight(), player.posZ);
 		Vec3 lookVec = player.getLookVec();
-		return getWorld().rayCastBlock(posVec, lookVec, maxDistance);
+		return getWorld().rayCastBlock(
+				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ}, 
+				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord}, 
+				maxDistance);
 	}
 
 	public ITimers getTimers() {
