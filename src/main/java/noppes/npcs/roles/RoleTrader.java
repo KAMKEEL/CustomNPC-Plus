@@ -1,17 +1,19 @@
 package noppes.npcs.roles;
 
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import foxz.utils.Market;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityNPCInterface;
-import foxz.utils.Market;
 
 public class RoleTrader extends RoleInterface{
 
@@ -26,6 +28,8 @@ public class RoleTrader extends RoleInterface{
 	
 	public int[] purchases;
 	public int[] disableSlot;
+	public HashMap<String, int[]> playerPurchases;
+	public HashMap<String, int[]> playerDisableSlot;
 	
 	public RoleTrader(EntityNPCInterface npc) {
 		super(npc);
@@ -33,6 +37,8 @@ public class RoleTrader extends RoleInterface{
 		inventorySold = new NpcMiscInventory(18);
 		purchases = new int[18];
 		disableSlot = new int[18];
+		playerPurchases = new HashMap<String, int[]>();
+		playerDisableSlot = new HashMap<String, int[]>();
 	}
 
 	@Override
@@ -53,6 +59,8 @@ public class RoleTrader extends RoleInterface{
         nbttagcompound.setBoolean("TraderIgnoreNBT", ignoreNBT);
         nbttagcompound.setIntArray("Purchases", purchases);
         nbttagcompound.setIntArray("DisableSlot", disableSlot);
+        nbttagcompound.setTag("PlayerPurchases", NBTTags.nbtStringIntegerArrayMap(playerPurchases));
+        nbttagcompound.setTag("PlayerDisableSlot", NBTTags.nbtStringIntegerArrayMap(playerDisableSlot));
         return nbttagcompound;
 	}
 
@@ -75,15 +83,17 @@ public class RoleTrader extends RoleInterface{
         ignoreDamage = nbttagcompound.getBoolean("TraderIgnoreDamage");
         ignoreNBT = nbttagcompound.getBoolean("TraderIgnoreNBT");
         purchases = nbttagcompound.getIntArray("Purchases");
-        if (purchases == null || purchases.length < 18) {
+        if (purchases == null || purchases.length != 18) {
         	purchases = new int[18];
         	for (int i = 0; i < purchases.length; ++i) purchases[i] = 0;
         }
         disableSlot = nbttagcompound.getIntArray("DisableSlot");
-        if (disableSlot == null || disableSlot.length < 18) {
+        if (disableSlot == null || disableSlot.length != 18) {
         	disableSlot = new int[18];
         	for (int i = 0; i < disableSlot.length; ++i) disableSlot[i] = 0;
         }
+        playerPurchases = NBTTags.getStringIntegerArrayMap(nbttagcompound.getTagList("PlayerPurchases", 10), 18);
+        playerDisableSlot = NBTTags.getStringIntegerArrayMap(nbttagcompound.getTagList("PlayerDisableSlot", 10), 18);
 	}
 	
 	@Override
@@ -106,6 +116,25 @@ public class RoleTrader extends RoleInterface{
 			}
 		}
 		return false;
+	}
+	
+	public void addPurchase(int slot, EntityPlayer player) {
+		if(slot >= 18 || slot < 0) return;
+		++purchases[slot];
+		++getArrayByName(player.getDisplayName(), playerPurchases)[slot];
+	}
+	
+	public boolean isSlotEnabled(int slot, EntityPlayer player) {
+		if(slot >= 18 || slot < 0) return false;
+		if (disableSlot[slot] > 0) return false;
+		if (getArrayByName(player.getDisplayName(), playerDisableSlot)[slot] > 0) return false;
+		return true;
+	}
+	
+	public int[] getArrayByName(String name, HashMap<String, int[]> map) {
+		int[] a = map.get(name);
+		if (a == null) a = map.put(name, new int[18]);
+		return a;
 	}
 
 }
