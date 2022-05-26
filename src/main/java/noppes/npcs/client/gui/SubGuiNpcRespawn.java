@@ -55,6 +55,7 @@ public class SubGuiNpcRespawn extends SubGuiInterface implements ITextfieldListe
 		}
 		else if(button.id == 1){
 			stats.canDespawn = button.getValue() == 1;
+			stats.playerSetCanDespawn = stats.canDespawn;
 		}
 		else if(button.id == 4){
 			stats.hideKilledBody = button.getValue() == 1;

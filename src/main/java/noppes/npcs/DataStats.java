@@ -27,6 +27,7 @@ public class DataStats {
 	public int spawnCycle = 0;
 	public boolean hideKilledBody = false;
 	public boolean canDespawn = false;
+	public boolean playerSetCanDespawn = false;
 	
 	public Resistances resistances = new Resistances();
 
@@ -110,8 +111,9 @@ public class DataStats {
 		compound.setBoolean("CanDrown", canDrown);
 		compound.setBoolean("BurnInSun", burnInSun);
 		compound.setBoolean("NoFallDamage", noFallDamage);
-		compound.setBoolean("CanDespawn", canDespawn);
 		compound.setBoolean("AttackInvisible", attackInvisible);
+		compound.setBoolean("CanDespawn", canDespawn);
+		compound.setBoolean("PlayerSetCanDespawn", playerSetCanDespawn);
 		
 		return compound;
 	}
@@ -169,8 +171,9 @@ public class DataStats {
 		canDrown = compound.getBoolean("CanDrown");
 		burnInSun = compound.getBoolean("BurnInSun");
 		noFallDamage = compound.getBoolean("NoFallDamage");
-		canDespawn = compound.getBoolean("CanDespawn");
 		attackInvisible = compound.getBoolean("AttackInvisible");
+		canDespawn = compound.getBoolean("CanDespawn");
+		playerSetCanDespawn = compound.getBoolean("PlayerSetCanDespawn");
 		
 		npc.setImmuneToFire(immuneToFire);
 	}
