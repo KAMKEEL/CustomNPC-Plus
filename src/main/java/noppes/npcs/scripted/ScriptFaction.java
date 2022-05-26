@@ -99,19 +99,14 @@ public class ScriptFaction {
 		return faction.isAggressiveToNpc(npc.npc);
 	}
 	
-	public int[] getFactionEnemies() {
-		if (faction.attackFactions == null) return null;
-		int[] r = new int[faction.attackFactions.size()];
-		Object[] objects = faction.attackFactions.toArray();
-		for (int i = 0; i < r.length; ++i) {
-			r[i] = (Integer)objects[i];
-		}
-		return r;
+	public Integer[] getFactionEnemies() {
+		if (faction.attackFactions == null) return new Integer[0];
+		return faction.attackFactions.toArray(new Integer[faction.attackFactions.size()]);
 	}
 	
 	public boolean isEnemyFaction(int id) {
 		if (faction.attackFactions == null) return false;
-		int[] enemies = getFactionEnemies();
+		Integer[] enemies = getFactionEnemies();
 		for (int i = 0; i < enemies.length; ++i) {
 			if (enemies[i] == id) return true;
 		}
