@@ -36,7 +36,6 @@ import noppes.npcs.util.ValueUtil;
 import java.util.*;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
-	public HashMap<Integer, ISkinOverlay> skinOverlays = new HashMap<>();
 	public T player;
 	private PlayerData data;
 
@@ -93,10 +92,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 			saturation = 0;
 
 		player.getFoodStats().addStats(0,saturation-prevSaturation);
-	}
-
-	public int getDimension(){
-		return player.dimension;
 	}
 
 	
