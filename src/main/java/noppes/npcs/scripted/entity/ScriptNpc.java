@@ -270,11 +270,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 	
 	public void setProjectilesKeepTerrain(boolean t) {
-		npc.projectilesKeepTerrain = t;
+		npc.stats.projectilesKeepTerrain = t;
 	}
 	
 	public boolean getProjectilesKeepTerrain() {
-		return npc.projectilesKeepTerrain;
+		return npc.stats.projectilesKeepTerrain;
 	}
 
 

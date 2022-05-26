@@ -47,6 +47,7 @@ public class DataStats {
     public int pEffAmp = 0;
     public String fireSound = "random.bow";
 	public boolean aimWhileShooting = false;
+	public boolean projectilesKeepTerrain = false;
 	
 	public EnumCreatureAttribute creatureType = EnumCreatureAttribute.UNDEFINED;
 	
@@ -102,6 +103,7 @@ public class DataStats {
 		compound.setInteger("pEffAmp", pEffAmp);
 		compound.setString("FiringSound", fireSound);
 		compound.setBoolean("AimWhileShooting", aimWhileShooting);
+		compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
 
 		compound.setBoolean("ImmuneToFire", immuneToFire);
 		compound.setBoolean("PotionImmune", potionImmune);
@@ -160,6 +162,7 @@ public class DataStats {
 		pEffAmp = compound.getInteger("pEffAmp");
 		fireSound = compound.getString("FiringSound");
 		aimWhileShooting = compound.getBoolean("AimWhileShooting");
+		projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
 
 		immuneToFire = compound.getBoolean("ImmuneToFire");	
 		potionImmune = compound.getBoolean("PotionImmune");		

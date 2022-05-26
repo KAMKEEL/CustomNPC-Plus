@@ -139,7 +139,7 @@ public class EntityProjectile extends EntityThrowable {
         if (isNPC) {
         	this.npc = (EntityNPCInterface) this.thrower;
         	this.getStatProperties(this.npc.stats);
-        	this.destroyTerrain = !this.npc.projectilesKeepTerrain;
+        	this.destroyTerrain = !this.npc.stats.projectilesKeepTerrain;
         }
     }
     
