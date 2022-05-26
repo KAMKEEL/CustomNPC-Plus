@@ -219,19 +219,6 @@ public interface IWorld {
      */
     public ScriptEntity spawnClone(int x, int y, int z, int tab, String name);
     
-    public boolean spawnEntity(Entity e);
-    
-    /**
-	 * Create a new default faction
-	 * @param name The name of the new faction. If the name already exists an '_' will be added at the end
-	 * @return The faction object which was created
-	 */
-    public ScriptFaction createFaction(String name);
-    
-    public ScriptFaction getFactionFromName(String name);
-    
-    public ScriptFaction getFactionFromId(int id);
-    
     public ScriptScoreboard getScoreboard();
 
     BlockPos getMCBlockPos(int x, int y, int z);

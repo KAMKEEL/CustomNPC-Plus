@@ -129,8 +129,6 @@ public interface IEntity<T extends Entity> {
      * @param z The z position
      */
     public void setPosition(double x, double y, double z);
-    
-    public int getDimension();
 
     /**
      * @param range The search range for entities around this entity

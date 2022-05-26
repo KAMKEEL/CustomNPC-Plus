@@ -420,40 +420,6 @@ public class ScriptWorld implements IWorld {
 		return ScriptController.Instance.getScriptForEntity(entity);
 	}
 	
-	public boolean spawnEntity(Entity e) {
-		if (world.spawnEntityInWorld(e)) return true;
-		return false;
-	}
-	
-	/**
-	 * Create a new default faction
-	 * @param name The name of the new faction. If the name already exists an '_' will be added at the end
-	 * @return The faction object which was created
-	 */
-    public ScriptFaction createFaction(String name) {
-    	//System.out.println("Attempting to create new faction "+name);
-    	int maxValue = 0xFFFFFF;
-    	Random r = new Random();
-    	int randomColor = r.nextInt(maxValue + 1);
-    	
-    	Faction fac = new Faction(-1, name, randomColor, 1000);
-    	FactionController.getInstance().saveFaction(fac);
-		
-		return new ScriptFaction(fac);
-    }
-    
-    public ScriptFaction getFactionFromName(String name) {
-    	Faction f = FactionController.getInstance().getFactionFromName(name);
-    	if (f == null) return null;
-    	return new ScriptFaction(f);
-    }
-    
-    public ScriptFaction getFactionFromId(int id) {
-    	Faction f = FactionController.getInstance().get(id);
-    	if (f == null) return null;
-    	return new ScriptFaction(f);
-    }
-	
 	public ScriptScoreboard getScoreboard(){
 		return new ScriptScoreboard();
 	}
