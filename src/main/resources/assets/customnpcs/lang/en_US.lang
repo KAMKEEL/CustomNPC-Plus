@@ -222,6 +222,7 @@ role.companion=Companion
 
 trader.insufficient=Insufficient Currency
 trader.sufficient=Sufficient Currency
+trader.slotdisabled=Slot Disabled
 
 job.name=Job
 job.none=No Job

@@ -1,10 +1,11 @@
 package noppes.npcs.scripted.roles;
 
+import foxz.utils.Market;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.constants.RoleType;
-import foxz.utils.Market;
+import noppes.npcs.scripted.interfaces.IPlayer;
 
 public class ScriptRoleTrader extends ScriptRoleInterface{
 	private RoleTrader role;
@@ -104,6 +105,11 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	public int getPurchaseNum(int slot) {
 		if(slot >= 18 || slot < 0) return -1;
 		return role.purchases[slot];
+	}
+	
+	public int getPurchaseNum(int slot, IPlayer player) {
+		// TODO get purchase num by player
+		return -1;
 	}
 	
 	/**
