@@ -1,6 +1,10 @@
 package noppes.npcs.scripted.entity;
 
-import net.minecraft.entity.player.EntityPlayer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -14,29 +18,40 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.*;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.CustomGuiController;
+import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.PlayerDialogData;
+import noppes.npcs.controllers.PlayerQuestData;
+import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
-import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
-import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.ICustomGui;
+import noppes.npcs.scripted.interfaces.ICustomOverlay;
+import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.ValueUtil;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -463,11 +478,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return new ScriptPixelmonPlayerData(player);
 	}
 	
-	public Vec3 getLookingAtBlock(int maxDistance) {
+	public IBlock getLookingAtBlock(int maxDistance) {
 		Vec3 posVec = Vec3.createVectorHelper(player.posX, 
 				player.posY+player.getEyeHeight(), player.posZ);
 		Vec3 lookVec = player.getLookVec();
-		return NpcAPI.Instance().getIWorld(player.dimension).rayCastBlockPos(posVec, lookVec, maxDistance);
+		return getWorld().rayCastBlock(posVec, lookVec, maxDistance);
 	}
 
 	public ITimers getTimers() {

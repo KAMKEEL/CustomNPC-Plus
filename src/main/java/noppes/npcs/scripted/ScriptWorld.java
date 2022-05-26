@@ -3,7 +3,6 @@ package noppes.npcs.scripted;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -21,12 +20,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.entity.ScriptEntity;
@@ -98,11 +94,19 @@ public class ScriptWorld implements IWorld {
 	}
 	
 	public void setBlock(int x, int y, int z, Block block){
-		if(block == null || block == Blocks.air){
+		if(block == null || block.isAir(world, x, y, z)){
 			removeBlock(x, y, z);
 			return;
 		}
 		world.setBlock(x, y, z, block);
+	}
+	
+	public void setBlock(int x, int y, int z, IBlock block){
+		if(block == null || block.getMCBlock().isAir(world, x, y, z)){
+			removeBlock(x, y, z);
+			return;
+		}
+		world.setBlock(x, y, z, block.getMCBlock());
 	}
 	
 	/**
@@ -131,7 +135,7 @@ public class ScriptWorld implements IWorld {
 		world.setBlock(x, y, z, Blocks.air);
 	}
 	
-	public Vec3 rayCastBlockPos(Vec3 pos, Vec3 look, int maxDistance) {
+	public IBlock rayCastBlock(Vec3 pos, Vec3 look, int maxDistance) {
 		Vec3 currentPos = pos; int rep = 0;
 		while (rep++ < maxDistance + 10) {
 			currentPos = currentPos.addVector(look.xCoord, look.yCoord, look.zCoord);
@@ -145,7 +149,7 @@ public class ScriptWorld implements IWorld {
 					, 0.5);
 			//System.out.println("current distance check: "+distance+" on rep "+rep);
 			if (distance > maxDistance) return null;
-			return currentPos;
+			return block;
 		}
 		//System.out.println("ScriptWorld:WARNING: Repeated a ray cast to many times");
 		return null;

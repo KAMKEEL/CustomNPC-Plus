@@ -187,7 +187,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      */
     public ScriptPixelmonPlayerData getPixelmonData();
     
-    public Vec3 getLookingAtBlock(int maxDistance);
+    public IBlock getLookingAtBlock(int maxDistance);
 
     public ITimers getTimers();
 
