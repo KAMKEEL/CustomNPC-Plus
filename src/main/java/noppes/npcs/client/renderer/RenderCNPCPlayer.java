@@ -135,7 +135,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     }
                 }
             } else if(player.getEntityData().hasKey("SkinOverlayData")) {
-                Client.sendData(EnumPacketServer.SERVER_UPDATE_SKIN_OVERLAYS, new Object[0]);
+                Client.sendData(EnumPacketServer.ServerUpdateSkinOverlays, new Object[0]);
             }
         }
     }
@@ -332,7 +332,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                 postRenderOverlay(player);
             }
         } else if(player.getEntityData().hasKey("SkinOverlayData")) {
-            Client.sendData(EnumPacketServer.SERVER_UPDATE_SKIN_OVERLAYS, new Object[0]);
+            Client.sendData(EnumPacketServer.ServerUpdateSkinOverlays, new Object[0]);
         }
     }
 

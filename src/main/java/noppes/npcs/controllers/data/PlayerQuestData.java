@@ -15,8 +15,11 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
+import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 
 public class PlayerQuestData {
+	public IQuest trackedQuest = null;
+
 	public HashMap<Integer,QuestData> activeQuests = new HashMap<Integer,QuestData>();
 	public HashMap<Integer,Long> finishedQuests = new HashMap<Integer,Long>();
 	
@@ -52,7 +55,8 @@ public class PlayerQuestData {
             }
             this.activeQuests = activeQuests;
         }
-        
+
+		this.trackedQuest = QuestController.instance.get(mainCompound.getInteger("TrackedQuestID"));
 	}
 
 	public void saveNBTData(NBTTagCompound maincompound) {
@@ -78,6 +82,12 @@ public class PlayerQuestData {
 		compound.setTag("ActiveQuests", list2);
 		
 		maincompound.setTag("QuestData", compound);
+
+		if (this.trackedQuest != null) {
+			maincompound.setInteger("TrackedQuestID", this.trackedQuest.getId());
+		} else {
+			maincompound.setInteger("TrackedQuestID", -1);
+		}
 	}
 
 	public QuestData getQuestCompletion(EntityPlayer player,EntityNPCInterface npc) {

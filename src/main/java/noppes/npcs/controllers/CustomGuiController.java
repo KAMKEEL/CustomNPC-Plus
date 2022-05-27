@@ -40,11 +40,11 @@ public class CustomGuiController {
     }
 
     public static void openOverlay(IPlayer player, ScriptOverlay gui) {
-        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.OVERLAY_DATA, new Object[]{gui.toNBT()});
+        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
     }
 
     public static boolean updateOverlay(IPlayer player, ScriptOverlay gui) {
-        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.OVERLAY_DATA, new Object[]{gui.toNBT()});
+        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
         return true;
     }
 

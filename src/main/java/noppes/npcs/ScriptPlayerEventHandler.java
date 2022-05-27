@@ -12,7 +12,9 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -26,11 +28,13 @@ import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
@@ -428,6 +432,14 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
+
+            Quest quest = (Quest) PlayerDataController.instance.getPlayerData(event.player).questData.trackedQuest;
+            if (quest != null) {
+                NBTTagCompound compound = new NBTTagCompound();
+                compound.setTag("Quest",quest.writeToNBT(new NBTTagCompound()));
+                compound.setString("CategoryName", quest.getCategory().getName());
+                Server.sendData((EntityPlayerMP) event.player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+            }
         }
     }
 

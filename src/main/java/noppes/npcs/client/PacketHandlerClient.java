@@ -26,6 +26,7 @@ import noppes.npcs.ServerEventsHandler;
 import noppes.npcs.client.ClientProxy.FontContainer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
+import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -260,15 +261,24 @@ public class PacketHandlerClient extends PacketHandlerServer{
 
 			NoppesUtil.isGUIOpen(isGUIOpen);
 		}
-		else if(type == EnumPacketClient.OVERLAY_DATA){
+		else if(type == EnumPacketClient.SCRIPT_OVERLAY_DATA){
 			OverlayCustom overlayCustom = new OverlayCustom(Minecraft.getMinecraft());
 			overlayCustom.setOverlayData(Server.readNBT(buffer));
 
 			Client.customOverlays.put(overlayCustom.overlay.getID(),overlayCustom);
 		}
-		else if(type == EnumPacketClient.OVERLAY_CLOSE){
+		else if(type == EnumPacketClient.SCRIPT_OVERLAY_CLOSE){
 			int id = buffer.readInt();
 			Client.customOverlays.remove(id);
+		}
+		else if(type == EnumPacketClient.OVERLAY_QUEST_TRACKING){
+			try {
+				NBTTagCompound compound = Server.readNBT(buffer);
+				Client.questTrackingOverlay = new OverlayQuestTracking(Minecraft.getMinecraft());
+				Client.questTrackingOverlay.setOverlayData(compound);
+			} catch (IOException e) {
+				Client.questTrackingOverlay = null;
+			}
 		}
 		else if(type == EnumPacketClient.SWING_PLAYER_ARM){
 			Minecraft.getMinecraft().thePlayer.swingItem();

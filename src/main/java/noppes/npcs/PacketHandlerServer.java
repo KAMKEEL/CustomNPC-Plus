@@ -72,19 +72,19 @@ public class PacketHandlerServer{
 
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 
-			if(type == EnumPacketServer.IsGuiOpen) {
+			if (type == EnumPacketServer.IsGuiOpen) {
 				isGuiOpenPacket(buffer, player);
 				return;
-			}  else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+			} else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiSlotChange && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
-			} else if(type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+			} else if (type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
 				EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiScrollClick && player.openContainer instanceof ContainerCustomGui) {
@@ -93,6 +93,9 @@ public class PacketHandlerServer{
 				return;
 			} else if (type == EnumPacketServer.CustomGuiClose) {
 				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
+				return;
+			} else if (type == EnumPacketServer.UpdateTrackedQuest) {
+				updateTrackedQuest(buffer, player);
 				return;
 			}
 
@@ -126,7 +129,7 @@ public class PacketHandlerServer{
 						itemScriptPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
 						getScriptsEnabled(type, buffer, player);
-					else if (type == EnumPacketServer.SERVER_UPDATE_SKIN_OVERLAYS)
+					else if (type == EnumPacketServer.ServerUpdateSkinOverlays)
 						updateSkinOverlays(player);
 					else if (item.getItem() == CustomItems.scripter)
 						scriptPackets(type, buffer, player, npc);
@@ -137,6 +140,33 @@ public class PacketHandlerServer{
 		} catch (Exception e) {
 			LogWriter.error("Error with EnumPacketServer." + type, e);
 		}
+	}
+
+	private void updateTrackedQuest(ByteBuf buffer, EntityPlayerMP player) {
+		String trackedQuestString = Server.readString(buffer);
+		if (trackedQuestString != null && trackedQuestString.contains(":")) {
+			String[] splitString = trackedQuestString.split(":");
+			String categoryName = splitString[0];
+			String questName = splitString[1];
+
+			for (QuestCategory category : QuestController.instance.categories.values()) {
+				if (category.title.equals(categoryName)) {
+					for (Quest quest : category.quests.values()) {
+						if (quest.title.equals(questName)) {
+							PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = quest;
+							NBTTagCompound compound = new NBTTagCompound();
+							compound.setTag("Quest",quest.writeToNBT(new NBTTagCompound()));
+							compound.setString("CategoryName", quest.getCategory().getName());
+							Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
+		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
 	}
 
 	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {

@@ -518,7 +518,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void closeOverlay(int id) {
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.SCRIPT_OVERLAY_CLOSE, id, new NBTTagCompound());
 	}
 
 	public IOverlayHandler getOverlays() {

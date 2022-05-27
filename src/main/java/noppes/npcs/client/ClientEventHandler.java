@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
+import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import org.lwjgl.opengl.GL11;
@@ -18,6 +19,10 @@ public class ClientEventHandler {
         if(event.type == RenderGameOverlayEvent.ElementType.ALL) {
             for (OverlayCustom overlayCustom : Client.customOverlays.values()) {
                 overlayCustom.renderGameOverlay(event.partialTicks);
+            }
+
+            if (Client.questTrackingOverlay != null) {
+                Client.questTrackingOverlay.renderGameOverlay(event.partialTicks);
             }
         }
     }

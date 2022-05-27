@@ -63,6 +63,15 @@ public class CustomNpcs {
     @ConfigProp(info = "The amount of time that passes before a player's quests are checked for completion in seconds.")
     public static int PlayerQuestCheck = 300;
 
+    @ConfigProp(info = "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8.")
+    public static int TrackingInfoAlignment = 5;
+
+    @ConfigProp(info = "Client sided! Offsets the tracking info GUI by this amount in the X direction.")
+    public static int TrackingInfoX = 0;
+
+    @ConfigProp(info = "Client sided! Offsets the tracking info GUI by this amount in the Y direction.")
+    public static int TrackingInfoY = 0;
+
     @ConfigProp
     public static boolean InventoryGuiEnabled = true;
 
@@ -164,6 +173,11 @@ public class CustomNpcs {
 
         if(PlayerQuestCheck < 1)
             PlayerQuestCheck = 1;
+
+        if (TrackingInfoAlignment < 0)
+            TrackingInfoAlignment = 0;
+        if (TrackingInfoAlignment > 8)
+            TrackingInfoAlignment = 8;
 
         EnchantInterface.load();
         CustomItems.load();

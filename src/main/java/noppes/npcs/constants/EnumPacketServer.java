@@ -79,7 +79,7 @@ public enum EnumPacketServer {
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),  
 	DialogNpcGet, 
 
-	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, 
+	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, UpdateTrackedQuest,
 
 	RemoteNpcsGet(CustomNpcsPermissions.NPC_GUI), 
 	RemoteTpToNpc,QuestGet, QuestCategoryGet, 
@@ -89,7 +89,7 @@ public enum EnumPacketServer {
 
 	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
 
-	SERVER_UPDATE_SKIN_OVERLAYS;
+    ServerUpdateSkinOverlays;
 
 	public CustomNpcsPermissions.Permission permission = null;
 	public boolean needsNpc = false;
