@@ -3,9 +3,6 @@ package noppes.npcs.scripted.interfaces.entity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.Vec3;
-import noppes.npcs.scripted.ScriptItemStack;
-import noppes.npcs.scripted.ScriptBlock;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
@@ -99,11 +96,9 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      */
     void sendMessage(String message);
 
-    public void sendMessage(String message);
+    void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined);
 
-    public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined);
-
-    public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
+    void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
 
     /**
      * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure

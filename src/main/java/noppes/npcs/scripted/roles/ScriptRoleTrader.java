@@ -4,10 +4,10 @@ import foxz.utils.Market;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.scripted.interfaces.IItemStack;
-import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class ScriptRoleTrader extends ScriptRoleInterface{
 	private RoleTrader role;
@@ -56,7 +56,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	public IItemStack getSellOption(int slot) {
 		if (slot >= 18 || slot < 0) return null;
 		if (role.inventorySold.items.get(slot) == null) return null;
-		return new ScriptItemStack(role.inventorySold.items.get(slot));
+		return NpcAPI.Instance().getIItemStack(role.inventoryCurrency.items.get(slot));
 	}
 	
 	/**
@@ -65,12 +65,12 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	 */
 	public IItemStack[] getCurrency(int slot) {
 		if (slot >= 18 || slot < 0) return null;
-		ScriptItemStack[] currency = new ScriptItemStack[2];
+		IItemStack[] currency = new IItemStack[2];
 		if (role.inventoryCurrency.items.get(slot) != null) {
-			currency[0] = new ScriptItemStack(role.inventoryCurrency.items.get(slot));
+			currency[0] = NpcAPI.Instance().getIItemStack(role.inventoryCurrency.items.get(slot));
 		}
 		if (role.inventoryCurrency.items.get(slot + 18) != null) {
-			currency[1] = new ScriptItemStack(role.inventoryCurrency.items.get(slot + 18));
+			currency[1] = NpcAPI.Instance().getIItemStack(role.inventoryCurrency.items.get(slot + 18));
 		}
 		return currency;
 	}

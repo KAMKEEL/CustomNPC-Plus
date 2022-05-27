@@ -542,7 +542,14 @@ public class ScriptWorld implements IWorld {
 		
 		return arr;
 	}
-	
+
+	public String[] getPlayerNames() {
+		IPlayer[] players = getAllServerPlayers();
+		String[] names = new String[players.length];
+		for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
+		return names;
+	}
+
 	/**
 	 * @since 1.7.10c
 	 * @param x Position x

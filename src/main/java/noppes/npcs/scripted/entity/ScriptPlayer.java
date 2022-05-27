@@ -28,45 +28,34 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerDialogData;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.PlayerDialogData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.QuestData;
-import noppes.npcs.controllers.*;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
-import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.handler.data.IQuest;
+import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IContainer;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.ICustomOverlay;
-import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.*;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
-
-import java.util.*;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -90,7 +79,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public String getName(){
 		return player.getCommandSenderName();
 	}
-	
+
+	@Override
+	public void spawnParticle(IParticle entityParticle) {
+		entityParticle.spawnOnEntity(this);
+	}
+
 	@Override
 	public void setPosition(double x, double y, double z){
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);

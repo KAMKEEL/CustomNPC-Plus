@@ -26,15 +26,13 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptBlockPos;
-import noppes.npcs.scripted.ScriptEntityParticle;
-import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -207,7 +205,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		);
 	}
 
-	public void spawnParticle(ScriptParticle entityParticle) { entityParticle.spawnOnEntity(this); }
+	public void spawnParticle(IParticle entityParticle) { entityParticle.spawnOnEntity(this); }
 
 	public int getEntityId(){
 		return entity.getEntityId();

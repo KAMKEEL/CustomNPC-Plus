@@ -6,15 +6,15 @@
 package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.Entity;
-import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.interfaces.INbt;
+import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public interface IEntity<T extends Entity> {
     
-    void spawnParticle(ScriptParticle entityParticle);
+    void spawnParticle(IParticle entityParticle);
 
     int getEntityId();
 
