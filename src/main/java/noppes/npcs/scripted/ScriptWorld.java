@@ -144,18 +144,25 @@ public class ScriptWorld implements IWorld {
 		world.setBlock(x, y, z, Blocks.air);
 	}
 	
-	public IBlock rayCastBlock(double[] pos, double[] look, int maxDistance) {
-		if (pos.length != 3 || look.length != 3) return null;
-		Vec3 currentPos = Vec3.createVectorHelper(pos[0], pos[1], pos[2]); int rep = 0;
+	/**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector should be a normalized direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
+	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance) {
+		if (startPos.length != 3 || lookVector.length != 3) return null;
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
 		while (rep++ < maxDistance + 10) {
-			currentPos = currentPos.addVector(look[0], look[1], look[2]);
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
 			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
 			//System.out.println("Checking block at ["+(int)currentPos.xCoord+","+(int)currentPos.yCoord+","+(int)currentPos.zCoord+"]");
 			if (block == null) continue;
 			double distance = Math.pow(
-					Math.pow(currentPos.xCoord-pos[0],2)
-					+Math.pow(currentPos.yCoord-pos[1],2)
-					+Math.pow(currentPos.zCoord-pos[2],2)
+					Math.pow(currentPos.xCoord-startPos[0],2)
+					+Math.pow(currentPos.yCoord-startPos[1],2)
+					+Math.pow(currentPos.zCoord-startPos[2],2)
 					, 0.5);
 			//System.out.println("current distance check: "+distance+" on rep "+rep);
 			if (distance > maxDistance) return null;
@@ -163,6 +170,17 @@ public class ScriptWorld implements IWorld {
 		}
 		//System.out.println("ScriptWorld:WARNING: Repeated a ray cast to many times");
 		return null;
+	}
+	
+	/**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector will normalize x, y, z to get a direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
+	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance) {
+		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
 	}
 	
 	public IPos getNearestAir(IPos pos, int maxHeight) {

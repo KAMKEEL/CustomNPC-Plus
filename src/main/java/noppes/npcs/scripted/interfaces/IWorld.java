@@ -69,7 +69,9 @@ public interface IWorld {
      */
     public void removeBlock(int x, int y, int z);
     
-    public IBlock rayCastBlock(double[] pos, double[] look, int maxDistance);
+    public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
+    
+    public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
     
     public IPos getNearestAir(IPos pos, int maxHeight);
     
