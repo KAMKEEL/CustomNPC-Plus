@@ -18,8 +18,8 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
@@ -28,6 +28,7 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.IWorld;
 
 public class ScriptWorld implements IWorld {
@@ -67,6 +68,14 @@ public class ScriptWorld implements IWorld {
 			return null;
 		return new ScriptBlock(world, block, new BlockPos(x,y,z));
 	}
+	
+	/**
+	 * @param pos
+	 * @return The block at the given position. Returns null if there isn't a block
+	 */
+	public IBlock getBlock(IPos pos){
+		return getBlock(pos.getX(), pos.getY(), pos.getZ());
+	}
 
 	/**
 	 * @param x World position x
@@ -93,6 +102,14 @@ public class ScriptWorld implements IWorld {
 		return null;
 	}
 	
+	public void setBlock(int x, int y, int z, IBlock block){
+		if(block == null || block.getMCBlock().isAir(world, x, y, z)){
+			removeBlock(x, y, z);
+			return;
+		}
+		world.setBlock(x, y, z, block.getMCBlock());
+	}
+	
 	/**
 	 * @param x World position x
 	 * @param y World position y
@@ -117,6 +134,82 @@ public class ScriptWorld implements IWorld {
 	 */
 	public void removeBlock(int x, int y, int z){
 		world.setBlock(x, y, z, Blocks.air);
+	}
+	
+	/**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector should be a normalized direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
+	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance) {
+		if (startPos.length != 3 || lookVector.length != 3) return null;
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			//System.out.println("Checking block at ["+(int)currentPos.xCoord+","+(int)currentPos.yCoord+","+(int)currentPos.zCoord+"]");
+			if (block == null) continue;
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-startPos[0],2)
+					+Math.pow(currentPos.yCoord-startPos[1],2)
+					+Math.pow(currentPos.zCoord-startPos[2],2)
+					, 0.5);
+			//System.out.println("current distance check: "+distance+" on rep "+rep);
+			if (distance > maxDistance) return null;
+			return block;
+		}
+		//System.out.println("ScriptWorld:WARNING: Repeated a ray cast to many times");
+		return null;
+	}
+	
+	/**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector will normalize x, y, z to get a direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
+	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance) {
+		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
+	}
+	
+	public IPos getNearestAir(IPos pos, int maxHeight) {
+		if (pos == null) return null;
+		IPos currentPos = pos;
+		IBlock block = null; int rep = 0;
+		while (rep++ < maxHeight) {
+			//check +x
+			currentPos = currentPos.add(1, 0, 0);
+			block = getBlock(currentPos);
+			if (block == null) break;
+			//check -x
+			currentPos = currentPos.add(-2, 0, 0);
+			block = getBlock(currentPos);
+			if (block == null) break;
+			//check +z
+			currentPos = currentPos.add(1, 0, 1);
+			block = getBlock(currentPos);
+			if (block == null) break;
+			//check -z
+			currentPos = currentPos.add(0, 0, -2);
+			block = getBlock(currentPos);
+			if (block == null) break;
+			//check up 1
+			currentPos = currentPos.add(0, 1, 1);
+			block = getBlock(currentPos);
+			if (block == null) break;
+		}
+		return currentPos;
+	}
+	
+	public boolean canSeeSky(int x, int y, int z) {
+		return world.canBlockSeeTheSky(x, y, z);
+	}
+	
+	public boolean canSeeSky(IPos pos) {
+		return canSeeSky(pos.getX(), pos.getY(), pos.getZ());
 	}
 	
 	/**
@@ -315,6 +408,13 @@ public class ScriptWorld implements IWorld {
 		}
 		
 		return arr;
+	}
+	
+	public String[] getPlayerNames() {
+		ScriptPlayer[] players = getAllServerPlayers();
+		String[] names = new String[players.length];
+		for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
+		return names;
 	}
 	
 	/**

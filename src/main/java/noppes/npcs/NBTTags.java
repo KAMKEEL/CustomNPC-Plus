@@ -131,6 +131,34 @@ public class NBTTags {
         }
 		return list;
 	}
+	
+	public static HashMap<String, int[]> getStringIntegerArrayMap(NBTTagList tagList) {
+		HashMap<String, int[]> list = new HashMap<String, int[]>();
+        for(int i = 0; i < tagList.tagCount(); i++)
+        {
+            NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+            list.put(nbttagcompound.getString("Slot"), nbttagcompound.getIntArray("Value"));
+        }
+		return list;
+	}
+	
+	/**
+	 * @param tagList
+	 * @param arraySize if an int array is not this length a new int array with this length is made
+	 * @return
+	 */
+	public static HashMap<String, int[]> getStringIntegerArrayMap(NBTTagList tagList, int arrayLength) {
+		HashMap<String, int[]> list = new HashMap<String, int[]>();
+        for(int i = 0; i < tagList.tagCount(); i++)
+        {
+            NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+            int[] a = nbttagcompound.getIntArray("Value");
+            if (a.length != arrayLength) a = new int[arrayLength];
+            list.put(nbttagcompound.getString("Slot"), a);
+        }
+		return list;
+	}
+	
 	public static HashMap<String, Vector<String>> getVectorMap(NBTTagList tagList) {
 		HashMap<String, Vector<String>> map = new HashMap<String, Vector<String>>();
         for(int i = 0; i < tagList.tagCount(); i++)
@@ -331,6 +359,21 @@ public class NBTTags {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setString("Slot", slot);
             nbttagcompound.setInteger("Value", map.get(slot));
+            
+            nbttaglist.appendTag(nbttagcompound);
+        }
+        return nbttaglist;
+	}
+	
+	public static NBTTagList nbtStringIntegerArrayMap(HashMap<String, int[]> map) {
+		NBTTagList nbttaglist = new NBTTagList();
+    	if(map == null)
+    		return nbttaglist;
+    	for(String slot : map.keySet())
+        {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setString("Slot", slot);
+            nbttagcompound.setIntArray("Value", map.get(slot));
             
             nbttaglist.appendTag(nbttagcompound);
         }

@@ -9,3 +9,4 @@ eclipse
 .settings
 bin
 .metadata
+*.bak

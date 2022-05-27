@@ -27,6 +27,7 @@ public class DataStats {
 	public int spawnCycle = 0;
 	public boolean hideKilledBody = false;
 	public boolean canDespawn = false;
+	public boolean playerSetCanDespawn = false;
 	
 	public Resistances resistances = new Resistances();
 
@@ -47,6 +48,7 @@ public class DataStats {
     public int pEffAmp = 0;
     public String fireSound = "random.bow";
 	public boolean aimWhileShooting = false;
+	public boolean projectilesKeepTerrain = false;
 	
 	public EnumCreatureAttribute creatureType = EnumCreatureAttribute.UNDEFINED;
 	
@@ -102,14 +104,16 @@ public class DataStats {
 		compound.setInteger("pEffAmp", pEffAmp);
 		compound.setString("FiringSound", fireSound);
 		compound.setBoolean("AimWhileShooting", aimWhileShooting);
+		compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
 
 		compound.setBoolean("ImmuneToFire", immuneToFire);
 		compound.setBoolean("PotionImmune", potionImmune);
 		compound.setBoolean("CanDrown", canDrown);
 		compound.setBoolean("BurnInSun", burnInSun);
 		compound.setBoolean("NoFallDamage", noFallDamage);
-		compound.setBoolean("CanDespawn", canDespawn);
 		compound.setBoolean("AttackInvisible", attackInvisible);
+		compound.setBoolean("CanDespawn", canDespawn);
+		compound.setBoolean("PlayerSetCanDespawn", playerSetCanDespawn);
 		
 		return compound;
 	}
@@ -160,14 +164,16 @@ public class DataStats {
 		pEffAmp = compound.getInteger("pEffAmp");
 		fireSound = compound.getString("FiringSound");
 		aimWhileShooting = compound.getBoolean("AimWhileShooting");
+		projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
 
 		immuneToFire = compound.getBoolean("ImmuneToFire");	
 		potionImmune = compound.getBoolean("PotionImmune");		
 		canDrown = compound.getBoolean("CanDrown");
 		burnInSun = compound.getBoolean("BurnInSun");
 		noFallDamage = compound.getBoolean("NoFallDamage");
-		canDespawn = compound.getBoolean("CanDespawn");
 		attackInvisible = compound.getBoolean("AttackInvisible");
+		canDespawn = compound.getBoolean("CanDespawn");
+		playerSetCanDespawn = compound.getBoolean("PlayerSetCanDespawn");
 		
 		npc.setImmuneToFire(immuneToFire);
 	}

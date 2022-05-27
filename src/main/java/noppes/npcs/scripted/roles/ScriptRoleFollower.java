@@ -46,6 +46,14 @@ public class ScriptRoleFollower extends ScriptRoleInterface{
 		return role.owner != null;
 	}
 	
+	public boolean isFollowing() {
+		return role.isFollowing();
+	}
+	
+	public void setIsFollowing(boolean following) {
+		if (role.owner != null && role.getDaysLeft() > 0) role.isFollowing = following;
+	}
+	
 	/**
 	 * @since 1.7.10c
 	 * @return Returns days left

@@ -658,6 +658,8 @@ public class NoppesUtilServer {
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
 			npc.ai.startPos = new int[]{MathHelper.floor_double(npc.posX),MathHelper.floor_double(npc.posY),MathHelper.floor_double(npc.posZ)};
+			npc.ticksExisted = 0;
+			npc.totalTicksAlive = 0;
 		}
 		worldObj.spawnEntityInWorld(entity);
 		return entity;

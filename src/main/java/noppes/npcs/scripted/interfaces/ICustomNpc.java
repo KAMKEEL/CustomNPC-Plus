@@ -162,6 +162,10 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param accuracy Accuracy of the shot (0-100)
      */
     public void shootItem(ScriptLivingBase target, ScriptItemStack item, int accuracy);
+    
+    public void setProjectilesKeepTerrain(boolean b);
+    
+    public boolean getProjectilesKeepTerrain();
 
     /**
      * @param message The message the npc will say
@@ -343,7 +347,11 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @return The maximum XP gained from killing the NPC.
      */
     public int getMaxLootXP();
-
+    
+    public boolean getCanDrown();
+    
+    public void setCanDrown(boolean b);
+    
     /**
      * @param type The AnimationType
      */

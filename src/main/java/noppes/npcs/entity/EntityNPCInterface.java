@@ -139,7 +139,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public boolean updateClient = false;
 	public boolean updateAI = false;
-
+	
 	public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
 	public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 
@@ -956,6 +956,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		totalTicksAlive = compound.getLong("TotalTicksAlive");
 		
 		linkedName = compound.getString("LinkedNpcName");
+		
 		if(!isRemote())
 			LinkedNpcController.Instance.loadNpcData(this);
 		

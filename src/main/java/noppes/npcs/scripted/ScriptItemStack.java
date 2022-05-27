@@ -6,12 +6,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Multimap;
+
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
@@ -345,6 +347,15 @@ public class ScriptItemStack implements IItemStack {
 		if(block == null || block == Blocks.air)
 			return false;
 		return true;
+	}
+	
+	public boolean isFood() {
+		return item.getItem() instanceof ItemFood;
+	}
+	
+	public int getFoodPoints() {
+		if (isFood()) return ((ItemFood)item.getItem()).func_150905_g(item);
+		return -1;
 	}
 
 	public INbt getNbt() {

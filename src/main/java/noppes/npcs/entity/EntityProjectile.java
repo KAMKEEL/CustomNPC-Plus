@@ -77,6 +77,7 @@ public class EntityProjectile extends EntityThrowable {
     public boolean accelerate = false;
     public boolean explosive = false;
     public boolean explosiveDamage = true;
+    public boolean destroyTerrain = true;
     public int explosiveRadius = 0;
     public EnumPotionType effect = EnumPotionType.None;
     public int duration = 5;
@@ -138,6 +139,7 @@ public class EntityProjectile extends EntityThrowable {
         if (isNPC) {
         	this.npc = (EntityNPCInterface) this.thrower;
         	this.getStatProperties(this.npc.stats);
+        	this.destroyTerrain = !this.npc.stats.projectilesKeepTerrain;
         }
     }
     
@@ -562,7 +564,7 @@ public class EntityProjectile extends EntityThrowable {
     	
     	if (explosive){
     		if (this.explosiveRadius != 0 || this.effect == EnumPotionType.None){
-    			boolean terraindamage = this.worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing") && explosiveDamage;
+    			boolean terraindamage = this.worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing") && explosiveDamage && destroyTerrain;
     	        Explosion explosion = new Explosion(worldObj, this, posX, posY, posZ, explosiveRadius);
     	        explosion.isFlaming = this.effect == EnumPotionType.Fire;
     	        explosion.isSmoking = terraindamage;

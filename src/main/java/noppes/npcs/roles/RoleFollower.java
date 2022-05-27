@@ -104,6 +104,7 @@ public class RoleFollower extends RoleInterface{
 		daysHired = 0;
 		hiredTime = 0;
 		isFollowing = true;
+		npc.stats.canDespawn = npc.stats.playerSetCanDespawn;
 	}
 	
 	public int getDaysLeft(){
@@ -150,6 +151,7 @@ public class RoleFollower extends RoleInterface{
 		if(ownerUUID == null || id == null || !ownerUUID.equals(id))
 			killed();
 		ownerUUID = id.toString();
+		npc.stats.canDespawn = false;
 	}
 	
 	

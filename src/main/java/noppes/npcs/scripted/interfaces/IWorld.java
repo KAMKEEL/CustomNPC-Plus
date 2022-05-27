@@ -1,9 +1,10 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.*;
+import noppes.npcs.scripted.ScriptEntityParticle;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.ScriptScoreboard;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 
@@ -25,6 +26,12 @@ public interface IWorld {
      * @return The block at the given position. Returns null if there isn't a block
      */
     public IBlock getBlock(int x, int y, int z);
+    
+    /**
+	 * @param pos
+	 * @return The block at the given position. Returns null if there isn't a block
+	 */
+    public IBlock getBlock(IPos pos);
 
     /**
      * @param x World position x
@@ -42,13 +49,60 @@ public interface IWorld {
      * @param item The block to be set
      */
     public void setBlock(int x, int y, int z, ScriptItemStack item);
-
+	
+	/**
+	 * @param x World position x
+	 * @param y World position y
+	 * @param z World position z
+	 * @param block The block to be set
+	 */
+	public void setBlock(int x, int y, int z, IBlock block);
+    
     /**
      * @param x World position x
      * @param y World position y
      * @param z World position z
      */
     public void removeBlock(int x, int y, int z);
+    
+    /**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector should be a normalized direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
+    public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
+    
+    /**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector will normalize x, y, z to get a direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
+    public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
+    
+    /**
+     * @param startPos
+     * @param maxHeight
+     * @return the position of the closest block of air to startPos 
+     */
+    public IPos getNearestAir(IPos startPos, int maxHeight);
+    
+    /**
+     * @param x
+     * @param y
+     * @param z
+     * @return can the block at this position see the sky or are there no blocks above this one
+     */
+    public boolean canSeeSky(int x, int y, int z);
+    
+    /**
+     * @param pos
+     * @return can the block at this position see the sky or are there no blocks above this one
+     */
+    public boolean canSeeSky(IPos pos);
 
     /**
      * @param name The name of the player to be returned
@@ -180,6 +234,8 @@ public interface IWorld {
     public void explode(double x, double y, double z, float range, boolean fire, boolean grief);
 
     public ScriptPlayer[] getAllServerPlayers();
+    
+    public String[] getPlayerNames();
 
     /**
      * @since 1.7.10c
@@ -199,7 +255,7 @@ public interface IWorld {
      * @return Returns the entity which was spawned
      */
     public ScriptEntity spawnClone(int x, int y, int z, int tab, String name);
-
+    
     public ScriptScoreboard getScoreboard();
 
     BlockPos getMCBlockPos(int x, int y, int z);

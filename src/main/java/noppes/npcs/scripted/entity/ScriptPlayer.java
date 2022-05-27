@@ -1,6 +1,10 @@
 package noppes.npcs.scripted.entity;
 
-import net.minecraft.entity.player.EntityPlayer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -9,30 +13,45 @@ import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.*;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.CustomGuiController;
+import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.PlayerDialogData;
+import noppes.npcs.controllers.PlayerQuestData;
+import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
-import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IContainer;
+import noppes.npcs.scripted.interfaces.ICustomGui;
+import noppes.npcs.scripted.interfaces.ICustomOverlay;
+import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.ValueUtil;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -120,6 +139,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
 		return data.dialogsRead.contains(id);
 	}
+	
+	public void readDialog(int id) {
+		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.add(id);
+	}
+	
+	public void unreadDialog(int id) {
+		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
+	}
 
 	/**
 	 * Add the quest from active quest list
@@ -192,6 +219,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
 		data.factionData.increasePoints(faction, points, player);
 	}
+	/**
+	 * @param faction The faction id
+	 * @param points The new point value for this faction
+	 */
+	public void setFactionPoints(int faction, int points) {
+		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		data.factionData.increasePoints(faction, points-getFactionPoints(faction), player);
+	}
         
     /**         
      * @param faction The faction id
@@ -207,6 +242,36 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 */
 	public void sendMessage(String message){
 		player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));
+	}
+	
+	/**
+	 * @param message The message you want to send
+	 */
+	public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined) {
+		ChatComponentTranslation chat = new ChatComponentTranslation(NoppesStringUtils.formatText(message,player));
+		ChatStyle style = new ChatStyle();
+		style.setColor(color);
+		style.setBold(bold);
+		style.setItalic(italic);
+		style.setUnderlined(underlined);
+		chat.setChatStyle(style);
+		player.addChatMessage(chat);
+	}
+	
+	/**
+	 * @param message The message you want to send
+	 */
+	public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined) {
+		ChatComponentTranslation chat = new ChatComponentTranslation(NoppesStringUtils.formatText(message,player));
+		ChatStyle style = new ChatStyle();
+		style.setColor(color);
+		style.setBold(bold);
+		style.setItalic(italic);
+		style.setObfuscated(obfuscated);
+		style.setStrikethrough(strikethrough);
+		style.setUnderlined(underlined);
+		chat.setChatStyle(style);
+		player.addChatMessage(chat);
 	}
 	
 	/**
@@ -352,6 +417,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
             	player.inventory.mainInventory[i] = null;
 		}
 	}
+	
+	public void clearInventory() {
+		for(int i = 0; i < player.inventory.mainInventory.length; i++) player.inventory.mainInventory[i] = null;
+		for(int i = 0; i < player.inventory.armorInventory.length; i++) player.inventory.armorInventory[i] = null;
+	}
 
 	public void setRotation(float rotationYaw){
 		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, player.rotationPitch, player.dimension);
@@ -406,6 +476,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		if(!PixelmonHelper.Enabled)
 			return null;
 		return new ScriptPixelmonPlayerData(player);
+	}
+	
+	public IBlock getLookingAtBlock(int maxDistance) {
+		Vec3 lookVec = player.getLookVec();
+		return getWorld().rayCastBlock(
+				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ}, 
+				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord}, 
+				maxDistance);
 	}
 
 	public ITimers getTimers() {
