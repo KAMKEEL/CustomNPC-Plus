@@ -216,6 +216,10 @@ public class ScriptWorld implements IWorld {
 		return world.canBlockSeeTheSky(x, y, z);
 	}
 	
+	public boolean canSeeSky(IPos pos) {
+		return canSeeSky(pos.getX(), pos.getY(), pos.getZ());
+	}
+	
 	/**
 	 * @param name The name of the player to be returned
 	 * @return The Player with name. Null is returned when the player isnt found

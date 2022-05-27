@@ -60,6 +60,12 @@ public interface IWorld {
 	 */
 	public void setBlock(int x, int y, int z, Block block);
 	
+	/**
+	 * @param x World position x
+	 * @param y World position y
+	 * @param z World position z
+	 * @param block The block to be set
+	 */
 	public void setBlock(int x, int y, int z, IBlock block);
     
     /**
@@ -69,13 +75,44 @@ public interface IWorld {
      */
     public void removeBlock(int x, int y, int z);
     
+    /**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector should be a normalized direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
     public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
     
+    /**
+	 * starting at the start position, draw a line in the lookVector direction until a block is detected
+	 * @param startPos 
+	 * @param lookVector will normalize x, y, z to get a direction vector
+	 * @param maxDistance 
+	 * @return the first detected block but null if maxDistance is reached
+	 */
     public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
     
-    public IPos getNearestAir(IPos pos, int maxHeight);
+    /**
+     * @param startPos
+     * @param maxHeight
+     * @return the position of the closest block of air to startPos 
+     */
+    public IPos getNearestAir(IPos startPos, int maxHeight);
     
+    /**
+     * @param x
+     * @param y
+     * @param z
+     * @return can the block at this position see the sky or are there no blocks above this one
+     */
     public boolean canSeeSky(int x, int y, int z);
+    
+    /**
+     * @param pos
+     * @return can the block at this position see the sky or are there no blocks above this one
+     */
+    public boolean canSeeSky(IPos pos);
 
     /**
      * @param name The name of the player to be returned
