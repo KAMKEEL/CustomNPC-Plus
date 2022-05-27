@@ -1,6 +1,9 @@
 package noppes.npcs.client.renderer;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.Map;
 
@@ -13,6 +16,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -26,15 +30,17 @@ import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
 
+import javax.imageio.ImageIO;
+
 
 public class RenderNPCInterface extends RenderLiving{
 	public static long LastTextureTick = 0;
-
 	public ModelBase originalModel;
 
 	public RenderNPCInterface(ModelBase model, float f){
@@ -208,47 +214,71 @@ public class RenderNPCInterface extends RenderLiving{
 		super.doRender(entityliving, d, d1, d2, f, f1);
 	}
 
-	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7){
+	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
 		super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-		if (!npc.display.glowTexture.isEmpty())
-		{
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
-			if(npc.textureGlowLocation == null){
-				npc.textureGlowLocation = new ResourceLocation(npc.display.glowTexture);
-			}
-			bindTexture((ResourceLocation) npc.textureGlowLocation);
-			float f1 = 1.0F;
 
-			GL11.glEnable(GL11.GL_BLEND);
-			// Overlay & Glow
-			GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-			GL11.glDisable(GL11.GL_LIGHTING);
+		if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
+			for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
+				try {
+					if (overlayData.getLocation() == null) {
+						overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
+					} else {
+						String str = npc.display.skinOverlayData.overlayList.get(0).getLocation().getResourceDomain()+":"+npc.display.skinOverlayData.overlayList.get(0).getLocation().getResourcePath();
+						if (!str.equals(overlayData.getTexture())) {
+							overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
+						}
+					}
 
-			if (npc.isInvisible())
-			{
-				GL11.glDepthMask(false);
-			}
-			else
-			{
-				GL11.glDepthMask(true);
-			}
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-			GL11.glPushMatrix();
-			GL11.glScalef(1.001f, 1.001f, 1.001f);
-			if(mainModel instanceof ModelMPM){
-				((ModelMPM)mainModel).isArmor = true;
-				mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-				((ModelMPM)mainModel).isArmor = false;
-			}
-			else
-				mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-			GL11.glPopMatrix();
-			GL11.glEnable(GL11.GL_LIGHTING);
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, f1);
+					this.bindTexture(overlayData.getLocation());
 
-			GL11.glDepthFunc(GL11.GL_LEQUAL);
-			GL11.glDisable(GL11.GL_BLEND);
+					// Overlay & Glow
+					GL11.glEnable(GL11.GL_BLEND);
+					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
+
+					if (overlayData.getGlow()) {
+						GL11.glDisable(GL11.GL_LIGHTING);
+						Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
+					}
+
+					GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
+
+					GL11.glDepthMask(!npc.isInvisible());
+
+					GL11.glPushMatrix();
+						GL11.glMatrixMode(GL11.GL_TEXTURE);
+						GL11.glLoadIdentity();
+						GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
+						GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
+
+						GL11.glMatrixMode(GL11.GL_MODELVIEW);
+						float scale = 1.005f * overlayData.getSize();
+						GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
+						GL11.glScalef(scale, scale, scale);
+						if(mainModel instanceof ModelMPM){
+							((ModelMPM)mainModel).isArmor = true;
+							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+							((ModelMPM)mainModel).isArmor = false;
+						}
+						else
+							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					GL11.glPopMatrix();
+
+					GL11.glMatrixMode(GL11.GL_TEXTURE);
+					GL11.glLoadIdentity();
+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+					GL11.glEnable(GL11.GL_LIGHTING);
+					GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+					GL11.glDepthFunc(GL11.GL_LEQUAL);
+					GL11.glDisable(GL11.GL_BLEND);
+					GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+					Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
+				} catch (Exception ignored) {
+				}
+			}
+			npc.display.overlayRenderTicks++;
 		}
 	}
 	@Override
@@ -268,49 +298,78 @@ public class RenderNPCInterface extends RenderLiving{
 	public ResourceLocation getEntityTexture(Entity entity) {
 
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
-		if(npc.textureLocation == null){
-			if(npc.display.skinType == 0) {
+		if (npc.textureLocation == null) {
+			if (npc.display.skinType == 0) {
 				if (!(npc.display.texture).equals("")) {
-					npc.textureLocation = new ResourceLocation(npc.display.texture);
+					//npc.textureLocation = new ResourceLocation(npc.display.texture);
+					try {
+						npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
+					} catch (IOException ignored) {}
 				}
-			}
-			else if(LastTextureTick < 5){ //fixes request flood somewhat
+			} else if(LastTextureTick < 5) { //fixes request flood somewhat
 				return AbstractClientPlayer.locationStevePng;
-			}
-			else if(npc.display.skinType == 1 && npc.display.playerProfile != null){
+			} else if(npc.display.skinType == 1 && npc.display.playerProfile != null) {
 				Minecraft minecraft = Minecraft.getMinecraft();
 				Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
 				if (map.containsKey(Type.SKIN)){
 					npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture)map.get(Type.SKIN), Type.SKIN);
 				}
 				LastTextureTick = 0;
-			}
-			else if(npc.display.skinType == 2 || npc.display.skinType == 3){
-				try{
+			} else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
+				try {
 					MessageDigest digest = MessageDigest.getInstance("MD5");
 					byte[] hash = digest.digest(npc.display.url.getBytes("UTF-8"));
 					StringBuilder sb = new StringBuilder(2*hash.length);
-					for(byte b : hash){
+					for (byte b : hash) {
 						sb.append(String.format("%02x", b&0xff));
 					}
-					if(npc.display.skinType == 2){
+					if (npc.display.skinType == 2) {
 						npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
 						loadSkin(null, npc.textureLocation, npc.display.url, false);
-					}
-					else{
+					} else {
 						npc.textureLocation = new ResourceLocation("skins64/" + sb.toString());
 						loadSkin(null, npc.textureLocation, npc.display.url, true);
 					}
 					LastTextureTick = 0;
-				}
-				catch(Exception ex){
-
-				}
+				} catch(Exception ignored){}
+			} else {
+				return AbstractClientPlayer.locationStevePng;
 			}
 		}
-		if(npc.textureLocation == null)
-			return AbstractClientPlayer.locationStevePng;
 		return npc.textureLocation;
+	}
+
+	private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
+		if (npc.display.modelType != 0) {
+			return location;
+		}
+
+		InputStream inputstream = null;
+
+		try {
+			IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
+			inputstream = iresource.getInputStream();
+
+			BufferedImage bufferedimage = ImageIO.read(inputstream);
+
+			int totalWidth = bufferedimage.getWidth();
+			int totalHeight = bufferedimage.getHeight();
+
+			if (totalHeight > 32) {
+				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
+
+				TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+				ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+				object.setBufferedImage(bufferedimage);
+				texturemanager.loadTexture(location, object);
+			}
+
+			return location;
+		} finally {
+			if (inputstream != null) {
+				inputstream.close();
+			}
+		}
 	}
 
 	// 64x64 Skin is True

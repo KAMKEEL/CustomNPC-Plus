@@ -4,7 +4,7 @@ import foxz.utils.Market;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.interfaces.IItemStack;
 import noppes.npcs.scripted.interfaces.IPlayer;

@@ -15,6 +15,7 @@ import noppes.npcs.client.gui.SubGuiNpcName;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -76,7 +77,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
     	y+=23;
     	addLabel(new GuiNpcLabel(9,"display.overlay", guiLeft + 5, y + 5));
-        addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, display.glowTexture));
+
+        addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, npc.display.skinOverlayData.overlayList.containsKey(0) ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : ""));
     	this.addButton(new GuiNpcButton(9, guiLeft + 283, y, 80, 20, "display.selectTexture"));
 
     	y+=23;
@@ -128,7 +130,11 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(textfield.id == 9){
 			npc.textureGlowLocation = null;
-			display.glowTexture = textfield.getText();
+			//display.glowTexture = textfield.getText();
+			npc.display.skinOverlayData.overlayList.put(0,new SkinOverlay(
+					textfield.getText(), true, 1.0F, 1.0F, 0.0F, 0.0F,
+					1.0F, 1.0F, 0.0F, 0.0F, 0.0F
+			));
 		}
 		else if(textfield.id == 11){
 			display.title = textfield.getText();

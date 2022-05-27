@@ -21,7 +21,7 @@ import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.containers.ContainerManageRecipes;
-import noppes.npcs.controllers.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.opengl.GL11;

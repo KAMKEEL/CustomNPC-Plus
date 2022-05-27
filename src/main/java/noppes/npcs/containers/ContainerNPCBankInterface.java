@@ -1,12 +1,11 @@
 package noppes.npcs.containers;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.controllers.PlayerBankData;
+import noppes.npcs.controllers.data.PlayerBankData;
 import noppes.npcs.controllers.PlayerDataController;
 
 public class ContainerNPCBankInterface extends ContainerNpcInterface

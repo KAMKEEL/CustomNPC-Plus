@@ -6,11 +6,8 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.scripted.gui.ScriptGuiLine;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
-
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 
 public class CustomGuiLine extends Gui implements IGuiComponent {
     int id;

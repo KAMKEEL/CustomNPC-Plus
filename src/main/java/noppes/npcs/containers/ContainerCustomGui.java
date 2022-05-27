@@ -11,7 +11,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import noppes.npcs.scripted.interfaces.IItemSlot;
+import noppes.npcs.scripted.interfaces.gui.IItemSlot;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 

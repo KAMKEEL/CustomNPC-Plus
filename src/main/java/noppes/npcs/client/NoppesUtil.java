@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
@@ -16,14 +15,16 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
-import noppes.npcs.client.fx.EntityCustomFX;
+import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -32,9 +33,10 @@ import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.Sys;
@@ -70,12 +72,27 @@ public class NoppesUtil {
 		}
 	}
 
+	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
+		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
+		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
+		
+		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
+			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
+			skinOverlays.put(tagID, (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i)));
+		}
+		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
+	}
+
 	public static void spawnScriptedParticle(ByteBuf buffer){
 		Minecraft minecraft =  Minecraft.getMinecraft();
 
 		String directory = Server.readString(buffer);
 
-		int HEXcolor = buffer.readInt();
+		int HEXColor = buffer.readInt();
+		int HEXColor2 = buffer.readInt();
+		float colorRate = buffer.readFloat();
+		int colorRateStart = buffer.readInt();
+
 		int amount = buffer.readInt();
 		int maxAge = buffer.readInt();
 
@@ -113,17 +130,31 @@ public class NoppesUtil {
 		float rotationZRate = buffer.readFloat();
 		int rotationZRateStart = buffer.readInt();
 
+		boolean facePlayer = buffer.readBoolean();
+
+		int width = buffer.readInt();
+		int height = buffer.readInt();
+		int offsetX = buffer.readInt();
+		int offsetY = buffer.readInt();
+
+		int animRate = buffer.readInt();
+		boolean animLoop = buffer.readBoolean();
+		int animStart = buffer.readInt();
+		int animEnd = buffer.readInt();
+
 		int entityID = buffer.readInt();
+		int dimensionID = buffer.readInt();
 
-		World worldObj = Minecraft.getMinecraft().theWorld;
+		World worldObj = DimensionManager.getWorld(dimensionID);
+
 		Entity entity = worldObj.getEntityByID(entityID);
+		if(entity != null)
+			worldObj = entity.worldObj;
 
-		if(entity == null)
-			return;
-
-		EntityCustomFX fx = new EntityCustomFX(
-				entity,
-				directory, HEXcolor,
+		CustomFX fx = new CustomFX(
+				worldObj, entity,
+				directory,
+				HEXColor,HEXColor2,colorRate,colorRateStart,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -131,7 +162,9 @@ public class NoppesUtil {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				maxAge
+				maxAge, facePlayer,
+				width, height, offsetX, offsetY,
+				animRate, animLoop, animStart, animEnd
 		);
 
 		for(int i = 0; i < amount; i++){

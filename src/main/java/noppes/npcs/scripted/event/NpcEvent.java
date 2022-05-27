@@ -10,9 +10,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.NpcAPI;
 
 public class NpcEvent extends CustomNPCsEvent {
     public final ICustomNpc npc;
@@ -156,7 +161,7 @@ public class NpcEvent extends CustomNPCsEvent {
 
         public TargetLostEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
-            this.entity = (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
         }
     }
 

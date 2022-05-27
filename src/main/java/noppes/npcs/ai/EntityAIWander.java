@@ -10,7 +10,7 @@ import net.minecraft.util.Vec3;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.ai.selector.NPCInteractSelector;
 import noppes.npcs.constants.AiMutex;
-import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIWander extends EntityAIBase

@@ -61,19 +61,18 @@ import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.EnumStandingType;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogOption;
+import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.QuestData;
-import noppes.npcs.controllers.TransformData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.controllers.data.DataTransform;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.roles.JobFollower;
@@ -86,7 +85,7 @@ import noppes.npcs.scripted.event.ScriptEventAttack;
 import noppes.npcs.scripted.event.ScriptEventDamaged;
 import noppes.npcs.scripted.event.ScriptEventKilled;
 import noppes.npcs.scripted.event.ScriptEventTarget;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 
@@ -102,7 +101,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataAdvanced advanced;
 	public DataInventory inventory;
 	public DataScript script;
-	public TransformData transform;
+	public DataTransform transform;
 	public DataTimers timers;
 	
 	public String linkedName = "";
@@ -165,8 +164,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setSize(1, 1);
 			this.updateTasks();
 
-			if (!this.isRemote()) {
-				this.wrappedNPC = new ScriptNpc(this);
+			if (!this.isRemote() && this.wrappedNPC == null) {
+				this.wrappedNPC = new ScriptNpc<>(this);
 			}
 		}
 		catch(Exception e){
@@ -183,7 +182,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai = new DataAI(this);		
 		advanced = new DataAdvanced(this);
 		inventory = new DataInventory(this);
-		transform = new TransformData(this);
+		transform = new DataTransform(this);
 		script = new DataScript(this);
 		timers = new DataTimers(this);
         this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
@@ -232,7 +231,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public int getMaxSafePointTries()
 	{
-		return 5;
+		return 10;
 	}
 
     @Override
@@ -426,13 +425,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	protected void updateAITasks()
 	{
+		this.getNavigator().onUpdateNavigation();
+		this.getMoveHelper().onUpdateMoveHelper();
+
 		try {
 			super.updateAITasks();
 		} catch (ConcurrentModificationException ignored){
 		}
-
-		this.getNavigator().onUpdateNavigation();
-		this.getMoveHelper().onUpdateMoveHelper();
 	}
 	
 	public void addInteract(EntityLivingBase entity){
@@ -631,7 +630,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		if (canFly()) {
 			this.getNavigator().setCanSwim(true);
-			this.tasks.addTask(0, new EntityAISwimming(this));
 		} else {
 			this.tasks.addTask(0, new EntityAIWaterNav(this));
 		}

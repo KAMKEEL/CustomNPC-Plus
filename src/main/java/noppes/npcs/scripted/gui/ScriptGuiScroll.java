@@ -3,7 +3,7 @@ package noppes.npcs.scripted.gui;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.scripted.interfaces.IScroll;
+import noppes.npcs.scripted.interfaces.gui.IScroll;
 
 public class ScriptGuiScroll extends ScriptGuiComponent implements IScroll {
     int width;

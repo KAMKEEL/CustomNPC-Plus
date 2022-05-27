@@ -72,55 +72,7 @@ import noppes.npcs.blocks.tiles.TileWallBanner;
 import noppes.npcs.blocks.tiles.TileWaypoint;
 import noppes.npcs.blocks.tiles.TileWeaponRack;
 import noppes.npcs.constants.EnumNpcToolMaterial;
-import noppes.npcs.items.ItemBattleAxe;
-import noppes.npcs.items.ItemBroadSword;
-import noppes.npcs.items.ItemBullet;
-import noppes.npcs.items.ItemClaw;
-import noppes.npcs.items.ItemCrossbow;
-import noppes.npcs.items.ItemDagger;
-import noppes.npcs.items.ItemDaggerReversed;
-import noppes.npcs.items.ItemElementalStaff;
-import noppes.npcs.items.ItemExcalibur;
-import noppes.npcs.items.ItemGlaive;
-import noppes.npcs.items.ItemGun;
-import noppes.npcs.items.ItemGunChainsaw;
-import noppes.npcs.items.ItemKunai;
-import noppes.npcs.items.ItemKunaiReversed;
-import noppes.npcs.items.ItemLeafBlade;
-import noppes.npcs.items.ItemMachineGun;
-import noppes.npcs.items.ItemMounter;
-import noppes.npcs.items.ItemMusic;
-import noppes.npcs.items.ItemMusicBanjo;
-import noppes.npcs.items.ItemMusicClarinet;
-import noppes.npcs.items.ItemMusicOracina;
-import noppes.npcs.items.ItemMusicViolin;
-import noppes.npcs.items.ItemMusket;
-import noppes.npcs.items.ItemNpcArmor;
-import noppes.npcs.items.ItemNpcArmorColorable;
-import noppes.npcs.items.ItemNpcBlock;
-import noppes.npcs.items.ItemNpcCloner;
-import noppes.npcs.items.ItemNpcColored;
-import noppes.npcs.items.ItemNpcInterface;
-import noppes.npcs.items.ItemNpcMovingPath;
-import noppes.npcs.items.ItemNpcScripter;
-import noppes.npcs.items.ItemNpcWand;
-import noppes.npcs.items.ItemNpcWeaponInterface;
-import noppes.npcs.items.ItemOrb;
-import noppes.npcs.items.ItemPlaceholder;
-import noppes.npcs.items.ItemRotatedShield;
-import noppes.npcs.items.ItemScythe;
-import noppes.npcs.items.ItemShield;
-import noppes.npcs.items.ItemSkirt;
-import noppes.npcs.items.ItemSlingshot;
-import noppes.npcs.items.ItemSoulstoneEmpty;
-import noppes.npcs.items.ItemSoulstoneFilled;
-import noppes.npcs.items.ItemSpear;
-import noppes.npcs.items.ItemStaff;
-import noppes.npcs.items.ItemTeleporter;
-import noppes.npcs.items.ItemThrowingShuriken;
-import noppes.npcs.items.ItemThrowingWeapon;
-import noppes.npcs.items.ItemWand;
-import noppes.npcs.items.ItemWarhammer;
+import noppes.npcs.items.*;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 public class CustomItems {
@@ -130,7 +82,8 @@ public class CustomItems {
 	public static Item scripter;
 	public static Item moving;	
 	public static Item mount;	
-	public static Item teleporter;	
+	public static Item teleporter;
+	public static Item scripted_item;
 
 	public static Item soulstoneEmpty;
 	public static Item soulstoneFull;	
@@ -300,8 +253,7 @@ public class CustomItems {
 	public static CreativeTabNpcs tabWeapon;
 	public static CreativeTabNpcs tabBlocks = new CreativeTabNpcs("cnpcsb");
 	public static CreativeTabNpcs tabMisc = new CreativeTabNpcs("cnpcsm");
-	
-	
+
 	public static void load(){		
 		GameRegistry.registerTileEntity(TileRedstoneBlock.class, "TileRedstoneBlock");
 		GameRegistry.registerTileEntity(TileBlockAnvil.class, "TileBlockAnvil");
@@ -338,6 +290,7 @@ public class CustomItems {
 		moving = new ItemNpcMovingPath().setUnlocalizedName("npcMovingPath").setFull3D();
 		mount = new ItemMounter().setUnlocalizedName("npcMounter").setFull3D();
 		teleporter = new ItemTeleporter().setUnlocalizedName("npcTeleporter").setFull3D();
+		scripted_item = new ItemScripted().setUnlocalizedName("scripted_item").setFull3D();
 		
 		redstoneBlock = new BlockNpcRedstone().setHardness(50.0F).setResistance(2000).setBlockName("npcRedstoneBlock").setBlockTextureName("customnpcs:npcRedstoneBlock").setCreativeTab(tab);
 		carpentyBench = new BlockCarpentryBench().setBlockName("npcCarpentyBench").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);

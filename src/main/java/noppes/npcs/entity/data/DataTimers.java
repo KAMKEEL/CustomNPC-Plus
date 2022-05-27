@@ -14,11 +14,11 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.interfaces.ITimers;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
 
 public class DataTimers implements ITimers {
-    private Object parent;
+    private final Object parent;
     private Map<Integer, DataTimers.Timer> timers = new HashMap();
 
     public DataTimers(Object parent) {

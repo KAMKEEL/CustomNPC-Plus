@@ -3,8 +3,7 @@ package noppes.npcs.scripted.gui;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
-import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
+import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
 
 public abstract class ScriptGuiComponent implements ICustomGuiComponent {
     int id;

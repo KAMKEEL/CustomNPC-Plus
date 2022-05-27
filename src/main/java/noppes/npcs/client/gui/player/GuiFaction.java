@@ -13,8 +13,8 @@ import noppes.npcs.client.gui.util.GuiButtonNextPage;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.controllers.Faction;
-import noppes.npcs.controllers.PlayerFactionData;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.PlayerFactionData;
 
 import org.lwjgl.opengl.GL11;
 

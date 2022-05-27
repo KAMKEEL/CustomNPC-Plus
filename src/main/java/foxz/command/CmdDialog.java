@@ -1,16 +1,15 @@
 package foxz.command;
 
-import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
-import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.DialogOption;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityDialogNpc;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;

@@ -100,6 +100,7 @@ import noppes.npcs.client.gui.roles.GuiNpcItemGiver;
 import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
+import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
@@ -130,9 +131,10 @@ import noppes.npcs.client.renderer.blocks.BlockWeaponRackRenderer;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 
+import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.interfaces.IWorld;
 import org.lwjgl.input.Keyboard;
 
@@ -164,7 +166,6 @@ public class ClientProxy extends CommonProxy {
 		RenderingRegistry.registerEntityRenderingHandler(EntityProjectile.class, new RenderProjectile());
 
 		RenderingRegistry.registerEntityRenderingHandler(EntityCustomNpc.class, new RenderCustomNpc());
-
 
 		RenderingRegistry.registerEntityRenderingHandler(EntityNPCGolem.class, new RenderNPCHumanMale(
 				new ModelNPCGolem(0), new ModelNPCGolem(1F), new ModelNPCGolem(0.5F)));
@@ -358,6 +359,9 @@ public class ClientProxy extends CommonProxy {
 		else if(gui == EnumGuiType.Script && CustomNpcs.ScriptingEnabled)
 			return new GuiScript(npc);
 
+		else if (gui == EnumGuiType.ScriptItem)
+			return new GuiScriptItem(Minecraft.getMinecraft().thePlayer);
+
 		else if(gui == EnumGuiType.PlayerAnvil)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
 
@@ -536,7 +540,11 @@ public class ClientProxy extends CommonProxy {
 
 	@Override
 	public void registerItem(Item item) {
-		MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());
+		if (item instanceof ItemScripted) {
+			MinecraftForgeClient.registerItemRenderer(item, new CustomItemRenderer());
+		} else {
+			MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());
+		}
 	}
 
 	public static void bindTexture(ResourceLocation location) {

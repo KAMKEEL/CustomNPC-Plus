@@ -99,6 +99,8 @@ public class GuiNpcMenu implements GuiYesNoCallback{
 	} 
 
 	private void close() {
+		Keyboard.enableRepeatEvents(false);
+
 		if(parent instanceof GuiContainerNPCInterface2)
 			((GuiContainerNPCInterface2)parent).close();
 		

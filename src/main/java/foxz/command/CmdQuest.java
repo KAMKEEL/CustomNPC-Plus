@@ -1,20 +1,15 @@
 package foxz.command;
 
-import static foxz.utils.Utils.getOnlinePlayer;
-
 import java.util.List;
 
-import net.minecraft.command.PlayerSelector;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.QuestData;
+import noppes.npcs.controllers.data.QuestData;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;

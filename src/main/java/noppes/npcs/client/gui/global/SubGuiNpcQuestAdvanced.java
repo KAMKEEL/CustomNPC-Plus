@@ -10,11 +10,8 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumMovingType;
-import noppes.npcs.constants.EnumStandingType;
-import noppes.npcs.controllers.PlayerMail;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.PlayerMail;
+import noppes.npcs.controllers.data.Quest;
 
 public class SubGuiNpcQuestAdvanced extends SubGuiInterface implements ITextfieldListener 
 {

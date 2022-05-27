@@ -9,23 +9,19 @@ import com.ibm.icu.text.ArabicShaping;
 import com.ibm.icu.text.ArabicShapingException;
 import com.ibm.icu.text.Bidi;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiLabel;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.scripted.gui.ScriptGuiLabel;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 public class CustomGuiLabel extends Gui implements IGuiComponent {
     int x, y, width, height;
@@ -135,14 +131,14 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     }
 
     public static CustomGuiLabel fromComponent(ScriptGuiLabel component) {
-        CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.hasShadow());
+        CustomGuiLabel lbl = new CustomGuiLabel(component.getID(), component.getText(), GuiCustom.guiLeft + component.getPosX(), GuiCustom.guiTop + component.getPosY(), component.getWidth(), component.getHeight(), component.getShadow());
         lbl.scale = 1.0F;
         lbl.color = component.getColor();
         lbl.setScale(component.getScale());
         if (component.hasHoverText()) {
             lbl.hoverText = component.getHoverText();
         }
-        lbl.labelShadowEnabled = component.hasShadow();
+        lbl.labelShadowEnabled = component.getShadow();
         lbl.color = component.getColor();
         lbl.alpha = component.getAlpha();
         lbl.rotation = component.getRotation();
@@ -155,7 +151,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     public ICustomGuiComponent toComponent() {
         ScriptGuiLabel component = new ScriptGuiLabel(this.id, this.fullLabel, this.field_146162_g, this.field_146174_h, this.field_146167_a, this.field_146161_f, this.color);
         component.setHoverText(this.hoverText);
-        component.enableShadow(this.labelShadowEnabled);
+        component.setShadow(this.labelShadowEnabled);
         component.setColor(this.color);
         component.setAlpha(this.alpha);
         component.setRotation(this.rotation);

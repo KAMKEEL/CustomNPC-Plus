@@ -26,7 +26,7 @@ import noppes.npcs.client.gui.util.IGuiError;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.controllers.PlayerMail;
+import noppes.npcs.controllers.data.PlayerMail;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;

@@ -3,8 +3,6 @@ package noppes.npcs;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -21,6 +19,7 @@ import noppes.npcs.blocks.tiles.TileBook;
 import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

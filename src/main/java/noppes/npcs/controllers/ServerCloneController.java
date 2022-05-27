@@ -2,11 +2,7 @@ package noppes.npcs.controllers;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +10,6 @@ import java.util.Map;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -22,13 +17,11 @@ import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.handler.ICloneHandler;
-import noppes.npcs.scripted.interfaces.IEntity;
+import noppes.npcs.scripted.interfaces.handler.ICloneHandler;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class ServerCloneController implements ICloneHandler {

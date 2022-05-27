@@ -1,12 +1,7 @@
 package noppes.npcs.scripted.overlay;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.scripted.gui.*;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
-import noppes.npcs.scripted.interfaces.ICustomOverlayComponent;
-import noppes.npcs.scripted.interfaces.IOverlayTexturedRect;
+import noppes.npcs.scripted.interfaces.overlay.ICustomOverlayComponent;
 
 public abstract class ScriptOverlayComponent implements ICustomOverlayComponent {
     int id;

@@ -14,7 +14,7 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.FactionOptions;
+import noppes.npcs.controllers.data.FactionOptions;
 
 public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollData,ICustomScrollListener
 {

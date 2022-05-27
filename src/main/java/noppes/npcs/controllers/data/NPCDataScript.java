@@ -12,7 +12,7 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 
 import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
