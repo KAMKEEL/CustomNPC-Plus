@@ -1,12 +1,10 @@
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.*;
+import noppes.npcs.scripted.ScriptEntityParticle;
+import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.ScriptScoreboard;
 import noppes.npcs.scripted.entity.ScriptEntity;
 import noppes.npcs.scripted.entity.ScriptPlayer;
 
@@ -51,14 +49,6 @@ public interface IWorld {
      * @param item The block to be set
      */
     public void setBlock(int x, int y, int z, ScriptItemStack item);
-    
-    /**
-	 * @param x World position x
-	 * @param y World position y
-	 * @param z World position z
-	 * @param block The block to be set
-	 */
-	public void setBlock(int x, int y, int z, Block block);
 	
 	/**
 	 * @param x World position x

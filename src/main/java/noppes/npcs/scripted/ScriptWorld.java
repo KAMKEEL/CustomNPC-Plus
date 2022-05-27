@@ -102,14 +102,6 @@ public class ScriptWorld implements IWorld {
 		return null;
 	}
 	
-	public void setBlock(int x, int y, int z, Block block){
-		if(block == null || block.isAir(world, x, y, z)){
-			removeBlock(x, y, z);
-			return;
-		}
-		world.setBlock(x, y, z, block);
-	}
-	
 	public void setBlock(int x, int y, int z, IBlock block){
 		if(block == null || block.getMCBlock().isAir(world, x, y, z)){
 			removeBlock(x, y, z);
