@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
-import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -41,40 +40,39 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.containers.ContainerManageRecipes;
-import noppes.npcs.controllers.Bank;
+import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogCategory;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.DialogOption;
-import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.data.DialogOption;
+import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerBankData;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerBankData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerDialogData;
-import noppes.npcs.controllers.PlayerFactionData;
+import noppes.npcs.controllers.data.PlayerDialogData;
+import noppes.npcs.controllers.data.PlayerFactionData;
 import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.PlayerTransportData;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestCategory;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.PlayerTransportData;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.TransportCategory;
+import noppes.npcs.controllers.data.TransportCategory;
 import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.TransportLocation;
+import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.DialogEvent;
-import noppes.npcs.scripted.event.ScriptEventDialog;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -183,7 +181,7 @@ public class NoppesUtilServer {
 	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia, int optionId){
 		Dialog dialog = dia.copy(player);
 
-		EventHooks.onDialogOpen(new DialogEvent.DialogOpen(new ScriptPlayer((EntityPlayerMP) player), dialog));
+		EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 
 		if(npc instanceof EntityDialogNpc){
 			dialog.hideNPC = true;
@@ -312,7 +310,9 @@ public class NoppesUtilServer {
 		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
-	public static void spawnScriptedParticle(String directory, int HEXcolor, int amount, int maxAge,
+	public static void spawnScriptedParticle(String directory,
+											 int HEXColor, int HEXColor2, float colorRate, int rateStart,
+											 int amount, int maxAge,
 											 double x, double y, double z,
 											 double motionX, double motionY, double motionZ, float gravity,
 											 float scale1, float scale2, float scaleRate, int scaleRateStart,
@@ -320,10 +320,14 @@ public class NoppesUtilServer {
 											 float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
 											 float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
 											 float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-											 int entityID
+											 boolean facePlayer, int width, int height, int offsetX, int offsetY,
+											 int animRate, boolean animLoop, int animStart, int animEnd,
+											 int entityID, int dimensionID
 	){
 		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE,
-				directory, HEXcolor, amount, maxAge,
+				directory,
+				HEXColor, HEXColor2, colorRate, rateStart,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -331,7 +335,9 @@ public class NoppesUtilServer {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				entityID
+				facePlayer, width, height, offsetX, offsetY,
+				animRate, animLoop, animStart, animEnd,
+				entityID, dimensionID
 		);
 	}
 

@@ -2,9 +2,9 @@ package noppes.npcs.roles;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.Bank;
+import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.BankData;
+import noppes.npcs.controllers.data.BankData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 

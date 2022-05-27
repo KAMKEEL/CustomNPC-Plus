@@ -11,8 +11,8 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.Line;
-import noppes.npcs.controllers.Lines;
+import noppes.npcs.controllers.data.Line;
+import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData

@@ -21,19 +21,18 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptBlockPos;
-import noppes.npcs.scripted.ScriptEntityParticle;
-import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.IEntity;
+import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -68,6 +67,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param scaleRate Multiplier for the particle's transparency growth rate
 	 * @param alphaRateStart The time at which the particle begins appearing/fading
 	 */
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
@@ -79,7 +79,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 							  float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -87,9 +89,13 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				entityID
+				true, -1, -1, 0,0,
+				0, true, 0, 0,
+				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
@@ -97,7 +103,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 							  float alpha1, float alpha2, float alphaRate, int alphaRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -105,16 +113,22 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				entityID
+				true, -1, -1, 0,0,
+				0, true, 0, 0,
+				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
 							  float scale1, float scale2, float scaleRate, int scaleRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				scale1, scale2, scaleRate, scaleRateStart,
@@ -122,15 +136,21 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				entityID
+				true, -1, -1, 0,0,
+				0, true, 0, 0,
+				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				motionX, motionY, motionZ, gravity,
 				0, 0, 0, 0,
@@ -138,14 +158,20 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				entityID
+				true, -1, -1, 0,0,
+				0, true, 0, 0,
+				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
 							  double x, double y, double z
 							  ) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				x, y, z,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
@@ -153,13 +179,19 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				entityID
+				true, -1, -1, 0,0,
+				0, true, 0, 0,
+				entityID, entity.dimension
 		);
 	}
+
+	@Deprecated
 	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory, HEXcolor, amount, maxAge,
+		NoppesUtilServer.spawnScriptedParticle(directory,
+				HEXcolor, HEXcolor, 0, 0,
+				amount, maxAge,
 				0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
@@ -167,10 +199,21 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				entityID
+				true, -1, -1, 0,0,
+				0, true, 0, 0,
+				entityID, entity.dimension
 		);
 	}
-	public void spawnParticle(ScriptEntityParticle entityParticle) { entityParticle.spawnOnEntity(this); }
+
+	public void spawnParticle(IParticle entityParticle) { entityParticle.spawnOnEntity(this); }
+
+	public int getEntityId(){
+		return entity.getEntityId();
+	}
+
+	public String getUniqueID(){
+		return entity.getUniqueID().toString();
+	}
 
 	public double getYOffset() { return entity.getYOffset(); }
 
@@ -319,18 +362,22 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
 	}
 
+	public int getDimension(){
+		return entity.dimension;
+	}
+
 	/**
 	 * @param range The search range for entities around this entity
 	 * @return Array of entities within range
 	 */
-	public ScriptEntity[] getSurroundingEntities(int range){
+	public IEntity[] getSurroundingEntities(int range){
 		List<Entity> entities = entity.worldObj.getEntitiesWithinAABB(Entity.class, entity.boundingBox.expand(range, range, range));
-		List<ScriptEntity> list = new ArrayList<ScriptEntity>();
+		List<IEntity> list = new ArrayList<IEntity>();
 		for(Entity living : entities){
 			if(living != entity)
-				list.add(ScriptController.Instance.getScriptForEntity(living));
+				list.add(NpcAPI.Instance().getIEntity(living));
 		}
-		return list.toArray(new ScriptEntity[list.size()]);
+		return list.toArray(new IEntity[list.size()]);
 	}
 
 	/**
@@ -338,7 +385,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 * @param type The EntityType you want to find
 	 * @return Array of entities within range
 	 */
-	public ScriptEntity[] getSurroundingEntities(int range, int type){
+	public IEntity[] getSurroundingEntities(int range, int type){
 		Class cls = Entity.class;
 		if(type == EntityType.LIVING)
 			cls = EntityLivingBase.class;
@@ -352,12 +399,12 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 			cls = EntityNPCInterface.class;
 
 		List<Entity> entities = entity.worldObj.getEntitiesWithinAABB(cls, entity.boundingBox.expand(range, range, range));
-		List<ScriptEntity> list = new ArrayList<ScriptEntity>();
+		List<IEntity> list = new ArrayList<IEntity>();
 		for(Entity living : entities){
 			if(living != entity)
-				list.add(ScriptController.Instance.getScriptForEntity(living));
+				list.add(NpcAPI.Instance().getIEntity(living));
 		}
-		return list.toArray(new ScriptEntity[list.size()]);
+		return list.toArray(new IEntity[list.size()]);
 	}
 
 
@@ -549,23 +596,23 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	/**
 	 * @param item Item to be dropped
 	 */
-	public void dropItem(ScriptItemStack item){
-		entity.entityDropItem(item.item, 0);
+	public void dropItem(IItemStack item){
+		entity.entityDropItem(item.getMCItemStack(), 0);
 	}
 
 	/**
 	 * @return Return the rider
 	 */
-	public ScriptEntity getRider(){
-		return ScriptController.Instance.getScriptForEntity(entity.riddenByEntity);
+	public IEntity getRider(){
+		return NpcAPI.Instance().getIEntity(entity.riddenByEntity);
 	}
 
 	/**
 	 * @param entity The entity to ride this entity
 	 */
-	public void setRider(ScriptEntity entity){
+	public void setRider(IEntity entity){
 		if(entity != null){
-			entity.entity.mountEntity(this.entity);;
+			entity.getMCEntity().mountEntity(this.entity);;
 		}
 		else if(this.entity.riddenByEntity != null)
 			this.entity.riddenByEntity.mountEntity(null);
@@ -574,18 +621,18 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	/**
 	 * @return Return the entity, this entity is riding
 	 */
-	public ScriptEntity getMount(){
-		return ScriptController.Instance.getScriptForEntity(entity.ridingEntity);
+	public IEntity getMount(){
+		return NpcAPI.Instance().getIEntity(entity.ridingEntity);
 	}
 
 	/**
 	 * @param entity The entity this entity will mount
 	 */
-	public void setMount(ScriptEntity entity){
+	public void setMount(IEntity entity){
 		if(entity == null)
 			this.entity.mountEntity(null);
 		else
-			this.entity.mountEntity(entity.entity);
+			this.entity.mountEntity(entity.getMCEntity());
 	}
 
 	/**
@@ -644,6 +691,18 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.hurtResistantTime = ticks;
 	};
 
+	public void setInvisible(boolean invisible){
+		entity.setInvisible(invisible);
+	}
+
+	public void setSneaking(boolean sneaking){
+		entity.setSneaking(sneaking);
+	}
+
+	public void setSprinting(boolean sprinting){
+		entity.setSprinting(sprinting);
+	}
+
 	public boolean hasCollided() {
 		return entity.isCollided;
 	}
@@ -697,6 +756,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 
 	public ScriptWorld getWorld() {
-		return (ScriptWorld)NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
+		return (ScriptWorld) NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
 	}
 }

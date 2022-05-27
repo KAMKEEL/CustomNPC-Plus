@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -27,29 +28,32 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.Dialog;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerDialogData;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.PlayerDialogData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.QuestData;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.handler.data.IQuest;
+import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IContainer;
-import noppes.npcs.scripted.interfaces.ICustomGui;
-import noppes.npcs.scripted.interfaces.ICustomOverlay;
-import noppes.npcs.scripted.interfaces.IPlayer;
+import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.ITimers;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.ValueUtil;
 
@@ -75,7 +79,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public String getName(){
 		return player.getCommandSenderName();
 	}
-	
+
+	@Override
+	public void spawnParticle(IParticle entityParticle) {
+		entityParticle.spawnOnEntity(this);
+	}
+
 	@Override
 	public void setPosition(double x, double y, double z){
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);
@@ -111,11 +120,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		player.getFoodStats().addStats(0,saturation-prevSaturation);
 	}
-
-	public int getDimension(){
-		return player.dimension;
-	}
-
 	
 	public boolean hasFinishedQuest(int id){
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
@@ -139,11 +143,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
 		return data.dialogsRead.contains(id);
 	}
-	
+
 	public void readDialog(int id) {
 		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.add(id);
 	}
-	
+
 	public void unreadDialog(int id) {
 		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
 	}
@@ -159,7 +163,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
         if(data.questData.activeQuests.containsKey(id))
         	return;
-        QuestData questdata = new QuestData(quest);        
+        QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
@@ -227,7 +231,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
 		data.factionData.increasePoints(faction, points-getFactionPoints(faction), player);
 	}
-        
+
     /**         
      * @param faction The faction id
      * @return  points
@@ -257,7 +261,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		chat.setChatStyle(style);
 		player.addChatMessage(chat);
 	}
-	
+
 	/**
 	 * @param message The message you want to send
 	 */
@@ -273,7 +277,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		chat.setChatStyle(style);
 		player.addChatMessage(chat);
 	}
-	
+
 	/**
 	 * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure
 	 */
@@ -292,10 +296,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param item The item to be checked
 	 * @return How many of this item the player has
 	 */
-	public int inventoryItemCount(ScriptItemStack item){
+	public int inventoryItemCount(IItemStack item){
 		int i = 0;
 		for(ItemStack is : player.inventory.mainInventory){
-            if (is != null && is.isItemEqual(item.item))
+            if (is != null && is.isItemEqual(item.getMCItemStack()))
             	i += is.stackSize;
 		}
 		return i;
@@ -305,12 +309,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @since 1.7.10d
 	 * @return Returns a IItemStack array size 36
 	 */
-	public ScriptItemStack[] getInventory(){
-		ScriptItemStack[] items = new ScriptItemStack[36];
+	public IItemStack[] getInventory(){
+		IItemStack[] items = new IItemStack[36];
 		for(int i = 0; i < player.inventory.mainInventory.length; i++){
 			ItemStack item = player.inventory.mainInventory[i];
 			if(item != null)
-				items[i] = new ScriptItemStack(item);
+				items[i] = NpcAPI.Instance().getIItemStack(item);
 		}
 		return items;
 	}
@@ -320,7 +324,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param amount How many will be removed
 	 * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
 	 */
-	public boolean removeItem(ScriptItemStack item, int amount){
+	public boolean removeItem(IItemStack item, int amount){
 		int count = inventoryItemCount(item);
 		if(amount  > count)
 			return false;
@@ -329,7 +333,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		else{
 			for(int i = 0; i < player.inventory.mainInventory.length; i++){
 				ItemStack is = player.inventory.mainInventory[i];
-	            if (is != null && is.isItemEqual(item.item)){
+	            if (is != null && is.isItemEqual(item.getMCItemStack())){
 	            	if(amount > is.stackSize){
 	                	player.inventory.mainInventory[i] = null;
 	                	amount -= is.stackSize;
@@ -356,7 +360,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		Item item = (Item)Item.itemRegistry.getObject(id);
 		if(item == null)
 			return false;		
-		return removeItem(new ScriptItemStack(new ItemStack(item, 1, damage)), amount);
+		return removeItem(NpcAPI.Instance().getIItemStack(new ItemStack(item, 1, damage)), amount);
 	}
 
 	/**
@@ -365,7 +369,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param amount The amount of the item to be added
 	 * @return Returns whether or not it gave the item succesfully
 	 */
-	public boolean giveItem(ScriptItemStack item, int amount){
+	public boolean giveItem(IItemStack item, int amount){
 		if(item != null && item.getMCItemStack() != null) {
 			item.setStackSize(amount);
 			boolean bool = this.player.inventory.addItemStackToInventory(item.getMCItemStack());
@@ -410,14 +414,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	/**
 	 * @param item The item to be removed from the players inventory
 	 */
-	public void removeAllItems(ScriptItemStack item){
+	public void removeAllItems(IItemStack item){
 		for(int i = 0; i < player.inventory.mainInventory.length; i++){
 			ItemStack is = player.inventory.mainInventory[i];
-            if (is != null && is.isItemEqual(item.item))
+            if (is != null && is.isItemEqual(item.getMCItemStack()))
             	player.inventory.mainInventory[i] = null;
 		}
 	}
-	
+
 	public void clearInventory() {
 		for(int i = 0; i < player.inventory.mainInventory.length; i++) player.inventory.mainInventory[i] = null;
 		for(int i = 0; i < player.inventory.armorInventory.length; i++) player.inventory.armorInventory[i] = null;
@@ -430,7 +434,39 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public void setRotation(float rotationYaw, float rotationPitch){
 		NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
 	}
-	
+
+	public void swingHand(){
+		NoppesUtilPlayer.swingPlayerArm(player);
+	}
+
+	public void stopUsingItem(){
+		player.stopUsingItem();
+	}
+
+	public void clearItemInUse(){
+		player.clearItemInUse();
+	}
+
+	public void playSound(String name, float volume, float pitch){
+		player.playSound(name, volume, pitch);
+	}
+
+	public void mountEntity(Entity ridingEntity){
+		player.mountEntity(ridingEntity);
+	}
+
+	public IEntity dropOneItem(boolean dropStack){
+		return NpcAPI.Instance().getIEntity(player.dropOneItem(dropStack));
+	}
+
+	public boolean canHarvestBlock(IBlock block){
+		return player.canHarvestBlock(block.getMCBlock());
+	}
+
+	public boolean interactWith(IEntity entity){
+		return player.interactWith(entity.getMCEntity());
+	}
+
 	/**
 	 * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements
 	 * @return Returns whether or not the player has this achievement
@@ -477,12 +513,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 			return null;
 		return new ScriptPixelmonPlayerData(player);
 	}
-	
+
 	public IBlock getLookingAtBlock(int maxDistance) {
 		Vec3 lookVec = player.getLookVec();
 		return getWorld().rayCastBlock(
-				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ}, 
-				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord}, 
+				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
+				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
 				maxDistance);
 	}
 
@@ -497,6 +533,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
+	@Deprecated
 	public boolean checkGUIOpen() {
 		NoppesUtilPlayer.isGUIOpen(player);
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
@@ -566,7 +603,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void closeOverlay(int id) {
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.OVERLAY_CLOSE, id, new NBTTagCompound());
+		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.SCRIPT_OVERLAY_CLOSE, id, new NBTTagCompound());
+	}
+
+	public IOverlayHandler getOverlays() {
+		return this.getData().skinOverlays;
 	}
 
 	public IQuest[] getFinishedQuests() {

@@ -26,7 +26,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.event.ForgeEventFactory;
 import noppes.npcs.controllers.SpawnController;
-import noppes.npcs.controllers.SpawnData;
+import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 

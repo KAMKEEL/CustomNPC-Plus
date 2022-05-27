@@ -1,17 +1,20 @@
 package noppes.npcs.scripted.entity;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.*;
-import noppes.npcs.controllers.Line;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.ScriptItemStack;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.ICustomNpc;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;
@@ -28,6 +31,7 @@ import noppes.npcs.scripted.roles.ScriptRoleInterface;
 import noppes.npcs.scripted.roles.ScriptRoleMailman;
 import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
@@ -259,26 +263,26 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param item The item you want to shoot
 	 * @param accuracy Accuracy of the shot (0-100)
 	 */
-	public void shootItem(ScriptLivingBase target, ScriptItemStack item, int accuracy){
+	public void shootItem(IEntityLivingBase target, IItemStack item, int accuracy){
 		if(item == null)
 			return;
 		if(accuracy < 0)
 			accuracy = 0;
 		else if(accuracy > 100)
 			accuracy = 100;
-		npc.shoot(target.entity, accuracy, item.item, false);
+		npc.shoot(target.getMCEntity(), accuracy, item.getMCItemStack(), false);
 	}
 	
 	public void setProjectilesKeepTerrain(boolean t) {
 		npc.stats.projectilesKeepTerrain = t;
 	}
-	
+
 	public boolean getProjectilesKeepTerrain() {
 		return npc.stats.projectilesKeepTerrain;
 	}
 
 
-	
+
 	/**
 	 * @param message The message the npc will say
 	 */
@@ -289,10 +293,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @param message The message the npc will say
 	 */
-	public void say(ScriptPlayer player, String message){
+	public void say(IPlayer player, String message){
 		if(player == null || message == null || message.isEmpty())
 			return;
-		npc.say(player.player, new Line(message));
+		npc.say((EntityPlayer) player.getMCEntity(), new Line(message));
 	}
 	
 	/**
@@ -325,6 +329,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptRoleTransporter(npc);
 		return new ScriptRoleInterface(npc);
 	}
+
 	public void setRole(int role){
 		for (EnumRoleType e : EnumRoleType.values()) {
 			if (e.ordinal() == role) {
@@ -356,6 +361,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptJobSpawner(npc);
 		return new ScriptJobInterface(npc);
 	}
+
 	public void setJob(int job){
 		for (EnumJobType e : EnumJobType.values()) {
 			if (e.ordinal() == job) {
@@ -368,63 +374,54 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The item held in the right hand
 	 */
-	public ScriptItemStack getRightItem(){
-		ItemStack item = npc.inventory.getWeapon();
-		if(item == null || item.getItem() == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getRightItem(){
+		return NpcAPI.Instance().getIItemStack(npc.inventory.getWeapon());
 	}
 	
 	/**
 	 * @param item Item to be held in the right hand
 	 */
-	public void setRightItem(ScriptItemStack item){
+	public void setRightItem(IItemStack item){
 		if(item == null)
 			npc.inventory.setWeapon(null);
 		else
-			npc.inventory.setWeapon(item.item);
+			npc.inventory.setWeapon(item.getMCItemStack());
 		npc.script.clientNeedsUpdate = true;
 	}
 	
 	/**
 	 * @return The item held in the left hand
 	 */
-	public ScriptItemStack getLefttItem(){
-		ItemStack item = npc.getOffHand();
-		if(item == null || item.getItem() == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getLefttItem(){
+		return NpcAPI.Instance().getIItemStack(npc.getOffHand());
 	}
 	
 	/**
 	 * @param item Item to be held in the left hand
 	 */
-	public void setLeftItem(ScriptItemStack item){
+	public void setLeftItem(IItemStack item){
 		if(item == null)
 			npc.inventory.setOffHand(null);
 		else
-			npc.inventory.setOffHand(item.item);
+			npc.inventory.setOffHand(item.getMCItemStack());
 		npc.script.clientNeedsUpdate = true;
 	}
 	
 	/**
 	 * @return Returns the projectile the npc uses
 	 */
-	public ScriptItemStack getProjectileItem(){
-		ItemStack item = npc.inventory.getProjectile();
-		if(item == null || item.getItem() == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getProjectileItem(){
+		return NpcAPI.Instance().getIItemStack(npc.inventory.getProjectile());
 	}
 	
 	/**
 	 * @param item Item to be used as projectile
 	 */
-	public void setProjectileItem(ScriptItemStack item){
+	public void setProjectileItem(IItemStack item){
 		if(item == null)
 			npc.inventory.setProjectile(null);
 		else
-			npc.inventory.setProjectile(item.item);
+			npc.inventory.setProjectile(item.getMCItemStack());
 		npc.script.aiNeedsUpdate = true;
 	}
 
@@ -498,11 +495,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return Returns the worn armor in slot
 	 */
 	@Override
-	public ScriptItemStack getArmor(int slot){
-		ItemStack item = npc.inventory.armor.get(slot);
-		if(item == null)
-			return null;
-		return new ScriptItemStack(item);
+	public IItemStack getArmor(int slot){
+		return NpcAPI.Instance().getIItemStack(npc.inventory.armor.get(slot));
 	}
 	
 	/**
@@ -510,11 +504,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param item Item to be set as armor
 	 */
 	@Override
-	public void setArmor(int slot, ScriptItemStack item){
+	public void setArmor(int slot, IItemStack item){
 		if(item == null)
 			npc.inventory.armor.put(slot, null);
 		else
-			npc.inventory.armor.put(slot, item.item);
+			npc.inventory.armor.put(slot, item.getMCItemStack());
 		
 		npc.script.clientNeedsUpdate = true;
 	}
@@ -524,8 +518,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to return (0-8)
 	 * @return
 	 */
-	public ScriptItemStack getLootItem(int slot) {
-		return new ScriptItemStack(npc.inventory.getStackInSlot(slot+7));
+	public IItemStack getLootItem(int slot) {
+		return NpcAPI.Instance().getIItemStack(npc.inventory.getStackInSlot(slot+7));
 	}
 
 	/**
@@ -533,9 +527,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param slot The slot from the NPC's drop list to change
 	 * @param item The item the drop list slot will be changed to
 	 */
-	public void setLootItem(int slot, ScriptItemStack item) {
-		if (item == null) npc.inventory.setInventorySlotContents(slot+7, null);
-		else npc.inventory.setInventorySlotContents(slot+7, item.item);
+	public void setLootItem(int slot, IItemStack item) {
+		npc.inventory.setInventorySlotContents(slot+7, item.getMCItemStack());
 	}
 
 	/**
@@ -714,8 +707,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.display.visible;
 	}
 
-	public void setVisibleTo(ScriptPlayer player, boolean visible) {
-		UUID uuid = player.player.getPersistentID();
+	public void setVisibleTo(IPlayer player, boolean visible) {
+		UUID uuid = player.getMCEntity().getPersistentID();
 		ArrayList<UUID> uuidList = npc.display.invisibleToList;
 		if(uuidList != null) {
 			if (!uuidList.contains(uuid)) {
@@ -728,8 +721,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.script.clientNeedsUpdate = true;
 	}
 
-	public boolean isVisibleTo(ScriptPlayer player) {
-		return !npc.scriptInvisibleToPlayer(player.player);
+	public boolean isVisibleTo(IPlayer player) {
+		return !npc.scriptInvisibleToPlayer((EntityPlayer) player.getMCEntity());
 	}
 	
 	/**
@@ -870,8 +863,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.stats.playerSetCanDespawn = canDespawn;
 	}
 
-	public void giveItem(ScriptPlayer player, ScriptItemStack item){
-		npc.givePlayerItem(player.player, item.item);
+	public void giveItem(IPlayer player, IItemStack item){
+		npc.givePlayerItem((EntityPlayer) player.getMCEntity(), item.getMCItemStack());
 	}
 
 	public void executeCommand(String command){
@@ -1018,7 +1011,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setCanDrown(boolean d) {
 		npc.stats.canDrown = d;
 	}
-	
+
 	@Override
 	public long getAge(){
 		return npc.totalTicksAlive;
@@ -1121,12 +1114,19 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setOverlayTexture(String overlayTexture) {
-		npc.display.glowTexture = overlayTexture;
+		this.getOverlays().add(0, NpcAPI.Instance().createSkinOverlay(overlayTexture));
 		npc.updateClient = true;
 	}
 
 	public String getOverlayTexture() {
-		return npc.display.glowTexture;
+		if (!npc.display.skinOverlayData.overlayList.containsKey(0))
+			return "";
+
+		return npc.display.skinOverlayData.overlayList.get(0).getTexture();
+	}
+
+	public IOverlayHandler getOverlays() {
+		return npc.display.skinOverlayData;
 	}
 
 	public void setCollisionType(int type){

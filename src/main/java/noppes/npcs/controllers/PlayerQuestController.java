@@ -9,6 +9,10 @@ import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.quests.QuestDialog;
 
 public class PlayerQuestController {
@@ -35,7 +39,7 @@ public class PlayerQuestController {
 				return;
 			}
 
-			data.activeQuests.put(quest.id,new QuestData(quest));	
+			data.activeQuests.put(quest.id,new QuestData(quest));
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
 		}

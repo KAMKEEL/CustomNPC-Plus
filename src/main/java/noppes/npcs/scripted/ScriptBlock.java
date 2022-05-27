@@ -18,7 +18,7 @@ import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.util.LRUHashMap;
 
 public class ScriptBlock implements IBlock {
-    private static final Map<String, ScriptBlock> blockCache = new LRUHashMap(400);
+    private static final Map<String, IBlock> blockCache = new LRUHashMap(400);
     protected final IWorld world;
     protected final Block block;
     protected final BlockPos pos;
@@ -34,6 +34,7 @@ public class ScriptBlock implements IBlock {
     }
 
     protected void setTile(TileEntity tile) {
+        world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),new ScriptTileEntity(tile));
         this.tile = tile;
     }
 
@@ -61,19 +62,19 @@ public class ScriptBlock implements IBlock {
         return this.block.isAir(this.world.getMCWorld(), getX(), getY(), getZ());
     }
 
-    public ScriptBlock setBlock(String name) {
-        Block block = (Block)Block.blockRegistry.getObject(new ResourceLocation(name));
+    public IBlock setBlock(String blockName) {
+        Block block = (Block)Block.blockRegistry.getObject(new ResourceLocation(blockName));
         if(block == null) {
             return this;
         } else {
             this.world.getMCWorld().setBlock(getX(),getY(),getZ(),block);
-            return new ScriptBlock(this.world.getMCWorld(), block, this.pos);
+            return NpcAPI.Instance().getIBlock(world.getMCWorld(), block, new BlockPos(getX(),getY(),getZ()));
         }
     }
 
-    public ScriptBlock setBlock(IBlock block) {
+    public IBlock setBlock(IBlock block) {
         this.world.getMCWorld().setBlock(getX(),getY(),getZ(),block.getMCBlock());
-        return new ScriptBlock(this.world.getMCWorld(), block.getMCBlock(), this.pos);
+        return NpcAPI.Instance().getIBlock(world.getMCWorld(), block.getMCBlock(), new BlockPos(getX(),getY(),getZ()));
     }
 
     public boolean isContainer() {
@@ -110,6 +111,15 @@ public class ScriptBlock implements IBlock {
 
     public boolean hasTileEntity() {
         return this.tile != null;
+    }
+
+    public ITileEntity getTileEntity() {
+        return new ScriptTileEntity(this.tile);
+    }
+
+    public void setTileEntity(ITileEntity tileEntity){
+        world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),tileEntity);
+        this.tile = tileEntity.getMCTileEntity();
     }
 
     public TileEntity getMCTileEntity() {

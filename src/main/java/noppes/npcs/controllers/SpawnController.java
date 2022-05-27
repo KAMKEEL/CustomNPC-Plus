@@ -19,6 +19,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.WeightedRandom;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.controllers.data.SpawnData;
 
 public class SpawnController {
 	public HashMap<String,List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>() ;

@@ -1,19 +1,16 @@
 package noppes.npcs;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
 
 import com.google.common.collect.Iterables;
@@ -36,8 +33,12 @@ public class DataDisplay {
 	public GameProfile playerProfile;
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
+
+	public DataSkinOverlays skinOverlayData;
+	public long overlayRenderTicks = 0;
+
 	public String glowTexture = "";
-	
+
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
 	
 	public int modelSize = 5;
@@ -58,6 +59,7 @@ public class DataDisplay {
 	public DataDisplay(EntityNPCInterface npc){
 		this.npc = npc;
 		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
+		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
 	}
 
@@ -73,10 +75,12 @@ public class DataDisplay {
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
 		nbttagcompound.setString("CloakTexture", cloakTexture);
-		nbttagcompound.setString("GlowTexture", glowTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
+		nbttagcompound.setString("GlowTexture", glowTexture);
 
-        if (this.playerProfile != null)
+		nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
+
+		if (this.playerProfile != null)
         {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
             NBTUtil.func_152460_a(nbttagcompound1, this.playerProfile);
@@ -131,7 +135,24 @@ public class DataDisplay {
 		texture = nbttagcompound.getString("Texture");
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
-		
+
+		if (!nbttagcompound.hasKey("SkinOverlayData") && !glowTexture.isEmpty()) {
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
+			(new SkinOverlay(glowTexture)).writeToNBT(nbttagcompound);
+
+			if (!nbttagcompound.hasKey("SkinOverlayData")) {
+				NBTTagList tagList = new NBTTagList();
+				tagList.appendTag(compound);
+				nbttagcompound.setTag("SkinOverlayData", tagList);
+			} else if (!glowTexture.isEmpty()) {
+				nbttagcompound.getTagList("SkinOverlayData", 10).appendTag(compound);
+				glowTexture = "";
+			}
+		}
+
+		skinOverlayData.readFromNBT(nbttagcompound);
+
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		if(modelSize > CustomNpcs.NpcSizeLimit)
 			modelSize = CustomNpcs.NpcSizeLimit;

@@ -168,7 +168,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
         int j = i % 65536;
         int k = i / 65536;
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
-        if (!npc.display.cloakTexture.isEmpty())
+        if (!npc.display.cloakTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
         {
         	if(npc.textureCloakLocation == null){
         		npc.textureCloakLocation = new ResourceLocation(npc.display.cloakTexture);
@@ -199,9 +199,11 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
             GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
             GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
+            GL11.glColor4f(1.0F,1.0F,1.0F, npc.isInvisible() ? 0.2F : 1.0F);
+            GL11.glEnable(GL11.GL_BLEND);
             modelBipedMain.renderCloak(0.0625F);
-
             GL11.glPopMatrix();
+            GL11.glDisable(GL11.GL_BLEND);
         }
         GL11.glColor3f(1,1,1);
         ItemStack itemstack = npc.inventory.armorItemInSlot(0);

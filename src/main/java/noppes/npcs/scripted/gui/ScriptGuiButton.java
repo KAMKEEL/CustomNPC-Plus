@@ -1,8 +1,8 @@
 package noppes.npcs.scripted.gui;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.IButton;
-import noppes.npcs.scripted.interfaces.ICustomGuiComponent;
+import noppes.npcs.scripted.interfaces.gui.IButton;
+import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
 
 public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
     int width;

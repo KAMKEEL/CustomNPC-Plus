@@ -48,7 +48,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             }
         }
 
-        if(heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit){
+        if (heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit) {
             super.moveEntityWithHeading(p_70612_1_,p_70612_2_);
             return;
         }
@@ -56,9 +56,6 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         double d3 = this.motionY;
         super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
         this.motionY = d3;
-
-        this.fallDistance = 0.0F;
-        this.velocityChanged = true;
 
         if(this.getNavigator().noPath())
             this.motionY = 0.0D;

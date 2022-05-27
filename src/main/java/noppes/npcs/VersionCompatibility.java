@@ -7,8 +7,8 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.Line;
-import noppes.npcs.controllers.Lines;
+import noppes.npcs.controllers.data.Line;
+import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class VersionCompatibility {

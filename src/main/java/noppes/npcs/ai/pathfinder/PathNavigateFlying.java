@@ -1,10 +1,13 @@
 package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
@@ -196,6 +199,16 @@ public class PathNavigateFlying extends PathNavigate {
         return this.currentPath;
     }
 
+    private boolean isInLiquid()
+    {
+        return this.theEntity.isInWater() || this.theEntity.handleLavaMovement();
+    }
+
+    private boolean canNavigate()
+    {
+        return !this.isInLiquid() || (this.canSwim && this.isInLiquid());
+    }
+
     public void onUpdateNavigation()
     {
         ++this.totalTicks;
@@ -224,15 +237,6 @@ public class PathNavigateFlying extends PathNavigate {
         Vec3 vec3 = this.getEntityPosition();
         int i = this.currentPath.getCurrentPathLength();
 
-        for (int j = this.currentPath.getCurrentPathIndex(); j < this.currentPath.getCurrentPathLength(); ++j)
-        {
-            if (this.currentPath.getPathPointFromIndex(j).yCoord != (int)vec3.yCoord)
-            {
-                i = j;
-                break;
-            }
-        }
-
         float f = this.theEntity.width * this.theEntity.width;
         int k;
 
@@ -257,7 +261,7 @@ public class PathNavigateFlying extends PathNavigate {
             }
         }
 
-        if (this.totalTicks - this.ticksAtLastPos > 100)
+        if (this.totalTicks - this.ticksAtLastPos > 10)
         {
             if (vec3.squareDistanceTo(this.lastPosCheck) < 2.25D)
             {
@@ -301,23 +305,6 @@ public class PathNavigateFlying extends PathNavigate {
     }
 
     /**
-     * If on ground or swimming and can swim
-     */
-    private boolean canNavigate()
-    {
-        return true;
-    }
-
-    /**
-     * Returns true when an entity could stand at a position, including solid blocks under the entire entity. Args:
-     * xOffset, yOffset, zOffset, entityXSize, entityYSize, entityZSize, originPosition, vecX, vecZ
-     */
-    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        return true;
-    }
-
-    /**
      * Trims path data from the end to the first sun covered block
      */
     private void removeSunnyPath()
@@ -341,7 +328,7 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int p_75493_3_, int p_75493_4_, int p_75493_5_)
+    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int entityXSize, int entityYSize, int entityZSize)
     {
         int l = MathHelper.floor_double(p_75493_1_.xCoord);
         int i1 = MathHelper.floor_double(p_75493_1_.zCoord);
@@ -358,17 +345,17 @@ public class PathNavigateFlying extends PathNavigate {
             double d3 = 1.0D / Math.sqrt(d2);
             d0 *= d3;
             d1 *= d3;
-            p_75493_3_ += 2;
-            p_75493_5_ += 2;
+            entityXSize += 2;
+            entityZSize += 2;
 
-            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, p_75493_3_, p_75493_4_, p_75493_5_, p_75493_1_, d0, d1))
+            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1))
             {
                 return false;
             }
             else
             {
-                p_75493_3_ -= 2;
-                p_75493_5_ -= 2;
+                entityXSize -= 2;
+                entityZSize -= 2;
                 double d4 = 1.0D / Math.abs(d0);
                 double d5 = 1.0D / Math.abs(d1);
                 double d6 = (double)(l * 1) - p_75493_1_.xCoord;
@@ -413,17 +400,53 @@ public class PathNavigateFlying extends PathNavigate {
                         k2 = i2 - i1;
                     }
                 }
-                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, p_75493_3_, p_75493_4_, p_75493_5_, p_75493_1_, d0, d1));
+                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1));
 
                 return false;
             }
         }
     }
 
-    /**
-     * Returns true if an entity does not collide with any solid blocks at the position. Args: xOffset, yOffset,
-     * zOffset, entityXSize, entityYSize, entityZSize, originPosition, vecX, vecZ
-     */
+    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
+    {
+        int k1 = p_75483_1_ - p_75483_4_ / 2;
+        int l1 = p_75483_3_ - p_75483_6_ / 2;
+
+        if (!this.isPositionClear(k1, p_75483_2_, l1, p_75483_4_, p_75483_5_, p_75483_6_, p_75483_7_, p_75483_8_, p_75483_10_))
+        {
+            return false;
+        }
+        else
+        {
+            for (int i2 = k1; i2 < k1 + p_75483_4_; ++i2)
+            {
+                for (int j2 = l1; j2 < l1 + p_75483_6_; ++j2)
+                {
+                    double d2 = (double)i2 + 0.5D - p_75483_7_.xCoord;
+                    double d3 = (double)j2 + 0.5D - p_75483_7_.zCoord;
+
+                    if (d2 * p_75483_8_ + d3 * p_75483_10_ >= 0.0D)
+                    {
+                        Block block = this.worldObj.getBlock(i2, p_75483_2_ - 1, j2);
+                        Material material = block.getMaterial();
+
+                        if (material == Material.water && !this.theEntity.isInWater())
+                        {
+                            return false;
+                        }
+
+                        if (material == Material.lava)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
     private boolean isPositionClear(int p_75496_1_, int p_75496_2_, int p_75496_3_, int p_75496_4_, int p_75496_5_, int p_75496_6_, Vec3 p_75496_7_, double p_75496_8_, double p_75496_10_)
     {
         for (int k1 = p_75496_1_; k1 < p_75496_1_ + p_75496_4_; ++k1)

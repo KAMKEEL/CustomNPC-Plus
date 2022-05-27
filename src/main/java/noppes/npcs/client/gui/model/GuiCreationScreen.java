@@ -33,7 +33,6 @@ import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityFakeLiving;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.Sys;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener{
 
@@ -229,7 +228,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	    	    		npc.display.texture = NPCRendererHelper.getTexture(render,entity);
 	    	    	}
 	    		}
-		    	npc.display.glowTexture = "";
+		    	//npc.display.glowTexture = "";
+				npc.display.skinOverlayData.overlayList.remove(0);
 				npc.textureLocation = null;
 				npc.textureGlowLocation = null;
 				npc.updateHitbox();
@@ -336,7 +336,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
         	else{
         		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
         	}
-        	npc.display.glowTexture = "";
+        	//npc.display.glowTexture = "";
+			npc.display.skinOverlayData.overlayList.remove(0);
     		npc.textureLocation = null;
     		npc.textureGlowLocation = null;
     		npc.updateHitbox();

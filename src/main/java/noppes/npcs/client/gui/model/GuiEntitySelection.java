@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.model;
 import java.util.Collections;
 import java.util.Vector;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -127,7 +126,8 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    	else{
 	    		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	    	}
-	    	npc.display.glowTexture = "";
+	    	//npc.display.glowTexture = "";
+            npc.display.skinOverlayData.overlayList.remove(0);
 			npc.textureLocation = null;
 			npc.textureGlowLocation = null;
 			npc.updateHitbox();

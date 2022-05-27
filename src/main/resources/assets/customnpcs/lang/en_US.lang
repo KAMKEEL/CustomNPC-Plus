@@ -521,6 +521,7 @@ item.npcMovingPath.name=Npc Pather
 item.npcMounter.name=Mounter
 item.npcTeleporter.name=Teleporter
 item.npcScripter.name=Scripter
+item.scripted_item.name=Scripted Item
 
 item.npcBanjo.name=Banjo
 item.npcViolin.name=Violin

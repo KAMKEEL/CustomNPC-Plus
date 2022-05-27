@@ -5,13 +5,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.interfaces.entity.IDBCPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptItemStack;
 
-import java.util.ArrayList;
-import java.util.Locale;
-
-public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
+public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> implements IDBCPlayer {
     public T player;
 
     public ScriptDBCPlayer(T player){
@@ -430,15 +428,15 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
         return compound.getCompoundTag("JRMCEP").getString("extracode");
     }
 
-    public ScriptItemStack[] getInventory(){
+    public IItemStack[] getInventory(){
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
 
         NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
-        ScriptItemStack[] itemList = new ScriptItemStack[list.tagCount()];
+        IItemStack[] itemList = new IItemStack[list.tagCount()];
         for (int i = 0; i < list.tagCount(); i++) {
             ItemStack itemStack = ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
-            itemList[i] = new ScriptItemStack(itemStack);
+            itemList[i] = NpcAPI.Instance().getIItemStack(itemStack);
         }
 
         return itemList;
@@ -528,12 +526,33 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T>{
     public byte getDBCClass(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcClass");
     }
+    public void setDBCClass(byte dbcClass) {
+        if (dbcClass < 0 || dbcClass > 2)
+            return;
+
+        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcClass", dbcClass);
+    }
+
     public int getRace(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcRace");
     }
+    public void setRace(byte race) {
+        if (race < 0 || race > 1)
+            return;
+
+        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcRace", race);
+    }
+
     public int getPowerType(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcPwrtyp");
     }
+    public void setPowerType(byte powerType) {
+        if (powerType < 0 || powerType > 1)
+            return;
+
+        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcPwrtyp", powerType);
+    }
+
     public int getKillCount(String type){
         type = type.toLowerCase().trim();
 

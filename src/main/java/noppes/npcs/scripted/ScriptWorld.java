@@ -3,14 +3,14 @@ package noppes.npcs.scripted;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,10 +25,13 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IPos;
+import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.ITileEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
 
 public class ScriptWorld implements IWorld {
@@ -55,7 +58,11 @@ public class ScriptWorld implements IWorld {
 	public long getTotalTime(){
 		return world.getTotalWorldTime();
 	}
-	
+
+	public boolean areAllPlayersAsleep(){
+		return world.areAllPlayersAsleep();
+	}
+
 	/**
 	 * @param x World position x
 	 * @param y World position y
@@ -66,9 +73,133 @@ public class ScriptWorld implements IWorld {
 		Block block = world.getBlock(x, y, z);
 		if(block == null || block.isAir(world, x, y, z))
 			return null;
-		return new ScriptBlock(world, block, new BlockPos(x,y,z));
+		return NpcAPI.Instance().getIBlock(world, block, new BlockPos(x,y,z));
 	}
-	
+
+	public boolean isBlockFreezable(int x, int y, int z){
+		return world.isBlockFreezable(x,y,z);
+	}
+
+	public boolean isBlockFreezableNaturally(int x, int y, int z){
+		return world.isBlockFreezableNaturally(x,y,z);
+	}
+
+	public boolean canBlockFreeze(int x, int y, int z, boolean adjacentToWater){
+		return world.canBlockFreeze(x,y,z,adjacentToWater);
+	}
+
+	public boolean canBlockFreezeBody(int x, int y, int z, boolean adjacentToWater){
+		return world.canBlockFreezeBody(x,y,z,adjacentToWater);
+	}
+
+	public boolean canSnowAt(int x, int y, int z, boolean checkLight){
+		return world.func_147478_e(x,y,z,checkLight);
+	}
+
+	public boolean canSnowAtBody(int x, int y, int z, boolean checkLight){
+		return world.canSnowAtBody(x,y,z,checkLight);
+	}
+
+	public IBlock getTopBlock(int x, int z){
+		int y;
+		for (y = 63; !world.isAirBlock(x, y + 1, z); ++y) {;}
+		Block block = world.getBlock(x, y, z);
+
+		return NpcAPI.Instance().getIBlock(world, block, new BlockPos(x,y,z));
+	}
+
+	public int getHeightValue(int x, int z){
+		return world.getHeightValue(x,z);
+	}
+
+	public int getChunkHeightMapMinimum(int x, int z){
+		return world.getChunkHeightMapMinimum(x,z);
+	}
+
+	public int getBlockMetadata(int x, int y, int z){
+		return world.getBlockMetadata(x,y,z);
+	}
+
+	public boolean setBlockMetadataWithNotify(int x, int y, int z, int metadata, int flag){
+		return world.setBlockMetadataWithNotify(x,y,z,metadata,flag);
+	}
+
+	public boolean canBlockSeeTheSky(int x, int y, int z){
+		return world.canBlockSeeTheSky(x,y,z);
+	}
+
+	public int getFullBlockLightValue(int x, int y, int z){
+		return world.getFullBlockLightValue(x,y,z);
+	}
+
+	public int getBlockLightValue(int x, int y, int z){
+		return world.getBlockLightValue(x,y,z);
+	}
+
+	public void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch){
+		world.playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
+	}
+
+	public void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch){
+		world.playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
+	}
+
+	public IEntity getEntityByID(int id){
+		return NpcAPI.Instance().getIEntity(world.getEntityByID(id));
+	}
+
+	public boolean spawnEntityInWorld(IEntity entity){
+		return world.spawnEntityInWorld(entity.getMCEntity());
+	}
+
+	public IPlayer getClosestPlayerToEntity(IEntity entity, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
+	}
+
+	public IPlayer getClosestPlayer(double x, double y, double z, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayer(x,y,z, range));
+	}
+
+	public IPlayer getClosestVulnerablePlayerToEntity(IEntity entity, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
+	}
+
+	public IPlayer getClosestVulnerablePlayer(double x, double y, double z, double range){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayer(x,y,z, range));
+	}
+
+	public int countEntities(IEntity entity){
+		return world.countEntities(entity.getMCEntity().getClass());
+	}
+
+	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){
+		world.setTileEntity(x,y,z,tileEntity.getMCTileEntity());
+	}
+
+	public void removeTileEntity(int x, int y, int z){
+		world.removeTileEntity(x,y,z);
+	}
+
+	public boolean isBlockFullCube(int x, int y, int z){
+		return world.func_147469_q(x,y,z);
+	}
+
+	public long getSeed(){
+		return world.getSeed();
+	}
+
+	public void setSpawnLocation(int x, int y, int z){
+		world.setSpawnLocation(x,y,z);
+	}
+
+	public boolean canLightningStrikeAt(int x, int y, int z){
+		return world.canLightningStrikeAt(x,y,z);
+	}
+
+	public boolean isBlockHighHumidity(int x, int y, int z){
+		return world.isBlockHighHumidity(x,y,z);
+	}
+
 	/**
 	 * @param pos
 	 * @return The block at the given position. Returns null if there isn't a block
@@ -109,19 +240,19 @@ public class ScriptWorld implements IWorld {
 		}
 		world.setBlock(x, y, z, block.getMCBlock());
 	}
-	
+
 	/**
 	 * @param x World position x
 	 * @param y World position y
 	 * @param z World position z
 	 * @param item The block to be set
 	 */
-	public void setBlock(int x, int y, int z, ScriptItemStack item){
+	public void setBlock(int x, int y, int z, IItemStack item){
 		if(item == null){
 			removeBlock(x, y, z);
 			return;
 		}
-		Block block = Block.getBlockFromItem(item.item.getItem());
+		Block block = Block.getBlockFromItem(item.getMCItemStack().getItem());
 		if(block == null || block == Blocks.air)
 			return;
 		world.setBlock(x, y, z, block);
@@ -138,9 +269,9 @@ public class ScriptWorld implements IWorld {
 	
 	/**
 	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos 
+	 * @param startPos
 	 * @param lookVector should be a normalized direction vector
-	 * @param maxDistance 
+	 * @param maxDistance
 	 * @return the first detected block but null if maxDistance is reached
 	 */
 	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance) {
@@ -163,18 +294,18 @@ public class ScriptWorld implements IWorld {
 		//System.out.println("ScriptWorld:WARNING: Repeated a ray cast to many times");
 		return null;
 	}
-	
+
 	/**
 	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos 
+	 * @param startPos
 	 * @param lookVector will normalize x, y, z to get a direction vector
-	 * @param maxDistance 
+	 * @param maxDistance
 	 * @return the first detected block but null if maxDistance is reached
 	 */
 	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance) {
 		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
 	}
-	
+
 	public IPos getNearestAir(IPos pos, int maxHeight) {
 		if (pos == null) return null;
 		IPos currentPos = pos;
@@ -203,24 +334,28 @@ public class ScriptWorld implements IWorld {
 		}
 		return currentPos;
 	}
-	
+
 	public boolean canSeeSky(int x, int y, int z) {
 		return world.canBlockSeeTheSky(x, y, z);
 	}
-	
+
 	public boolean canSeeSky(IPos pos) {
 		return canSeeSky(pos.getX(), pos.getY(), pos.getZ());
 	}
-	
+
 	/**
 	 * @param name The name of the player to be returned
 	 * @return The Player with name. Null is returned when the player isnt found
 	 */
-	public ScriptPlayer getPlayer(String name){
+	public IPlayer getPlayer(String name){
 		EntityPlayer player = world.getPlayerEntityByName(name);
 		if(player == null)
 			return null;
-		return (ScriptPlayer) ScriptController.Instance.getScriptForEntity(player);
+		return (IPlayer) NpcAPI.Instance().getIEntity(player);
+	}
+
+	public IPlayer getPlayerByUUID(String uuid){
+		return (IPlayer) NpcAPI.Instance().getIEntity(world.func_152378_a(UUID.fromString(uuid)));
 	}
 	
 	/**
@@ -229,7 +364,7 @@ public class ScriptWorld implements IWorld {
 	public void setTime(long time){
 		world.setWorldTime(time);
 	}
-	
+
 	/**
 	 * @return Whether or not its daytime
 	 */
@@ -282,21 +417,19 @@ public class ScriptWorld implements IWorld {
 	 * @param size The number of items in the item
 	 * @return Returns the item
 	 */
-	public ScriptItemStack createItem(String id, int damage, int size){
-		Item item = (Item)Item.itemRegistry.getObject(id);
-		if(item == null)
-			return null;
-		return new ScriptItemStack(new ItemStack(item, size, damage));		
+	public IItemStack createItem(String id, int damage, int size){
+		return NpcAPI.Instance().createItem(id,damage,size);
 	}
 
 	/**
-	 * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
-	 * @return Returns ScriptEntityParticle object
+	 * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/bubble.png"
+	 * @return Returns ScriptParticle object
 	 */
-	public ScriptEntityParticle createEntityParticle(String directory){
-		return new ScriptEntityParticle(directory);
+	@Deprecated
+	public IParticle createEntityParticle(String directory){
+		return NpcAPI.Instance().createEntityParticle(directory);
 	}
-	
+
 	/**
 	 * @param key Get temp data for this key
 	 * @return Returns the stored temp data
@@ -400,23 +533,23 @@ public class ScriptWorld implements IWorld {
 		world.newExplosion(null, x, y, z, range, fire, grief);
 	}
 	
-	public ScriptPlayer[] getAllServerPlayers(){
+	public IPlayer[] getAllServerPlayers(){
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
-		ScriptPlayer[] arr = new ScriptPlayer[list.size()];
+		IPlayer[] arr = new IPlayer[list.size()];
 		for(int i = 0; i < list.size(); i++){
-			arr[i] = (ScriptPlayer) ScriptController.Instance.getScriptForEntity(list.get(i));
+			arr[i] = (IPlayer) NpcAPI.Instance().getIEntity(list.get(i));
 		}
 		
 		return arr;
 	}
-	
+
 	public String[] getPlayerNames() {
-		ScriptPlayer[] players = getAllServerPlayers();
+		IPlayer[] players = getAllServerPlayers();
 		String[] names = new String[players.length];
 		for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
 		return names;
 	}
-	
+
 	/**
 	 * @since 1.7.10c
 	 * @param x Position x
@@ -436,14 +569,14 @@ public class ScriptWorld implements IWorld {
 	 * @param name Name of the cloned entity
 	 * @return Returns the entity which was spawned
 	 */
-	public ScriptEntity spawnClone(int x, int y, int z, int tab, String name){
+	public IEntity spawnClone(int x, int y, int z, int tab, String name){
 		NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
 		if(compound == null)
 			return null;
 		Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, world);
 		if(entity == null)
 			return null;
-		return ScriptController.Instance.getScriptForEntity(entity);
+		return NpcAPI.Instance().getIEntity(entity);
 	}
 	
 	public ScriptScoreboard getScoreboard(){

@@ -125,6 +125,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     public void buttonEvent(GuiButton guibutton){};
     
 	public void close(){
+		Keyboard.enableRepeatEvents(false);
     	GuiNpcTextField.unfocus();
     	save();
     	player.closeScreen();

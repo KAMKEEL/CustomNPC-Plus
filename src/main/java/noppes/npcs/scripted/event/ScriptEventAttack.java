@@ -1,26 +1,26 @@
 package noppes.npcs.scripted.event;
 
 import net.minecraft.entity.EntityLivingBase;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 
 public class ScriptEventAttack extends ScriptEvent{
 
 	private float damage;
-	private ScriptLivingBase target;
+	private IEntityLivingBase target;
 	private boolean isRanged;
 	
 	public ScriptEventAttack(float damage, EntityLivingBase target, boolean isRanged){
 		this.damage = damage;
 		this.isRanged = isRanged;
-		this.target = (ScriptLivingBase)ScriptController.Instance.getScriptForEntity(target);
+		this.target = (IEntityLivingBase) NpcAPI.Instance().getIEntity(target);
 	}
 	
 	/**
 	 * @return The source of the damage
 	 * @deprecated
 	 */
-	public ScriptLivingBase getTarget(){
+	public IEntityLivingBase getTarget(){
 		return target;
 	}
 	

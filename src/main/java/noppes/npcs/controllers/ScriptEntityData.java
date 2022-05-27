@@ -4,13 +4,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
-import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 public class ScriptEntityData implements IExtendedEntityProperties{
-	public ScriptEntity base;
-	public ScriptEntityData(ScriptEntity base){
+	public IEntity base;
+	public ScriptEntityData(IEntity base){
 		this.base = base;
 	}
+
 	@Override
 	public void saveNBTData(NBTTagCompound compound) {
 	}
@@ -22,5 +23,4 @@ public class ScriptEntityData implements IExtendedEntityProperties{
 	@Override
 	public void init(Entity entity, World world) {
 	}
-
 }

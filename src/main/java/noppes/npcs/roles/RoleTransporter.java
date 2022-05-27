@@ -3,17 +3,14 @@ package noppes.npcs.roles;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerTransportData;
+import noppes.npcs.controllers.data.PlayerTransportData;
 import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.TransportLocation;
+import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class RoleTransporter extends RoleInterface{

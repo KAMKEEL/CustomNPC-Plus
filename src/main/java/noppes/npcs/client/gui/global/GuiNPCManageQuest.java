@@ -7,7 +7,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
 import noppes.npcs.client.gui.SubGuiNpcCommand;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
@@ -32,9 +31,8 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PlayerMail;
-import noppes.npcs.controllers.Quest;
-import noppes.npcs.controllers.QuestCategory;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener,ITextfieldListener, IGuiData

@@ -10,10 +10,10 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerQuestData;
-import noppes.npcs.controllers.QuestData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.quests.QuestLocation;
 
 public class TileWaypoint extends TileEntity {

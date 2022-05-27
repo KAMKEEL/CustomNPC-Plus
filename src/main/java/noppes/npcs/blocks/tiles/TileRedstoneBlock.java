@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.blocks.BlockNpcRedstone;
-import noppes.npcs.controllers.Availability;
+import noppes.npcs.controllers.data.Availability;
 
 public class TileRedstoneBlock extends TileEntity {
 	public int onRange = 6;

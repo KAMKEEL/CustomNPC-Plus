@@ -8,11 +8,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.GuiNpcSoundSelection;
-import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
-import noppes.npcs.client.gui.SubGuiNpcCommand;
 import noppes.npcs.client.gui.SubGuiNpcDialogExtra;
-import noppes.npcs.client.gui.SubGuiNpcDialogOption;
 import noppes.npcs.client.gui.SubGuiNpcDialogOptions;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
 import noppes.npcs.client.gui.SubGuiNpcTextArea;
@@ -29,9 +26,8 @@ import noppes.npcs.client.gui.util.ISubGuiListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.Dialog;
-import noppes.npcs.controllers.DialogCategory;
-import noppes.npcs.controllers.PlayerMail;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener,ITextfieldListener, IGuiData

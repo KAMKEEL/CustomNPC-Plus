@@ -8,10 +8,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.handler.data.IQuestItem;
-import noppes.npcs.scripted.handler.data.IQuestObjective;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestItem;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 import noppes.npcs.util.ValueUtil;
 
 public class QuestItem extends QuestInterface implements IQuestItem {

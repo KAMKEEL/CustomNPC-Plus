@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.player;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
@@ -18,7 +17,7 @@ import noppes.npcs.client.gui.util.GuiButtonNextPage;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.controllers.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.RecipeController;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

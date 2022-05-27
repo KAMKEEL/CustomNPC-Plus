@@ -2,22 +2,23 @@ package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.ScriptEntityParticle;
-import noppes.npcs.scripted.ScriptItemStack;
 import noppes.npcs.scripted.ScriptScoreboard;
-import noppes.npcs.scripted.entity.ScriptEntity;
-import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public interface IWorld {
     /**
      * @return The worlds time
      */
-    public long getTime();
+    long getTime();
 
     /**
      * @return The total world time
      */
-    public long getTotalTime();
+    long getTotalTime();
+
+    boolean areAllPlayersAsleep();
 
     /**
      * @param x World position x
@@ -26,12 +27,100 @@ public interface IWorld {
      * @return The block at the given position. Returns null if there isn't a block
      */
     public IBlock getBlock(int x, int y, int z);
-    
+
     /**
 	 * @param pos
 	 * @return The block at the given position. Returns null if there isn't a block
 	 */
     public IBlock getBlock(IPos pos);
+
+    /**
+     *
+     * @return The top-most block in the world as an IBlock object.
+     */
+    IBlock getTopBlock(int x, int z);
+
+    boolean isBlockFreezable(int x, int y, int z);
+
+    boolean isBlockFreezableNaturally(int x, int y, int z);
+
+    boolean canBlockFreeze(int x, int y, int z, boolean adjacentToWater);
+
+    boolean canBlockFreezeBody(int x, int y, int z, boolean adjacentToWater);
+
+    boolean canSnowAt(int x, int y, int z, boolean checkLight);
+
+    boolean canSnowAtBody(int x, int y, int z, boolean checkLight);
+
+    /**
+     * @return The Y-value of the world at this x & z value based on the height map of the world.
+     */
+    int getHeightValue(int x, int z);
+
+    /**
+     * @return The minimum Y-value of the world at this x & z value based on the height map of the world.
+     */
+    int getChunkHeightMapMinimum(int x, int z);
+
+    /**
+     * @return The metadata of the block at this position.
+     */
+    int getBlockMetadata(int x, int y, int z);
+
+    boolean setBlockMetadataWithNotify(int x, int y, int z, int metadata, int flag);
+
+    boolean canBlockSeeTheSky(int x, int y, int z);
+
+    int getFullBlockLightValue(int x, int y, int z);
+
+    int getBlockLightValue(int x, int y, int z);
+
+    void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch);
+
+    void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
+
+    IEntity getEntityByID(int id);
+
+    boolean spawnEntityInWorld(IEntity entity);
+
+    IPlayer getClosestPlayerToEntity(IEntity entity, double range);
+
+    IPlayer getClosestPlayer(double x, double y, double z, double range);
+
+    IPlayer getClosestVulnerablePlayerToEntity(IEntity entity, double range);
+
+    IPlayer getClosestVulnerablePlayer(double x, double y, double z, double range);
+
+    /**
+     *
+     * @param entity The entity whose type will be used as a parameter
+     * @return The amount of entities of the given type in the world.
+     */
+    int countEntities(IEntity entity);
+
+    /**
+     * Sets the block's tile entity at the given position.
+     */
+    void setTileEntity(int x, int y, int z, ITileEntity tileEntity);
+
+    /**
+     * Removes the block's tile entity at the given position.
+     */
+    void removeTileEntity(int x, int y, int z);
+
+    /**
+     *
+     * @return True if the block at this position is of cubic shape. (Not a stair, slab, etc.)
+     */
+    boolean isBlockFullCube(int x, int y, int z);
+
+    long getSeed();
+
+    void setSpawnLocation(int x, int y, int z);
+
+    boolean canLightningStrikeAt(int x, int y, int z);
+
+    boolean isBlockHighHumidity(int x, int y, int z);
 
     /**
      * @param x World position x
@@ -40,7 +129,7 @@ public interface IWorld {
      * @return Text from signs
      * @since 1.7.10d
      */
-    public String getSignText(int x, int y, int z);
+    String getSignText(int x, int y, int z);
 
     /**
      * @param x World position x
@@ -48,8 +137,8 @@ public interface IWorld {
      * @param z World position z
      * @param item The block to be set
      */
-    public void setBlock(int x, int y, int z, ScriptItemStack item);
-	
+    public void setBlock(int x, int y, int z, IItemStack item);
+
 	/**
 	 * @param x World position x
 	 * @param y World position y
@@ -57,39 +146,39 @@ public interface IWorld {
 	 * @param block The block to be set
 	 */
 	public void setBlock(int x, int y, int z, IBlock block);
-    
+
     /**
      * @param x World position x
      * @param y World position y
      * @param z World position z
      */
     public void removeBlock(int x, int y, int z);
-    
+
     /**
 	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos 
+	 * @param startPos
 	 * @param lookVector should be a normalized direction vector
-	 * @param maxDistance 
+	 * @param maxDistance
 	 * @return the first detected block but null if maxDistance is reached
 	 */
     public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
-    
+
     /**
 	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos 
+	 * @param startPos
 	 * @param lookVector will normalize x, y, z to get a direction vector
-	 * @param maxDistance 
+	 * @param maxDistance
 	 * @return the first detected block but null if maxDistance is reached
 	 */
     public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
-    
+
     /**
      * @param startPos
      * @param maxHeight
-     * @return the position of the closest block of air to startPos 
+     * @return the position of the closest block of air to startPos
      */
     public IPos getNearestAir(IPos startPos, int maxHeight);
-    
+
     /**
      * @param x
      * @param y
@@ -97,7 +186,7 @@ public interface IWorld {
      * @return can the block at this position see the sky or are there no blocks above this one
      */
     public boolean canSeeSky(int x, int y, int z);
-    
+
     /**
      * @param pos
      * @return can the block at this position see the sky or are there no blocks above this one
@@ -108,34 +197,36 @@ public interface IWorld {
      * @param name The name of the player to be returned
      * @return The Player with name. Null is returned when the player isnt found
      */
-    public ScriptPlayer getPlayer(String name);
+    IPlayer getPlayer(String name);
+
+    IPlayer getPlayerByUUID(String uuid);
 
     /**
      * @param time The world time to be set
      */
-    public void setTime(long time);
+    void setTime(long time);
 
     /**
      * @return Whether or not its daytime
      */
-    public boolean isDay();
+    boolean isDay();
 
     /**
      * @return Whether or not its currently raining
      */
-    public boolean isRaining();
+    boolean isRaining();
 
     /**
      * @param bo Set if it's raining
      */
-    public void setRaining(boolean bo);
+    void setRaining(boolean bo);
 
     /**
      * @param x The x position
      * @param y The y position
      * @param z The z position
      */
-    public void thunderStrike(double x, double y, double z);
+    void thunderStrike(double x, double y, double z);
 
     /**
      * Sends a packet from the server to the client everytime its called. Probably should not use this too much.
@@ -149,7 +240,7 @@ public interface IWorld {
      * @param speed Speed of the particles, usually between 0 and 1
      * @param count Particle count
      */
-    public void spawnParticle(String particle, double x, double y, double z, double dx, double dy, double dz, double speed, int count);
+    void spawnParticle(String particle, double x, double y, double z, double dx, double dy, double dz, double speed, int count);
 
     /**
      * @param id The items name
@@ -157,71 +248,72 @@ public interface IWorld {
      * @param size The number of items in the item
      * @return Returns the item
      */
-    public ScriptItemStack createItem(String id, int damage, int size);
+    IItemStack createItem(String id, int damage, int size);
 
     /**
      * @param directory The particle's texture directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
-     * @return Returns ScriptEntityParticle object
+     * @return Returns IEntityParticle object
      */
-    public ScriptEntityParticle createEntityParticle(String directory);
+    @Deprecated
+    IParticle createEntityParticle(String directory);
 
     /**
      * @param key Get temp data for this key
      * @return Returns the stored temp data
      */
-    public Object getTempData(String key);
+    Object getTempData(String key);
 
     /**
      * Tempdata gets cleared when the server restarts. All worlds share the same temp data.
      * @param key The key for the data stored
      * @param value The data stored
      */
-    public void setTempData(String key, Object value);
+    void setTempData(String key, Object value);
 
     /**
      * @param key The key thats going to be tested against the temp data
      * @return Whether or not temp data containes the key
      */
-    public boolean hasTempData(String key);
+    boolean hasTempData(String key);
 
     /**
      * @param key The key for the temp data to be removed
      */
-    public void removeTempData(String key);
+    void removeTempData(String key);
 
     /**
      * Removes all tempdata
      */
-    public void clearTempData();
+    void clearTempData();
 
     /**
      * @param key The key of the data to be returned
      * @return Returns the stored data
      */
-    public Object getStoredData(String key);
+    Object getStoredData(String key);
 
     /**
      * Stored data persists through world restart. Unlike tempdata only Strings and Numbers can be saved
      * @param key The key for the data stored
      * @param value The data stored. This data can be either a Number or a String. Other data is not stored
      */
-    public void setStoredData(String key, Object value);
+    void setStoredData(String key, Object value);
 
     /**
      * @param key The key of the data to be checked
      * @return Returns whether or not the stored data contains the key
      */
-    public boolean hasStoredData(String key);
+    boolean hasStoredData(String key);
 
     /**
      * @param key The key of the data to be removed
      */
-    public void removeStoredData(String key);
+    void removeStoredData(String key);
 
     /**
      * Remove all stored data
      */
-    public void clearStoredData();
+    void clearStoredData();
 
     /**
      * @param x Position x
@@ -231,10 +323,10 @@ public interface IWorld {
      * @param fire Whether or not the explosion does fire damage
      * @param grief Whether or not the explosion does damage to blocks
      */
-    public void explode(double x, double y, double z, float range, boolean fire, boolean grief);
+    void explode(double x, double y, double z, float range, boolean fire, boolean grief);
 
-    public ScriptPlayer[] getAllServerPlayers();
-    
+    IPlayer[] getAllServerPlayers();
+
     public String[] getPlayerNames();
 
     /**
@@ -243,7 +335,7 @@ public interface IWorld {
      * @param z Position z
      * @return Returns the name of the biome
      */
-    public String getBiomeName(int x, int z);
+    String getBiomeName(int x, int z);
 
     /**
      * Lets you spawn a server side cloned entity
@@ -254,10 +346,14 @@ public interface IWorld {
      * @param name Name of the cloned entity
      * @return Returns the entity which was spawned
      */
-    public ScriptEntity spawnClone(int x, int y, int z, int tab, String name);
-    
-    public ScriptScoreboard getScoreboard();
+    IEntity spawnClone(int x, int y, int z, int tab, String name);
 
+    ScriptScoreboard getScoreboard();
+
+    /**
+     *
+     * @return An obfuscated MC BlockPos object.
+     */
     BlockPos getMCBlockPos(int x, int y, int z);
 
     /**
@@ -265,7 +361,11 @@ public interface IWorld {
      * Expert use only
      * @return Returns minecraft world object
      */
-    public WorldServer getMCWorld();
+    WorldServer getMCWorld();
 
-    public int getDimensionID();
+    /**
+     *
+     * @return The ID of this world's dimension. 0 for overworld, 1 for End, -1 for Nether, etc.
+     */
+    int getDimensionID();
 }

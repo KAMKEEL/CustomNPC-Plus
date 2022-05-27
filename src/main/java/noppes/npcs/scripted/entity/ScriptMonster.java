@@ -2,7 +2,7 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.monster.EntityMob;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.IMonster;
+import noppes.npcs.scripted.interfaces.entity.IMonster;
 
 public class ScriptMonster<T extends EntityMob> extends ScriptLiving<T> implements IMonster {
 

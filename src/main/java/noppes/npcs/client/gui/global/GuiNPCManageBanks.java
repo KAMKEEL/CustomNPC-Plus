@@ -17,7 +17,7 @@ import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.containers.ContainerManageBanks;
-import noppes.npcs.controllers.Bank;
+import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData

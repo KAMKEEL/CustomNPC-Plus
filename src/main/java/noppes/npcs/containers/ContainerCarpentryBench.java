@@ -13,7 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.controllers.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.RecipeController;
 
 public class ContainerCarpentryBench extends Container

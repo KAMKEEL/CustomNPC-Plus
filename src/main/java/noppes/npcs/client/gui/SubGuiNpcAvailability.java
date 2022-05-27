@@ -14,8 +14,8 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumAvailabilityFactionType;
 import noppes.npcs.constants.EnumDayTime;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.Availability;
-import noppes.npcs.controllers.Faction;
+import noppes.npcs.controllers.data.Availability;
+import noppes.npcs.controllers.data.Faction;
 
 public class SubGuiNpcAvailability extends SubGuiInterface implements ITextfieldListener, GuiSelectionListener, IGuiData 
 {

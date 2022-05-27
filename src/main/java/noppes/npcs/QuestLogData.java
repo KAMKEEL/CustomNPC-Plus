@@ -6,12 +6,13 @@ import java.util.Vector;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.controllers.PlayerData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.Quest;
+import noppes.npcs.controllers.data.Quest;
 
 public class QuestLogData {
+	public String trackedQuestKey = "";
 	public HashMap<String,Vector<String>> categories = new HashMap<String,Vector<String>>();
 	public String selectedQuest = "";
 	public String selectedCategory = "";
@@ -25,6 +26,7 @@ public class QuestLogData {
 		compound.setTag("Logs", NBTTags.nbtStringStringMap(questText));
 		compound.setTag("Status", NBTTags.nbtVectorMap(questStatus));
 		compound.setTag("QuestFinisher", NBTTags.nbtStringStringMap(finish));
+		compound.setString("TrackedQuestID", trackedQuestKey);
 		return compound;
 	}
 
@@ -33,11 +35,12 @@ public class QuestLogData {
 		questText = NBTTags.getStringStringMap(compound.getTagList("Logs", 10));
 		questStatus = NBTTags.getVectorMap(compound.getTagList("Status", 10));
 		finish = NBTTags.getStringStringMap(compound.getTagList("QuestFinisher", 10));
-		
+		trackedQuestKey = compound.getString("TrackedQuestID");
 	}
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-        for(Quest quest : PlayerQuestController.getActiveQuests(player))
+
+		for(Quest quest : PlayerQuestController.getActiveQuests(player))
         {
     		String category = quest.category.title;
     		if(!categories.containsKey(category))
@@ -50,6 +53,12 @@ public class QuestLogData {
     		questStatus.put(category + ":" + quest.title, quest.questInterface.getQuestLogStatus(player));
     		if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData))
     			finish.put(category + ":" + quest.title, quest.completerNpc);
+
+			if (playerData.questData.trackedQuest != null) {
+				if (quest.id == playerData.questData.trackedQuest.getId()) {
+					trackedQuestKey = category + ":" + quest.title;
+				}
+			}
         }
 	}
 

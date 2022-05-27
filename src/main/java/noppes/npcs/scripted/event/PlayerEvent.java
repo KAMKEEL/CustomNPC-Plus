@@ -6,17 +6,18 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import noppes.npcs.scripted.*;
-import noppes.npcs.scripted.entity.ScriptLivingBase;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.NpcAPI;
 
 public class PlayerEvent extends CustomNPCsEvent {
     public final IPlayer player;
@@ -181,7 +182,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public KilledEntityEvent(IPlayer player, EntityLivingBase entity) {
             super(player);
-            this.entity = new ScriptLivingBase<>(entity);//NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
         }
     }
 
@@ -374,7 +375,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public UseHoe(IPlayer player, ItemStack item, int x, int y, int z) {
             super(player);
-            this.hoe = new ScriptItemStack(item);
+            this.hoe = NpcAPI.Instance().getIItemStack(item);
             this.x = x;
             this.y = y;
             this.z = z;
@@ -418,8 +419,8 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public FillBucket(IPlayer player, ItemStack current, ItemStack result) {
             super(player);
-            this.current = new ScriptItemStack(current);
-            this.result = new ScriptItemStack(result);
+            this.current = NpcAPI.Instance().getIItemStack(current);
+            this.result = NpcAPI.Instance().getIItemStack(result);
         }
     }
 

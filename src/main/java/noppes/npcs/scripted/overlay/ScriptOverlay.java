@@ -4,14 +4,8 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.scripted.entity.ScriptPlayer;
-import noppes.npcs.scripted.gui.ScriptGuiComponent;
-import noppes.npcs.scripted.gui.ScriptGuiItemSlot;
-import noppes.npcs.scripted.gui.ScriptGuiLabel;
-import noppes.npcs.scripted.gui.ScriptGuiLine;
-import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.overlay.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,10 +29,6 @@ public class ScriptOverlay implements ICustomOverlay {
 
     public List<ICustomOverlayComponent> getComponents() {
         return this.components;
-    }
-
-    public PlayerDataScript getScriptHandler() {
-        return ScriptController.Instance.playerScripts;//this.scriptHandler;
     }
 
     public int getDefaultAlignment(){
@@ -122,7 +112,7 @@ public class ScriptOverlay implements ICustomOverlay {
     }
 
     public void update(IPlayer player) {
-        CustomGuiController.updateOverlay((ScriptPlayer)player, this);
+        CustomGuiController.updateOverlay(player, this);
     }
 
     public ICustomOverlay fromNBT(NBTTagCompound tag) {

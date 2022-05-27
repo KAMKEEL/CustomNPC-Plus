@@ -40,9 +40,7 @@ import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.controllers.data.ForgeDataScript;
-import noppes.npcs.controllers.data.NPCDataScript;
-import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
@@ -52,8 +50,9 @@ import noppes.npcs.roles.RoleTransporter;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.entity.ScriptPlayer;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 
 public class PacketHandlerServer{
 
@@ -73,27 +72,30 @@ public class PacketHandlerServer{
 
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 
-			if(type == EnumPacketServer.IsGuiOpen) {
+			if (type == EnumPacketServer.IsGuiOpen) {
 				isGuiOpenPacket(buffer, player);
 				return;
-			}  else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiButton((ScriptPlayer)NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+			} else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiSlotChange && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiSlot((ScriptPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, buffer.readInt());
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
-			} else if(type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui)player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiUnfocused((ScriptPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
+			} else if (type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiScrollClick && player.openContainer instanceof ContainerCustomGui) {
 				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiScrollClick((ScriptPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
+				EventHooks.onCustomGuiScrollClick((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiClose) {
-				EventHooks.onCustomGuiClose((ScriptPlayer)NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
+				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
+				return;
+			} else if (type == EnumPacketServer.UpdateTrackedQuest) {
+				updateTrackedQuest(buffer, player);
 				return;
 			}
 
@@ -123,6 +125,12 @@ public class PacketHandlerServer{
 						npcScriptPackets(type, buffer, player);
 					else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
 						forgeScriptPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
+						itemScriptPackets(type, buffer, player);
+					else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
+						getScriptsEnabled(type, buffer, player);
+					else if (type == EnumPacketServer.ServerUpdateSkinOverlays)
+						updateSkinOverlays(player);
 					else if (item.getItem() == CustomItems.scripter)
 						scriptPackets(type, buffer, player, npc);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
@@ -134,8 +142,57 @@ public class PacketHandlerServer{
 		}
 	}
 
+	private void updateTrackedQuest(ByteBuf buffer, EntityPlayerMP player) {
+		String trackedQuestString = Server.readString(buffer);
+		if (trackedQuestString != null && trackedQuestString.contains(":")) {
+			String[] splitString = trackedQuestString.split(":");
+			String categoryName = splitString[0];
+			String questName = splitString[1];
+
+			for (QuestCategory category : QuestController.instance.categories.values()) {
+				if (category.title.equals(categoryName)) {
+					for (Quest quest : category.quests.values()) {
+						if (quest.title.equals(questName)) {
+							PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = quest;
+							NBTTagCompound compound = new NBTTagCompound();
+							compound.setTag("Quest",quest.writeToNBT(new NBTTagCompound()));
+							compound.setString("CategoryName", quest.getCategory().getName());
+							Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
+		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+	}
+
 	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		NoppesUtilServer.isGUIOpen(buffer, player);
+	}
+
+	public void updateSkinOverlays(EntityPlayerMP player) {
+		PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
+	}
+
+	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
+		if (type == EnumPacketServer.ScriptGlobalGuiDataGet) {
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setBoolean("ScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
+			compound.setBoolean("PlayerScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
+			compound.setBoolean("GlobalNPCScriptsEnabled", CustomNpcs.GlobalNPCScripts);
+			compound.setBoolean("ForgeScriptsEnabled", CustomNpcs.GlobalForgeScripts);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if (type == EnumPacketServer.ScriptGlobalGuiDataSave) {
+			NBTTagCompound compound = Server.readNBT(buffer);
+			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("ScriptsEnabled");
+			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("PlayerScriptsEnabled");
+			CustomNpcs.GlobalNPCScripts = compound.getBoolean("GlobalNPCScriptsEnabled");
+			CustomNpcs.GlobalForgeScripts = compound.getBoolean("ForgeScriptsEnabled");
+		}
 	}
 
 	private void scriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
@@ -156,6 +213,7 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptPlayerGet) {
 			PlayerDataScript data = ScriptController.Instance.playerScripts;
 			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setBoolean("ScriptEnabled", ScriptController.Instance.playerScripts.getEnabled());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
@@ -168,6 +226,7 @@ public class PacketHandlerServer{
 		if (type == EnumPacketServer.ScriptForgeGet) {
 			ForgeDataScript data = ScriptController.Instance.forgeScripts;
 			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setBoolean("ScriptEnabled", ScriptController.Instance.forgeScripts.getEnabled());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
@@ -180,10 +239,31 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptNPCGet) {
 			NPCDataScript data = ScriptController.Instance.npcScripts;
 			compound = data.writeToNBT(new NBTTagCompound());
+			compound.setBoolean("ScriptEnabled", ScriptController.Instance.npcScripts.getEnabled());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else if(type == EnumPacketServer.ScriptNPCSave) {
 			ScriptController.Instance.setNPCScripts(Server.readNBT(buffer));
+		}
+	}
+
+	private void itemScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		if (type == EnumPacketServer.ScriptItemDataGet) {
+			ScriptCustomItem iw = new ScriptCustomItem(player.getHeldItem());
+			NBTTagCompound compound = iw.getMCNbt();
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
+		} else if (type == EnumPacketServer.ScriptItemDataSave) {
+			if (!player.capabilities.isCreativeMode) {
+				return;
+			}
+
+			NBTTagCompound compound = Server.readNBT(buffer);
+			ScriptCustomItem wrapper = new ScriptCustomItem(player.getHeldItem());
+			wrapper.setMCNbt(compound);
+			wrapper.lastInited = -1L;
+			wrapper.saveScriptData();
+			player.sendContainerToPlayer(player.inventoryContainer);
 		}
 	}
 
