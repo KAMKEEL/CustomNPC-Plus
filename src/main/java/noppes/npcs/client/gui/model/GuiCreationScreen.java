@@ -270,13 +270,13 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	// New Button for Changing Models
 		// URL Swapper
 		if(button.id == 250){
-			npc.display.modelType = button.getValue() * 2;
+			npc.display.modelType = button.displayString.equals("Alex") ? 2 : 1;
 
-			if(npc.display.modelType == 0){
+			if(npc.display.modelType == 1){
 				if (npc.display.skinType == 2){
 					npc.display.skinType = 3;
 				}
-			} else if(npc.display.modelType == 2) {
+			} else {
 				if (npc.display.skinType == 3){
 					npc.display.skinType = 2;
 				}

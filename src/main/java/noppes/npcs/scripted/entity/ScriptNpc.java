@@ -80,7 +80,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			modelType = 1;
 		else if(modelType < 0)
 			modelType = 0;
-		npc.display.modelType = modelType * 2;
+		npc.display.modelType = modelType + 1;
 		npc.script.clientNeedsUpdate = true;
 	}
 	

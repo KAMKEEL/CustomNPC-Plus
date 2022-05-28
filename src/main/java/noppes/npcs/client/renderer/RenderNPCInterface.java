@@ -364,8 +364,10 @@ public class RenderNPCInterface extends RenderLiving{
 			int totalHeight = bufferedimage.getHeight();
 
 			npc.display.x64texture = totalHeight > 32;
-			if (npc.display.x64texture && (npc.display.modelType == 0 || npc.display.modelType == 3)) {
-				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
+			if (npc.display.x64texture) {
+				if (npc.display.modelType == 0 || npc.display.modelType == 3) {
+					bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
+				}
 			}
 
 			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
