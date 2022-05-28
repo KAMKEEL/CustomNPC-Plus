@@ -129,7 +129,6 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    	//npc.display.glowTexture = "";
             npc.display.skinOverlayData.overlayList.remove(0);
 			npc.textureLocation = null;
-			npc.textureGlowLocation = null;
 			npc.updateHitbox();
     	}
     	catch(Exception ex){

@@ -231,7 +231,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		    	//npc.display.glowTexture = "";
 				npc.display.skinOverlayData.overlayList.remove(0);
 				npc.textureLocation = null;
-				npc.textureGlowLocation = null;
 				npc.updateHitbox();
     		}
         	catch(Exception ex){
@@ -286,6 +285,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				}
 				npc.display.modelType = 0;
 			}
+			npc.textureLocation = null;
 		}
 
     	if(button.id == 8){
@@ -339,7 +339,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
         	//npc.display.glowTexture = "";
 			npc.display.skinOverlayData.overlayList.remove(0);
     		npc.textureLocation = null;
-    		npc.textureGlowLocation = null;
     		npc.updateHitbox();
 		}
     	catch(Exception ex){
