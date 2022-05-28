@@ -363,7 +363,8 @@ public class RenderNPCInterface extends RenderLiving{
 			int totalWidth = bufferedimage.getWidth();
 			int totalHeight = bufferedimage.getHeight();
 
-			if (totalHeight > 32 && npc.display.modelType == 0) {
+			npc.display.x64texture = totalHeight > 32;
+			if (npc.display.x64texture && (npc.display.modelType == 0 || npc.display.modelType == 3)) {
 				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
 			}
 
