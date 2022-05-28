@@ -110,7 +110,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	addButton(new GuiNpcButton(7, guiLeft + 50, y += 22, 50, 20, "selectServer.edit"));
 		addLabel(new GuiNpcLabel(4, "Legs", guiLeft, y + 5, 0xFFFFFF));
 
-		addButton(new GuiNpcButton(250, guiLeft + 50, y += 22, 50, 20, new String[]{"Default","Steve64","Alex","Alex32"}, this.npc.display.modelType));
+		addButton(new GuiNpcButton(250, guiLeft + 50, y += 22, 50, 20, new String[]{"Steve","Alex"}, this.npc.display.modelType/2));
 		addLabel(new GuiNpcLabel(250, "Model", guiLeft, y + 5, 0xFFFFFF));
 
     	addButton(new GuiNpcButton(44, guiLeft + 310, guiTop + 14, 80, 20, "Save Model"));
@@ -270,23 +270,15 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	// New Button for Changing Models
 		// URL Swapper
 		if(button.id == 250){
+			npc.display.modelType = button.getValue() * 2;
+
 			if(npc.display.modelType == 0){
 				if (npc.display.skinType == 2){
 					npc.display.skinType = 3;
 				}
-				npc.display.modelType = 1;
-			}
-			else if(npc.display.modelType == 1){
-				npc.display.modelType = 2;
-			}
-			else {
+			} else if(npc.display.modelType == 2) {
 				if (npc.display.skinType == 3){
 					npc.display.skinType = 2;
-				}
-				if (npc.display.modelType == 2) {
-					npc.display.modelType = 3;
-				} else {
-					npc.display.modelType = 0;
 				}
 			}
 			npc.textureLocation = null;
