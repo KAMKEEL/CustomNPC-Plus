@@ -110,25 +110,25 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	addButton(new GuiNpcButton(7, guiLeft + 50, y += 22, 50, 20, "selectServer.edit"));
 		addLabel(new GuiNpcLabel(4, "Legs", guiLeft, y + 5, 0xFFFFFF));
 
-		addButton(new GuiNpcButton(250, guiLeft + 50, y += 22, 50, 20, new String[]{"Default","Steve64","Alex"}, this.npc.display.modelType));
+		addButton(new GuiNpcButton(250, guiLeft + 50, y += 22, 50, 20, new String[]{"Steve","Alex"}, this.npc.display.modelType/2));
 		addLabel(new GuiNpcLabel(250, "Model", guiLeft, y + 5, 0xFFFFFF));
-		
+
     	addButton(new GuiNpcButton(44, guiLeft + 310, guiTop + 14, 80, 20, "Save Model"));
     	addButton(new GuiNpcButton(45, guiLeft + 310, guiTop + 36, 80, 20, "Load Model"));
-  
-	
+
+
     }
-	
+
     private void showPixelmonMenu(EntityLivingBase entity) {
 		GuiCustomScroll scroll = new GuiCustomScroll(this, 0);
 		scroll.setSize(120, 200);
 		scroll.guiLeft = guiLeft;
 		scroll.guiTop = guiTop + 20;
 		addScroll(scroll);
-		
+
 		scroll.setList(PixelmonHelper.getPixelmonList());
 		scroll.setSelected(PixelmonHelper.getName(entity));
-		
+
 		Minecraft.getMinecraft().thePlayer.sendChatMessage(PixelmonHelper.getName(entity));
 	}
 
@@ -137,7 +137,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		if(entity instanceof EntityNPCInterface)
 			return;
 		int y = guiTop + 20;
-		
+
 		NBTTagCompound compound = getExtras(entity);
 		Set<String> keys = compound.func_150296_c();
 		int i = 0;
@@ -159,7 +159,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				i++;
 				addLabel(new GuiNpcLabel(100 + i, name, guiLeft, y + 5 + i * 22, 0xFFFFFF));
 		    	addButton(new GuiNpcButton(100 + i, guiLeft + 80, y + i * 22, 50, 20, new String[]{"gui.no","gui.yes"}, b));
-		    	
+
 		    	mapped.put(i, name);
 			}
 		}
@@ -169,7 +169,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				Method method = entity.getClass().getMethod("getBreedID");
 				breed = (Integer) method.invoke(entity);
 			} catch (Exception e) {
-				
+
 			}
 			i++;
 			addLabel(new GuiNpcLabel(201, "Breed", guiLeft, y + 5 + i * 22, 0xFFFFFF));
@@ -186,18 +186,18 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	private NBTTagCompound getExtras(EntityLivingBase entity) {
 		NBTTagCompound fake = new NBTTagCompound();
 		new EntityFakeLiving(entity.worldObj).writeEntityToNBT(fake);
-		
+
 		NBTTagCompound compound = new NBTTagCompound();
 		try{
 			entity.writeEntityToNBT(compound);
 		}
 		catch(Exception e){
-			
+
 		}
 		Set<String> keys = fake.func_150296_c();
 		for(String name : keys)
 			compound.removeTag(name);
-		
+
 		return compound;
 	}
 
@@ -221,7 +221,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	    		}
 	    		else{
 	    			playerdata.setEntityClass(data.get(list.get(index)));
-	
+
 	    	    	EntityLivingBase entity = playerdata.getEntity(npc);
 	    	    	if(entity != null){
 	    				RendererLivingEntity render = (RendererLivingEntity) RenderManager.instance.getEntityRenderObject(entity);
@@ -231,7 +231,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		    	//npc.display.glowTexture = "";
 				npc.display.skinOverlayData.overlayList.remove(0);
 				npc.textureLocation = null;
-				npc.textureGlowLocation = null;
 				npc.updateHitbox();
     		}
         	catch(Exception ex){
@@ -247,10 +246,10 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     		playerdata.setEntityClass(data.get(list.get(index)));
 
     		updateTexture();
-    		
+
     		initGui();
     	}
-    	
+
     	if(button.id == 1){
             this.mc.displayGuiScreen(new GuiEntitySelection(this, playerdata, npc));
     	}
@@ -271,21 +270,18 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
     	// New Button for Changing Models
 		// URL Swapper
 		if(button.id == 250){
-			if(npc.display.modelType == 0){
+			npc.display.modelType = button.displayString.equals("Alex") ? 2 : 1;
+
+			if(npc.display.modelType == 1){
 				if (npc.display.skinType == 2){
 					npc.display.skinType = 3;
 				}
-				npc.display.modelType = 1;
-			}
-			else if(npc.display.modelType == 1){
-				npc.display.modelType = 2;
-			}
-			else {
+			} else {
 				if (npc.display.skinType == 3){
 					npc.display.skinType = 2;
 				}
-				npc.display.modelType = 0;
 			}
+			npc.textureLocation = null;
 		}
 
     	if(button.id == 8){
@@ -339,7 +335,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
         	//npc.display.glowTexture = "";
 			npc.display.skinOverlayData.overlayList.remove(0);
     		npc.textureLocation = null;
-    		npc.textureGlowLocation = null;
     		npc.updateHitbox();
 		}
     	catch(Exception ex){

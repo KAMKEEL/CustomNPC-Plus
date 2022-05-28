@@ -73,14 +73,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	/**
-	 * @param modelType The modelType of the NPC. 0: Steve, 1: Steve64, 2: Alex
+	 * @param modelType The modelType of the NPC. 0: Steve, 1: Alex
 	 */
 	public void setModelType(int modelType){
-		if(modelType > 2)
-			modelType = 2;
+		if(modelType > 1)
+			modelType = 1;
 		else if(modelType < 0)
 			modelType = 0;
-		npc.display.modelType = modelType;
+		npc.display.modelType = modelType + 1;
 		npc.script.clientNeedsUpdate = true;
 	}
 	
