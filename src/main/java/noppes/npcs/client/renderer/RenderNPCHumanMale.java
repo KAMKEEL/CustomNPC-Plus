@@ -133,8 +133,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                         ((EntityCustomNpc) npc).modelData.legwear = 0;
                         this.mainModel = alex32mainmodel;
                         this.modelBipedMain = alex32mainmodel;
-                        this.modelArmorChestplate = alex32armorChest;
-                        this.modelArmor = alex32armor;
                     }
                 }
                 else if(modelVal == 3){
@@ -143,8 +141,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                     ((EntityCustomNpc) npc).modelData.legwear = 0;
                     this.mainModel = alex32mainmodel;
                     this.modelBipedMain = alex32mainmodel;
-                    this.modelArmorChestplate = alex32armorChest;
-                    this.modelArmor = alex32armor;
                 }
                 else{
                     ((EntityCustomNpc) npc).modelData.bodywear = 0;
