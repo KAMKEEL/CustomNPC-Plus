@@ -64,6 +64,7 @@ public class ModelMPM extends ModelNPCMale{
 	public boolean currentlyPlayerTexture;
 
 	public boolean isArmor;
+	public boolean isAlexArmor;
 	public float alpha = 1;
 
 	// Steve 64x64 and Alex 64x64
@@ -194,10 +195,14 @@ public class ModelMPM extends ModelNPCMale{
 	}
 
 	// Steve 64x32
-	public ModelMPM(float par1) {
+	public ModelMPM(float par1, int alexArms) {
 
 		super(par1);
 		isArmor = par1 > 0;
+		if (isArmor && alexArms == 1) {
+			isAlexArmor = true;
+		}
+
 		float par2 = 0;
 
 		this.bipedCloak = new ModelRenderer(this, 0, 0);
@@ -219,14 +224,30 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBody.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1);
 		this.bipedBody.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
 
-		this.bipedRightArm = new ModelScaleRenderer(this, 40, 16);
-		this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
-		this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
+		if (alexArms == 0) {
+			this.bipedRightArm = new ModelScaleRenderer(this, 40, 16);
+			this.bipedRightArm.addBox(-3.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedRightArm.setRotationPoint(-5.0F, 2.0F + par2, 0.0F);
 
-		this.bipedLeftArm = new ModelScaleRenderer(this, 40, 16);
-		this.bipedLeftArm.mirror = true;
-		this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
-		this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+			this.bipedLeftArm = new ModelScaleRenderer(this, 40, 16);
+			this.bipedLeftArm.mirror = true;
+			this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1);
+			this.bipedLeftArm.setRotationPoint(5.0F, 2.0F + par2, 0.0F);
+		} else {
+			this.bipedRightArm = (new ModelScaleRenderer(this, 40, 16));
+			this.bipedLeftArm = new ModelScaleRenderer(this, 40, 16);
+			this.bipedLeftArm.mirror = true;
+
+			if (isArmor) {
+				this.bipedLeftArm.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
+				this.bipedRightArm.addBox(-4.5F, -2.0F, -2.0F, 4, 12, 4, par1);
+				this.bipedLeftArm.addBox(0.25F, -2.0F, -2.0F, 4, 12, 4, par1);
+			} else {
+				this.bipedLeftArm.setRotationPoint(5.0F, 2.5F + par2, 0.0F);
+				this.bipedRightArm.addBox(-2.0F, -2.0F, -2.0F, 3, 12, 4, par1);
+				this.bipedLeftArm.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1);
+			}
+		}
 
 		this.bipedRightLeg = new ModelScaleRenderer(this, 0, 16);
 		this.bipedRightLeg.addBox(-2.0F, 0.0F, -2.0F, 4, 12, 4, par1);
@@ -587,6 +608,10 @@ public class ModelMPM extends ModelNPCMale{
 		float z = 0;
 
 		GL11.glPushMatrix();
+
+		if (isAlexArmor) {
+			GL11.glScalef(0.75F,1.0F,1.0F);
+		}
 
 		if(entity.currentAnimation == EnumAnimation.DANCING){
 			float dancing = entity.ticksExisted / 4f;
