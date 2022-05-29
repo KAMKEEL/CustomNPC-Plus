@@ -623,7 +623,17 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param canDespawn True if the NPC should naturally despawn. False otherwise.
      */
     void setNaturallyDespawns(boolean canDespawn);
-
+    
+    /**
+     * @return true if this npc was spawned by a player using soulstone
+     */
+    boolean spawnedFromSoulStone();
+    
+    /**
+     * @return the name of the player who spawned this npc using soulstone. null if not spawned by soulstone
+     */
+    String getSoulStonePlayerName();
+    
     /**
      * @param player The player to give the item to
      * @param item The item given to the player

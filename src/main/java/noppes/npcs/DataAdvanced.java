@@ -52,6 +52,8 @@ public class DataAdvanced {
     public boolean attackOtherFactions = false;
     public boolean defendFaction = false;
 	public boolean disablePitch = false;
+	
+	public String soulStonePlayerName;
 
     public DataAdvanced(EntityNPCInterface npc) {
         this.npc = npc;
@@ -83,6 +85,8 @@ public class DataAdvanced {
 
 		compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
 		
+		compound.setString("SoulStonePlayerName", soulStonePlayerName);
+		
         return compound;
     }
 
@@ -113,6 +117,8 @@ public class DataAdvanced {
         factions.readFromNBT(compound.getCompoundTag("FactionPoints"));
 
 		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));	
+		
+		soulStonePlayerName = compound.getString("SoulStonePlayerName");
     }
 
 	private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {

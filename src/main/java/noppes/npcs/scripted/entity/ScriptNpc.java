@@ -862,6 +862,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.stats.canDespawn = canDespawn;
 		npc.stats.playerSetCanDespawn = canDespawn;
 	}
+	
+	public boolean spawnedFromSoulStone() {
+		return npc.advanced.soulStonePlayerName != null;
+	}
+	
+	public String getSoulStonePlayerName() {
+		return npc.advanced.soulStonePlayerName;
+	}
 
 	public void giveItem(IPlayer player, IItemStack item){
 		npc.givePlayerItem((EntityPlayer) player.getMCEntity(), item.getMCItemStack());
