@@ -290,7 +290,7 @@ public class NoppesUtilPlayer {
 	}
 	public static void sendTrackedQuestData(EntityPlayerMP player, Quest trackedQuest) {
 		Quest quest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.trackedQuest;
-		if (quest.id != trackedQuest.id) {
+		if (quest == null || trackedQuest == null || quest.id != trackedQuest.id) {
 			return;
 		}
 
