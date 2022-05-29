@@ -59,12 +59,6 @@ public class ScriptPlayerEventHandler {
                 if(playerData.timers.size() > 0)
                     playerData.timers.update();
             }
-
-            if(player.ticksExisted%(20*CustomNpcs.PlayerQuestCheck) == 0){
-                PlayerQuestData questData = playerData.questData;
-                for(EnumQuestType e : EnumQuestType.values())
-                    questData.checkQuestCompletion(playerData, e);
-            }
         }
     }
 
