@@ -37,10 +37,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected final static ModelMPM steve64 = new ModelMPM(0, false);
     protected final static ModelMPM alex = new ModelMPM(0, true);
 
-    protected final static ModelMPM alex32mainmodel = new ModelMPM(0,1);
-    protected final static ModelMPM alex32armorChest = new ModelMPM(1,1);
-    protected final static ModelMPM alex32armor = new ModelMPM(0.5F,1);
-
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
         super(mainmodel, 0.5F);
@@ -119,28 +115,13 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             EntityCustomNpc test = (EntityCustomNpc) npc;
             if(test.modelData.entityClass == null){
                 int modelVal = npc.display.modelType;
-                if(modelVal ==  1 && npc.display.x64texture){
+                if(modelVal ==  1){
                     this.mainModel = steve64;
                     this.modelBipedMain = steve64;
                 }
                 else if(modelVal ==  2){
-                    if (npc.display.x64texture) {
-                        this.mainModel = alex;
-                        this.modelBipedMain = alex;
-                    } else {
-                        ((EntityCustomNpc) npc).modelData.bodywear = 0;
-                        ((EntityCustomNpc) npc).modelData.armwear = 0;
-                        ((EntityCustomNpc) npc).modelData.legwear = 0;
-                        this.mainModel = alex32mainmodel;
-                        this.modelBipedMain = alex32mainmodel;
-                    }
-                }
-                else if(modelVal == 3){
-                    ((EntityCustomNpc) npc).modelData.bodywear = 0;
-                    ((EntityCustomNpc) npc).modelData.armwear = 0;
-                    ((EntityCustomNpc) npc).modelData.legwear = 0;
-                    this.mainModel = alex32mainmodel;
-                    this.modelBipedMain = alex32mainmodel;
+                    this.mainModel = alex;
+                    this.modelBipedMain = alex;
                 }
                 else{
                     ((EntityCustomNpc) npc).modelData.bodywear = 0;

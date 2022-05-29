@@ -46,7 +46,6 @@ public class DataDisplay {
 	public int showName = 0;
 
 	public int modelType = 0;
-	public boolean x64texture = false;
 
 	public boolean disableLivingAnimation = false;
 	
@@ -185,6 +184,7 @@ public class DataDisplay {
 
 		if(prevSkinType != skinType || !texture.equals(prevTexture))
 			npc.textureLocation = null;
+		npc.textureGlowLocation = null;
 		npc.textureCloakLocation = null;
 		npc.updateHitbox();
 	}

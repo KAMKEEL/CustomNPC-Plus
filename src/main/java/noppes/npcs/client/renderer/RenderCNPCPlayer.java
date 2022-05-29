@@ -48,9 +48,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
     private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow,
                                      float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
                                      float offsetX, float offsetY, float offsetZ) {
-        if (overlayLocation.getResourcePath().isEmpty())
-            return false;
-
         try {
             this.bindTexture(overlayLocation);
         } catch (Exception exception) {
@@ -115,9 +112,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
         {
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
-                        continue;
-
                     if (overlayData.location == null) {
                         overlayData.location = new ResourceLocation(overlayData.texture);
                     } else {
@@ -318,9 +312,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (Client.skinOverlays.containsKey(player.getUniqueID())) {
             for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                if (overlayData.texture.isEmpty())
-                    continue;
-
                 if (overlayData.location == null) {
                     overlayData.location = new ResourceLocation(overlayData.texture);
                 } else {
