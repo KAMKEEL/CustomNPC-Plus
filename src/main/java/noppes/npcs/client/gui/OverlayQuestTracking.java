@@ -10,6 +10,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.data.Quest;
@@ -55,8 +56,10 @@ public class OverlayQuestTracking extends Gui {
 
     private float renderOffsetY;
 
-    public static Quest trackedQuest = new Quest();
-    public static String categoryName = "";
+    public ArrayList<String> trackedQuestLines = new ArrayList<>();
+    public ArrayList<String> categoryNameLines = new ArrayList<>();
+    public ArrayList<String> objectiveLines = new ArrayList<>();
+    public ArrayList<String> turnInText = new ArrayList<>();
 
     public OverlayQuestTracking(Minecraft mc) {
         this.mc = mc;
@@ -102,9 +105,54 @@ public class OverlayQuestTracking extends Gui {
     }
 
     public void setOverlayData(NBTTagCompound compound) {
+        Quest trackedQuest = new Quest();
         trackedQuest.readNBT(compound.getCompoundTag("Quest"));
-        categoryName = compound.getString("CategoryName");
+
+        trackedQuestLines = getLineList(trackedQuest.getName());
+        categoryNameLines = getLineList(compound.getString("CategoryName"));
+
+        NBTTagList nbtTagList = compound.getTagList("ObjectiveList",8);
+        for (int i = 0; i < nbtTagList.tagCount(); i++) {
+            String objective = nbtTagList.getStringTagAt(i);
+
+            String[] split = objective.split(":");
+            split = split[split.length-1].split("/");
+
+            int completed = Integer.parseInt(split[0].trim());
+            int total = Integer.parseInt(split[1].trim());
+            if (completed / total == 1) {
+                objective = "&a&o&m" + objective;
+            } else {
+                objective = "&o" + objective;
+            }
+
+            objectiveLines.add(objective);
+        }
+
+        String npcName = compound.getString("TurnInNPC");
+        if (!npcName.isEmpty()) {
+            turnInText.add("Complete with " + npcName);
+        }
+
         this.initOverlay();
+    }
+
+    public ArrayList<String> getLineList(String string) {
+        String[] split = string.split(" ");
+
+        ArrayList<String> lines = new ArrayList<>();
+        lines.add(split[0]);
+
+        for (int i = 1; i < split.length; i++) {
+            String s = split[i];
+            if (this.fontRenderer.getStringWidth(lines.get(lines.size() - 1) + " " + s) > 100) {
+                lines.add(s);
+            } else {
+                lines.set(lines.size() - 1, lines.get(lines.size() - 1) + " " + s);
+            }
+        }
+
+        return lines;
     }
 
     public void renderGameOverlay(float partialTicks){
@@ -129,24 +177,32 @@ public class OverlayQuestTracking extends Gui {
             this.renderOffsetY = -40;
             GL11.glPushMatrix();
                 GL11.glTranslatef(centerX, 0.0F, 0.0F);
-                this.renderStringLines(trackedQuest.getName(),1.2F, false, true);
+                this.renderStringLines(trackedQuestLines,1.2F, false, true, 0);
             GL11.glPopMatrix();
             questTitleTop = this.renderOffsetY;
-            this.renderOffsetY -= 5;
+            this.renderOffsetY -= 10;
             GL11.glPushMatrix();
                 GL11.glTranslatef(centerX, 0.0F, 0.0F);
-                this.renderStringLines(categoryName,0.85F, false, false);
+                this.renderStringLines(categoryNameLines,0.85F, false, false, 0);
             GL11.glPopMatrix();
 
-            //TODO: Add objectives list, with green strikethrough text for completed objectives. Then, add who the player should turn the quest in to.
+            this.renderOffsetY = -10;
+            GL11.glPushMatrix();
+                this.renderStringLines(objectiveLines,1F, true, false, 2);
+            GL11.glPopMatrix();
 
-            this.renderOffsetY = -25;
+            this.renderOffsetY += 10;
+            GL11.glPushMatrix();
+                this.renderStringLines(turnInText,1F, false, false, 2);
+            GL11.glPopMatrix();
+
+            this.renderOffsetY = -20;
             GL11.glPushMatrix();
                 this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY+2), 0xFF777777);
                 this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY+1), 0xFFA8A8A8);
                 this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
             GL11.glPopMatrix();
-            this.renderOffsetY = questTitleTop + 5;
+            this.renderOffsetY = questTitleTop + 2;
             GL11.glPushMatrix();
                 this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
                 this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY-1), 0xFFA8A8A8);
@@ -159,36 +215,38 @@ public class OverlayQuestTracking extends Gui {
         GL11.glEnable(GL11.GL_ALPHA_TEST);
     }
 
-    public void renderStringLines(String string, float scale, boolean upwards, boolean bold) {
-        String[] split = string.split(" ");
-
-        ArrayList<String> lines = new ArrayList<>();
-        lines.add(split[0]);
-
-        for (int i = 1; i < split.length; i++) {
-            String s = split[i];
-            if (this.fontRenderer.getStringWidth(lines.get(lines.size() - 1) + " " + s) > 100) {
-                lines.add(s);
-            } else {
-                lines.set(lines.size() - 1, lines.get(lines.size() - 1) + " " + s);
-            }
-        }
-
+    public void renderStringLines(ArrayList<String> lines, float scale, boolean downwards, boolean bold, int justified) {
         for (int i = 0; i < lines.size(); i++) {
             String s = lines.get(i);
-            if (!upwards) {
+            if (!downwards) {
                 s = lines.get(lines.size()-1 - i);
             }
 
+            int stringWidth = this.fontRenderer.getStringWidth(s.replace("&o",""));
+            if (s.startsWith("&a&o&m")) {
+                stringWidth = this.fontRenderer.getStringWidth(s.replace("&a&o&m",""));
+            }
+
             GL11.glPushMatrix();
-                GL11.glTranslatef(scale*(-this.fontRenderer.getStringWidth(s)/2.0F), this.renderOffsetY, 0.0F);
+                switch (justified) {
+                    case 0://center
+                        GL11.glTranslatef(scale * (-stringWidth / 2.0F), this.renderOffsetY, 0.0F);
+                        break;
+                    case 1://left
+                        GL11.glTranslatef(scale * (stringWidth), this.renderOffsetY, 0.0F);
+                        break;
+                    case 2://right
+                        GL11.glTranslatef(scale * (-stringWidth), this.renderOffsetY, 0.0F);
+                        break;
+                }
+
                 GL11.glScalef(scale, scale, scale);
                 this.drawString(s, 0, 0, this.color, true);
                 if (bold) {
                     GL11.glTranslatef(0.2F, 0.2F, 0.0F);
                     this.drawString(s, 0, 0, this.color, false);
                 }
-                this.renderOffsetY += upwards ? 10 : -10;
+                this.renderOffsetY += downwards ? 10 : -10;
             GL11.glPopMatrix();
         }
     }

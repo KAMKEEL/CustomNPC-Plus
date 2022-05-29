@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
@@ -107,9 +108,10 @@ public class PlayerQuestData {
 		for(QuestData data : this.activeQuests.values()){
 			if(data.quest.type != type && type != null)
 				continue;
-			
-			QuestInterface inter =  data.quest.questInterface;
 
+			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player,data.quest);
+
+			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if(!data.isCompleted){
 					if(!data.quest.complete(player,data)){

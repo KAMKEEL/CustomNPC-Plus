@@ -14,6 +14,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.WorldServer;
@@ -33,6 +36,7 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -284,6 +288,24 @@ public class NoppesUtilPlayer {
     	else
 			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
 	}
+	public static void sendTrackedQuestData(EntityPlayerMP player, Quest trackedQuest) {
+		Quest quest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.trackedQuest;
+		if (quest.id != trackedQuest.id) {
+			return;
+		}
+
+		NBTTagCompound compound = new NBTTagCompound();
+		compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
+		compound.setString("CategoryName", trackedQuest.getCategory().getName());
+		compound.setString("TurnInNPC", trackedQuest.getNpcName());
+		NBTTagList nbtTagList = new NBTTagList();
+		for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
+			nbtTagList.appendTag(new NBTTagString(objective.getText()));
+		}
+		compound.setTag("ObjectiveList",nbtTagList);
+		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+	}
+
 	public static void sendQuestLogData(EntityPlayerMP player) {
         if(!PlayerQuestController.hasActiveQuests(player)){
         	return;
