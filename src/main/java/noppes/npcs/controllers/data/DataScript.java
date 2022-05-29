@@ -1,4 +1,4 @@
-package noppes.npcs;
+package noppes.npcs.controllers.data;
 
 import java.util.*;
 
@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.EventHooks;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.IScriptHandler;
@@ -58,7 +59,14 @@ public class DataScript implements IScriptHandler {
 
 	public void readFromNBT(NBTTagCompound compound) {
 		scripts = readScript(compound.getTagList("ScriptsContainers", 10));
-		scriptLanguage = compound.getString("ScriptLanguage");
+		this.scriptLanguage = compound.getString("ScriptLanguage");
+		if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
+			if (!ScriptController.Instance.languages.isEmpty()) {
+				this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
+			} else {
+				this.scriptLanguage = "ECMAScript";
+			}
+		}
 		enabled = compound.getBoolean("ScriptEnabled");
 	}
 
