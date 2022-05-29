@@ -119,9 +119,22 @@ public class OverlayQuestTracking extends Gui {
             String[] split = objective.split(":");
             split = split[split.length-1].split("/");
 
-            int completed = Integer.parseInt(split[0].trim());
-            int total = Integer.parseInt(split[1].trim());
-            if (completed / total == 1) {
+            boolean completed = false;
+
+            try {
+                int killed = Integer.parseInt(split[0].trim());
+                int total = Integer.parseInt(split[1].trim());
+
+                if (killed/total == 1) {
+                    completed = true;
+                }
+            } catch (NumberFormatException e) {
+                if (objective.endsWith("(read)") || (objective.endsWith("Found") && !objective.endsWith("Not Found"))) {
+                    completed = true;
+                }
+            }
+
+            if (completed) {
                 objective = "&a&o&m" + objective;
             } else {
                 objective = "&o" + objective;
