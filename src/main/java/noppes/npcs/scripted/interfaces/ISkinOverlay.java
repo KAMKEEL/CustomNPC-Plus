@@ -22,6 +22,12 @@ public interface ISkinOverlay {
     boolean getGlow();
 
     /**
+     * Sets whether this overlay blends on top of bottom textures at any alpha value.
+     */
+    void setBlend(boolean blend);
+    boolean getBlend();
+
+    /**
      * Sets the transparency of the overlay, from 0 to 1.
      */
     void setAlpha(float alpha);

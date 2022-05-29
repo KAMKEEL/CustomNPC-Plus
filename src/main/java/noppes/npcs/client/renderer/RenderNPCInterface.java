@@ -243,7 +243,11 @@ public class RenderNPCInterface extends RenderLiving{
 
 					// Overlay & Glow
 					GL11.glEnable(GL11.GL_BLEND);
-					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					if (overlayData.getBlend()) {
+						GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+					} else {
+						GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					}
 					GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
 					if (overlayData.getGlow()) {

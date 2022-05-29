@@ -19,10 +19,7 @@ public class EntityNPCEnderman extends EntityNpcEnderchibi
         super(world);
         display.texture = "customnpcs:textures/entity/enderman/enderman.png";
         //display.glowTexture = ;
-		display.skinOverlayData.overlayList.put(0,new SkinOverlay(
-				"customnpcs:textures/overlays/ender_eyes.png", true, 1.0F, 1.0F, 0.0F, 0.0F,
-				1.0F, 1.0F, 0.0F, 0.0F, 0.0F
-		));
+		display.skinOverlayData.overlayList.put(0,new SkinOverlay("customnpcs:textures/overlays/ender_eyes.png"));
         this.width = 0.6F;
         this.height = 2.9F;
     }

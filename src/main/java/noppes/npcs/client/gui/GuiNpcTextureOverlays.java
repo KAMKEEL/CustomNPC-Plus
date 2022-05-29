@@ -79,10 +79,7 @@ public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     		//npc.display.glowTexture = assets.getAsset(slot.selected);
     		//npc.textureGlowLocation = null;
 
-            npc.display.skinOverlayData.overlayList.put(0,new SkinOverlay(
-                    assets.getAsset(slot.selected), true, 1.0F, 1.0F, 0.0F, 0.0F,
-                    1.0F, 1.0F, 0.0F, 0.0F, 0.0F
-            ));
+            npc.display.skinOverlayData.overlayList.put(0,new SkinOverlay(assets.getAsset(slot.selected)));
     	}
     }
 
