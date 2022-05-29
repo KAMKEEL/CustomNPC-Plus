@@ -868,7 +868,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 	
 	public boolean spawnedFromSoulStone() {
-		return npc.advanced.soulStonePlayerName != null;
+		return !npc.advanced.soulStonePlayerName.equals("");
 	}
 	
 	public String getSoulStonePlayerName() {

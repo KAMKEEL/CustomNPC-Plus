@@ -54,7 +54,7 @@ public class DataAdvanced {
 	public boolean disablePitch = false;
 	
 	public boolean refuseSoulStone = false;
-	public String soulStonePlayerName;
+	public String soulStonePlayerName = "";
 
     public DataAdvanced(EntityNPCInterface npc) {
         this.npc = npc;
