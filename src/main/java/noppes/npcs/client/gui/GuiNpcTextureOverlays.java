@@ -77,7 +77,7 @@ public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     public void elementClicked(){
     	if(dataTextures.contains(slot.selected) && slot.selected != null){
     		//npc.display.glowTexture = assets.getAsset(slot.selected);
-    		//npc.textureGlowLocation = null;
+    		npc.textureGlowLocation = null;
 
             npc.display.skinOverlayData.overlayList.put(0,new SkinOverlay(
                     assets.getAsset(slot.selected), true, 1.0F, 1.0F, 0.0F, 0.0F,

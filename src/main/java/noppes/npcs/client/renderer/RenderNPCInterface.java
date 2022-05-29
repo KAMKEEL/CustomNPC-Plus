@@ -22,7 +22,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
-import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
@@ -222,9 +221,6 @@ public class RenderNPCInterface extends RenderLiving{
 		if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 			for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 				try {
-					if (overlayData.getTexture().isEmpty())
-						continue;
-
 					if (overlayData.getLocation() == null) {
 						overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
 					} else {
@@ -234,12 +230,7 @@ public class RenderNPCInterface extends RenderLiving{
 						}
 					}
 
-					if (overlayData.getLocation().getResourcePath().isEmpty())
-						continue;
-
-					try {
-						this.bindTexture(overlayData.getLocation());
-					} catch (Exception e) { continue; }
+					this.bindTexture(overlayData.getLocation());
 
 					// Overlay & Glow
 					GL11.glEnable(GL11.GL_BLEND);
@@ -349,12 +340,13 @@ public class RenderNPCInterface extends RenderLiving{
 	}
 
 	private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
+		if (npc.display.modelType != 0) {
+			return location;
+		}
+
 		InputStream inputstream = null;
 
 		try {
-			TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-			texturemanager.deleteTexture(location);
-
 			IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
 			inputstream = iresource.getInputStream();
 
@@ -363,16 +355,14 @@ public class RenderNPCInterface extends RenderLiving{
 			int totalWidth = bufferedimage.getWidth();
 			int totalHeight = bufferedimage.getHeight();
 
-			npc.display.x64texture = totalHeight > 32;
-			if (npc.display.x64texture) {
-				if (npc.display.modelType == 0 || npc.display.modelType == 3) {
-					bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
-				}
-			}
+			if (totalHeight > 32) {
+				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
 
-			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
-			object.setBufferedImage(bufferedimage);
-			texturemanager.loadTexture(location, object);
+				TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+				ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+				object.setBufferedImage(bufferedimage);
+				texturemanager.loadTexture(location, object);
+			}
 
 			return location;
 		} finally {
