@@ -55,6 +55,7 @@ public class OverlayQuestTracking extends Gui {
     private float posY;
 
     private float renderOffsetY;
+    private final int overlayWidth = 120;
 
     public ArrayList<String> trackedQuestLines = new ArrayList<>();
     public ArrayList<String> categoryNameLines = new ArrayList<>();
@@ -166,13 +167,17 @@ public class OverlayQuestTracking extends Gui {
 
         GL11.glPushMatrix();
             GL11.glTranslatef(CustomNpcs.TrackingInfoAlignment%3*((float)(scaledWidth)/2), (float) (Math.floor((float)(CustomNpcs.TrackingInfoAlignment/3))*((float)(scaledHeight)/2)),0.0F);
-            GL11.glTranslatef(CustomNpcs.TrackingInfoX - 10, CustomNpcs.TrackingInfoY, 0.0F);
+
+            float offsetX = CustomNpcs.TrackingInfoAlignment%3 == 0 ? 5 : -5;
+            GL11.glTranslatef(CustomNpcs.TrackingInfoX + offsetX, CustomNpcs.TrackingInfoY, 0.0F);
 
             red = (color >> 16 & 255) / 255f;
             green = (color >> 8  & 255) / 255f;
             blue = (color & 255) / 255f;
 
             float centerX = -60;
+            centerX *= CustomNpcs.TrackingInfoAlignment%3 == 0 ? -1 : 1;
+
             float questTitleTop;
             this.renderOffsetY = -40;
             GL11.glPushMatrix();
@@ -188,25 +193,25 @@ public class OverlayQuestTracking extends Gui {
 
             this.renderOffsetY = -10;
             GL11.glPushMatrix();
-                this.renderStringLines(objectiveLines,1F, true, false, 2);
+                this.renderStringLines(objectiveLines,1F, true, false, CustomNpcs.TrackingInfoAlignment%3 == 0 ? 1 : 2);
             GL11.glPopMatrix();
 
             this.renderOffsetY += 10;
             GL11.glPushMatrix();
-                this.renderStringLines(turnInText,1F, false, false, 2);
+                this.renderStringLines(turnInText,1F, false, false, CustomNpcs.TrackingInfoAlignment%3 == 0 ? 1 : 2);
             GL11.glPopMatrix();
 
             this.renderOffsetY = -20;
             GL11.glPushMatrix();
-                this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY+2), 0xFF777777);
-                this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY+1), 0xFFA8A8A8);
-                this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
+                this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY+2), 0xFF777777);
+                this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY+1), 0xFFA8A8A8);
+                this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
             GL11.glPopMatrix();
             this.renderOffsetY = questTitleTop + 2;
             GL11.glPushMatrix();
-                this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
-                this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY-1), 0xFFA8A8A8);
-                this.drawHorizontalLine((int)(-60 + centerX), (int)(60 + centerX), (int) (this.renderOffsetY-2), 0xFF777777);
+                this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
+                this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY-1), 0xFFA8A8A8);
+                this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY-2), 0xFF777777);
             GL11.glPopMatrix();
         GL11.glPopMatrix();
 
@@ -215,7 +220,7 @@ public class OverlayQuestTracking extends Gui {
         GL11.glEnable(GL11.GL_ALPHA_TEST);
     }
 
-    public void renderStringLines(ArrayList<String> lines, float scale, boolean downwards, boolean bold, int justified) {
+    public void renderStringLines(ArrayList<String> lines, float scale, boolean downwards, boolean bold, int facing) {
         for (int i = 0; i < lines.size(); i++) {
             String s = lines.get(i);
             if (!downwards) {
@@ -228,12 +233,12 @@ public class OverlayQuestTracking extends Gui {
             }
 
             GL11.glPushMatrix();
-                switch (justified) {
+                switch (facing) {
                     case 0://center
                         GL11.glTranslatef(scale * (-stringWidth / 2.0F), this.renderOffsetY, 0.0F);
                         break;
                     case 1://left
-                        GL11.glTranslatef(scale * (stringWidth), this.renderOffsetY, 0.0F);
+                        GL11.glTranslatef(0, this.renderOffsetY, 0.0F);
                         break;
                     case 2://right
                         GL11.glTranslatef(scale * (-stringWidth), this.renderOffsetY, 0.0F);
