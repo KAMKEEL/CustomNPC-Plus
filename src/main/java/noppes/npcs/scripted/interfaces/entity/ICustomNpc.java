@@ -635,6 +635,16 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     String getSoulStonePlayerName();
     
     /**
+     * @return does this npc refuse to be taken by soul stone 
+     */
+    boolean getRefuseSoulStone();
+    
+    /**
+     * @param refuse set if this npc refuses to be taken by soul stone
+     */
+    void setRefuseSoulStone(boolean refuse);
+    
+    /**
      * @param player The player to give the item to
      * @param item The item given to the player
      */

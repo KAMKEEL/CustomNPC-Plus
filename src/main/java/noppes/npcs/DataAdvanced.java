@@ -53,6 +53,7 @@ public class DataAdvanced {
     public boolean defendFaction = false;
 	public boolean disablePitch = false;
 	
+	public boolean refuseSoulStone = false;
 	public String soulStonePlayerName;
 
     public DataAdvanced(EntityNPCInterface npc) {
@@ -85,6 +86,7 @@ public class DataAdvanced {
 
 		compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
 		
+		compound.setBoolean("RefuseSoulStone", refuseSoulStone);
 		compound.setString("SoulStonePlayerName", soulStonePlayerName);
 		
         return compound;
@@ -118,6 +120,7 @@ public class DataAdvanced {
 
 		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));	
 		
+		refuseSoulStone = compound.getBoolean("RefuseSoulStone");
 		soulStonePlayerName = compound.getString("SoulStonePlayerName");
     }
 

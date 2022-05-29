@@ -1,21 +1,29 @@
 package noppes.npcs.scripted.entity;
 
+import java.util.ArrayList;
+import java.util.UUID;
+
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.constants.*;
+import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.constants.EnumNavType;
+import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptFaction;
+import noppes.npcs.scripted.constants.AnimationType;
+import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.ITimers;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.constants.AnimationType;
-import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
-import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;
 import noppes.npcs.scripted.roles.ScriptJobFollower;
@@ -31,11 +39,7 @@ import noppes.npcs.scripted.roles.ScriptRoleInterface;
 import noppes.npcs.scripted.roles.ScriptRoleMailman;
 import noppes.npcs.scripted.roles.ScriptRoleTrader;
 import noppes.npcs.scripted.roles.ScriptRoleTransporter;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.ValueUtil;
-
-import java.util.ArrayList;
-import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
 	public EntityNPCInterface npc;
@@ -869,6 +873,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	
 	public String getSoulStonePlayerName() {
 		return npc.advanced.soulStonePlayerName;
+	}
+	
+	public boolean getRefuseSoulStone() {
+		return npc.advanced.refuseSoulStone;
+	}
+	
+	public void setRefuseSoulStone(boolean refuse) {
+		npc.advanced.refuseSoulStone = refuse;
 	}
 
 	public void giveItem(IPlayer player, IItemStack item){

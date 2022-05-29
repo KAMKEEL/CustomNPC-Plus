@@ -76,17 +76,19 @@ public class ItemSoulstoneEmpty extends Item {
 			return true;
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
-			if(npc.advanced.role == EnumRoleType.Companion){
+			if (npc.advanced.refuseSoulStone) return false;
+			if (npc.getFaction() != null && npc.getFaction().isFriendlyToPlayer(player) 
+					&& CustomNpcs.SoulStoneFriendlyNPCs) return true;
+			if (npc.advanced.role == EnumRoleType.Companion){
 				RoleCompanion role = (RoleCompanion) npc.roleInterface;
 				if(role.getOwner() == player)
 					return true;
 			}
-			if(npc.advanced.role == EnumRoleType.Follower){
+			if (npc.advanced.role == EnumRoleType.Follower){
 				RoleFollower role = (RoleFollower) npc.roleInterface;
 				if(role.getOwner() == player)
 					return !role.refuseSoulStone;
 			}
-			if (npc.getFaction() != null && npc.getFaction().isFriendlyToPlayer(player) && CustomNpcs.SoulStoneFriendlyNPCs) return true;
 			return CustomNpcs.SoulStoneNPCs;
 		}
 		if (entity instanceof EntityAnimal) return CustomNpcs.SoulStoneAnimals;
