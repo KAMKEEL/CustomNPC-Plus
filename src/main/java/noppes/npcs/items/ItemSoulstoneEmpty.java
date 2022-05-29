@@ -1,9 +1,11 @@
 package noppes.npcs.items;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,7 +19,6 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemSoulstoneEmpty extends Item {
 	public ItemSoulstoneEmpty(){
@@ -85,11 +86,11 @@ public class ItemSoulstoneEmpty extends Item {
 				if(role.getOwner() == player)
 					return !role.refuseSoulStone;
 			}
+			if (npc.getFaction() != null && npc.getFaction().isFriendlyToPlayer(player) && CustomNpcs.SoulStoneFriendlyNPCs) return true;
 			return CustomNpcs.SoulStoneNPCs;
 		}
-		if(entity instanceof EntityAnimal)
-			return CustomNpcs.SoulStoneAnimals;
-		
+		if (entity instanceof EntityAnimal) return CustomNpcs.SoulStoneAnimals;
+		if (entity instanceof EntityVillager) return CustomNpcs.SoulStoneVillagers;
 		return false;
 	}
 }

@@ -123,8 +123,14 @@ public class CustomNpcs {
     @ConfigProp(info = "Normal players can use soulstone on animals")
 	public static boolean SoulStoneAnimals = true;
     
+    @ConfigProp(info = "Normal players can use soulstone on villagers")
+	public static boolean SoulStoneVillagers = false;
+    
     @ConfigProp(info = "Normal players can use soulstone on all npcs")
 	public static boolean SoulStoneNPCs = false;
+    
+    @ConfigProp(info = "Normal players can use soulstone on friendly npcs")
+	public static boolean SoulStoneFriendlyNPCs = false;
 
 	@ConfigProp(info="When set to Minecraft it will use minecrafts font, when Default it will use OpenSans. Can only use fonts installed on your PC")
 	public static String FontType = "Default";
