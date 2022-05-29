@@ -99,6 +99,10 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined);
 
     void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
+    
+    void sendMessage(String message, String color, boolean bold, boolean italic, boolean underlined);
+    
+    void sendMessage(String message, String color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
 
     /**
      * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure
