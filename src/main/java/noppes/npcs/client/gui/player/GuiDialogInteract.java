@@ -51,7 +51,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 	private boolean showPreviousBlocks = true;
 
-	private int textOffsetX, textOffsetY = 100;
+	private int textOffsetX, textOffsetY;
 	private int titleOffsetX, titleOffsetY;
 
 	private int dialogWidth = 500;
@@ -63,7 +63,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private int optionDefaultY = 175;
 
 	private int scrollY;
-	private int totalRowHeight;
 
 	private ResourceLocation wheel;
 	private ResourceLocation[] wheelparts;
@@ -173,12 +172,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			int count = 0;
 			for (TextBlockClient block : lineBlocks) {
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				GL11.glPushMatrix();
-					GL11.glTranslatef(titleOffsetX, titleOffsetY, 0.0F);
-					drawDialogString(block.getName() + " ", -4 - size, block.color, count);
-				GL11.glPopMatrix();
+				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
+
 				for (IChatComponent line : block.lines) {
-					drawDialogString(line.getFormattedText(), 0, block.color, count);
+					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
 					count++;
 				}
 				count++;
@@ -187,14 +184,11 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			int count = 0;
 			for (int pastBlock = 0; pastBlock < currentBlock; pastBlock++) {
 				TextBlockClient block = lineBlocks.get(pastBlock);
-
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				GL11.glPushMatrix();
-					GL11.glTranslatef(titleOffsetX, titleOffsetY, 0.0F);
-					drawDialogString(block.getName() + " ", -4 - size, block.color, count);
-				GL11.glPopMatrix();
+				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
+
 				for (IChatComponent line : block.lines) {
-					drawDialogString(line.getFormattedText(), 0, block.color, count);
+					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
 					count++;
 				}
 				count++;
@@ -203,14 +197,11 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			if (currentBlock < lineBlocks.size()) {
 				TextBlockClient block = lineBlocks.get(currentBlock);
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				GL11.glPushMatrix();
-					GL11.glTranslatef(titleOffsetX, titleOffsetY, 0.0F);
-					drawDialogString(block.getName() + " ", -4 - size, block.color, count);
-				GL11.glPopMatrix();
+				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
 
 				for (int pastLine = 0; pastLine < currentLine; pastLine++) {
 					IChatComponent line = block.lines.get(pastLine);
-					drawDialogString(line.getFormattedText(), 0, block.color, count);
+					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
 					count++;
 				}
 
@@ -228,7 +219,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 						gradualText = line.getFormattedText();
 					}
 
-					drawDialogString(gradualText, 0, block.color, count);
+					drawDialogString(gradualText, 0, block.color, count, true);
 
 					if (gradualText.length() == line.getFormattedText().length()) {
 						gradualText = "";
@@ -245,7 +236,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		GL11.glPopMatrix();
 
 		GL11.glPushMatrix();
-			GL11.glTranslatef(optionOffsetX, optionOffsetY, 0.0F);
 			if(!options.isEmpty()){
 				if(!dialog.showWheel)
 					drawLinedOptions(j);
@@ -259,18 +249,19 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     private int selectedX = 0;
     private int selectedY = 0;
     private void drawWheel(){
-    	int yoffset = guiTop + optionDefaultY + 14;
+    	int yoffset = scaledResolution.getScaledHeight() - 50 + optionOffsetY;
+		dialogTextBottom = yoffset - 100;
         GL11.glColor4f(1, 1, 1, 1);
         mc.renderEngine.bindTexture(wheel);
-        drawTexturedModalRect((width/2) - 31, yoffset, 0, 0, 63, 40);
+        drawTexturedModalRect((width/2) - 31 + optionOffsetX, yoffset, 0, 0, 63, 40);
         
         selectedX += Mouse.getDX();        
         selectedY += Mouse.getDY();
         int limit = 80;
-        if(selectedX > limit)
-        	selectedX = limit;
-        if(selectedX < -limit)
-        	selectedX = -limit;
+        if(selectedX > limit + optionOffsetX)
+        	selectedX = limit + optionOffsetX;
+        if(selectedX < -limit + optionOffsetX)
+        	selectedX = -limit + optionOffsetX;
         
         if(selectedY > limit)
         	selectedY = limit;
@@ -286,7 +277,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	if(selectedX < 0)
     		selected += 3;
         mc.renderEngine.bindTexture(wheelparts[selected]);
-        drawTexturedModalRect((width/2) - 31,yoffset, 0, 0, 85, 55);
+        drawTexturedModalRect((width/2) - 31 + optionOffsetX,yoffset, 0, 0, 85, 55);
         for(int slot:dialog.options.keySet()){
         	DialogOption option = dialog.options.get(slot);
         	if(option == null || option.optionType == EnumOptionType.Disabled)
@@ -296,27 +287,27 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         		color = 0x838FD8;
     		//drawString(fontRenderer, option.title, width/2 -50 ,yoffset+ 162 + slot * 13 , color);
         	if(slot == 0)
-        		drawString(fontRendererObj, option.title, width/2 + 13,yoffset - 6 , color);
+        		drawString(fontRendererObj, option.title, width/2 + 13 + optionOffsetX,yoffset - 6 , color);
         	if(slot == 1)
-        		drawString(fontRendererObj, option.title, width/2 + 33,yoffset + 12  , color);
+        		drawString(fontRendererObj, option.title, width/2 + 33 + optionOffsetX,yoffset + 12  , color);
         	if(slot == 2)
-        		drawString(fontRendererObj, option.title, width/2 + 27,yoffset + 32  , color);
+        		drawString(fontRendererObj, option.title, width/2 + 27 + optionOffsetX,yoffset + 32  , color);
         	if(slot == 3)
-        		drawString(fontRendererObj, option.title, width/2 - 13 - ClientProxy.Font.width(option.title),yoffset - 6  , color);
+        		drawString(fontRendererObj, option.title, width/2 - 13 + optionOffsetX - ClientProxy.Font.width(option.title),yoffset - 6  , color);
         	if(slot == 4)
-        		drawString(fontRendererObj, option.title, width/2 - 33 - ClientProxy.Font.width(option.title),yoffset + 12  , color);
+        		drawString(fontRendererObj, option.title, width/2 - 33 + optionOffsetX - ClientProxy.Font.width(option.title),yoffset + 12  , color);
         	if(slot == 5)
-        		drawString(fontRendererObj, option.title, width/2 - 27 - ClientProxy.Font.width(option.title),yoffset + 32  , color);
+        		drawString(fontRendererObj, option.title, width/2 - 27 + optionOffsetX - ClientProxy.Font.width(option.title),yoffset + 32  , color);
         	
         }
         mc.renderEngine.bindTexture(indicator);
         drawTexturedModalRect(width/2 + selectedX/4  - 2,yoffset + 16 - selectedY/6, 0, 0, 8, 8);
     }
     private void drawLinedOptions(int j){
-        int offset = scaledResolution.getScaledHeight() - (options.size() + 2) * ClientProxy.Font.height();
+        int offset = scaledResolution.getScaledHeight() - (options.size() + 2) * ClientProxy.Font.height() + optionOffsetY - options.size() * optionSpaceY;
 		dialogTextBottom = offset - 100;
         if(j >= offset){
-        	int selected = options.size() - (j - offset) / ClientProxy.Font.height();
+        	int selected = options.size() - (j - offset + optionSpaceY) / (ClientProxy.Font.height() + optionSpaceY);
 	        if(selected < options.size())
 		        this.selected = selected;
         }
@@ -330,7 +321,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         for(int k = 0; k < options.size(); k++){
         	int id = options.get(options.size() - 1 - k);
         	DialogOption option = dialog.options.get(id);
-        	int y = scaledResolution.getScaledHeight() - (k + 2) * ClientProxy.Font.height();
+        	int y = scaledResolution.getScaledHeight() - (k + 2) * ClientProxy.Font.height() + optionOffsetY + (-1 - k) * optionSpaceY;
         	if(selected == k){
         		drawString(fontRendererObj, ">", guiLeft - 60, y, 0xe0e0e0);
         	}
@@ -338,13 +329,23 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         }
     }
 
-	private void drawDialogString(String text, int left, int color, int count){
+	private void drawDialogString(String text, int left, int color, int count, boolean mainDialogText){
 		int height = count - rowStart;
 		int y = (height * ClientProxy.Font.height()) + dialogTextBottom + scrollY;
 		if (y < dialogTextBottom - dialogHeight || y > dialogTextBottom + ClientProxy.Font.height() * 8) {
 			return;
 		}
-		drawString(fontRendererObj, text, guiLeft + left, y, color);
+
+		int offsetX, offsetY;
+		if (mainDialogText) {
+			offsetX = textOffsetX;
+			offsetY = textOffsetY;
+		} else {
+			offsetX = titleOffsetX;
+			offsetY = titleOffsetY;
+		}
+
+		drawString(fontRendererObj, text, guiLeft + left + offsetX, y + offsetY, color);
 	}
 
     public void drawString(FontRenderer fontRendererIn, String text, int x, int y, int color){
