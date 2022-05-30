@@ -378,10 +378,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			gradualTextSpeed++;
 		}
 
-		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && (scrollY < rowStart * ClientProxy.Font.height())) {//Page up
+		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < rowStart * ClientProxy.Font.height()) {//Page up
 			scrollY += ClientProxy.Font.height() * 2;
 		}
-		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && (scrollY > 0)) {//Page down
+		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && scrollY > 0) {//Page down
 			scrollY -= ClientProxy.Font.height() * 2;
 		}
 
