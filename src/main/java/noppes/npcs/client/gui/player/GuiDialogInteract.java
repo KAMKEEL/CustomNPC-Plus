@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -34,11 +35,35 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 {
 	private Dialog dialog;
     private int selected = 0;
-    private List<TextBlockClient> lines = new ArrayList<TextBlockClient>();
+    private List<TextBlockClient> lineBlocks = new ArrayList<TextBlockClient>();
     private List<Integer> options = new ArrayList<Integer>();
     private int rowStart = 0;
     private int rowTotal = 0;
-    private int dialogHeight = 180;
+
+	private ScaledResolution scaledResolution;
+
+	private int renderDialogType = 1; //0 - Instant (classic), 1 - Gradual
+	private String gradualText = "";
+	private int currentBlock = 0;
+	private int currentLine = 0;
+	private int gradualTextTime = 0;
+	private static int gradualTextSpeed = 10;
+
+	private boolean showPreviousBlocks = true;
+
+	private int textOffsetX, textOffsetY = 100;
+	private int titleOffsetX, titleOffsetY;
+
+	private int dialogWidth = 500;
+	private int dialogHeight = 100;
+	private int dialogTextBottom = 0;
+
+	private int optionSpaceX, optionSpaceY;
+	private int optionOffsetX, optionOffsetY;
+	private int optionDefaultY = 175;
+
+	private int scrollY;
+	private int totalRowHeight;
 
 	private ResourceLocation wheel;
 	private ResourceLocation[] wheelparts;
@@ -64,6 +89,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	grabMouse(dialog.showWheel);
     	guiTop = (height - ySize);
     	calculateRowHeight();
+		this.scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 		this.drawDefaultBackground = dialog.darkenScreen;
     }
     
@@ -134,32 +160,106 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(770, 771, 1, 0);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
+
         GL11.glPushMatrix();
-        GL11.glTranslatef(0.0F, 0.5f, 100.065F);
-        int count = 0;
-        for(TextBlockClient block : lines){
-        	int size = ClientProxy.Font.width(block.getName() + ": ");
-    		drawString(block.getName() + ": ",  -4 - size, block.color, count);
-        	for(IChatComponent line : block.lines){
-        		drawString(line.getFormattedText(), 0, block.color, count);
-                count++;
-        	}
-        	count++;
-        }       
-        
-        if(!options.isEmpty()){
-        	if(!dialog.showWheel)
-        		drawLinedOptions(j);
-        	else
-        		drawWheel();
-        }
+		GL11.glTranslatef(0.0F, 0.5f, 100.065F);
+		if (renderDialogType == 1) {
+			drawString(fontRendererObj, "Text Speed: " + gradualTextSpeed, 10, 10, 0xFFFFFF);
+		}
+
+		GL11.glPushMatrix();
+		GL11.glTranslatef(textOffsetX, 0.0F, 0.0F);
+		if (renderDialogType == 0) {
+			int count = 0;
+			for (TextBlockClient block : lineBlocks) {
+				int size = ClientProxy.Font.width(block.getName() + " ");
+				GL11.glPushMatrix();
+					GL11.glTranslatef(titleOffsetX, titleOffsetY, 0.0F);
+					drawDialogString(block.getName() + " ", -4 - size, block.color, count);
+				GL11.glPopMatrix();
+				for (IChatComponent line : block.lines) {
+					drawDialogString(line.getFormattedText(), 0, block.color, count);
+					count++;
+				}
+				count++;
+			}
+		} else {
+			int count = 0;
+			for (int pastBlock = 0; pastBlock < currentBlock; pastBlock++) {
+				TextBlockClient block = lineBlocks.get(pastBlock);
+
+				int size = ClientProxy.Font.width(block.getName() + " ");
+				GL11.glPushMatrix();
+					GL11.glTranslatef(titleOffsetX, titleOffsetY, 0.0F);
+					drawDialogString(block.getName() + " ", -4 - size, block.color, count);
+				GL11.glPopMatrix();
+				for (IChatComponent line : block.lines) {
+					drawDialogString(line.getFormattedText(), 0, block.color, count);
+					count++;
+				}
+				count++;
+			}
+
+			if (currentBlock < lineBlocks.size()) {
+				TextBlockClient block = lineBlocks.get(currentBlock);
+				int size = ClientProxy.Font.width(block.getName() + " ");
+				GL11.glPushMatrix();
+					GL11.glTranslatef(titleOffsetX, titleOffsetY, 0.0F);
+					drawDialogString(block.getName() + " ", -4 - size, block.color, count);
+				GL11.glPopMatrix();
+
+				for (int pastLine = 0; pastLine < currentLine; pastLine++) {
+					IChatComponent line = block.lines.get(pastLine);
+					drawDialogString(line.getFormattedText(), 0, block.color, count);
+					count++;
+				}
+
+				if (currentLine < block.lines.size()) {
+					IChatComponent line = block.lines.get(currentLine);
+					try {
+						if (gradualTextSpeed > 10 || gradualTextTime%(11 - gradualTextSpeed) == 0) {
+							int addChar = gradualTextSpeed > 10 ? gradualTextSpeed - 9 : 1;
+							gradualText += line.getFormattedText().substring(gradualText.length(), gradualText.length() + addChar);
+							if (gradualTextTime%3 == 0) {
+								NoppesUtil.clickSound();
+							}
+						}
+					} catch (IndexOutOfBoundsException exception) {
+						gradualText = line.getFormattedText();
+					}
+
+					drawDialogString(gradualText, 0, block.color, count);
+
+					if (gradualText.length() == line.getFormattedText().length()) {
+						gradualText = "";
+						currentLine++;
+						if (currentLine >= lineBlocks.get(currentBlock).lines.size()) {
+							currentBlock++;
+						}
+					}
+
+					gradualTextTime++;
+				}
+			}
+		}
+		GL11.glPopMatrix();
+
+		GL11.glPushMatrix();
+			GL11.glTranslatef(optionOffsetX, optionOffsetY, 0.0F);
+			if(!options.isEmpty()){
+				if(!dialog.showWheel)
+					drawLinedOptions(j);
+				else
+					drawWheel();
+			}
         GL11.glPopMatrix();
+		GL11.glPopMatrix();
     }
 
     private int selectedX = 0;
     private int selectedY = 0;
     private void drawWheel(){
-    	int yoffset = guiTop + dialogHeight + 14;
+    	int yoffset = guiTop + optionDefaultY + 14;
         GL11.glColor4f(1, 1, 1, 1);
         mc.renderEngine.bindTexture(wheel);
         drawTexturedModalRect((width/2) - 31, yoffset, 0, 0, 63, 40);
@@ -213,10 +313,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         drawTexturedModalRect(width/2 + selectedX/4  - 2,yoffset + 16 - selectedY/6, 0, 0, 8, 8);
     }
     private void drawLinedOptions(int j){
-    	drawHorizontalLine(guiLeft - 60, guiLeft + xSize + 120, guiTop + dialogHeight, 0xFFFFFFFF);
-        int offset = dialogHeight + 4;
-        if(j >= (int)((guiTop + offset))){
-        	int selected = (int) ((j - (guiTop + offset)) / (ClientProxy.Font.height()));
+        int offset = scaledResolution.getScaledHeight() - (options.size() + 2) * ClientProxy.Font.height();
+		dialogTextBottom = offset - 100;
+        if(j >= offset){
+        	int selected = options.size() - (j - offset) / ClientProxy.Font.height();
 	        if(selected < options.size())
 		        this.selected = selected;
         }
@@ -224,47 +324,67 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         	selected = 0;
         if(selected < 0)
         	selected = 0;
-        int count = 0;
+
+		drawHorizontalLine(guiLeft - 60, guiLeft + xSize + 120, offset, 0xFFFFFFFF);
+
         for(int k = 0; k < options.size(); k++){
-        	int id = options.get(k);
+        	int id = options.get(options.size() - 1 - k);
         	DialogOption option = dialog.options.get(id);
-        	int y = (int)((guiTop + offset  + (count * ClientProxy.Font.height())));
+        	int y = scaledResolution.getScaledHeight() - (k + 2) * ClientProxy.Font.height();
         	if(selected == k){
         		drawString(fontRendererObj, ">", guiLeft - 60, y, 0xe0e0e0);
         	}
-        	drawString(fontRendererObj, NoppesStringUtils.formatText(option.title, player, npc), guiLeft - 30, y, option.optionColor);
-        	count++;
+        	drawString(fontRendererObj, NoppesStringUtils.formatText(option.title, player, npc), guiLeft - 30 + optionSpaceX * k, y, option.optionColor);
         }
     }
-    
-    private void drawString(String text, int left, int color, int count){
-    	int height = count - rowStart;
-    	drawString(fontRendererObj, text, guiLeft + left, guiTop + (height * ClientProxy.Font.height()), color);
-    }
+
+	private void drawDialogString(String text, int left, int color, int count){
+		int height = count - rowStart;
+		int y = (height * ClientProxy.Font.height()) + dialogTextBottom + scrollY;
+		if (y < dialogTextBottom - dialogHeight || y > dialogTextBottom + ClientProxy.Font.height() * 8) {
+			return;
+		}
+		drawString(fontRendererObj, text, guiLeft + left, y, color);
+	}
 
     public void drawString(FontRenderer fontRendererIn, String text, int x, int y, int color){
     	ClientProxy.Font.drawString(text, x, y, color);
-    	//super.drawString(fontRendererIn, text, x, y, color);
-    }
-    
-    private int getSelected(){
-    	if(selected <= 0)
-    		return 0;
-    	
-    	if(selected < options.size())
-    		return selected;
-    	
-    	return options.size() - 1;
     }
 
     @Override
     public void keyTyped(char c, int i){
     	if(i == mc.gameSettings.keyBindForward.getKeyCode() || i == Keyboard.KEY_UP){
-			selected--;
+			if (dialog.showWheel) {
+				selected--;
+			} else {
+				selected++;
+			}
     	}
     	if(i == mc.gameSettings.keyBindBack.getKeyCode() || i == Keyboard.KEY_DOWN){
-    		selected++;
+			if (dialog.showWheel) {
+				selected++;
+			} else {
+				selected--;
+			}
     	}
+
+		if(i == mc.gameSettings.keyBindForward.getKeyCode() || i == Keyboard.KEY_LEFT){
+			gradualTextSpeed--;
+			if (gradualTextSpeed < 1) {
+				gradualTextSpeed = 1;
+			}
+		}
+		if(i == mc.gameSettings.keyBindBack.getKeyCode() || i == Keyboard.KEY_RIGHT){
+			gradualTextSpeed++;
+		}
+
+		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && (scrollY < rowStart * ClientProxy.Font.height())) {//Page up
+			scrollY += ClientProxy.Font.height() * 2;
+		}
+		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && (scrollY > 0)) {//Page down
+			scrollY -= ClientProxy.Font.height() * 2;
+		}
+
     	if(i == 28){
         	handleDialogSelection();
     	}
@@ -278,15 +398,17 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
     @Override
     public void mouseClicked(int i,int  j,int  k){
-    	if(selected == -1 && options.isEmpty() || selected >= 0)
-    		handleDialogSelection();
+    	if(selected == -1 && options.isEmpty() || selected >= 0) {
+			scrollY = 0;
+			handleDialogSelection();
+		}
     }
     private void handleDialogSelection(){
     	int optionId = -1;
     	if(dialog.showWheel)
     		optionId = selected;
     	else if(!options.isEmpty())
-    		optionId = options.get(selected);
+    		optionId = options.get(options.size() - 1 - selected);
     	NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog, dialog.id, optionId);
     	if(dialog == null || !dialog.hasOtherOptions() || options.isEmpty()){
     		closed();
@@ -299,8 +421,15 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     		close();
     		return;
     	}
-    	
-    	lines.add(new TextBlockClient(player.getDisplayName(), option.title, 280, option.optionColor, player, npc));
+
+		if (!showPreviousBlocks) {
+			lineBlocks.clear();
+		}
+    	lineBlocks.add(new TextBlockClient(player.getDisplayName(), option.title, dialogWidth, option.optionColor, player, npc));
+		gradualText = "";
+		currentBlock = lineBlocks.size()-1;
+		currentLine = 0;
+		gradualTextTime = 0;
 		calculateRowHeight();
     	
     	NoppesUtil.clickSound();
@@ -324,9 +453,16 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     		MusicController.Instance.stopMusic();
     		MusicController.Instance.playSound(dialog.sound, (float)npc.posX, (float)npc.posY, (float)npc.posZ);
     	}
-    	
-    	lines.add(new TextBlockClient(npc, dialog.text, 280, 0xe0e0e0, player, npc));
-    	
+
+		if (!showPreviousBlocks) {
+			lineBlocks.clear();
+		}
+    	lineBlocks.add(new TextBlockClient(npc, dialog.text, dialogWidth, 0xe0e0e0, player, npc));
+		gradualText = "";
+		currentBlock = lineBlocks.size()-1;
+		currentLine = 0;
+		gradualTextTime = 0;
+
 		 for(int slot:dialog.options.keySet()){
 			DialogOption option = dialog.options.get(slot);
 			if(option == null || option.optionType == EnumOptionType.Disabled)
@@ -338,21 +474,12 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		 grabMouse(dialog.showWheel);
 	}
 	private void calculateRowHeight(){
-		if(dialog.showWheel){
-	    	dialogHeight = ySize - 58;
-		}
-		else{
-	    	dialogHeight = ySize - 3 * ClientProxy.Font.height() - 4;
-	    	if(dialog.options.size() > 3){
-	    		dialogHeight -= (dialog.options.size() - 3) * ClientProxy.Font.height();
-	    	}
-		}
         rowTotal = 0;
-        for(TextBlockClient block : lines){
+        for(TextBlockClient block : lineBlocks){
         	rowTotal += block.lines.size() + 1;
         }
         int max = dialogHeight / ClientProxy.Font.height();
-        
+
         rowStart = rowTotal - max;
         if(rowStart < 0)
         	rowStart = 0;
