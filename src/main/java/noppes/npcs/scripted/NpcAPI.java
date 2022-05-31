@@ -66,6 +66,10 @@ public class NpcAPI extends AbstractNpcAPI {
         worldCache.clear();
     }
 
+    public void stopServer() {
+        CustomNpcs.getServer().stopServer();
+    }
+
     public IFactionHandler getFactions() {
         this.checkWorld();
         return FactionController.getInstance();
