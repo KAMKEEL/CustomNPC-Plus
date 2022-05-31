@@ -51,19 +51,17 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 	private boolean showPreviousBlocks = true;
 
-	private int textOffsetX, textOffsetY;
-	private int titleOffsetX, titleOffsetY;
-
 	private int dialogWidth = 500;
 	private int dialogHeight = 100;
 	private int dialogTextBottom = 0;
 
+	private int textOffsetX, textOffsetY;
+	private int titleOffsetX, titleOffsetY;
+
 	private int optionSpaceX, optionSpaceY;
 	private int optionOffsetX, optionOffsetY;
-	private int optionDefaultY = 175;
 
 	private int scrollY;
-
 	private ResourceLocation wheel;
 	private ResourceLocation[] wheelparts;
 	private ResourceLocation indicator;
@@ -312,7 +310,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		        this.selected = selected;
         }
         if(selected >= options.size())
-        	selected = 0;
+        	selected = options.size() - 1;
         if(selected < 0)
         	selected = 0;
 
@@ -325,7 +323,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         	if(selected == k){
         		drawString(fontRendererObj, ">", guiLeft - 60, y, 0xe0e0e0);
         	}
-        	drawString(fontRendererObj, NoppesStringUtils.formatText(option.title, player, npc), guiLeft - 30 + optionSpaceX * k, y, option.optionColor);
+        	drawString(fontRendererObj, NoppesStringUtils.formatText(option.title, player, npc), guiLeft - 30 + optionSpaceX * (options.size() - 1 - k), y, option.optionColor);
         }
     }
 
