@@ -52,7 +52,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private boolean showPreviousBlocks = true;
 
 	private int dialogWidth = 500;
-	private int dialogHeight = 100;
+	private int dialogHeight = 200;
 	private int dialogTextBottom = 0;
 
 	private int textOffsetX, textOffsetY;
@@ -477,9 +477,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         for(TextBlockClient block : lineBlocks){
         	rowTotal += block.lines.size() + 1;
         }
-        int max = dialogHeight / ClientProxy.Font.height();
 
-        rowStart = rowTotal - max;
+        rowStart = rowTotal;
         if(rowStart < 0)
         	rowStart = 0;
 	}
