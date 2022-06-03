@@ -377,7 +377,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			gradualTextSpeed++;
 		}
 
-		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < (totalRows - 2) * ClientProxy.Font.height()) {//Page up
+		int firstBlockSize = lineBlocks.size() > 0 ? lineBlocks.get(0).lines.size() + 1 : 0;
+		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < (totalRows - firstBlockSize) * ClientProxy.Font.height()) {//Page up
 			scrollY += ClientProxy.Font.height() * 2;
 		}
 		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && scrollY > 0) {//Page down
