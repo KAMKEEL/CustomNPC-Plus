@@ -99,7 +99,7 @@ public class DataTimers implements ITimers {
             DataTimers.Timer timer = (DataTimers.Timer)var3.next();
             NBTTagCompound c = new NBTTagCompound();
             c.setInteger("ID", timer.id);
-            c.setInteger("TimerTicks", timer.id);
+            c.setInteger("TimerTicks", timer.timerTicks);
             c.setBoolean("Repeat", timer.repeat);
             c.setInteger("Ticks", timer.ticks);
             list.appendTag(c);
