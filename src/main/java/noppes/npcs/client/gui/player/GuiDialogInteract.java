@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -45,8 +46,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private int currentBlock = 0;
 	private int currentLine = 0;
 	private int gradualTextTime = 0;
-	private static int gradualTextSpeed = 10;
 	private int dialogTextBottom = 0;
+
+	private static int textSpeed = 10;
+	private static boolean textSoundEnabled = true;
 
 	private int scrollY;
 	private ResourceLocation wheel;
@@ -54,18 +57,23 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private ResourceLocation indicator;
 	
 	private boolean isGrabbed = false;
+	private int textSoundTime = 0;
 
-	private int renderDialogType = 0; //0 - Instant (classic), 1 - Gradual
+
+	private int renderDialogType = 1; //0 - Instant (classic), 1 - Gradual
 	private boolean showPreviousBlocks = true;
 
 	private int dialogWidth = 500;
-	private int dialogHeight = 200;
+	private int dialogHeight = 400;
 
 	private int textOffsetX, textOffsetY;
 	private int titleOffsetX, titleOffsetY;
 
 	private int optionSpaceX, optionSpaceY;
 	private int optionOffsetX, optionOffsetY;
+
+	private String textSound = "minecraft:random.wood_click";
+	private float textPitch = 1.0F;
 	
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog){
     	super(npc);
@@ -160,7 +168,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         GL11.glPushMatrix();
 		GL11.glTranslatef(0.0F, 0.5f, 100.065F);
 		if (renderDialogType == 1) {
-			drawString(fontRendererObj, "Text Speed: " + gradualTextSpeed, 10, 10, 0xFFFFFF);
+			drawString(fontRendererObj, "Text Speed: " + textSpeed, 10, 10, 0xFFFFFF);
+			drawString(fontRendererObj, "Text Sound: " + (textSoundEnabled ? "On" : "Off"), 10, 20, 0xFFFFFF);
 		}
 
 		GL11.glPushMatrix();
@@ -205,12 +214,13 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 				if (currentLine < block.lines.size()) {
 					IChatComponent line = block.lines.get(currentLine);
 					try {
-						if (gradualTextSpeed > 10 || gradualTextTime%(11 - gradualTextSpeed) == 0) {
-							int addChar = gradualTextSpeed > 10 ? gradualTextSpeed - 9 : 1;
+						if (textSpeed > 10 || gradualTextTime%(11 - textSpeed) == 0) {
+							int addChar = textSpeed > 10 ? textSpeed - 9 : 1;
 							gradualText += line.getFormattedText().substring(gradualText.length(), gradualText.length() + addChar);
-							if (gradualTextTime%3 == 0) {
-								NoppesUtil.clickSound();
+							if (textSoundTime % 5 == 0) {
+								Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation(textSound), textPitch));
 							}
+							textSoundTime++;
 						}
 					} catch (IndexOutOfBoundsException exception) {
 						gradualText = line.getFormattedText();
@@ -247,7 +257,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     private int selectedY = 0;
     private void drawWheel(){
     	int yoffset = scaledResolution.getScaledHeight() - 50 + optionOffsetY;
-		//dialogTextBottom = yoffset - 100;
+
         GL11.glColor4f(1, 1, 1, 1);
         mc.renderEngine.bindTexture(wheel);
         drawTexturedModalRect((width/2) - 31 + optionOffsetX, yoffset, 0, 0, 63, 40);
@@ -302,7 +312,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     }
     private void drawLinedOptions(int j){
         int offset = scaledResolution.getScaledHeight() - (options.size() + 2) * ClientProxy.Font.height() + optionOffsetY - options.size() * optionSpaceY;
-		//dialogTextBottom = offset - 100;
+
         if(j >= offset){
         	int selected = options.size() - (j - offset + optionSpaceY) / (ClientProxy.Font.height() + optionSpaceY);
 	        if(selected < options.size())
@@ -328,7 +338,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 	private void drawDialogString(String text, int left, int color, int count, boolean mainDialogText){
 		int height = count - totalRows;
-		int midScreen = scaledResolution.getScaledHeight() / 2;
+		int midScreen = (int) (scaledResolution.getScaledHeight() * 0.75F);
 		int y = (height * ClientProxy.Font.height()) + midScreen + scrollY;
 		if (y < midScreen - dialogHeight || y > midScreen - ClientProxy.Font.height()) {
 			return;
@@ -368,13 +378,17 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	}
 
 		if(i == mc.gameSettings.keyBindForward.getKeyCode() || i == Keyboard.KEY_LEFT){
-			gradualTextSpeed--;
-			if (gradualTextSpeed < 1) {
-				gradualTextSpeed = 1;
+			textSpeed--;
+			if (textSpeed < 1) {
+				textSpeed = 1;
 			}
 		}
 		if(i == mc.gameSettings.keyBindBack.getKeyCode() || i == Keyboard.KEY_RIGHT){
-			gradualTextSpeed++;
+			textSpeed++;
+		}
+
+		if(i == mc.gameSettings.keyBindJump.getKeyCode() || i == Keyboard.KEY_SPACE){
+			textSoundEnabled = !textSoundEnabled;
 		}
 
 		int firstBlockSize = lineBlocks.size() > 0 ? lineBlocks.get(0).lines.size() + 1 : 0;
