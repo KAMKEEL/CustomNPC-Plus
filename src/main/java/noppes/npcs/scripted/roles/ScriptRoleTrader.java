@@ -1,13 +1,12 @@
 package noppes.npcs.scripted.roles;
 
 import foxz.utils.Market;
-import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public class ScriptRoleTrader extends ScriptRoleInterface{
 	private RoleTrader role;
@@ -160,7 +159,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	 */
 	public boolean isSlotEnabled(int slot, IPlayer player) {
 		if(slot >= 18 || slot < 0) return false;
-		return role.isSlotEnabled(slot, (EntityPlayer)player.getMCEntity());
+		return role.isSlotEnabled(slot, player.getDisplayName());
 	}
 	
 	/**
