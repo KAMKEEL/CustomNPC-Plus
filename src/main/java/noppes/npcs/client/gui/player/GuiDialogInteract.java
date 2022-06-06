@@ -49,6 +49,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private int gradualTextTime = 0;
 	private int optionStart = 0;
 
+	private int instantBlockPos = 0;
+	private int instantLinePos = 0;
+	private int prevPausePos = -1;
+
 	private static int textSpeed = 10;
 	private static boolean textSoundEnabled = true;
 
@@ -65,7 +69,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	 *		DIALOG	VARIABLES		*
 	 *								*/
 
-	private int renderDialogType = 1; //0 - Instant (classic), 1 - Gradual
+	private boolean renderGradual = false;
 	private boolean showPreviousBlocks = true;
 
 	private int dialogWidth = 300;
@@ -183,7 +187,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
         GL11.glPushMatrix();
 		GL11.glTranslatef(0.0F, 0.5f, 100.065F);
-		if (renderDialogType == 1) {
+		if (renderGradual) {
 			drawString(fontRendererObj, "Text Speed: " + textSpeed, 10, 10, 0xFFFFFF);
 			drawString(fontRendererObj, "Text Sound: " + (textSoundEnabled ? "On" : "Off"), 10, 20, 0xFFFFFF);
 		}
@@ -210,14 +214,57 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			GL11.glPopMatrix();
 		}
 
-		if (renderDialogType == 0) {
+		if (!renderGradual) {
 			int count = 0;
-			for (TextBlockClient block : lineBlocks) {
+			blockLoop:
+			for (int b = 0; b < lineBlocks.size(); b++) {
+				TextBlockClient block = lineBlocks.get(b);
+
 				int size = ClientProxy.Font.width(block.getName() + " ");
 				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
 
-				for (IChatComponent line : block.lines) {
-					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
+				for (int l = 0; l < block.lines.size(); l++) {
+					IChatComponent line = block.lines.get(l);
+					String drawText = line.getFormattedText();
+
+					if (b >= instantBlockPos && l >= instantLinePos) {
+						if (drawText.matches("(.*)(\\{(\\d+)})(.*)")) {
+							if (textPauseTime > 0) {
+								drawText = drawText.substring(0, prevPausePos);
+								drawDialogString(drawText, 0, block.color, count, true);
+								textPauseTime--;
+								break blockLoop;
+							}
+
+							String strInt = "";
+							for (int c = 0; c < drawText.length(); c++) {
+								if (drawText.substring(c).matches("^(\\{(\\d+)})(.*)") && c > prevPausePos) {
+									prevPausePos = c;
+									strInt += drawText.charAt(++c);
+								} else if (c > prevPausePos && !strInt.isEmpty()) {
+									if (drawText.charAt(c) == '}')
+										break;
+
+									strInt += drawText.charAt(c);
+								}
+							}
+
+							if (!strInt.isEmpty()) {
+								drawText = drawText.substring(0, prevPausePos);
+
+								drawDialogString(drawText, 0, block.color, count, true);
+
+								instantBlockPos = b;
+								instantLinePos = l;
+								textPauseTime = Integer.parseInt(strInt);
+								break blockLoop;
+							}
+						} else {
+							prevPausePos = -1;
+						}
+					}
+
+					drawDialogString(drawText, 0, block.color, count, true);
 					count++;
 				}
 				count++;
@@ -256,7 +303,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 							int addChar = textSpeed > 10 ? textSpeed - 9 : 1;
 							String addText = line.getFormattedText().substring(gradualText.length(), gradualText.length() + addChar);
 
-							if (addText.matches("^(\\{(\\d*)})(.*)")) {
+							if (addText.matches("^(\\{(\\d+)})(.*)")) {
 								StringBuilder numStr = new StringBuilder();
 								int numLength;
 								for (numLength = 1; numLength < addText.length(); numLength++) {
@@ -267,7 +314,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 								}
 								textPauseTime = Integer.parseInt(numStr.toString());
 								addText = line.getFormattedText().substring(gradualText.length(), gradualText.length() + numLength + 1);
-							} else if (addText.matches("(.+)\\{(\\d*)(.*)")) {
+							} else if (addText.matches("(.+)\\{(\\d+)(.*)")) {
 								StringBuilder str = new StringBuilder();
 								for (char c : addText.toCharArray()) {
 									if (c == '{')
@@ -276,13 +323,13 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 								}
 
 								addText = str.toString();
-							} else if (addText.matches("(\\{(\\d*))$") || addText.equals("{")) {
+							} else if (addText.matches("(\\{(\\d+))$") || addText.equals("{")) {
 								do {
 									if (addText.length() == gradualText.length() + addText.length() + 1)
 										break;
 
 									addText += line.getFormattedText().substring(gradualText.length() + addText.length(), gradualText.length() + addText.length() + 1);
-								} while (addText.matches("(.*)(\\{(\\d*))$"));
+								} while (addText.matches("(.*)(\\{(\\d+))$"));
 
 								textPauseTime = Integer.parseInt(addText.replace("{","").replace("}",""));
 							}
@@ -424,7 +471,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     }
 
 	private void drawDialogString(String text, int left, int color, int count, boolean mainDialogText){
-		int lineOffset = (currentBlock < lineBlocks.size() ? lineBlocks.get(currentBlock).lines.size() : lineBlocks.get(lineBlocks.size()-1).lines.size()) - currentLine;
+		int lineOffset = renderGradual ? (currentBlock < lineBlocks.size() ? lineBlocks.get(currentBlock).lines.size() : lineBlocks.get(lineBlocks.size()-1).lines.size()) - currentLine : 0;
 		int height = count - totalRows + lineOffset;
 		int screenPos = optionStart;
 		int y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
@@ -441,7 +488,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			offsetY = titleOffsetY;
 		}
 
-		text = text.replaceAll("\\{(\\d*)}","");
+		text = text.replaceAll("\\{(\\d+)}","");
 		drawString(fontRendererObj, text, guiLeft + left + offsetX, y + offsetY, color);
 	}
 
@@ -533,8 +580,12 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		currentBlock = lineBlocks.size()-1;
 		currentLine = 0;
 		gradualTextTime = 0;
+
+		instantBlockPos = lineBlocks.size()-1;
+		instantLinePos = 0;
 		calculateRowHeight();
-    	
+		textPauseTime = 0;
+
     	NoppesUtil.clickSound();
     	
     }
