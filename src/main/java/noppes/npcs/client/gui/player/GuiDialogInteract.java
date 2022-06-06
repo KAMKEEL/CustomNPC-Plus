@@ -59,6 +59,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	
 	private boolean isGrabbed = false;
 	private int textSoundTime = 0;
+	private int textPauseTime = 0;
 
 	/*								*
 	 *		DIALOG	VARIABLES		*
@@ -90,7 +91,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	appendDialog(dialog);
     	ySize = 238;
 
-		textImage = new GuiDialogImage(0, "customnpcs:textures/gui/extrasmallbg.png", 0,0, 176, 71);
+		//textImage = new GuiDialogImage(0, "customnpcs:textures/gui/largebg.png", 0,0, 176, 71);
+		//textImage.scale = 2;
 		optionImage = new GuiDialogImage(0, "customnpcs:textures/gui/info.png", 0,0, 256, 256);
 
     	wheel = this.getResource("wheel.png");
@@ -248,9 +250,44 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 				if (currentLine < block.lines.size()) {
 					IChatComponent line = block.lines.get(currentLine);
 					try {
-						if (textSpeed > 10 || gradualTextTime%(11 - textSpeed) == 0) {
+						if (textPauseTime > 0) {
+							textPauseTime--;
+						} else if (textSpeed > 10 || gradualTextTime%(11 - textSpeed) == 0) {
 							int addChar = textSpeed > 10 ? textSpeed - 9 : 1;
-							gradualText += line.getFormattedText().substring(gradualText.length(), gradualText.length() + addChar);
+							String addText = line.getFormattedText().substring(gradualText.length(), gradualText.length() + addChar);
+
+							if (addText.matches("^(\\{(\\d*)})(.*)")) {
+								StringBuilder numStr = new StringBuilder();
+								int numLength;
+								for (numLength = 1; numLength < addText.length(); numLength++) {
+									if (addText.charAt(numLength) == '}')
+										break;
+
+									numStr.append(addText.charAt(numLength));
+								}
+								textPauseTime = Integer.parseInt(numStr.toString());
+								addText = line.getFormattedText().substring(gradualText.length(), gradualText.length() + numLength + 1);
+							} else if (addText.matches("(.+)\\{(\\d*)(.*)")) {
+								StringBuilder str = new StringBuilder();
+								for (char c : addText.toCharArray()) {
+									if (c == '{')
+										break;
+									str.append(c);
+								}
+
+								addText = str.toString();
+							} else if (addText.matches("(\\{(\\d*))$") || addText.equals("{")) {
+								do {
+									if (addText.length() == gradualText.length() + addText.length() + 1)
+										break;
+
+									addText += line.getFormattedText().substring(gradualText.length() + addText.length(), gradualText.length() + addText.length() + 1);
+								} while (addText.matches("(.*)(\\{(\\d*))$"));
+
+								textPauseTime = Integer.parseInt(addText.replace("{","").replace("}",""));
+							}
+
+							gradualText += addText;
 							if (textSoundTime % 5 == 0) {
 								Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation(textSound), textPitch));
 							}
@@ -404,6 +441,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			offsetY = titleOffsetY;
 		}
 
+		text = text.replaceAll("\\{(\\d*)}","");
 		drawString(fontRendererObj, text, guiLeft + left + offsetX, y + offsetY, color);
 	}
 
