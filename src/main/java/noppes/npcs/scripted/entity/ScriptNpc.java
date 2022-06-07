@@ -882,6 +882,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setRefuseSoulStone(boolean refuse) {
 		npc.advanced.refuseSoulStone = refuse;
 	}
+	
+	public boolean isSoulStoneInit() {
+		return npc.advanced.soulStoneInit;
+	}
 
 	public void giveItem(IPlayer player, IItemStack item){
 		npc.givePlayerItem((EntityPlayer) player.getMCEntity(), item.getMCItemStack());

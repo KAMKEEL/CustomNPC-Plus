@@ -635,6 +635,11 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     String getSoulStonePlayerName();
     
     /**
+     * @return true if npc was spawned by soul stone. becomes false after the init function is called.
+     */
+    boolean isSoulStoneInit();
+    
+    /**
      * @return does this npc refuse to be taken by soul stone 
      */
     boolean getRefuseSoulStone();

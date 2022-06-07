@@ -53,8 +53,9 @@ public class DataAdvanced {
     public boolean defendFaction = false;
 	public boolean disablePitch = false;
 	
-	public boolean refuseSoulStone = false;
 	public String soulStonePlayerName = "";
+	public boolean refuseSoulStone = false;
+	public boolean soulStoneInit = false;
 
     public DataAdvanced(EntityNPCInterface npc) {
         this.npc = npc;
