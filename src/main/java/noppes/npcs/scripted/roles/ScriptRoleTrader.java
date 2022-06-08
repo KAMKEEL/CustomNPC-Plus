@@ -55,7 +55,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface{
 	public IItemStack getSellOption(int slot) {
 		if (slot >= 18 || slot < 0) return null;
 		if (role.inventorySold.items.get(slot) == null) return null;
-		return NpcAPI.Instance().getIItemStack(role.inventoryCurrency.items.get(slot));
+		return NpcAPI.Instance().getIItemStack(role.inventorySold.items.get(slot));
 	}
 	
 	/**
