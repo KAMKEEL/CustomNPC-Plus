@@ -44,7 +44,7 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void cancelSpecials(RenderPlayerEvent.SetArmorModel event) {
-        if (event.renderer instanceof RenderCNPCPlayer && event.stack.getItem() instanceof ItemArmor)
+        if (event.renderer instanceof RenderCNPCPlayer && event.stack != null && event.stack.getItem() instanceof ItemArmor)
             event.setCanceled(true);
     }
 
