@@ -218,7 +218,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public void onUpdate(){
 		super.onUpdate();
 		if(this.ticksExisted % 10 == 0) {
-			advanced.soulStoneInit = false;
 			EventHooks.onNPCUpdate(this);
 		}
 		this.timers.update();

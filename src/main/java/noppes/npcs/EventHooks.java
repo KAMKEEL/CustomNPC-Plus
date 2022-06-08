@@ -118,11 +118,11 @@ public class EventHooks {
     public static void onNPCInit(EntityNPCInterface npc) {
         if(npc == null || npc.wrappedNPC == null)
             return;
-
         noppes.npcs.scripted.event.NpcEvent.InitEvent event = new noppes.npcs.scripted.event.NpcEvent.InitEvent(npc.wrappedNPC);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.INIT, event);
         npc.script.callScript(EnumScriptType.INIT);
         NpcAPI.EVENT_BUS.post(event);
+        npc.advanced.soulStoneInit = false;
     }
 
     public static void onNPCUpdate(EntityNPCInterface npc) {
