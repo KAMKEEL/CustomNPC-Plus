@@ -7,11 +7,11 @@ package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityCreature;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.interfaces.ISkinOverlay;
+import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.ITimers;
-import noppes.npcs.scripted.roles.*;
+import noppes.npcs.scripted.roles.ScriptJobInterface;
+import noppes.npcs.scripted.roles.ScriptRoleInterface;
 
 public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
@@ -648,6 +648,22 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param refuse set if this npc refuses to be taken by soul stone
      */
     void setRefuseSoulStone(boolean refuse);
+    
+    /**
+     * requires SoulStoneFriendlyNPCs in config to be true
+     * -1 by default
+     * if -1, the minimum points are the faction's friendly points
+     * @return the minimum faction points needed to soulstone this npc
+     */
+    int getMinPointsToSoulStone();
+    
+    /**
+     * requires SoulStoneFriendlyNPCs in config to be true
+     * -1 by default
+     * if -1, the minimum points are the faction's friendly points
+     * @param points the minimum faction points needed to soulstone this npc
+     */
+    void setMinPointsToSoulStone(int points);
     
     /**
      * @param player The player to give the item to

@@ -886,6 +886,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public boolean isSoulStoneInit() {
 		return npc.advanced.soulStoneInit;
 	}
+	
+	public int getMinPointsToSoulStone() {
+		return npc.advanced.minFactionPointsToSoulStone;
+	}
+	
+	public void setMinPointsToSoulStone(int points) {
+		npc.advanced.minFactionPointsToSoulStone = points;
+	}
 
 	public void giveItem(IPlayer player, IItemStack item){
 		npc.givePlayerItem((EntityPlayer) player.getMCEntity(), item.getMCItemStack());

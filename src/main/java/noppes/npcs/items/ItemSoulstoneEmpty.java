@@ -15,7 +15,10 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
@@ -77,8 +80,14 @@ public class ItemSoulstoneEmpty extends Item {
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
 			if (npc.advanced.refuseSoulStone) return false;
-			if (npc.getFaction() != null && npc.getFaction().isFriendlyToPlayer(player) 
-					&& CustomNpcs.SoulStoneFriendlyNPCs) return true;
+			if (CustomNpcs.SoulStoneFriendlyNPCs && npc.getFaction() != null) {
+				int p = npc.advanced.minFactionPointsToSoulStone;
+				if (p == -1 && npc.getFaction().isFriendlyToPlayer(player)) return true;
+				else if (p != -1) {
+					PlayerData data = PlayerDataController.instance.getPlayerData(player);
+					return data.factionData.getFactionPoints(npc.getFaction().getId()) >= p;
+				}
+			}
 			if (npc.advanced.role == EnumRoleType.Companion){
 				RoleCompanion role = (RoleCompanion) npc.roleInterface;
 				if(role.getOwner() == player)
