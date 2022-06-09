@@ -81,7 +81,6 @@ public class GuiDialogImage extends Gui {
         float blue = (color & 255) / 255f;
         GL11.glColor4f(red,green,blue,this.alpha);
 
-        GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);
         GL11.glRotatef(this.rotation,0.0F,0.0F,1.0F);
         GL11.glScalef(this.scale, this.scale, this.scale);
 

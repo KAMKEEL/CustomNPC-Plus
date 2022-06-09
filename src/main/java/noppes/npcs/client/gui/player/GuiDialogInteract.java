@@ -20,6 +20,7 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.controllers.MusicController;
+import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.constants.EnumOptionType;
@@ -176,6 +177,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 			GL11.glDisable(GL11.GL_ALPHA_TEST);
 
+			GL11.glTranslatef(image.alignment%3*((float)(scaledResolution.getScaledWidth())/2), (float) (Math.floor((float)(image.alignment/3))*((float)(scaledResolution.getScaledHeight())/2)),0.0F);
 			image.onRender(mc);
 
 			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);

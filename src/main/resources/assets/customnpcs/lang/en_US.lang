@@ -119,9 +119,11 @@ gui.forum=Forum
 gui.id=ID
 gui.widthHeight=Width & Height
 gui.position=Position
-gui.option=Option
+gui.screen=Screen
 gui.text=Text
+gui.option=Option
 gui.default=Default
+gui.type=Type
 
 remote.title=Nearby NPCs
 remote.reset=Reset
@@ -447,7 +449,6 @@ dialog.textSound=Text Sound
 dialog.textPitch=Text Pitch
 dialog.textureOffset=Texture Offset
 dialog.selectedColor=Selected Color
-dialog.imageType=Image Type
 dialog.optionLine=Option Line
 
 quest.quest=Quest
