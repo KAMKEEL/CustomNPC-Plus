@@ -72,6 +72,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 addLabel(new GuiNpcLabel(16, "dialog.textPitch", guiLeft + 4, y + 5));
                 getTextField(16).floatsOnly = true;
             }
+
+            addButton(new GuiNpcButton(17, guiLeft + 120, y += 22, 50, 20, new String[]{"display.hide", "display.show"}, dialog.showOptionLine ? 1 : 0));
+            addLabel(new GuiNpcLabel(17, "dialog.optionLine", guiLeft + 4, y + 5));
         } else if (activeMenu == 2) {
             addTextField(new GuiNpcTextField(10, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
             addTextField(new GuiNpcTextField(11, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textHeight)));
@@ -263,6 +266,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             }
             if (button.id == 14) {
                 dialog.showPreviousBlocks = button.getValue() == 1;
+            }
+            if (button.id == 17) {
+                dialog.showOptionLine = button.getValue() == 1;
             }
         }
 

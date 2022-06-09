@@ -431,7 +431,9 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         if(selected < 0)
         	selected = 0;
 
-		drawHorizontalLine(guiLeft - 60, guiLeft + xSize + 120, offset, 0xFFFFFFFF);
+		if (dialog.showOptionLine) {
+			drawHorizontalLine(guiLeft - 60, guiLeft + xSize + 120, offset, 0xFFFFFFFF);
+		}
 
         for(int k = 0; k < options.size(); k++){
 			GL11.glPushMatrix();

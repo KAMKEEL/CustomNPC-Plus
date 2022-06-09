@@ -448,6 +448,7 @@ dialog.textPitch=Text Pitch
 dialog.textureOffset=Texture Offset
 dialog.selectedColor=Selected Color
 dialog.imageType=Image Type
+dialog.optionLine=Option Line
 
 quest.quest=Quest
 quest.quests=Quests

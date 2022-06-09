@@ -33,6 +33,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean showWheel = false;
 	public boolean disableEsc = false;
 	public boolean darkenScreen = true;
+	public boolean showOptionLine = true;
 
 	public boolean renderGradual = false;
 	public boolean showPreviousBlocks = true;
@@ -112,6 +113,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
 		renderGradual = compound.getBoolean("RenderGradual");
 		showPreviousBlocks = compound.getBoolean("PreviousBlocks");
+		showOptionLine = compound.getBoolean("ShowOptionLine");
 		textSound = compound.getString("TextSound");
 		textPitch = compound.getFloat("TextPitch");
 		textWidth = compound.getInteger("TextWidth");
@@ -135,6 +137,8 @@ public class Dialog implements ICompatibilty, IDialog {
 			textWidth = 300;
 		if (!compound.hasKey("TextHeight"))
 			textHeight = 400;
+		if (!compound.hasKey("ShowOptionLine"))
+			showOptionLine = true;
 
     	availability.readFromNBT(compound);
     	factionOptions.readFromNBT(compound);
@@ -176,6 +180,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
 		compound.setBoolean("RenderGradual", renderGradual);
 		compound.setBoolean("PreviousBlocks", showPreviousBlocks);
+		compound.setBoolean("ShowOptionLine", showOptionLine);
 		compound.setString("TextSound", textSound);
 		compound.setFloat("TextPitch", textPitch);
 		compound.setInteger("TextWidth", textWidth);
@@ -226,6 +231,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.darkenScreen = darkenScreen;
 		dialog.renderGradual = renderGradual;
 		dialog.showPreviousBlocks = showPreviousBlocks;
+		dialog.showOptionLine = showOptionLine;
 		dialog.textSound = textSound;
 		dialog.textPitch = textPitch;
 		dialog.textWidth = textWidth;
