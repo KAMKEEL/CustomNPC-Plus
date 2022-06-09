@@ -90,9 +90,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog){
     	super(npc);
 		this.dialog = dialog;
-    	appendDialog(dialog);
-    	ySize = 238;
-
 		this.renderGradual = dialog.renderGradual;
 		this.showPreviousBlocks = dialog.showPreviousBlocks;
 		this.textSound = dialog.textSound;
@@ -107,6 +104,9 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		this.optionSpaceY = dialog.optionSpaceY;
 		this.optionOffsetX = dialog.optionOffsetX;
 		this.optionOffsetY = dialog.optionOffsetY;
+
+    	appendDialog(dialog);
+    	ySize = 238;
 
 		for (DialogImage dialogImage : dialog.dialogImages.values()) {
 			dialogImages.add(new GuiDialogImage(dialogImage));

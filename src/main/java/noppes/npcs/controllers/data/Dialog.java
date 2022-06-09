@@ -139,8 +139,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		if (!compound.hasKey("TextWidth"))
 			textWidth = 300;
 		if (!compound.hasKey("TextHeight"))
-			textWidth = 400;
-
+			textHeight = 400;
 
     	availability.readFromNBT(compound);
     	factionOptions.readFromNBT(compound);
