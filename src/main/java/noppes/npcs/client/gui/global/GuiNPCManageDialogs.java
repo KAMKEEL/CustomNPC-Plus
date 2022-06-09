@@ -182,7 +182,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
         	setSubGui(new SubGuiNpcDialogExtra(dialog, this));
         }
 		if(id == 11){
-			setSubGui(new SubGuiNpcVisualOptions(dialog, this));
+			setSubGui(new SubGuiNpcDialogVisual(dialog, this));
 		}
     }
 	

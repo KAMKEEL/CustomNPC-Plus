@@ -34,11 +34,6 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean disableEsc = false;
 	public boolean darkenScreen = true;
 
-
-	/**
-	 * Add these variables to NBT reads & writes
-	 */
-
 	public boolean renderGradual = false;
 	public boolean showPreviousBlocks = true;
 
@@ -229,6 +224,21 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.showWheel = showWheel;
 		dialog.disableEsc = disableEsc;
 		dialog.darkenScreen = darkenScreen;
+		dialog.renderGradual = renderGradual;
+		dialog.showPreviousBlocks = showPreviousBlocks;
+		dialog.textSound = textSound;
+		dialog.textPitch = textPitch;
+		dialog.textWidth = textWidth;
+		dialog.textHeight = textHeight;
+		dialog.textOffsetX = textOffsetX;
+		dialog.textOffsetY = textOffsetY;
+		dialog.titleOffsetX = titleOffsetX;
+		dialog.titleOffsetY = titleOffsetY;
+		dialog.optionOffsetX = optionOffsetX;
+		dialog.optionOffsetY = optionOffsetY;
+		dialog.optionSpaceX = optionSpaceX;
+		dialog.optionSpaceY = optionSpaceY;
+		dialog.dialogImages = dialogImages;
 		
 		for(int slot : options.keySet()){
 			DialogOption option = options.get(slot);

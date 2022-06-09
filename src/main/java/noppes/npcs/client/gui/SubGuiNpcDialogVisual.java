@@ -15,7 +15,7 @@ import noppes.npcs.controllers.data.DialogImage;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class SubGuiNpcVisualOptions extends SubGuiInterface implements ISubGuiListener, ITextfieldListener, ICustomScrollListener {
+public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiListener, ITextfieldListener, ICustomScrollListener {
     private final Dialog dialog;
     public GuiScreen parent2;
 
@@ -26,7 +26,7 @@ public class SubGuiNpcVisualOptions extends SubGuiInterface implements ISubGuiLi
     private int selected = -1;
     private int lastColorClicked = -1;
 
-    public SubGuiNpcVisualOptions(Dialog dialog, GuiScreen parent) {
+    public SubGuiNpcDialogVisual(Dialog dialog, GuiScreen parent) {
         this.parent2 = parent;
         this.dialog = dialog;
         setBackground("menubg.png");
