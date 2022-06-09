@@ -7,12 +7,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNpcSoundSelection;
-import noppes.npcs.client.gui.SubGuiNpcAvailability;
-import noppes.npcs.client.gui.SubGuiNpcDialogExtra;
-import noppes.npcs.client.gui.SubGuiNpcDialogOptions;
-import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
-import noppes.npcs.client.gui.SubGuiNpcTextArea;
+import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
@@ -35,7 +30,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
 	private GuiCustomScroll scroll;
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private Dialog dialog = new Dialog();
-	private DialogCategory category = new DialogCategory();
+	public DialogCategory category = new DialogCategory();
 	private boolean categorySelection = true;
 
 	private GuiNpcSoundSelection gui;
@@ -88,14 +83,17 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
 		addLabel(new GuiNpcLabel(6, "dialog.options", guiLeft + 4, guiTop + 93));
 		addButton(new GuiNpcButton(6, guiLeft + 120, guiTop + 89, 50, 20, "selectServer.edit"));
 
-		addButton(new GuiNpcButton(7, guiLeft + 4, guiTop + 114, 144, 20, "availability.selectquest"));
-		addButton(new GuiNpcButton(8, guiLeft + 150, guiTop + 114, 20, 20, "X"));
+		addLabel(new GuiNpcLabel(11, "dialog.visualOption", guiLeft + 4, guiTop + 115));
+		addButton(new GuiNpcButton(11, guiLeft + 120, guiTop + 110, 50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(9, "gui.selectSound", guiLeft + 4, guiTop + 138));
-		addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 4, guiTop + 148, 144, 20, dialog.sound));
-		addButton(new GuiNpcButton(9, guiLeft + 150, guiTop + 148, 60, 20, "mco.template.button.select"));
+		addButton(new GuiNpcButton(7, guiLeft + 4, guiTop + 134, 144, 20, "availability.selectquest"));
+		addButton(new GuiNpcButton(8, guiLeft + 150, guiTop + 134, 20, 20, "X"));
 
-		addButton(new GuiNpcButton(10, guiLeft + 4, guiTop + 172, 120, 20, "gui.showmore"));
+		addLabel(new GuiNpcLabel(9, "gui.selectSound", guiLeft + 4, guiTop + 158));
+		addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 4, guiTop + 168, 144, 20, dialog.sound));
+		addButton(new GuiNpcButton(9, guiLeft + 150, guiTop + 168, 60, 20, "mco.template.button.select"));
+
+		addButton(new GuiNpcButton(10, guiLeft + 4, guiTop + 192, 120, 20, "gui.showmore"));
 	}
 
 	private void categoryGuiInit() {
@@ -183,6 +181,9 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
         if(id == 10){
         	setSubGui(new SubGuiNpcDialogExtra(dialog, this));
         }
+		if(id == 11){
+			setSubGui(new SubGuiNpcVisualOptions(dialog, this));
+		}
     }
 	
 	@Override

@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogImage;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -69,25 +70,22 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	 *		DIALOG	VARIABLES		*
 	 *								*/
 
-	private boolean renderGradual = false;
-	private boolean showPreviousBlocks = true;
+	private final boolean renderGradual;
+	private final boolean showPreviousBlocks;
 
-	private int dialogWidth = 300;
-	private int dialogHeight = 400;
+	private final String textSound;
+	private final float textPitch;
 
-	private int textOffsetX, textOffsetY;
-	private int titleOffsetX, titleOffsetY;
+	private final int textWidth;
+	private final int textHeight;
 
-	private int optionSpaceX, optionSpaceY;
-	private int optionOffsetX, optionOffsetY;
+	private final int textOffsetX, textOffsetY;
+	private final int titleOffsetX, titleOffsetY;
 
-	private String textSound = "minecraft:random.wood_click";
-	private float textPitch = 1.0F;
+	private final int optionSpaceX, optionSpaceY;
+	private final int optionOffsetX, optionOffsetY;
 
-	private HashMap<Integer, GuiDialogImage> dialogImages = new HashMap<>();
-	private GuiDialogImage textImage;
-	private GuiDialogImage optionImage;
-	private int selectedImageColor = 0xFFFF00;
+	private final ArrayList<GuiDialogImage> dialogImages = new ArrayList<>();
 	
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog){
     	super(npc);
@@ -95,9 +93,24 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	appendDialog(dialog);
     	ySize = 238;
 
-		//textImage = new GuiDialogImage(0, "customnpcs:textures/gui/largebg.png", 0,0, 176, 71);
-		//textImage.scale = 2;
-		optionImage = new GuiDialogImage(0, "customnpcs:textures/gui/info.png", 0,0, 256, 256);
+		this.renderGradual = dialog.renderGradual;
+		this.showPreviousBlocks = dialog.showPreviousBlocks;
+		this.textSound = dialog.textSound;
+		this.textPitch = dialog.textPitch;
+		this.textWidth = dialog.textWidth;
+		this.textHeight = dialog.textHeight;
+		this.textOffsetX = dialog.textOffsetX;
+		this.textOffsetY = dialog.textOffsetY;
+		this.titleOffsetX = dialog.titleOffsetX;
+		this.titleOffsetY = dialog.titleOffsetY;
+		this.optionSpaceX = dialog.optionSpaceX;
+		this.optionSpaceY = dialog.optionSpaceY;
+		this.optionOffsetX = dialog.optionOffsetX;
+		this.optionOffsetY = dialog.optionOffsetY;
+
+		for (DialogImage dialogImage : dialog.dialogImages.values()) {
+			dialogImages.add(new GuiDialogImage(dialogImage));
+		}
 
     	wheel = this.getResource("wheel.png");
     	indicator = this.getResource("indicator.png");
@@ -192,7 +205,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			drawString(fontRendererObj, "Text Sound: " + (textSoundEnabled ? "On" : "Off"), 10, 20, 0xFFFFFF);
 		}
 
-		for (GuiDialogImage image : dialogImages.values()) {
+		for (GuiDialogImage image : dialogImages) {
+			if (image.imageType != 0)
+				continue;
+
 			GL11.glEnable(GL11.GL_BLEND);
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 			GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -207,12 +223,23 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		GL11.glPushMatrix();
 		GL11.glTranslatef(textOffsetX, 0.0F, 0.0F);
 
-		if (textImage != null && !textImage.texture.isEmpty()) {
-			GL11.glPushMatrix();
-				GL11.glTranslatef(guiLeft + textOffsetX, optionStart + textOffsetY - textImage.height * textImage.scale, 0.0F);
-				textImage.onRender(mc);
-			GL11.glPopMatrix();
+		GL11.glPushMatrix();
+		for (GuiDialogImage image : dialogImages) {
+			if (image.imageType != 1)
+				continue;
+
+			GL11.glEnable(GL11.GL_BLEND);
+			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+			GL11.glDisable(GL11.GL_ALPHA_TEST);
+
+			GL11.glTranslatef(guiLeft + textOffsetX, optionStart + textOffsetY - image.height * image.scale, 0.0F);
+			image.onRender(mc);
+
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+			GL11.glDisable(GL11.GL_LIGHTING);
+			GL11.glEnable(GL11.GL_ALPHA_TEST);
 		}
+		GL11.glPopMatrix();
 
 		if (!renderGradual) {
 			int count = 0;
@@ -453,17 +480,25 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         	if(selected == k){
         		drawString(fontRendererObj, ">", guiLeft - 60, y, 0xe0e0e0);
         	}
-			if (optionImage != null && !optionImage.texture.equals("")) {
-				int originalColor = optionImage.color;
-				if(selected == k){
-					optionImage.color = selectedImageColor;
-				}
-				GL11.glPushMatrix();
-					GL11.glTranslatef(guiLeft - 30 + optionSpaceX * k, y, 0.0F);
-					optionImage.onRender(mc);
-					optionImage.color = originalColor;
-				GL11.glPopMatrix();
+
+			GL11.glPushMatrix();
+			for (GuiDialogImage image : dialogImages) {
+				if (image.imageType != 2)
+					continue;
+
+				GL11.glEnable(GL11.GL_BLEND);
+				OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
+				GL11.glDisable(GL11.GL_ALPHA_TEST);
+
+				GL11.glTranslatef(guiLeft - 30 + optionSpaceX * k, y, 0.0F);
+				image.color = selected == k ? image.selectedColor : image.color;
+				image.onRender(mc);
+
+				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+				GL11.glDisable(GL11.GL_LIGHTING);
+				GL11.glEnable(GL11.GL_ALPHA_TEST);
 			}
+			GL11.glPopMatrix();
 
 			drawString(fontRendererObj, NoppesStringUtils.formatText(option.title, player, npc), guiLeft - 30 + optionSpaceX * k, y, option.optionColor);
 			GL11.glPopMatrix();
@@ -475,7 +510,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		int height = count - totalRows + lineOffset;
 		int screenPos = optionStart;
 		int y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
-		if (y < screenPos - dialogHeight || y > screenPos - ClientProxy.Font.height()) {
+		if (y < screenPos - textHeight || y > screenPos - ClientProxy.Font.height()) {
 			return;
 		}
 
@@ -575,7 +610,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		if (!showPreviousBlocks) {
 			lineBlocks.clear();
 		}
-    	lineBlocks.add(new TextBlockClient(player.getDisplayName(), option.title, dialogWidth, option.optionColor, player, npc));
+    	lineBlocks.add(new TextBlockClient(player.getDisplayName(), option.title, textWidth, option.optionColor, player, npc));
 		gradualText = "";
 		currentBlock = lineBlocks.size()-1;
 		currentLine = 0;
@@ -611,7 +646,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		if (!showPreviousBlocks) {
 			lineBlocks.clear();
 		}
-    	lineBlocks.add(new TextBlockClient(npc, dialog.text, dialogWidth, 0xe0e0e0, player, npc));
+    	lineBlocks.add(new TextBlockClient(npc, dialog.text, textWidth, 0xe0e0e0, player, npc));
 		gradualText = "";
 		currentBlock = lineBlocks.size()-1;
 		currentLine = 0;

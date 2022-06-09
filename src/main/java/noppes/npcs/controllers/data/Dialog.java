@@ -33,6 +33,28 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean showWheel = false;
 	public boolean disableEsc = false;
 	public boolean darkenScreen = true;
+
+
+	/**
+	 * Add these variables to NBT reads & writes
+	 */
+
+	public boolean renderGradual = false;
+	public boolean showPreviousBlocks = true;
+
+	public String textSound = "minecraft:random.wood_click";
+	public float textPitch = 1.0F;
+
+	public int textWidth = 300;
+	public int textHeight = 400;
+
+	public int textOffsetX, textOffsetY;
+	public int titleOffsetX, titleOffsetY;
+
+	public int optionSpaceX, optionSpaceY;
+	public int optionOffsetX, optionOffsetY;
+
+	public HashMap<Integer, DialogImage> dialogImages = new HashMap<>();
 	
 	public boolean hasDialogs(EntityPlayer player) {
 		for(DialogOption option: options.values())
@@ -82,6 +104,44 @@ public class Dialog implements ICompatibilty, IDialog {
 		}
 		this.options = newoptions;
 
+		NBTTagList images = compound.getTagList("Images", 10);
+		HashMap<Integer,DialogImage> newImages = new HashMap<>();
+		for(int i = 0; i < images.tagCount(); i++){
+			NBTTagCompound imageCompound = images.getCompoundTagAt(i);
+			int id = imageCompound.getInteger("ID");
+			DialogImage image = new DialogImage(id);
+			image.readNBT(imageCompound);
+			newImages.put(id, image);
+		}
+		this.dialogImages = newImages;
+
+		renderGradual = compound.getBoolean("RenderGradual");
+		showPreviousBlocks = compound.getBoolean("PreviousBlocks");
+		textSound = compound.getString("TextSound");
+		textPitch = compound.getFloat("TextPitch");
+		textWidth = compound.getInteger("TextWidth");
+		textHeight = compound.getInteger("TextHeight");
+		textOffsetX = compound.getInteger("TextOffsetX");
+		textOffsetY = compound.getInteger("TextOffsetY");
+		titleOffsetX = compound.getInteger("TitleOffsetX");
+		titleOffsetY = compound.getInteger("TitleOffsetY");
+		optionOffsetX = compound.getInteger("OptionOffsetX");
+		optionOffsetY = compound.getInteger("OptionOffsetY");
+		optionSpaceX = compound.getInteger("OptionSpaceX");
+		optionSpaceY = compound.getInteger("OptionSpaceY");
+
+		if (!compound.hasKey("PreviousBlocks"))
+			showPreviousBlocks = true;
+		if (!compound.hasKey("TextSound"))
+			textSound = "minecraft:random.wood_click";
+		if (!compound.hasKey("TextPitch"))
+			textPitch = 1.0F;
+		if (!compound.hasKey("TextWidth"))
+			textWidth = 300;
+		if (!compound.hasKey("TextHeight"))
+			textWidth = 400;
+
+
     	availability.readFromNBT(compound);
     	factionOptions.readFromNBT(compound);
 	}
@@ -119,6 +179,29 @@ public class Dialog implements ICompatibilty, IDialog {
     	availability.writeToNBT(compound);
     	factionOptions.writeToNBT(compound);
 		compound.setInteger("ModRev", version);
+
+		compound.setBoolean("RenderGradual", renderGradual);
+		compound.setBoolean("PreviousBlocks", showPreviousBlocks);
+		compound.setString("TextSound", textSound);
+		compound.setFloat("TextPitch", textPitch);
+		compound.setInteger("TextWidth", textWidth);
+		compound.setInteger("TextHeight", textHeight);
+		compound.setInteger("TextOffsetX", textOffsetX);
+		compound.setInteger("TextOffsetY", textOffsetY);
+		compound.setInteger("TitleOffsetX", titleOffsetX);
+		compound.setInteger("TitleOffsetY", titleOffsetY);
+		compound.setInteger("OptionOffsetX", optionOffsetX);
+		compound.setInteger("OptionOffsetY", optionOffsetY);
+		compound.setInteger("OptionSpaceX", optionSpaceX);
+		compound.setInteger("OptionSpaceY", optionSpaceY);
+
+		NBTTagList images = new NBTTagList();
+		for (DialogImage dialogImage : dialogImages.values()) {
+			NBTTagCompound imageCompound = dialogImage.writeToNBT(new NBTTagCompound());
+			images.appendTag(imageCompound);
+		}
+		compound.setTag("Images",images);
+
 		return compound;
 	}
 

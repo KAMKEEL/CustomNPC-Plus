@@ -7,45 +7,53 @@ import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
+import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
-import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
-import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
+import noppes.npcs.controllers.data.DialogImage;
 import org.lwjgl.opengl.GL11;
 
 public class GuiDialogImage extends Gui {
     GuiDialogInteract parent;
-    String texture;
     ResourceLocation location;
-    int id;
-    int x;
-    int y;
-    int width;
-    int height;
-    int textureX;
-    int textureY;
-    float scale;
 
-    int color;
-    float alpha;
-    float rotation;
+    public int id;
+    public String texture;
+    public int x;
+    public int y;
+    public int width;
+    public int height;
+    public int textureX;
+    public int textureY;
+    public float scale;
 
-    public GuiDialogImage(int id, String texture, int x, int y, int width, int height) {
-        this(id, texture, x, y, width, height, 0, 0);
-    }
+    public int color;
+    public int selectedColor;
+    public float alpha;
+    public float rotation;
 
-    public GuiDialogImage(int id, String texture, int x, int y, int width, int height, int textureX, int textureY) {
-        this.color = 0xFFFFFF;
-        this.alpha = 1.0F;
-        this.scale = 1.0F;
-        this.id = id;
-        this.texture = texture;
-        this.location = new ResourceLocation(texture);
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.textureX = textureX;
-        this.textureY = textureY;
+    public int imageType = 0; //0 - Default, 1 - Text, 2 - Option
+    public int alignment = 0;
+
+    public GuiDialogImage(DialogImage dialogImage) {
+        this.location = new ResourceLocation(dialogImage.texture);
+
+        this.id = dialogImage.id;
+        this.texture = dialogImage.texture;
+        this.x = dialogImage.x;
+        this.y = dialogImage.y;
+        this.width = dialogImage.width;
+        this.height = dialogImage.height;
+        this.textureX = dialogImage.textureX;
+        this.textureY = dialogImage.textureY;
+        this.scale = dialogImage.scale;
+
+        this.color = dialogImage.color;
+        this.selectedColor = dialogImage.selectedColor;
+        this.rotation = dialogImage.rotation;
+        this.alpha = dialogImage.alpha;
+
+        this.imageType = dialogImage.imageType;
+        this.alignment = dialogImage.alignment;
 
         if(texture.startsWith("https://")){
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
@@ -73,6 +81,7 @@ public class GuiDialogImage extends Gui {
         float blue = (color & 255) / 255f;
         GL11.glColor4f(red,green,blue,this.alpha);
 
+        GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);
         GL11.glRotatef(this.rotation,0.0F,0.0F,1.0F);
         GL11.glScalef(this.scale, this.scale, this.scale);
 
@@ -95,30 +104,5 @@ public class GuiDialogImage extends Gui {
         tessellator.addVertexWithUV((double)(p_73729_1_ + 0), (double)(p_73729_2_ + 0), (double)this.zLevel, (double)((float)(p_73729_3_ + 0) * f), (double)((float)(p_73729_4_ + 0) * f1));
         tessellator.draw();
         GL11.glPopMatrix();
-    }
-
-    public ICustomGuiComponent toComponent() {
-        ScriptGuiTexturedRect component = new ScriptGuiTexturedRect(this.id, this.location.toString(), this.x, this.y, this.width, this.height, this.textureX, this.textureY);
-        component.setScale(this.scale);
-        component.setColor(color);
-        component.setAlpha(alpha);
-        component.setRotation(rotation);
-        return component;
-    }
-
-    public static GuiDialogImage fromComponent(ScriptGuiTexturedRect component) {
-        GuiDialogImage rect;
-        if (component.getTextureX() >= 0 && component.getTextureY() >= 0) {
-            rect = new GuiDialogImage(component.getID(), component.getTexture(), component.getPosX(), component.getPosY(), component.getWidth(), component.getHeight(), component.getTextureX(), component.getTextureY());
-        } else {
-            rect = new GuiDialogImage(component.getID(), component.getTexture(), component.getPosX(), component.getPosY(), component.getWidth(), component.getHeight());
-        }
-
-        rect.scale = component.getScale();
-        rect.color = component.getColor();
-        rect.alpha = component.getAlpha();
-        rect.rotation = component.getRotation();
-
-        return rect;
     }
 }
