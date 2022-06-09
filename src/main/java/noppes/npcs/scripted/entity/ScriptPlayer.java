@@ -277,6 +277,40 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		chat.setChatStyle(style);
 		player.addChatMessage(chat);
 	}
+	
+	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean underlined) {
+		EnumChatFormatting c = getColor(color);
+		if (c == null) return;
+		sendMessage(message, c, bold, italic, underlined);
+	}
+	
+	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined) {
+		EnumChatFormatting c = getColor(color);
+		if (c == null) return;
+		sendMessage(message, c, bold, italic, obfuscated, strikethrough, underlined);
+	}
+	
+	private EnumChatFormatting getColor(String color) {
+		switch (color) {
+		case "black": return EnumChatFormatting.BLACK;
+		case "dark_blue": return EnumChatFormatting.DARK_BLUE;
+		case "dark_green": return EnumChatFormatting.DARK_GREEN;
+		case "dark_aqua": return EnumChatFormatting.DARK_AQUA;
+		case "dark_red": return EnumChatFormatting.DARK_RED;
+		case "dark_purple": return EnumChatFormatting.DARK_PURPLE;
+		case "gold": return EnumChatFormatting.GOLD;
+		case "gray": return EnumChatFormatting.GRAY;
+		case "dark_gray": return EnumChatFormatting.DARK_GRAY;
+		case "blue": return EnumChatFormatting.BLUE;
+		case "green": return EnumChatFormatting.GREEN;
+		case "aqua": return EnumChatFormatting.AQUA;
+		case "red": return EnumChatFormatting.RED;
+		case "light_purple": return EnumChatFormatting.LIGHT_PURPLE;
+		case "yellow": return EnumChatFormatting.YELLOW;
+		case "white": return EnumChatFormatting.WHITE;
+		default: return null;
+		}
+	}
 
 	/**
 	 * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure

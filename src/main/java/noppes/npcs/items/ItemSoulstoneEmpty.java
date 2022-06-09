@@ -1,9 +1,11 @@
 package noppes.npcs.items;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,11 +15,13 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemSoulstoneEmpty extends Item {
 	public ItemSoulstoneEmpty(){
@@ -75,21 +79,29 @@ public class ItemSoulstoneEmpty extends Item {
 			return true;
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
-			if(npc.advanced.role == EnumRoleType.Companion){
+			if (npc.advanced.refuseSoulStone) return false;
+			if (CustomNpcs.SoulStoneFriendlyNPCs && npc.getFaction() != null) {
+				int p = npc.advanced.minFactionPointsToSoulStone;
+				if (p == -1 && npc.getFaction().isFriendlyToPlayer(player)) return true;
+				else if (p != -1) {
+					PlayerData data = PlayerDataController.instance.getPlayerData(player);
+					return data.factionData.getFactionPoints(npc.getFaction().getId()) >= p;
+				}
+			}
+			if (npc.advanced.role == EnumRoleType.Companion){
 				RoleCompanion role = (RoleCompanion) npc.roleInterface;
 				if(role.getOwner() == player)
 					return true;
 			}
-			if(npc.advanced.role == EnumRoleType.Follower){
+			if (npc.advanced.role == EnumRoleType.Follower){
 				RoleFollower role = (RoleFollower) npc.roleInterface;
 				if(role.getOwner() == player)
 					return !role.refuseSoulStone;
 			}
 			return CustomNpcs.SoulStoneNPCs;
 		}
-		if(entity instanceof EntityAnimal)
-			return CustomNpcs.SoulStoneAnimals;
-		
+		if (entity instanceof EntityAnimal) return CustomNpcs.SoulStoneAnimals;
+		if (entity instanceof EntityVillager) return CustomNpcs.SoulStoneVillagers;
 		return false;
 	}
 }

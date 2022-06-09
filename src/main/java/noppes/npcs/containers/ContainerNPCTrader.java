@@ -68,12 +68,12 @@ public class ContainerNPCTrader extends ContainerNpcInterface{
         NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i + 18), role.ignoreDamage, role.ignoreNBT);
         ItemStack soldItem = item.copy();
         givePlayer(soldItem, entityplayer);
-        role.addPurchase(i, entityplayer);
+        role.addPurchase(i, entityplayer.getDisplayName());
         return soldItem;
     	
     }
     public boolean isSlotEnabled(int slot, EntityPlayer player) {
-    	return role.isSlotEnabled(slot, player);
+    	return role.isSlotEnabled(slot, player.getDisplayName());
     }
     public boolean canBuy(int slot, EntityPlayer player) {
 		ItemStack currency = role.inventoryCurrency.getStackInSlot(slot);
