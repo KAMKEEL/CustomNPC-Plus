@@ -235,8 +235,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         	par1Entity.hurtResistantTime = 0;
         }
     	if(par1Entity instanceof EntityLivingBase && !isRemote()){
-	        ScriptEventAttack event = new ScriptEventAttack(f, (EntityLivingBase)par1Entity, false);
-			if(EventHooks.onNPCMeleeAttack(this, f, (EntityLivingBase)par1Entity))
+			NpcEvent.MeleeAttackEvent event = new NpcEvent.MeleeAttackEvent(wrappedNPC, f, (EntityLivingBase)par1Entity);
+			if(EventHooks.onNPCMeleeAttack(this, event))
 				return false;
 			f = event.getDamage();
     	}
@@ -493,10 +493,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		else if (attackingEntity instanceof EntityPlayer && faction.isFriendlyToPlayer((EntityPlayer) attackingEntity))
 			return false;
-		ScriptEventDamaged result = new ScriptEventDamaged(i, attackingEntity, damagesource);
-		if(EventHooks.onNPCDamaged(this, attackingEntity, i, damagesource, result) || isKilled())
+		NpcEvent.DamagedEvent event = new NpcEvent.DamagedEvent(this.wrappedNPC, attackingEntity, i, damagesource);
+		if(EventHooks.onNPCDamaged(this, event) || isKilled())
 			return false;
-		i = result.getDamage();
+		i = event.getDamage();
 		
 		if(isKilled())
 			return false;
@@ -526,7 +526,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			return super.attackEntityFrom(damagesource, i);
 		}
 		finally{
-			if(result.getClearTarget()){
+			if(event.getClearTarget()){
 				setAttackTarget(null);
 				setRevengeTarget(null);
 			}
@@ -544,8 +544,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     		return;
 		if (!isRemote()) {
 			if (getAttackTarget() != entity && entity != null) {
-				ScriptEventTarget event = new ScriptEventTarget(entity);
-				if (EventHooks.onNPCTarget(this, entity))
+				NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(wrappedNPC,entity);
+				if (EventHooks.onNPCTarget(this, event))
 					return;
 
 				if (event.getTarget() == null)
@@ -571,8 +571,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         	return;
         }
 		if (!isRemote()) {
-			ScriptEventAttack event = new ScriptEventAttack(stats.pDamage, entity, true);
-			if (EventHooks.onNPCRangedAttack(this, f, (EntityLivingBase) entity))
+			NpcEvent.RangedLaunchedEvent event = new NpcEvent.RangedLaunchedEvent(wrappedNPC,stats.pDamage,entity);
+			if (EventHooks.onNPCRangedAttack(this, event))
 				return;
 			for (int i = 0; i < this.stats.shotCount; i++) {
 				EntityProjectile projectile = shoot(entity, stats.accuracy, proj, f == 1);
@@ -1213,9 +1213,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ArrayList<ItemStack> droppedItems = inventory.getDroppedItems(damagesource);
 
 		if(!isRemote()){
-			ScriptEventKilled result = new ScriptEventKilled(attackingEntity, damagesource);
 			NpcEvent.DiedEvent event = new NpcEvent.DiedEvent(this.wrappedNPC,damagesource,entity,droppedItems, droppedXp);
-			if(EventHooks.onNPCKilled(this, event, result))
+			if(EventHooks.onNPCKilled(this, event))
 				return;
 
 			droppedItems.clear();

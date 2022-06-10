@@ -116,6 +116,36 @@ public class NpcEvent extends CustomNPCsEvent {
             this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
         }
+
+        /**
+         * @return The source of the damage
+         * @deprecated
+         */
+        public IEntityLivingBase getTarget(){
+            return target;
+        }
+
+
+        /**
+         * @return Returns the damage value
+         */
+        public float getDamage(){
+            return damage;
+        }
+
+        /**
+         * @param damage The new damage value
+         */
+        public void setDamage(float damage){
+            this.damage = damage;
+        }
+
+        /**
+         * @return Returns the damage type
+         */
+        public boolean isRange(){
+            return true;
+        }
     }
 
     @Cancelable
@@ -127,6 +157,36 @@ public class NpcEvent extends CustomNPCsEvent {
             super(npc);
             this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
+        }
+
+        /**
+         * @return The source of the damage
+         * @deprecated
+         */
+        public IEntityLivingBase getTarget(){
+            return target;
+        }
+
+
+        /**
+         * @return Returns the damage value
+         */
+        public float getDamage(){
+            return damage;
+        }
+
+        /**
+         * @param damage The new damage value
+         */
+        public void setDamage(float damage){
+            this.damage = damage;
+        }
+
+        /**
+         * @return Returns the damage type
+         */
+        public boolean isRange(){
+            return false;
         }
     }
 
@@ -236,14 +296,43 @@ public class NpcEvent extends CustomNPCsEvent {
         public final IPlayer player;
         public final int id;
         public final int optionId;
-        public final Dialog dialog;
+        public final Dialog dialogObj;
+
+        public final int dialog;
+        public final int option;
 
         public DialogClosedEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
             this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
             this.id = id;
             this.optionId = optionId;
-            this.dialog = dialog;
+            this.dialogObj = dialog;
+
+            this.dialog = id;
+            this.option = optionId;
+        }
+
+        public IPlayer getPlayer() {
+            return player;
+        }
+
+        public Dialog getDialog() {
+            return dialogObj;
+        }
+
+        public int getDialogId() {
+            return option;
+        }
+
+        public int getOptionId() {
+            return option;
+        }
+
+        /**
+         * @deprecated
+         */
+        public boolean isClosing(){
+            return true;
         }
     }
 
@@ -287,49 +376,6 @@ public class NpcEvent extends CustomNPCsEvent {
     public static class InitEvent extends NpcEvent {
         public InitEvent(ICustomNpc npc) {
             super(npc);
-        }
-    }
-
-    public static class AttackEvent extends NpcEvent{
-        private float damage;
-        private IEntityLivingBase target;
-        private boolean isRanged;
-
-        public AttackEvent(ICustomNpc npc, float damage, EntityLivingBase target, boolean isRanged){
-            super(npc);
-            this.damage = damage;
-            this.isRanged = isRanged;
-            this.target = (IEntityLivingBase) NpcAPI.Instance().getIEntity(target);
-        }
-
-        /**
-         * @return The source of the damage
-         * @deprecated
-         */
-        public IEntityLivingBase getTarget(){
-            return target;
-        }
-
-
-        /**
-         * @return Returns the damage value
-         */
-        public float getDamage(){
-            return damage;
-        }
-
-        /**
-         * @param damage The new damage value
-         */
-        public void setDamage(float damage){
-            this.damage = damage;
-        }
-
-        /**
-         * @return Returns the damage type
-         */
-        public boolean isRange(){
-            return isRanged;
         }
     }
 }
