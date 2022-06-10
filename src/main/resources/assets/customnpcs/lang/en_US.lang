@@ -450,6 +450,9 @@ dialog.textPitch=Text Pitch
 dialog.textureOffset=Texture Offset
 dialog.selectedColor=Selected Color
 dialog.optionLine=Option Line
+dialog.npcScale=NPC Scale
+dialog.npcOffset=NPC Offset
+dialog.titleColor=Title Color
 
 quest.quest=Quest
 quest.quests=Quests

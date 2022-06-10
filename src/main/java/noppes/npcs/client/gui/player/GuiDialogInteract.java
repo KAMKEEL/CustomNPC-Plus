@@ -111,7 +111,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	    	float i1 =  (guiTop + ySize);
 	        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
 	        GL11.glPushMatrix();
-	        GL11.glTranslatef(l, i1, 50F);
+	        GL11.glTranslatef(l + dialog.npcOffsetX, i1 + dialog.npcOffsetY, 50F);
 	        float zoomed = npc.height;
 	        if(npc.width * 2 > zoomed)
 	        	zoomed = npc.width * 2;
@@ -138,10 +138,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        RenderManager.instance.playerViewY = 180F;
 
 	        try{
+				GL11.glScalef(dialog.npcScale,dialog.npcScale,dialog.npcScale);
 	            RenderManager.instance.renderEntityWithPosYaw(npc, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
-	        }
-	        catch(Exception e){
-	        }
+	        } catch(Exception ignored){}
+
 	        npc.ai.orientation = rotation;
 	        npc.renderYawOffset = f2;
 	        npc.rotationYaw = f3;
@@ -212,7 +212,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 				TextBlockClient block = lineBlocks.get(b);
 
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
+				drawDialogString(block.getName() + " ", -4 - size, block.titleColor, count, false);
 
 				for (int l = 0; l < block.lines.size(); l++) {
 					IChatComponent line = block.lines.get(l);
@@ -265,7 +265,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			for (int pastBlock = 0; pastBlock < currentBlock; pastBlock++) {
 				TextBlockClient block = lineBlocks.get(pastBlock);
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
+				drawDialogString(block.getName() + " ", -4 - size, block.titleColor, count, false);
 
 				for (IChatComponent line : block.lines) {
 					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
@@ -277,7 +277,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			if (currentBlock < lineBlocks.size()) {
 				TextBlockClient block = lineBlocks.get(currentBlock);
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				drawDialogString(block.getName() + " ", -4 - size, block.color, count, false);
+				drawDialogString(block.getName() + " ", -4 - size, block.titleColor, count, false);
 
 				for (int pastLine = 0; pastLine < currentLine; pastLine++) {
 					IChatComponent line = block.lines.get(pastLine);
@@ -615,7 +615,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		if (!dialog.showPreviousBlocks) {
 			lineBlocks.clear();
 		}
-    	lineBlocks.add(new TextBlockClient(npc, dialog.text, dialog.textWidth, 0xe0e0e0, player, npc));
+    	lineBlocks.add(new TextBlockClient(npc, dialog.text, dialog.textWidth, dialog.color, dialog.titleColor, player, npc));
 		gradualText = "";
 		currentBlock = lineBlocks.size()-1;
 		currentLine = 0;

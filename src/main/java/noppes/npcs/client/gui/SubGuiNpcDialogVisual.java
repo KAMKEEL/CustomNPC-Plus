@@ -26,8 +26,6 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     private GuiCustomScroll imageScroll;
     private int selected = -1;
     private int lastColorClicked = -1;
-
-    private long lastClickedTime = 0;
     private int changedId = -1;
 
     public SubGuiNpcDialogVisual(Dialog dialog, GuiScreen parent) {
@@ -73,16 +71,32 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             addButton(new GuiNpcButton(15, guiLeft + 120, y += 22, 50, 20, new String[]{"display.hide", "display.show"}, dialog.showOptionLine ? 1 : 0));
             addLabel(new GuiNpcLabel(15, "dialog.optionLine", guiLeft + 4, y + 5));
 
-            addTextField(new GuiNpcTextField(16, this, guiLeft + 80, y += 22, 165, 20, dialog.textSound));
-            addLabel(new GuiNpcLabel(16, "dialog.textSound", guiLeft + 4, y + 5));
-            getTextField(16).setVisible(dialog.renderGradual);
-            getLabel(16).enabled = dialog.renderGradual;
+            String color = Integer.toHexString(dialog.color);
+            while (color.length() < 6) {
+                color = 0 + color;
+            }
+            addButton(new GuiNpcButton(16, guiLeft + 35, y += 25, 60, 20, color));
+            addLabel(new GuiNpcLabel(16, "gui.color", guiLeft + 4, y + 5));
+            getButton(16).setTextColor(dialog.color);
 
-            addTextField(new GuiNpcTextField(17, this, guiLeft + 125, y += 22, 40, 20, String.valueOf(dialog.textPitch)));
-            addLabel(new GuiNpcLabel(17, "dialog.textPitch", guiLeft + 4, y + 5));
-            getTextField(17).floatsOnly = true;
-            getTextField(17).setVisible(dialog.renderGradual);
-            getLabel(17).enabled = dialog.renderGradual;
+            color = Integer.toHexString(dialog.titleColor);
+            while (color.length() < 6) {
+                color = 0 + color;
+            }
+            addButton(new GuiNpcButton(17, guiLeft + 180, y, 60, 20, color));
+            addLabel(new GuiNpcLabel(17, "dialog.titleColor", guiLeft + 100, y + 5));
+            getButton(17).setTextColor(dialog.titleColor);
+
+            addTextField(new GuiNpcTextField(18, this, guiLeft + 80, y += 22, 165, 20, dialog.textSound));
+            addLabel(new GuiNpcLabel(18, "dialog.textSound", guiLeft + 4, y + 5));
+            getTextField(18).setVisible(dialog.renderGradual);
+            getLabel(18).enabled = dialog.renderGradual;
+
+            addTextField(new GuiNpcTextField(19, this, guiLeft + 125, y += 22, 40, 20, String.valueOf(dialog.textPitch)));
+            addLabel(new GuiNpcLabel(19, "dialog.textPitch", guiLeft + 4, y + 5));
+            getTextField(19).floatsOnly = true;
+            getTextField(19).setVisible(dialog.renderGradual);
+            getLabel(19).enabled = dialog.renderGradual;
         } else if (activeMenu == 2) {
             addTextField(new GuiNpcTextField(10, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
             addTextField(new GuiNpcTextField(11, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textHeight)));
@@ -124,10 +138,23 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             getTextField(19).integersOnly = true;
             getTextField(19).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
-            for (int i = 10; i < 20; i++) {
-                GuiNpcTextField textField = this.getTextField(i);
-                textField.integersOnly = true;
-            }
+            addTextField(new GuiNpcTextField(20, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcOffsetX)));
+            addTextField(new GuiNpcTextField(21, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.npcOffsetY)));
+            addLabel(new GuiNpcLabel(25, "dialog.npcOffset", guiLeft + 4, y + 5));
+            getTextField(20).integersOnly = true;
+            getTextField(20).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+            getTextField(20).setVisible(!dialog.hideNPC);
+            getTextField(21).integersOnly = true;
+            getTextField(21).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+            getTextField(21).setVisible(!dialog.hideNPC);
+            getLabel(25).enabled = !dialog.hideNPC;
+
+            addTextField(new GuiNpcTextField(22, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcScale)));
+            addLabel(new GuiNpcLabel(26, "dialog.npcScale", guiLeft + 4, y + 5));
+            getTextField(22).floatsOnly = true;
+            getTextField(22).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+            getTextField(22).setVisible(!dialog.hideNPC);
+            getLabel(26).enabled = !dialog.hideNPC;
         } else if (activeMenu == 3) {
             if (imageScroll == null) {
                 imageScroll = new GuiCustomScroll(this, 0, false);
@@ -277,6 +304,14 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             if (button.id == 15) {
                 dialog.showOptionLine = button.getValue() == 1;
             }
+            if (button.id == 16) {
+                setSubGui(new SubGuiColorSelector(dialog.color));
+                lastColorClicked = 0;
+            }
+            if (button.id == 17) {
+                setSubGui(new SubGuiColorSelector(dialog.titleColor));
+                lastColorClicked = 1;
+            }
         }
 
         if (activeMenu == 3) {
@@ -322,10 +357,6 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 if (getSelectedImage() != null) {
                     DialogImage dialogImage = getSelectedImage();
                     dialogImage.imageType = button.getValue();
-
-                    if (dialogImage.imageType == 2) {
-                        lastClickedTime++;
-                    }
                 }
             }
             if (button.id == 24) {
@@ -349,14 +380,24 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui){
-        if (getSelectedImage() != null) {
-            DialogImage dialogImage = getSelectedImage();
+        if (activeMenu == 1) {
             if (lastColorClicked == 0) {
-                dialogImage.color = ((SubGuiColorSelector) subgui).color;
+                dialog.color = ((SubGuiColorSelector) subgui).color;
             } else if (lastColorClicked == 1) {
-                dialogImage.selectedColor = ((SubGuiColorSelector) subgui).color;
+                dialog.titleColor = ((SubGuiColorSelector) subgui).color;
             }
             initGui();
+        }
+        if (activeMenu == 3) {
+            if (getSelectedImage() != null) {
+                DialogImage dialogImage = getSelectedImage();
+                if (lastColorClicked == 0) {
+                    dialogImage.color = ((SubGuiColorSelector) subgui).color;
+                } else if (lastColorClicked == 1) {
+                    dialogImage.selectedColor = ((SubGuiColorSelector) subgui).color;
+                }
+                initGui();
+            }
         }
         save();
     }
@@ -378,50 +419,58 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     @Override
     public void unFocused(GuiNpcTextField textfield) {
         if (activeMenu == 1) {
-            if (textfield.id == 16) {
+            if (textfield.id == 18) {
                 dialog.textSound = textfield.getText();
             }
-            if (textfield.id == 17) {
+            if (textfield.id == 19) {
                 dialog.textPitch = textfield.getFloat();
             }
         }
 
         if (activeMenu == 2) {
-            int i = textfield.getInteger();
-
             if (textfield.id == 10) {
-                dialog.textWidth = i;
+                dialog.textWidth = textfield.getInteger();
             }
             if (textfield.id == 11) {
-                dialog.textHeight = i;
+                dialog.textHeight = textfield.getInteger();
             }
 
             if (textfield.id == 12) {
-                dialog.textOffsetX = i;
+                dialog.textOffsetX = textfield.getInteger();
             }
             if (textfield.id == 13) {
-                dialog.textOffsetY = i;
+                dialog.textOffsetY = textfield.getInteger();
             }
 
             if (textfield.id == 14) {
-                dialog.titleOffsetX = i;
+                dialog.titleOffsetX = textfield.getInteger();
             }
             if (textfield.id == 15) {
-                dialog.titleOffsetY = i;
+                dialog.titleOffsetY = textfield.getInteger();
             }
 
             if (textfield.id == 16) {
-                dialog.optionOffsetX = i;
+                dialog.optionOffsetX = textfield.getInteger();
             }
             if (textfield.id == 17) {
-                dialog.optionOffsetY = i;
+                dialog.optionOffsetY = textfield.getInteger();
             }
 
             if (textfield.id == 18) {
-                dialog.optionSpaceX = i;
+                dialog.optionSpaceX = textfield.getInteger();
             }
             if (textfield.id == 19) {
-                dialog.optionSpaceY = i;
+                dialog.optionSpaceY = textfield.getInteger();
+            }
+
+            if (textfield.id == 20) {
+                dialog.npcOffsetX = textfield.getInteger();
+            }
+            if (textfield.id == 21) {
+                dialog.npcOffsetY = textfield.getInteger();
+            }
+            if (textfield.id == 22) {
+                dialog.npcScale = textfield.getFloat();
             }
         }
 

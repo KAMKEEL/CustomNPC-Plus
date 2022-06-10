@@ -13,12 +13,14 @@ import noppes.npcs.entity.EntityNPCInterface;
 public class TextBlockClient extends TextBlock{
 	private ChatStyle style;
 	public int color = 0xe0e0e0;
+	public int titleColor = 0xe0e0e0;
 	private String name;
 	private ICommandSender sender;
 
-	public TextBlockClient(ICommandSender sender, String text, int lineWidth, int color, Object... obs) {
+	public TextBlockClient(ICommandSender sender, String text, int lineWidth, int color, int titleColor, Object... obs) {
 		this(text, lineWidth, false, obs);
 		this.color = color;
+		this.titleColor = titleColor;
 		this.sender = sender;
 	}
 	public TextBlockClient(String name, String text, int lineWidth, int color, Object... obs) {

@@ -28,7 +28,10 @@ public class Dialog implements ICompatibilty, IDialog {
 	public String sound;
 	public String command = "";
 	public PlayerMail mail = new PlayerMail();
-	
+
+	public int color = 0xe0e0e0;
+	public int titleColor = 0xe0e0e0;
+
 	public boolean hideNPC = false;
 	public boolean showWheel = false;
 	public boolean disableEsc = false;
@@ -49,6 +52,9 @@ public class Dialog implements ICompatibilty, IDialog {
 
 	public int optionSpaceX, optionSpaceY;
 	public int optionOffsetX, optionOffsetY;
+
+	public float npcScale = 1.0F;
+	public int npcOffsetX, npcOffsetY;
 
 	public HashMap<Integer, DialogImage> dialogImages = new HashMap<>();
 	
@@ -111,6 +117,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		}
 		this.dialogImages = newImages;
 
+		color = compound.getInteger("Color");
+		titleColor = compound.getInteger("TitleColor");
 		renderGradual = compound.getBoolean("RenderGradual");
 		showPreviousBlocks = compound.getBoolean("PreviousBlocks");
 		showOptionLine = compound.getBoolean("ShowOptionLine");
@@ -126,6 +134,9 @@ public class Dialog implements ICompatibilty, IDialog {
 		optionOffsetY = compound.getInteger("OptionOffsetY");
 		optionSpaceX = compound.getInteger("OptionSpaceX");
 		optionSpaceY = compound.getInteger("OptionSpaceY");
+		npcScale = compound.getFloat("NPCScale");
+		npcOffsetX = compound.getInteger("NPCOffsetX");
+		npcOffsetY = compound.getInteger("NPCOffsetY");
 
 		if (!compound.hasKey("PreviousBlocks"))
 			showPreviousBlocks = true;
@@ -139,6 +150,12 @@ public class Dialog implements ICompatibilty, IDialog {
 			textHeight = 400;
 		if (!compound.hasKey("ShowOptionLine"))
 			showOptionLine = true;
+		if (!compound.hasKey("NPCScale"))
+			npcScale = 1.0F;
+		if (!compound.hasKey("Color"))
+			color = 0xe0e0e0;
+		if (!compound.hasKey("TitleColor"))
+			titleColor = 0xe0e0e0;
 
     	availability.readFromNBT(compound);
     	factionOptions.readFromNBT(compound);
@@ -178,6 +195,8 @@ public class Dialog implements ICompatibilty, IDialog {
     	factionOptions.writeToNBT(compound);
 		compound.setInteger("ModRev", version);
 
+		compound.setInteger("Color", color);
+		compound.setInteger("TitleColor", titleColor);
 		compound.setBoolean("RenderGradual", renderGradual);
 		compound.setBoolean("PreviousBlocks", showPreviousBlocks);
 		compound.setBoolean("ShowOptionLine", showOptionLine);
@@ -193,6 +212,9 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setInteger("OptionOffsetY", optionOffsetY);
 		compound.setInteger("OptionSpaceX", optionSpaceX);
 		compound.setInteger("OptionSpaceY", optionSpaceY);
+		compound.setFloat("NPCScale", npcScale);
+		compound.setInteger("NPCOffsetX", npcOffsetX);
+		compound.setInteger("NPCOffsetY", npcOffsetY);
 
 		NBTTagList images = new NBTTagList();
 		for (DialogImage dialogImage : dialogImages.values()) {
@@ -225,6 +247,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.sound = sound;
 		dialog.mail = mail;
 		dialog.command = command;
+		dialog.color = color;
+		dialog.titleColor = titleColor;
 		dialog.hideNPC = hideNPC;
 		dialog.showWheel = showWheel;
 		dialog.disableEsc = disableEsc;
@@ -244,6 +268,9 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.optionOffsetY = optionOffsetY;
 		dialog.optionSpaceX = optionSpaceX;
 		dialog.optionSpaceY = optionSpaceY;
+		dialog.npcScale = npcScale;
+		dialog.npcOffsetX = npcOffsetX;
+		dialog.npcOffsetY = npcOffsetY;
 		dialog.dialogImages = dialogImages;
 		
 		for(int slot : options.keySet()){
