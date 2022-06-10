@@ -47,6 +47,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public int textWidth = 300;
 	public int textHeight = 400;
 
+	public int titlePos;
 	public int textOffsetX, textOffsetY;
 	public int titleOffsetX, titleOffsetY;
 
@@ -128,6 +129,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		textHeight = compound.getInteger("TextHeight");
 		textOffsetX = compound.getInteger("TextOffsetX");
 		textOffsetY = compound.getInteger("TextOffsetY");
+		titlePos = compound.getInteger("TitlePos");
 		titleOffsetX = compound.getInteger("TitleOffsetX");
 		titleOffsetY = compound.getInteger("TitleOffsetY");
 		optionOffsetX = compound.getInteger("OptionOffsetX");
@@ -206,6 +208,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setInteger("TextHeight", textHeight);
 		compound.setInteger("TextOffsetX", textOffsetX);
 		compound.setInteger("TextOffsetY", textOffsetY);
+		compound.setInteger("TitlePos", titlePos);
 		compound.setInteger("TitleOffsetX", titleOffsetX);
 		compound.setInteger("TitleOffsetY", titleOffsetY);
 		compound.setInteger("OptionOffsetX", optionOffsetX);
@@ -262,6 +265,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.textHeight = textHeight;
 		dialog.textOffsetX = textOffsetX;
 		dialog.textOffsetY = textOffsetY;
+		dialog.titlePos = titlePos;
 		dialog.titleOffsetX = titleOffsetX;
 		dialog.titleOffsetY = titleOffsetY;
 		dialog.optionOffsetX = optionOffsetX;

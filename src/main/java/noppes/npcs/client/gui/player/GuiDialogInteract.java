@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -20,7 +19,6 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.controllers.MusicController;
-import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.constants.EnumOptionType;
@@ -212,7 +210,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 				TextBlockClient block = lineBlocks.get(b);
 
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				drawDialogString(block.getName() + " ", -4 - size, block.titleColor, count, false);
+				drawDialogString(block.getName() + " ", -4 - size, count, false, block);
 
 				for (int l = 0; l < block.lines.size(); l++) {
 					IChatComponent line = block.lines.get(l);
@@ -222,7 +220,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 						if (drawText.matches("(.*)(\\{(\\d+)})(.*)")) {
 							if (textPauseTime > 0) {
 								drawText = drawText.substring(0, prevPausePos);
-								drawDialogString(drawText, 0, block.color, count, true);
+								drawDialogString(drawText, 0, count, true, block);
 								textPauseTime--;
 								break blockLoop;
 							}
@@ -243,7 +241,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 							if (!strInt.isEmpty()) {
 								drawText = drawText.substring(0, prevPausePos);
 
-								drawDialogString(drawText, 0, block.color, count, true);
+								drawDialogString(drawText, 0, count, true, block);
 
 								instantBlockPos = b;
 								instantLinePos = l;
@@ -255,7 +253,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 						}
 					}
 
-					drawDialogString(drawText, 0, block.color, count, true);
+					drawDialogString(drawText, 0, count, true, block);
 					count++;
 				}
 				count++;
@@ -265,10 +263,10 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			for (int pastBlock = 0; pastBlock < currentBlock; pastBlock++) {
 				TextBlockClient block = lineBlocks.get(pastBlock);
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				drawDialogString(block.getName() + " ", -4 - size, block.titleColor, count, false);
+				drawDialogString(block.getName() + " ", -4 - size, count, false, block);
 
 				for (IChatComponent line : block.lines) {
-					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
+					drawDialogString(line.getFormattedText(), 0, count, true, block);
 					count++;
 				}
 				count++;
@@ -277,11 +275,11 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			if (currentBlock < lineBlocks.size()) {
 				TextBlockClient block = lineBlocks.get(currentBlock);
 				int size = ClientProxy.Font.width(block.getName() + " ");
-				drawDialogString(block.getName() + " ", -4 - size, block.titleColor, count, false);
+				drawDialogString(block.getName() + " ", -4 - size, count, false, block);
 
 				for (int pastLine = 0; pastLine < currentLine; pastLine++) {
 					IChatComponent line = block.lines.get(pastLine);
-					drawDialogString(line.getFormattedText(), 0, block.color, count, true);
+					drawDialogString(line.getFormattedText(), 0, count, true, block);
 					count++;
 				}
 
@@ -335,7 +333,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 						gradualText = line.getFormattedText();
 					}
 
-					drawDialogString(gradualText, 0, block.color, count, true);
+					drawDialogString(gradualText, 0, count, true, block);
 
 					if (gradualText.length() == line.getFormattedText().length()) {
 						gradualText = "";
@@ -474,26 +472,39 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		}
     }
 
-	private void drawDialogString(String text, int left, int color, int count, boolean mainDialogText){
+	private void drawDialogString(String text, int left, int count, boolean mainDialogText, TextBlockClient block){
 		int lineOffset = dialog.renderGradual ? (currentBlock < lineBlocks.size() ? lineBlocks.get(currentBlock).lines.size() : lineBlocks.get(lineBlocks.size()-1).lines.size()) - currentLine : 0;
 		int height = count - totalRows + lineOffset;
 		int screenPos = optionStart;
 		int y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
-		if (y < screenPos - dialog.textHeight || y > screenPos - ClientProxy.Font.height()) {
-			return;
+
+		if (block.titlePos == 0 || mainDialogText) {
+			if (y < screenPos - dialog.textHeight || y > screenPos - ClientProxy.Font.height()) {
+				return;
+			}
 		}
 
-		int offsetX, offsetY;
+		int offsetX, offsetY, color;
 		if (mainDialogText) {
 			offsetX = dialog.textOffsetX;
 			offsetY = dialog.textOffsetY;
+			color = block.color;
 		} else {
 			offsetX = dialog.titleOffsetX;
 			offsetY = dialog.titleOffsetY;
+			color = block.titleColor;
+
+			if (block.titlePos == 1 && block.equals(lineBlocks.get(currentBlock < lineBlocks.size() ? currentBlock : currentBlock - 1))) {
+				y = screenPos - ClientProxy.Font.height() - 5;
+			}
 		}
 
 		text = text.replaceAll("\\{(\\d+)}","");
-		drawString(fontRendererObj, text, guiLeft + left + offsetX, y + offsetY, color);
+		if (!mainDialogText && block.titlePos == 2 && block.equals(lineBlocks.get(currentBlock < lineBlocks.size() ? currentBlock : currentBlock - 1))) {
+			drawString(fontRendererObj, text, offsetX, offsetY, color);
+		} else {
+			drawString(fontRendererObj, text, guiLeft + left + offsetX, y + offsetY, color);
+		}
 	}
 
     public void drawString(FontRenderer fontRendererIn, String text, int x, int y, int color){
@@ -531,8 +542,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			textSoundEnabled = !textSoundEnabled;
 		}
 
-		int firstBlockSize = lineBlocks.size() > 0 ? lineBlocks.get(0).lines.size() + 1 : 0;
-		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < (totalRows - firstBlockSize) * ClientProxy.Font.height()) {//Page up
+		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < (totalRows - 2) * ClientProxy.Font.height()) {//Page up
 			scrollY += ClientProxy.Font.height() * 2;
 		}
 		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && scrollY > 0) {//Page down
@@ -615,7 +625,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		if (!dialog.showPreviousBlocks) {
 			lineBlocks.clear();
 		}
-    	lineBlocks.add(new TextBlockClient(npc, dialog.text, dialog.textWidth, dialog.color, dialog.titleColor, player, npc));
+    	lineBlocks.add(new TextBlockClient(npc, dialog, player, npc));
 		gradualText = "";
 		currentBlock = lineBlocks.size()-1;
 		currentLine = 0;

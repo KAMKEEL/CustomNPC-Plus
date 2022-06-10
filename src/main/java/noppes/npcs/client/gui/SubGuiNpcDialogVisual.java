@@ -1,9 +1,7 @@
 package noppes.npcs.client.gui;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
@@ -83,7 +81,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             while (color.length() < 6) {
                 color = 0 + color;
             }
-            addButton(new GuiNpcButton(17, guiLeft + 180, y, 60, 20, color));
+            addButton(new GuiNpcButton(17, guiLeft + 157, y, 60, 20, color));
             addLabel(new GuiNpcLabel(17, "dialog.titleColor", guiLeft + 100, y + 5));
             getButton(17).setTextColor(dialog.titleColor);
 
@@ -98,62 +96,65 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             getTextField(19).setVisible(dialog.renderGradual);
             getLabel(19).enabled = dialog.renderGradual;
         } else if (activeMenu == 2) {
-            addTextField(new GuiNpcTextField(10, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
-            addTextField(new GuiNpcTextField(11, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textHeight)));
+            addButton(new GuiNpcButton(10, guiLeft + 70, y += 22, 50, 20, new String[]{"gui.text", "gui.option", "display.fixed"}, dialog.titlePos));
+            addLabel(new GuiNpcLabel(10, "dialog.titlePos", guiLeft + 4, y + 5));
+
+            addTextField(new GuiNpcTextField(11, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
+            addTextField(new GuiNpcTextField(12, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textHeight)));
             addLabel(new GuiNpcLabel(12, "gui.widthHeight", guiLeft + 4, y + 5));
-            getTextField(10).integersOnly = true;
-            getTextField(10).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(11).integersOnly = true;
             getTextField(11).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
-
-            addTextField(new GuiNpcTextField(12, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textOffsetX)));
-            addTextField(new GuiNpcTextField(13, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textOffsetY)));
-            addLabel(new GuiNpcLabel(15, "dialog.textOffset", guiLeft + 4, y + 5));
             getTextField(12).integersOnly = true;
             getTextField(12).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+
+            addTextField(new GuiNpcTextField(13, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textOffsetX)));
+            addTextField(new GuiNpcTextField(14, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textOffsetY)));
+            addLabel(new GuiNpcLabel(15, "dialog.textOffset", guiLeft + 4, y + 5));
             getTextField(13).integersOnly = true;
             getTextField(13).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
-
-            addTextField(new GuiNpcTextField(14, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.titleOffsetX)));
-            addTextField(new GuiNpcTextField(15, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.titleOffsetY)));
-            addLabel(new GuiNpcLabel(18, "dialog.titleOffset", guiLeft + 4, y + 5));
             getTextField(14).integersOnly = true;
             getTextField(14).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+
+            addTextField(new GuiNpcTextField(15, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.titleOffsetX)));
+            addTextField(new GuiNpcTextField(16, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.titleOffsetY)));
+            addLabel(new GuiNpcLabel(18, "dialog.titleOffset", guiLeft + 4, y + 5));
             getTextField(15).integersOnly = true;
             getTextField(15).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
-
-            addTextField(new GuiNpcTextField(16, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.optionOffsetX)));
-            addTextField(new GuiNpcTextField(17, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.optionOffsetY)));
-            addLabel(new GuiNpcLabel(21, "dialog.optionOffset", guiLeft + 4, y + 5));
             getTextField(16).integersOnly = true;
             getTextField(16).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+
+            addTextField(new GuiNpcTextField(17, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.optionOffsetX)));
+            addTextField(new GuiNpcTextField(18, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.optionOffsetY)));
+            addLabel(new GuiNpcLabel(21, "dialog.optionOffset", guiLeft + 4, y + 5));
             getTextField(17).integersOnly = true;
             getTextField(17).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
-
-            addTextField(new GuiNpcTextField(18, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.optionSpaceX)));
-            addTextField(new GuiNpcTextField(19, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.optionSpaceY)));
-            addLabel(new GuiNpcLabel(24, "dialog.optionSpacing", guiLeft + 4, y + 5));
             getTextField(18).integersOnly = true;
             getTextField(18).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+
+            addTextField(new GuiNpcTextField(19, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.optionSpaceX)));
+            addTextField(new GuiNpcTextField(20, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.optionSpaceY)));
+            addLabel(new GuiNpcLabel(24, "dialog.optionSpacing", guiLeft + 4, y + 5));
             getTextField(19).integersOnly = true;
             getTextField(19).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
-
-            addTextField(new GuiNpcTextField(20, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcOffsetX)));
-            addTextField(new GuiNpcTextField(21, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.npcOffsetY)));
-            addLabel(new GuiNpcLabel(25, "dialog.npcOffset", guiLeft + 4, y + 5));
             getTextField(20).integersOnly = true;
             getTextField(20).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
-            getTextField(20).setVisible(!dialog.hideNPC);
+
+            addTextField(new GuiNpcTextField(21, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcOffsetX)));
+            addTextField(new GuiNpcTextField(22, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.npcOffsetY)));
+            addLabel(new GuiNpcLabel(25, "dialog.npcOffset", guiLeft + 4, y + 5));
             getTextField(21).integersOnly = true;
             getTextField(21).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
             getTextField(21).setVisible(!dialog.hideNPC);
+            getTextField(22).integersOnly = true;
+            getTextField(22).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
+            getTextField(22).setVisible(!dialog.hideNPC);
             getLabel(25).enabled = !dialog.hideNPC;
 
-            addTextField(new GuiNpcTextField(22, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcScale)));
+            addTextField(new GuiNpcTextField(23, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.npcScale)));
             addLabel(new GuiNpcLabel(26, "dialog.npcScale", guiLeft + 4, y + 5));
-            getTextField(22).floatsOnly = true;
-            getTextField(22).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-            getTextField(22).setVisible(!dialog.hideNPC);
+            getTextField(23).floatsOnly = true;
+            getTextField(23).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+            getTextField(23).setVisible(!dialog.hideNPC);
             getLabel(26).enabled = !dialog.hideNPC;
         } else if (activeMenu == 3) {
             if (imageScroll == null) {
@@ -314,6 +315,12 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             }
         }
 
+        if (activeMenu == 2) {
+            if (button.id == 10) {
+                dialog.titlePos = button.getValue();
+            }
+        }
+
         if (activeMenu == 3) {
             if (button.id == 1) {
                 int addId = 0;
@@ -428,48 +435,48 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         }
 
         if (activeMenu == 2) {
-            if (textfield.id == 10) {
+            if (textfield.id == 11) {
                 dialog.textWidth = textfield.getInteger();
             }
-            if (textfield.id == 11) {
+            if (textfield.id == 12) {
                 dialog.textHeight = textfield.getInteger();
             }
 
-            if (textfield.id == 12) {
+            if (textfield.id == 13) {
                 dialog.textOffsetX = textfield.getInteger();
             }
-            if (textfield.id == 13) {
+            if (textfield.id == 14) {
                 dialog.textOffsetY = textfield.getInteger();
             }
 
-            if (textfield.id == 14) {
+            if (textfield.id == 15) {
                 dialog.titleOffsetX = textfield.getInteger();
             }
-            if (textfield.id == 15) {
+            if (textfield.id == 16) {
                 dialog.titleOffsetY = textfield.getInteger();
             }
 
-            if (textfield.id == 16) {
+            if (textfield.id == 17) {
                 dialog.optionOffsetX = textfield.getInteger();
             }
-            if (textfield.id == 17) {
+            if (textfield.id == 18) {
                 dialog.optionOffsetY = textfield.getInteger();
             }
 
-            if (textfield.id == 18) {
+            if (textfield.id == 19) {
                 dialog.optionSpaceX = textfield.getInteger();
             }
-            if (textfield.id == 19) {
+            if (textfield.id == 20) {
                 dialog.optionSpaceY = textfield.getInteger();
             }
 
-            if (textfield.id == 20) {
+            if (textfield.id == 21) {
                 dialog.npcOffsetX = textfield.getInteger();
             }
-            if (textfield.id == 21) {
+            if (textfield.id == 22) {
                 dialog.npcOffsetY = textfield.getInteger();
             }
-            if (textfield.id == 22) {
+            if (textfield.id == 23) {
                 dialog.npcScale = textfield.getFloat();
             }
         }

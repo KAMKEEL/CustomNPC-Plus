@@ -120,7 +120,6 @@ gui.id=ID
 gui.widthHeight=Width & Height
 gui.position=Position
 gui.screen=Screen
-gui.text=Text
 gui.option=Option
 gui.default=Default
 gui.type=Type
@@ -194,6 +193,7 @@ display.right=Right
 display.botLeft=Bottom Left
 display.botCenter=Bottom Center
 display.botRight=Bottom Right
+display.fixed=Fixed
 
 inv.minExp=Min Exp
 inv.maxExp=Max Exp
@@ -453,6 +453,7 @@ dialog.optionLine=Option Line
 dialog.npcScale=NPC Scale
 dialog.npcOffset=NPC Offset
 dialog.titleColor=Title Color
+dialog.titlePos=Title Position
 
 quest.quest=Quest
 quest.quests=Quests
