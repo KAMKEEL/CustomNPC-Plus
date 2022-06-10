@@ -75,11 +75,9 @@ import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.entity.ScriptNpc;
-import noppes.npcs.scripted.event.ScriptEventAttack;
-import noppes.npcs.scripted.event.ScriptEventDamaged;
-import noppes.npcs.scripted.event.ScriptEventKilled;
-import noppes.npcs.scripted.event.ScriptEventTarget;
+import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 
@@ -211,10 +209,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	@Override
 	public void onUpdate(){
 		super.onUpdate();
-		if(this.ticksExisted % 10 == 0) {
-			EventHooks.onNPCUpdate(this);
+		if (!isRemote()) {
+			if (this.ticksExisted % 10 == 0) {
+				EventHooks.onNPCUpdate(this);
+			}
+			this.timers.update();
 		}
-		this.timers.update();
 	}
 	
 	public void setWorld(World world){
@@ -234,7 +234,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     	if (stats.attackSpeed < 10){
         	par1Entity.hurtResistantTime = 0;
         }
-    	if(par1Entity instanceof EntityLivingBase){
+    	if(par1Entity instanceof EntityLivingBase && !isRemote()){
 	        ScriptEventAttack event = new ScriptEventAttack(f, (EntityLivingBase)par1Entity, false);
 			if(EventHooks.onNPCMeleeAttack(this, f, (EntityLivingBase)par1Entity))
 				return false;
@@ -542,20 +542,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public void setAttackTarget(EntityLivingBase entity){
     	if(entity instanceof EntityPlayer && ((EntityPlayer)entity).capabilities.disableDamage || entity != null && entity == getOwner())
     		return;
-    	if(getAttackTarget() != entity && entity != null){
-	    	ScriptEventTarget event = new ScriptEventTarget(entity);
-			if(EventHooks.onNPCTarget(this,entity))
-				return;
-			
-			if(event.getTarget() == null)
-				entity = null;
-			else
-				entity = event.getTarget().getMCEntity();
-    	}
-		if (entity != null && entity != this && ai.onAttack != 3 && !isAttacking() && !isRemote()){
-			Line line = advanced.getAttackLine();
-			if(line != null)
-				saySurrounding(line.formatTarget(entity));
+		if (!isRemote()) {
+			if (getAttackTarget() != entity && entity != null) {
+				ScriptEventTarget event = new ScriptEventTarget(entity);
+				if (EventHooks.onNPCTarget(this, entity))
+					return;
+
+				if (event.getTarget() == null)
+					entity = null;
+				else
+					entity = event.getTarget().getMCEntity();
+			}
+			if (entity != null && entity != this && ai.onAttack != 3 && !isAttacking()) {
+				Line line = advanced.getAttackLine();
+				if (line != null)
+					saySurrounding(line.formatTarget(entity));
+			}
 		}
 		
 		super.setAttackTarget(entity);
@@ -568,16 +570,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     		updateTasks();
         	return;
         }
-        ScriptEventAttack event = new ScriptEventAttack(stats.pDamage, entity, true);
-		if(EventHooks.onNPCRangedAttack(this, f, (EntityLivingBase)entity))
-			return;
-		for(int i = 0; i < this.stats.shotCount; i++)
-		{
-			EntityProjectile projectile = shoot(entity, stats.accuracy, proj, f == 1);
-			projectile.damage = event.getDamage();
+		if (!isRemote()) {
+			ScriptEventAttack event = new ScriptEventAttack(stats.pDamage, entity, true);
+			if (EventHooks.onNPCRangedAttack(this, f, (EntityLivingBase) entity))
+				return;
+			for (int i = 0; i < this.stats.shotCount; i++) {
+				EntityProjectile projectile = shoot(entity, stats.accuracy, proj, f == 1);
+				projectile.damage = event.getDamage();
+			}
+			this.playSound(this.stats.fireSound, 2.0F, 1.0f);
 		}
-        this.playSound(this.stats.fireSound, 2.0F, 1.0f);
-
     }
 	
 	public EntityProjectile shoot(EntityLivingBase entity, int accuracy, ItemStack proj, boolean indirect){
@@ -1052,7 +1054,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(jobInterface != null)
 			jobInterface.reset();
 
-		EventHooks.onNPCInit(this);
+		if (!isRemote()) {
+			EventHooks.onNPCInit(this);
+		}
 	}
 
     public void onCollide() {	
@@ -1072,12 +1076,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if(list == null)
         	return;
 
-        for (int i = 0; i < list.size(); ++i){
-            Entity entity = (Entity)list.get(i);
-            if (entity.isEntityAlive()) {
-				EventHooks.onNPCCollide(this,entity);
+		if (!isRemote()) {
+			for (int i = 0; i < list.size(); ++i) {
+				Entity entity = (Entity) list.get(i);
+				if (entity.isEntityAlive()) {
+					EventHooks.onNPCCollide(this, entity);
+				}
 			}
-        }
+		}
         
     }
  
@@ -1202,12 +1208,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		else if ((entity instanceof EntityThrowable))
 			attackingEntity = ((EntityThrowable) entity).getThrower();
 				
-		ScriptEventKilled result = new ScriptEventKilled(attackingEntity, damagesource);
-		if(EventHooks.onNPCKilled(this,damagesource,attackingEntity,result))
-			return;
+
+		int droppedXp = inventory.getDroppedXp();
+		ArrayList<ItemStack> droppedItems = inventory.getDroppedItems(damagesource);
+
 		if(!isRemote()){
-			if(this.recentlyHit > 0)
-				inventory.dropStuff(entity, damagesource);
+			ScriptEventKilled result = new ScriptEventKilled(attackingEntity, damagesource);
+			NpcEvent.DiedEvent event = new NpcEvent.DiedEvent(this.wrappedNPC,damagesource,entity,droppedItems, droppedXp);
+			if(EventHooks.onNPCKilled(this, event, result))
+				return;
+
+			droppedItems.clear();
+			for (IItemStack iItemStack : event.droppedItems) {
+				droppedItems.add(iItemStack.getMCItemStack());
+			}
+			droppedXp = event.expDropped;
+
+			if(this.recentlyHit > 0) {
+				inventory.dropItems(entity, droppedItems);
+				inventory.dropXp(entity, droppedXp);
+			}
 			Line line = advanced.getKilledLine();
 			if(line != null)
 				saySurrounding(line.formatTarget(attackingEntity));

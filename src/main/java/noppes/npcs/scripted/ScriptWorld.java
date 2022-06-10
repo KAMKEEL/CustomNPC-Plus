@@ -21,6 +21,7 @@ import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
@@ -41,7 +42,15 @@ public class ScriptWorld implements IWorld {
 		this.world = world;
 	}
 
-	public static ScriptWorld createNew(WorldServer world) {
+	public static ScriptWorld createNew(int dimensionId) {
+		WorldServer[] worlds = CustomNpcs.getServer().worldServers;
+
+		WorldServer world = worlds[0];
+		for (WorldServer w : worlds) {
+			if (w.provider.dimensionId == dimensionId) {
+				world = w;
+			}
+		}
 		return new ScriptWorld(world);
 	}
 

@@ -116,7 +116,7 @@ public class DataScript implements IScriptHandler {
 		}
 		if(!isEnabled())
 			return false;
-		if(!hasInited){
+		if(!hasInited && !npc.isRemote()){
 			hasInited = true;
 			EventHooks.onNPCInit(this.npc);
 			callScript(EnumScriptType.INIT);

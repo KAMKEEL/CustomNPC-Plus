@@ -259,18 +259,19 @@ public class NoppesUtilPlayer {
 		Dialog dialog = DialogController.instance.dialogs.get(dialogId);
 		if(dialog == null)
 			return;
-
-		EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
-		EventHooks.onNPCDialogClosed(npc,player,dialogId,optionId+1,dialog);
-    	
-		if(!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-			EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
-			return;
-		}
 		DialogOption option = dialog.options.get(optionId);
-    	if(option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-			EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
-			return;
+		if (!npc.isRemote()) {
+			EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+			EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
+
+			if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
+				EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+				return;
+			}
+			if (option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
+				EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+				return;
+			}
 		}
     	if(option.optionType == EnumOptionType.RoleOption){
     		if(npc.roleInterface != null)

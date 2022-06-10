@@ -4,7 +4,6 @@
 //
 
 package noppes.npcs.scripted.interfaces.handler.data;
-
 import java.util.List;
 
 public interface IDialog {
@@ -50,4 +49,90 @@ public interface IDialog {
     String getSound();
 
     void save();
+
+    void setColor(int color);
+
+    int getColor();
+
+    void setTitleColor(int titleColor);
+
+    int getTitleColor();
+
+    void renderGradual(boolean gradual);
+
+    boolean renderGradual();
+
+    void showPreviousBlocks(boolean show);
+
+    boolean showPreviousBlocks();
+
+    void showOptionLine(boolean show);
+
+    boolean showOptionLine();
+
+    void setTextSound(String textSound);
+
+    String getTextSound();
+
+    void setTextPitch(float textPitch);
+
+    float getTextPitch();
+
+    void setTitlePos(int pos);
+
+    int getTitlePos();
+
+    void setNPCScale(float scale);
+
+    float getNpcScale();
+
+    void setNpcOffset(int offsetX, int offsetY);
+
+    int getNpcOffsetX();
+
+    int getNpcOffsetY();
+
+    void textWidthHeight(int textWidth, int textHeight);
+
+    int getTextWidth();
+
+    int setTextHeight();
+
+    void setTextOffset(int offsetX, int offsetY);
+
+    int getTextOffsetX();
+
+    int getTextOffsetY();
+
+    void setTitleOffset(int offsetX, int offsetY);
+
+    int getTitleOffsetX();
+
+    int getTitleOffsetY();
+
+    void setOptionOffset(int offsetX, int offsetY);
+
+    int getOptionOffsetX();
+
+    int getOptionOffsetY();
+
+    void setOptionSpacing(int spaceX, int spaceY);
+
+    int getOptionSpaceX();
+
+    int getOptionSpaceY();
+
+    void addImage(int id, IDialogImage image);
+
+    IDialogImage getImage(int id);
+
+    IDialogImage createImage();
+
+    IDialogImage[] getImages();
+
+    boolean hasImage(int id);
+
+    void removeImage(int id);
+
+    void clearImages();
 }

@@ -77,7 +77,7 @@ public abstract class AbstractNpcAPI {
 
     public abstract IItemStack getIItemStack(ItemStack var1);
 
-    public abstract IWorld getIWorld(WorldServer var1);
+    public abstract IWorld getIWorld(World var1);
 
     public abstract IWorld getIWorld(int var1);
 

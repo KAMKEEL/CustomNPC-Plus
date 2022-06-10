@@ -28,6 +28,7 @@ import noppes.npcs.controllers.data.DialogImage;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.scripted.interfaces.handler.data.IDialogImage;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -165,8 +166,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			drawString(fontRendererObj, "Text Sound: " + (textSoundEnabled ? "On" : "Off"), 10, 20, 0xFFFFFF);
 		}
 
-		for (DialogImage dialogImage : dialog.dialogImages.values()) {
-			GuiDialogImage image = new GuiDialogImage(dialogImage);
+		for (IDialogImage dialogImage : dialog.dialogImages.values()) {
+			GuiDialogImage image = new GuiDialogImage((DialogImage) dialogImage);
 
 			if (image.imageType != 0)
 				continue;
@@ -184,8 +185,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		}
 
 		GL11.glPushMatrix();
-		for (DialogImage dialogImage : dialog.dialogImages.values()) {
-			GuiDialogImage image = new GuiDialogImage(dialogImage);
+		for (IDialogImage dialogImage : dialog.dialogImages.values()) {
+			GuiDialogImage image = new GuiDialogImage((DialogImage) dialogImage);
 
 			if (image.imageType != 1)
 				continue;
@@ -447,8 +448,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         	}
 
 			GL11.glPushMatrix();
-			for (DialogImage dialogImage : dialog.dialogImages.values()) {
-				GuiDialogImage image = new GuiDialogImage(dialogImage);
+			for (IDialogImage dialogImage : dialog.dialogImages.values()) {
+				GuiDialogImage image = new GuiDialogImage((DialogImage) dialogImage);
 
 				if (image.imageType != 2)
 					continue;

@@ -236,11 +236,10 @@ public class EventHooks {
         return result;
     }
 
-    public static boolean onNPCKilled(EntityNPCInterface npc, DamageSource damagesource, Entity entity, ScriptEventKilled killedEvent){
+    public static boolean onNPCKilled(EntityNPCInterface npc, NpcEvent.DiedEvent event, ScriptEventKilled killedEvent){
         if(npc == null || npc.wrappedNPC == null)
             return false;
 
-        NpcEvent.DiedEvent event = new NpcEvent.DiedEvent(npc.wrappedNPC,damagesource,entity);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.KILLED, event);
         boolean result = npc.script.callScript(EnumScriptType.KILLED, "event", killedEvent);
         NpcAPI.EVENT_BUS.post(event);

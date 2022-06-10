@@ -1,8 +1,9 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.scripted.interfaces.handler.data.IDialogImage;
 
-public class DialogImage {
+public class DialogImage implements IDialogImage {
     public int id;
     public String texture = "";
     public int x = 0;
@@ -20,6 +21,9 @@ public class DialogImage {
 
     public int imageType = 1; //0 - Default, 1 - Text, 2 - Option
     public int alignment = 0;
+
+    public DialogImage() {
+    }
 
     public DialogImage(int id) {
         this.id = id;
@@ -61,5 +65,138 @@ public class DialogImage {
         rotation = compound.getFloat("Rotation");
         imageType = compound.getInteger("ImageType");
         alignment = compound.getInteger("Alignment");
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public void setTexture(String texture) {
+        this.texture = texture;
+    }
+
+    @Override
+    public String getTexture() {
+        return texture;
+    }
+
+    @Override
+    public void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public int getX() {
+        return x;
+    }
+
+    @Override
+    public int getY() {
+        return y;
+    }
+
+    @Override
+    public void setWidthHeight(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
+    }
+
+    @Override
+    public void setTextureOffset(int offsetX, int offsetY) {
+        this.textureX = offsetX;
+        this.textureY = offsetY;
+    }
+
+    @Override
+    public int getTextureX() {
+        return textureX;
+    }
+
+    @Override
+    public int getTextureY() {
+        return textureY;
+    }
+
+    @Override
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    @Override
+    public int getColor() {
+        return color;
+    }
+
+    @Override
+    public void setSelectedColor(int color) {
+        this.selectedColor = color;
+    }
+
+    @Override
+    public int getSelectedColor() {
+        return selectedColor;
+    }
+
+    @Override
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+
+    @Override
+    public float getScale() {
+        return scale;
+    }
+
+    @Override
+    public void setAlpha(float alpha) {
+        this.alpha = alpha;
+    }
+
+    @Override
+    public float getAlpha() {
+        return alpha;
+    }
+
+    @Override
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
+    @Override
+    public float getRotation() {
+        return rotation;
+    }
+
+    @Override
+    public void setImageType(int imageType) {
+        this.imageType = imageType;
+    }
+
+    @Override
+    public int getImageType() {
+        return imageType;
+    }
+
+    @Override
+    public void setAlignment(int alignment) {
+        this.alignment = alignment;
+    }
+
+    @Override
+    public int getAlignment() {
+        return alignment;
     }
 }

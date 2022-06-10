@@ -207,13 +207,13 @@ public class NpcAPI extends AbstractNpcAPI {
         return getIItemStack(new ItemStack(item, size, damage));
     }
 
-    public IWorld getIWorld(WorldServer world) {
-        ScriptWorld w = (ScriptWorld)worldCache.get(world.provider.dimensionId);
+    public IWorld getIWorld(World world) {
+        ScriptWorld w = worldCache.get(world.provider.dimensionId);
         if (w != null) {
-            w.world = world;
+            w.world.provider.dimensionId = world.provider.dimensionId;
             return w;
         } else {
-            worldCache.put(world.provider.dimensionId, w = ScriptWorld.createNew(world));
+            worldCache.put(world.provider.dimensionId, w = ScriptWorld.createNew(world.provider.dimensionId));
             return w;
         }
     }

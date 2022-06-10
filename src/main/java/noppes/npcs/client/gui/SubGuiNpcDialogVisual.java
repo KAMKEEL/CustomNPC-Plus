@@ -325,7 +325,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             if (button.id == 1) {
                 int addId = 0;
                 if (selected != -1 && imageScroll.getSelected() != null) {
-                    DialogImage selectedImage = dialog.dialogImages.get(Integer.valueOf(imageScroll.getSelected()));
+                    DialogImage selectedImage = (DialogImage) dialog.dialogImages.get(Integer.valueOf(imageScroll.getSelected()));
                     ArrayList<Integer> keys = new ArrayList<>(dialog.dialogImages.keySet());
                     int keyIndex = keys.indexOf(selectedImage.id);
                     do {
@@ -417,7 +417,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     private DialogImage getSelectedImage() {
         if (selected > -1) {
-            return dialog.dialogImages.get((dialog.dialogImages.keySet().toArray(new Integer[0]))[selected]);
+            return (DialogImage) dialog.dialogImages.get((dialog.dialogImages.keySet().toArray(new Integer[0]))[selected]);
         } else {
             return null;
         }

@@ -57,7 +57,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public float npcScale = 1.0F;
 	public int npcOffsetX, npcOffsetY;
 
-	public HashMap<Integer, DialogImage> dialogImages = new HashMap<>();
+	public HashMap<Integer, IDialogImage> dialogImages = new HashMap<>();
 	
 	public boolean hasDialogs(EntityPlayer player) {
 		for(DialogOption option: options.values())
@@ -108,7 +108,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		this.options = newoptions;
 
 		NBTTagList images = compound.getTagList("Images", 10);
-		HashMap<Integer,DialogImage> newImages = new HashMap<>();
+		HashMap<Integer,IDialogImage> newImages = new HashMap<>();
 		for(int i = 0; i < images.tagCount(); i++){
 			NBTTagCompound imageCompound = images.getCompoundTagAt(i);
 			int id = imageCompound.getInteger("ID");
@@ -220,8 +220,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setInteger("NPCOffsetY", npcOffsetY);
 
 		NBTTagList images = new NBTTagList();
-		for (DialogImage dialogImage : dialogImages.values()) {
-			NBTTagCompound imageCompound = dialogImage.writeToNBT(new NBTTagCompound());
+		for (IDialogImage dialogImage : dialogImages.values()) {
+			NBTTagCompound imageCompound = ((DialogImage) dialogImage).writeToNBT(new NBTTagCompound());
 			images.appendTag(imageCompound);
 		}
 		compound.setTag("Images",images);
@@ -397,5 +397,157 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 	public String getSound() {
 		return this.sound;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
+	public int getColor() {
+		return this.color;
+	}
+
+	public void setTitleColor(int titleColor) {
+		this.titleColor = titleColor;
+	}
+	public int getTitleColor() {
+		return titleColor;
+	}
+
+	public void renderGradual(boolean gradual) {
+		this.renderGradual = gradual;
+	}
+	public boolean renderGradual() {
+		return renderGradual;
+	}
+
+	public void showPreviousBlocks(boolean show) {
+		this.showPreviousBlocks = show;
+	}
+	public boolean showPreviousBlocks() {
+		return showPreviousBlocks;
+	}
+
+	public void showOptionLine(boolean show) {
+		this.showOptionLine = show;
+	}
+	public boolean showOptionLine() {
+		return showOptionLine;
+	}
+
+	public void setTextSound(String textSound) {
+		this.textSound = textSound;
+	}
+	public String getTextSound() {
+		return textSound;
+	}
+
+	public void setTextPitch(float textPitch) {
+		this.textPitch = textPitch;
+	}
+	public float getTextPitch() {
+		return textPitch;
+	}
+
+	public void setTitlePos(int pos) {
+		this.titlePos = pos;
+	}
+	public int getTitlePos() {
+		return this.titlePos;
+	}
+
+	public void setNPCScale(float scale) {
+		this.npcScale = scale;
+	}
+	public float getNpcScale() {
+		return npcScale;
+	}
+
+	public void setNpcOffset(int offsetX, int offsetY) {
+		this.npcOffsetX = offsetX;
+		this.npcOffsetY = offsetY;
+	}
+	public int getNpcOffsetX() {
+		return npcOffsetX;
+	}
+	public int getNpcOffsetY() {
+		return npcOffsetY;
+	}
+
+	public void textWidthHeight(int textWidth, int textHeight) {
+		this.textWidth = textWidth;
+		this.textHeight = textHeight;
+	}
+	public int getTextWidth() {
+		return textWidth;
+	}
+	public int setTextHeight() {
+		return textHeight;
+	}
+
+	public void setTextOffset(int offsetX, int offsetY) {
+		this.textOffsetX = offsetX;
+		this.textOffsetY = offsetY;
+	}
+	public int getTextOffsetX() {
+		return textOffsetX;
+	}
+	public int getTextOffsetY() {
+		return textOffsetY;
+	}
+
+	public void setTitleOffset(int offsetX, int offsetY) {
+		this.titleOffsetX = offsetX;
+		this.titleOffsetY = offsetY;
+	}
+	public int getTitleOffsetX() {
+		return titleOffsetX;
+	}
+	public int getTitleOffsetY() {
+		return titleOffsetY;
+	}
+
+	public void setOptionOffset(int offsetX, int offsetY) {
+		this.optionOffsetX = offsetX;
+		this.optionOffsetY = offsetY;
+	}
+	public int getOptionOffsetX() {
+		return optionOffsetX;
+	}
+	public int getOptionOffsetY() {
+		return optionOffsetY;
+	}
+
+	public void setOptionSpacing(int spaceX, int spaceY) {
+		this.optionSpaceX = spaceX;
+		this.optionSpaceY = spaceY;
+	}
+	public int getOptionSpaceX() {
+		return optionSpaceX;
+	}
+	public int getOptionSpaceY() {
+		return optionSpaceY;
+	}
+
+	public void addImage(int id, IDialogImage image) {
+		((DialogImage) image).id = id;
+		dialogImages.put(id, image);
+	}
+	public IDialogImage getImage(int id) {
+		return dialogImages.get(id);
+	}
+	public IDialogImage createImage() {
+		return new DialogImage();
+	}
+	public IDialogImage[] getImages() {
+		return (new ArrayList<>(dialogImages.values())).toArray(new IDialogImage[0]);
+	}
+	public boolean hasImage(int id) {
+		return dialogImages.containsKey(id);
+	}
+	public void removeImage(int id) {
+		dialogImages.remove(id);
+	}
+	public void clearImages() {
+		dialogImages.clear();
 	}
 }
