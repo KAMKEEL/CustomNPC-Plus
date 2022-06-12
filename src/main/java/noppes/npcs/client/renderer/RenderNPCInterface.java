@@ -260,22 +260,22 @@ public class RenderNPCInterface extends RenderLiving{
 					GL11.glDepthMask(!npc.isInvisible());
 
 					GL11.glPushMatrix();
-						GL11.glMatrixMode(GL11.GL_TEXTURE);
-						GL11.glLoadIdentity();
-						GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
-						GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
+					GL11.glMatrixMode(GL11.GL_TEXTURE);
+					GL11.glLoadIdentity();
+					GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
+					GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
 
-						GL11.glMatrixMode(GL11.GL_MODELVIEW);
-						float scale = 1.005f * overlayData.getSize();
-						GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
-						GL11.glScalef(scale, scale, scale);
-						if(mainModel instanceof ModelMPM){
-							((ModelMPM)mainModel).isArmor = true;
-							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-							((ModelMPM)mainModel).isArmor = false;
-						}
-						else
-							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
+					float scale = 1.005f * overlayData.getSize();
+					GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
+					GL11.glScalef(scale, scale, scale);
+					if(mainModel instanceof ModelMPM){
+						((ModelMPM)mainModel).isArmor = true;
+						mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+						((ModelMPM)mainModel).isArmor = false;
+					}
+					else
+						mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
 					GL11.glPopMatrix();
 
 					GL11.glMatrixMode(GL11.GL_TEXTURE);
@@ -372,11 +372,8 @@ public class RenderNPCInterface extends RenderLiving{
 			int totalWidth = bufferedimage.getWidth();
 			int totalHeight = bufferedimage.getHeight();
 
-			npc.display.x64texture = totalHeight > 32;
-			if (npc.display.x64texture) {
-				if (npc.display.modelType == 0 || npc.display.modelType == 3) {
-					bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
-				}
+			if (totalHeight > 32 && npc.display.modelType == 0) {
+				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
 			}
 
 			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
