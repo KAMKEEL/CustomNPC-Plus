@@ -1,9 +1,6 @@
 package noppes.npcs.scripted;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -179,6 +176,15 @@ public class ScriptWorld implements IWorld {
 
 	public int countEntities(IEntity entity){
 		return world.countEntities(entity.getMCEntity().getClass());
+	}
+
+	public IEntity[] getLoadedEntities() {
+		ArrayList<IEntity> list = new ArrayList<>();
+		for (Object obj : world.loadedEntityList) {
+			list.add(NpcAPI.Instance().getIEntity((Entity) obj));
+		}
+
+		return list.toArray(new IEntity[0]);
 	}
 
 	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){

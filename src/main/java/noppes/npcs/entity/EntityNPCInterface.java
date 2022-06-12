@@ -62,18 +62,14 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.data.DataTimers;
-import noppes.npcs.roles.JobBard;
-import noppes.npcs.roles.JobFollower;
-import noppes.npcs.roles.JobInterface;
-import noppes.npcs.roles.RoleCompanion;
-import noppes.npcs.roles.RoleFollower;
-import noppes.npcs.roles.RoleInterface;
+import noppes.npcs.roles.*;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
@@ -111,6 +107,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
+	public int itemGiverId = 0;
 
 	public Faction faction; //should only be used server side
 	
@@ -936,6 +933,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai.readToNBT(compound);
 		script.readFromNBT(compound);
 		timers.readFromNBT(compound);
+		if (compound.hasKey("ItemGiverId")) {
+			itemGiverId = compound.getInteger("ItemGiverId");
+		} else {
+			itemGiverId = -1;
+		}
 		advanced.readToNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null) 
             roleInterface.readFromNBT(compound);

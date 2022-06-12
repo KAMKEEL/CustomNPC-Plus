@@ -6,6 +6,7 @@
 package noppes.npcs.scripted;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -93,6 +94,10 @@ public class NpcAPI extends AbstractNpcAPI {
         return ServerCloneController.Instance;
     }
 
+    public ITransportHandler getLocations() {
+        return TransportController.getInstance();
+    }
+
     public IEntity getIEntity(Entity entity) {
         if(entity == null)
             return null;
@@ -119,6 +124,18 @@ public class NpcAPI extends AbstractNpcAPI {
             entity.registerExtendedProperties("ScriptedObject", data);
             return data.base;
         }
+    }
+
+    public IEntity[] getLoadedEntities() {
+        ArrayList<IEntity> list = new ArrayList<>();
+
+        for (IWorld world : worldCache.values()) {
+            for (Object obj : world.getMCWorld().loadedEntityList) {
+                list.add(NpcAPI.Instance().getIEntity((Entity) obj));
+            }
+        }
+
+        return list.toArray(new IEntity[0]);
     }
 
     public IBlock getIBlock(World world, BlockPos pos) {

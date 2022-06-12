@@ -44,6 +44,7 @@ import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.handler.IPlayerData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IContainer;
@@ -557,7 +558,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return player.isBlocking();
 	}
 
-	private PlayerData getData() {
+	public PlayerData getData() {
 		if (this.data == null) {
 			this.data = PlayerDataController.instance.getPlayerData(player);
 		}
@@ -566,7 +567,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public IQuest[] getActiveQuests() {
-		PlayerQuestData data = this.getData().questData;
+		PlayerQuestData data = (PlayerQuestData) this.getData().getQuestData();
 		List<IQuest> quests = new ArrayList();
 		Iterator var3 = data.activeQuests.keySet().iterator();
 

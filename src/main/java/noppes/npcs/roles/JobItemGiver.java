@@ -35,6 +35,11 @@ public class JobItemGiver extends JobInterface{
 	private List<EntityPlayer> toCheck;
 	public Availability availability = new Availability();
 
+	public JobItemGiver() {
+		super(null);
+		inventory = new NpcMiscInventory(9);
+	}
+
 	public JobItemGiver(EntityNPCInterface npc) {
 		super(npc);
 		inventory = new NpcMiscInventory(9);
@@ -61,10 +66,6 @@ public class JobItemGiver extends JobInterface{
 		cooldown = nbttagcompound.getInteger("igCooldown");
     	lines = NBTTags.getStringList(nbttagcompound.getTagList("igLines", 10));
     	inventory.setFromNBT(nbttagcompound.getCompoundTag("igJobInventory"));
-    	
-    	if(itemGiverId == 0 && GlobalDataController.instance != null)
-			itemGiverId = GlobalDataController.instance.incrementItemGiverId();
-    	
     	availability.readFromNBT(nbttagcompound.getCompoundTag("igAvailability"));
 	}
 
@@ -92,7 +93,7 @@ public class JobItemGiver extends JobInterface{
 		return map;
 	}
     
-	private boolean giveItems(EntityPlayer player){		
+	public boolean giveItems(EntityPlayer player){
 		PlayerItemGiverData data = PlayerDataController.instance.getPlayerData(player).itemgiverData;
 		if(!canPlayerInteract(data)){
 			return false;
@@ -162,7 +163,7 @@ public class JobItemGiver extends JobInterface{
 	private int getDay(){
 		return (int) (npc.worldObj.getTotalWorldTime() / 24000L);
 	}
-	private boolean canPlayerInteract(PlayerItemGiverData data) {
+	public boolean canPlayerInteract(PlayerItemGiverData data) {
 		if(inventory.items.isEmpty())
 			return false;
 		if(isOnTimer()){

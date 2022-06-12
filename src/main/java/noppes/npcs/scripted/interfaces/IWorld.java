@@ -98,6 +98,8 @@ public interface IWorld {
      */
     int countEntities(IEntity entity);
 
+    IEntity[] getLoadedEntities();
+
     /**
      * Sets the block's tile entity at the given position.
      */

@@ -296,6 +296,7 @@ public class CustomNpcs {
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){
         ServerCloneController.Instance = null;
+        GlobalDataController.instance.saveData();
     }
 
     @EventHandler

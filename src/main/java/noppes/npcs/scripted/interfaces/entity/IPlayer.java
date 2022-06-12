@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
+import noppes.npcs.scripted.interfaces.handler.IPlayerData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
@@ -227,6 +228,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     ScriptDBCPlayer<T> getDBCPlayer();
 
     boolean blocking();
+
+    public IPlayerData getData();
 
     IQuest[] getActiveQuests();
 

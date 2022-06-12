@@ -1,18 +1,24 @@
 package noppes.npcs.controllers.data;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.controllers.TransportController;
+import noppes.npcs.scripted.interfaces.handler.data.ITransportCategory;
+import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
 
-public class TransportCategory {
+public class TransportCategory implements ITransportCategory {
 	public int id = -1;
 	public String title = "";
 	public HashMap<Integer,TransportLocation> locations;
+
 	public TransportCategory(){
 		locations = new HashMap<Integer, TransportLocation>();
 	}
+
 	public Vector<TransportLocation> getDefaultLocations() {
 		Vector<TransportLocation> list = new Vector<TransportLocation>();
 		for(TransportLocation loc : locations.values())
@@ -46,5 +52,54 @@ public class TransportCategory {
 	        locs.appendTag(location.writeNBT());
     	}
     	compound.setTag("CategoryLocations", locs);
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void addLocation(String name) {
+		int id = TransportController.getInstance().getUniqueIdLocation();
+		TransportLocation location = new TransportLocation();
+		location.id = id;
+		location.name = name;
+		location.category = this;
+
+		TransportController.getInstance().setLocation(location);
+	}
+
+	public ITransportLocation getLocation(String name) {
+		TransportLocation location = null;
+		for (TransportLocation l : locations.values()) {
+			if (l.getName().equals(name)) {
+				location = l;
+				break;
+			}
+		}
+
+		return location;
+	}
+
+	public void removeLocation(String name) {
+		int id = -1;
+		for (Map.Entry<Integer,TransportLocation> entry : locations.entrySet()) {
+			if (entry.getValue().getName().equals(name)) {
+				id = entry.getKey();;
+				locations.remove(entry.getKey());
+				break;
+			}
+		}
+
+		if (id >= 0) {
+			TransportController.getInstance().removeLocation(id);
+		}
 	}
 }

@@ -5,11 +5,15 @@ import java.util.HashMap;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.BankController;
+import noppes.npcs.scripted.interfaces.handler.IPlayerBankData;
 
-public class PlayerBankData{
+public class PlayerBankData implements IPlayerBankData {
+	private final PlayerData parent;
 	public HashMap<Integer,BankData> banks;
-	public PlayerBankData(){
+
+	public PlayerBankData(PlayerData parent){
 		banks = new HashMap<Integer,BankData>();
+		this.parent = parent;
 	}
 	
 	public void loadNBTData(NBTTagCompound compound) {

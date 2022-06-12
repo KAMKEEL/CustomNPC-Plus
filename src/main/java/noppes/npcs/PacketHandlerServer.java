@@ -629,7 +629,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TransportSave){
 			int cat = buffer.readInt();
-			TransportLocation location = TransportController.getInstance().saveLocation(cat,Server.readNBT(buffer),player, npc);
+			TransportLocation location = TransportController.getInstance().saveLocation(cat,Server.readNBT(buffer), npc);
 			if(location != null){
 				if(npc.advanced.role != EnumRoleType.Transporter)
 					return;

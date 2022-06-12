@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -17,8 +20,11 @@ import noppes.npcs.controllers.data.TransportCategory;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
+import noppes.npcs.scripted.interfaces.handler.ITransportHandler;
+import noppes.npcs.scripted.interfaces.handler.data.ITransportCategory;
+import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
 
-public class TransportController {
+public class TransportController implements ITransportHandler {
 	private HashMap<Integer,TransportLocation> locations = new HashMap<Integer, TransportLocation>();
 	public HashMap<Integer,TransportCategory> categories = new HashMap<Integer, TransportCategory>();
 
@@ -131,7 +137,7 @@ public class TransportController {
 		
 		return null;
 	}
-	private int getUniqueIdLocation() {
+	public int getUniqueIdLocation() {
 		if(lastUsedID == 0){
 			for(int catid : locations.keySet())
 				if(catid > lastUsedID)
@@ -219,7 +225,27 @@ public class TransportController {
 	public static TransportController getInstance(){
 		return instance;
 	}
-	public TransportLocation saveLocation(int categoryId, NBTTagCompound compound, EntityPlayerMP player, EntityNPCInterface npc){
+
+	public TransportLocation saveLocation(int categoryId, TransportLocation location){
+		TransportCategory category = categories.get(categoryId);
+		if(category == null)
+			return null;
+		location.category = category;
+		if(location.id < 0 || !locations.get(location.id).name.equals(location.name)){
+			while(containsLocationName(location.name))
+				location.name += "_";
+		}
+		if(location.id < 0)
+			location.id = getUniqueIdLocation();
+
+		category.locations.put(location.id, location);
+		locations.put(location.id, location);
+		saveCategories();
+
+		return location;
+	}
+
+	public TransportLocation saveLocation(int categoryId, NBTTagCompound compound, EntityNPCInterface npc){
 		TransportCategory category = categories.get(categoryId);
 		if(category == null || npc.advanced.role != EnumRoleType.Transporter)
 			return null;
@@ -243,4 +269,32 @@ public class TransportController {
 		return location;
 	}
 
+	public ITransportCategory[] categories() {
+		return (new ArrayList<>(categories.values())).toArray(new ITransportCategory[0]);
+	}
+
+	public void createCategory(String title) {
+		this.saveCategory(title, -1);
+	}
+
+	public ITransportCategory getCategory(String title) {
+		TransportCategory category = null;
+		for (TransportCategory c : categories.values()) {
+			if (c.title.equals(title)) {
+				category = c;
+				break;
+			}
+		}
+
+		return category;
+	}
+
+	public void removeCategory(String title) {
+		for (Map.Entry<Integer,TransportCategory> entry : categories.entrySet()) {
+			if (entry.getValue().title.equals(title)) {
+				categories.remove(entry.getKey());
+				break;
+			}
+		}
+	}
 }

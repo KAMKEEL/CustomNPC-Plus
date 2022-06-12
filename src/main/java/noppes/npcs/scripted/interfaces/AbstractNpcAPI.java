@@ -55,6 +55,8 @@ public abstract class AbstractNpcAPI {
 
     public abstract ICloneHandler getClones();
 
+    public abstract ITransportHandler getLocations();
+
     public abstract ICustomNpc createNPC(World var1);
 
     /**
@@ -64,6 +66,8 @@ public abstract class AbstractNpcAPI {
     public abstract ICustomNpc spawnNPC(World var1, int var2, int var3, int var4);
 
     public abstract IEntity getIEntity(Entity var1);
+
+    public abstract IEntity[] getLoadedEntities();
 
     public abstract IBlock getIBlock(World var1, BlockPos var2);
 
@@ -84,6 +88,8 @@ public abstract class AbstractNpcAPI {
     public abstract IWorld[] getIWorlds();
 
     public abstract IDamageSource getIDamageSource(DamageSource var1);
+
+    public abstract IDamageSource getIDamageSource(IEntity entity);
 
     public abstract EventBus events();
 
@@ -136,6 +142,8 @@ public abstract class AbstractNpcAPI {
     public abstract String getRandomName(int dictionary, int gender);
 
     public abstract INbt getINbt(NBTTagCompound nbtTagCompound);
+
+    public abstract INbt stringToNbt(String str);
 
     public abstract IPlayer[] getAllServerPlayers();
 

@@ -3,8 +3,9 @@ package noppes.npcs.scripted.roles;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.scripted.constants.JobType;
+import noppes.npcs.scripted.interfaces.jobs.IJobPuppet;
 
-public class ScriptJobPuppet extends ScriptJobInterface{
+public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	private JobPuppet job;
 	public ScriptJobPuppet(EntityNPCInterface npc){
 		super(npc);
@@ -100,7 +101,7 @@ public class ScriptJobPuppet extends ScriptJobInterface{
 
 	/**
 	 * @since 1.7.10c
-	 * @param type Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
 	 * @param rotation Rotation the of the body part
 	 */
 	public void setRotationY(int part, int rotation){
