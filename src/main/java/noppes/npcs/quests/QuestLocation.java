@@ -47,6 +47,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 	@Override
 	public void handleComplete(EntityPlayer player) {
+		super.handleComplete(player);
 	}
 
 	@Override

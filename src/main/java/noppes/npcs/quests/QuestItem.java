@@ -77,6 +77,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 	}
 	@Override
 	public void handleComplete(EntityPlayer player) {
+		super.handleComplete(player);
 		if(leaveItems)
 			return;
 		for(ItemStack questitem : items.items.values()){

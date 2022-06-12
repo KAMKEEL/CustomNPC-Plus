@@ -74,6 +74,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
 	@Override
 	public void handleComplete(EntityPlayer player) {
+		super.handleComplete(player);
 	}
 
 	@Override
