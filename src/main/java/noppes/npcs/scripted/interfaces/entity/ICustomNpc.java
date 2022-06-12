@@ -7,11 +7,11 @@ package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityCreature;
 import noppes.npcs.scripted.ScriptFaction;
-import noppes.npcs.scripted.interfaces.ISkinOverlay;
+import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.ITimers;
-import noppes.npcs.scripted.roles.*;
+import noppes.npcs.scripted.roles.ScriptJobInterface;
+import noppes.npcs.scripted.roles.ScriptRoleInterface;
 
 public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
@@ -623,7 +623,48 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param canDespawn True if the NPC should naturally despawn. False otherwise.
      */
     void setNaturallyDespawns(boolean canDespawn);
-
+    
+    /**
+     * @return true if this npc was spawned by a player using soulstone
+     */
+    boolean spawnedFromSoulStone();
+    
+    /**
+     * @return the name of the player who spawned this npc using soulstone. null if not spawned by soulstone
+     */
+    String getSoulStonePlayerName();
+    
+    /**
+     * @return true if npc was spawned by soul stone. becomes false after the init function is called.
+     */
+    boolean isSoulStoneInit();
+    
+    /**
+     * @return does this npc refuse to be taken by soul stone 
+     */
+    boolean getRefuseSoulStone();
+    
+    /**
+     * @param refuse set if this npc refuses to be taken by soul stone
+     */
+    void setRefuseSoulStone(boolean refuse);
+    
+    /**
+     * requires SoulStoneFriendlyNPCs in config to be true
+     * -1 by default
+     * if -1, the minimum points are the faction's friendly points
+     * @return the minimum faction points needed to soulstone this npc
+     */
+    int getMinPointsToSoulStone();
+    
+    /**
+     * requires SoulStoneFriendlyNPCs in config to be true
+     * -1 by default
+     * if -1, the minimum points are the faction's friendly points
+     * @param points the minimum faction points needed to soulstone this npc
+     */
+    void setMinPointsToSoulStone(int points);
+    
     /**
      * @param player The player to give the item to
      * @param item The item given to the player

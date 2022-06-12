@@ -53,6 +53,11 @@ public class DataAdvanced {
     public boolean attackOtherFactions = false;
     public boolean defendFaction = false;
 	public boolean disablePitch = false;
+	
+	public String soulStonePlayerName = "";
+	public boolean refuseSoulStone = false;
+	public boolean soulStoneInit = false;
+	public int minFactionPointsToSoulStone = -1;
 
     public DataAdvanced(EntityNPCInterface npc) {
         this.npc = npc;
@@ -84,6 +89,10 @@ public class DataAdvanced {
 
 		compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
 		
+		compound.setBoolean("RefuseSoulStone", refuseSoulStone);
+		compound.setString("SoulStonePlayerName", soulStonePlayerName);
+		compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
+		
         return compound;
     }
 
@@ -114,6 +123,10 @@ public class DataAdvanced {
         factions.readFromNBT(compound.getCompoundTag("FactionPoints"));
 
 		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));	
+		
+		refuseSoulStone = compound.getBoolean("RefuseSoulStone");
+		soulStonePlayerName = compound.getString("SoulStonePlayerName");
+		minFactionPointsToSoulStone = compound.getInteger("MinFactionPointsToSoulStone");
     }
 
 	private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {

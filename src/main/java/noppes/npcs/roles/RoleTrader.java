@@ -118,23 +118,21 @@ public class RoleTrader extends RoleInterface{
 		return false;
 	}
 	
-	public void addPurchase(int slot, EntityPlayer player) {
+	public void addPurchase(int slot, String playerName) {
 		if(slot >= 18 || slot < 0) return;
 		++purchases[slot];
-		++getArrayByName(player.getDisplayName(), playerPurchases)[slot];
+		++getArrayByName(playerName, playerPurchases)[slot];
 	}
 	
-	public boolean isSlotEnabled(int slot, EntityPlayer player) {
+	public boolean isSlotEnabled(int slot, String playerName) {
 		if(slot >= 18 || slot < 0) return false;
 		if (disableSlot[slot] > 0) return false;
-		if (getArrayByName(player.getDisplayName(), playerDisableSlot)[slot] > 0) return false;
-		return true;
+		return getArrayByName(playerName, playerDisableSlot)[slot] <= 0;
 	}
 	
 	public int[] getArrayByName(String name, HashMap<String, int[]> map) {
-		int[] a = map.get(name);
-		if (a == null) a = map.put(name, new int[18]);
-		return a;
+		map.computeIfAbsent(name, k -> new int[18]);
+		return map.get(name);
 	}
 
 }
