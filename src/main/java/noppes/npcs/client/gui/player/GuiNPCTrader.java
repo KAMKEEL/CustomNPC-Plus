@@ -119,7 +119,7 @@ public class GuiNPCTrader extends GuiContainerNPCInterface{
 				}
 				else if (!container.isSlotEnabled(slot, player)) {
 					String title = StatCollector.translateToLocal("trader.slotdisabled");
-					this.fontRendererObj.drawString(title, (xSize - fontRendererObj.getStringWidth(title))/2, 131, 0x00DD00);
+					this.fontRendererObj.drawString(title, (xSize - fontRendererObj.getStringWidth(title))/2, 131, 0xFF4000 );
 				}
 				else{
 		        	String title = StatCollector.translateToLocal("trader.sufficient");

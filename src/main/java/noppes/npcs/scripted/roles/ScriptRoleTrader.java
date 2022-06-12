@@ -1,7 +1,6 @@
 package noppes.npcs.scripted.roles;
 
 import foxz.utils.Market;
-import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.scripted.NpcAPI;
@@ -105,7 +104,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
 
 	public boolean isSlotEnabled(int slot, IPlayer player) {
 		if(slot >= 18 || slot < 0) return false;
-		return role.isSlotEnabled(slot, (EntityPlayer)player.getMCEntity());
+		return role.isSlotEnabled(slot, player.getDisplayName());
 	}
 
 	public void disableSlot(int slot) {
