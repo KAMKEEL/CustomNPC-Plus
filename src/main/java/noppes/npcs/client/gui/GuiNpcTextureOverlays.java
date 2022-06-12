@@ -11,8 +11,7 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiNpcTextureOverlays extends GuiNpcSelectionInterface{
     public GuiNpcTextureOverlays(EntityNPCInterface npc,GuiScreen parent){
-    	//super(npc, parent, npc.display.glowTexture.isEmpty()?"customnpcs:textures/overlays/":npc.display.glowTexture);
-        super(npc, parent, npc.display.skinOverlayData.overlayList.containsKey(0) ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : "");
+        super(npc, parent, npc.display.skinOverlayData.overlayList.containsKey(0) ? !npc.display.skinOverlayData.overlayList.get(0).getTexture().isEmpty() ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : "customnpcs:textures/overlays/" : "customnpcs:textures/overlays/");
         title = "Select Overlay";
     	this.parent = parent;
     }
