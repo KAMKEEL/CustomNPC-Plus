@@ -3,15 +3,19 @@ package noppes.npcs.controllers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.roles.JobItemGiver;
 
 public class GlobalDataController {
 	public static GlobalDataController instance;
 	
 	private int itemGiverId = 0;
+	public HashMap<Integer, JobItemGiver> itemGivers = new HashMap<>();
 	
 	public GlobalDataController(){
 		instance = this;
@@ -37,9 +41,17 @@ public class GlobalDataController {
 			}
 		}
 	}
-	private void loadData(File file) throws Exception{		
+	private void loadData(File file) throws Exception {
         NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
         itemGiverId = nbttagcompound1.getInteger("itemGiverId");
+
+		NBTTagList jobList = nbttagcompound1.getTagList("ItemGivers", 10);
+		for (int i = 0; i < jobList.tagCount(); i++) {
+			NBTTagCompound compound = jobList.getCompoundTagAt(i);
+			JobItemGiver jobItemGiver = new JobItemGiver();
+			jobItemGiver.readFromNBT(compound);
+			itemGivers.put(jobItemGiver.itemGiverId, jobItemGiver);
+		}
 	}
 	public void saveData(){
 		try {
@@ -47,6 +59,14 @@ public class GlobalDataController {
 
 	        NBTTagCompound nbttagcompound = new NBTTagCompound();
 	        nbttagcompound.setInteger("itemGiverId", itemGiverId);
+
+			NBTTagList jobList = new NBTTagList();
+			for (JobItemGiver jobItemGiver : itemGivers.values()) {
+				NBTTagCompound compound = new NBTTagCompound();
+				jobItemGiver.writeToNBT(compound);
+				jobList.appendTag(compound);
+			}
+			nbttagcompound.setTag("ItemGivers", jobList);
 	        
             File file = new File(saveDir, "global.dat_new");
             File file1 = new File(saveDir, "global.dat_old");
@@ -72,7 +92,6 @@ public class GlobalDataController {
 	}
 	public int incrementItemGiverId(){
 		itemGiverId++;
-		saveData();
 		return itemGiverId;
 	}
 }

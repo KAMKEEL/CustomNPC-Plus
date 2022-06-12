@@ -1,15 +1,25 @@
 package noppes.npcs.controllers.data;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.roles.JobItemGiver;
+import noppes.npcs.scripted.interfaces.handler.IPlayerItemGiverData;
+import noppes.npcs.scripted.interfaces.jobs.IJobItemGiver;
+import noppes.npcs.scripted.roles.ScriptJobItemGiver;
 
-public class PlayerItemGiverData{
+public class PlayerItemGiverData implements IPlayerItemGiverData {
+	private final PlayerData parent;
 	private HashMap<Integer, Long> itemgivers = new HashMap<Integer,Long>();
 	private HashMap<Integer, Integer> chained = new HashMap<Integer,Integer>();
-	
+
+	public PlayerItemGiverData(PlayerData parent) {
+		this.parent = parent;
+	}
+
 	public void loadNBTData(NBTTagCompound compound) {
 		chained = NBTTags.getIntegerIntegerMap(compound.getTagList("ItemGiverChained", 10));
 		itemgivers = NBTTags.getIntegerLongMap(compound.getTagList("ItemGiversList", 10));
@@ -36,5 +46,30 @@ public class PlayerItemGiverData{
 	}
 	public void setItemIndex(JobItemGiver jobItemGiver, int i) {
 		chained.put(jobItemGiver.itemGiverId, i);
+	}
+
+	public long getTime(IJobItemGiver jobItemGiver){
+		return itemgivers.get(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId);
+	}
+
+	public void setTime(IJobItemGiver jobItemGiver, long day) {
+		itemgivers.put(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId, day);
+	}
+
+	public boolean hasInteractedBefore(IJobItemGiver jobItemGiver) {
+		return itemgivers.containsKey(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId);
+	}
+
+	public IJobItemGiver[] getItemGivers() {
+		ArrayList<IJobItemGiver> list = new ArrayList<>();
+		for (JobItemGiver jobItemGiver : GlobalDataController.instance.itemGivers.values()) {
+			if (jobItemGiver.npc != null) {
+				list.add(new ScriptJobItemGiver(jobItemGiver.npc));
+			} else {
+				list.add(new ScriptJobItemGiver(jobItemGiver));
+			}
+		}
+
+		return list.toArray(new IJobItemGiver[0]);
 	}
 }

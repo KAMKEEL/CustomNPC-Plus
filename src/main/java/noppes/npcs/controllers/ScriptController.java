@@ -67,7 +67,13 @@ public class ScriptController {
 		for(ScriptEngineFactory fac : manager.getEngineFactories()){
 			if(fac.getExtensions().isEmpty())
 				continue;
-			fac.getScriptEngine();
+			ScriptEngine scriptEngine = fac.getScriptEngine();
+			try {
+				scriptEngine.put("$RunTest",null);
+			} catch (Exception e) {
+				continue;
+			}
+
 			String ext = "." + fac.getExtensions().get(0).toLowerCase();
 			LogWriter.info(fac.getLanguageName() + ": " + ext);
 			languages.put(fac.getLanguageName(), ext);

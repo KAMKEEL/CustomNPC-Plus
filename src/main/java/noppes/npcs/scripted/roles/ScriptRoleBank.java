@@ -2,8 +2,9 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.interfaces.roles.IRoleBank;
 
-public class ScriptRoleBank extends ScriptRoleInterface{
+public class ScriptRoleBank extends ScriptRoleInterface implements IRoleBank {
 
 	public ScriptRoleBank(EntityNPCInterface npc) {
 		super(npc);

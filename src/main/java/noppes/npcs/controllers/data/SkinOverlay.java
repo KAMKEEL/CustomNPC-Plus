@@ -10,6 +10,7 @@ public class SkinOverlay implements ISkinOverlay {
     public ResourceLocation location = null;
     public String texture;
     public boolean glow = true;
+    public boolean blend = false;
     public float alpha = 1.0F;
     public float size = 1.0F;
 
@@ -30,21 +31,6 @@ public class SkinOverlay implements ISkinOverlay {
         this.texture = texture;
     }
 
-    public SkinOverlay(String texture, boolean glow, float alpha, float size, float speedX, float speedY,
-                       float scaleX, float scaleY, float offsetX, float offsetY, float offsetZ) {
-        this.texture = texture;
-        this.glow = glow;
-        this.alpha = alpha;
-        this.size = size;
-        this.speedX = speedX;
-        this.speedY = speedY;
-        this.scaleX = scaleX;
-        this.scaleY = scaleY;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-        this.offsetZ = offsetZ;
-    }
-
     public void setTexture(String texture) {
         this.texture = texture;
         this.updateClient();
@@ -59,6 +45,14 @@ public class SkinOverlay implements ISkinOverlay {
     }
     public boolean getGlow() {
         return glow;
+    }
+
+    public void setBlend(boolean blend) {
+        this.blend = blend;
+        this.updateClient();
+    }
+    public boolean getBlend() {
+        return blend;
     }
 
     public void setAlpha(float alpha) {
@@ -128,6 +122,7 @@ public class SkinOverlay implements ISkinOverlay {
     public void readFromNBT(NBTTagCompound compound) {
         this.texture = compound.getString("SkinOverlayTexture");
         this.glow = compound.getBoolean("SkinOverlayGlow");
+        this.blend = compound.getBoolean("SkinOverlayBlend");
         this.alpha = compound.getFloat("SkinOverlayAlpha");
         this.size = compound.getFloat("SkinOverlaySize");
         this.speedX = compound.getFloat("SkinOverlaySpeedX");
@@ -142,6 +137,7 @@ public class SkinOverlay implements ISkinOverlay {
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString("SkinOverlayTexture", this.getTexture());
         compound.setBoolean("SkinOverlayGlow", this.getGlow());
+        compound.setBoolean("SkinOverlayBlend", this.getBlend());
         compound.setFloat("SkinOverlayAlpha", this.getAlpha());
         compound.setFloat("SkinOverlaySize", this.getSize());
         compound.setFloat("SkinOverlaySpeedX", this.getSpeedX());

@@ -154,10 +154,7 @@ public class PacketHandlerServer{
 					for (Quest quest : category.quests.values()) {
 						if (quest.title.equals(questName)) {
 							PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = quest;
-							NBTTagCompound compound = new NBTTagCompound();
-							compound.setTag("Quest",quest.writeToNBT(new NBTTagCompound()));
-							compound.setString("CategoryName", quest.getCategory().getName());
-							Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+							NoppesUtilPlayer.sendTrackedQuestData(player, quest);
 							return;
 						}
 					}
@@ -632,7 +629,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TransportSave){
 			int cat = buffer.readInt();
-			TransportLocation location = TransportController.getInstance().saveLocation(cat,Server.readNBT(buffer),player, npc);
+			TransportLocation location = TransportController.getInstance().saveLocation(cat,Server.readNBT(buffer), npc);
 			if(location != null){
 				if(npc.advanced.role != EnumRoleType.Transporter)
 					return;

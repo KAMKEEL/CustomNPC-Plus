@@ -41,6 +41,13 @@ public class NPCDataScript implements IScriptHandler {
     public void readFromNBT(NBTTagCompound compound) {
         this.scripts = NBTTags.GetScript(compound.getTagList("Scripts", 10), this);
         this.scriptLanguage = compound.getString("ScriptLanguage");
+        if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
+            if (!ScriptController.Instance.languages.isEmpty()) {
+                this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
+            } else {
+                this.scriptLanguage = "ECMAScript";
+            }
+        }
         this.enabled = compound.getBoolean("ScriptEnabled");
         this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }

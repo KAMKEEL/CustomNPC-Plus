@@ -8,8 +8,9 @@ import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.interfaces.jobs.IJobSpawner;
 
-public class ScriptJobSpawner extends ScriptJobInterface{
+public class ScriptJobSpawner extends ScriptJobInterface implements IJobSpawner {
 	private JobSpawner job;
 	public ScriptJobSpawner(EntityNPCInterface npc){
 		super(npc);

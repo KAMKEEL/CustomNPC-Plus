@@ -45,7 +45,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.setRenderManager(RenderManager.instance);
     }
 
-    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow,
+    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow, boolean blend,
                                      float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
                                      float offsetX, float offsetY, float offsetZ) {
         if (overlayLocation.getResourcePath().isEmpty())
@@ -67,7 +67,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         // Overlay & Glow
         GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        if (blend) {
+            GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+        } else {
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        }
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
         if (glow) {
@@ -127,7 +131,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
 
-                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
+                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                             overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                             overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                             ))
@@ -330,7 +334,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     }
                 }
 
-                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.alpha, overlayData.size,
+                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                         overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                         overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                 ))
@@ -628,7 +632,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         int j = 5095183;
                         h1 = 1.0F;
                         ////renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodycm);
-                        ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"N");
+                        //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"N");
 
                         ////renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodycm);
                         ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
@@ -660,7 +664,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                             short TransFrHrn = ((short[]) JRMCoreH.getField("TransFrHrn").get(null))[st];
 
-                            ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
+                            //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc1);
                             //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
 
@@ -784,7 +788,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                                 }
 
                                 //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,maxBody);
-                                ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,ts != 0 && ts != -1 ? (ts == 1 ? "SJT2" : "") : "SJT1");
+                                //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,ts != 0 && ts != -1 ? (ts == 1 ? "SJT2" : "") : "SJT1");
                             }
 
                             h1 = 1.0F;

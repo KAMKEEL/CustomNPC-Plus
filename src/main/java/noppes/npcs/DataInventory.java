@@ -93,7 +93,9 @@ public class DataInventory implements IInventory{
 		weapons.put(2, item);
 	}
 
-	public void dropStuff(Entity entity, DamageSource damagesource) {
+	public ArrayList<ItemStack> getDroppedItems(DamageSource damagesource) {
+		ArrayList<ItemStack> drops = new ArrayList<>();
+
 		ArrayList<EntityItem> list = new ArrayList<EntityItem>();
 		for (int i : items.keySet()) {
 			ItemStack item = items.get(i);
@@ -109,53 +111,76 @@ public class DataInventory implements IInventory{
 					list.add(e);
 			}
 		}
-		
+		for (EntityItem e : list) {
+			drops.add(e.getEntityItem());
+		}
+
 		int enchant = 0;
-        if (damagesource.getEntity() instanceof EntityPlayer){
-        	enchant = EnchantmentHelper.getLootingModifier((EntityLivingBase)damagesource.getEntity());
-        }
-        
-        if (!net.minecraftforge.common.ForgeHooks.onLivingDrops(npc, damagesource, list, enchant, true, 0)){
-            for (EntityItem item : list){
-            	if(lootMode == 1 && entity instanceof EntityPlayer){
-            		EntityPlayer player = (EntityPlayer)entity;
-            		item.delayBeforeCanPickup = 2;
-            		npc.worldObj.spawnEntityInWorld(item);
-            		ItemStack stack = item.getEntityItem();
-            		int i = stack.stackSize;
+		if (damagesource.getEntity() instanceof EntityPlayer){
+			enchant = EnchantmentHelper.getLootingModifier((EntityLivingBase)damagesource.getEntity());
+		}
 
-            		if (player.inventory.addItemStackToInventory(stack)) {
-            			npc.worldObj.playSoundAtEntity(item,
-            					"random.pop",
-            					0.2F,
-            					((npc.getRNG().nextFloat() - npc.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
-            			player.onItemPickup(item, i);
+		if (!net.minecraftforge.common.ForgeHooks.onLivingDrops(npc, damagesource, list, enchant, true, 0)){
+			return drops;
+		} else {
+			return new ArrayList<>();
+		}
+	}
 
-            			if (stack.stackSize <= 0) {
-            				item.setDead();
-            			}
-            		}
-            	}
-            	else
-            		npc.worldObj.spawnEntityInWorld(item);
-            }
-        }
-		
-		int var1 = minExp;
+	public int getDroppedXp() {
+		int droppedXp = minExp;
 		if (maxExp - minExp > 0)
-			var1 += npc.worldObj.rand.nextInt(maxExp - minExp);
+			droppedXp += npc.worldObj.rand.nextInt(maxExp - minExp);
 
-        while (var1 > 0){
-            int var2 = EntityXPOrb.getXPSplit(var1);
-            var1 -= var2;
-            if(lootMode == 1 && entity instanceof EntityPlayer){
-                npc.worldObj.spawnEntityInWorld(new EntityXPOrb(entity.worldObj, entity.posX, entity.posY, entity.posZ, var2));
-            }
-            else{
-                npc.worldObj.spawnEntityInWorld(new EntityXPOrb(npc.worldObj, npc.posX, npc.posY, npc.posZ, var2));
-            }
-        }
-		
+		return droppedXp;
+	}
+
+	public void dropXp(Entity entity, int droppedXp) {
+		while (droppedXp > 0){
+			int var2 = EntityXPOrb.getXPSplit(droppedXp);
+			droppedXp -= var2;
+			if(lootMode == 1 && entity instanceof EntityPlayer){
+				npc.worldObj.spawnEntityInWorld(new EntityXPOrb(entity.worldObj, entity.posX, entity.posY, entity.posZ, var2));
+			}
+			else{
+				npc.worldObj.spawnEntityInWorld(new EntityXPOrb(npc.worldObj, npc.posX, npc.posY, npc.posZ, var2));
+			}
+		}
+	}
+
+	public void dropItems(Entity entity, ArrayList<ItemStack> itemList) {
+		ArrayList<EntityItem> list = new ArrayList<EntityItem>();
+		for (ItemStack item : itemList) {
+			if(item == null)
+				continue;
+			EntityItem e = getEntityItem(item.copy());
+			if(e != null)
+				list.add(e);
+		}
+
+		for (EntityItem item : list){
+			if(lootMode == 1 && entity instanceof EntityPlayer){
+				EntityPlayer player = (EntityPlayer)entity;
+				item.delayBeforeCanPickup = 2;
+				npc.worldObj.spawnEntityInWorld(item);
+				ItemStack stack = item.getEntityItem();
+				int i = stack.stackSize;
+
+				if (player.inventory.addItemStackToInventory(stack)) {
+					npc.worldObj.playSoundAtEntity(item,
+							"random.pop",
+							0.2F,
+							((npc.getRNG().nextFloat() - npc.getRNG().nextFloat()) * 0.7F + 1.0F) * 2.0F);
+					player.onItemPickup(item, i);
+
+					if (stack.stackSize <= 0) {
+						item.setDead();
+					}
+				}
+			}
+			else
+				npc.worldObj.spawnEntityInWorld(item);
+		}
 	}
 	
 	public EntityItem getEntityItem(ItemStack itemstack) {

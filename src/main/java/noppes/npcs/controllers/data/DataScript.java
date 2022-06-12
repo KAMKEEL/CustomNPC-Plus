@@ -1,4 +1,4 @@
-package noppes.npcs;
+package noppes.npcs.controllers.data;
 
 import java.util.*;
 
@@ -10,13 +10,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.EventHooks;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.entity.ScriptNpc;
-import noppes.npcs.scripted.event.ScriptEvent;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
@@ -58,7 +58,14 @@ public class DataScript implements IScriptHandler {
 
 	public void readFromNBT(NBTTagCompound compound) {
 		scripts = readScript(compound.getTagList("ScriptsContainers", 10));
-		scriptLanguage = compound.getString("ScriptLanguage");
+		this.scriptLanguage = compound.getString("ScriptLanguage");
+		if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
+			if (!ScriptController.Instance.languages.isEmpty()) {
+				this.scriptLanguage = (String) ScriptController.Instance.languages.keySet().toArray()[0];
+			} else {
+				this.scriptLanguage = "ECMAScript";
+			}
+		}
 		enabled = compound.getBoolean("ScriptEnabled");
 	}
 
@@ -97,7 +104,7 @@ public class DataScript implements IScriptHandler {
 		return list;
 	}
 
-	public boolean callScript(EnumScriptType type, Object... obs){
+	public boolean callScript(EnumScriptType type, Event event, Object... obs){
 		if(aiNeedsUpdate){
 			npc.updateAI = true;
 			aiNeedsUpdate = false;
@@ -108,10 +115,9 @@ public class DataScript implements IScriptHandler {
 		}
 		if(!isEnabled())
 			return false;
-		if(!hasInited){
+		if(!hasInited && !npc.isRemote() && type != EnumScriptType.INIT){
 			hasInited = true;
 			EventHooks.onNPCInit(this.npc);
-			callScript(EnumScriptType.INIT);
 		}
 		ScriptContainer script = scripts.get(type.ordinal());
 		if(script == null || script.errored || !script.hasCode())
@@ -126,16 +132,14 @@ public class DataScript implements IScriptHandler {
 			script.engine.put(obs[i].toString(), ob);
 		}
 
-		return callScript(script);
+		return callScript(script, event);
 	}
 
-	private boolean callScript(ScriptContainer script){
+	private boolean callScript(ScriptContainer script, Event event){
 		ScriptEngine engine = script.engine;
 		engine.put("npc", dummyNpc);
 		engine.put("world", dummyWorld);
-		ScriptEvent result = (ScriptEvent) engine.get("event");
-		if(result == null)
-			engine.put("event", result = new ScriptEvent());
+		engine.put("event", event);
 		engine.put("API", new NpcAPI());
 		engine.put("EntityType", entities);
 		engine.put("RoleType", roles);
@@ -150,15 +154,11 @@ public class DataScript implements IScriptHandler {
 			npc.updateAI = true;
 			aiNeedsUpdate = false;
 		}
-		return result.isCancelled();
+		return event.isCanceled();
 	}
 	
 	public boolean isEnabled(){
 		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
-	}
-
-	public void callScript(EnumScriptType var1, Event var2, Object... obs) {
-
 	}
 
 	public Map<Long, String> getConsoleText() {
@@ -192,7 +192,7 @@ public class DataScript implements IScriptHandler {
 
 	@Override
 	public void callScript(EnumScriptType var1, Event var2) {
-
+		callScript(var1, var2, "$$IGNORED$$", null);
 	}
 
 	public boolean isClient() {

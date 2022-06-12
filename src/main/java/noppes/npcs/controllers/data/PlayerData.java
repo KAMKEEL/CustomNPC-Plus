@@ -15,19 +15,23 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.scripted.interfaces.handler.*;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 
-public class PlayerData implements IExtendedEntityProperties{
-	public PlayerDialogData dialogData = new PlayerDialogData();
-	public PlayerBankData bankData = new PlayerBankData();
-	public PlayerQuestData questData = new PlayerQuestData();
-	public PlayerTransportData transportData = new PlayerTransportData();
-	public PlayerFactionData factionData = new PlayerFactionData();
-	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData();
-	public PlayerMailData mailData = new PlayerMailData();
+public class PlayerData implements IExtendedEntityProperties, IPlayerData {
+	public PlayerDialogData dialogData = new PlayerDialogData(this);
+	public PlayerBankData bankData = new PlayerBankData(this);
+	public PlayerQuestData questData = new PlayerQuestData(this);
+	public PlayerTransportData transportData = new PlayerTransportData(this);
+	public PlayerFactionData factionData = new PlayerFactionData(this);
+	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
+	public PlayerMailData mailData = new PlayerMailData(this);
+
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
 
@@ -244,5 +248,49 @@ public class PlayerData implements IExtendedEntityProperties{
 
 			return data;
 		}
+	}
+
+	public void setCompanion(ICustomNpc npc) {
+		this.setCompanion((EntityNPCInterface) npc.getMCEntity());
+	}
+
+	public ICustomNpc getCompanion() {
+		return (ICustomNpc) NpcAPI.Instance().getIEntity(activeCompanion);
+	}
+
+	public int getCompanionID() {
+		return companionID;
+	}
+
+	public IPlayerDialogData getDialogData() {
+		return dialogData;
+	}
+
+	public IPlayerBankData getBankData() {
+		return bankData;
+	}
+
+	public IPlayerQuestData getQuestData() {
+		return questData;
+	}
+
+	public IPlayerTransportData getTransportData() {
+		return transportData;
+	}
+
+	public IPlayerFactionData getFactionData() {
+		return factionData;
+	}
+
+	public IPlayerItemGiverData getItemGiverData() {
+		return itemgiverData;
+	}
+
+	public IPlayerMailData getMailData() {
+		return mailData;
+	}
+
+	public void save() {
+		PlayerDataController.instance.savePlayerData(this);
 	}
 }

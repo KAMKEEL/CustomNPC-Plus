@@ -243,7 +243,11 @@ public class RenderNPCInterface extends RenderLiving{
 
 					// Overlay & Glow
 					GL11.glEnable(GL11.GL_BLEND);
-					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					if (overlayData.getBlend()) {
+						GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+					} else {
+						GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					}
 					GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
 					if (overlayData.getGlow()) {
@@ -309,11 +313,16 @@ public class RenderNPCInterface extends RenderLiving{
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
 		if (npc.textureLocation == null) {
 			if (npc.display.skinType == 0) {
-				if (!(npc.display.texture).equals("")) {
-					//npc.textureLocation = new ResourceLocation(npc.display.texture);
-					try {
-						npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
-					} catch (IOException ignored) {}
+				if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
+					if (!(npc.display.texture).equals("")) {
+						//npc.textureLocation = new ResourceLocation(npc.display.texture);
+						try {
+							npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
+						} catch (IOException ignored) {
+						}
+					}
+				} else {
+					npc.textureLocation = new ResourceLocation(npc.display.texture);
 				}
 			} else if(LastTextureTick < 5) { //fixes request flood somewhat
 				return AbstractClientPlayer.locationStevePng;

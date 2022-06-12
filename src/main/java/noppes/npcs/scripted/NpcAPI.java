@@ -6,6 +6,7 @@
 package noppes.npcs.scripted;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,10 @@ public class NpcAPI extends AbstractNpcAPI {
         worldCache.clear();
     }
 
+    public void stopServer() {
+        CustomNpcs.getServer().stopServer();
+    }
+
     public IFactionHandler getFactions() {
         this.checkWorld();
         return FactionController.getInstance();
@@ -87,6 +92,10 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public ICloneHandler getClones() {
         return ServerCloneController.Instance;
+    }
+
+    public ITransportHandler getLocations() {
+        return TransportController.getInstance();
     }
 
     public IEntity getIEntity(Entity entity) {
@@ -115,6 +124,18 @@ public class NpcAPI extends AbstractNpcAPI {
             entity.registerExtendedProperties("ScriptedObject", data);
             return data.base;
         }
+    }
+
+    public IEntity[] getLoadedEntities() {
+        ArrayList<IEntity> list = new ArrayList<>();
+
+        for (IWorld world : worldCache.values()) {
+            for (Object obj : world.getMCWorld().loadedEntityList) {
+                list.add(NpcAPI.Instance().getIEntity((Entity) obj));
+            }
+        }
+
+        return list.toArray(new IEntity[0]);
     }
 
     public IBlock getIBlock(World world, BlockPos pos) {
@@ -203,13 +224,13 @@ public class NpcAPI extends AbstractNpcAPI {
         return getIItemStack(new ItemStack(item, size, damage));
     }
 
-    public IWorld getIWorld(WorldServer world) {
-        ScriptWorld w = (ScriptWorld)worldCache.get(world.provider.dimensionId);
+    public IWorld getIWorld(World world) {
+        ScriptWorld w = worldCache.get(world.provider.dimensionId);
         if (w != null) {
-            w.world = world;
+            w.world.provider.dimensionId = world.provider.dimensionId;
             return w;
         } else {
-            worldCache.put(world.provider.dimensionId, w = ScriptWorld.createNew(world));
+            worldCache.put(world.provider.dimensionId, w = ScriptWorld.createNew(world.provider.dimensionId));
             return w;
         }
     }

@@ -39,19 +39,10 @@ public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiList
 
 		addButton(new GuiNpcButton(10, guiLeft + 120, y += 22, 50, 20, "selectServer.edit"));
 		addLabel(new GuiNpcLabel(10, "advMode.command", guiLeft + 4, y + 5));
-
-		addButton(new GuiNpcButtonYesNo(11, guiLeft + 120, y += 22, dialog.hideNPC));
-		addLabel(new GuiNpcLabel(11, "dialog.hideNPC", guiLeft + 4, y + 5));
-
-		addButton(new GuiNpcButtonYesNo(12, guiLeft + 120, y += 22, dialog.showWheel));
-		addLabel(new GuiNpcLabel(12, "dialog.showWheel", guiLeft + 4, y + 5));
 		
 		addButton(new GuiNpcButtonYesNo(15, guiLeft + 120, y += 22, dialog.disableEsc));
 		addLabel(new GuiNpcLabel(15, "dialog.disableEsc", guiLeft + 4, y + 5));
 
-		addButton(new GuiNpcButtonYesNo(16, guiLeft + 120, y += 22, dialog.darkenScreen));
-		addLabel(new GuiNpcLabel(16, "Darken Screen", guiLeft + 4, y + 5));
-    	
     	this.addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 192,98, 20, "gui.done"));
     	
     }
@@ -63,18 +54,9 @@ public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiList
     	if(button.id == 10){
     		setSubGui(new SubGuiNpcCommand(dialog.command));
     	}
-    	if(button.id == 11){
-    		dialog.hideNPC = button.getValue() == 1;
-    	}
-    	if(button.id == 12){
-    		dialog.showWheel = button.getValue() == 1;
-    	}
     	if(button.id == 15){
     		dialog.disableEsc = button.getValue() == 1;
     	}
-		if(button.id == 16){
-			dialog.darkenScreen = button.getValue() == 1;
-		}
     	if(button.id == 13){
 			setSubGui(new SubGuiMailmanSendSetup(dialog.mail, getParent()));
     	}

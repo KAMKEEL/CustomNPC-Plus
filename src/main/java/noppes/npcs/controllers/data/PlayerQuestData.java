@@ -1,12 +1,15 @@
 package noppes.npcs.controllers.data;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
@@ -15,14 +18,20 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
+import noppes.npcs.scripted.interfaces.handler.IPlayerQuestData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 
-public class PlayerQuestData {
+public class PlayerQuestData implements IPlayerQuestData {
+	private final PlayerData parent;
 	public IQuest trackedQuest = null;
 
 	public HashMap<Integer,QuestData> activeQuests = new HashMap<Integer,QuestData>();
 	public HashMap<Integer,Long> finishedQuests = new HashMap<Integer,Long>();
-	
+
+	public PlayerQuestData(PlayerData parent) {
+		this.parent = parent;
+	}
+
 	public void loadNBTData(NBTTagCompound mainCompound) {
 		if(mainCompound == null)
 			return;
@@ -107,9 +116,10 @@ public class PlayerQuestData {
 		for(QuestData data : this.activeQuests.values()){
 			if(data.quest.type != type && type != null)
 				continue;
-			
-			QuestInterface inter =  data.quest.questInterface;
 
+			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player,data.quest);
+
+			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if(!data.isCompleted){
 					if(!data.quest.complete(player,data)){
@@ -127,5 +137,76 @@ public class PlayerQuestData {
 		return bo;
 		
 	}
-	
+
+	public IQuest getTrackedQuest() {
+		return trackedQuest;
+	}
+
+	public void startQuest(int id) {
+		Quest quest = QuestController.instance.quests.get(id);
+		if (quest == null)
+			return;
+		if(activeQuests.containsKey(id))
+			return;
+		QuestData questdata = new QuestData(quest);
+		activeQuests.put(id, questdata);
+		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
+		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+	}
+
+	public void finishQuest(int id) {
+		Quest quest = QuestController.instance.quests.get(id);
+		if (quest == null)
+			return;
+		finishedQuests.put(id, System.currentTimeMillis());
+	}
+
+	public void stopQuest(int id) {
+		Quest quest = QuestController.instance.quests.get(id);
+		if (quest == null)
+			return;
+		activeQuests.remove(id);
+	}
+
+	public void removeQuest(int id) {
+		Quest quest = QuestController.instance.quests.get(id);
+		if (quest == null)
+			return;
+		activeQuests.remove(id);
+		finishedQuests.remove(id);
+	}
+
+	public boolean hasFinishedQuest(int id){
+		return finishedQuests.containsKey(id);
+	}
+
+	public boolean hasActiveQuest(int id){
+		return activeQuests.containsKey(id);
+	}
+
+	public IQuest[] getActiveQuests() {
+		List<IQuest> quests = new ArrayList<>();
+
+		for (int id : activeQuests.keySet()) {
+			IQuest quest = (IQuest) QuestController.instance.quests.get(id);
+			if (quest != null) {
+				quests.add(quest);
+			}
+		}
+
+		return (IQuest[])quests.toArray(new IQuest[0]);
+	}
+
+	public IQuest[] getFinishedQuests() {
+		List<IQuest> quests = new ArrayList<>();
+
+		for (int id : finishedQuests.keySet()) {
+			IQuest quest = (IQuest) QuestController.instance.quests.get(id);
+			if (quest != null) {
+				quests.add(quest);
+			}
+		}
+
+		return (IQuest[])quests.toArray(new IQuest[0]);
+	}
 }

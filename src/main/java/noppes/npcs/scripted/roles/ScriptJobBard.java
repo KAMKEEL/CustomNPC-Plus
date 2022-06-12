@@ -3,8 +3,9 @@ package noppes.npcs.scripted.roles;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobBard;
 import noppes.npcs.scripted.constants.JobType;
+import noppes.npcs.scripted.interfaces.jobs.IJobBard;
 
-public class ScriptJobBard extends ScriptJobInterface{
+public class ScriptJobBard extends ScriptJobInterface implements IJobBard {
 	private JobBard job;
 	public ScriptJobBard(EntityNPCInterface npc){
 		super(npc);
