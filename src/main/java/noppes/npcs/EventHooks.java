@@ -123,6 +123,7 @@ public class EventHooks {
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.INIT, event);
         npc.script.callScript(EnumScriptType.INIT, event);
         NpcAPI.EVENT_BUS.post(event);
+        npc.advanced.soulStoneInit = false;
     }
 
     public static void onNPCUpdate(EntityNPCInterface npc) {
