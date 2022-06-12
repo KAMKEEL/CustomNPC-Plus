@@ -27,6 +27,7 @@ import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerData;
@@ -42,22 +43,29 @@ public class ScriptPlayerEventHandler {
     }
     @SubscribeEvent
     public void onServerTick(TickEvent.PlayerTickEvent event) {
-        if(event.player == null || event.player.worldObj == null)
+        if (event.player == null || event.player.worldObj == null)
             return;
 
-        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
+        if (event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
 
-            if(player.ticksExisted%10 == 0) {
+            if (player.ticksExisted%10 == 0) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
                 EventHooks.onPlayerTick(handler, scriptPlayer);
             }
 
-            PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-            if(PlayerDataController.instance != null) {
-                if(playerData.timers.size() > 0)
+            if (PlayerDataController.instance != null) {
+                PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+
+                if (playerData.timers.size() > 0) {
                     playerData.timers.update();
+                }
+
+                if (playerData.questData.trackedQuest != null && !playerData.questData.activeQuests.containsKey(playerData.questData.trackedQuest.getId())) {
+                    PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
+                    Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+                }
             }
         }
     }
