@@ -37,7 +37,7 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public void cancelSpecials(RenderPlayerEvent.Specials.Pre event) {
+    public void cancelSpecials(RenderPlayerEvent.Specials event) {
         if (event.renderer instanceof RenderCNPCPlayer)
             event.setCanceled(true);
     }

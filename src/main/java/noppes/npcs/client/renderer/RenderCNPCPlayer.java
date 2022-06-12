@@ -632,7 +632,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         int j = 5095183;
                         h1 = 1.0F;
                         ////renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodycm);
-                        ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"N");
+                        //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"N");
 
                         ////renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodycm);
                         ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
@@ -664,7 +664,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                             short TransFrHrn = ((short[]) JRMCoreH.getField("TransFrHrn").get(null))[st];
 
-                            ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
+                            //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
                             //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,bodyc1);
                             //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,(ts == 4 ? "n" : "") + "FR" + TransFrHrn);
 
@@ -788,7 +788,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                                 }
 
                                 //renderPlayerJBRA.getMethod("glColor3f",int.class).invoke(null,maxBody);
-                                ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,ts != 0 && ts != -1 ? (ts == 1 ? "SJT2" : "") : "SJT1");
+                                //ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,ts != 0 && ts != -1 ? (ts == 1 ? "SJT2" : "") : "SJT1");
                             }
 
                             h1 = 1.0F;
