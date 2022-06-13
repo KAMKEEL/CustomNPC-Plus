@@ -474,6 +474,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.swingPlayerArm(player);
 	}
 
+	public void disableMouseInput(long time, int... buttonIds) {
+		NoppesUtilPlayer.disableMouseInput(player ,time, buttonIds);
+	}
+
 	public void stopUsingItem(){
 		player.stopUsingItem();
 	}

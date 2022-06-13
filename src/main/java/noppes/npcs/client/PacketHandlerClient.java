@@ -288,5 +288,20 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			NBTTagCompound compound = Server.readNBT(buffer);
 			NoppesUtil.updateSkinOverlayData(sendingPlayer, compound);
 		}
+		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {
+			long length = buffer.readLong();
+			try {
+				String parsedButtons = Server.readString(buffer);
+				if (parsedButtons == null || parsedButtons.isEmpty()) {
+					ClientEventHandler.disabledButtonTimes.put(-1, length);
+					return;
+				}
+
+				String[] splitIds = parsedButtons.split(";");
+				for (String s : splitIds) {
+					ClientEventHandler.disabledButtonTimes.put(Integer.parseInt(s), length);
+				}
+			} catch (Exception ignored) {}
+		}
 	}
 }

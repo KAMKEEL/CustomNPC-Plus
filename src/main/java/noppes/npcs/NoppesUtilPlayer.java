@@ -129,6 +129,18 @@ public class NoppesUtilPlayer {
 		player.worldObj.updateEntityWithOptionalForce(player, false);
 	}
 
+	public static void disableMouseInput(EntityPlayerMP player, long time, int... buttonIds) {
+		StringBuilder stringedIds = new StringBuilder();
+		for (int i = 0; i < buttonIds.length; i++) {
+			stringedIds.append(i);
+			if (i < buttonIds.length - 1) {
+				stringedIds.append(";");
+			}
+		}
+
+		Server.sendData(player, EnumPacketClient.DISABLE_MOUSE_INPUT, time, stringedIds.toString());
+	}
+
 	public static void swingPlayerArm(EntityPlayerMP player){
 		Server.sendData(player, EnumPacketClient.SWING_PLAYER_ARM);
 	}

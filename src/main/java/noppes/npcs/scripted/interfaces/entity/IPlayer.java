@@ -177,6 +177,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void setRotation(float rotationYaw, float rotationPitch);
 
+    void disableMouseInput(long time, int... buttonIds);
+
     void stopUsingItem();
 
     void clearItemInUse();
