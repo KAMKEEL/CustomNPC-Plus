@@ -2,6 +2,7 @@ package noppes.npcs.client.renderer;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelBiped;
@@ -9,6 +10,7 @@ import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.Entity;
@@ -149,11 +151,15 @@ public class RenderCNPCPlayer extends RenderPlayer {
             }
         }
     }
+
+    protected int shouldRenderPass(AbstractClientPlayer p_77032_1_, int p_77032_2_, float p_77032_3_)
+    {
+        return -1;
+    }
     
     public void renderHand(float partialTicks, int renderPass) {
         Minecraft mc = Minecraft.getMinecraft();
         EntityRenderer entityRenderer = mc.entityRenderer;
-        EntityClientPlayerMP player = mc.thePlayer;
 
         if (entityRenderer.debugViewDirection <= 0)
         {

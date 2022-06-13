@@ -1,5 +1,6 @@
 package noppes.npcs.client;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.client.Minecraft;
@@ -37,15 +38,10 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public void cancelSpecials(RenderPlayerEvent.Specials event) {
-        if (event.renderer instanceof RenderCNPCPlayer)
+    public void cancelSpecials(RenderPlayerEvent.Specials.Pre event) {
+        if (event.renderer instanceof RenderCNPCPlayer) {
             event.setCanceled(true);
-    }
-
-    @SubscribeEvent
-    public void cancelSpecials(RenderPlayerEvent.SetArmorModel event) {
-        if (event.renderer instanceof RenderCNPCPlayer && event.stack != null && event.stack.getItem() instanceof ItemArmor)
-            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
