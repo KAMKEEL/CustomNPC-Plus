@@ -18,6 +18,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
+import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.interfaces.handler.IPlayerQuestData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 
@@ -122,7 +123,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if(!data.isCompleted){
-					if(!data.quest.complete(player,data)){
+					if(!data.quest.complete(player,data) || data.quest.completeText.isEmpty()){
 						Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.completed", data.quest.title);
 						Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.completed",": ",data.quest.title);
 					}
@@ -134,6 +135,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 			else
 				data.isCompleted = false;
 		}
+		QuestItem.pickedUp = null;
 		return bo;
 		
 	}

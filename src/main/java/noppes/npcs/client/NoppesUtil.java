@@ -302,10 +302,9 @@ public class NoppesUtil {
 	public static void guiQuestCompletion(EntityPlayer player, NBTTagCompound read) {
 		Quest quest = new Quest();
 		quest.readNBT(read);
-		if (!quest.completeText.equals(""))
+		if (!quest.completeText.isEmpty()) {
 			NoppesUtil.openGUI(player, new GuiQuestCompletion(quest));
-		else
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestCompletion, quest.id);
+		}
 	}
 	
 	public static void openDialog(NBTTagCompound compound, EntityNPCInterface npc, EntityPlayer player){

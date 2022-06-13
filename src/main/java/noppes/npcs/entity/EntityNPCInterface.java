@@ -384,6 +384,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
 		QuestData data = playerdata.getQuestCompletion(player, this);
 		if (data != null){
+			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
 		}
 		else if (dialog != null){
