@@ -68,7 +68,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public void stopServer() {
-        CustomNpcs.getServer().stopServer();
+        CustomNpcs.getServer().initiateShutdown();
     }
 
     public IFactionHandler getFactions() {
