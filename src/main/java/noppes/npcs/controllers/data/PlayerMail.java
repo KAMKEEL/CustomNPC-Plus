@@ -5,10 +5,17 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.handler.data.IPlayerMail;
+import noppes.npcs.scripted.interfaces.handler.data.IQuest;
+import noppes.npcs.scripted.interfaces.item.IItemStack;
 
-public class PlayerMail implements IInventory{
+import java.util.ArrayList;
+
+public class PlayerMail implements IInventory, IPlayerMail {
 	public String subject = "";
 	public String sender = "";
 	public NBTTagCompound message = new NBTTagCompound();
@@ -201,5 +208,100 @@ public class PlayerMail implements IInventory{
 		PlayerMail mail = new PlayerMail();
 		mail.readNBT(writeNBT());
 		return mail;
+	}
+
+	public void setPageText(String[] pages) {
+		NBTTagList bookPages = new NBTTagList();
+		for (String text : pages) {
+			bookPages.appendTag(new NBTTagString(text));
+		}
+
+		message.setTag("pages", bookPages);
+	}
+
+	public String[] getPageText() {
+		NBTTagList bookPages = new NBTTagList();
+
+		if(message.hasKey("pages"))
+			bookPages = message.getTagList("pages", 8);
+
+		if (bookPages != null)
+		{
+			bookPages = (NBTTagList)bookPages.copy();
+			ArrayList<String> pageStrings = new ArrayList<>();
+
+			for (int i = 0; i < bookPages.tagCount(); i++) {
+				pageStrings.add(bookPages.getStringTagAt(i));
+			}
+
+			return pageStrings.toArray(new String[0]);
+		} else {
+			return new String[]{""};
+		}
+	}
+
+	public int getPageCount() {
+		NBTTagList bookPages = new NBTTagList();
+
+		if(message.hasKey("pages"))
+			bookPages = message.getTagList("pages", 8);
+
+		int bookTotalPages = 0;
+		if (bookPages != null)
+		{
+			bookPages = (NBTTagList)bookPages.copy();
+			bookTotalPages = bookPages.tagCount();
+
+			if (bookTotalPages < 1)
+			{
+				bookTotalPages = 1;
+			}
+
+			return bookTotalPages;
+		}
+
+		return 0;
+	}
+
+	public void setSender(String sender) {
+		this.sender = sender;
+	}
+
+	public String getSender() {
+		return sender;
+	}
+
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+
+	public String getSubject() {
+		return subject;
+	}
+
+	public long getTimePast() {
+		return timePast;
+	}
+
+	public long getTimeSent() {
+		return time;
+	}
+
+	public IItemStack[] getItems() {
+		ArrayList<IItemStack> list = new ArrayList<>();
+		for (ItemStack itemStack : items) {
+			list.add(NpcAPI.Instance().getIItemStack(itemStack));
+		}
+
+		return list.toArray(new IItemStack[0]);
+	}
+
+	public void setItems(IItemStack[] items) {
+		ArrayList<ItemStack> list = new ArrayList<>();
+		for (IItemStack itemStack : items) {
+			list.add(itemStack.getMCItemStack());
+		}
+
+		this.items = list.toArray(new ItemStack[0]);
 	}
 }

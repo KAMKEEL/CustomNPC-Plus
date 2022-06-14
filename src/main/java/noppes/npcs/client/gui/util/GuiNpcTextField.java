@@ -43,6 +43,10 @@ public class GuiNpcTextField extends GuiTextField{
 	private boolean charAllowed(char c, int i){
 		if(!integersOnly || Character.isDigit(c))
 			return true;
+
+		if(integersOnly && getText().isEmpty() && c == '-')
+			return true;
+
 		for(int j : allowedSpecialChars)
 			if(j == i)
 				return true;

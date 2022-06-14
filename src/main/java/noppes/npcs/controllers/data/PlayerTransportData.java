@@ -1,12 +1,21 @@
 package noppes.npcs.controllers.data;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.controllers.TransportController;
+import noppes.npcs.scripted.interfaces.handler.IPlayerTransportData;
+import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
 
-public class PlayerTransportData{
+public class PlayerTransportData implements IPlayerTransportData {
+	private final PlayerData parent;
 	public HashSet<Integer> transports = new HashSet<Integer>();
+
+	public PlayerTransportData(PlayerData parent) {
+		this.parent = parent;
+	}
 
 	public void loadNBTData(NBTTagCompound compound) {
 		HashSet<Integer> dialogsRead = new HashSet<Integer>();
@@ -35,5 +44,34 @@ public class PlayerTransportData{
 		
 		compound.setTag("TransportData", list);
 	}
-	
+
+	public boolean hasTransport(int id) {
+		return transports.contains(id);
+	}
+
+	public void addTransport(int id) {
+		transports.add(id);
+	}
+
+	public void addTransport(ITransportLocation location) {
+		transports.add(location.getId());
+	}
+
+	public ITransportLocation getTransport(int id) {
+		return TransportController.getInstance().getTransport(id);
+	}
+
+	public ITransportLocation[] getTransports() {
+		ArrayList<ITransportLocation> list = new ArrayList<>();
+		for (int id : transports) {
+			ITransportLocation location = TransportController.getInstance().getTransport(id);
+			list.add(location);
+		}
+
+		return list.toArray(new ITransportLocation[0]);
+	}
+
+	public void removeTransport(int id) {
+		transports.remove(id);
+	}
 }

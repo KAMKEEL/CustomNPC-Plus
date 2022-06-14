@@ -41,7 +41,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
 	@Override
 	public void handleComplete(EntityPlayer player) {
-		
+		super.handleComplete(player);
 	}
 
 	@Override

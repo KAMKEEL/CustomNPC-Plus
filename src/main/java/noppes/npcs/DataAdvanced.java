@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.FactionOptions;
 import noppes.npcs.controllers.data.Line;
@@ -208,8 +209,25 @@ public class DataAdvanced {
             npc.jobInterface = new JobHealer(npc);
         else if (job == EnumJobType.Guard && !(npc.jobInterface instanceof JobGuard)) 
             npc.jobInterface = new JobGuard(npc);
-        else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver)) 
-            npc.jobInterface = new JobItemGiver(npc);
+        else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver)) {
+            if (!npc.isRemote()) {
+                if (npc.itemGiverId > 0 && GlobalDataController.instance.itemGivers.containsKey(npc.itemGiverId)) {
+                    GlobalDataController.instance.itemGivers.get(npc.itemGiverId).npc = npc;
+                    npc.jobInterface = GlobalDataController.instance.itemGivers.get(npc.itemGiverId);
+                } else {
+                    npc.jobInterface = new JobItemGiver(npc);
+                    if (npc.itemGiverId == -1) {
+                        ((JobItemGiver) npc.jobInterface).itemGiverId = GlobalDataController.instance.incrementItemGiverId();
+                    } else {
+                        ((JobItemGiver) npc.jobInterface).itemGiverId = npc.itemGiverId;
+                    }
+                    GlobalDataController.instance.itemGivers.put(((JobItemGiver) npc.jobInterface).itemGiverId, (JobItemGiver) npc.jobInterface);
+                    npc.itemGiverId = ((JobItemGiver) npc.jobInterface).itemGiverId;
+                }
+            } else {
+                npc.jobInterface = new JobItemGiver(npc);
+            }
+        }
         else if (job == EnumJobType.Follower && !(npc.jobInterface instanceof JobFollower)) 
             npc.jobInterface = new JobFollower(npc);
         else if (job == EnumJobType.Spawner && !(npc.jobInterface instanceof JobSpawner)) 

@@ -63,7 +63,6 @@ public class GuiQuestCompletion extends GuiNPCInterface implements ITopButtonLis
 	protected void actionPerformed(GuiButton guibutton)
     {
 		if(guibutton.id == 0){
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestCompletion, quest.id);
 			close();
 		}
     }
@@ -81,7 +80,7 @@ public class GuiQuestCompletion extends GuiNPCInterface implements ITopButtonLis
     }
 	@Override
 	public void save() {
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestCompletion, quest.id);
+
 	}
 
 }

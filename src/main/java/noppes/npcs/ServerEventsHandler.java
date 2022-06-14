@@ -40,6 +40,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
+import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.roles.RoleFollower;
 
@@ -345,6 +346,7 @@ public class ServerEventsHandler {
 			return;
 		PlayerData playerData = PlayerDataController.instance.getPlayerData(event.entityPlayer);
 		PlayerQuestData questData = playerData.questData;
+		QuestItem.pickedUp = event.item.getEntityItem();
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 

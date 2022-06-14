@@ -37,6 +37,12 @@ public class RenderNPCHumanMale extends RenderNPCInterface
     protected final static ModelMPM steve64 = new ModelMPM(0, false);
     protected final static ModelMPM alex = new ModelMPM(0, true);
 
+    protected final static ModelMPM steveArmorChest = new ModelMPM(1,0);
+    protected final static ModelMPM steveArmor = new ModelMPM(0.5F,0);
+
+    protected final static ModelMPM alex32armorChest = new ModelMPM(1,1);
+    protected final static ModelMPM alex32armor = new ModelMPM(0.5F,1);
+
     public RenderNPCHumanMale(ModelNPCMale mainmodel, ModelNPCMale armorChest, ModelNPCMale armor)
     {
         super(mainmodel, 0.5F);
@@ -118,10 +124,14 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 if(modelVal ==  1){
                     this.mainModel = steve64;
                     this.modelBipedMain = steve64;
+                    this.modelArmorChestplate = steveArmorChest;
+                    this.modelArmor = steveArmor;
                 }
                 else if(modelVal ==  2){
                     this.mainModel = alex;
                     this.modelBipedMain = alex;
+                    this.modelArmorChestplate = alex32armorChest;
+                    this.modelArmor = alex32armor;
                 }
                 else{
                     ((EntityCustomNpc) npc).modelData.bodywear = 0;
@@ -129,6 +139,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                     ((EntityCustomNpc) npc).modelData.legwear = 0;
                     this.mainModel = originalModel;
                     this.modelBipedMain = originalBipedMain;
+                    this.modelArmorChestplate = steveArmorChest;
+                    this.modelArmor = steveArmor;
                 }
             }
         }

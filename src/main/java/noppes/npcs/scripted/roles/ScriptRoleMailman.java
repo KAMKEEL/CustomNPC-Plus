@@ -2,8 +2,9 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.RoleType;
+import noppes.npcs.scripted.interfaces.roles.IRoleMailman;
 
-public class ScriptRoleMailman extends ScriptRoleInterface{
+public class ScriptRoleMailman extends ScriptRoleInterface implements IRoleMailman {
 
 	public ScriptRoleMailman(EntityNPCInterface npc) {
 		super(npc);

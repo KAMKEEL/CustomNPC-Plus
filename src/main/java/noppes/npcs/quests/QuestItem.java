@@ -16,6 +16,7 @@ import noppes.npcs.util.ValueUtil;
 
 public class QuestItem extends QuestInterface implements IQuestItem {
 	public NpcMiscInventory items = new NpcMiscInventory(3);
+	public static ItemStack pickedUp;
 	public boolean leaveItems = false;
 	public boolean ignoreDamage = false;
 	public boolean ignoreNBT = false;
@@ -64,7 +65,11 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 			is.stackSize = 0;
 			map.put(slot,is);
 		}
-		for(ItemStack item : player.inventory.mainInventory){
+
+		ArrayList<ItemStack> list = new ArrayList<>(Arrays.asList(player.inventory.mainInventory));
+		list.add(pickedUp);
+
+		for(ItemStack item : list){
 			if(item == null)
 				continue;
 			for(ItemStack questItem : map.values()){
@@ -77,6 +82,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 	}
 	@Override
 	public void handleComplete(EntityPlayer player) {
+		super.handleComplete(player);
 		if(leaveItems)
 			return;
 		for(ItemStack questitem : items.items.values()){

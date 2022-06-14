@@ -2,6 +2,7 @@ package noppes.npcs.scripted.interfaces.item;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 
 import java.util.Iterator;
@@ -9,27 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public interface IItemCustom extends IItemStack {
-
-    void callScript(EnumScriptType type, Event event);
-
-    boolean isClient();
+public interface IItemCustom extends IItemStack, IScriptHandler {
 
     boolean getEnabled();
 
     void setEnabled(boolean bo);
-
-    String getLanguage();
-
-    void setLanguage(String lang);
-
-    List<ScriptContainer> getScripts();
-
-    String noticeString();
-
-    Map<Long, String> getConsoleText();
-
-    void clearConsole();
 
     String getTexture();
 

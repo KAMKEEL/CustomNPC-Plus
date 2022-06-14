@@ -62,7 +62,7 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer entityPlayer)
     {
-        if(entityPlayer.isSneaking()) {
+        if(entityPlayer.isSneaking() && entityPlayer.capabilities.isCreativeMode) {
             CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, entityPlayer);
         }
         entityPlayer.setItemInUse(stack, this.getMaxItemUseDuration(stack));

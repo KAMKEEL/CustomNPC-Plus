@@ -60,11 +60,8 @@ public class CustomNpcs {
     @ConfigProp(info = "Set to true if you want the dialog command option to be able to use op commands like tp etc")
     public static boolean NpcUseOpCommands = false;
 
-    @ConfigProp(info = "The amount of time that passes before a player's quests are checked for completion in seconds.")
-    public static int PlayerQuestCheck = 300;
-
-    @ConfigProp(info = "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8.")
-    public static int TrackingInfoAlignment = 5;
+    @ConfigProp(info = "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8. Default: 3")
+    public static int TrackingInfoAlignment = 3;
 
     @ConfigProp(info = "Client sided! Offsets the tracking info GUI by this amount in the X direction.")
     public static int TrackingInfoX = 0;
@@ -176,9 +173,6 @@ public class CustomNpcs {
 
         if(NpcSizeLimit < 1)
             NpcSizeLimit = 1;
-
-        if(PlayerQuestCheck < 1)
-            PlayerQuestCheck = 1;
 
         if (TrackingInfoAlignment < 0)
             TrackingInfoAlignment = 0;
@@ -308,6 +302,7 @@ public class CustomNpcs {
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){
         ServerCloneController.Instance = null;
+        GlobalDataController.instance.saveData();
     }
 
     @EventHandler

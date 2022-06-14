@@ -3,16 +3,43 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
-import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import org.lwjgl.opengl.GL11;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ClientEventHandler {
-    RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
+    private final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
+    public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
+
+    @SubscribeEvent
+    public void onMouse(MouseEvent event) {
+        if (Minecraft.getMinecraft().currentScreen != null)
+            return;
+
+        ArrayList<Integer> removeList = new ArrayList<>();
+        for (Map.Entry<Integer,Long> entry : disabledButtonTimes.entrySet()) {
+            if (entry.getValue() > 0) {
+                if (entry.getKey() == event.button || entry.getKey() == -1) {
+                    event.setCanceled(true);
+                }
+                disabledButtonTimes.put(entry.getKey(), entry.getValue() - 1);
+            } else {
+                removeList.add(entry.getKey());
+            }
+        }
+
+        for (int i : removeList) {
+            disabledButtonTimes.remove(i);
+        }
+    }
 
     @SubscribeEvent
     public void onOverlayRender(RenderGameOverlayEvent.Post event){
@@ -37,8 +64,9 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void cancelSpecials(RenderPlayerEvent.Specials.Pre event) {
-        if (event.renderer instanceof RenderCNPCPlayer)
+        if (event.renderer instanceof RenderCNPCPlayer) {
             event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent

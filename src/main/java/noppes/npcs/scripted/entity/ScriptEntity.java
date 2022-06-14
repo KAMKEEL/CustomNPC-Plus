@@ -29,6 +29,7 @@ import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IPos;
@@ -755,7 +756,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		}
 	}
 
-	public ScriptWorld getWorld() {
-		return (ScriptWorld) NpcAPI.Instance().getIWorld((WorldServer) entity.worldObj);
+	public IWorld getWorld() {
+		return NpcAPI.Instance().getIWorld(entity.worldObj);
 	}
 }

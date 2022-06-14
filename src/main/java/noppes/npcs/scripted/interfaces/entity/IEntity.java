@@ -10,6 +10,7 @@ import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.interfaces.INbt;
 import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.IPos;
+import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public interface IEntity<T extends Entity> {
@@ -342,5 +343,5 @@ public interface IEntity<T extends Entity> {
 
     void storeAsClone(int tab, String name);
 
-    ScriptWorld getWorld();
+    IWorld getWorld();
 }

@@ -11,10 +11,20 @@ import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.FactionEvent;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.IPlayerFactionData;
 
-public class PlayerFactionData {
+public class PlayerFactionData implements IPlayerFactionData {
+	private final PlayerData parent;
 	public HashMap<Integer,Integer> factionData = new HashMap<Integer,Integer>();
-	
+
+	public PlayerFactionData() {
+		parent = null;
+	}
+
+	public PlayerFactionData(PlayerData parent) {
+		this.parent = parent;
+	}
+
 	public void loadNBTData(NBTTagCompound compound) {
 		HashMap<Integer,Integer> factionData = new HashMap<Integer,Integer>();
 		if(compound == null)
@@ -79,4 +89,19 @@ public class PlayerFactionData {
 		return compound;
 	}
 
+	public int getPoints(int id) {
+		return this.getFactionPoints(id);
+	}
+
+	public void addPoints(int id, int points) {
+		if (parent != null) {
+			this.increasePoints(id, points, parent.player);
+		}
+	}
+
+	public void setPoints(int id, int points) {
+		if (parent != null) {
+			increasePoints(id, points-getFactionPoints(id), parent.player);
+		}
+	}
 }

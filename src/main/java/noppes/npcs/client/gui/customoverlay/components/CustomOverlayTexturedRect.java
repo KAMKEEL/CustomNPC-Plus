@@ -71,7 +71,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
             float green = (color >> 8  & 255) / 255f;
             float blue = (color & 255) / 255f;
 
-            GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
+            GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);
 
             GL11.glScalef(this.scale, this.scale, this.scale);
 

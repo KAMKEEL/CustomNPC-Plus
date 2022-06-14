@@ -8,19 +8,25 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.TextBlock;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class TextBlockClient extends TextBlock{
 	private ChatStyle style;
 	public int color = 0xe0e0e0;
+	public int titleColor = 0xe0e0e0;
+	public int titlePos = 0;
 	private String name;
 	private ICommandSender sender;
 
-	public TextBlockClient(ICommandSender sender, String text, int lineWidth, int color, Object... obs) {
-		this(text, lineWidth, false, obs);
-		this.color = color;
+	public TextBlockClient(ICommandSender sender, Dialog dialog, Object... obs) {
+		this(dialog.text, dialog.textWidth, false, obs);
+		this.color = dialog.color;
+		this.titleColor = dialog.titleColor;
+		this.titlePos = dialog.titlePos;
 		this.sender = sender;
 	}
+
 	public TextBlockClient(String name, String text, int lineWidth, int color, Object... obs) {
 		this(text, lineWidth, false, obs);
 		this.color = color;

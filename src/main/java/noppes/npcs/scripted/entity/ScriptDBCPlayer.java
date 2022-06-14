@@ -428,6 +428,43 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return compound.getCompoundTag("JRMCEP").getString("extracode");
     }
 
+    public void setItem(byte slot, IItemStack itemStack) {
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+
+        NBTTagList newList = new NBTTagList();
+        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            if (list.getCompoundTagAt(i).getByte("Slot") != slot) {
+                newList.appendTag(list.getCompoundTagAt(i));
+            }
+        }
+
+        NBTTagCompound compoundItem = new NBTTagCompound();
+        if (itemStack != null) {
+            itemStack.getMCItemStack().writeToNBT(compoundItem);
+        }
+        compoundItem.setByte("Slot", slot);
+        newList.appendTag(compoundItem);
+
+        compound.getCompoundTag("JRMCEP").setTag("dbcExtraInvTag", newList);
+        this.player.readFromNBT(compound);
+    }
+
+    public IItemStack getItem(byte slot) {
+        NBTTagCompound compound = new NBTTagCompound();
+        this.player.writeToNBT(compound);
+
+        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            if (list.getCompoundTagAt(i).getByte("Slot") == slot) {
+                return NpcAPI.Instance().getIItemStack(ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i)));
+            }
+        }
+
+        return null;
+    }
+
     public IItemStack[] getInventory(){
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);

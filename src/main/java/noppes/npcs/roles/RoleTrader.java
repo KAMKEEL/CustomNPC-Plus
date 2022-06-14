@@ -127,12 +127,11 @@ public class RoleTrader extends RoleInterface{
 	public boolean isSlotEnabled(int slot, String playerName) {
 		if(slot >= 18 || slot < 0) return false;
 		if (disableSlot[slot] > 0) return false;
-		if (getArrayByName(playerName, playerDisableSlot)[slot] > 0) return false;
-		return true;
+		return getArrayByName(playerName, playerDisableSlot)[slot] <= 0;
 	}
 	
 	public int[] getArrayByName(String name, HashMap<String, int[]> map) {
-		if (map.get(name) == null) map.put(name, new int[18]);
+		map.computeIfAbsent(name, k -> new int[18]);
 		return map.get(name);
 	}
 

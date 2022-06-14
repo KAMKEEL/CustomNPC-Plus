@@ -22,6 +22,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
+import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
@@ -221,6 +222,9 @@ public class RenderNPCInterface extends RenderLiving{
 		if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 			for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 				try {
+					if (overlayData.getTexture().isEmpty())
+						continue;
+
 					if (overlayData.getLocation() == null) {
 						overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
 					} else {
@@ -230,11 +234,20 @@ public class RenderNPCInterface extends RenderLiving{
 						}
 					}
 
-					this.bindTexture(overlayData.getLocation());
+					if (overlayData.getLocation().getResourcePath().isEmpty())
+						continue;
+
+					try {
+						this.bindTexture(overlayData.getLocation());
+					} catch (Exception e) { continue; }
 
 					// Overlay & Glow
 					GL11.glEnable(GL11.GL_BLEND);
-					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					if (overlayData.getBlend()) {
+						GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+					} else {
+						GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					}
 					GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
 					if (overlayData.getGlow()) {
@@ -247,22 +260,22 @@ public class RenderNPCInterface extends RenderLiving{
 					GL11.glDepthMask(!npc.isInvisible());
 
 					GL11.glPushMatrix();
-						GL11.glMatrixMode(GL11.GL_TEXTURE);
-						GL11.glLoadIdentity();
-						GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
-						GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
+					GL11.glMatrixMode(GL11.GL_TEXTURE);
+					GL11.glLoadIdentity();
+					GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
+					GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
 
-						GL11.glMatrixMode(GL11.GL_MODELVIEW);
-						float scale = 1.005f * overlayData.getSize();
-						GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
-						GL11.glScalef(scale, scale, scale);
-						if(mainModel instanceof ModelMPM){
-							((ModelMPM)mainModel).isArmor = true;
-							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
-							((ModelMPM)mainModel).isArmor = false;
-						}
-						else
-							mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
+					float scale = 1.005f * overlayData.getSize();
+					GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
+					GL11.glScalef(scale, scale, scale);
+					if(mainModel instanceof ModelMPM){
+						((ModelMPM)mainModel).isArmor = true;
+						mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
+						((ModelMPM)mainModel).isArmor = false;
+					}
+					else
+						mainModel.render(entityliving, par2, par3, par4, par5, par6, par7);
 					GL11.glPopMatrix();
 
 					GL11.glMatrixMode(GL11.GL_TEXTURE);
@@ -300,11 +313,16 @@ public class RenderNPCInterface extends RenderLiving{
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
 		if (npc.textureLocation == null) {
 			if (npc.display.skinType == 0) {
-				if (!(npc.display.texture).equals("")) {
-					//npc.textureLocation = new ResourceLocation(npc.display.texture);
-					try {
-						npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
-					} catch (IOException ignored) {}
+				if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
+					if (!(npc.display.texture).equals("")) {
+						//npc.textureLocation = new ResourceLocation(npc.display.texture);
+						try {
+							npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
+						} catch (IOException ignored) {
+						}
+					}
+				} else {
+					npc.textureLocation = new ResourceLocation(npc.display.texture);
 				}
 			} else if(LastTextureTick < 5) { //fixes request flood somewhat
 				return AbstractClientPlayer.locationStevePng;
@@ -340,13 +358,12 @@ public class RenderNPCInterface extends RenderLiving{
 	}
 
 	private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
-		if (npc.display.modelType != 0) {
-			return location;
-		}
-
 		InputStream inputstream = null;
 
 		try {
+			TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+			texturemanager.deleteTexture(location);
+
 			IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
 			inputstream = iresource.getInputStream();
 
@@ -355,14 +372,13 @@ public class RenderNPCInterface extends RenderLiving{
 			int totalWidth = bufferedimage.getWidth();
 			int totalHeight = bufferedimage.getHeight();
 
-			if (totalHeight > 32) {
+			if (totalHeight > 32 && npc.display.modelType == 0) {
 				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
-
-				TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-				ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
-				object.setBufferedImage(bufferedimage);
-				texturemanager.loadTexture(location, object);
 			}
+
+			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+			object.setBufferedImage(bufferedimage);
+			texturemanager.loadTexture(location, object);
 
 			return location;
 		} finally {

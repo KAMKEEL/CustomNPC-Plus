@@ -1,9 +1,6 @@
 package noppes.npcs.scripted;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -21,6 +18,7 @@ import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
@@ -41,7 +39,15 @@ public class ScriptWorld implements IWorld {
 		this.world = world;
 	}
 
-	public static ScriptWorld createNew(WorldServer world) {
+	public static ScriptWorld createNew(int dimensionId) {
+		WorldServer[] worlds = CustomNpcs.getServer().worldServers;
+
+		WorldServer world = worlds[0];
+		for (WorldServer w : worlds) {
+			if (w.provider.dimensionId == dimensionId) {
+				world = w;
+			}
+		}
 		return new ScriptWorld(world);
 	}
 
@@ -170,6 +176,15 @@ public class ScriptWorld implements IWorld {
 
 	public int countEntities(IEntity entity){
 		return world.countEntities(entity.getMCEntity().getClass());
+	}
+
+	public IEntity[] getLoadedEntities() {
+		ArrayList<IEntity> list = new ArrayList<>();
+		for (Object obj : world.loadedEntityList) {
+			list.add(NpcAPI.Instance().getIEntity((Entity) obj));
+		}
+
+		return list.toArray(new IEntity[0]);
 	}
 
 	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){

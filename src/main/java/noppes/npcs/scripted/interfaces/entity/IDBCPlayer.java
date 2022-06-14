@@ -45,6 +45,23 @@ public interface IDBCPlayer extends IPlayer {
     void setExtraCode(String extraCode);
     String getExtraCode();
 
+    /**
+     * @param slot The DBC extra inventory slot the item stack parameter will go into:
+     *             0 - Weight
+     *             1 - Body
+     *             2 - Head
+     *             3 - 4th Vanity Slot Down to the left
+     *             4 - 3rd Vanity Slot Down to the left
+     *             5 - 2nd Vanity Slot Down to the left
+     *             6 - 1st Vanity Slot Down to the left
+     *             7 - 4th Vanity Slot Down to the right
+     *             8 - 3rd Vanity Slot Down to the right
+     *             9 - 2nd Vanity Slot Down to the right
+     *             10 - 1st Vanity Slot Down to the right
+     * @param itemStack The item stack to be set into the slot. Set to null to remove the stack in that slot.
+     */
+    void setItem(byte slot, IItemStack itemStack);
+    IItemStack getItem(byte slot);
     IItemStack[] getInventory();
 
     void setForm(byte form);

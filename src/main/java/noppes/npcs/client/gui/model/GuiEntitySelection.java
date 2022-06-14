@@ -16,7 +16,7 @@ import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.*;
 
 import org.lwjgl.opengl.GL11;
 
@@ -115,13 +115,29 @@ public class GuiEntitySelection extends GuiNPCInterface
     	super.drawScreen(i, j, f);
     }
     public void elementClicked(){
+        if (playerdata.getEntityClass().equals(parent.data.get(slot.selected))) {
+            return;
+        }
+
     	try{
 	    	playerdata.setEntityClass(parent.data.get(slot.selected));
 	    	EntityLivingBase entity = playerdata.getEntity(npc);
 	    	if(entity != null){
                 npc.display.modelType = 0;
-				RendererLivingEntity render = (RendererLivingEntity) RenderManager.instance.getEntityRenderObject(entity);
-	    		npc.display.texture = NPCRendererHelper.getTexture(render,entity);
+                if (entity instanceof EntityNpcCrystal) {
+                    npc.display.texture = "customnpcs:textures/entity/crystal/EnderCrystal.png";
+                } else if (entity instanceof EntityNPCGolem) {
+                    npc.display.texture = "customnpcs:textures/entity/golem/Iron Golem.png";
+                } else if (entity instanceof EntityNpcPony) {
+                    npc.display.texture = "customnpcs:textures/entity/ponies/MineLP Derpy Hooves.png";
+                } else if (entity instanceof EntityNpcSlime) {
+                    npc.display.texture = "customnpcs:textures/entity/slime/Slime.png";
+                } else if (entity instanceof EntityNpcDragon) {
+                    npc.display.texture = "customnpcs:textures/entity/dragon/BlackDragon.png";
+                } else {
+                    RendererLivingEntity render = (RendererLivingEntity) RenderManager.instance.getEntityRenderObject(entity);
+                    npc.display.texture = NPCRendererHelper.getTexture(render, entity);
+                }
 	    	}
 	    	else{
 	    		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
@@ -129,10 +145,8 @@ public class GuiEntitySelection extends GuiNPCInterface
 	    	//npc.display.glowTexture = "";
             npc.display.skinOverlayData.overlayList.remove(0);
 			npc.textureLocation = null;
-			npc.textureGlowLocation = null;
 			npc.updateHitbox();
-    	}
-    	catch(Exception ex){
+    	} catch(Exception ex) {
     		npc.display.texture = "customnpcs:textures/entity/humanmale/Steve.png";
     	}
     }

@@ -14,7 +14,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -44,28 +43,29 @@ public class ScriptPlayerEventHandler {
     }
     @SubscribeEvent
     public void onServerTick(TickEvent.PlayerTickEvent event) {
-        if(event.player == null || event.player.worldObj == null)
+        if (event.player == null || event.player.worldObj == null)
             return;
 
-        if(event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
+        if (event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
 
-            if(player.ticksExisted%10 == 0) {
+            if (player.ticksExisted%10 == 0) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
                 EventHooks.onPlayerTick(handler, scriptPlayer);
             }
 
-            PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-            if(PlayerDataController.instance != null) {
-                if(playerData.timers.size() > 0)
-                    playerData.timers.update();
-            }
+            if (PlayerDataController.instance != null) {
+                PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 
-            if(player.ticksExisted%(20*CustomNpcs.PlayerQuestCheck) == 0){
-                PlayerQuestData questData = playerData.questData;
-                for(EnumQuestType e : EnumQuestType.values())
-                    questData.checkQuestCompletion(playerData, e);
+                if (playerData.timers.size() > 0) {
+                    playerData.timers.update();
+                }
+
+                if (playerData.questData.trackedQuest != null && !playerData.questData.activeQuests.containsKey(playerData.questData.trackedQuest.getId())) {
+                    PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
+                    Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+                }
             }
         }
     }
@@ -435,10 +435,7 @@ public class ScriptPlayerEventHandler {
 
             Quest quest = (Quest) PlayerDataController.instance.getPlayerData(event.player).questData.trackedQuest;
             if (quest != null) {
-                NBTTagCompound compound = new NBTTagCompound();
-                compound.setTag("Quest",quest.writeToNBT(new NBTTagCompound()));
-                compound.setString("CategoryName", quest.getCategory().getName());
-                Server.sendData((EntityPlayerMP) event.player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player, quest);
             }
         }
     }
