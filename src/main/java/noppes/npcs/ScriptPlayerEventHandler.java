@@ -67,6 +67,10 @@ public class ScriptPlayerEventHandler {
                     PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
                     Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
                 }
+
+                if (player.ticksExisted%20 == 0) {
+                    PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
+                }
             }
         }
     }
@@ -440,12 +444,6 @@ public class ScriptPlayerEventHandler {
             }
 
             PlayerDataController.instance.getPlayerData(event.player).skinOverlays.updateClient();
-            for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList) {
-                EntityPlayer player = (EntityPlayer) obj;
-                if (player.getEntityData().hasKey("SkinOverlayData")) {
-                    PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
-                }
-            }
         }
     }
 
