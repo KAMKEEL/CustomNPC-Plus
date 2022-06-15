@@ -437,6 +437,8 @@ public class ScriptPlayerEventHandler {
             if (quest != null) {
                 NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player, quest);
             }
+
+            PlayerDataController.instance.getPlayerData(event.player).skinOverlays.updateClient();
         }
     }
 

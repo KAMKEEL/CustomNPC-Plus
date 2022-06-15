@@ -286,7 +286,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		else if(type == EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS) {
 			EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
 			NBTTagCompound compound = Server.readNBT(buffer);
-			NoppesUtil.updateSkinOverlayData(sendingPlayer, compound);
+			if (sendingPlayer != null) {
+				NoppesUtil.updateSkinOverlayData(sendingPlayer, compound);
+			}
 		}
 		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {
 			long length = buffer.readLong();
