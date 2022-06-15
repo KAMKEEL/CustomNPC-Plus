@@ -115,7 +115,7 @@ public class GuiEntitySelection extends GuiNPCInterface
     	super.drawScreen(i, j, f);
     }
     public void elementClicked(){
-        if (playerdata.getEntityClass().equals(parent.data.get(slot.selected))) {
+        if (playerdata.getEntityClass() != null && playerdata.getEntityClass().equals(parent.data.get(slot.selected))) {
             return;
         }
 
