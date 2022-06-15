@@ -14,6 +14,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -439,6 +440,12 @@ public class ScriptPlayerEventHandler {
             }
 
             PlayerDataController.instance.getPlayerData(event.player).skinOverlays.updateClient();
+            for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList) {
+                EntityPlayer player = (EntityPlayer) obj;
+                if (player.getEntityData().hasKey("SkinOverlayData")) {
+                    PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
+                }
+            }
         }
     }
 

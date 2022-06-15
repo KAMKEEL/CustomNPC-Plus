@@ -3,6 +3,8 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderHandEvent;
@@ -58,7 +60,18 @@ public class ClientEventHandler {
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
         if (!(event.renderer instanceof RenderCNPCPlayer)) {
             renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
-            renderCNPCPlayer.doRender(event.entityPlayer, 0, 0, 0, 0.0F, event.partialRenderTick);
+            double d0 = event.entityPlayer.lastTickPosX + (event.entityPlayer.posX - event.entityPlayer.lastTickPosX) * (double)event.partialRenderTick - RenderManager.renderPosX;
+            double d1 = event.entityPlayer.lastTickPosY + (event.entityPlayer.posY - event.entityPlayer.lastTickPosY) * (double)event.partialRenderTick - RenderManager.renderPosY;
+            double d2 = event.entityPlayer.lastTickPosZ + (event.entityPlayer.posZ - event.entityPlayer.lastTickPosZ) * (double)event.partialRenderTick - RenderManager.renderPosZ;
+            float f1 = event.entityPlayer.prevRotationYaw + (event.entityPlayer.rotationYaw - event.entityPlayer.prevRotationYaw) * event.partialRenderTick;
+
+            if (Minecraft.getMinecraft().thePlayer.equals(event.entityPlayer)) {
+                d0 = 0;
+                d1 = 0;
+                d2 = 0;
+            }
+
+            renderCNPCPlayer.doRender(event.entityPlayer, d0, d1, d2, f1, event.partialRenderTick);
         }
     }
 

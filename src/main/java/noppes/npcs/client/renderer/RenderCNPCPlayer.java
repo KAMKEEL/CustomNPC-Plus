@@ -146,8 +146,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         postRenderOverlay(player);
                     }
                 }
-            } else if(player.getEntityData().hasKey("SkinOverlayData")) {
-                Client.sendData(EnumPacketServer.ServerUpdateSkinOverlays, new Object[0]);
             }
         }
     }
@@ -156,6 +154,10 @@ public class RenderCNPCPlayer extends RenderPlayer {
     {
         return -1;
     }
+
+    protected void passSpecialRender(EntityLivingBase p_77033_1_, double p_77033_2_, double p_77033_4_, double p_77033_6_) {}
+
+    protected void func_96449_a(AbstractClientPlayer p_96449_1_, double p_96449_2_, double p_96449_4_, double p_96449_6_, String p_96449_8_, float p_96449_9_, double p_96449_10_) {}
     
     public void renderHand(float partialTicks, int renderPass) {
         Minecraft mc = Minecraft.getMinecraft();
@@ -350,8 +352,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
                 this.modelBipedMain.bipedRightArm.render(0.0625F);
                 postRenderOverlay(player);
             }
-        } else if(player.getEntityData().hasKey("SkinOverlayData")) {
-            Client.sendData(EnumPacketServer.ServerUpdateSkinOverlays, new Object[0]);
         }
     }
 
