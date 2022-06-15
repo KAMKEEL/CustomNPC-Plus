@@ -22,8 +22,7 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Larger Clone GUI
 - More Clone Tabs
 - Increased Resolution to Additional Body Parts
-- ~~Update Local Skin Textures (64x64) [WIP]~~
-- Added (New) Local 64x64 Skin Textures 
+- 64x64 Skin Textures work on all models
 - 1.8 Skins  (64x64)
 - Alex Model (64x64)
 - Fix Part Rendering
@@ -32,9 +31,13 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Custom Part Disabling
 - Markov Name Generator
 - Flying NPCS
-- PlayerData Storage Options [JSON/Zstd]
-- Script Enchanments and Fixes
-- Scripting Additions: [Documentation](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
+
+#### Scripting:
+- Scripted Items
+- Player Overlays
+- GUI Overlays
+- Scripting Fixes / New Functions: [Documentation](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
+(We never remove script functionality, only add on existing functions)
 
 --- Please Suggest New Features!
 
@@ -51,8 +54,12 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 <img src="images/Url64Example.gif" width="474" height="260"/>
 
 
-## 🔗 Want to check out my other mods?
+## 🔗 Want to check out my other projects?
 [Plugin Mod](https://github.com/KAMKEEL/Plugin-Mod) is a mod designed to add more aesthetic items for RPG and storytelling. It is compatible with CustomNPC+ and has many items intended to be used and wielded by created NPCs.
+
+[RPG Messenger](https://github.com/KAMKEEL/RPGMessenger) is a bukkit plugin designed to allow operators to create messagable NPCs for RPG Servers. Allows a 'RPG Controller' to reply quickly as NPCs, form groupchats, and messagable parties.
+
+[CustomNPC+ Dark Mode](https://github.com/KAMKEEL/CustomNPC-Plus-Dark-Mode) is a resource pack for CustomNPC+ that alters all GUIs within the mod to a dark variant that is both clean and pleasing to look at.
 
 [![Discord Badge](https://img.shields.io/badge/CustomNPC-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/rgeWsmQaKa)
 [![Discord Badge](https://img.shields.io/badge/CustomNPC+-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/pQqRTvFeJ5)
