@@ -14,11 +14,17 @@ import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.Sys;
 
 public class VersionCompatibility {
-	public static int ModRev = 19;
+	public static int ModRev = 18;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
 			return;
+		if(npc.npcVersion < 19){
+			// Fix 64-Textures
+			String texture = compound.getString("Texture");
+			texture = texture.replace("64-Textures/", "");
+			compound.setString("Texture", texture);
+		}
 		if(npc.npcVersion < 18){
 			// Fix CloakTexture (Reorganization)
 			String cloakTexture = compound.getString("CloakTexture");
