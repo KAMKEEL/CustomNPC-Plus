@@ -80,6 +80,11 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
         addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 80, y, 200, 20, npc.display.skinOverlayData.overlayList.containsKey(0) ? npc.display.skinOverlayData.overlayList.get(0).getTexture() : ""));
     	this.addButton(new GuiNpcButton(9, guiLeft + 283, y, 80, 20, "display.selectTexture"));
+		this.addButton(new GuiNpcButton(11, guiLeft + 365, y, 50, 20, new String[]{"display.glow","display.solid"}, !npc.display.skinOverlayData.overlayList.containsKey(0) ? 1 : npc.display.skinOverlayData.overlayList.get(0).getGlow() ? 0 : 1));
+		if (!npc.display.skinOverlayData.overlayList.containsKey(0)) {
+			this.getButton(11).setVisible(false);
+			this.getButton(11).setEnabled(false);
+		}
 
     	y+=23;
     	addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
@@ -136,6 +141,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			} else {
 				npc.display.skinOverlayData.overlayList.remove(0);
 			}
+			initGui();
 		}
 		else if(textfield.id == 11){
 			display.title = textfield.getText();
@@ -183,6 +189,10 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(button.id == 10){
 			display.showBossBar = (byte)button.getValue();
+		}
+		else if(button.id == 11){
+			npc.display.skinOverlayData.overlayList.get(0).setGlow(button.getValue() == 0);
+			initGui();
 		}
 		else if(button.id == 14){
 			String name = display.getRandomName();
