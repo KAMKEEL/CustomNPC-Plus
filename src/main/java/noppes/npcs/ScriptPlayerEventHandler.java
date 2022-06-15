@@ -68,7 +68,7 @@ public class ScriptPlayerEventHandler {
                     Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
                 }
 
-                if (player.ticksExisted%20 == 0) {
+                if (player.ticksExisted%20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
                     PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
                 }
             }
