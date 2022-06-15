@@ -9,11 +9,12 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.Sys;
 
 public class VersionCompatibility {
-	public static int ModRev = 19;
+	public static int ModRev = 18;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
@@ -30,6 +31,33 @@ public class VersionCompatibility {
 			// Fix DialogDarkenScreen
 			if(compound.hasKey("DialogDarkenScreen")){
 				compound.removeTag("DialogDarkenScreen");
+			}
+
+			// Remove MPM Texture Requirement
+			if(compound.hasKey("NpcModelData")) {
+				NBTTagCompound partData = compound.getCompoundTag("NpcModelData");
+
+				// Fix Leg MPM Dependency
+				if(partData.hasKey("LegParts")){
+					partData.setString("LegParts", partData.getCompoundTag("LegParts").getString("Texture").replace("moreplayermodels:textures", "customnpcs:textures/parts"));
+				}
+
+				// Fix Part MPM Dependency
+				if(partData.hasKey("Parts")){
+					NBTTagList list = partData.getTagList("Parts", 10);
+
+					for (int i = 0; i < list.tagCount(); i++) {
+						NBTTagCompound item = list.getCompoundTagAt(i);
+
+						if(item.hasKey("Texture")){
+							item.setString("Texture", item.getString("Texture"));
+						}
+						list.func_150304_a(i, item);
+					}
+					partData.setTag("Parts", list);
+				}
+				compound.setTag("NpcModelData", partData);
+				((EntityCustomNpc)npc).readEntityFromNBT(compound);
 			}
 		}
 		if(npc.npcVersion < 12){

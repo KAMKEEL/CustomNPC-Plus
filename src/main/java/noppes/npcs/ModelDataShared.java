@@ -72,7 +72,7 @@ public class ModelDataShared{
 
 		compound.setByte("Breasts", breasts);
 		compound.setTag("ExtraData", extra);
-		
+
 		NBTTagList list = new NBTTagList();
 		for(String name : parts.keySet()){
 			NBTTagCompound item = parts.get(name).writeToNBT();
@@ -83,7 +83,7 @@ public class ModelDataShared{
 		
 		return compound;
 	}
-	
+
 	public void readFromNBT(NBTTagCompound compound){
 		setEntityClass(compound.getString("EntityClass"));
 		
@@ -120,6 +120,20 @@ public class ModelDataShared{
 		}
 		this.parts = parts;
 		
+	}
+
+	public void readPartsFromNBT(NBTTagCompound compound){
+		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
+
+		HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
+		NBTTagList list = compound.getTagList("Parts", 10);
+		for (int i = 0; i < list.tagCount(); i++) {
+			NBTTagCompound item = list.getCompoundTagAt(i);
+			ModelPartData part = new ModelPartData();
+			part.readFromNBT(item);
+			parts.put(item.getString("PartName"), part);
+		}
+		this.parts = parts;
 	}
 
 	private void setEntityClass(String string) {

@@ -36,9 +36,9 @@ public class ModelPartData {
 		color = compound.getInteger("Color");
 		texture = compound.getString("Texture");
 		// Disable MPM Dependency for Part Textures
-		if(VersionCompatibility.ModRev < 19){
-			texture = texture.replace("moreplayermodels:textures", "customnpcs:textures/parts");
-		}
+//		if(VersionCompatibility.ModRev < 19){
+//			texture = texture.replace("moreplayermodels:textures", "customnpcs:textures/parts");
+//		}
 		playerTexture = compound.getBoolean("PlayerTexture");
 		location = null;
 	}
