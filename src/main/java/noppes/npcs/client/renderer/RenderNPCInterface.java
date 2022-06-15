@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
@@ -315,7 +316,6 @@ public class RenderNPCInterface extends RenderLiving{
 			if (npc.display.skinType == 0) {
 				if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
 					if (!(npc.display.texture).equals("")) {
-						//npc.textureLocation = new ResourceLocation(npc.display.texture);
 						try {
 							npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
 						} catch (IOException ignored) {
@@ -378,8 +378,21 @@ public class RenderNPCInterface extends RenderLiving{
 
 			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
 			object.setBufferedImage(bufferedimage);
-			texturemanager.loadTexture(location, object);
 
+			try {
+				MessageDigest digest = MessageDigest.getInstance("MD5");
+				byte[] hash = digest.digest(npc.display.texture.getBytes("UTF-8"));
+				StringBuilder sb = new StringBuilder(2*hash.length);
+				for (byte b : hash) {
+					sb.append(String.format("%02x", b&0xff));
+				}
+				if (totalHeight > 32 && npc.display.modelType == 0) {
+					location = new ResourceLocation("skin/" + sb.toString());
+				} else {
+					location = new ResourceLocation("skin64/" + sb.toString());
+				}
+			} catch(Exception ignored){}
+			texturemanager.loadTexture(location, object);
 			return location;
 		} finally {
 			if (inputstream != null) {
