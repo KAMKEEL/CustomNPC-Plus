@@ -2,6 +2,7 @@ package noppes.npcs.entity.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.PlayerData;
@@ -58,6 +59,10 @@ public class DataSkinOverlays implements IOverlayHandler {
     }
 
     public void add(int id, ISkinOverlay data) {
+        if (this.overlayList.size() >= CustomNpcs.SkinOverlayLimit) {
+            return;
+        }
+
         ((SkinOverlay) data).parent = this;
         this.overlayList.put(id, data);
         updateClient();
