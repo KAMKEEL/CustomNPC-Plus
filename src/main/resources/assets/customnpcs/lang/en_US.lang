@@ -194,6 +194,8 @@ display.botLeft=Bottom Left
 display.botCenter=Bottom Center
 display.botRight=Bottom Right
 display.fixed=Fixed
+display.glow=Glow
+display.solid=Solid
 
 inv.minExp=Min Exp
 inv.maxExp=Max Exp
