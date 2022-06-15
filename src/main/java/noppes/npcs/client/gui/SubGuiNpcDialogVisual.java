@@ -3,6 +3,7 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
@@ -323,6 +324,10 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
         if (activeMenu == 3) {
             if (button.id == 1) {
+                if (dialog.dialogImages.size() >= CustomNpcs.DialogImageLimit) {
+                    return;
+                }
+
                 int addId = 0;
                 if (selected != -1 && imageScroll.getSelected() != null) {
                     DialogImage selectedImage = (DialogImage) dialog.dialogImages.get(Integer.valueOf(imageScroll.getSelected()));

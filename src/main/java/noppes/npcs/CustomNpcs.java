@@ -103,6 +103,12 @@ public class CustomNpcs {
     @ConfigProp(info = "Number of chunk loading npcs that can be active at the same time")
     public static int ChuckLoaders = 20;
 
+    @ConfigProp(info = "The maximum number of images any dialog can hold.")
+    public static int DialogImageLimit = 10;
+
+    @ConfigProp(info = "The maximum number of images any dialog can hold.")
+    public static int SkinOverlayLimit = 10;
+
     public static File Dir;
 
     @ConfigProp(info = "Set to false if you want to disable guns")
@@ -173,6 +179,14 @@ public class CustomNpcs {
 
         if(NpcSizeLimit < 1)
             NpcSizeLimit = 1;
+
+        if (DialogImageLimit < 0) {
+            DialogImageLimit = 0;
+        }
+
+        if (SkinOverlayLimit < 0) {
+            SkinOverlayLimit = 0;
+        }
 
         if (TrackingInfoAlignment < 0)
             TrackingInfoAlignment = 0;

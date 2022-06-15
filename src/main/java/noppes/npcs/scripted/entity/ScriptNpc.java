@@ -1146,6 +1146,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setOverlayTexture(String overlayTexture) {
+		if (this.getOverlays().size() >= CustomNpcs.SkinOverlayLimit) {
+			return;
+		}
+
 		this.getOverlays().add(0, NpcAPI.Instance().createSkinOverlay(overlayTexture));
 		npc.updateClient = true;
 	}
