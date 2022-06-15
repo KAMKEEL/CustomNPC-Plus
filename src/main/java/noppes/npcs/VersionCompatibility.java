@@ -10,17 +10,15 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.Sys;
 
 public class VersionCompatibility {
-	public static int ModRev = 18;
+	public static int ModRev = 19;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
 			return;
 		if(npc.npcVersion < 18){
-
-			// Fix 64-Texture (Reorganization)
-
 			// Fix CloakTexture (Reorganization)
 			String cloakTexture = compound.getString("CloakTexture");
 			cloakTexture = cloakTexture.replace("/cloak/Daybreak/", "/cloak/Guilds/Daybreak/");
@@ -33,17 +31,13 @@ public class VersionCompatibility {
 			if(compound.hasKey("DialogDarkenScreen")){
 				compound.removeTag("DialogDarkenScreen");
 			}
-			// Remove MPM Texture Requirement
-			String texture = compound.getString("Texture");
-			texture = texture.replace("moreplayermodels:textures", "customnpcs:textures/parts");
-			compound.setString("Texture", texture);
 		}
 		if(npc.npcVersion < 12){
 			CompatabilityFix(compound, npc.advanced.writeToNBT(new NBTTagCompound()));
 			CompatabilityFix(compound, npc.ai.writeToNBT(new NBTTagCompound()));
 			CompatabilityFix(compound, npc.stats.writeToNBT(new NBTTagCompound()));
-			CompatabilityFix(compound, npc.display.writeToNBT(new NBTTagCompound()));	
-			CompatabilityFix(compound, npc.inventory.writeEntityToNBT(new NBTTagCompound()));	
+			CompatabilityFix(compound, npc.display.writeToNBT(new NBTTagCompound()));
+			CompatabilityFix(compound, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
 		}
 		if(npc.npcVersion < 5){
 			String texture = compound.getString("Texture");

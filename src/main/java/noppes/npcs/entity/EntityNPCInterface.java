@@ -928,7 +928,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		super.readEntityFromNBT(compound);
 		npcVersion = compound.getInteger("ModRev");
 		VersionCompatibility.CheckNpcCompatibility(this, compound);
-		
+
 		display.readToNBT(compound);
 		stats.readToNBT(compound);
 		ai.readToNBT(compound);
