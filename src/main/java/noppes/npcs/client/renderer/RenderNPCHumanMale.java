@@ -211,7 +211,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
             GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
             GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
-            GL11.glColor4f(1.0F,1.0F,1.0F, npc.isInvisible() ? 0.2F : 1.0F);
+            GL11.glColor4f(1.0F,1.0F,1.0F, npc.isInvisible() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) ? 0.2F : 1.0F);
             GL11.glEnable(GL11.GL_BLEND);
             modelBipedMain.renderCloak(0.0625F);
             GL11.glPopMatrix();
