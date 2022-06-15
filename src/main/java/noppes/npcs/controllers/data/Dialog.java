@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.constants.EnumOptionType;
@@ -529,6 +530,10 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public void addImage(int id, IDialogImage image) {
+		if (dialogImages.size() >= CustomNpcs.DialogImageLimit) {
+			return;
+		}
+
 		((DialogImage) image).id = id;
 		dialogImages.put(id, image);
 	}
