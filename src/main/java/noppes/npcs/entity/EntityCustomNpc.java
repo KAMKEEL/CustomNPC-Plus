@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartData;
+import noppes.npcs.VersionCompatibility;
 import noppes.npcs.client.EntityUtil;
 
 public class EntityCustomNpc extends EntityNPCFlying {
@@ -19,9 +20,12 @@ public class EntityCustomNpc extends EntityNPCFlying {
 
 	@Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
-		if(compound.hasKey("NpcModelData"))
-			modelData.readFromNBT(compound.getCompoundTag("NpcModelData"));
 		super.readEntityFromNBT(compound);
+		if(compound.hasKey("NpcModelData")) {
+			npcVersion = compound.getInteger("ModRev");
+			VersionCompatibility.CheckModelCompatibility(this, compound);
+			modelData.readFromNBT(compound.getCompoundTag("NpcModelData"));
+		}
 	}
 
 	@Override

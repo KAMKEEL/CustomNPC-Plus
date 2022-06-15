@@ -180,43 +180,6 @@ public class RenderNPCHumanMale extends RenderNPCInterface
         int j = i % 65536;
         int k = i / 65536;
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
-        if (!npc.display.cloakTexture.isEmpty() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
-        {
-        	if(npc.textureCloakLocation == null){
-        		npc.textureCloakLocation = new ResourceLocation(npc.display.cloakTexture);
-        	}
-        	bindTexture((ResourceLocation) npc.textureCloakLocation);
-            GL11.glPushMatrix();
-            GL11.glTranslatef(0.0F, 0.0F, 0.125F);
-            double d = (npc.field_20066_r + (npc.field_20063_u - npc.field_20066_r) * (double)f) - (npc.prevPosX + (npc.posX - npc.prevPosX) * (double)f);
-            double d1 = (npc.field_20065_s + (npc.field_20062_v - npc.field_20065_s) * (double)f) - (npc.prevPosY + (npc.posY - npc.prevPosY) * (double)f);
-            double d2 = (npc.field_20064_t + (npc.field_20061_w - npc.field_20064_t) * (double)f) - (npc.prevPosZ + (npc.posZ - npc.prevPosZ) * (double)f);
-            float f11 = npc.prevRenderYawOffset + (npc.renderYawOffset - npc.prevRenderYawOffset) * f;
-            double d3 = MathHelper.sin((f11 * 3.141593F) / 180F);
-            double d4 = -MathHelper.cos((f11 * 3.141593F) / 180F);
-            float f14 = (float)(d * d3 + d2 * d4) * 100F;
-            float f15 = (float)(d * d4 - d2 * d3) * 100F;
-            if (f14 < 0.0F)
-            {
-                f14 = 0.0F;
-            }
-            float f16 = npc.prevRotationYaw + (npc.rotationYaw - npc.prevRotationYaw) * f;
-            float f13 = 5f;
-            if (npc.isSneaking())
-            {
-                f13 += 25F;
-            }
-
-            GL11.glRotatef(6F + f14 / 2.0F + f13, 1.0F, 0.0F, 0.0F);
-            GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
-            GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
-            GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
-            GL11.glColor4f(1.0F,1.0F,1.0F, npc.isInvisible() && !npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) ? 0.2F : 1.0F);
-            GL11.glEnable(GL11.GL_BLEND);
-            modelBipedMain.renderCloak(0.0625F);
-            GL11.glPopMatrix();
-            GL11.glDisable(GL11.GL_BLEND);
-        }
         GL11.glColor3f(1,1,1);
         ItemStack itemstack = npc.inventory.armorItemInSlot(0);
         if(itemstack != null)

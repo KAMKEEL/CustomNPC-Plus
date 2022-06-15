@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.ModelPartConfig;
 import noppes.npcs.ModelPartData;
@@ -26,6 +27,8 @@ import noppes.npcs.roles.JobPuppet;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import static noppes.npcs.client.ClientProxy.bindTexture;
 
 public class ModelMPM extends ModelNPCMale{
 	private ModelPartInterface wings;
@@ -413,6 +416,7 @@ public class ModelMPM extends ModelNPCMale{
 			renderArms(npc, par7,false);
 			renderBody(npc, par7);
 			renderLegs(npc, par7);
+			renderCloak(npc, par7);
 		}
 
 	}
@@ -514,7 +518,7 @@ public class ModelMPM extends ModelNPCMale{
 
 	public void loadPlayerTexture(EntityCustomNpc npc){
 		if(!isArmor && !currentlyPlayerTexture){
-			ClientProxy.bindTexture(npc.textureLocation);
+			bindTexture(npc.textureLocation);
 			currentlyPlayerTexture = true;
 		}
 	}
@@ -762,5 +766,47 @@ public class ModelMPM extends ModelNPCMale{
 		}
 
 		return bipedBody;
+	}
+
+	public void renderCloak(EntityCustomNpc entity, float f)
+	{
+		if (!entity.display.cloakTexture.isEmpty() && !entity.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
+		{
+			if(entity.textureCloakLocation == null){
+				entity.textureCloakLocation = new ResourceLocation(entity.display.cloakTexture);
+			}
+			bindTexture((ResourceLocation) entity.textureCloakLocation);
+			GL11.glPushMatrix();
+			GL11.glTranslatef(0.0F, 0.0F, 0.125F);
+			double d = (entity.field_20066_r + (entity.field_20063_u - entity.field_20066_r) * (double)f) - (entity.prevPosX + (entity.posX - entity.prevPosX) * (double)f);
+			double d1 = (entity.field_20065_s + (entity.field_20062_v - entity.field_20065_s) * (double)f) - (entity.prevPosY + (entity.posY - entity.prevPosY) * (double)f);
+			double d2 = (entity.field_20064_t + (entity.field_20061_w - entity.field_20064_t) * (double)f) - (entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)f);
+			float f11 = entity.prevRenderYawOffset + (entity.renderYawOffset - entity.prevRenderYawOffset) * f;
+			double d3 = MathHelper.sin((f11 * 3.141593F) / 180F);
+			double d4 = -MathHelper.cos((f11 * 3.141593F) / 180F);
+			float f14 = (float)(d * d3 + d2 * d4) * 100F;
+			float f15 = (float)(d * d4 - d2 * d3) * 100F;
+			if (f14 < 0.0F)
+			{
+				f14 = 0.0F;
+			}
+			float f13 = 5f;
+			if (entity.isSneaking())
+			{
+				f13 += 25F;
+			}
+
+			GL11.glRotatef(6F + f14 / 2.0F + f13, 1.0F, 0.0F, 0.0F);
+			GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
+			GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
+			GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
+
+			GL11.glPushMatrix();
+			GL11.glColor4f(1, 1, 1, alpha);
+			super.renderCloak(f);
+			GL11.glPopMatrix();
+
+			GL11.glPopMatrix();
+		}
 	}
 }

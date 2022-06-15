@@ -14,7 +14,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.Sys;
 
 public class VersionCompatibility {
-	public static int ModRev = 18;
+	public static int ModRev = 19;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
@@ -31,33 +31,6 @@ public class VersionCompatibility {
 			// Fix DialogDarkenScreen
 			if(compound.hasKey("DialogDarkenScreen")){
 				compound.removeTag("DialogDarkenScreen");
-			}
-
-			// Remove MPM Texture Requirement
-			if(compound.hasKey("NpcModelData")) {
-				NBTTagCompound partData = compound.getCompoundTag("NpcModelData");
-
-				// Fix Leg MPM Dependency
-				if(partData.hasKey("LegParts")){
-					partData.setString("LegParts", partData.getCompoundTag("LegParts").getString("Texture").replace("moreplayermodels:textures", "customnpcs:textures/parts"));
-				}
-
-				// Fix Part MPM Dependency
-				if(partData.hasKey("Parts")){
-					NBTTagList list = partData.getTagList("Parts", 10);
-
-					for (int i = 0; i < list.tagCount(); i++) {
-						NBTTagCompound item = list.getCompoundTagAt(i);
-
-						if(item.hasKey("Texture")){
-							item.setString("Texture", item.getString("Texture"));
-						}
-						list.func_150304_a(i, item);
-					}
-					partData.setTag("Parts", list);
-				}
-				compound.setTag("NpcModelData", partData);
-				((EntityCustomNpc)npc).readEntityFromNBT(compound);
 			}
 		}
 		if(npc.npcVersion < 12){
@@ -132,6 +105,40 @@ public class VersionCompatibility {
 		}
 		npc.npcVersion = ModRev;
 	}
+
+	public static void CheckModelCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
+		if(npc.npcVersion == ModRev)
+			return;
+		if(npc.npcVersion < 19) {
+			NBTTagCompound partData = compound.getCompoundTag("NpcModelData");
+
+			// Fix Leg MPM Dependency
+			if(partData.hasKey("LegParts")){
+				NBTTagCompound legParts = partData.getCompoundTag("LegParts");
+				if(legParts.hasKey("Texture")){
+					legParts.setString("Texture", legParts.getString("Texture").replace("moreplayermodels:textures", "customnpcs:textures/parts"));
+				}
+				partData.setTag("LegParts", legParts);
+			}
+
+			// Fix Part MPM Dependency
+			if(partData.hasKey("Parts")){
+				NBTTagList list = partData.getTagList("Parts", 10);
+
+				for (int i = 0; i < list.tagCount(); i++) {
+					NBTTagCompound item = list.getCompoundTagAt(i);
+
+					if(item.hasKey("Texture")){
+						item.setString("Texture", item.getString("Texture").replace("moreplayermodels:textures", "customnpcs:textures/parts"));
+					}
+					list.func_150304_a(i, item);
+				}
+				partData.setTag("Parts", list);
+			}
+			compound.setTag("NpcModelData", partData);
+		}
+	}
+
 	public static void CheckAvailabilityCompatibility(ICompatibilty compatibilty, NBTTagCompound compound){
 		if(compatibilty.getVersion() == ModRev)
 			return;
