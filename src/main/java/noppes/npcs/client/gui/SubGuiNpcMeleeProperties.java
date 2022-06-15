@@ -2,11 +2,7 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.DataStats;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPotionType;
 
 public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfieldListener
@@ -45,16 +41,16 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
 		getTextField(4).integersOnly = true;
 		getTextField(4).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
         addLabel(new GuiNpcLabel(5,"stats.meleeeffect", guiLeft + 5, guiTop + 135));
-    	addButton(new GuiNpcButton(5,guiLeft + 85, guiTop + 130, 52, 20, potionNames, stats.potionType.ordinal()));
-    	if(stats.potionType != EnumPotionType.None) {
+		addButton(new GuiButtonBiDirectional(5,guiLeft + 85, guiTop + 130, 100, 20, potionNames, stats.potionType.ordinal()));
+		if(stats.potionType != EnumPotionType.None) {
     		addLabel(new GuiNpcLabel(6,"gui.time", guiLeft + 5, guiTop + 165));
     		addTextField(new GuiNpcTextField(6,this, fontRendererObj, guiLeft + 85, guiTop + 160, 50, 18, stats.potionDuration + ""));
     		getTextField(6).integersOnly = true;
     		getTextField(6).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
     		if(stats.potionType != EnumPotionType.Fire) {
     			addLabel(new GuiNpcLabel(7,"stats.amplify", guiLeft + 5, guiTop + 195));
-    			addButton(new GuiNpcButton(7,guiLeft + 85, guiTop + 190, 52, 20, new String[]{"gui.no", "gui.yes"} ,stats.potionAmp));
-    		}
+				addButton(new GuiButtonBiDirectional(7,guiLeft + 85, guiTop + 190, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"} ,stats.potionAmp));
+			}
     	}
     	addButton(new GuiNpcButton(66, guiLeft + 165, guiTop + 192, 90, 20, "gui.done"));
     }
