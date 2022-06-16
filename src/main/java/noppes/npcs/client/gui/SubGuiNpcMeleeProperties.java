@@ -52,7 +52,7 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
 				addButton(new GuiButtonBiDirectional(7,guiLeft + 85, guiTop + 190, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"} ,stats.potionAmp));
 			}
     	}
-    	addButton(new GuiNpcButton(66, guiLeft + 165, guiTop + 192, 90, 20, "gui.done"));
+		addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));
     }
 
 	public void unFocused(GuiNpcTextField textfield) {
