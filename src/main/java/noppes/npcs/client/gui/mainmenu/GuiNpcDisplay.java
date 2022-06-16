@@ -34,11 +34,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         super.initGui();
         int y = guiTop + 4;
 
-        // Old Implementation
-//        addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 5, y + 5));
-//        addTextField(new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 50, y, 200, 20, display.name));
-//    	this.addButton(new GuiNpcButton(0, guiLeft + 253, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
-
 		addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 5, y + 5));
 		nameText = new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.name);
 		addTextField(nameText);
