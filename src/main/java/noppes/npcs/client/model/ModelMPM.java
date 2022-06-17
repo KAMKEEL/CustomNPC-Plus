@@ -748,6 +748,46 @@ public class ModelMPM extends ModelNPCMale{
 		}
 		GL11.glPopMatrix();
 	}
+
+	public void renderCloak(EntityCustomNpc npc, float f){
+		if (!npc.display.cloakTexture.isEmpty() && !isArmor)
+		{
+			if(npc.textureCloakLocation == null){
+				npc.textureCloakLocation = new ResourceLocation(npc.display.cloakTexture);
+			}
+			bindTexture((ResourceLocation) npc.textureCloakLocation);
+			GL11.glPushMatrix();
+			GL11.glTranslatef(0.0F, 0.0F, 0.125F);
+			double d = (npc.field_20066_r + (npc.field_20063_u - npc.field_20066_r) * (double)f) - (npc.prevPosX + (npc.posX - npc.prevPosX) * (double)f);
+			double d1 = (npc.field_20065_s + (npc.field_20062_v - npc.field_20065_s) * (double)f) - (npc.prevPosY + (npc.posY - npc.prevPosY) * (double)f);
+			double d2 = (npc.field_20064_t + (npc.field_20061_w - npc.field_20064_t) * (double)f) - (npc.prevPosZ + (npc.posZ - npc.prevPosZ) * (double)f);
+			float f11 = npc.prevRenderYawOffset + (npc.renderYawOffset - npc.prevRenderYawOffset) * f;
+			double d3 = MathHelper.sin((f11 * 3.141593F) / 180F);
+			double d4 = -MathHelper.cos((f11 * 3.141593F) / 180F);
+			float f14 = (float)(d * d3 + d2 * d4) * 100F;
+			float f15 = (float)(d * d4 - d2 * d3) * 100F;
+			if (f14 < 0.0F)
+			{
+				f14 = 0.0F;
+			}
+			float f16 = npc.prevRotationYaw + (npc.rotationYaw - npc.prevRotationYaw) * f;
+			float f13 = 5f;
+			if (npc.isSneaking())
+			{
+				f13 += 25F;
+			}
+
+			GL11.glRotatef(6F + f14 / 2.0F + f13, 1.0F, 0.0F, 0.0F);
+			GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
+			GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
+			GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
+
+			GL11.glColor4f(1, 1, 1, alpha);
+			super.renderCloak(0.0625F);
+			GL11.glPopMatrix();
+		}
+	}
+
 	@Override
 	public ModelRenderer getRandomModelBox(Random par1Random)
 	{
@@ -766,47 +806,5 @@ public class ModelMPM extends ModelNPCMale{
 		}
 
 		return bipedBody;
-	}
-
-	public void renderCloak(EntityCustomNpc entity, float f)
-	{
-		if (!entity.display.cloakTexture.isEmpty() && !entity.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
-		{
-			if(entity.textureCloakLocation == null){
-				entity.textureCloakLocation = new ResourceLocation(entity.display.cloakTexture);
-			}
-			bindTexture((ResourceLocation) entity.textureCloakLocation);
-			GL11.glPushMatrix();
-			GL11.glTranslatef(0.0F, 0.0F, 0.125F);
-			double d = (entity.field_20066_r + (entity.field_20063_u - entity.field_20066_r) * (double)f) - (entity.prevPosX + (entity.posX - entity.prevPosX) * (double)f);
-			double d1 = (entity.field_20065_s + (entity.field_20062_v - entity.field_20065_s) * (double)f) - (entity.prevPosY + (entity.posY - entity.prevPosY) * (double)f);
-			double d2 = (entity.field_20064_t + (entity.field_20061_w - entity.field_20064_t) * (double)f) - (entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)f);
-			float f11 = entity.prevRenderYawOffset + (entity.renderYawOffset - entity.prevRenderYawOffset) * f;
-			double d3 = MathHelper.sin((f11 * 3.141593F) / 180F);
-			double d4 = -MathHelper.cos((f11 * 3.141593F) / 180F);
-			float f14 = (float)(d * d3 + d2 * d4) * 100F;
-			float f15 = (float)(d * d4 - d2 * d3) * 100F;
-			if (f14 < 0.0F)
-			{
-				f14 = 0.0F;
-			}
-			float f13 = 5f;
-			if (entity.isSneaking())
-			{
-				f13 += 25F;
-			}
-
-			GL11.glRotatef(6F + f14 / 2.0F + f13, 1.0F, 0.0F, 0.0F);
-			GL11.glRotatef(f15 / 2.0F, 0.0F, 0.0F, 1.0F);
-			GL11.glRotatef(-f15 / 2.0F, 0.0F, 1.0F, 0.0F);
-			GL11.glRotatef(180F, 0.0F, 1.0F, 0.0F);
-
-			GL11.glPushMatrix();
-			GL11.glColor4f(1, 1, 1, alpha);
-			super.renderCloak(f);
-			GL11.glPopMatrix();
-
-			GL11.glPopMatrix();
-		}
 	}
 }

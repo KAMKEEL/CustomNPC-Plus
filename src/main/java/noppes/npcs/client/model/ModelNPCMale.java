@@ -1,5 +1,6 @@
 package noppes.npcs.client.model;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
@@ -7,12 +8,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import org.lwjgl.opengl.GL11;
+
+import static noppes.npcs.client.ClientProxy.bindTexture;
 
 public class ModelNPCMale extends ModelBiped
 {
@@ -22,6 +26,7 @@ public class ModelNPCMale extends ModelBiped
     public float animationTick;
     public float dancingTicks;
 
+    public float invisible;
 
     public ModelNPCMale(float f)
     {
@@ -50,7 +55,6 @@ public class ModelNPCMale extends ModelBiped
         isSneak = false;
         aimedBow = false;
 
-        // Changed
         bipedCloak = new ModelRenderer(this, 0, 0);
         bipedCloak.setTextureSize(64, 32);
         bipedCloak.addBox(-5.0F, 0.0F, -1.0F, 10, 16, 1, f);
