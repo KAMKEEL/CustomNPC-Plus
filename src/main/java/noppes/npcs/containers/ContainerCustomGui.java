@@ -7,10 +7,14 @@ package noppes.npcs.containers;
 
 import java.util.Iterator;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import noppes.npcs.EventHooks;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.gui.IItemSlot;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
@@ -97,6 +101,23 @@ public class ContainerCustomGui extends Container {
 
     public boolean canInteractWith(EntityPlayer p_75145_1_) {
         return true;
+    }
+
+    @Override
+    public ItemStack slotClick(int slotId, int dragType, int clickTypeIn, EntityPlayer player) {
+        if(slotId < 0)
+            return super.slotClick(slotId, dragType, clickTypeIn, player);
+        if(!player.worldObj.isRemote) {
+            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, dragType, clickTypeIn)) {
+                ItemStack item = super.slotClick(slotId, dragType, clickTypeIn, player);
+                EntityPlayerMP p = (EntityPlayerMP) player;
+                p.sendContainerToPlayer(this);
+
+                return item;
+            }
+
+        }
+        return null;
     }
 
     public boolean canDragIntoSlot(Slot p_94531_1_) { return true; }

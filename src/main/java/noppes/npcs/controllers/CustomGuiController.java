@@ -89,6 +89,14 @@ public class CustomGuiController {
         NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onSlotClick(CustomGuiEvent.SlotClickEvent event) {
+        EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
+        if(checkGui(event) && getOpenGui(player).getScriptHandler()!=null) {
+            (getOpenGui(player).getScriptHandler()).callScript(EnumScriptType.CUSTOM_GUI_SLOT_CLICKED, event);
+        }
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onCustomGuiUnfocused(CustomGuiEvent.UnfocusedEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
         if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {

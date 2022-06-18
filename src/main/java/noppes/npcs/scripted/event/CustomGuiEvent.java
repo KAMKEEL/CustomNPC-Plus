@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.event;
 
+import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
@@ -61,6 +62,25 @@ public class CustomGuiEvent extends Event {
             super(player, gui);
             this.slotId = slotId;
             this.stack = stack;
+        }
+    }
+
+    @Cancelable
+    public static class SlotClickEvent extends CustomGuiEvent {
+        public final int slotId;
+        public final IItemStack stack;
+        public final int dragType;
+        /**
+         *
+         */
+        public final int clickType;
+
+        public SlotClickEvent(IPlayer player, ICustomGui gui, int slotId, IItemStack stack, int dragType, int clickType) {
+            super(player,gui);
+            this.slotId = slotId;
+            this.stack = stack;
+            this.dragType = dragType;
+            this.clickType = clickType;
         }
     }
 }
