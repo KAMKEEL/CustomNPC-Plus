@@ -79,7 +79,7 @@ public class LogWriter {
 	}
 
 	public static void info(Object msg) {
-		logger.log(Level.FINE, msg.toString());
+		logger.log(Level.INFO, msg.toString());
 		handler.flush();
 	}
 
