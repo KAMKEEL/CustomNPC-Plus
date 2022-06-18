@@ -146,6 +146,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("customGuiClosed");
                 hookList.add("customGuiButton");
                 hookList.add("customGuiSlot");
+                hookList.add("customGuiSlotClicked");
                 hookList.add("customGuiScroll");
                 hookList.add("customGuiTextfield");
 
