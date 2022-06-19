@@ -71,15 +71,15 @@ public class SkinOverlay implements ISkinOverlay {
         return size;
     }
 
-    public void setScale(float scaleX, float scaleY) {
+    public void setTextureScale(float scaleX, float scaleY) {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
         this.updateClient();
     }
-    public float getScaleX() {
+    public float getTextureScaleX() {
         return scaleX;
     }
-    public float getScaleY() {
+    public float getTextureScaleY() {
         return scaleY;
     }
 
@@ -142,8 +142,8 @@ public class SkinOverlay implements ISkinOverlay {
         compound.setFloat("SkinOverlaySize", this.getSize());
         compound.setFloat("SkinOverlaySpeedX", this.getSpeedX());
         compound.setFloat("SkinOverlaySpeedY", this.getSpeedY());
-        compound.setFloat("SkinOverlayScaleX", this.getScaleX());
-        compound.setFloat("SkinOverlayScaleY", this.getScaleY());
+        compound.setFloat("SkinOverlayScaleX", this.getTextureScaleX());
+        compound.setFloat("SkinOverlayScaleY", this.getTextureScaleY());
         compound.setFloat("SkinOverlayOffsetX", this.getOffsetX());
         compound.setFloat("SkinOverlayOffsetY", this.getOffsetY());
         compound.setFloat("SkinOverlayOffsetZ", this.getOffsetZ());

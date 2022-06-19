@@ -43,9 +43,9 @@ public interface ISkinOverlay {
     /**
      * Sets the texture scale of the overlay. Higher values will "zoom in" to the texture more.
      */
-    void setScale(float scaleX, float scaleY);
-    float getScaleX();
-    float getScaleY();
+    void setTextureScale(float scaleX, float scaleY);
+    float getTextureScaleX();
+    float getTextureScaleY();
 
     /**
      * Sets the "texture speed" by which the texture shifts on each render tick. Used to create a powered creeper effect!

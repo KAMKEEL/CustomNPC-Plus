@@ -60,8 +60,8 @@ public interface IDBCPlayer extends IPlayer {
      *             10 - 1st Vanity Slot Down to the right
      * @param itemStack The item stack to be set into the slot. Set to null to remove the stack in that slot.
      */
-    void setItem(byte slot, IItemStack itemStack);
-    IItemStack getItem(byte slot);
+    void setItem(IItemStack itemStack, byte slot, boolean vanity);
+    IItemStack getItem(byte slot, boolean vanity);
     IItemStack[] getInventory();
 
     void setForm(byte form);

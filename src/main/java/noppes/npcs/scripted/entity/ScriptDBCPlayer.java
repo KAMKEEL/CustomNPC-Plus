@@ -428,14 +428,16 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return compound.getCompoundTag("JRMCEP").getString("extracode");
     }
 
-    public void setItem(byte slot, IItemStack itemStack) {
+    public void setItem(IItemStack itemStack, byte slot, boolean vanity) {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
+
+        byte offset = (byte) (vanity ? 10 : 2);
 
         NBTTagList newList = new NBTTagList();
         NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
         for (int i = 0; i < list.tagCount(); i++) {
-            if (list.getCompoundTagAt(i).getByte("Slot") != slot) {
+            if (offset - list.getCompoundTagAt(i).getByte("Slot") != slot) {
                 newList.appendTag(list.getCompoundTagAt(i));
             }
         }
@@ -444,20 +446,22 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         if (itemStack != null) {
             itemStack.getMCItemStack().writeToNBT(compoundItem);
         }
-        compoundItem.setByte("Slot", slot);
+        compoundItem.setByte("Slot", (byte) (offset - slot));
         newList.appendTag(compoundItem);
 
         compound.getCompoundTag("JRMCEP").setTag("dbcExtraInvTag", newList);
         this.player.readFromNBT(compound);
     }
 
-    public IItemStack getItem(byte slot) {
+    public IItemStack getItem(byte slot, boolean vanity) {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
 
+        byte offset = (byte) (vanity ? 10 : 2);
+
         NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
         for (int i = 0; i < list.tagCount(); i++) {
-            if (list.getCompoundTagAt(i).getByte("Slot") == slot) {
+            if (offset - list.getCompoundTagAt(i).getByte("Slot") == slot) {
                 return NpcAPI.Instance().getIItemStack(ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i)));
             }
         }

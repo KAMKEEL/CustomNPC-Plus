@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
@@ -23,7 +22,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
-import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
@@ -264,7 +262,7 @@ public class RenderNPCInterface extends RenderLiving{
 					GL11.glMatrixMode(GL11.GL_TEXTURE);
 					GL11.glLoadIdentity();
 					GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
-					GL11.glScalef(overlayData.getScaleX(), overlayData.getScaleY(), 1.0F);
+					GL11.glScalef(overlayData.getTextureScaleX(), overlayData.getTextureScaleY(), 1.0F);
 
 					GL11.glMatrixMode(GL11.GL_MODELVIEW);
 					float scale = 1.005f * overlayData.getSize();
