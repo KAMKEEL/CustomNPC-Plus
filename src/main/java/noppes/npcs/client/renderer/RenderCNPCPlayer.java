@@ -382,26 +382,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
         Object modelMain = renderPlayerJBRA.getField("modelMain").get(playerRenderer);
         ModelBiped model = ((ModelBiped) modelMain);
 
-        float headOffsetY = 0.00051F;
-        model.bipedHead.offsetY += headOffsetY;
-
-        float armOffsetX = -0.00125F;
-        model.bipedLeftArm.offsetX += armOffsetX;
-        model.bipedRightArm.offsetX += -armOffsetX;
-
-        float legOffsetX = -0.0005F;
-        float legOffsetY = -0.002F;
-        float legOffsetZ = 0.0F;
-        if (player.isSneaking()) {
-            legOffsetZ += -0.00075F;
-        }
-        model.bipedLeftLeg.offsetX += legOffsetX;
-        model.bipedRightLeg.offsetX += -legOffsetX;
-        model.bipedLeftLeg.offsetY += legOffsetY;
-        model.bipedRightLeg.offsetY += legOffsetY;
-        model.bipedLeftLeg.offsetZ += legOffsetZ;
-        model.bipedRightLeg.offsetZ += legOffsetZ;
-
         if ((Boolean) JBRAH.getMethod("JHDS").invoke(null)) {
             data = JBRAH.getMethod("skinData",EntityPlayer.class).invoke(null,player);
         }
@@ -507,7 +487,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                     float yc = 1.0F;
                     float f1r;
-                    if ((Boolean) JRMCoreH.getMethod("JYC").invoke(null)) {
+                    /*if ((Boolean) JRMCoreH.getMethod("JYC").invoke(null)) {
                         f1r = age;
                         if (f1r <= 6.0F) {
                             yc = 0.5F;
@@ -522,7 +502,27 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
 
                         yc = Math.max(yc, 0.54347825F);
+                    }*/
+
+                    float headOffsetY = 0.00051F;
+                    model.bipedHead.offsetY += headOffsetY;
+
+                    float armOffsetX = -0.00125F;
+                    model.bipedLeftArm.offsetX += armOffsetX;
+                    model.bipedRightArm.offsetX += -armOffsetX;
+
+                    float legOffsetX = -0.0005F;
+                    float legOffsetY = -0.002F;
+                    float legOffsetZ = 0.0F;
+                    if (player.isSneaking()) {
+                        legOffsetZ += -0.00075F;
                     }
+                    model.bipedLeftLeg.offsetX += legOffsetX;
+                    model.bipedRightLeg.offsetX += -legOffsetX;
+                    model.bipedLeftLeg.offsetY += legOffsetY;
+                    model.bipedRightLeg.offsetY += legOffsetY;
+                    model.bipedLeftLeg.offsetZ += legOffsetZ;
+                    model.bipedRightLeg.offsetZ += legOffsetZ;
 
                     if ((Boolean) JRMCoreH.getMethod("DBC").invoke(null) && (Boolean) JRMCoreConfig.getField("sizes").get(null)) {
                         f1r = f1;
@@ -1000,7 +1000,18 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                     GL11.glPopMatrix();
                     doit = false;
-                    break;
+
+                    model.bipedHead.offsetY -= headOffsetY;
+
+                    model.bipedLeftArm.offsetX -= armOffsetX;
+                    model.bipedRightArm.offsetX -= -armOffsetX;
+
+                    model.bipedLeftLeg.offsetX -= legOffsetX;
+                    model.bipedRightLeg.offsetX -= -legOffsetX;
+                    model.bipedLeftLeg.offsetY -= legOffsetY;
+                    model.bipedRightLeg.offsetY -= legOffsetY;
+                    model.bipedLeftLeg.offsetZ -= legOffsetZ;
+                    model.bipedRightLeg.offsetZ -= legOffsetZ;
                 }
             }
         }
@@ -1022,16 +1033,5 @@ public class RenderCNPCPlayer extends RenderPlayer {
             ModelBipedDBC.getMethod("renderHeadwear",float.class).invoke(modelMain,0.0625F);
             GL11.glPopMatrix();
         }*/
-        model.bipedHead.offsetY -= headOffsetY;
-
-        model.bipedLeftArm.offsetX -= armOffsetX;
-        model.bipedRightArm.offsetX -= -armOffsetX;
-
-        model.bipedLeftLeg.offsetX -= legOffsetX;
-        model.bipedRightLeg.offsetX -= -legOffsetX;
-        model.bipedLeftLeg.offsetY -= legOffsetY;
-        model.bipedRightLeg.offsetY -= legOffsetY;
-        model.bipedLeftLeg.offsetZ -= legOffsetZ;
-        model.bipedRightLeg.offsetZ -= legOffsetZ;
     }
 }
