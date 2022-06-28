@@ -437,8 +437,6 @@ public class CustomItemRenderer implements IItemRenderer {
 
     public static void renderCustomItemIn2D(ItemStack itemStack, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
     {
-        GL11.glEnable(GL11.GL_BLEND);
-
         int width = ItemScripted.GetWrapper(itemStack).width;
         int height = ItemScripted.GetWrapper(itemStack).height;
 
