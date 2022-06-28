@@ -328,19 +328,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 	
 	/**
-	 * @param item The item to be checked
-	 * @return How many of this item the player has
-	 */
-	public int inventoryItemCount(IItemStack item){
-		int i = 0;
-		for(ItemStack is : player.inventory.mainInventory){
-            if (is != null && is.isItemEqual(item.getMCItemStack()))
-            	i += is.stackSize;
-		}
-		return i;
-	}
-	
-	/**
 	 * @since 1.7.10d
 	 * @return Returns a IItemStack array size 36
 	 */
@@ -353,13 +340,49 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 		return items;
 	}
-	
+
+	public int inventoryItemCount(IItemStack item){
+		return inventoryItemCount(item, true, true);
+	}
+
+	/**
+	 * @param item The item to be checked
+	 * @return How many of this item the player has
+	 */
+	public int inventoryItemCount(IItemStack item, boolean ignoreNBT, boolean ignoreDamage) {
+		int i = 0;
+		for(ItemStack is : player.inventory.mainInventory){
+			if (is != null && NoppesUtilPlayer.compareItems(is, item.getMCItemStack(), ignoreDamage, ignoreNBT)) {
+				i += is.stackSize;
+			}
+		}
+		return i;
+	}
+
+	/**
+	 * @since 1.7.10c
+	 * @param id The items name
+	 * @param damage The damage value
+	 * @param amount How many will be removed
+	 * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given or item doesnt exist
+	 */
+	public boolean removeItem(String id, int damage, int amount){
+		Item item = (Item)Item.itemRegistry.getObject(id);
+		if(item == null)
+			return false;
+		return removeItem(NpcAPI.Instance().getIItemStack(new ItemStack(item, 1, damage)), amount);
+	}
+
+	public boolean removeItem(IItemStack item, int amount){
+		return removeItem(item, amount, true, true);
+	}
+
 	/**
 	 * @param item The Item type to be removed
 	 * @param amount How many will be removed
 	 * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
 	 */
-	public boolean removeItem(IItemStack item, int amount){
+	public boolean removeItem(IItemStack item, int amount, boolean ignoreNBT, boolean ignoreDamage) {
 		int count = inventoryItemCount(item);
 		if(amount  > count)
 			return false;
@@ -368,34 +391,41 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		else{
 			for(int i = 0; i < player.inventory.mainInventory.length; i++){
 				ItemStack is = player.inventory.mainInventory[i];
-	            if (is != null && is.isItemEqual(item.getMCItemStack())){
-	            	if(amount > is.stackSize){
-	                	player.inventory.mainInventory[i] = null;
-	                	amount -= is.stackSize;
-	            	}
-	            	else{
-	            		is.splitStack(amount);
-	            		break;
-	            	}
-	            }
+				if (is != null && NoppesUtilPlayer.compareItems(is, item.getMCItemStack(), ignoreDamage, ignoreNBT)) {
+					if(amount > is.stackSize){
+						player.inventory.mainInventory[i] = null;
+						amount -= is.stackSize;
+					}
+					else{
+						is.splitStack(amount);
+						break;
+					}
+				}
 			}
 		}
 		this.updatePlayerInventory();
 		return true;
 	}
 
+	public void removeAllItems(IItemStack item){
+		removeAllItems(item, true, true);
+	}
+
 	/**
-	 * @since 1.7.10c
-	 * @param id The items name
-	 * @param damage The damage value 
-	 * @param amount How many will be removed
-	 * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given or item doesnt exist
+	 * @param item The item to be removed from the players inventory
 	 */
-	public boolean removeItem(String id, int damage, int amount){
-		Item item = (Item)Item.itemRegistry.getObject(id);
-		if(item == null)
-			return false;		
-		return removeItem(NpcAPI.Instance().getIItemStack(new ItemStack(item, 1, damage)), amount);
+	public int removeAllItems(IItemStack item, boolean ignoreNBT, boolean ignoreDamage){
+		int removed = 0;
+
+		for(int i = 0; i < player.inventory.mainInventory.length; i++) {
+			ItemStack is = player.inventory.mainInventory[i];
+			if (is != null && NoppesUtilPlayer.compareItems(is, item.getMCItemStack(), ignoreDamage, ignoreNBT)) {
+				player.inventory.mainInventory[i] = null;
+				removed++;
+			}
+		}
+
+		return removed;
 	}
 
 	/**
@@ -444,17 +474,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	
 	public void resetSpawnpoint(){
 		player.setSpawnChunk(null, false);
-	}
-		
-	/**
-	 * @param item The item to be removed from the players inventory
-	 */
-	public void removeAllItems(IItemStack item){
-		for(int i = 0; i < player.inventory.mainInventory.length; i++){
-			ItemStack is = player.inventory.mainInventory[i];
-            if (is != null && is.isItemEqual(item.getMCItemStack()))
-            	player.inventory.mainInventory[i] = null;
-		}
 	}
 
 	public void clearInventory() {

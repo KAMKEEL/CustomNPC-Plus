@@ -116,32 +116,44 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     void setMode(int type);
 
     /**
-     * @param item The item to be checked
-     * @return How many of this item the player has
-     */
-    int inventoryItemCount(IItemStack item);
-
-    /**
      * @since 1.7.10d
      * @return Returns a IItemStack array size 36
      */
     IItemStack[] getInventory();
 
     /**
-     * @param item The Item type to be removed
-     * @param amount How many will be removed
-     * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
+     * @param item The item to be checked
+     * @param ignoreNBT Whether the item's NBT tags will be checked to be equal
+     * @param ignoreDamage Whether the item's damage will be checked to be equal
+     * @return How many of this item the player has
      */
-    boolean removeItem(IItemStack item, int amount);
+    int inventoryItemCount(IItemStack item, boolean ignoreNBT, boolean ignoreDamage);
 
     /**
      * @since 1.7.10c
      * @param id The items name
      * @param damage The damage value
      * @param amount How many will be removed
-     * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given or item doesnt exist
+     * @return True if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given or item doesnt exist
      */
     boolean removeItem(String id, int damage, int amount);
+
+    /**
+     * @param item The Item type to be removed
+     * @param amount How many will be removed
+     * @param ignoreNBT Whether the item's NBT tags will be checked to be equal
+     * @param ignoreDamage Whether the item's damage will be checked to be equal
+     * @return True if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
+     */
+    boolean removeItem(IItemStack item, int amount, boolean ignoreNBT, boolean ignoreDamage);
+
+    /**
+     * @param item The item to be removed from the players inventory
+     * @param ignoreNBT Whether the item's NBT tags will be checked to be equal
+     * @param ignoreDamage Whether the item's damage will be checked to be equal
+     * @return The amount of item stacks that were removed
+     */
+    int removeAllItems(IItemStack item, boolean ignoreNBT, boolean ignoreDamage);
 
     /**
      * @since 1.7.10c
@@ -169,11 +181,6 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     void setSpawnpoint(int x, int y, int z);
 
     void resetSpawnpoint();
-
-    /**
-     * @param item The item to be removed from the players inventory
-     */
-    void removeAllItems(IItemStack item);
 
     void setRotation(float rotationYaw, float rotationPitch);
 
