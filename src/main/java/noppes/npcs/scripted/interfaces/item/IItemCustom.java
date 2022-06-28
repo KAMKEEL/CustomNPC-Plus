@@ -1,14 +1,5 @@
 package noppes.npcs.scripted.interfaces.item;
-
-import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.IScriptHandler;
-import noppes.npcs.controllers.ScriptContainer;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public interface IItemCustom extends IItemStack, IScriptHandler {
 
@@ -67,30 +58,6 @@ public interface IItemCustom extends IItemStack, IScriptHandler {
     void setScale(float scaleX, float scaleY, float scaleZ);
 
     void setTranslate(float translateX, float translateY, float translateZ);
-
-    void setRotationX(float rotationX);
-
-    void setRotationY(float rotationY);
-
-    void setRotationZ(float rotationZ);
-
-    void setRotationXRate(float rotationXRate);
-
-    void setRotationYRate(float rotationYRate);
-
-    void setRotationZRate(float rotationZRate);
-
-    void setScaleX(float scaleX);
-
-    void setScaleY(float scaleY);
-
-    void setScaleZ(float scaleZ);
-
-    void setTranslateX(float translateX);
-
-    void setTranslateY(float translateY);
-
-    void setTranslateZ(float translateZ);
 
     float getRotationX();
 

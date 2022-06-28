@@ -295,66 +295,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         saveItemData();
     }
 
-    public void setRotationX(float rotationX) {
-        this.rotationX = rotationX;
-        saveItemData();
-    }
-
-    public void setRotationY(float rotationY) {
-        this.rotationY = rotationY;
-        saveItemData();
-    }
-
-    public void setRotationZ(float rotationZ) {
-        this.rotationZ = rotationZ;
-        saveItemData();
-    }
-
-    public void setRotationXRate(float rotationXRate) {
-        this.rotationXRate = rotationXRate;
-        saveItemData();
-    }
-
-    public void setRotationYRate(float rotationYRate) {
-        this.rotationYRate = rotationYRate;
-        saveItemData();
-    }
-
-    public void setRotationZRate(float rotationZRate) {
-        this.rotationZRate = rotationZRate;
-        saveItemData();
-    }
-
-    public void setScaleX(float scaleX) {
-        this.scaleX = scaleX;
-        saveItemData();
-    }
-
-    public void setScaleY(float scaleY) {
-        this.scaleY = scaleY;
-        saveItemData();
-    }
-
-    public void setScaleZ(float scaleZ) {
-        this.scaleZ = scaleZ;
-        saveItemData();
-    }
-
-    public void setTranslateX(float translateX) {
-        this.translateX = translateX;
-        saveItemData();
-    }
-
-    public void setTranslateY(float translateY) {
-        this.translateY = translateY;
-        saveItemData();
-    }
-
-    public void setTranslateZ(float translateZ) {
-        this.translateZ = translateZ;
-        saveItemData();
-    }
-
     public float getRotationX() {
         return rotationX;
     }

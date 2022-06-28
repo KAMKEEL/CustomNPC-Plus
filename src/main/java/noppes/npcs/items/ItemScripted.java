@@ -18,7 +18,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.entity.EntityItemScripted;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -158,6 +158,21 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     @Override
     public void renderSpecial() {}
+
+    public boolean hasCustomEntity(ItemStack stack)
+    {
+        return true;
+    }
+
+    public EntityItemScripted createEntity(World world, Entity location, ItemStack itemstack)
+    {
+        EntityItemScripted entityScriptedItem = new EntityItemScripted(world,location.posX,location.posY,location.posZ, itemstack);
+        entityScriptedItem.motionX = location.motionX;
+        entityScriptedItem.motionY = location.motionY;
+        entityScriptedItem.motionZ = location.motionZ;
+
+        return entityScriptedItem;
+    }
 
     public void renderOffset(ScriptCustomItem scriptCustomItem) {
         GL11.glTranslatef(0.135F * scriptCustomItem.scaleX, 0.2F * scriptCustomItem.scaleY, 0.07F * scriptCustomItem.scaleZ);

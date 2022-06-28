@@ -13,8 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
-import noppes.npcs.CustomItems;
-import noppes.npcs.items.ItemRenderInterface;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
@@ -76,11 +74,18 @@ public class CustomItemRenderer implements IItemRenderer {
             return;
 
         if (type == ItemRenderType.INVENTORY) {
+            GL11.glPushMatrix();
             renderInventoryCustomItem(scriptCustomItem);
+            GL11.glPopMatrix();
             return;
         }
 
         if (type == ItemRenderType.ENTITY) {
+            GL11.glPushMatrix();
+
+            float bobbingY = ((float)(Math.sin((float)this.entityRenderTicks /40.0F) + 1)/6.0F);
+            GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY,1)-1) * (1.0F/4), 0.0F);
+
             GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
             GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
             GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
@@ -90,6 +95,7 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks%360, 0, 0, 1);
 
             GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+            GL11.glTranslatef(0.0F, bobbingY, 0.0F);
 
             int color = scriptCustomItem.getColor();
             float itemRed = (color >> 16 & 255) / 255f;
@@ -99,8 +105,12 @@ public class CustomItemRenderer implements IItemRenderer {
 
             EntityItem entityItem = (EntityItem) data[1];
             renderEntityCustomItem(scriptCustomItem, itemStack, entityItem);
+
+            GL11.glPopMatrix();
             return;
         }
+
+        GL11.glPushMatrix();
 
         GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
         GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
@@ -129,19 +139,17 @@ public class CustomItemRenderer implements IItemRenderer {
 
         EntityLivingBase entityLivingBase = (EntityLivingBase) data[1];
         renderItem3d(scriptCustomItem, entityLivingBase, itemStack);
+
+        GL11.glPopMatrix();
     }
 
     public void renderEntityCustomItem(ScriptCustomItem scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
-        this.entityRenderTicks++;
+        if (!Minecraft.getMinecraft().isGamePaused()) {
+            this.entityRenderTicks++;
+        }
         int pass = 0;
-        float bobbingY = (float)(Math.sin((float)this.entityRenderTicks /40.0F) + 1) * scriptCustomItem.scaleY/6.0F;
 
         GL11.glPushMatrix();
-            GL11.glTranslatef(0.0F, bobbingY, 0.0F);
-            GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
-            GL11.glEnable(GL11.GL_ALPHA_TEST);
-            GL11.glEnable(GL11.GL_BLEND);
-
             ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
 
@@ -283,10 +291,6 @@ public class CustomItemRenderer implements IItemRenderer {
                     GL11.glPopMatrix();
                 }
             }
-
-            GL11.glEnable(GL11.GL_LIGHTING);
-            GL11.glDisable(GL11.GL_ALPHA_TEST);
-            GL11.glDisable(GL11.GL_BLEND);
         GL11.glPopMatrix();
     }
 
@@ -300,15 +304,13 @@ public class CustomItemRenderer implements IItemRenderer {
 
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
-            GL11.glEnable(GL11.GL_BLEND);
 
             ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
-            renderCustomItemSlot(0,0,16,16, scriptCustomItem.item);
+            renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
-            GL11.glDisable(GL11.GL_BLEND);
 
             if (scriptCustomItem.item.hasEffect(0))
             {
@@ -361,9 +363,10 @@ public class CustomItemRenderer implements IItemRenderer {
         }
     }
 
-    public void renderCustomItemSlot(int posX, int posY, int imageWidth, int imageHeight, ItemStack itemStack) {
+    public void renderCustomItemSlot(int posX, int posY, int imageWidth, int imageHeight, float itemRed, float itemGreen, float itemBlue) {
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_F(itemRed, itemGreen, itemBlue, 1.0F);
         tessellator.addVertexWithUV((double)(posX), (double)(posY + imageHeight), 0, 0, 1);
         tessellator.addVertexWithUV((double)(posX + imageWidth), (double)(posY + imageHeight), 0, 1, 1);
         tessellator.addVertexWithUV((double)(posX + imageWidth), (double)(posY), 0, 1, 0);
