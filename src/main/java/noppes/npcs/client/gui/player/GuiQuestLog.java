@@ -250,6 +250,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 
     @Override
 	public void save() {
+        if (this.data != null && !this.data.trackedQuestKey.isEmpty())
         Client.sendData(EnumPacketServer.UpdateTrackedQuest, this.data.trackedQuestKey);
 	}
 	
