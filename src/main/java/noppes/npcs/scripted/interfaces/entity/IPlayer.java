@@ -93,17 +93,11 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     int getFactionPoints(int faction);
 
     /**
-     * @param message The message you want to send
+     * @param message The message you want to send. Compatible with formatting codes, which can be found on the attached link.
+     * @see <a href="https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7e/Minecraft_Formatting.gif/revision/latest/scale-to-width-down/200?cb=20200828001454">Minecraft formatting codes</a>
+     *
      */
     void sendMessage(String message);
-
-    void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined);
-
-    void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
-    
-    void sendMessage(String message, String color, boolean bold, boolean italic, boolean underlined);
-    
-    void sendMessage(String message, String color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined);
 
     /**
      * @return Return gamemode. 0: Survival, 1: Creative, 2: Adventure

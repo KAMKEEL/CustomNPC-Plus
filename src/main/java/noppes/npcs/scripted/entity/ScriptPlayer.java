@@ -241,54 +241,32 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
 		return data.factionData.getFactionPoints(faction);
 	}
-	
-	/**
-	 * @param message The message you want to send
-	 */
+
 	public void sendMessage(String message){
 		player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));
 	}
 	
-	/**
-	 * @param message The message you want to send
-	 */
-	public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean underlined) {
-		ChatComponentTranslation chat = new ChatComponentTranslation(NoppesStringUtils.formatText(message,player));
-		ChatStyle style = new ChatStyle();
-		style.setColor(color);
-		style.setBold(bold);
-		style.setItalic(italic);
-		style.setUnderlined(underlined);
-		chat.setChatStyle(style);
-		player.addChatMessage(chat);
+	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean underlined) {
+		sendMessage(message, color, bold, italic, underlined, false, false);
 	}
+	
+	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined) {
+		EnumChatFormatting c = getColor(color);
 
-	/**
-	 * @param message The message you want to send
-	 */
-	public void sendMessage(String message, EnumChatFormatting color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined) {
+		if (c == null)
+			return;
+
 		ChatComponentTranslation chat = new ChatComponentTranslation(NoppesStringUtils.formatText(message,player));
 		ChatStyle style = new ChatStyle();
-		style.setColor(color);
+		style.setColor(c);
 		style.setBold(bold);
 		style.setItalic(italic);
 		style.setObfuscated(obfuscated);
 		style.setStrikethrough(strikethrough);
 		style.setUnderlined(underlined);
 		chat.setChatStyle(style);
+
 		player.addChatMessage(chat);
-	}
-	
-	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean underlined) {
-		EnumChatFormatting c = getColor(color);
-		if (c == null) return;
-		sendMessage(message, c, bold, italic, underlined);
-	}
-	
-	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined) {
-		EnumChatFormatting c = getColor(color);
-		if (c == null) return;
-		sendMessage(message, c, bold, italic, obfuscated, strikethrough, underlined);
 	}
 	
 	private EnumChatFormatting getColor(String color) {
