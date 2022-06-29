@@ -28,7 +28,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
     	this.addButton(new GuiNpcButton(12, guiLeft + 85, y += 22, "global.transport"));
     	this.addButton(new GuiNpcButton(13, guiLeft + 85, y += 22, "global.playerdata"));
     	this.addButton(new GuiNpcButton(14, guiLeft + 85, y += 22, "global.recipes"));
-    	this.addButton(new GuiNpcButton(15, guiLeft + 85, y += 22, NoppesStringUtils.translate("global.naturalspawn", "(WIP)")));
+    	this.addButton(new GuiNpcButton(15, guiLeft + 85, y += 22, NoppesStringUtils.translate("global.naturalspawn")));
     	this.addButton(new GuiNpcButton(16, guiLeft + 85, y += 22, "global.linked"));
     	
     }

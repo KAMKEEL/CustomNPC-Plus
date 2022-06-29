@@ -15,6 +15,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.*;
@@ -150,13 +151,27 @@ public class NPCSpawning {
         EntityLiving entityliving;
 
         try{
-			Entity entity = EntityList.createEntityFromNBT(data.compound1, world);
-			if(entity == null || !(entity instanceof EntityLiving))
+            NBTTagCompound[] allCompoundList = new NBTTagCompound[]{data.compound1,data.compound2,data.compound3,data.compound4,data.compound5};
+            ArrayList<Entity> entities = new ArrayList<>();
+            for (NBTTagCompound compound : allCompoundList) {
+                Entity entity;
+                try {
+                    entity = EntityList.createEntityFromNBT(compound, world);
+                } catch (Exception e) {
+                    continue;
+                }
+                entities.add(entity);
+            }
+
+            Entity spawnEntity = entities.get((int)Math.floor(Math.random()*entities.size()));
+
+			if(!(spawnEntity instanceof EntityLiving))
 				return false;
-			entityliving = (EntityLiving) entity;
+
+			entityliving = (EntityLiving) spawnEntity;
 			
-			if(entity instanceof EntityCustomNpc){
-				EntityCustomNpc npc = (EntityCustomNpc) entity;
+			if(spawnEntity instanceof EntityCustomNpc){
+				EntityCustomNpc npc = (EntityCustomNpc) spawnEntity;
 				npc.stats.spawnCycle = 3;
 				npc.ai.returnToStart = false;
 				npc.ai.startPos = new int[]{x,y, z};
@@ -164,7 +179,7 @@ public class NPCSpawning {
                 npc.updateClient = true;
                 npc.getNavigator().clearPathEntity();
 			}
-			entity.setLocationAndAngles(x + 0.5, y, z + 0.5, world.rand.nextFloat() * 360.0F, 0.0F);
+			spawnEntity.setLocationAndAngles(x + 0.5, y, z + 0.5, world.rand.nextFloat() * 360.0F, 0.0F);
         }
         catch (Exception exception){
             exception.printStackTrace();
@@ -194,7 +209,7 @@ public class NPCSpawning {
     
     public static boolean canCreatureTypeSpawnAtLocation(SpawnData data, World world, int x, int y, int z){
         Block block = world.getBlock(x, y - 1, z);
-        boolean hasSolidSurface = !World.doesBlockHaveSolidTopSurface(world, x, y - 1, z);
+        boolean hasSolidSurface = World.doesBlockHaveSolidTopSurface(world, x, y - 1, z);
 
         boolean spawnBlockCreature = block.canCreatureSpawn(EnumCreatureType.creature, world, x, y - 1, z);
         boolean spawnBlockMonster = block.canCreatureSpawn(EnumCreatureType.monster, world, x, y - 1, z);
