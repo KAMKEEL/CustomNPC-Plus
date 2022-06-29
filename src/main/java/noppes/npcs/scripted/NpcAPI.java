@@ -30,6 +30,7 @@ import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.*;
@@ -94,8 +95,22 @@ public class NpcAPI extends AbstractNpcAPI {
         return ServerCloneController.Instance;
     }
 
+    public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.instance; }
+
     public ITransportHandler getLocations() {
         return TransportController.getInstance();
+    }
+
+    @Override
+    public String[] getAllBiomeNames() {
+        List<String> biomes = new ArrayList<String>();
+        for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
+            if (base != null && base.biomeName != null) {
+                biomes.add(base.biomeName);
+            }
+        }
+
+        return biomes.toArray(new String[]{});
     }
 
     public IEntity getIEntity(Entity entity) {

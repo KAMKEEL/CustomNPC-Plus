@@ -20,8 +20,10 @@ import net.minecraft.util.WeightedRandom;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.SpawnData;
+import noppes.npcs.scripted.interfaces.handler.INaturalSpawnsHandler;
+import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
 
-public class SpawnController {
+public class SpawnController implements INaturalSpawnsHandler {
 	public HashMap<String,List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>() ;
 	public ArrayList<SpawnData> data = new ArrayList<SpawnData>();
 	public Random random = new Random();
@@ -33,7 +35,6 @@ public class SpawnController {
 	public SpawnController(){
 		instance = this;
 		loadData();
-		
 	}
 
 	private void loadData(){
@@ -189,5 +190,30 @@ public class SpawnController {
 			map.put(spawn.name, spawn.id);
 		}
 		return map;
+	}
+
+	public void saveAllData() {
+		for (SpawnData spawn : this.data) {
+			if (spawn.id < 0) {
+				spawn.id = getUnusedId();
+			}
+			SpawnData original = getSpawnData(spawn.id);
+			if (original == null) {
+				this.data.add(spawn);
+			} else {
+				original.readNBT(spawn.writeNBT(new NBTTagCompound()));
+			}
+		}
+
+		this.fillBiomeData();
+		this.saveData();
+	}
+
+	public INaturalSpawn[] getSpawns() {
+		return data.toArray(new INaturalSpawn[]{});
+	}
+
+	public INaturalSpawn[] getSpawns(String biome) {
+		return getSpawnList(biome).toArray(new INaturalSpawn[]{});
 	}
 }

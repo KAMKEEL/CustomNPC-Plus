@@ -55,7 +55,11 @@ public abstract class AbstractNpcAPI {
 
     public abstract ICloneHandler getClones();
 
+    public abstract INaturalSpawnsHandler getNaturalSpawns();
+
     public abstract ITransportHandler getLocations();
+
+    public abstract String[] getAllBiomeNames();
 
     public abstract ICustomNpc createNPC(World var1);
 
