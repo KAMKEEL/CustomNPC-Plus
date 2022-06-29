@@ -9,6 +9,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerSelector;
 import noppes.npcs.client.gui.SubGuiNpcBiomes;
+import noppes.npcs.client.gui.SubGuiSpawningOptions;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -31,6 +32,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	private HashMap<String, Integer> data = new HashMap<String, Integer>();
 
 	private SpawnData spawn = new SpawnData();
+	private int slotSelected;
 	
 	public GuiNpcNaturalSpawns(EntityNPCInterface npc) {
 		super(npc);
@@ -60,15 +62,34 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 		addLabel(new GuiNpcLabel(1,"gui.title", guiLeft + 4, guiTop + 8));
 		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 60, guiTop + 3, 140, 20, spawn.name));
 
-		addLabel(new GuiNpcLabel(3,"spawning.biomes", guiLeft + 4, guiTop + 30));
-    	addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 25, 50, 20, "selectServer.edit"));
+		int y = guiTop + 30;
+		addLabel(new GuiNpcLabel(3,"spawning.biomes", guiLeft + 4, y));
+    	addButton(new GuiNpcButton(3, guiLeft + 120, y - 5, 50, 20, "selectServer.edit"));
 
-        addSlider(new GuiNpcSlider(this, 4, guiLeft + 4, guiTop + 47, 180, 20, (float)spawn.itemWeight / 100));		
+		addLabel(new GuiNpcLabel(4,"spawning.options", guiLeft + 4, y += 22));
+		addButton(new GuiNpcButton(4, guiLeft + 120, y - 5, 50, 20, "selectServer.edit"));
 
-        int y = guiTop + 70;
-    	this.addButton(new GuiNpcButton(25, guiLeft + 14, y,20,20, "X"));
-        addLabel(new GuiNpcLabel(5, "1:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(5, guiLeft + 36, y, 170, 20, getTitle(spawn.compound1)));
+        addSlider(new GuiNpcSlider(this, 5, guiLeft + 4, y += 17, 180, 20, (float)spawn.itemWeight / 100));
+
+    	this.addButton(new GuiNpcButton(25, guiLeft + 14, y += 23,20,20, "X"));
+        addLabel(new GuiNpcLabel(6, "1:", guiLeft + 4, y + 5));
+    	this.addButton(new GuiNpcButton(6, guiLeft + 36, y, 170, 20, getTitle(spawn.compound1)));
+
+		this.addButton(new GuiNpcButton(26, guiLeft + 14, y += 22,20,20, "X"));
+		addLabel(new GuiNpcLabel(7, "2:", guiLeft + 4, y + 5));
+		this.addButton(new GuiNpcButton(7, guiLeft + 36, y, 170, 20, getTitle(spawn.compound2)));
+
+		this.addButton(new GuiNpcButton(27, guiLeft + 14, y += 22,20,20, "X"));
+		addLabel(new GuiNpcLabel(8, "3:", guiLeft + 4, y + 5));
+		this.addButton(new GuiNpcButton(8, guiLeft + 36, y, 170, 20, getTitle(spawn.compound3)));
+
+		this.addButton(new GuiNpcButton(28, guiLeft + 14, y += 22,20,20, "X"));
+		addLabel(new GuiNpcLabel(9, "4:", guiLeft + 4, y + 5));
+		this.addButton(new GuiNpcButton(9, guiLeft + 36, y, 170, 20, getTitle(spawn.compound4)));
+
+		this.addButton(new GuiNpcButton(29, guiLeft + 14, y += 22,20,20, "X"));
+		addLabel(new GuiNpcLabel(10, "5:", guiLeft + 4, y + 5));
+		this.addButton(new GuiNpcButton(10, guiLeft + 36, y, 170, 20, getTitle(spawn.compound5)));
 	}
     private String getTitle(NBTTagCompound compound) {
 		if(compound != null && compound.hasKey("ClonedName"))
@@ -101,13 +122,35 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         if(id == 3){
         	setSubGui(new SubGuiNpcBiomes(spawn));
         }
-        if(id == 5){
+		if(id == 4){
+			setSubGui(new SubGuiSpawningOptions(spawn));
+		}
+
+        if(id >= 6 && id <= 10){
+			slotSelected = id - 5;
     		setSubGui(new GuiNpcMobSpawnerSelector());
         }
+
         if(id == 25){
     		spawn.compound1 = new NBTTagCompound();
     		initGui();
         }
+		if(id == 26){
+			spawn.compound2 = new NBTTagCompound();
+			initGui();
+		}
+		if(id == 27){
+			spawn.compound3 = new NBTTagCompound();
+			initGui();
+		}
+		if(id == 28){
+			spawn.compound4 = new NBTTagCompound();
+			initGui();
+		}
+		if(id == 29){
+			spawn.compound5 = new NBTTagCompound();
+			initGui();
+		}
     }
 
 
@@ -164,8 +207,25 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 		if(gui instanceof GuiNpcMobSpawnerSelector){
 			GuiNpcMobSpawnerSelector selector = (GuiNpcMobSpawnerSelector) gui;
 			NBTTagCompound compound = selector.getCompound();
-			if(compound != null)
-				spawn.compound1 = compound;
+			if (compound != null) {
+				switch (slotSelected) {
+					case 1:
+						spawn.compound1 = compound;
+						break;
+					case 2:
+						spawn.compound2 = compound;
+						break;
+					case 3:
+						spawn.compound3 = compound;
+						break;
+					case 4:
+						spawn.compound4 = compound;
+						break;
+					case 5:
+						spawn.compound5 = compound;
+						break;
+				}
+			}
 			initGui();
 		}
 	}

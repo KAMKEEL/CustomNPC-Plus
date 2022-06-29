@@ -230,6 +230,13 @@ spawning.availableBiomes=Available Biomes
 spawning.spawningBiomes=Spawning Biomes
 spawning.biomes=Biomes
 spawning.weightedChance=Weighted Chance
+spawning.options=Spawning Options
+spawning.animalSpawning=Spawns Like Animal
+spawning.monsterSpawning=Spawns Like Monster
+spawning.liquidSpawning=Spawns in Liquid
+spawning.airSpawning=Spawns in Air
+spawning.minHeight=Minimum Height
+spawning.maxHeight=Maximum Height
 
 role.name=Role
 role.none=No Role

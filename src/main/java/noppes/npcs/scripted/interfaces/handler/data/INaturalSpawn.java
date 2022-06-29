@@ -9,9 +9,9 @@ public interface INaturalSpawn {
 
     String getName();
 
-    void setEntity(IEntity entity);
+    void setEntity(IEntity entity, int slot);
 
-    IEntity getEntity(IWorld world);
+    IEntity getEntity(IWorld world, int slot);
 
     void setWeight(int weight);
 
