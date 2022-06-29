@@ -59,5 +59,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
         if(this.getNavigator().noPath())
             this.motionY = 0.0D;
+
+        this.velocityChanged = true;
     }
 }
