@@ -415,7 +415,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	protected void updateAITasks()
 	{
-		if (this.worldObj.isAnyLiquid(this.boundingBox) || this.stats.drowningType != 2) {
+		if (this.isInWater() || this.stats.drowningType != 2) {
 			this.getNavigator().onUpdateNavigation();
 			this.getMoveHelper().onUpdateMoveHelper();
 			try {
@@ -818,7 +818,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public void setAir(int air) {
-		if (this.worldObj.isAnyLiquid(this.boundingBox) || air < this.getAir() || this.stats.drowningType != 2) {
+		if (this.isInWater() || air < this.getAir() || this.stats.drowningType != 2) {
 			super.setAir(air);
 		}
 	}
