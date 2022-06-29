@@ -8,9 +8,6 @@ import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-
 public class DataStats {
 	
 	private float attackStrength = 5;
@@ -33,7 +30,7 @@ public class DataStats {
 
 	public boolean immuneToFire = false;
 	public boolean potionImmune = false;
-	public boolean canDrown = true;
+	public int drowningType = 1; //0 - Never, 1 - Water,  2 - Air
 	public boolean burnInSun = false;
 	public boolean noFallDamage = false;
 	public float healthRegen = 1;
@@ -108,7 +105,7 @@ public class DataStats {
 
 		compound.setBoolean("ImmuneToFire", immuneToFire);
 		compound.setBoolean("PotionImmune", potionImmune);
-		compound.setBoolean("CanDrown", canDrown);
+		compound.setInteger("DrowningType", drowningType);
 		compound.setBoolean("BurnInSun", burnInSun);
 		compound.setBoolean("NoFallDamage", noFallDamage);
 		compound.setBoolean("AttackInvisible", attackInvisible);
@@ -118,8 +115,7 @@ public class DataStats {
 		return compound;
 	}
 
-	public void readToNBT(NBTTagCompound compound)
-	{
+	public void readToNBT(NBTTagCompound compound) {
 		resistances.readToNBT(compound.getCompoundTag("Resistances"));
 		setMaxHealth(compound.getDouble("MaxHealth"));
 		hideKilledBody = compound.getBoolean("HideBodyWhenKilled");
@@ -129,7 +125,7 @@ public class DataStats {
 		creatureType = EnumCreatureAttribute.values()[compound.getInteger("CreatureType") % EnumPotionType.values().length];
 		healthRegen = compound.getFloat("HealthRegen");
 		combatRegen = compound.getFloat("CombatRegen");
-		
+
 		setAttackStrength(compound.getFloat("AttackStrenght"));
 		attackSpeed = compound.getInteger("AttackSpeed");
 		attackRange = compound.getInteger("AttackRange");
@@ -137,15 +133,15 @@ public class DataStats {
 		potionType = EnumPotionType.values()[compound.getInteger("PotionEffect") % EnumPotionType.values().length];
 		potionDuration = compound.getInteger("PotionDuration");
 		potionAmp = compound.getInteger("PotionAmp");
-		
+
 		rangedRange = compound.getInteger("MaxFiringRange");
 		fireRate = compound.getInteger("FireRate");
 		minDelay = ValueUtil.CorrectInt(compound.getInteger("minDelay"), 1, 9999);
 		maxDelay = ValueUtil.CorrectInt(compound.getInteger("maxDelay"), 1, 9999);
 		burstCount = compound.getInteger("BurstCount");
 		shotCount = ValueUtil.CorrectInt(compound.getInteger("ShotCount"), 1, 10);
-		accuracy = compound.getInteger("Accuracy");	
-		
+		accuracy = compound.getInteger("Accuracy");
+
 		pDamage = compound.getFloat("pDamage");
 		pImpact = compound.getInteger("pImpact");
 		pSize = compound.getInteger("pSize");
@@ -166,9 +162,15 @@ public class DataStats {
 		aimWhileShooting = compound.getBoolean("AimWhileShooting");
 		projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
 
-		immuneToFire = compound.getBoolean("ImmuneToFire");	
-		potionImmune = compound.getBoolean("PotionImmune");		
-		canDrown = compound.getBoolean("CanDrown");
+		immuneToFire = compound.getBoolean("ImmuneToFire");
+		potionImmune = compound.getBoolean("PotionImmune");
+		//canDrown = compound.getBoolean("CanDrown");
+		if (!compound.hasKey("DrowningType") && compound.hasKey("CanDrown")) {
+			drowningType = compound.getBoolean("CanDrown") ? 1 : 0;
+		} else {
+			drowningType = compound.getInteger("DrowningType");
+		}
+
 		burnInSun = compound.getBoolean("BurnInSun");
 		noFallDamage = compound.getBoolean("NoFallDamage");
 		attackInvisible = compound.getBoolean("AttackInvisible");

@@ -62,7 +62,6 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumStandingType;
-import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
@@ -416,12 +415,19 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	protected void updateAITasks()
 	{
-		this.getNavigator().onUpdateNavigation();
-		this.getMoveHelper().onUpdateMoveHelper();
+		if (this.worldObj.isAnyLiquid(this.boundingBox) || this.stats.drowningType != 2) {
+			this.getNavigator().onUpdateNavigation();
+			this.getMoveHelper().onUpdateMoveHelper();
+			try {
+				super.updateAITasks();
+			} catch (ConcurrentModificationException ignored){}
+		} else {
+			this.setAir(this.decreaseAirSupply(this.getAir()));
 
-		try {
-			super.updateAITasks();
-		} catch (ConcurrentModificationException ignored){
+			if (this.getAir() <= -20) {
+				this.setAir(0);
+				this.attackEntityFrom(DamageSource.drown, 2.0F);
+			}
 		}
 	}
 	
@@ -810,10 +816,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
+	@Override
+	public void setAir(int air) {
+		if (this.worldObj.isAnyLiquid(this.boundingBox) || air < this.getAir() || this.stats.drowningType != 2) {
+			super.setAir(air);
+		}
+	}
+
     @Override
 	protected int decreaseAirSupply(int par1)
     {
-		if (!this.stats.canDrown)
+		if (this.stats.drowningType == 0)
 			return par1;
         return super.decreaseAirSupply(par1);
     }

@@ -359,7 +359,11 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
 
     boolean getCanDrown();
 
-    void setCanDrown(boolean b);
+    /**
+     *
+     * @param type 0 - Never drowns, 1 - Drowns in water, 2 - Drowns in air (without water)
+     */
+    void setDrowningType(int type);
 
     /**
      * @param type The AnimationType

@@ -9,11 +9,13 @@ import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 public interface ICloneHandler {
-    IEntity spawn(double var1, double var3, double var5, int var7, String var8, IWorld var9);
+    IEntity spawn(double x, double y, double z, int tab, String name, IWorld world);
 
-    IEntity get(int var1, String var2, IWorld var3);
+    IEntity[] getTab(int tab, IWorld world);
 
-    void set(int var1, String var2, IEntity var3);
+    IEntity get(int tab, String name, IWorld world);
 
-    void remove(int var1, String var2);
+    void set(int tab, String name, IEntity entity);
+
+    void remove(int tab, String name);
 }

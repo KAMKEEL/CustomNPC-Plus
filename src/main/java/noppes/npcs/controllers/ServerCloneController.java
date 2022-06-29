@@ -204,6 +204,28 @@ public class ServerCloneController implements ICloneHandler {
 		}
 	}
 
+	public IEntity[] getTab(int tab, IWorld world) {
+		File dir = new File(getDir(), tab + "");
+		if (!dir.exists() || !dir.isDirectory() || dir.listFiles() == null) {
+			return new IEntity[]{};
+		}
+
+		ArrayList<IEntity> arrayList = new ArrayList<>();
+
+		try {
+			for (File file : dir.listFiles()) {
+				if (file.getName().endsWith(".json")) {
+					NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+					Instance.cleanTags(compound);
+					Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
+					arrayList.add(entity == null ? null : NpcAPI.Instance().getIEntity(entity));
+				}
+			}
+		} catch (Exception ignored) {}
+
+		return arrayList.toArray(new IEntity[]{});
+	}
+
 	public IEntity get(int tab, String name, IWorld world) {
 		NBTTagCompound compound = this.getCloneData((ICommandSender)null, name, tab);
 		if (compound == null) {

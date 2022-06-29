@@ -61,11 +61,11 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 
 		addButton(new GuiNpcButton(4,guiLeft + 82, y+=34, 56, 20, new String[]{"gui.no","gui.yes"} ,npc.isImmuneToFire()? 1:0));
     	addLabel(new GuiNpcLabel(10,"stats.fireimmune", guiLeft + 5, y + 5));
-    	addButton(new GuiNpcButton(5,guiLeft + 217, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.canDrown? 1:0));
+    	addButton(new GuiNpcButton(5,guiLeft + 217, y, 56, 20, new String[]{"stats.never","stats.inWater","stats.inAir"} , stats.drowningType));
     	addLabel(new GuiNpcLabel(11,"stats.candrown", guiLeft + 140, y + 5));
     	addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, String.format("%.0f", stats.healthRegen) + "").setFloatsOnly());
     	addLabel(new GuiNpcLabel(14,"stats.regenhealth", guiLeft + 275, y + 5));
-    	
+
     	addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y+=22, 56, 20, String.format("%.0f", stats.combatRegen) + "").setFloatsOnly());
     	addLabel(new GuiNpcLabel(16,"stats.combatregen", guiLeft + 275, y + 5));
     	addButton(new GuiNpcButton(6,guiLeft + 82, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.burnInSun? 1:0));
@@ -77,8 +77,8 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     	addLabel(new GuiNpcLabel(17,"stats.potionImmune", guiLeft + 5, y + 5));
     	addButton(new GuiNpcButtonYesNo(18, guiLeft + 217, y, 56, 20, stats.attackInvisible));
     	addLabel(new GuiNpcLabel(18,"stats.attackInvisible", guiLeft + 140, y + 5));
-    }	
-    
+    }
+
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
 		if(textfield.id == 0){
@@ -95,7 +95,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 			stats.combatRegen = (float)(Math.floor(Float.parseFloat(textfield.getText())));
 		}
 	}
-	
+
     @Override
 	protected void actionPerformed(GuiButton guibutton){
 		GuiNpcButton button = (GuiNpcButton) guibutton;
@@ -112,7 +112,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 			npc.setImmuneToFire(button.getValue() == 1);
 		}
 		else if(button.id == 5){
-			stats.canDrown = button.getValue() == 1;
+			npc.stats.drowningType = button.getValue();
 		}
 		else if(button.id == 6){
 			stats.burnInSun = button.getValue() == 1;

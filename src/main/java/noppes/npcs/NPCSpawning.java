@@ -12,10 +12,7 @@ import com.google.common.collect.Sets;
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
@@ -68,17 +65,15 @@ public class NPCSpawning {
 
             ChunkPosition chunkposition = getChunk(world, chunkcoordintpair1.chunkXPos, chunkcoordintpair1.chunkZPos);
             int j1 = chunkposition.chunkPosX;
-            int k1 = chunkposition.chunkPosY;
+            int y = chunkposition.chunkPosY;
             int l1 = chunkposition.chunkPosZ;
 
             for(int i = 0; i < 3; i++){
                 int x = j1;
-                int y = k1;
                 int z = l1;
                 byte b1 = 6;
 
                 x += world.rand.nextInt(b1) - world.rand.nextInt(b1);
-                y += world.rand.nextInt(1) - world.rand.nextInt(1);
                 z += world.rand.nextInt(b1) - world.rand.nextInt(b1);
                 
 
@@ -177,7 +172,7 @@ public class NPCSpawning {
         }
 
         Result canSpawn = ForgeEventFactory.canEntitySpawn(entityliving, world, x + 0.5f, y, z + 0.5f);
-        if (canSpawn == Result.DENY || (canSpawn == Result.DEFAULT && !entityliving.getCanSpawnHere()))
+        if (canSpawn == Result.DENY || (canSpawn == Result.DEFAULT && !canEntitySpawn(data,entityliving)))
         	return false;
 
         if (!EventHooks.onCNPCNaturalSpawn(data, new BlockPos(x,y,z), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn)) {
@@ -187,6 +182,14 @@ public class NPCSpawning {
         world.spawnEntityInWorld(entityliving);
     	
     	return true;
+    }
+
+    public static boolean canEntitySpawn(SpawnData data, EntityLiving entityLiving) {
+        if (!data.liquidSpawning) {
+            return entityLiving.getCanSpawnHere();
+        } else {
+            return entityLiving.worldObj.checkNoEntityCollision(entityLiving.boundingBox) && entityLiving.worldObj.getCollidingBoundingBoxes(entityLiving, entityLiving.boundingBox).isEmpty();
+        }
     }
     
     public static boolean canCreatureTypeSpawnAtLocation(SpawnData data, World world, int x, int y, int z){
@@ -198,7 +201,7 @@ public class NPCSpawning {
 
         boolean animalSpawn = data.animalSpawning && hasSolidSurface && spawnBlockCreature && !world.getBlock(x, y, z).isNormalCube() && !world.getBlock(x, y, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
         boolean monsterSpawn = data.monsterSpawning && hasSolidSurface && spawnBlockMonster && !world.getBlock(x, y, z).isNormalCube() && !world.getBlock(x, y, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
-        boolean liquidSpawn = data.liquidSpawning && world.getBlock(x, y, z).getMaterial().isLiquid() && world.getBlock(x, y - 1, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
+        boolean liquidSpawn = data.liquidSpawning && world.getBlock(x, y - 1, z).getMaterial().isLiquid() && world.getBlock(x, y, z).getMaterial().isLiquid();
         boolean caveSpawn = data.airSpawning && world.getBlock(x, y - 1, z) == Blocks.air && world.getBlock(x, y, z) == Blocks.air && world.getBlock(x, y + 1, z) == Blocks.air;
 
         NPCSpawning.animalSpawn = animalSpawn;

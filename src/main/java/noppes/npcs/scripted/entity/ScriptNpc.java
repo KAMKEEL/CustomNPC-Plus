@@ -1038,10 +1038,19 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 	
 	public boolean getCanDrown() {
-		return npc.stats.canDrown;
+		return npc.stats.drowningType > 0;
 	}
 	public void setCanDrown(boolean d) {
-		npc.stats.canDrown = d;
+		npc.stats.drowningType = d ? 1 : 0;
+	}
+
+	public void setDrowningType(int type) {
+		if (type < 0)
+			type = 0;
+		if (type > 2)
+			type = 2;
+
+		npc.stats.drowningType = type;
 	}
 
 	@Override
