@@ -192,7 +192,7 @@ public class SpawnController implements INaturalSpawnsHandler {
 		return map;
 	}
 
-	public void saveAllData() {
+	public void save() {
 		for (SpawnData spawn : this.data) {
 			if (spawn.id < 0) {
 				spawn.id = getUnusedId();
@@ -215,5 +215,9 @@ public class SpawnController implements INaturalSpawnsHandler {
 
 	public INaturalSpawn[] getSpawns(String biome) {
 		return getSpawnList(biome).toArray(new INaturalSpawn[]{});
+	}
+
+	public INaturalSpawn createSpawn() {
+		return new SpawnData();
 	}
 }

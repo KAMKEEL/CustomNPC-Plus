@@ -4,9 +4,11 @@ import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
 
 public interface INaturalSpawnsHandler {
 
-    void saveAllData();
+    void save();
 
     INaturalSpawn[] getSpawns();
 
     INaturalSpawn[] getSpawns(String biome);
+
+    INaturalSpawn createSpawn();
 }

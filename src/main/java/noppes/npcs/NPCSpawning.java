@@ -17,11 +17,10 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.ChunkCoordIntPair;
-import net.minecraft.world.ChunkPosition;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.*;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -32,7 +31,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class NPCSpawning {
 	private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
-	
+
+    private static boolean animalSpawn;
+    private static boolean monsterSpawn;
+    private static boolean airSpawn;
+    private static boolean liquidSpawn;
+
     public static void findChunksForSpawning(WorldServer world){
     	if(SpawnController.instance.data.isEmpty() || world.getWorldInfo().getWorldTotalTime() % 400L != 0L)
     		return;
@@ -126,6 +130,11 @@ public class NPCSpawning {
 
             for (int k2 = 0; k2 < 4; ++k2){
                 int l2 = world.getTopSolidOrLiquidBlock(j1, k1);
+                if (l2 > data.spawnHeightMax || l2 < data.spawnHeightMin) {
+                    continue;
+                } else if (data.airSpawning && l2 < data.spawnHeightMax) {
+                    l2 = l2 + (int) ((data.spawnHeightMax - l2) * Math.random());
+                }
 
                 if (!canCreatureTypeSpawnAtLocation(data, world, j1, l2, k1)){
                     j1 += rand.nextInt(5) - rand.nextInt(5);
@@ -156,6 +165,9 @@ public class NPCSpawning {
 				npc.stats.spawnCycle = 3;
 				npc.ai.returnToStart = false;
 				npc.ai.startPos = new int[]{x,y, z};
+                npc.updateAI = true;
+                npc.updateClient = true;
+                npc.getNavigator().clearPathEntity();
 			}
 			entity.setLocationAndAngles(x + 0.5, y, z + 0.5, world.rand.nextFloat() * 360.0F, 0.0F);
         }
@@ -167,6 +179,10 @@ public class NPCSpawning {
         Result canSpawn = ForgeEventFactory.canEntitySpawn(entityliving, world, x + 0.5f, y, z + 0.5f);
         if (canSpawn == Result.DENY || (canSpawn == Result.DEFAULT && !entityliving.getCanSpawnHere()))
         	return false;
+
+        if (!EventHooks.onCNPCNaturalSpawn(data, new BlockPos(x,y,z), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn)) {
+            return false;
+        }
         
         world.spawnEntityInWorld(entityliving);
     	
@@ -174,17 +190,23 @@ public class NPCSpawning {
     }
     
     public static boolean canCreatureTypeSpawnAtLocation(SpawnData data, World world, int x, int y, int z){
-        if (data.liquid){
-            return world.getBlock(x, y, z).getMaterial().isLiquid() && world.getBlock(x, y - 1, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
-        }
-        else if (!World.doesBlockHaveSolidTopSurface(world, x, y - 1, z)){
-            return false;
-        }
-        else{
-            Block block = world.getBlock(x, y - 1, z);
-            boolean spawnBlock = block.canCreatureSpawn(EnumCreatureType.creature, world, x, y - 1, z);
-            return spawnBlock && !world.getBlock(x, y, z).isNormalCube() && !world.getBlock(x, y, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
-        }
+        Block block = world.getBlock(x, y - 1, z);
+        boolean hasSolidSurface = !World.doesBlockHaveSolidTopSurface(world, x, y - 1, z);
+
+        boolean spawnBlockCreature = block.canCreatureSpawn(EnumCreatureType.creature, world, x, y - 1, z);
+        boolean spawnBlockMonster = block.canCreatureSpawn(EnumCreatureType.monster, world, x, y - 1, z);
+
+        boolean animalSpawn = data.animalSpawning && hasSolidSurface && spawnBlockCreature && !world.getBlock(x, y, z).isNormalCube() && !world.getBlock(x, y, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
+        boolean monsterSpawn = data.monsterSpawning && hasSolidSurface && spawnBlockMonster && !world.getBlock(x, y, z).isNormalCube() && !world.getBlock(x, y, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
+        boolean liquidSpawn = data.liquidSpawning && world.getBlock(x, y, z).getMaterial().isLiquid() && world.getBlock(x, y - 1, z).getMaterial().isLiquid() && !world.getBlock(x, y + 1, z).isNormalCube();
+        boolean caveSpawn = data.airSpawning && world.getBlock(x, y - 1, z) == Blocks.air && world.getBlock(x, y, z) == Blocks.air && world.getBlock(x, y + 1, z) == Blocks.air;
+
+        NPCSpawning.animalSpawn = animalSpawn;
+        NPCSpawning.monsterSpawn = monsterSpawn;
+        NPCSpawning.liquidSpawn = liquidSpawn;
+        NPCSpawning.airSpawn = caveSpawn;
+
+        return animalSpawn || monsterSpawn || caveSpawn || liquidSpawn;
     }
 }
 

@@ -13,7 +13,6 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
 
@@ -22,9 +21,15 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 	public int id = -1;
 	public String name = "";
 	public NBTTagCompound compound1 = new NBTTagCompound();
-	public boolean liquid = false;
-	public boolean air = false;
-	
+
+	public boolean animalSpawning = true;
+	public boolean monsterSpawning = false;
+	public boolean liquidSpawning = false;
+	public boolean airSpawning = false;
+
+	public int spawnHeightMin;
+	public int spawnHeightMax;
+
 	public SpawnData() {
 		super(10);
 	}
@@ -39,8 +44,17 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 		biomes = NBTTags.getStringList(compound.getTagList("SpawnBiomes", 10));
 		compound1 = compound.getCompoundTag("SpawnCompound1");
 
-		liquid = compound.getBoolean("Liquid");
-		air = compound.getBoolean("Air");
+		animalSpawning = compound.getBoolean("AnimalSpawning");
+		monsterSpawning = compound.getBoolean("MonsterSpawning");
+		liquidSpawning = compound.getBoolean("LiquidSpawning");
+		airSpawning = compound.getBoolean("CaveSpawning");
+
+		spawnHeightMin = compound.getInteger("HeightMin");
+		if (compound.hasKey("HeightMax")) {
+			spawnHeightMax = 100;
+		} else {
+			spawnHeightMax = compound.getInteger("HeightMax");
+		}
 	}
 
 	public NBTTagCompound writeNBT(NBTTagCompound compound) {
@@ -51,8 +65,13 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 		compound.setTag("SpawnBiomes", NBTTags.nbtStringList(biomes));
 		compound.setTag("SpawnCompound1", compound1);
 
-		compound.setBoolean("Liquid", liquid);
-		compound.setBoolean("Air", air);
+		compound.setBoolean("AnimalSpawning", animalSpawning);
+		compound.setBoolean("MonsterSpawning", monsterSpawning);
+		compound.setBoolean("LiquidSpawning", liquidSpawning);
+		compound.setBoolean("CaveSpawning", airSpawning);
+
+		compound.setInteger("HeightMin", spawnHeightMin);
+		compound.setInteger("HeightMax", spawnHeightMax);
 		return compound;
 	}
 
@@ -68,8 +87,8 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 
 	public void setEntity(IEntity entity) {
 		NBTTagCompound compound = new NBTTagCompound();
-		if (!entity.getMCEntity().isEntityAlive()) {
-			throw new CustomNPCsException("Cannot save dead entities");
+		if (!entity.getMCEntity().writeToNBTOptional(compound)) {
+			throw new CustomNPCsException("Entity could not be written to NBT");
 		} else {
 			ServerCloneController.Instance.cleanTags(compound1);
 			compound1 = compound;
@@ -98,12 +117,52 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 		return this.itemWeight;
 	}
 
+	public void setMinHeight(int height) {
+		this.spawnHeightMin = height;
+	}
+
+	public int getMinHeight() {
+		return this.spawnHeightMin;
+	}
+
+	public void setMaxHeight(int height) {
+		this.spawnHeightMax = height;
+	}
+
+	public int getMaxHeight() {
+		return this.spawnHeightMax;
+	}
+
+	public void spawnsLikeAnimal(boolean spawns) {
+		this.animalSpawning = spawns;
+	}
+
+	public boolean spawnsLikeAnimal() {
+		return animalSpawning;
+	}
+
+	public void spawnsLikeMonster(boolean spawns) {
+		this.monsterSpawning = spawns;
+	}
+
+	public boolean spawnsLikeMonster() {
+		return monsterSpawning;
+	}
+
 	public void spawnsInLiquid(boolean spawns) {
-		this.liquid = spawns;
+		this.liquidSpawning = spawns;
 	}
 
 	public boolean spawnsInLiquid() {
-		return this.liquid;
+		return this.liquidSpawning;
+	}
+
+	public void spawnsInAir(boolean spawns) {
+		this.airSpawning = spawns;
+	}
+
+	public boolean spawnsInAir() {
+		return this.airSpawning;
 	}
 
 	public String[] getBiomes() {

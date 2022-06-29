@@ -17,9 +17,29 @@ public interface INaturalSpawn {
 
     int getWeight();
 
+    void setMinHeight(int height);
+
+    int getMinHeight();
+
+    void setMaxHeight(int height);
+
+    int getMaxHeight();
+
+    void spawnsLikeAnimal(boolean spawns);
+
+    boolean spawnsLikeAnimal();
+
+    void spawnsLikeMonster(boolean spawns);
+
+    boolean spawnsLikeMonster();
+
     void spawnsInLiquid(boolean spawns);
 
     boolean spawnsInLiquid();
+
+    void spawnsInAir(boolean spawns);
+
+    boolean spawnsInAir();
 
     String[] getBiomes();
 

@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
@@ -22,6 +23,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.PlayerEvent.ChatEvent;
 import noppes.npcs.scripted.event.PlayerEvent.ContainerOpen;
@@ -35,6 +37,7 @@ import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
 import noppes.npcs.scripted.interfaces.item.IItemCustom;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
@@ -500,6 +503,17 @@ public class EventHooks {
             }
 
         }
+    }
+
+    public static boolean onCNPCNaturalSpawn(INaturalSpawn naturalSpawn, BlockPos blockPos, boolean animalSpawnPassed, boolean monsterSpawnPassed, boolean liquidSpawnPassed, boolean airSpawnPassed) {
+        ForgeDataScript handler = ScriptController.Instance.forgeScripts;
+        if (handler.isEnabled()) {
+            IPos attemptPosition = new ScriptBlockPos(blockPos);
+            CustomNPCsEvent.CNPCNaturalSpawnEvent event = new CustomNPCsEvent.CNPCNaturalSpawnEvent(naturalSpawn, attemptPosition, animalSpawnPassed, monsterSpawnPassed, liquidSpawnPassed, airSpawnPassed);
+            handler.callScript("onCNPCNaturalSpawn", event);
+            return NpcAPI.EVENT_BUS.post(event);
+        }
+        return true;
     }
 
     public static void onCustomGuiButton(IPlayer player, ICustomGui gui, int buttonId) {

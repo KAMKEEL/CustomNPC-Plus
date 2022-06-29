@@ -178,8 +178,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("usingItem");
                 hookList.add("stopItem");
                 hookList.add("finishItem");
-                //hookList.add("");
-                //hookList.add("");
             }
             else if(handler instanceof ForgeDataScript) {
                 hooks.setSize(238, 198);
@@ -215,6 +213,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                         }
                     }
                 }
+
+                hookList.add("onCNPCNaturalSpawn");
             }
             hooks.setUnsortedList(hookList);
             addScroll(hooks);
