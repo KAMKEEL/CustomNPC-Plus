@@ -10,5 +10,9 @@ public interface INaturalSpawnsHandler {
 
     INaturalSpawn[] getSpawns(String biome);
 
+    void addSpawn(INaturalSpawn spawn);
+
+    void removeSpawn(INaturalSpawn spawn);
+
     INaturalSpawn createSpawn();
 }

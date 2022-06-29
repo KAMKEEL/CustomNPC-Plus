@@ -217,6 +217,15 @@ public class SpawnController implements INaturalSpawnsHandler {
 		return getSpawnList(biome).toArray(new INaturalSpawn[]{});
 	}
 
+	public void addSpawn(INaturalSpawn spawn) {
+		((SpawnData) spawn).id = 0;
+		this.saveSpawnData((SpawnData) spawn);
+	}
+
+	public void removeSpawn(INaturalSpawn spawn) {
+		this.removeSpawnData(((SpawnData) spawn).id);
+	}
+
 	public INaturalSpawn createSpawn() {
 		return new SpawnData();
 	}
