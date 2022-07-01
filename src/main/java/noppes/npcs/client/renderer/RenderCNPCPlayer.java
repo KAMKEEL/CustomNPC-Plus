@@ -25,7 +25,9 @@ import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 
 public class RenderCNPCPlayer extends RenderPlayer {
@@ -45,7 +47,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.setRenderManager(RenderManager.instance);
     }
 
-    private boolean preRenderOverlay(EntityPlayer player, boolean renderDBC, ResourceLocation overlayLocation, boolean glow, boolean blend,
+    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow, boolean blend,
                                      float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
                                      float offsetX, float offsetY, float offsetZ) {
         if (overlayLocation.getResourcePath().isEmpty())
@@ -87,13 +89,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glPushMatrix();
         GL11.glMatrixMode(GL11.GL_TEXTURE);
         GL11.glLoadIdentity();
-        if (!renderDBC) {
-            GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
-            GL11.glScalef(scaleX, scaleY, 1.0F);
-        } else {
-            GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
-            GL11.glScalef(scaleX, scaleY, 1.0F);
-        }
+        GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
+        GL11.glScalef(scaleX, scaleY, 1.0F);
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glTranslatef(offsetX, offsetY, offsetZ);
@@ -101,7 +98,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         return true;
     }
-    public void postRenderOverlay(EntityPlayer player) {
+    public void postRenderOverlay() {
         GL11.glPopMatrix();
 
         GL11.glMatrixMode(GL11.GL_TEXTURE);
@@ -136,18 +133,13 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
 
-                    if (!preRenderOverlay(player, false, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
+                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                             overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                             overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                             ))
                         return;
-//                    try {
-//                        renderDBCPlayer(player, tempRenderPartialTicks);
-//                    } catch (Exception e) {
-                        this.modelBipedMain.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
-//                    } finally {
-                        postRenderOverlay(player);
-//                    }
+                    this.modelBipedMain.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
+                    postRenderOverlay();
                 }
             }
         }
@@ -176,12 +168,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
             {
                 GL11.glTranslatef((float)(-(renderPass * 2 - 1)) * f1, 0.0F, 0.0F);
             }
-
-            /*if (entityRenderer.cameraZoom != 1.0D) //EntityRenderer's "cameraZoom" field is always 1.0D??? Why is this here??? o_O
-            {
-                GL11.glTranslatef((float)player.cameraYaw, (float)(-player.cameraPitch), 0.0F);
-                GL11.glScaled(entityRenderer.cameraZoom, entityRenderer.cameraZoom, 1.0D);
-            }*/
 
             Project.gluPerspective(this.getFOVModifier(partialTicks, false), (float)mc.displayWidth / (float)mc.displayHeight, 0.05F, mc.gameSettings.renderDistanceChunks * 16 * 2.0F);
 
@@ -345,7 +331,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     }
                 }
 
-                if (!preRenderOverlay(player, false, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
+                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                         overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                         overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                 ))
@@ -353,7 +339,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                 this.modelBipedMain.onGround = 0.0F;
                 this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
                 this.modelBipedMain.bipedRightArm.render(0.0625F);
-                postRenderOverlay(player);
+                postRenderOverlay();
             }
         }
     }
@@ -367,6 +353,28 @@ public class RenderCNPCPlayer extends RenderPlayer {
         EntityPlayer player = event.entityPlayer;
 
         try {
+            Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+            Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
+            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
+
+            Object r = RenderPlayerJBRA.cast(event.renderer);
+            Object mdl = ModelBipedDBC.cast(RenderPlayerJBRA.getField("modelMain").get(r));
+            Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
+
+            ModelBipedBody.getField("onGround").set(m, (int) player.getSwingProgress(event.partialRenderTick));
+            ModelBipedBody.getField("isRiding").set(m, player.isRiding());
+            ModelBipedBody.getField("isChild").set(m, player.isChild());
+            ModelBipedBody.getField("isSneak").set(m, player.isSneaking());
+            ModelBipedBody.getField("y").set(null, ModelBipedDBC.getField("y").get(null));
+
+            Method renderDBC = ModelBipedBody.getMethod("render",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
+            Field rot1 = ModelBipedDBC.getField("rot1");
+            Field rot2 = ModelBipedDBC.getField("rot2");
+            Field rot3 = ModelBipedDBC.getField("rot3");
+            Field rot4 = ModelBipedDBC.getField("rot4");
+            Field rot5 = ModelBipedDBC.getField("rot5");
+            Field rot6 = ModelBipedDBC.getField("rot6");
+
             if (!player.isInvisible()) {
                 if (Client.skinOverlays.containsKey(player.getUniqueID())) {
                     for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
@@ -382,39 +390,23 @@ public class RenderCNPCPlayer extends RenderPlayer {
                             }
                         }
 
-                        if (!preRenderOverlay(player, true, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
+                        if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                                 overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                                 overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                         ))
                             return;
 
-                        Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-                        Class<?> JRMCoreHJBRA = Class.forName("JinRyuu.JRMCore.JRMCoreHJBRA");
-                        Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
-                        Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
-
-                        Object r = RenderPlayerJBRA.cast(event.renderer);
-                        Object mdl = ModelBipedDBC.cast(RenderPlayerJBRA.getField("modelMain").get(r));
-                        Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
-                        //Object m = ModelBipedBody.cast(JRMCoreHJBRA.getField("GiTurtleMdl3").get(null));
-                        //m = ModelBipedBody.cast(JRMCoreHJBRA.getMethod("showModel", ModelBiped.class, EntityLivingBase.class, ItemStack.class, int.class).invoke(null, (ModelBiped) m, player, null, 0));
-
-                        ModelBipedBody.getField("onGround").set(m, (int) player.getSwingProgress(event.partialRenderTick));
-                        ModelBipedBody.getField("isRiding").set(m, player.isRiding());
-                        ModelBipedBody.getField("isChild").set(m, player.isChild());
-                        ModelBipedBody.getField("isSneak").set(m, player.isSneaking());
-                        ModelBipedBody.getField("y").set(null, ModelBipedDBC.getField("y").get(null));
-                        ModelBipedBody.getMethod("render",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class).invoke(m, player,
-                                (float) ModelBipedDBC.getField("rot1").get(mdl), (float) ModelBipedDBC.getField("rot2").get(mdl), (float) ModelBipedDBC.getField("rot3").get(mdl),
-                                (float) ModelBipedDBC.getField("rot4").get(mdl), (float) ModelBipedDBC.getField("rot5").get(mdl), (float) ModelBipedDBC.getField("rot6").get(mdl)
+                        renderDBC.invoke(m, player,
+                            (float) rot1.get(mdl), (float) rot2.get(mdl), (float) rot3.get(mdl),
+                            (float) rot4.get(mdl), (float) rot5.get(mdl), (float) rot6.get(mdl)
                         );
 
-                        postRenderOverlay(player);
+                        postRenderOverlay();
                     }
                 }
             }
         } catch (Exception ignored) {
-            postRenderOverlay(player);
+            postRenderOverlay();
         }
     }
 }
