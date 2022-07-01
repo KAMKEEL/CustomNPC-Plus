@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
+import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -66,6 +67,10 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+    }
+
+    public long sizeOfObject(Object obj) {
+        return ObjectSizeCalculator.getObjectSize(obj);
     }
 
     public void stopServer() {

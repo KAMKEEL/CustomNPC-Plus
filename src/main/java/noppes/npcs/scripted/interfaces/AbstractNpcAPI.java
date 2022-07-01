@@ -43,6 +43,8 @@ public abstract class AbstractNpcAPI {
     public AbstractNpcAPI() {
     }
 
+    public abstract long sizeOfObject(Object obj);
+
     public abstract void stopServer();
 
     public abstract IFactionHandler getFactions();
