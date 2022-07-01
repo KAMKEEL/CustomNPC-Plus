@@ -357,8 +357,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
             Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
 
-            Object r = RenderPlayerJBRA.cast(event.renderer);
-            Object mdl = ModelBipedDBC.cast(RenderPlayerJBRA.getField("modelMain").get(r));
             Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
 
             ModelBipedBody.getField("onGround").set(m, (int) player.getSwingProgress(event.partialRenderTick));
@@ -397,8 +395,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
                             return;
 
                         renderDBC.invoke(m, player,
-                            (float) rot1.get(mdl), (float) rot2.get(mdl), (float) rot3.get(mdl),
-                            (float) rot4.get(mdl), (float) rot5.get(mdl), (float) rot6.get(mdl)
+                            (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
+                            (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
                         );
 
                         postRenderOverlay();
