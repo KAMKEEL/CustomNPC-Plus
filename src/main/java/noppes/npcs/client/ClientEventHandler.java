@@ -58,6 +58,12 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
+        try {
+            Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+            if (renderPlayerJBRA.isInstance(event.renderer))
+                return;
+        } catch (Exception ignored) {}
+
         if (!(event.renderer instanceof RenderCNPCPlayer)) {
             renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
             double d0 = event.entityPlayer.lastTickPosX + (event.entityPlayer.posX - event.entityPlayer.lastTickPosX) * (double)event.partialRenderTick - RenderManager.renderPosX;
@@ -80,6 +86,17 @@ public class ClientEventHandler {
         if (event.renderer instanceof RenderCNPCPlayer) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public void tryRenderDBC(RenderPlayerEvent.Specials.Post event) {
+        try {
+            Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+            if (!renderPlayerJBRA.isInstance(event.renderer))
+                return;
+        } catch (Exception ignored) {}
+
+        renderCNPCPlayer.renderDBCModel(event);
     }
 
     @SubscribeEvent

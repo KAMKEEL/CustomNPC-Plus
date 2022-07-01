@@ -19,6 +19,7 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.Client;
 import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
@@ -44,7 +45,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.setRenderManager(RenderManager.instance);
     }
 
-    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow, boolean blend,
+    private boolean preRenderOverlay(EntityPlayer player, boolean renderDBC, ResourceLocation overlayLocation, boolean glow, boolean blend,
                                      float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
                                      float offsetX, float offsetY, float offsetZ) {
         if (overlayLocation.getResourcePath().isEmpty())
@@ -86,8 +87,13 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glPushMatrix();
         GL11.glMatrixMode(GL11.GL_TEXTURE);
         GL11.glLoadIdentity();
-        GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
-        GL11.glScalef(scaleX, scaleY, 1.0F);
+        if (!renderDBC) {
+            GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
+            GL11.glScalef(scaleX, scaleY, 1.0F);
+        } else {
+            GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
+            GL11.glScalef(scaleX, scaleY, 1.0F);
+        }
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
         GL11.glTranslatef(offsetX, offsetY, offsetZ);
@@ -130,18 +136,18 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
 
-                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
+                    if (!preRenderOverlay(player, false, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                             overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                             overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                             ))
                         return;
-                    try {
-                        renderDBCPlayer(player, tempRenderPartialTicks);
-                    } catch (Exception e) {
+//                    try {
+//                        renderDBCPlayer(player, tempRenderPartialTicks);
+//                    } catch (Exception e) {
                         this.modelBipedMain.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
-                    } finally {
+//                    } finally {
                         postRenderOverlay(player);
-                    }
+//                    }
                 }
             }
         }
@@ -339,7 +345,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     }
                 }
 
-                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
+                if (!preRenderOverlay(player, false, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
                         overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                         overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                 ))
@@ -356,166 +362,59 @@ public class RenderCNPCPlayer extends RenderPlayer {
         return Byte.parseByte(n);
     }
 
-    protected void renderDBCPlayer(EntityPlayer player, float partialTick) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-        Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-        Class<?> JRMCoreH = Class.forName("JinRyuu.JRMCore.JRMCoreH");
-        Class<?> JRMCoreHDBC = Class.forName("JinRyuu.JRMCore.JRMCoreHDBC");
-        Class<?> JRMCoreConfig = Class.forName("JinRyuu.JRMCore.JRMCoreConfig");
-        Class<?> JRMCoreGuiScreen = Class.forName("JinRyuu.JRMCore.JRMCoreGuiScreen");
-        Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
 
-        Object playerRenderer = renderPlayerJBRA.cast(RenderManager.instance.getEntityRenderObject(player));
+    public void renderDBCModel(RenderPlayerEvent.Specials.Post event) {
+        EntityPlayer player = event.entityPlayer;
 
-        Object modelMain = renderPlayerJBRA.getField("modelMain").get(playerRenderer);
-        ModelBiped model = ((ModelBiped) modelMain);
+        try {
+            if (!player.isInvisible()) {
+                if (Client.skinOverlays.containsKey(player.getUniqueID())) {
+                    for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+                        if (overlayData.texture.isEmpty())
+                            continue;
 
-        boolean dbc = (Boolean) JRMCoreH.getMethod("DBC").invoke(null);
-        boolean nc = (Boolean) JRMCoreH.getMethod("NC").invoke(null);
-        boolean saoc = (Boolean) JRMCoreH.getMethod("SAOC").invoke(null);
-        int pl;
-        if (JRMCoreH.getField("plyrs").get(null) != null && ((String[]) JRMCoreH.getField("plyrs").get(null)).length > 0 && !player.isInvisible() && (Boolean)JRMCoreH.getMethod("dnn",int.class).invoke(null,1) && ((Boolean)JRMCoreH.getMethod("dnn",int.class).invoke(null,2) && (Boolean)JRMCoreH.getMethod("dnn",int.class).invoke(null,4) && (Boolean)JRMCoreH.getMethod("dnn",int.class).invoke(null,5) && (Boolean)JRMCoreH.getMethod("dnn",int.class).invoke(null,19) || !dbc && !saoc && !nc)) {
-            for(pl = 0; pl < ((String[]) JRMCoreH.getField("plyrs").get(null)).length; ++pl) {
-                if (((String[]) JRMCoreH.getField("plyrs").get(null))[pl].equals(player.getCommandSenderName())) {
-                    String[] s = ((String[]) JRMCoreH.getField("data1").get(null))[pl].split(";");
-                    int powerType = Integer.parseInt(s[2]);
-                    int race = Integer.parseInt(s[0]);
-                    String[] dummy = new String[]{"0", "0", "0"};
-                    String[] state = JRMCoreH.getField("data2").get(null) == null ? dummy : ((String[]) JRMCoreH.getField("data2").get(null))[pl].split(";");
-                    String dns = s[1];
-                    int st = (Boolean) JRMCoreH.getMethod("rc_arc",int.class).invoke(null,race) && (Boolean) JRMCoreGuiScreen.getField("ufc").get(null) ? 6 : (powerType != 2 && race != 0 ? this.b(state[0]) : 0);
-                    boolean saiOozar = (Boolean) JRMCoreH.getMethod("rSai",int.class).invoke(null,race) && (st == 7 || st == 8);
-                    int skintype = (Integer) JRMCoreH.getMethod("dnsSkinT",String.class).invoke(null,dns);
-
-                    HashMap<Integer,String[]> playerData = new HashMap<>();
-                    for (int i = 0; i <= 31; i++) {
-                        Object obj;
-
-                        if (i < 10) {
-                            obj = JRMCoreH.getField("data" + i).get(null);
+                        if (overlayData.location == null) {
+                            overlayData.location = new ResourceLocation(overlayData.texture);
                         } else {
-                            obj = JRMCoreH.getField("dat" + i).get(null);
-                        }
-
-                        if (obj != null) {
-                            playerData.put(i, ((String[]) obj)[pl].split(";"));
-                        }
-                    }
-
-                    int[] playerAttributes = new int[((int[])(JRMCoreH.getField("PlyrAttrbts").get(null))).length];
-                    String[] playerStatsStr = ((String[])(JRMCoreH.getField("dat14").get(null)))[pl].split(",");
-
-                    for(int i = 0; i < playerAttributes.length; ++i) {
-                        playerAttributes[i] = Integer.parseInt(playerStatsStr[i]);
-                    }
-
-                    byte release = Byte.parseByte(playerData.get(10)[0]);
-                    float f1 = 0.9375F;
-                    float f2 = 1.0F;
-                    float f3 = 1.0F;
-                    boolean noC = !(Boolean) JRMCoreH.getMethod("DBC").invoke(null);
-
-                    if ((int)JRMCoreH.getMethod("dnsGender",String.class).invoke(null,(String)JRMCoreH.getField("dns").get(null)) <= 1) {
-                        f1 = 0.73F + (noC ? 0.27F : 0.0F);
-                    }
-
-                    if ((int)JRMCoreH.getMethod("dnsGender",String.class).invoke(null,(String)JRMCoreH.getField("dns").get(null)) >= 2) {
-                        f1 = 0.7F + (noC ? 0.27F : 0.0F);
-                    }
-
-                    float yc = 1.0F;
-                    float f1r;
-
-                    float headOffsetY = 0.00051F;
-                    model.bipedHead.offsetY += headOffsetY;
-
-                    float armOffsetX = -0.00125F;
-                    model.bipedLeftArm.offsetX += armOffsetX;
-                    model.bipedRightArm.offsetX += -armOffsetX;
-
-                    float legOffsetX = -0.0005F;
-                    float legOffsetY = -0.002F;
-                    float legOffsetZ = 0.0F;
-                    if (player.isSneaking()) {
-                        legOffsetZ += -0.00075F;
-                    }
-                    model.bipedLeftLeg.offsetX += legOffsetX;
-                    model.bipedRightLeg.offsetX += -legOffsetX;
-                    model.bipedLeftLeg.offsetY += legOffsetY;
-                    model.bipedRightLeg.offsetY += legOffsetY;
-                    model.bipedLeftLeg.offsetZ += legOffsetZ;
-                    model.bipedRightLeg.offsetZ += legOffsetZ;
-
-                    if ((Boolean) JRMCoreH.getMethod("DBC").invoke(null) && (Boolean) JRMCoreConfig.getField("sizes").get(null)) {
-                        f1r = f1;
-                        f1 += (float) JRMCoreHDBC.getMethod("DBCsizeBasedOnCns",int[].class).invoke(null, (Object) playerAttributes);
-
-                        if (!((Boolean) JRMCoreH.getMethod("isPowerTypeChakra",int.class).invoke(null,powerType))) {
-                            f2 = (float) JRMCoreHDBC.getMethod("DBCsizeBasedOnRace",int.class,int.class).invoke(null, race, st);
-                            f3 = (float) JRMCoreHDBC.getMethod("DBCsizeBasedOnRace2",int.class,int.class).invoke(null, race, st);
-                        }
-
-                        if ((Boolean) JRMCoreH.getMethod("rSai",int.class).invoke(null,race) && (st == 7 || st == 8)) {
-                            release = 50;
-                            f1 = f1r;
-                        }
-
-                        float f3a = (f3 - 1.0F) * (float)release * 0.02F + 1.0F;
-                        f3 = f3a > f3 ? f3 : (f3 > 1.0F ? f3a : f3);
-                        float f2a = (f2 - 1.0F) * (float)release * 0.02F + 1.0F;
-                        f2 = f2 > 1.0F ? f2a : f2;
-                        float f1a1 = (f1 - f1r) * (release <= 50 ? 0.25F : 0.5F);
-                        float f1ac = f1a1 * (float)release * 0.02F;
-                        f1 = f1 - f1r - f1a1 + f1ac + f1r;
-                        String Fzn = (String) JRMCoreH.getMethod("getString",EntityPlayer.class,String.class).invoke(null,player,"jrmcFuzion");
-                        if (Fzn.contains(",")) {
-                            String[] FznA = Fzn.split(",");
-                            if (FznA.length == 3) {
-                                boolean isp2 = FznA[1].equalsIgnoreCase(player.getCommandSenderName());
-                                if (isp2) {
-                                    f1 = 0.0F;
-                                }
+                            String str = overlayData.location.getResourceDomain() + ":" + overlayData.location.getResourcePath();
+                            if (!str.equals(overlayData.texture)) {
+                                overlayData.location = new ResourceLocation(overlayData.texture);
                             }
                         }
+
+                        if (!preRenderOverlay(player, true, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
+                                overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
+                                overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
+                        ))
+                            return;
+
+                        Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+                        Class<?> JRMCoreHJBRA = Class.forName("JinRyuu.JRMCore.JRMCoreHJBRA");
+                        Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
+                        Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
+
+                        Object r = RenderPlayerJBRA.cast(event.renderer);
+                        Object mdl = ModelBipedDBC.cast(RenderPlayerJBRA.getField("modelMain").get(r));
+                        Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
+                        //Object m = ModelBipedBody.cast(JRMCoreHJBRA.getField("GiTurtleMdl3").get(null));
+                        //m = ModelBipedBody.cast(JRMCoreHJBRA.getMethod("showModel", ModelBiped.class, EntityLivingBase.class, ItemStack.class, int.class).invoke(null, (ModelBiped) m, player, null, 0));
+
+                        ModelBipedBody.getField("onGround").set(m, (int) player.getSwingProgress(event.partialRenderTick));
+                        ModelBipedBody.getField("isRiding").set(m, player.isRiding());
+                        ModelBipedBody.getField("isChild").set(m, player.isChild());
+                        ModelBipedBody.getField("isSneak").set(m, player.isSneaking());
+                        ModelBipedBody.getField("y").set(null, ModelBipedDBC.getField("y").get(null));
+                        ModelBipedBody.getMethod("render",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class).invoke(m, player,
+                                (float) ModelBipedDBC.getField("rot1").get(mdl), (float) ModelBipedDBC.getField("rot2").get(mdl), (float) ModelBipedDBC.getField("rot3").get(mdl),
+                                (float) ModelBipedDBC.getField("rot4").get(mdl), (float) ModelBipedDBC.getField("rot5").get(mdl), (float) ModelBipedDBC.getField("rot6").get(mdl)
+                        );
+
+                        postRenderOverlay(player);
                     }
-
-                    float clientHeight = f1 * f3 * yc;
-                    float clientWidth2 = f1 * f2 * f3 * yc;
-
-                    GL11.glTranslatef(0,-1.60859F * clientHeight + 1.50766F,0);
-                    GL11.glScalef(clientWidth2 * 1.07F,clientHeight * 1.07F,clientWidth2 * 1.07F);
-
-                    GL11.glPushMatrix();
-
-                    if (race == 3 && dbc) {
-                        ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
-                    } else {
-                        if (race == 4 && dbc) {
-                            ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
-                        } else {
-                            if (saiOozar) {
-                                ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
-                                ModelBipedDBC.getMethod("renderHairs",float.class,String.class).invoke(modelMain,0.0625F,"OOZARU");
-                            } else if (skintype != 0) {
-                                ModelBipedDBC.getMethod("renderBody",float.class).invoke(modelMain,0.0625F);
-                            }
-                        }
-                    }
-
-                    GL11.glPopMatrix();
-
-                    model.bipedHead.offsetY -= headOffsetY;
-
-                    model.bipedLeftArm.offsetX -= armOffsetX;
-                    model.bipedRightArm.offsetX -= -armOffsetX;
-
-                    model.bipedLeftLeg.offsetX -= legOffsetX;
-                    model.bipedRightLeg.offsetX -= -legOffsetX;
-                    model.bipedLeftLeg.offsetY -= legOffsetY;
-                    model.bipedRightLeg.offsetY -= legOffsetY;
-                    model.bipedLeftLeg.offsetZ -= legOffsetZ;
-                    model.bipedRightLeg.offsetZ -= legOffsetZ;
                 }
             }
+        } catch (Exception ignored) {
+            postRenderOverlay(player);
         }
     }
 }
