@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
@@ -358,6 +359,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
 
             Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
+            ModelRenderer bipedHead = (ModelRenderer) ModelBipedBody.getField("bipedHead").get(m);
+            float childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
 
             ModelBipedBody.getField("onGround").set(m, (int) player.getSwingProgress(event.partialRenderTick));
             ModelBipedBody.getField("isRiding").set(m, player.isRiding());
@@ -394,10 +397,22 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         ))
                             return;
 
+                        bipedHead.isHidden = true;
                         renderDBC.invoke(m, player,
                             (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
                             (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
                         );
+                        bipedHead.isHidden = false;
+
+                        if (childScl > 1) {
+                            GL11.glScalef(1.0F / childScl, 1.0F / childScl, 1.0F / childScl);
+                            GL11.glTranslatef(0.0F, (childScl - 1.0F) * 1.5F, 0.0F);
+                            GL11.glScalef(childScl * 0.78F, childScl * 0.78F, childScl * 0.78F);
+                        } else {
+                            GL11.glTranslatef(0, 0.0025F, 0);
+                            GL11.glScalef(1.02F, 1.02F, 1.02F);
+                        }
+                        bipedHead.render((float) rot6.get(m));
 
                         postRenderOverlay();
                     }
