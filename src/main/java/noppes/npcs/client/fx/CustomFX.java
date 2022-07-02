@@ -1,7 +1,11 @@
 package noppes.npcs.client.fx;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -11,7 +15,9 @@ import net.minecraft.client.resources.SkinManager;
 import net.minecraft.client.resources.data.TextureMetadataSection;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
@@ -58,6 +64,7 @@ public class CustomFX extends EntityFX {
     public int rotationZRateStart = 0;
 
     public boolean facePlayer = true;
+    public boolean glows = true;
 
     private int totalWidth, totalHeight;
     public int width, height;
@@ -79,6 +86,8 @@ public class CustomFX extends EntityFX {
     private boolean isUrl = false;
     private boolean gotWidthHeight = false;
 
+    double renderPosX, renderPosY, renderPosZ;
+
 	public CustomFX(World worldObj, Entity entity, String directory,
                     int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart,
                     double x, double y, double z,
@@ -88,7 +97,7 @@ public class CustomFX extends EntityFX {
                     float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
                     float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
                     float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-                    int age, boolean facePlayer, int width, int height, int offsetX, int offsetY,
+                    int age, boolean facePlayer, boolean glows, int width, int height, int offsetX, int offsetY,
                     int animRate, boolean animLoop, int animStart, int animEnd
     ) {
 		super(worldObj, x, y, z, motionX, motionY, motionZ);
@@ -179,6 +188,7 @@ public class CustomFX extends EntityFX {
         }
 
         this.facePlayer = facePlayer;
+        this.glows = glows;
 	}
 
     @Override
@@ -283,6 +293,10 @@ public class CustomFX extends EntityFX {
         float posZ = (float)((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ;
 
         GL11.glPushMatrix();
+            renderPosX = startX + posX + this.posX;
+            renderPosY = startY + posY + this.posY;
+            renderPosZ = startZ + posZ + this.posZ;
+
             GL11.glTranslated(posX,posY,posZ);
             GL11.glScalef(renderScale, renderScale, renderScale);
             if(facePlayer) {
@@ -299,7 +313,11 @@ public class CustomFX extends EntityFX {
             }
 
             tessellator.startDrawingQuads();
-            tessellator.setBrightness(240);
+            if (!this.glows) {
+                tessellator.setBrightness(this.getBrightnessForRender(partialTick));
+            } else {
+                tessellator.setBrightness(240);
+            }
             tessellator.setColorOpaque_F(1, 1, 1);
             tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
             tessellator.addVertexWithUV( (u2-u1)/2,  0,  (v2-v1)/2, u2, v2);
@@ -308,6 +326,24 @@ public class CustomFX extends EntityFX {
             tessellator.addVertexWithUV( -(u2-u1)/2,  0, (v2-v1)/2, u1, v2);
             tessellator.draw();
         GL11.glPopMatrix();
+    }
+
+    @SideOnly(Side.CLIENT)
+    public int getBrightnessForRender(float p_70070_1_)
+    {
+        int i = MathHelper.floor_double(renderPosX);
+        int j = MathHelper.floor_double(renderPosZ);
+
+        if (this.worldObj.blockExists(i, 0, j))
+        {
+            double d0 = (this.boundingBox.maxY - this.boundingBox.minY) * 0.66D;
+            int k = MathHelper.floor_double(renderPosY - (double)this.yOffset + d0);
+            return this.worldObj.getLightBrightnessForSkyBlocks(i, k, j, 0);
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     public void getWidthHeight() throws IOException {

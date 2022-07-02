@@ -44,6 +44,7 @@ public class ScriptParticle implements IParticle {
     public int animStart = 0, animEnd = -1;
 
     public boolean facePlayer = true;
+    public boolean glows = true;
 
     public ScriptParticle(String directory){
         this.directory = directory;
@@ -61,7 +62,7 @@ public class ScriptParticle implements IParticle {
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, width, height, offsetX, offsetY,
+                facePlayer, glows, width, height, offsetX, offsetY,
                 animRate, animLoop, animStart, animEnd,
                 entityID, entity.getWorld().getDimensionID()
         );
@@ -78,7 +79,7 @@ public class ScriptParticle implements IParticle {
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, width, height, offsetX, offsetY,
+                facePlayer, glows, width, height, offsetX, offsetY,
                 animRate, animLoop, animStart, animEnd,
                 -1, world.getDimensionID()
         );
@@ -95,11 +96,14 @@ public class ScriptParticle implements IParticle {
                 rotationX1, rotationX2, rotationXRate, rotationXRateStart,
                 rotationY1, rotationY2, rotationYRate, rotationYRateStart,
                 rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, width, height, offsetX, offsetY,
+                facePlayer, glows, width, height, offsetX, offsetY,
                 animRate, animLoop, animStart, animEnd,
                 -1, world.getDimensionID()
         );
     }
+
+    public void setGlows(boolean glows) { this.glows = glows; }
+    public boolean getGlows() { return this.glows; }
 
     public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
     public boolean getFacePlayer() { return facePlayer; }

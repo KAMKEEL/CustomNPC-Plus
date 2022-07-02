@@ -325,7 +325,7 @@ public class NoppesUtilServer {
 											 float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
 											 float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
 											 float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-											 boolean facePlayer, int width, int height, int offsetX, int offsetY,
+											 boolean facePlayer, boolean glows, int width, int height, int offsetX, int offsetY,
 											 int animRate, boolean animLoop, int animStart, int animEnd,
 											 int entityID, int dimensionID
 	){
@@ -340,7 +340,7 @@ public class NoppesUtilServer {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				facePlayer, width, height, offsetX, offsetY,
+				facePlayer, glows, width, height, offsetX, offsetY,
 				animRate, animLoop, animStart, animEnd,
 				entityID, dimensionID
 		);

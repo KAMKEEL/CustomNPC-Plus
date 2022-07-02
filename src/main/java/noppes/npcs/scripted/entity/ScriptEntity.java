@@ -90,7 +90,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				true, -1, -1, 0,0,
+				true, true, -1, -1, 0,0,
 				0, true, 0, 0,
 				entityID, entity.dimension
 		);
@@ -114,7 +114,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				true, -1, -1, 0,0,
+				true, true, -1, -1, 0,0,
 				0, true, 0, 0,
 				entityID, entity.dimension
 		);
@@ -137,7 +137,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				true, -1, -1, 0,0,
+				true, true, -1, -1, 0,0,
 				0, true, 0, 0,
 				entityID, entity.dimension
 		);
@@ -159,7 +159,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				true, -1, -1, 0,0,
+				true, true, -1, -1, 0,0,
 				0, true, 0, 0,
 				entityID, entity.dimension
 		);
@@ -180,7 +180,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				true, -1, -1, 0,0,
+				true, true, -1, -1, 0,0,
 				0, true, 0, 0,
 				entityID, entity.dimension
 		);
@@ -200,7 +200,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
-				true, -1, -1, 0,0,
+				true, true, -1, -1, 0,0,
 				0, true, 0, 0,
 				entityID, entity.dimension
 		);

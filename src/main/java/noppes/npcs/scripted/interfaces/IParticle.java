@@ -44,6 +44,13 @@ public interface IParticle {
 
     /**
      *
+     * @param glows If true, this particle ignores all lighting and always renders with full brightness.
+     */
+    void setGlows(boolean glows);
+    boolean getGlows();
+
+    /**
+     *
      * @param facePlayer Whether the particle is always facing the player's camera. If this is disabled, the particle will appear to be laying flat face down on the ground if its rotation is unchanged.
      */
     void setFacePlayer(boolean facePlayer);

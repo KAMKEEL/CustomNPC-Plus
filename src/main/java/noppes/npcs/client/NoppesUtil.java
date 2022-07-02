@@ -131,6 +131,7 @@ public class NoppesUtil {
 		int rotationZRateStart = buffer.readInt();
 
 		boolean facePlayer = buffer.readBoolean();
+		boolean glows = buffer.readBoolean();
 
 		int width = buffer.readInt();
 		int height = buffer.readInt();
@@ -162,7 +163,7 @@ public class NoppesUtil {
 				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
 				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
 				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				maxAge, facePlayer,
+				maxAge, facePlayer, glows,
 				width, height, offsetX, offsetY,
 				animRate, animLoop, animStart, animEnd
 		);
