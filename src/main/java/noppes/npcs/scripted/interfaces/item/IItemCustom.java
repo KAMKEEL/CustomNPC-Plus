@@ -11,6 +11,8 @@ public interface IItemCustom extends IItemStack, IScriptHandler {
 
     void setTexture(String var2);
 
+    void setArmorType(int armorType);
+
     int getArmorType();
 
     void setIsTool(boolean isTool);

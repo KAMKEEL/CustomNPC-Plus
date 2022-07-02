@@ -168,7 +168,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         return this.stackSize;
     }
 
-    public void setArmorType(int armorType){
+    public void setArmorType(int armorType) {
         this.armorType = armorType;
         saveItemData();
     }
