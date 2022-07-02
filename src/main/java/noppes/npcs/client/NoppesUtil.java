@@ -98,6 +98,9 @@ public class NoppesUtil {
 		}
 
 		World worldObj = DimensionManager.getWorld(compound.getInteger("DimensionID"));
+		if (worldObj == null) {
+			return;
+		}
 
 		Entity entity = null;
 		if (compound.hasKey("EntityID")) {
