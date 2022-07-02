@@ -85,7 +85,7 @@ public class NoppesUtil {
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}
 
-	public static void spawnScriptedParticle(ByteBuf buffer){
+	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){
 		Minecraft minecraft =  Minecraft.getMinecraft();
 
 		NBTTagCompound compound;
@@ -97,7 +97,7 @@ public class NoppesUtil {
 			return;
 		}
 
-		World worldObj = DimensionManager.getWorld(compound.getInteger("DimensionID"));
+		World worldObj = player.worldObj;
 		if (worldObj == null) {
 			return;
 		}

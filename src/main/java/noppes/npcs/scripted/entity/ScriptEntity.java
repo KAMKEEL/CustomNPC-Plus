@@ -97,8 +97,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);
-		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
-		NoppesUtilServer.spawnScriptedParticle(compound);
+		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
 	@Deprecated
@@ -139,8 +138,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);
-		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
-		NoppesUtilServer.spawnScriptedParticle(compound);
+		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
 	@Deprecated
@@ -175,8 +173,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);
-		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
-		NoppesUtilServer.spawnScriptedParticle(compound);
+		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
 	@Deprecated
@@ -205,8 +202,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);
-		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
-		NoppesUtilServer.spawnScriptedParticle(compound);
+		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
 	@Deprecated
@@ -230,8 +226,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);
-		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
-		NoppesUtilServer.spawnScriptedParticle(compound);
+		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
 	@Deprecated
@@ -250,8 +245,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);
-		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
-		NoppesUtilServer.spawnScriptedParticle(compound);
+		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
 	public void spawnParticle(IParticle entityParticle) { entityParticle.spawnOnEntity(this); }

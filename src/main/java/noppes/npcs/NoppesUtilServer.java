@@ -315,8 +315,13 @@ public class NoppesUtilServer {
 		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
-	public static void spawnScriptedParticle(NBTTagCompound compound){
-		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE, compound);
+	public static void spawnScriptedParticle(NBTTagCompound compound, int dimensionId){
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			if (player.worldObj.provider.dimensionId == dimensionId) {
+				Server.sendData((EntityPlayerMP) player, EnumPacketClient.SCRIPTED_PARTICLE, compound);
+			}
+		}
 	}
 
 	public static void deleteNpc(EntityNPCInterface npc,EntityPlayer player) {

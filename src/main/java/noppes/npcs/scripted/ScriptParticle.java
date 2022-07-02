@@ -133,23 +133,18 @@ public class ScriptParticle implements IParticle {
 
         NBTTagCompound compound = this.writeToNBT();
         compound.setInteger("EntityID", entityID);
-        compound.setInteger("DimensionID", entity.getWorld().getDimensionID());
 
-        NoppesUtilServer.spawnScriptedParticle(compound);
+        NoppesUtilServer.spawnScriptedParticle(compound, entity.getWorld().getDimensionID());
     }
 
     public void spawnInWorld(ScriptWorld world){
         NBTTagCompound compound = this.writeToNBT();
-        compound.setInteger("DimensionID", world.getDimensionID());
-
-        NoppesUtilServer.spawnScriptedParticle(compound);
+        NoppesUtilServer.spawnScriptedParticle(compound, world.getDimensionID());
     }
 
     public void spawnInWorld(ScriptWorld world, double x, double y, double z){
         NBTTagCompound compound = this.writeToNBT();
-        compound.setInteger("DimensionID", world.getDimensionID());
-
-        NoppesUtilServer.spawnScriptedParticle(compound);
+        NoppesUtilServer.spawnScriptedParticle(compound, world.getDimensionID());
     }
 
     public void setGlows(boolean glows) { this.glows = glows; }
