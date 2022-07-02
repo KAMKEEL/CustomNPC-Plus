@@ -62,11 +62,4 @@ public interface ISkinOverlay {
     float getOffsetX();
     float getOffsetY();
     float getOffsetZ();
-
-    /**
-     *
-     * @return The MC resource location object used to bind the overlay's texture.
-     */
-    ResourceLocation getLocation();
-    void setLocation(ResourceLocation location);
 }

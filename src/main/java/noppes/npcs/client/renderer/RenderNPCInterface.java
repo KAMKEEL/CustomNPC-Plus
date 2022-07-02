@@ -27,6 +27,7 @@ import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -224,20 +225,20 @@ public class RenderNPCInterface extends RenderLiving{
 					if (overlayData.getTexture().isEmpty())
 						continue;
 
-					if (overlayData.getLocation() == null) {
-						overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
+					if (((SkinOverlay)overlayData).getLocation() == null) {
+						((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
 					} else {
-						String str = npc.display.skinOverlayData.overlayList.get(0).getLocation().getResourceDomain()+":"+npc.display.skinOverlayData.overlayList.get(0).getLocation().getResourcePath();
+						String str = ((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourceDomain()+":"+((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourcePath();
 						if (!str.equals(overlayData.getTexture())) {
-							overlayData.setLocation(new ResourceLocation(overlayData.getTexture()));
+							((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
 						}
 					}
 
-					if (overlayData.getLocation().getResourcePath().isEmpty())
+					if (((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
 						continue;
 
 					try {
-						this.bindTexture(overlayData.getLocation());
+						this.bindTexture(((SkinOverlay)overlayData).getLocation());
 					} catch (Exception e) { continue; }
 
 					// Overlay & Glow
