@@ -196,11 +196,11 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
     }
 
     public void setMaxStackSize(int size) {
-        if (size >= 1 && size <= 64) {
+        if (size >= 1 && size <= 127) {
             this.stackSize = size;
             saveItemData();
         } else {
-            throw new CustomNPCsException("Stacksize has to be between 1 and 64", new Object[0]);
+            throw new CustomNPCsException("Stacksize has to be between 1 and 127", new Object[0]);
         }
     }
 
