@@ -1,7 +1,5 @@
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.util.ResourceLocation;
-
 /**
  * A skin overlay object for both NPCs and players. Several skin overlays at a time can be layered on top of each other.
  * In an NPC's case, the old overlay texture is now the skin overlay with ID 0.

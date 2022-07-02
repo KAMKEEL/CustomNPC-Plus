@@ -15,6 +15,7 @@ import net.minecraft.client.resources.SkinManager;
 import net.minecraft.client.resources.data.TextureMetadataSection;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.EnumSkyBlock;
@@ -22,6 +23,7 @@ import net.minecraft.world.World;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
+import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -88,108 +90,102 @@ public class CustomFX extends EntityFX {
 
     double renderPosX, renderPosY, renderPosZ;
 
-	public CustomFX(World worldObj, Entity entity, String directory,
-                    int HEXColor, int HEXColor2, float HEXColorRate, int HEXColorStart,
-                    double x, double y, double z,
-                    double motionX, double motionY, double motionZ, float gravity,
-                    float scale1, float scale2, float scaleRate, int scaleRateStart,
-                    float alpha1, float alpha2, float alphaRate, int alphaRateStart,
-                    float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
-                    float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
-                    float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-                    int age, boolean facePlayer, boolean glows, int width, int height, int offsetX, int offsetY,
-                    int animRate, boolean animLoop, int animStart, int animEnd
-    ) {
-		super(worldObj, x, y, z, motionX, motionY, motionZ);
+    public CustomFX(World worldObj, Entity entity, String directory, double x, double y, double z, double motionX, double motionY, double motionZ) {
+        super(worldObj, x, y, z, motionX, motionY, motionZ);
+        this.entity = entity;
+        this.location = new ResourceLocation(directory);
+    }
 
-        this.HEXColor = HEXColor;
-        this.HEXColor2 = HEXColor2;
-        this.HEXColorRate = HEXColorRate;
-        this.HEXColorStart = HEXColorStart;
-        particleRed = (HEXColor >> 16 & 255) / 255f;
-        particleGreen = (HEXColor >> 8  & 255) / 255f;
-        particleBlue = (HEXColor & 255) / 255f;
+    public static CustomFX fromScriptedParticle(ScriptParticle particle, World worldObj, Entity entity) {
+        CustomFX customFX = new CustomFX(worldObj, entity, particle.directory, particle.x, particle.y, particle.z, particle.motionX, particle.motionY, particle.motionZ);
 
-        this.scale1 = scale1;
-        this.scale2 = scale2;
-        this.scaleRate = Math.abs(scaleRate);
-        this.scaleRateStart = scaleRateStart;
-        particleScale = scale1;
-        if(scale1 > scale2)
-            this.scaleRate *= -1;
+        customFX.HEXColor = particle.HEXColor;
+        customFX.HEXColor2 = particle.HEXColor2;
+        customFX.HEXColorRate = particle.HEXColorRate;
+        customFX.HEXColorStart = particle.HEXColorStart;
+        customFX.particleRed = (customFX.HEXColor >> 16 & 255) / 255f;
+        customFX.particleGreen = (customFX.HEXColor >> 8  & 255) / 255f;
+        customFX.particleBlue = (customFX.HEXColor & 255) / 255f;
 
-        this.alpha1 = alpha1;
-        this.alpha2 = alpha2;
-        this.alphaRate = Math.abs(alphaRate);
-        this.alphaRateStart = alphaRateStart;
-        particleAlpha = alpha1;
-        if(alpha1 > alpha2)
-            this.alphaRate *= -1;
+        customFX.scale1 = particle.scale1;
+        customFX.scale2 = particle.scale2;
+        customFX.scaleRate = Math.abs(particle.scaleRate);
+        customFX.scaleRateStart = particle.scaleRateStart;
+        customFX.particleScale = customFX.scale1;
+        if(customFX.scale1 > customFX.scale2)
+            customFX.scaleRate *= -1;
 
-        this.rotationX1 = rotationX1;
-        this.rotationX2 = rotationX2;
-        this.rotationXRate = Math.abs(rotationXRate);
-        this.rotationXRateStart = rotationXRateStart;
-        rotationX = rotationX1;
-        if(rotationX1 > rotationX2)
-            this.rotationXRate *= -1;
+        customFX.alpha1 = particle.alpha1;
+        customFX.alpha2 = particle.alpha2;
+        customFX.alphaRate = Math.abs(particle.alphaRate);
+        customFX.alphaRateStart = particle.alphaRateStart;
+        customFX.particleAlpha = customFX.alpha1;
+        if(customFX.alpha1 > customFX.alpha2)
+            customFX.alphaRate *= -1;
 
-        this.rotationY1 = rotationY1;
-        this.rotationY2 = rotationY2;
-        this.rotationYRate = Math.abs(rotationYRate);
-        this.rotationYRateStart = rotationYRateStart;
-        rotationY = rotationY1;
-        if(rotationY1 > rotationY2)
-            this.rotationYRate *= -1;
+        customFX.rotationX1 = particle.rotationX1;
+        customFX.rotationX2 = particle.rotationX2;
+        customFX.rotationXRate = Math.abs(particle.rotationXRate);
+        customFX.rotationXRateStart = particle.rotationXRateStart;
+        customFX.rotationX = customFX.rotationX1;
+        if(customFX.rotationX1 > customFX.rotationX2)
+            customFX.rotationXRate *= -1;
 
-        this.rotationZ1 = rotationZ1;
-        this.rotationZ2 = rotationZ2;
-        this.rotationZRate = Math.abs(rotationZRate);
-        this.rotationZRateStart = rotationZRateStart;
-        rotationZ = rotationZ1;
-        if(rotationZ1 > rotationZ2)
-            this.rotationZRate *= -1;
+        customFX.rotationY1 = particle.rotationY1;
+        customFX.rotationY2 = particle.rotationY2;
+        customFX.rotationYRate = Math.abs(particle.rotationYRate);
+        customFX.rotationYRateStart = particle.rotationYRateStart;
+        customFX.rotationY = customFX.rotationY1;
+        if(customFX.rotationY1 > customFX.rotationY2)
+            customFX.rotationYRate *= -1;
 
-        particleGravity = gravity/0.04F;
-        particleMaxAge = age;
+        customFX.rotationZ1 = particle.rotationZ1;
+        customFX.rotationZ2 = particle.rotationZ2;
+        customFX.rotationZRate = Math.abs(particle.rotationZRate);
+        customFX.rotationZRateStart = particle.rotationZRateStart;
+        customFX.rotationZ = customFX.rotationZ1;
+        if(customFX.rotationZ1 > customFX.rotationZ2)
+            customFX.rotationZRate *= -1;
 
-        this.motionX = motionX;
-        this.motionY = motionY;
-        this.motionZ = motionZ;
+        customFX.particleGravity = particle.gravity/0.04F;
+        customFX.particleMaxAge = particle.maxAge;
 
-		this.entity = entity;
-        noClip = true;
+        customFX.motionX = particle.motionX;
+        customFX.motionY = particle.motionY;
+        customFX.motionZ = particle.motionZ;
 
-        location = new ResourceLocation(directory);
+        customFX.noClip = particle.noClip;
 
-        this.width = width;
-        this.height = height;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
+        customFX.width = particle.width;
+        customFX.height = particle.height;
+        customFX.offsetX = particle.offsetX;
+        customFX.offsetY = particle.offsetY;
 
-        this.animRate = animRate;
-        this.animLoop = animLoop;
-        this.animStart = animStart;
-        this.animEnd = animEnd;
-        if(this.animEnd < this.animStart)
-            this.animEnd = this.animStart + this.particleMaxAge;
+        customFX.animRate = particle.animRate;
+        customFX.animLoop = particle.animLoop;
+        customFX.animStart = particle.animStart;
+        customFX.animEnd = particle.animEnd;
+        if(customFX.animEnd < customFX.animStart)
+            customFX.animEnd = customFX.animStart + customFX.particleMaxAge;
 
-        if(directory.startsWith("https://")){
-            isUrl = true;
+        if(particle.directory.startsWith("https://")){
+            customFX.isUrl = true;
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            imageDownloadAlt = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
-            texturemanager.loadTexture(this.location, imageDownloadAlt);
+            customFX.imageDownloadAlt = new ImageDownloadAlt(null, particle.directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
+            texturemanager.loadTexture(customFX.location, customFX.imageDownloadAlt);
         } else {
             try {
-                getWidthHeight();
+                customFX.getWidthHeight();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        this.facePlayer = facePlayer;
-        this.glows = glows;
-	}
+        customFX.facePlayer = particle.facePlayer;
+        customFX.glows = particle.glows;
+
+        return customFX;
+    }
 
     @Override
     public void onUpdate() {
@@ -350,13 +346,15 @@ public class CustomFX extends EntityFX {
         InputStream inputstream = null;
 
         try {
-            IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
+            IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(this.location);
             inputstream = iresource.getInputStream();
             BufferedImage bufferedimage = ImageIO.read(inputstream);
             gotWidthHeight = true;
             this.totalWidth = bufferedimage.getWidth();
             this.totalHeight = bufferedimage.getHeight();
             correctWidthHeight();
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             if (inputstream != null) {
                 inputstream.close();

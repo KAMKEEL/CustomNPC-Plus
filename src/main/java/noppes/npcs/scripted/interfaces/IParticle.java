@@ -1,6 +1,5 @@
 package noppes.npcs.scripted.interfaces;
 
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 
@@ -48,6 +47,9 @@ public interface IParticle {
      */
     void setGlows(boolean glows);
     boolean getGlows();
+
+    void setNoClip(boolean noClip);
+    boolean getNoClip();
 
     /**
      *

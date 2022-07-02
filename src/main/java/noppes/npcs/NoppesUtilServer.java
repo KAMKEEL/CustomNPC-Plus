@@ -315,35 +315,8 @@ public class NoppesUtilServer {
 		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
-	public static void spawnScriptedParticle(String directory,
-											 int HEXColor, int HEXColor2, float colorRate, int rateStart,
-											 int amount, int maxAge,
-											 double x, double y, double z,
-											 double motionX, double motionY, double motionZ, float gravity,
-											 float scale1, float scale2, float scaleRate, int scaleRateStart,
-											 float alpha1, float alpha2, float alphaRate, int alphaRateStart,
-											 float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart,
-											 float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart,
-											 float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart,
-											 boolean facePlayer, boolean glows, int width, int height, int offsetX, int offsetY,
-											 int animRate, boolean animLoop, int animStart, int animEnd,
-											 int entityID, int dimensionID
-	){
-		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE,
-				directory,
-				HEXColor, HEXColor2, colorRate, rateStart,
-				amount, maxAge,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				scale1, scale2, scaleRate, scaleRateStart,
-				alpha1, alpha2, alphaRate, alphaRateStart,
-				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
-				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
-				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				facePlayer, glows, width, height, offsetX, offsetY,
-				animRate, animLoop, animStart, animEnd,
-				entityID, dimensionID
-		);
+	public static void spawnScriptedParticle(NBTTagCompound compound){
+		Server.sendToAll(EnumPacketClient.SCRIPTED_PARTICLE, compound);
 	}
 
 	public static void deleteNpc(EntityNPCInterface npc,EntityPlayer player) {

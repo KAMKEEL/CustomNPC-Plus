@@ -1,25 +1,28 @@
 package noppes.npcs.scripted;
 
+import net.minecraft.nbt.*;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 
+import java.lang.reflect.Field;
+
 public class ScriptParticle implements IParticle {
-    private String directory;
+    public String directory;
 
-    private int HEXColor = 0xFFFFFF;
-    private int HEXColor2 = 0xFFFFFF;
-    private float HEXColorRate = 0.0f;
-    private int HEXColorStart = 0;
+    public int HEXColor = 0xFFFFFF;
+    public int HEXColor2 = 0xFFFFFF;
+    public float HEXColorRate = 0.0f;
+    public int HEXColorStart = 0;
 
-    private int amount = 1;
-    private int maxAge = 20;
-    private double x = 0,y = 0,z = 0;
-    private double motionX = 0,motionY = 0,motionZ = 0;
-    private float gravity = 0;
-    private float scale1 = 20.0f,scale2 = 20.0f,scaleRate = 0.0f;
-    private float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
-    private int scaleRateStart = 0, alphaRateStart = 0;
+    public int amount = 1;
+    public int maxAge = 20;
+    public double x = 0,y = 0,z = 0;
+    public double motionX = 0,motionY = 0,motionZ = 0;
+    public float gravity = 0;
+    public float scale1 = 20.0f,scale2 = 20.0f,scaleRate = 0.0f;
+    public float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
+    public int scaleRateStart = 0, alphaRateStart = 0;
 
     public float rotationX1 = 0;
     public float rotationX2 = 0;
@@ -45,65 +48,115 @@ public class ScriptParticle implements IParticle {
 
     public boolean facePlayer = true;
     public boolean glows = true;
+    public boolean noClip = true;
 
     public ScriptParticle(String directory){
         this.directory = directory;
     }
 
+    public NBTTagCompound writeToNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+        ScriptParticle newParticle = new ScriptParticle("");
+
+        //Iterate through fields, check if they're not equal to a new object, write to NBT
+        for (Field field : ScriptParticle.class.getDeclaredFields()) {
+            try {
+                if (!field.get(this).equals(field.get(newParticle))) {
+                    compound = writeNBTTag(compound, field.getType(), field.getName(), field.get(this));
+                }
+            } catch (Exception ignored) {}
+        }
+
+        return compound;
+    }
+
+    public NBTTagCompound writeNBTTag(NBTTagCompound compound, Class<?> c, String key, Object value) {
+        if (c == boolean.class) {
+            compound.setBoolean(key, (Boolean) value);
+        }
+        if (c == int.class) {
+            compound.setInteger(key, (Integer) value);
+        }
+        if (c == double.class) {
+            compound.setDouble(key, (Double) value);
+        }
+        if (c == float.class) {
+            compound.setFloat(key, (Float) value);
+        }
+        if (c == String.class) {
+            compound.setString(key, (String) value);
+        }
+
+        return compound;
+    }
+
+    private static Object readNBTTag(NBTTagCompound compound, String key) {
+        if (compound.getTag(key) instanceof NBTTagByte) {
+            return compound.getBoolean(key);
+        }
+        if (compound.getTag(key) instanceof NBTTagInt) {
+            return compound.getInteger(key);
+        }
+        if (compound.getTag(key) instanceof NBTTagDouble) {
+            return compound.getDouble(key);
+        }
+        if (compound.getTag(key) instanceof NBTTagFloat) {
+            return compound.getFloat(key);
+        }
+        if (compound.getTag(key) instanceof NBTTagString) {
+            return compound.getString(key);
+        }
+
+        return null;
+    }
+
+    public static ScriptParticle fromNBT(NBTTagCompound compound) {
+        ScriptParticle particle = new ScriptParticle(compound.getString("directory"));
+
+        //Iterate through fields, check if compound has a key equal to the field's name, and if so set the field equal to that value from NBT.
+        for (Field field : ScriptParticle.class.getDeclaredFields()) {
+            try {
+                if (compound.hasKey(field.getName())) {
+                    Object val = ScriptParticle.readNBTTag(compound,field.getName());
+                    if (val != null) {
+                        field.set(particle, val);
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        return particle;
+    }
+
     public void spawnOnEntity(IEntity entity){
         int entityID = entity.getMCEntity().getEntityId();
-        NoppesUtilServer.spawnScriptedParticle(directory,
-                HEXColor, HEXColor2, HEXColorRate, HEXColorStart,
-                amount, maxAge,
-                x, y, z,
-                motionX, motionY, motionZ, gravity,
-                scale1, scale2, scaleRate, scaleRateStart,
-                alpha1, alpha2, alphaRate, alphaRateStart,
-                rotationX1, rotationX2, rotationXRate, rotationXRateStart,
-                rotationY1, rotationY2, rotationYRate, rotationYRateStart,
-                rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, glows, width, height, offsetX, offsetY,
-                animRate, animLoop, animStart, animEnd,
-                entityID, entity.getWorld().getDimensionID()
-        );
+
+        NBTTagCompound compound = this.writeToNBT();
+        compound.setInteger("EntityID", entityID);
+        compound.setInteger("DimensionID", entity.getWorld().getDimensionID());
+
+        NoppesUtilServer.spawnScriptedParticle(compound);
     }
 
     public void spawnInWorld(ScriptWorld world){
-        NoppesUtilServer.spawnScriptedParticle(directory,
-                HEXColor, HEXColor2, HEXColorRate, HEXColorStart,
-                amount, maxAge,
-                x, y, z,
-                motionX, motionY, motionZ, gravity,
-                scale1, scale2, scaleRate, scaleRateStart,
-                alpha1, alpha2, alphaRate, alphaRateStart,
-                rotationX1, rotationX2, rotationXRate, rotationXRateStart,
-                rotationY1, rotationY2, rotationYRate, rotationYRateStart,
-                rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, glows, width, height, offsetX, offsetY,
-                animRate, animLoop, animStart, animEnd,
-                -1, world.getDimensionID()
-        );
+        NBTTagCompound compound = this.writeToNBT();
+        compound.setInteger("DimensionID", world.getDimensionID());
+
+        NoppesUtilServer.spawnScriptedParticle(compound);
     }
 
     public void spawnInWorld(ScriptWorld world, double x, double y, double z){
-        NoppesUtilServer.spawnScriptedParticle(directory,
-                HEXColor, HEXColor2, HEXColorRate, HEXColorStart,
-                amount, maxAge,
-                x, y, z,
-                motionX, motionY, motionZ, gravity,
-                scale1, scale2, scaleRate, scaleRateStart,
-                alpha1, alpha2, alphaRate, alphaRateStart,
-                rotationX1, rotationX2, rotationXRate, rotationXRateStart,
-                rotationY1, rotationY2, rotationYRate, rotationYRateStart,
-                rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-                facePlayer, glows, width, height, offsetX, offsetY,
-                animRate, animLoop, animStart, animEnd,
-                -1, world.getDimensionID()
-        );
+        NBTTagCompound compound = this.writeToNBT();
+        compound.setInteger("DimensionID", world.getDimensionID());
+
+        NoppesUtilServer.spawnScriptedParticle(compound);
     }
 
     public void setGlows(boolean glows) { this.glows = glows; }
     public boolean getGlows() { return this.glows; }
+
+    public void setNoClip(boolean noClip) { this.noClip = noClip; }
+    public boolean getNoClip() { return this.noClip; }
 
     public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
     public boolean getFacePlayer() { return facePlayer; }

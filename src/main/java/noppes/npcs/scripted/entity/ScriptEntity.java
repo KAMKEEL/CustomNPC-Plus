@@ -23,10 +23,7 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptBlockPos;
-import noppes.npcs.scripted.ScriptWorld;
+import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -43,33 +40,8 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		this.entity = entity;
 	}
 
-	/**
-	 * @param directory The particle's directory. Use only forward slashes when writing a directory. Example: "customnpcs:textures/particle/tail.png"
-	 * @param HEXcolor The particle's color as a HEX integer
-	 * @param amount The amount of particles to spawn
-	 * @param maxAge The particle's maximum age in MC ticks
-
-	 * @param x The particle's x position
-	 * @param y The particle's y position
-	 * @param z The particle's z position
-
-	 * @param motionX The particle's speed in the x axis
-	 * @param motionY The particle's speed in the y axis
-	 * @param motionZ The particle's speed in the z axis
-	 * @param gravity The particle's gravity
-
-	 * @param scale1 The particle's starting scale
-	 * @param scale2 The particle's ending scale
-	 * @param scaleRate Multiplier for the particle's scale growth rate
-	 * @param scaleRateStart The time at which the particle begins growing/shrinking
-
-	 * @param alpha1 The particle's starting transparency
-	 * @param alpha2 The particle's ending transparency
-	 * @param scaleRate Multiplier for the particle's transparency growth rate
-	 * @param alphaRateStart The time at which the particle begins appearing/fading
-	 */
 	@Deprecated
-	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+	public void spawnParticle(String directory, int HEXColor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
 							  float scale1, float scale2, float scaleRate, int scaleRateStart,
@@ -80,130 +52,206 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 							  float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory,
-				HEXcolor, HEXcolor, 0, 0,
-				amount, maxAge,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				scale1, scale2, scaleRate, scaleRateStart,
-				alpha1, alpha2, alphaRate, alphaRateStart,
-				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
-				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
-				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				true, true, -1, -1, 0,0,
-				0, true, 0, 0,
-				entityID, entity.dimension
-		);
+		ScriptParticle particle = new ScriptParticle(directory);
+
+		particle.HEXColor = HEXColor;
+		particle.HEXColor2 = HEXColor;
+		particle.HEXColorRate = 0;
+		particle.HEXColorStart = 0;
+
+		particle.amount = amount;
+		particle.maxAge = maxAge;
+
+		particle.x = x;
+		particle.y = y;
+		particle.z = z;
+		particle.motionX = motionX;
+		particle.motionY = motionY;
+		particle.motionZ = motionZ;
+		particle.gravity = gravity;
+
+		particle.scale1 = scale1;
+		particle.scale2 = scale2;
+		particle.scaleRate = scaleRate;
+		particle.scaleRateStart = scaleRateStart;
+
+		particle.alpha1 = alpha1;
+		particle.alpha2 = alpha2;
+		particle.alphaRate = alphaRate;
+		particle.alphaRateStart = alphaRateStart;
+
+		particle.rotationX1 = rotationX1;
+		particle.rotationX2 = rotationX2;
+		particle.rotationXRate = rotationXRate;
+		particle.rotationXRateStart = rotationXRateStart;
+
+		particle.rotationY1 = rotationY1;
+		particle.rotationY2 = rotationY2;
+		particle.rotationYRate = rotationYRate;
+		particle.rotationYRateStart = rotationYRateStart;
+
+		particle.rotationZ1 = rotationZ1;
+		particle.rotationZ2 = rotationZ2;
+		particle.rotationZRate = rotationZRate;
+		particle.rotationZRateStart = rotationZRateStart;
+
+		NBTTagCompound compound = particle.writeToNBT();
+		compound.setInteger("EntityID", entityID);
+		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
+		NoppesUtilServer.spawnScriptedParticle(compound);
 	}
 
 	@Deprecated
-	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+	public void spawnParticle(String directory, int HEXColor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
 							  float scale1, float scale2, float scaleRate, int scaleRateStart,
 							  float alpha1, float alpha2, float alphaRate, int alphaRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory,
-				HEXcolor, HEXcolor, 0, 0,
-				amount, maxAge,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				scale1, scale2, scaleRate, scaleRateStart,
-				alpha1, alpha2, alphaRate, alphaRateStart,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				true, true, -1, -1, 0,0,
-				0, true, 0, 0,
-				entityID, entity.dimension
-		);
+		ScriptParticle particle = new ScriptParticle(directory);
+
+		particle.HEXColor = HEXColor;
+		particle.HEXColor2 = HEXColor;
+		particle.HEXColorRate = 0;
+		particle.HEXColorStart = 0;
+
+		particle.amount = amount;
+		particle.maxAge = maxAge;
+
+		particle.x = x;
+		particle.y = y;
+		particle.z = z;
+		particle.motionX = motionX;
+		particle.motionY = motionY;
+		particle.motionZ = motionZ;
+		particle.gravity = gravity;
+
+		particle.scale1 = scale1;
+		particle.scale2 = scale2;
+		particle.scaleRate = scaleRate;
+		particle.scaleRateStart = scaleRateStart;
+
+		particle.alpha1 = alpha1;
+		particle.alpha2 = alpha2;
+		particle.alphaRate = alphaRate;
+		particle.alphaRateStart = alphaRateStart;
+
+		NBTTagCompound compound = particle.writeToNBT();
+		compound.setInteger("EntityID", entityID);
+		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
+		NoppesUtilServer.spawnScriptedParticle(compound);
 	}
 
 	@Deprecated
-	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+	public void spawnParticle(String directory, int HEXColor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity,
 							  float scale1, float scale2, float scaleRate, int scaleRateStart
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory,
-				HEXcolor, HEXcolor, 0, 0,
-				amount, maxAge,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				scale1, scale2, scaleRate, scaleRateStart,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				true, true, -1, -1, 0,0,
-				0, true, 0, 0,
-				entityID, entity.dimension
-		);
+		ScriptParticle particle = new ScriptParticle(directory);
+
+		particle.HEXColor = HEXColor;
+		particle.HEXColor2 = HEXColor;
+		particle.HEXColorRate = 0;
+		particle.HEXColorStart = 0;
+
+		particle.amount = amount;
+		particle.maxAge = maxAge;
+
+		particle.x = x;
+		particle.y = y;
+		particle.z = z;
+		particle.motionX = motionX;
+		particle.motionY = motionY;
+		particle.motionZ = motionZ;
+		particle.gravity = gravity;
+
+		particle.scale1 = scale1;
+		particle.scale2 = scale2;
+		particle.scaleRate = scaleRate;
+		particle.scaleRateStart = scaleRateStart;
+
+		NBTTagCompound compound = particle.writeToNBT();
+		compound.setInteger("EntityID", entityID);
+		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
+		NoppesUtilServer.spawnScriptedParticle(compound);
 	}
 
 	@Deprecated
-	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+	public void spawnParticle(String directory, int HEXColor, int amount, int maxAge,
 							  double x, double y, double z,
 							  double motionX, double motionY, double motionZ, float gravity
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory,
-				HEXcolor, HEXcolor, 0, 0,
-				amount, maxAge,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				true, true, -1, -1, 0,0,
-				0, true, 0, 0,
-				entityID, entity.dimension
-		);
+		ScriptParticle particle = new ScriptParticle(directory);
+
+		particle.HEXColor = HEXColor;
+		particle.HEXColor2 = HEXColor;
+		particle.HEXColorRate = 0;
+		particle.HEXColorStart = 0;
+
+		particle.amount = amount;
+		particle.maxAge = maxAge;
+
+		particle.x = x;
+		particle.y = y;
+		particle.z = z;
+		particle.motionX = motionX;
+		particle.motionY = motionY;
+		particle.motionZ = motionZ;
+		particle.gravity = gravity;
+
+		NBTTagCompound compound = particle.writeToNBT();
+		compound.setInteger("EntityID", entityID);
+		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
+		NoppesUtilServer.spawnScriptedParticle(compound);
 	}
 
 	@Deprecated
-	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge,
+	public void spawnParticle(String directory, int HEXColor, int amount, int maxAge,
 							  double x, double y, double z
 							  ) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory,
-				HEXcolor, HEXcolor, 0, 0,
-				amount, maxAge,
-				x, y, z,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				true, true, -1, -1, 0,0,
-				0, true, 0, 0,
-				entityID, entity.dimension
-		);
+		ScriptParticle particle = new ScriptParticle(directory);
+
+		particle.HEXColor = HEXColor;
+		particle.HEXColor2 = HEXColor;
+		particle.HEXColorRate = 0;
+		particle.HEXColorStart = 0;
+
+		particle.amount = amount;
+		particle.maxAge = maxAge;
+
+		particle.x = x;
+		particle.y = y;
+		particle.z = z;
+
+		NBTTagCompound compound = particle.writeToNBT();
+		compound.setInteger("EntityID", entityID);
+		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
+		NoppesUtilServer.spawnScriptedParticle(compound);
 	}
 
 	@Deprecated
-	public void spawnParticle(String directory, int HEXcolor, int amount, int maxAge
+	public void spawnParticle(String directory, int HEXColor, int amount, int maxAge
 	) {
 		int entityID = entity.getEntityId();
-		NoppesUtilServer.spawnScriptedParticle(directory,
-				HEXcolor, HEXcolor, 0, 0,
-				amount, maxAge,
-				0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				0, 0, 0, 0,
-				true, true, -1, -1, 0,0,
-				0, true, 0, 0,
-				entityID, entity.dimension
-		);
+		ScriptParticle particle = new ScriptParticle(directory);
+
+		particle.HEXColor = HEXColor;
+		particle.HEXColor2 = HEXColor;
+		particle.HEXColorRate = 0;
+		particle.HEXColorStart = 0;
+
+		particle.amount = amount;
+		particle.maxAge = maxAge;
+
+		NBTTagCompound compound = particle.writeToNBT();
+		compound.setInteger("EntityID", entityID);
+		compound.setInteger("DimensionID", this.getWorld().getDimensionID());
+		NoppesUtilServer.spawnScriptedParticle(compound);
 	}
 
 	public void spawnParticle(IParticle entityParticle) { entityParticle.spawnOnEntity(this); }

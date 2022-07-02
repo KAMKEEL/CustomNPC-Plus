@@ -39,7 +39,9 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
+import org.lwjgl.opengl.NVProgram;
 
 public class NoppesUtil {
 
@@ -86,89 +88,27 @@ public class NoppesUtil {
 	public static void spawnScriptedParticle(ByteBuf buffer){
 		Minecraft minecraft =  Minecraft.getMinecraft();
 
-		String directory = Server.readString(buffer);
+		NBTTagCompound compound;
+		ScriptParticle particle;
+		try {
+			compound = Server.readNBT(buffer);
+			particle = ScriptParticle.fromNBT(compound);
+		} catch (IOException ignored) {
+			return;
+		}
 
-		int HEXColor = buffer.readInt();
-		int HEXColor2 = buffer.readInt();
-		float colorRate = buffer.readFloat();
-		int colorRateStart = buffer.readInt();
+		World worldObj = DimensionManager.getWorld(compound.getInteger("DimensionID"));
 
-		int amount = buffer.readInt();
-		int maxAge = buffer.readInt();
+		Entity entity = null;
+		if (compound.hasKey("EntityID")) {
+			entity = worldObj.getEntityByID(compound.getInteger("EntityID"));
+			if (entity != null)
+				worldObj = entity.worldObj;
+		}
 
-		double x = buffer.readDouble();
-		double y = buffer.readDouble();
-		double z = buffer.readDouble();
+		CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
 
-		double motionX = buffer.readDouble();
-		double motionY = buffer.readDouble();
-		double motionZ = buffer.readDouble();
-		float gravity = buffer.readFloat();
-
-		float scale1 = buffer.readFloat();
-		float scale2 = buffer.readFloat();
-		float scaleRate = buffer.readFloat();
-		int scaleRateStart = buffer.readInt();
-
-		float alpha1 = buffer.readFloat();
-		float alpha2 = buffer.readFloat();
-		float alphaRate = buffer.readFloat();
-		int alphaRateStart = buffer.readInt();
-
-		float rotationX1 = buffer.readFloat();
-		float rotationX2 = buffer.readFloat();
-		float rotationXRate = buffer.readFloat();
-		int rotationXRateStart = buffer.readInt();
-
-		float rotationY1 = buffer.readFloat();
-		float rotationY2 = buffer.readFloat();
-		float rotationYRate = buffer.readFloat();
-		int rotationYRateStart = buffer.readInt();
-
-		float rotationZ1 = buffer.readFloat();
-		float rotationZ2 = buffer.readFloat();
-		float rotationZRate = buffer.readFloat();
-		int rotationZRateStart = buffer.readInt();
-
-		boolean facePlayer = buffer.readBoolean();
-		boolean glows = buffer.readBoolean();
-
-		int width = buffer.readInt();
-		int height = buffer.readInt();
-		int offsetX = buffer.readInt();
-		int offsetY = buffer.readInt();
-
-		int animRate = buffer.readInt();
-		boolean animLoop = buffer.readBoolean();
-		int animStart = buffer.readInt();
-		int animEnd = buffer.readInt();
-
-		int entityID = buffer.readInt();
-		int dimensionID = buffer.readInt();
-
-		World worldObj = DimensionManager.getWorld(dimensionID);
-
-		Entity entity = worldObj.getEntityByID(entityID);
-		if(entity != null)
-			worldObj = entity.worldObj;
-
-		CustomFX fx = new CustomFX(
-				worldObj, entity,
-				directory,
-				HEXColor,HEXColor2,colorRate,colorRateStart,
-				x, y, z,
-				motionX, motionY, motionZ, gravity,
-				scale1, scale2, scaleRate, scaleRateStart,
-				alpha1, alpha2, alphaRate, alphaRateStart,
-				rotationX1, rotationX2, rotationXRate, rotationXRateStart,
-				rotationY1, rotationY2, rotationYRate, rotationYRateStart,
-				rotationZ1, rotationZ2, rotationZRate, rotationZRateStart,
-				maxAge, facePlayer, glows,
-				width, height, offsetX, offsetY,
-				animRate, animLoop, animStart, animEnd
-		);
-
-		for(int i = 0; i < amount; i++){
+		for(int i = 0; i < particle.amount; i++){
 			minecraft.effectRenderer.addEffect(fx);
 		}
 	}
