@@ -11,11 +11,11 @@ import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptFaction;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.ITimers;
@@ -23,6 +23,7 @@ import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
+import noppes.npcs.scripted.interfaces.handler.data.IFaction;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;
@@ -225,8 +226,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The faction of the npc
 	 */
-	public ScriptFaction getFaction(){
-		return new ScriptFaction(npc.getFaction());
+	public IFaction getFaction(){
+		return FactionController.getInstance().get(this.npc.faction.id);
 	}
 	
 	/**

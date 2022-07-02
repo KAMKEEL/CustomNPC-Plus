@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -10,6 +11,7 @@ import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.interfaces.handler.data.IFaction;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
@@ -101,9 +103,33 @@ public class Faction implements IFaction {
 		return this.name;
 	}
 
+	public void setName(String name) { this.name = name; }
+
+	public void setDefaultPoints(int points) {
+		this.defaultPoints = points;
+	}
+
 	public int getDefaultPoints() {
 		return this.defaultPoints;
 	}
+
+	public void setFriendlyPoints(int points) {
+		this.friendlyPoints = points;
+	}
+
+	public int getFriendlyPoints() {
+		return this.friendlyPoints;
+	}
+
+	public void setNeutralPoints(int points) {
+		this.neutralPoints = points;
+	}
+
+	public int getNeutralPoints() {
+		return this.neutralPoints;
+	}
+
+	public void setColor(int color) { this.color = color; }
 
 	public int getColor() {
 		return this.color;
@@ -119,44 +145,34 @@ public class Faction implements IFaction {
 		}
 	}
 
-	public boolean hostileToNpc(ICustomNpc npc) {
+	public boolean isAggressiveToNpc(ICustomNpc npc) {
 		return this.attackFactions.contains(npc.getFaction().getId());
 	}
 
-	public void setDefaultPoints(int points) {
-		this.defaultPoints = points;
+	public boolean isEnemyFaction(IFaction faction) {
+		return this.attackFactions.contains(faction.getId());
 	}
 
-	public boolean hostileToFaction(int factionId) {
-		return this.attackFactions.contains(factionId);
-	}
+	public IFaction[] getEnemyFactions() {
+		ArrayList<IFaction> enemyFactions = new ArrayList<>();
 
-	public int[] getHostileList() {
-		int[] a = new int[this.attackFactions.size()];
-		int i = 0;
-
-		Integer val;
-		for(Iterator var3 = this.attackFactions.iterator(); var3.hasNext(); a[i++] = val) {
-			val = (Integer)var3.next();
+		for (int id : this.attackFactions) {
+			enemyFactions.add(FactionController.getInstance().get(id));
 		}
 
-		return a;
+		return enemyFactions.toArray(new IFaction[]{});
 	}
 
-	public void addHostile(int id) {
-		if (this.attackFactions.contains(id)) {
+	public void addEnemyFaction(IFaction faction) {
+		if (this.attackFactions.contains(faction.getId())) {
 			throw new CustomNPCsException("Faction " + this.id + " is already hostile to " + id, new Object[0]);
 		} else {
-			this.attackFactions.add(id);
+			this.attackFactions.add(faction.getId());
 		}
 	}
 
-	public void removeHostile(int id) {
-		this.attackFactions.remove(id);
-	}
-
-	public boolean hasHostile(int id) {
-		return this.attackFactions.contains(id);
+	public void removeEnemyFaction(IFaction faction) {
+		this.attackFactions.remove(faction.getId());
 	}
 
 	public boolean getIsHidden() {
@@ -167,7 +183,7 @@ public class Faction implements IFaction {
 		this.hideFaction = bo;
 	}
 
-	public boolean getAttackedByMobs() {
+	public boolean attackedByMobs() {
 		return this.getsAttacked;
 	}
 
@@ -177,5 +193,17 @@ public class Faction implements IFaction {
 
 	public void save() {
 		FactionController.getInstance().saveFaction(this);
+	}
+
+	public boolean isFriendlyToPlayer(IPlayer player) {
+		return this.isFriendlyToPlayer((EntityPlayer) player.getMCEntity());
+	}
+
+	public boolean isNeutralToPlayer(IPlayer player) {
+		return this.isNeutralToPlayer((EntityPlayer) player.getMCEntity());
+	}
+
+	public boolean isAggressiveToPlayer(IPlayer player) {
+		return this.isAggressiveToPlayer((EntityPlayer) player.getMCEntity());
 	}
 }

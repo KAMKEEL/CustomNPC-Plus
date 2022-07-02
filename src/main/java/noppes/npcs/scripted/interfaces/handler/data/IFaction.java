@@ -5,6 +5,8 @@
 
 package noppes.npcs.scripted.interfaces.handler.data;
 
+import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
@@ -13,33 +15,43 @@ public interface IFaction {
 
     String getName();
 
-    int getDefaultPoints();
+    void setName(String name);
 
     void setDefaultPoints(int var1);
 
+    int getDefaultPoints();
+
+    void setFriendlyPoints(int p);
+
+    int getFriendlyPoints();
+
+    void setNeutralPoints(int p);
+
+    int getNeutralPoints();
+
+    void setColor(int c);
+
     int getColor();
 
-    int playerStatus(IPlayer var1);
+    int playerStatus(IPlayer player);
 
-    boolean hostileToNpc(ICustomNpc var1);
-
-    boolean hostileToFaction(int var1);
-
-    int[] getHostileList();
-
-    void addHostile(int var1);
-
-    void removeHostile(int var1);
-
-    boolean hasHostile(int var1);
+    boolean isAggressiveToNpc(ICustomNpc npc);
 
     boolean getIsHidden();
 
-    void setIsHidden(boolean var1);
+    void setIsHidden(boolean hidden);
 
-    boolean getAttackedByMobs();
+    boolean attackedByMobs();
 
-    void setAttackedByMobs(boolean var1);
+    void setAttackedByMobs(boolean attacked);
+
+    boolean isEnemyFaction(IFaction faction);
+
+    IFaction[] getEnemyFactions();
+
+    void addEnemyFaction(IFaction faction);
+
+    void removeEnemyFaction(IFaction faction);
 
     void save();
 }

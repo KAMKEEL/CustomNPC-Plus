@@ -6,9 +6,9 @@
 package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityCreature;
-import noppes.npcs.scripted.ScriptFaction;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
+import noppes.npcs.scripted.interfaces.handler.data.IFaction;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.roles.ScriptJobInterface;
 import noppes.npcs.scripted.roles.ScriptRoleInterface;
@@ -126,7 +126,7 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return The faction of the npc
      */
-    ScriptFaction getFaction();
+    IFaction getFaction();
 
     /**
      * @param id The id of the new faction
