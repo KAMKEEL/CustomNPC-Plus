@@ -63,7 +63,7 @@ public class ClientEventHandler {
                 Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
                 if (renderPlayerJBRA.isInstance(event.renderer))
                     return;
-            } catch (Exception ignored) {}
+            } catch (ClassNotFoundException ignored) {}
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
                 renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
@@ -97,7 +97,9 @@ public class ClientEventHandler {
                 Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
                 if (!renderPlayerJBRA.isInstance(event.renderer))
                     return;
-            } catch (Exception ignored) {}
+            } catch (ClassNotFoundException ignored) {
+                return;
+            }
 
             renderCNPCPlayer.renderDBCModel(event);
         }
