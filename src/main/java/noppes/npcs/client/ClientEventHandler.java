@@ -102,9 +102,11 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && event.phase == TickEvent.Phase.END) {
-            renderCNPCPlayer.itemRenderer.updateEquippedItem();
-            renderCNPCPlayer.updateFovModifierHand();
+        if (Client.skinOverlays.containsKey(mc.thePlayer.getUniqueID()) && Client.skinOverlays.get(mc.thePlayer.getUniqueID()).values().size() > 0) {
+            if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && event.phase == TickEvent.Phase.END) {
+                renderCNPCPlayer.itemRenderer.updateEquippedItem();
+                renderCNPCPlayer.updateFovModifierHand();
+            }
         }
     }
 
@@ -116,8 +118,6 @@ public class ClientEventHandler {
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
                 renderCNPCPlayer.renderHand(event.partialTicks, event.renderPass);
             GL11.glPopMatrix();
-        } else {
-            event.setCanceled(false);
         }
     }
 }
