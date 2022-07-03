@@ -38,7 +38,7 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Scripted Items
 - Player Overlays
 - GUI Overlays
-- Scripting Fixes / New Functions: [Documentation](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
+- Scripting Fixes / New Functions: [Documentation History](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
 (We never remove script functionality, only add on existing functions)
 
 --- Please Suggest New Features!
