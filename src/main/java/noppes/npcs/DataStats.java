@@ -30,7 +30,7 @@ public class DataStats {
 
 	public boolean immuneToFire = false;
 	public boolean potionImmune = false;
-	public int drowningType = 1; //0 - Never, 1 - Water,  2 - Air
+	public int drowningType = 1; // 0 - Never, 1 - Water,  2 - Air
 	public boolean burnInSun = false;
 	public boolean noFallDamage = false;
 	public float healthRegen = 1;
@@ -164,12 +164,7 @@ public class DataStats {
 
 		immuneToFire = compound.getBoolean("ImmuneToFire");
 		potionImmune = compound.getBoolean("PotionImmune");
-		//canDrown = compound.getBoolean("CanDrown");
-		if (!compound.hasKey("DrowningType") && compound.hasKey("CanDrown")) {
-			drowningType = compound.getBoolean("CanDrown") ? 1 : 0;
-		} else {
-			drowningType = compound.getInteger("DrowningType");
-		}
+		drowningType = compound.getInteger("DrowningType");
 
 		burnInSun = compound.getBoolean("BurnInSun");
 		noFallDamage = compound.getBoolean("NoFallDamage");

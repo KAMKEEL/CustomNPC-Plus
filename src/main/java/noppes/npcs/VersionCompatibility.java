@@ -24,6 +24,12 @@ public class VersionCompatibility {
 			String texture = compound.getString("Texture");
 			texture = texture.replace("64-Textures/", "");
 			compound.setString("Texture", texture);
+
+			if (compound.hasKey("CanDrown")) {
+				compound.setInteger("DrowningType", (compound.getBoolean("CanDrown") ? 1 : 0));
+				compound.removeTag("CanDrown");
+			}
+
 		}
 		if(npc.npcVersion < 18){
 			// Fix CloakTexture (Reorganization)
