@@ -31,8 +31,10 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Custom Part Disabling
 - Markov Name Generator
 - Flying NPCS
+- Dark Mode (Link down below)
 
 #### Scripting:
+- Java Doc: [kamkeel.github.io/CustomNPC-Plus](https://kamkeel.github.io/CustomNPC-Plus/)  
 - Scripted Items
 - Player Overlays
 - GUI Overlays
