@@ -58,26 +58,28 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
-        try {
-            Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-            if (renderPlayerJBRA.isInstance(event.renderer))
-                return;
-        } catch (Exception ignored) {}
+        if (hasOverlays(event.entityPlayer)) {
+            try {
+                Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+                if (renderPlayerJBRA.isInstance(event.renderer))
+                    return;
+            } catch (ClassNotFoundException ignored) {}
 
-        if (!(event.renderer instanceof RenderCNPCPlayer)) {
-            renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
-            double d0 = event.entityPlayer.lastTickPosX + (event.entityPlayer.posX - event.entityPlayer.lastTickPosX) * (double)event.partialRenderTick - RenderManager.renderPosX;
-            double d1 = event.entityPlayer.lastTickPosY + (event.entityPlayer.posY - event.entityPlayer.lastTickPosY) * (double)event.partialRenderTick - RenderManager.renderPosY;
-            double d2 = event.entityPlayer.lastTickPosZ + (event.entityPlayer.posZ - event.entityPlayer.lastTickPosZ) * (double)event.partialRenderTick - RenderManager.renderPosZ;
-            float f1 = event.entityPlayer.prevRotationYaw + (event.entityPlayer.rotationYaw - event.entityPlayer.prevRotationYaw) * event.partialRenderTick;
+            if (!(event.renderer instanceof RenderCNPCPlayer)) {
+                renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
+                double d0 = event.entityPlayer.lastTickPosX + (event.entityPlayer.posX - event.entityPlayer.lastTickPosX) * (double) event.partialRenderTick - RenderManager.renderPosX;
+                double d1 = event.entityPlayer.lastTickPosY + (event.entityPlayer.posY - event.entityPlayer.lastTickPosY) * (double) event.partialRenderTick - RenderManager.renderPosY;
+                double d2 = event.entityPlayer.lastTickPosZ + (event.entityPlayer.posZ - event.entityPlayer.lastTickPosZ) * (double) event.partialRenderTick - RenderManager.renderPosZ;
+                float f1 = event.entityPlayer.prevRotationYaw + (event.entityPlayer.rotationYaw - event.entityPlayer.prevRotationYaw) * event.partialRenderTick;
 
-            if (Minecraft.getMinecraft().thePlayer.equals(event.entityPlayer)) {
-                d0 = 0;
-                d1 = 0;
-                d2 = 0;
+                if (Minecraft.getMinecraft().thePlayer.equals(event.entityPlayer)) {
+                    d0 = 0;
+                    d1 = 0;
+                    d2 = 0;
+                }
+
+                renderCNPCPlayer.doRender(event.entityPlayer, d0, d1, d2, f1, event.partialRenderTick);
             }
-
-            renderCNPCPlayer.doRender(event.entityPlayer, d0, d1, d2, f1, event.partialRenderTick);
         }
     }
 
@@ -90,34 +92,42 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void tryRenderDBC(RenderPlayerEvent.Specials.Post event) {
-        try {
-            Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-            if (!renderPlayerJBRA.isInstance(event.renderer))
+        if (hasOverlays(event.entityPlayer)) {
+            try {
+                Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+                if (!renderPlayerJBRA.isInstance(event.renderer))
+                    return;
+            } catch (ClassNotFoundException ignored) {
                 return;
-        } catch (Exception ignored) {}
+            }
 
-        renderCNPCPlayer.renderDBCModel(event);
+            renderCNPCPlayer.renderDBCModel(event);
+        }
     }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && event.phase == TickEvent.Phase.END) {
-            renderCNPCPlayer.itemRenderer.updateEquippedItem();
-            renderCNPCPlayer.updateFovModifierHand();
+        if (hasOverlays(mc.thePlayer)) {
+            if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && event.phase == TickEvent.Phase.END) {
+                renderCNPCPlayer.itemRenderer.updateEquippedItem();
+                renderCNPCPlayer.updateFovModifierHand();
+            }
         }
     }
 
     @SubscribeEvent
     public void onRenderHand(RenderHandEvent event) {
-        if (Client.skinOverlays.containsKey(Minecraft.getMinecraft().thePlayer.getUniqueID()) && Client.skinOverlays.get(Minecraft.getMinecraft().thePlayer.getUniqueID()).values().size() > 0) {
+        if (hasOverlays(Minecraft.getMinecraft().thePlayer)) {
             GL11.glPushMatrix();
                 event.setCanceled(true);
                 GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
                 renderCNPCPlayer.renderHand(event.partialTicks, event.renderPass);
             GL11.glPopMatrix();
-        } else {
-            event.setCanceled(false);
         }
+    }
+
+    private boolean hasOverlays(EntityPlayer player) {
+        return Client.skinOverlays.containsKey(player.getUniqueID()) && Client.skinOverlays.get(player.getUniqueID()).values().size() > 0;
     }
 }

@@ -71,8 +71,9 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     @Override
     public boolean onEntitySwing(EntityLivingBase entityLivingBase, ItemStack stack){
-        if(entityLivingBase instanceof EntityClientPlayerMP)
+        if (entityLivingBase.worldObj.isRemote) {
             return false;
+        }
 
         IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
         ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, NpcAPI.Instance().getIEntity(entityLivingBase), 2, null);

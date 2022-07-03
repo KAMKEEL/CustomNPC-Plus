@@ -387,6 +387,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 container.script = "";
             } else {
                 this.handler.clearConsole();
+                if (this.handler instanceof ScriptCustomItem) {
+                    ((ScriptCustomItem) this.handler).saveScriptData();
+                }
             }
 
             this.initGui();
