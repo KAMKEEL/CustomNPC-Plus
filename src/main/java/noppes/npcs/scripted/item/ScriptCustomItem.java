@@ -16,6 +16,8 @@ import java.util.*;
 
 public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
+    public List<Integer> errored = new ArrayList();
+    private Map<Long, String> console = new TreeMap();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
     public long lastInited = -1L;
@@ -53,6 +55,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         compound.setTag("Scripts", NBTTags.NBTScript(this.scripts));
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
+        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
         return compound;
     }
 
@@ -61,6 +64,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
             this.scripts = NBTTags.GetScript(compound.getTagList("Scripts", 10), this);
             this.scriptLanguage = compound.getString("ScriptLanguage");
             this.enabled = compound.getBoolean("ScriptEnabled");
+            this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
         }
     }
 
@@ -82,13 +86,36 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
                 }
             }
 
-            Iterator var3 = this.scripts.iterator();
+            for (int i = 0; i < this.scripts.size(); i++) {
+                ScriptContainer script = this.scripts.get(i);
+                if (!this.errored.contains(i)) {
+                    if(script == null || script.errored || !script.hasCode())
+                        return;
 
-            while(var3.hasNext()) {
-                ScriptContainer script = (ScriptContainer)var3.next();
-                script.run(type, event);
+                    script.run(type, event);
+
+                    if (script.errored) {
+                        this.errored.add(i);
+                    }
+
+                    Iterator var8 = script.console.entrySet().iterator();
+
+                    boolean saveConsoleData = false;
+                    while(var8.hasNext()) {
+                        Map.Entry<Long, String> entry = (Map.Entry)var8.next();
+                        if (!this.console.containsKey(entry.getKey())) {
+                            this.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
+                            saveConsoleData = true;
+                        }
+                    }
+
+                    script.console.clear();
+
+                    if (saveConsoleData) {
+                        saveScriptData();
+                    }
+                }
             }
-
         }
     }
 
@@ -125,32 +152,11 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
     }
 
     public Map<Long, String> getConsoleText() {
-        Map<Long, String> map = new TreeMap();
-        int tab = 0;
-        Iterator var3 = this.getScripts().iterator();
-
-        while(var3.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var3.next();
-            ++tab;
-            Iterator var5 = script.console.entrySet().iterator();
-
-            while(var5.hasNext()) {
-                Map.Entry<Long, String> entry = (Map.Entry)var5.next();
-                map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
-            }
-        }
-
-        return map;
+        return this.console;
     }
 
     public void clearConsole() {
-        Iterator var1 = this.getScripts().iterator();
-
-        while(var1.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var1.next();
-            script.console.clear();
-        }
-
+        this.console.clear();
     }
 
     public String getTexture() {
