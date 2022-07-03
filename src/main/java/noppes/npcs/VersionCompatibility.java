@@ -14,7 +14,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.Sys;
 
 public class VersionCompatibility {
-	public static int ModRev = 18;
+	public static int ModRev = 19;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
