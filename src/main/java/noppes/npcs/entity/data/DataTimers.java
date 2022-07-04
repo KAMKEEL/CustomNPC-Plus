@@ -42,11 +42,12 @@ public class DataTimers implements ITimers {
     }
 
     public boolean stop(int id) {
-        boolean remove = this.timers.remove(Integer.valueOf(id)) != null;
-        return remove;
+        return this.timers.remove(Integer.valueOf(id)) != null;
     }
 
     public void reset(int id) {
+        timerException(id);
+
         DataTimers.Timer timer = (DataTimers.Timer)this.timers.get(Integer.valueOf(id));
         if(timer == null) {
             throw new CustomNPCsException("There is no timer with id: " + id, new Object[0]);
@@ -56,10 +57,13 @@ public class DataTimers implements ITimers {
     }
 
     public int ticks(int id){
+        timerException(id);
         return this.timers.get(Integer.valueOf(id)).ticks;
     }
 
     public void setTicks(int id, int ticks){
+        timerException(id);
+
         DataTimers.Timer timer = (DataTimers.Timer)this.timers.get(Integer.valueOf(id));
         if(ticks < 0)
             ticks = 0;
@@ -70,10 +74,13 @@ public class DataTimers implements ITimers {
     }
 
     public int maxTicks(int id){
+        timerException(id);
         return this.timers.get(Integer.valueOf(id)).timerTicks;
     }
 
     public void setMaxTicks(int id, int maxTicks){
+        timerException(id);
+
         DataTimers.Timer timer = (DataTimers.Timer)this.timers.get(Integer.valueOf(id));
         if(maxTicks < 0)
             maxTicks = 0;
@@ -84,10 +91,12 @@ public class DataTimers implements ITimers {
     }
 
     public boolean repeats(int id){
+        timerException(id);
         return this.timers.get(Integer.valueOf(id)).repeat;
     }
 
     public void setRepeats(int id, boolean repeat){
+        timerException(id);
         this.timers.get(Integer.valueOf(id)).repeat = repeat;
     }
 
@@ -106,6 +115,12 @@ public class DataTimers implements ITimers {
         }
 
         compound.setTag("NpcsTimers", list);
+    }
+
+    private void timerException(int id) {
+        if (!this.timers.containsKey(id)) {
+            throw new CustomNPCsException("Timer with id "+id+" does not exist.");
+        }
     }
 
     public void readFromNBT(NBTTagCompound compound) {
