@@ -452,12 +452,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.stats.maxDelay;
 	}
 
-	public void setRangedRage(int rangedRange) {
+	public void setRangedRange(int rangedRange) {
 		npc.stats.rangedRange = rangedRange;
 	}
-	public int getRangedRage() {
+	public int getRangedRange() {
 		return npc.stats.rangedRange;
 	}
+	public void setRangedRage(int rangedRage) { this.setRangedRange(rangedRage); }
+	public int getRangedRage() { return this.getRangedRange(); }
 
 	public void setFireRate(int rate) {
 		npc.stats.fireRate = rate;
