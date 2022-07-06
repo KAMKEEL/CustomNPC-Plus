@@ -5,7 +5,10 @@
 
 package noppes.npcs.entity.data;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
@@ -94,8 +97,10 @@ public class DataTimers implements ITimers {
 
     public void writeToNBT(NBTTagCompound compound) {
         NBTTagList list = new NBTTagList();
+        Iterator var3 = this.timers.values().iterator();
 
-        for (Timer timer : this.timers.values()) {
+        while(var3.hasNext()) {
+            DataTimers.Timer timer = (DataTimers.Timer)var3.next();
             NBTTagCompound c = new NBTTagCompound();
             c.setInteger("ID", timer.id);
             c.setInteger("TimerTicks", timer.timerTicks);
@@ -130,7 +135,10 @@ public class DataTimers implements ITimers {
     }
 
     public void update() {
-        for (Timer timer : this.timers.values()) {
+        Iterator<DataTimers.Timer> var1 = (new ArrayList<>(this.timers.values())).iterator();
+
+        while (var1.hasNext()) {
+            DataTimers.Timer timer = var1.next();
             timer.update();
         }
     }
