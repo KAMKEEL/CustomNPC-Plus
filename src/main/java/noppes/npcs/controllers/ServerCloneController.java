@@ -194,14 +194,23 @@ public class ServerCloneController implements ICloneHandler {
 		}
 	}
 
-	public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world) {
+	public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world, boolean ignoreProtection) {
 		NBTTagCompound compound = this.getCloneData((ICommandSender)null, name, tab);
 		if (compound == null) {
 			throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
 		} else {
-			Entity entity = NoppesUtilServer.spawnClone(compound, (int)x, (int)y, (int)z, world.getMCWorld());
+			Entity entity;
+			if (!ignoreProtection) {
+				entity = NoppesUtilServer.spawnCloneWithProtection(compound, (int) x, (int) y, (int) z, world.getMCWorld());
+			} else {
+				entity = NoppesUtilServer.spawnClone(compound, (int) x, (int) y, (int) z, world.getMCWorld());
+			}
 			return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
 		}
+	}
+
+	public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world) {
+		return spawn(x, y, z, tab, name, world, true);
 	}
 
 	public IEntity[] getTab(int tab, IWorld world) {

@@ -346,8 +346,11 @@ public interface IWorld {
      * @param z The z position the clone will be spawned at
      * @param tab The tab in which the clone is
      * @param name Name of the cloned entity
+     * @param ignoreProtection Whether the spawning of this clone skips protection checks.
      * @return Returns the entity which was spawned
      */
+    IEntity spawnClone(int x, int y, int z, int tab, String name, boolean ignoreProtection);
+
     IEntity spawnClone(int x, int y, int z, int tab, String name);
 
     ScriptScoreboard getScoreboard();
