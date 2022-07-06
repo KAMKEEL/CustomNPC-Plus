@@ -589,20 +589,9 @@ public class ScriptWorld implements IWorld {
 	 * @return Returns the entity which was spawned
 	 */
 	public IEntity spawnClone(int x, int y, int z, int tab, String name){
-		return spawnClone(x,y,z,tab,name,true);
-	}
-
-	public IEntity spawnClone(int x, int y, int z, int tab, String name, boolean ignoreProtection){
 		NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
 		if(compound == null)
 			return null;
-
-		if (!ignoreProtection) {
-			FakePlayer fakePlayer = new FakePlayer(world, new GameProfile(null, "NpcAPI"));
-			if (!CustomNpcsPermissions.hasPermission(fakePlayer, EnumPacketServer.SpawnMob.permission))
-				return null;
-		}
-
 		Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, world);
 		if(entity == null)
 			return null;

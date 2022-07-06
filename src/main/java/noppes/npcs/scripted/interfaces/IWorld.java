@@ -350,8 +350,6 @@ public interface IWorld {
      */
     IEntity spawnClone(int x, int y, int z, int tab, String name);
 
-    IEntity spawnClone(int x, int y, int z, int tab, String name, boolean ignoreProtection);
-
     ScriptScoreboard getScoreboard();
 
     /**
