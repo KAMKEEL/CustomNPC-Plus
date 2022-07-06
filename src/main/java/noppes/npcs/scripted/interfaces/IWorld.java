@@ -100,9 +100,9 @@ public interface IWorld {
 
     IEntity[] getLoadedEntities();
 
-    IEntity[] getEntitiesNear(double x, double y, double z, double range);
-
     IEntity[] getEntitiesNear(IPos position, double range);
+
+    IEntity[] getEntitiesNear(double x, double y, double z, double range);
 
     /**
      * Sets the block's tile entity at the given position.

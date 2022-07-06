@@ -192,19 +192,6 @@ public class ScriptWorld implements IWorld {
 		return list.toArray(new IEntity[0]);
 	}
 
-	public IEntity[] getEntitiesNear(double x, double y, double z, double range) {
-		ArrayList<IEntity> list = new ArrayList<>();
-
-		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, AxisAlignedBB.getBoundingBox(
-				x - range, y - range, z - range,
-				x + range, y + range, z + range));
-		for(Entity entity : entities){
-			list.add(NpcAPI.Instance().getIEntity(entity));
-		}
-
-		return list.toArray(new IEntity[0]);
-	}
-
 	public IEntity[] getEntitiesNear(IPos position, double range) {
 		ArrayList<IEntity> list = new ArrayList<>();
 
@@ -215,7 +202,23 @@ public class ScriptWorld implements IWorld {
 			list.add(NpcAPI.Instance().getIEntity(entity));
 		}
 
+		list.sort((e1, e2) -> {
+			double dist1 = e1.getPos().distanceTo(position);
+			double dist2 = e2.getPos().distanceTo(position);
+
+			if (dist1 > dist2) {
+				return 1;
+			} else if (dist1 < dist2) {
+				return -1;
+			}
+			return 0;
+		});
+
 		return list.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] getEntitiesNear(double x, double y, double z, double range) {
+		return getEntitiesNear(new ScriptBlockPos(new BlockPos(x,y,z)), range);
 	}
 
 	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){
