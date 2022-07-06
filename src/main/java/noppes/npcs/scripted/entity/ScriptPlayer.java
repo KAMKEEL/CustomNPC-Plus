@@ -43,15 +43,12 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.handler.IPlayerData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.IBlock;
-import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
@@ -553,6 +550,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public IBlock getLookingAtBlock(int maxDistance) {
 		Vec3 lookVec = player.getLookVec();
 		return getWorld().rayCastBlock(
+				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
+				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
+				maxDistance);
+	}
+
+	public IPos getLookingAtPos(int maxDistance) {
+		Vec3 lookVec = player.getLookVec();
+		return getWorld().rayCastPos(
 				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
 				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
 				maxDistance);

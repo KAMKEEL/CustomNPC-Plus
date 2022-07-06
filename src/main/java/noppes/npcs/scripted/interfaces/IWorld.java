@@ -100,6 +100,10 @@ public interface IWorld {
 
     IEntity[] getLoadedEntities();
 
+    IEntity[] getEntitiesNear(double x, double y, double z, double range);
+
+    IEntity[] getEntitiesNear(IPos position, double range);
+
     /**
      * Sets the block's tile entity at the given position.
      */
@@ -173,6 +177,10 @@ public interface IWorld {
 	 * @return the first detected block but null if maxDistance is reached
 	 */
     public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
+
+    public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance);
+
+    public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance);
 
     /**
      * @param startPos

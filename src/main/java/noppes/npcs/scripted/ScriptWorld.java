@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -191,6 +192,32 @@ public class ScriptWorld implements IWorld {
 		return list.toArray(new IEntity[0]);
 	}
 
+	public IEntity[] getEntitiesNear(double x, double y, double z, double range) {
+		ArrayList<IEntity> list = new ArrayList<>();
+
+		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, AxisAlignedBB.getBoundingBox(
+				x - range, y - range, z - range,
+				x + range, y + range, z + range));
+		for(Entity entity : entities){
+			list.add(NpcAPI.Instance().getIEntity(entity));
+		}
+
+		return list.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] getEntitiesNear(IPos position, double range) {
+		ArrayList<IEntity> list = new ArrayList<>();
+
+		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, AxisAlignedBB.getBoundingBox(
+				position.getX() - range, position.getY() - range, position.getZ() - range,
+				position.getX() + range, position.getY() + range, position.getZ() + range));
+		for(Entity entity : entities){
+			list.add(NpcAPI.Instance().getIEntity(entity));
+		}
+
+		return list.toArray(new IEntity[0]);
+	}
+
 	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){
 		world.setTileEntity(x,y,z,tileEntity.getMCTileEntity());
 	}
@@ -323,6 +350,40 @@ public class ScriptWorld implements IWorld {
 	 */
 	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance) {
 		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
+	}
+
+	public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance) {
+		if (startPos.length != 3 || lookVector.length != 3) {
+			return null;
+		}
+
+		IPos pos;
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+
+			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
+			if (block != null) {
+				return pos;
+			}
+
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-startPos[0],2)
+							+Math.pow(currentPos.yCoord-startPos[1],2)
+							+Math.pow(currentPos.zCoord-startPos[2],2)
+					, 0.5);
+			if (distance > maxDistance) {
+				return pos;
+			}
+		}
+
+		return null;
+	}
+
+	public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance) {
+		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
 	}
 
 	public IPos getNearestAir(IPos pos, int maxHeight) {
