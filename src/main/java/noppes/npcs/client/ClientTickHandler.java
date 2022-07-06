@@ -50,7 +50,12 @@ public class ClientTickHandler{
 		if(Mouse.getEventButton() == -1 && Mouse.getDWheel() == 0)
 			return;
 
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, new Object[]{Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton())});
+		boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
+		boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
+		boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
+		boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
+
+		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, new Object[]{Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()), Boolean.valueOf(isCtrlPressed), Boolean.valueOf(isShiftPressed), Boolean.valueOf(isAltPressed), Boolean.valueOf(isMetaPressed)});
 	}
 
 	@SubscribeEvent

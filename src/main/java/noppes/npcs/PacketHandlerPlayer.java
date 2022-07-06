@@ -94,7 +94,33 @@ public class PacketHandlerPlayer{
 				return;
 			}
 
-			EventHooks.onPlayerMouseClicked(player, buffer.readInt(), buffer.readInt(), buffer.readBoolean());
+			int button = buffer.readInt();
+			int mouseWheel = buffer.readInt();
+			boolean buttonDown = buffer.readBoolean();
+
+			boolean isCtrlPressed = buffer.readBoolean();
+			boolean isShiftPressed = buffer.readBoolean();
+			boolean isAltPressed = buffer.readBoolean();
+			boolean isMetaPressed = buffer.readBoolean();
+
+			String ints = Server.readString(buffer);
+			String[] split = ints.split(",");
+			int[] keysDown;
+
+			if(ints.length() > 0) {
+				keysDown = new int[split.length];
+				try {
+					for (int i = 0; i < split.length; i++) {
+						keysDown[i] = Integer.parseInt(split[i]);
+					}
+				}
+				catch (NumberFormatException ignored){
+				}
+			} else {
+				keysDown = new int[0];
+			}
+
+			EventHooks.onPlayerMouseClicked(player, button, mouseWheel, buttonDown, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDown);
 		}
 		else if(type == EnumPlayerPacket.FollowerHire){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
