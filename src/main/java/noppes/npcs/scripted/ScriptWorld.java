@@ -2,6 +2,7 @@ package noppes.npcs.scripted;
 
 import java.util.*;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
@@ -18,9 +19,12 @@ import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
+import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.interfaces.IBlock;
@@ -585,9 +589,20 @@ public class ScriptWorld implements IWorld {
 	 * @return Returns the entity which was spawned
 	 */
 	public IEntity spawnClone(int x, int y, int z, int tab, String name){
+		return spawnClone(x,y,z,tab,name,true);
+	}
+
+	public IEntity spawnClone(int x, int y, int z, int tab, String name, boolean ignoreProtection){
 		NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
 		if(compound == null)
 			return null;
+
+		if (!ignoreProtection) {
+			FakePlayer fakePlayer = new FakePlayer(world, new GameProfile(null, "NpcAPI"));
+			if (!CustomNpcsPermissions.hasPermission(fakePlayer, EnumPacketServer.SpawnMob.permission))
+				return null;
+		}
+
 		Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, world);
 		if(entity == null)
 			return null;

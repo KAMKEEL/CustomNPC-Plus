@@ -102,7 +102,7 @@ public class PacketHandlerServer{
 			if(type.needsNpc && npc == null){
 				
 			}
-			else if(type.hasPermission() && !CustomNpcsPermissions.Instance.hasPermission(player, type.permission)){
+			else if(type.hasPermission() && !CustomNpcsPermissions.hasPermission(player, type.permission)){
 				//player doesnt have permission to do this
 			}			
 			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
