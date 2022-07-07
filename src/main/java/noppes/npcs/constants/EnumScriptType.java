@@ -14,6 +14,7 @@ public enum EnumScriptType {
 	DIALOG_CLOSE("dialogClose"),
 	TIMER("timer"),
 
+	ATTACKED("attacked"),
 	ATTACK_MELEE("meleeAttack"),
 	TARGET_LOST("targetLost"),
 	ROLE("role"),

@@ -351,6 +351,11 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onPlayerAttacked(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.AttackedEvent event) {
+        handler.callScript(EnumScriptType.ATTACKED, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onPlayerDamaged(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.DamagedEvent event) {
         handler.callScript(EnumScriptType.DAMAGED, event);
         return NpcAPI.EVENT_BUS.post(event);
@@ -428,6 +433,11 @@ public class EventHooks {
 
     public static boolean onPlayerRanged(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent event) {
         handler.callScript(EnumScriptType.RANGED_LAUNCHED, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onPlayerAttack(PlayerDataScript handler, PlayerEvent.AttackEvent event) {
+        handler.callScript(EnumScriptType.ATTACK, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 

@@ -103,6 +103,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("init");
                 hookList.add("tick");
                 hookList.add("interact");
+                hookList.add("attack");
+                hookList.add("attacked");
                 hookList.add("damagedEntity");
                 hookList.add("damaged");
                 hookList.add("kills");

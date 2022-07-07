@@ -22,10 +22,7 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
 import noppes.npcs.constants.EnumPacketClient;
@@ -391,6 +388,26 @@ public class ScriptPlayerEventHandler {
                 EventHooks.onPlayerKills(handler,scriptPlayer, event.entityLiving);
             }
 
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(LivingAttackEvent event) {
+        if(event.entityLiving == null || event.entityLiving.worldObj == null)
+            return;
+
+        if(event.entityLiving.worldObj instanceof WorldServer) {
+            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            PlayerDataScript handler = ScriptController.Instance.playerScripts;
+            if(event.entityLiving instanceof EntityPlayer) {
+                noppes.npcs.scripted.event.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.AttackedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
+                event.setCanceled(EventHooks.onPlayerAttacked(handler, pevent));
+            }
+
+            if(source instanceof EntityPlayer) {
+                noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
+                event.setCanceled(EventHooks.onPlayerAttack(handler, pevent1));
+            }
         }
     }
 
