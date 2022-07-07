@@ -230,6 +230,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     IPos getLookingAtPos(int maxDistance);
 
+    IEntity[] getLookingAtEntities(int maxDistance, int range);
+
     ITimers getTimers();
 
     void updatePlayerInventory();

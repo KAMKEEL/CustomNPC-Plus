@@ -1,9 +1,6 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -18,6 +15,7 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldSettings;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesStringUtils;
@@ -40,6 +38,7 @@ import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
@@ -561,6 +560,34 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
 				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
 				maxDistance);
+	}
+
+	public IEntity[] getLookingAtEntities(int maxDistance, int range) {
+		Vec3 lookVec = player.getLookVec();
+		double[] startPos = new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ};
+		double[] lookVector = new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord};
+
+		ArrayList<IEntity> entities = new ArrayList<>();
+
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+
+			Collections.addAll(entities, getWorld().getEntitiesNear(pos,range));
+
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-startPos[0],2)
+							+Math.pow(currentPos.yCoord-startPos[1],2)
+							+Math.pow(currentPos.zCoord-startPos[2],2)
+					, 0.5);
+			if (distance > maxDistance) {
+				break;
+			}
+		}
+
+		return entities.toArray(new IEntity[0]);
 	}
 
 	public ITimers getTimers() {
