@@ -164,11 +164,7 @@ public class Faction implements IFaction {
 	}
 
 	public void addEnemyFaction(IFaction faction) {
-		if (this.attackFactions.contains(faction.getId())) {
-			throw new CustomNPCsException("Faction " + this.id + " is already hostile to " + id, new Object[0]);
-		} else {
-			this.attackFactions.add(faction.getId());
-		}
+		this.attackFactions.add(faction.getId());
 	}
 
 	public void removeEnemyFaction(IFaction faction) {
