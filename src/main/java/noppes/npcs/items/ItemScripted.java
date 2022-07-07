@@ -13,6 +13,8 @@ import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
@@ -60,12 +62,16 @@ public class ItemScripted extends Item implements ItemRenderInterface {
         return super.setUnlocalizedName(name);
     }
 
-    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer entityPlayer)
+    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player)
     {
-        if(entityPlayer.isSneaking() && entityPlayer.capabilities.isCreativeMode) {
-            CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, entityPlayer);
+        if(player.isSneaking() && player.capabilities.isCreativeMode) {
+            if(!CustomNpcs.isScriptDev(player)){
+                player.addChatMessage(new ChatComponentTranslation("availability.permission"));
+            } else {
+                CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, player);
+            }
         }
-        entityPlayer.setItemInUse(stack, this.getMaxItemUseDuration(stack));
+        player.setItemInUse(stack, this.getMaxItemUseDuration(stack));
         return stack;
     }
 

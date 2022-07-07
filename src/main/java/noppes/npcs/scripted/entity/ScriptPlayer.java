@@ -17,11 +17,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
+import noppes.npcs.*;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -587,6 +583,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 
 		return this.data;
+	}
+
+	public boolean isScriptingDev() {
+		return CustomNpcs.isScriptDev(player);
 	}
 
 	public IQuest[] getActiveQuests() {

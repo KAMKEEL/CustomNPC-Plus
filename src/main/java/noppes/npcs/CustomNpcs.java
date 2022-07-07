@@ -16,6 +16,7 @@ import net.minecraft.block.BlockVine;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
@@ -29,7 +30,9 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Set;
+import java.util.UUID;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6-beta2")
 public class CustomNpcs {
@@ -91,6 +94,16 @@ public class CustomNpcs {
 
     @ConfigProp(info = "Only ops can create and edit npcs")
     public static boolean OpsOnly = false;
+
+    @ConfigProp(info = "Only ops can see and edit scripts")
+    public static boolean ScriptOpsOnly = false;
+
+    @ConfigProp(info = "Comme separated list of player UUIDs that can see and edit scripts. If ScriptsOpsOnly is true,\n" +
+            "ops and players with these IDs can see and edit scripts. Example:\n" +
+            "b876ec32-e396-476b-a115-8438d83c67d4,069a79f4-44e9-4726-a5be-fca90e38aaf5,29cc52dd-2c50-4e8f-a388-be6c497cf0b4\n" +
+            "Get a player's UUID from a site like NameMC or the API IPlayer.getUniqueID() function!\n" +
+            "If left empty and ScriptsOpsOnly is false, anyone can see and edit scripts with a scripter.")
+    public static String ScriptDevIDs = "";
     
     @ConfigProp(info = "Default interact line. Leave empty to not have one")
     public static String DefaultInteractLine = "Hello @p";
@@ -146,6 +159,8 @@ public class CustomNpcs {
     
     public static ConfigLoader Config;
 
+    public static ArrayList<UUID> ScriptDevs = new ArrayList<>();
+
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
 
     public CustomNpcs() {
@@ -169,6 +184,14 @@ public class CustomNpcs {
 
         Config = new ConfigLoader(this.getClass(), new File(dir, "config"), "CustomNpcs");
         Config.loadConfig();
+
+        try {
+            ScriptDevs.clear();
+            String[] uuidStrings = ScriptDevIDs.split(";");
+            for (String s : uuidStrings) {
+                ScriptDevs.add(UUID.fromString(s));
+            }
+        } catch (Exception ignored) {}
 
         if (NpcNavRange < 16) {
             NpcNavRange = 16;
@@ -378,5 +401,12 @@ public class CustomNpcs {
 
     public static MinecraftServer getServer(){
         return MinecraftServer.getServer();
+    }
+
+    public static boolean isScriptDev(EntityPlayer player) {
+        if(CustomNpcs.ScriptOpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
+                ScriptDevs.contains(player.getUniqueID())){
+            return true;
+        } else return ScriptDevIDs.isEmpty();
     }
 }

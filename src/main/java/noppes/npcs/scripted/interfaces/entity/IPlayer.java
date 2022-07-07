@@ -236,6 +236,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     public IPlayerData getData();
 
+    boolean isScriptingDev();
+
     IQuest[] getActiveQuests();
 
     IContainer getOpenContainer();

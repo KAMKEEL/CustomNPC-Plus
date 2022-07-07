@@ -119,20 +119,22 @@ public class PacketHandlerServer{
 						clonePackets(type, buffer, player);
 					else if (item.getItem() == CustomItems.teleporter)
 						featherPackets(type, buffer, player);
-					else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
-						playerScriptPackets(type, buffer, player);
-					else if (type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave)
-						npcScriptPackets(type, buffer, player);
-					else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
-						forgeScriptPackets(type, buffer, player);
-					else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
-						itemScriptPackets(type, buffer, player);
-					else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
-						getScriptsEnabled(type, buffer, player);
-					else if (item.getItem() == CustomItems.scripter)
-						scriptPackets(type, buffer, player, npc);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
 						blockPackets(type, buffer, player);
+					else if (CustomNpcs.isScriptDev(player)) {
+						if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
+							playerScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave)
+							npcScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
+							forgeScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
+							itemScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
+							getScriptsEnabled(type, buffer, player);
+						else if (item.getItem() == CustomItems.scripter)
+							scriptPackets(type, buffer, player, npc);
+					}
 				}
 			}
 		} catch (Exception e) {
