@@ -546,50 +546,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return new ScriptPixelmonPlayerData(player);
 	}
 
-	public IBlock getLookingAtBlock(int maxDistance) {
-		Vec3 lookVec = player.getLookVec();
-		return getWorld().rayCastBlock(
-				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
-				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
-				maxDistance);
-	}
-
-	public IPos getLookingAtPos(int maxDistance) {
-		Vec3 lookVec = player.getLookVec();
-		return getWorld().rayCastPos(
-				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
-				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
-				maxDistance);
-	}
-
-	public IEntity[] getLookingAtEntities(int maxDistance, int range) {
-		Vec3 lookVec = player.getLookVec();
-		double[] startPos = new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ};
-		double[] lookVector = new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord};
-
-		ArrayList<IEntity> entities = new ArrayList<>();
-
-		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
-
-		while (rep++ < maxDistance + 10) {
-			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
-			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
-
-			Collections.addAll(entities, getWorld().getEntitiesNear(pos,range));
-
-			double distance = Math.pow(
-					Math.pow(currentPos.xCoord-startPos[0],2)
-							+Math.pow(currentPos.yCoord-startPos[1],2)
-							+Math.pow(currentPos.zCoord-startPos[2],2)
-					, 0.5);
-			if (distance > maxDistance) {
-				break;
-			}
-		}
-
-		return entities.toArray(new IEntity[0]);
-	}
-
 	public ITimers getTimers() {
 		return PlayerDataController.instance.getPlayerData(player).timers;
 	}

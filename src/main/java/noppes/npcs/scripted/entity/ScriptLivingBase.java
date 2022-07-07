@@ -6,12 +6,20 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
+import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
+import noppes.npcs.scripted.ScriptBlockPos;
+import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptDamageSource;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -97,6 +105,55 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public boolean canSeeEntity(IEntity entity){
 		return this.entity.canEntityBeSeen(entity.getMCEntity());
 	}
+
+	public IPos getLookVector() {
+		Vec3 lookVec = entity.getLookVec();
+		return new ScriptBlockPos(new BlockPos(lookVec.xCoord,lookVec.yCoord,lookVec.zCoord));
+	}
+
+	public IBlock getLookingAtBlock(int maxDistance) {
+		Vec3 lookVec = entity.getLookVec();
+		return getWorld().rayCastBlock(
+				new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ},
+				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
+				maxDistance);
+	}
+
+	public IPos getLookingAtPos(int maxDistance) {
+		Vec3 lookVec = entity.getLookVec();
+		return getWorld().rayCastPos(
+				new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ},
+				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
+				maxDistance);
+	}
+
+	public IEntity[] getLookingAtEntities(int maxDistance, int range) {
+		Vec3 lookVec = entity.getLookVec();
+		double[] startPos = new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ};
+		double[] lookVector = new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord};
+
+		ArrayList<IEntity> entities = new ArrayList<>();
+
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+
+			Collections.addAll(entities, getWorld().getEntitiesNear(pos,range));
+
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-startPos[0],2)
+							+Math.pow(currentPos.yCoord-startPos[1],2)
+							+Math.pow(currentPos.zCoord-startPos[2],2)
+					, 0.5);
+			if (distance > maxDistance) {
+				break;
+			}
+		}
+
+		return entities.toArray(new IEntity[0]);
+	}
 		
 	/**
 	 * Expert use only
@@ -115,10 +172,6 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 */
 	public void swingHand(){
 		entity.swingItem();
-	}
-
-	public String getLookVec(){
-		return entity.getLookVec().toString();
 	}
 	
 	/**

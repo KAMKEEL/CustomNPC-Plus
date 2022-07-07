@@ -226,12 +226,6 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      */
     ScriptPixelmonPlayerData getPixelmonData();
 
-    IBlock getLookingAtBlock(int maxDistance);
-
-    IPos getLookingAtPos(int maxDistance);
-
-    IEntity[] getLookingAtEntities(int maxDistance, int range);
-
     ITimers getTimers();
 
     void updatePlayerInventory();

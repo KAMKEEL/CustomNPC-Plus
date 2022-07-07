@@ -1,6 +1,8 @@
 package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityLivingBase;
+import noppes.npcs.scripted.interfaces.IBlock;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.ScriptDamageSource;
 
@@ -49,6 +51,38 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @return Whether or not this entity can see the given entity
      */
     boolean canSeeEntity(IEntity entity);
+
+    /**
+     *
+     * @return Returns the look vector of this entity as an IPos object.
+     */
+    IPos getLookVector();
+
+    /**
+     *
+     * @param maxDistance The max distance to perform checks before stopping
+     * @return The first block found by following along the entity's look vector.
+     */
+    IBlock getLookingAtBlock(int maxDistance);
+
+    /**
+     * Returns an IPos object corresponding to the final obstructed point following along the
+     * entity's look vector. If no obstructions are found (entity is looking in a straight path of
+     * air with no blocks in the way), the final position is returned.
+     *
+     * @param maxDistance The max distance to perform checks before stopping
+     * @return The position the entity is looking at.
+     */
+    IPos getLookingAtPos(int maxDistance);
+
+    /**
+     *
+     * @param maxDistance The max distance to perform checks before stopping
+     * @param range The radius to check for surrounding entities at every point on the vector
+     * @return A list of entities, sorted first by closest to the entity along the look vector, then by which
+     *         entities are closest to the vector.
+     */
+    IEntity[] getLookingAtEntities(int maxDistance, int range);
 
     /**
      * Expert use only
