@@ -3,6 +3,7 @@ package noppes.npcs.scripted;
 import net.minecraft.nbt.*;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.interfaces.IParticle;
+import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 import java.lang.reflect.Field;
@@ -128,7 +129,7 @@ public class ScriptParticle implements IParticle {
         return particle;
     }
 
-    public void spawnOnEntity(IEntity entity){
+    public void spawn(IEntity entity){
         int entityID = entity.getMCEntity().getEntityId();
 
         NBTTagCompound compound = this.writeToNBT();
@@ -137,14 +138,26 @@ public class ScriptParticle implements IParticle {
         NoppesUtilServer.spawnScriptedParticle(compound, entity.getWorld().getDimensionID());
     }
 
-    public void spawnInWorld(ScriptWorld world){
+    public void spawn(IWorld world){
         NBTTagCompound compound = this.writeToNBT();
         NoppesUtilServer.spawnScriptedParticle(compound, world.getDimensionID());
     }
 
-    public void spawnInWorld(ScriptWorld world, double x, double y, double z){
+    public void spawn(IWorld world, double x, double y, double z){
         NBTTagCompound compound = this.writeToNBT();
         NoppesUtilServer.spawnScriptedParticle(compound, world.getDimensionID());
+    }
+
+    public void spawnOnEntity(IEntity entity) {
+        spawn(entity);
+    }
+
+    public void spawnInWorld(IWorld world) {
+        spawn(world);
+    }
+
+    public void spawnInWorld(IWorld world, double x, double y, double z){
+        spawn(world, x, y, z);
     }
 
     public void setGlows(boolean glows) { this.glows = glows; }

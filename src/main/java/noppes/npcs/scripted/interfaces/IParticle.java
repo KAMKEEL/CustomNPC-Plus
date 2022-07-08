@@ -1,6 +1,5 @@
 package noppes.npcs.scripted.interfaces;
 
-import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 
 /**
@@ -24,13 +23,13 @@ public interface IParticle {
      *
      * @param entity Spawns this particle object on the given entity. When spawned this way, the particle will always have its origin at the entity.
      */
-    void spawnOnEntity(IEntity entity);
+    void spawn(IEntity entity);
 
     /**
      *
      * @param world Spawns the particle in the given world, at a position corresponding to this particle's position variables.
      */
-    void spawnInWorld(ScriptWorld world);
+    void spawn(IWorld world);
 
     /**
      *
@@ -39,7 +38,16 @@ public interface IParticle {
      * @param y The Y position the particle will spawn in the world.
      * @param z The Z position the particle will spawn in the world.
      */
-    void spawnInWorld(ScriptWorld world, double x, double y, double z);
+    void spawn(IWorld world, double x, double y, double z);
+
+    @Deprecated
+    void spawnOnEntity(IEntity entity);
+
+    @Deprecated
+    void spawnInWorld(IWorld world);
+
+    @Deprecated
+    void spawnInWorld(IWorld world, double x, double y, double z);
 
     /**
      *
