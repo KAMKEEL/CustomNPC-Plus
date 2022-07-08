@@ -20,7 +20,6 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptDamageSource;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -152,7 +151,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 
 			if (block != null && stopOnBlock) {
 				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
-						&& (!stopOnCollision || block.isCollidable()))
+						&& (!stopOnCollision || block.canCollide()))
 					return entities.toArray(new IEntity[0]);
 			}
 

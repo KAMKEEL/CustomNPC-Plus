@@ -2,7 +2,6 @@ package noppes.npcs.scripted;
 
 import java.util.*;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.Entity;
@@ -21,12 +20,9 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.interfaces.IBlock;
@@ -332,7 +328,7 @@ public class ScriptWorld implements IWorld {
 			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
 			if (block != null && stopOnBlock) {
 				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
-					&& (!stopOnCollision || block.isCollidable()))
+					&& (!stopOnCollision || block.canCollide()))
 				return pos;
 			}
 

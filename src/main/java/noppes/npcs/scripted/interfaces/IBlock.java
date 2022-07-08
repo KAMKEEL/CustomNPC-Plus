@@ -104,5 +104,12 @@ public interface IBlock {
      */
     INbt getTileEntityNBT();
 
-    boolean isCollidable();
+    /**
+     *
+     * @param maxVolume The volume threshold to determine whether this block's bounding box collides, if it has one.
+     * @return Whether this block can be collided with
+     */
+    boolean canCollide(double maxVolume);
+
+    boolean canCollide();
 }
