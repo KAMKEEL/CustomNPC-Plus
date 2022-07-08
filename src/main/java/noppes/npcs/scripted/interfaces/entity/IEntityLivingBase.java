@@ -82,6 +82,8 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @return A list of entities, sorted first by closest to the entity along the look vector, then by which
      *         entities are closest to the vector.
      */
+    IEntity[] getLookingAtEntities(int maxDistance, int range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
     IEntity[] getLookingAtEntities(int maxDistance, int range);
 
     /**

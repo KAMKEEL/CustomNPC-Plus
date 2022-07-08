@@ -103,4 +103,6 @@ public interface IBlock {
      * @return An INbt object which can modify the block's tile entity's NBT data.
      */
     INbt getTileEntityNBT();
+
+    boolean isCollidable();
 }

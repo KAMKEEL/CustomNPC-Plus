@@ -1,7 +1,10 @@
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptScoreboard;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
@@ -160,27 +163,28 @@ public interface IWorld {
      */
     public void removeBlock(int x, int y, int z);
 
-    /**
-	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos
-	 * @param lookVector should be a normalized direction vector
-	 * @param maxDistance
-	 * @return the first detected block but null if maxDistance is reached
-	 */
-    public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
+    IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance);
+
+    IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance);
 
     /**
-	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos
-	 * @param lookVector will normalize x, y, z to get a direction vector
-	 * @param maxDistance
-	 * @return the first detected block but null if maxDistance is reached
-	 */
-    public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
+     * starting at the start position, draw a line in the lookVector direction until a block is detected
+     * @param startPos
+     * @param lookVector should be a normalized direction vector
+     * @param maxDistance
+     * @return the first detected block but null if maxDistance is reached
+     */
+    IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
 
-    public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance);
+    IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
 
-    public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance);
+    IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
 
     /**
      * @param startPos

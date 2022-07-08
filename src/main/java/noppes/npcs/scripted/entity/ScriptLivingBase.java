@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.potion.Potion;
@@ -111,23 +112,31 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		return new ScriptBlockPos(new BlockPos(lookVec.xCoord,lookVec.yCoord,lookVec.zCoord));
 	}
 
-	public IBlock getLookingAtBlock(int maxDistance) {
+	public IBlock getLookingAtBlock(int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 lookVec = entity.getLookVec();
 		return getWorld().rayCastBlock(
 				new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ},
 				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
-				maxDistance);
+				maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
 	}
 
-	public IPos getLookingAtPos(int maxDistance) {
+	public IBlock getLookingAtBlock(int maxDistance) {
+		return getLookingAtBlock(maxDistance, true, false, false);
+	}
+
+	public IPos getLookingAtPos(int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 lookVec = entity.getLookVec();
 		return getWorld().rayCastPos(
 				new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ},
 				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
-				maxDistance);
+				maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
 	}
 
-	public IEntity[] getLookingAtEntities(int maxDistance, int range) {
+	public IPos getLookingAtPos(int maxDistance) {
+		return getLookingAtPos(maxDistance, true, false, false);
+	}
+
+	public IEntity[] getLookingAtEntities(int maxDistance, int range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 lookVec = entity.getLookVec();
 		double[] startPos = new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ};
 		double[] lookVector = new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord};
@@ -139,6 +148,13 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		while (rep++ < maxDistance + 10) {
 			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
 			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+			IBlock block = getWorld().getBlock(pos);
+
+			if (block != null && stopOnBlock) {
+				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
+						&& (!stopOnCollision || block.isCollidable()))
+					return entities.toArray(new IEntity[0]);
+			}
 
 			IEntity[] entitiesNear = getWorld().getEntitiesNear(pos,range);
 			for (IEntity entity : entitiesNear) {
@@ -158,6 +174,10 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		}
 
 		return entities.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] getLookingAtEntities(int maxDistance, int range) {
+		return getLookingAtEntities(maxDistance,range,true,false,true);
 	}
 		
 	/**

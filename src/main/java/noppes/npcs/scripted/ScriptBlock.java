@@ -131,4 +131,11 @@ public class ScriptBlock implements IBlock {
         this.tile.writeToNBT(compound);
         return NpcAPI.Instance().getINbt(compound);
     }
+
+    public boolean isCollidable() {
+        boolean minBoundsZero = block.getBlockBoundsMinX() == 0 && block.getBlockBoundsMinY() == 0 && block.getBlockBoundsMinZ() == 0;
+        boolean maxBoundsZero = block.getBlockBoundsMaxX() == 0 && block.getBlockBoundsMaxY() == 0 && block.getBlockBoundsMaxZ() == 0;
+
+        return !(minBoundsZero && maxBoundsZero);
+    }
 }
