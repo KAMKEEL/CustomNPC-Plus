@@ -140,7 +140,12 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
 			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
 
-			Collections.addAll(entities, getWorld().getEntitiesNear(pos,range));
+			IEntity[] entitiesNear = getWorld().getEntitiesNear(pos,range);
+			for (IEntity entity : entitiesNear) {
+				if (!entities.contains(entity)) {
+					entities.add(entity);
+				}
+			}
 
 			double distance = Math.pow(
 					Math.pow(currentPos.xCoord-startPos[0],2)
