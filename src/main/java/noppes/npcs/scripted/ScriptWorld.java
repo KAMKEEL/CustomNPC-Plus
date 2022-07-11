@@ -402,6 +402,61 @@ public class ScriptWorld implements IWorld {
 		return currentPos;
 	}
 
+	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
+										  int maxDistance, double offset, double range,
+										  boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		ArrayList<IEntity> entities = new ArrayList<>();
+
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+		currentPos.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
+
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+			IBlock block = getBlock(pos);
+
+			if (block != null && stopOnBlock) {
+				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
+						&& (!stopOnCollision || block.canCollide()))
+					return entities.toArray(new IEntity[0]);
+			}
+
+			IEntity[] entitiesNear = getEntitiesNear(pos,range);
+			for (IEntity entity : entitiesNear) {
+				if (!entities.contains(entity)) {
+					entities.add(entity);
+				}
+			}
+
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-startPos[0],2)
+							+Math.pow(currentPos.yCoord-startPos[1],2)
+							+Math.pow(currentPos.zCoord-startPos[2],2)
+					, 0.5);
+			if (distance > maxDistance) {
+				break;
+			}
+		}
+
+		return entities.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,
+									 int maxDistance, double offset, double range,
+									 boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, stopOnBlock, stopOnLiquid, stopOnCollision);
+	}
+
+	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
+									 int maxDistance, double offset, double range) {
+		return rayCastEntities(startPos, lookVector, maxDistance, offset, range, true, false, true);
+	}
+
+	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,
+									 int maxDistance, double offset, double range) {
+		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, true, false, true);
+	}
+
 	public boolean canSeeSky(int x, int y, int z) {
 		return world.canBlockSeeTheSky(x, y, z);
 	}

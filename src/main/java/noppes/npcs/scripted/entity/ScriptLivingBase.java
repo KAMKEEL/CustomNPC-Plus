@@ -135,48 +135,16 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		return getLookingAtPos(maxDistance, true, false, false);
 	}
 
-	public IEntity[] getLookingAtEntities(int maxDistance, int range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+	public IEntity[] getLookingAtEntities(int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 lookVec = entity.getLookVec();
 		double[] startPos = new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ};
 		double[] lookVector = new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord};
 
-		ArrayList<IEntity> entities = new ArrayList<>();
-
-		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
-
-		while (rep++ < maxDistance + 10) {
-			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
-			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
-			IBlock block = getWorld().getBlock(pos);
-
-			if (block != null && stopOnBlock) {
-				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
-						&& (!stopOnCollision || block.canCollide()))
-					return entities.toArray(new IEntity[0]);
-			}
-
-			IEntity[] entitiesNear = getWorld().getEntitiesNear(pos,range);
-			for (IEntity entity : entitiesNear) {
-				if (!entities.contains(entity)) {
-					entities.add(entity);
-				}
-			}
-
-			double distance = Math.pow(
-					Math.pow(currentPos.xCoord-startPos[0],2)
-							+Math.pow(currentPos.yCoord-startPos[1],2)
-							+Math.pow(currentPos.zCoord-startPos[2],2)
-					, 0.5);
-			if (distance > maxDistance) {
-				break;
-			}
-		}
-
-		return entities.toArray(new IEntity[0]);
+		return getWorld().rayCastEntities(startPos,lookVector,maxDistance,offset,range,stopOnBlock,stopOnLiquid,stopOnCollision);
 	}
 
-	public IEntity[] getLookingAtEntities(int maxDistance, int range) {
-		return getLookingAtEntities(maxDistance,range,true,false,true);
+	public IEntity[] getLookingAtEntities(int maxDistance, double offset, double range) {
+		return getLookingAtEntities(maxDistance,offset,range,true,false,true);
 	}
 		
 	/**

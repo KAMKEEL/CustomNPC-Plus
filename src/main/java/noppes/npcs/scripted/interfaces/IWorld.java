@@ -193,6 +193,14 @@ public interface IWorld {
      */
     public IPos getNearestAir(IPos startPos, int maxHeight);
 
+    IEntity[] rayCastEntities(double[] startPos, double[] lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IEntity[] rayCastEntities(IPos startPos, IPos lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IEntity[] rayCastEntities(double[] startPos, double[] lookVector, int maxDistance, double offset, double range);
+
+    IEntity[] rayCastEntities(IPos startPos, IPos lookVector, int maxDistance, double offset, double range);
+
     /**
      * @param x
      * @param y
