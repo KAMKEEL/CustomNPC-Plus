@@ -54,6 +54,11 @@ public class CustomNpcs {
     @ConfigProp(info = "Enables global NPC scripts to be used in the scripter. You can still see and write code in the scripter, but these scripts won't run. False by default, use with caution!")
     public static boolean GlobalNPCScripts = false;
 
+    @ConfigProp(info = "If scripts are too long (>65535 characters), they normally won't be saved in NBT data.\n" +
+            "This config adds additional compound tags to scripts that need it, so you can store much larger scripts!\n" +
+            "Every additional compound tag adds 65535 more characters to your script length limit. Use incrementally, with caution.")
+    public static int ExpandedScriptLimit = 2;
+
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
 
@@ -215,6 +220,9 @@ public class CustomNpcs {
             TrackingInfoAlignment = 0;
         if (TrackingInfoAlignment > 8)
             TrackingInfoAlignment = 8;
+
+        if (ExpandedScriptLimit < 0)
+            ExpandedScriptLimit = 0;
 
         EnchantInterface.load();
         CustomItems.load();
