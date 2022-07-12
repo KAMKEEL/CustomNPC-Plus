@@ -408,7 +408,7 @@ public class ScriptWorld implements IWorld {
 		ArrayList<IEntity> entities = new ArrayList<>();
 
 		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
-		currentPos.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
+		currentPos = currentPos.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
 
 		while (rep++ < maxDistance + 10) {
 			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
