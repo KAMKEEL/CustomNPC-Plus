@@ -44,6 +44,10 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
 	public void setText(String text) {
 		super.setText(text);
 
+		updateLineList();
+	}
+
+	public void updateLineList() {
 		List<String> list = new ArrayList<String>();
 		StringBuilder line = new StringBuilder();
 		for(char c : getText().toCharArray()){
@@ -62,31 +66,31 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
     public void updateCursorCounter(){
         cursorCounter++;
     }
-    
-	@Override
-    public boolean textboxKeyTyped(char c, int i){
-        if (isFocused() && canEdit){
-        	String originalText = getText();       
-        	this.setText(originalText);	
-        	if(c == '\r' || c == '\n'){
-        		this.setText(originalText.substring(0, cursorPosition) + c + originalText.substring(cursorPosition));
-        	}
-			boolean bo = super.textboxKeyTyped(c, i);
-			String newText = getText();
-			this.setText(newText);
 
+	@Override
+	public boolean textboxKeyTyped(char c, int i){
+		if (isFocused() && canEdit){
+			String originalText = getText();
+			this.setText(originalText);
+			if(c == '\r' || c == '\n'){
+				this.setText(originalText.substring(0, cursorPosition) + c + originalText.substring(cursorPosition));
+			}
 			this.setCursorPositionZero();
-        	this.moveCursorBy(cursorPosition);
-        	if(i != Keyboard.KEY_DELETE)
-        		cursorPosition += newText.length() - originalText.length();
-    		if(i == Keyboard.KEY_LEFT && cursorPosition > 0)
-    			cursorPosition--;
-    		if(i == Keyboard.KEY_RIGHT && cursorPosition < newText.length())
-    			cursorPosition++;
-        	return bo;
-        }
-        return false;
-    }
+			this.moveCursorBy(cursorPosition);
+			boolean bo = super.textboxKeyTyped(c, i);
+			updateLineList();
+			String newText = getText();
+			if(i != Keyboard.KEY_DELETE)
+				cursorPosition += newText.length() - originalText.length();
+			if(i == Keyboard.KEY_LEFT && cursorPosition > 0)
+				cursorPosition--;
+			if(i == Keyboard.KEY_RIGHT && cursorPosition < newText.length())
+				cursorPosition++;
+			return bo;
+
+		}
+		return false;
+	}
 	
 	@Override
     public void mouseClicked(int i, int j, int k){
