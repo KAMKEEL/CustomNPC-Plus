@@ -14,19 +14,20 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.ModelPartConfig;
 import noppes.npcs.ModelPartData;
-import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
 import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
+import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
 
+import noppes.npcs.scripted.interfaces.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;
 
@@ -352,9 +353,77 @@ public class ModelMPM extends ModelNPCMale{
 					biped.isSneak = isSneak;
 				}
 				entityModel.render(entity, par2, par3, par4, par5, par6, par7);
+
+				if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
+					for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
+						try {
+							if (overlayData.getTexture().isEmpty())
+								continue;
+
+							if (((SkinOverlay)overlayData).getLocation() == null) {
+								((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
+							} else {
+								String str = ((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourceDomain()+":"+((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourcePath();
+								if (!str.equals(overlayData.getTexture())) {
+									((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
+								}
+							}
+
+							if (((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
+								continue;
+
+							try {
+								RenderNPCInterface.staticRenderManager.renderEngine.bindTexture(((SkinOverlay)overlayData).getLocation());
+							} catch (Exception e) { continue; }
+
+							// Overlay & Glow
+							GL11.glEnable(GL11.GL_BLEND);
+							if (overlayData.getBlend()) {
+								GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
+							} else {
+								GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+							}
+							GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
+
+							if (overlayData.getGlow()) {
+								GL11.glDisable(GL11.GL_LIGHTING);
+								Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
+							}
+
+							GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
+
+							GL11.glDepthMask(!npc.isInvisible());
+
+							GL11.glPushMatrix();
+							GL11.glMatrixMode(GL11.GL_TEXTURE);
+							GL11.glLoadIdentity();
+							GL11.glTranslatef(npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedX(), npc.display.overlayRenderTicks * 0.001F * overlayData.getSpeedY(), 0.0F);
+							GL11.glScalef(overlayData.getTextureScaleX(), overlayData.getTextureScaleY(), 1.0F);
+
+							GL11.glMatrixMode(GL11.GL_MODELVIEW);
+							float scale = 1.005f * overlayData.getSize();
+							GL11.glTranslatef(overlayData.getOffsetX(), overlayData.getOffsetY(), overlayData.getOffsetZ());
+							GL11.glScalef(scale, scale, scale);
+							entityModel.render(entity, par2, par3, par4, par5, par6, par7);
+							GL11.glPopMatrix();
+
+							GL11.glMatrixMode(GL11.GL_TEXTURE);
+							GL11.glLoadIdentity();
+							GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+							GL11.glEnable(GL11.GL_LIGHTING);
+							GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+							GL11.glDepthFunc(GL11.GL_LEQUAL);
+							GL11.glDisable(GL11.GL_BLEND);
+							GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+							Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
+						} catch (Exception ignored) {
+						}
+					}
+					npc.display.overlayRenderTicks++;
+				}
 			}
-		}
-		else{
+		} else {
 			alpha = npc.isInvisible() && !npc.isInvisibleToPlayer(player) ? 0.15f : 1;
 
 			setPlayerData(npc);
