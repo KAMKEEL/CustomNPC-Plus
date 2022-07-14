@@ -33,10 +33,12 @@ import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -481,5 +483,28 @@ public class NoppesUtilPlayer {
 		}
 
 		return list;
+	}
+
+	public static void playSoundTo(EntityPlayerMP player, int id, ScriptSound sound) {
+		NBTTagCompound compound = sound.writeToNBT();
+		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
+			Server.sendData(player, EnumPacketClient.PLAY_SOUND_TO, id, compound);
+		}
+	}
+
+	public static void stopSoundFor(EntityPlayerMP player, int id) {
+		Server.sendData(player, EnumPacketClient.STOP_SOUND_FOR, id);
+	}
+
+	public static void pauseSoundsFor(EntityPlayerMP player) {
+		Server.sendData(player, EnumPacketClient.PAUSE_SOUNDS);
+	}
+
+	public static void continueSoundsFor(EntityPlayerMP player) {
+		Server.sendData(player, EnumPacketClient.CONTINUE_SOUNDS);
+	}
+
+	public static void stopSoundsFor(EntityPlayerMP player) {
+		Server.sendData(player, EnumPacketClient.STOP_SOUNDS);
 	}
 }

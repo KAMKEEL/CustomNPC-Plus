@@ -9,6 +9,7 @@ import noppes.npcs.scripted.interfaces.handler.IPlayerData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
@@ -187,6 +188,16 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     public void clearInventory();
 
     void playSound(String name, float volume, float pitch);
+
+    void playSound(int id, ISound sound);
+
+    void stopSound(int id);
+
+    void pauseSounds();
+
+    void continueSounds();
+
+    void stopSounds();
 
     void mountEntity(Entity ridingEntity);
 

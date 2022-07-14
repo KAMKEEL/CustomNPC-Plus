@@ -71,6 +71,7 @@ import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
@@ -321,6 +322,41 @@ public class NoppesUtilServer {
 			if (player.worldObj.provider.dimensionId == dimensionId) {
 				Server.sendData((EntityPlayerMP) player, EnumPacketClient.SCRIPTED_PARTICLE, compound);
 			}
+		}
+	}
+
+	public static void playSound(int id, ScriptSound sound) {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.playSoundTo((EntityPlayerMP) player, id, sound);
+		}
+	}
+
+	public static void stopSound(int id) {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.stopSoundFor((EntityPlayerMP) player, id);
+		}
+	}
+
+	public static void pauseSounds() {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.pauseSoundsFor((EntityPlayerMP) player);
+		}
+	}
+
+	public static void continueSounds() {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.continueSoundsFor((EntityPlayerMP) player);
+		}
+	}
+
+	public static void stopSounds() {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.stopSoundsFor((EntityPlayerMP) player);
 		}
 	}
 

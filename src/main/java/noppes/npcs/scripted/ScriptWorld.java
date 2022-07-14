@@ -31,6 +31,7 @@ import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.ITileEntity;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
 
@@ -150,6 +151,51 @@ public class ScriptWorld implements IWorld {
 
 	public void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch){
 		world.playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
+	}
+
+	public void playSound(int id, ISound sound) {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.playSound(id, sound);
+			}
+		}
+	}
+
+	public void stopSound(int id) {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.stopSound(id);
+			}
+		}
+	}
+
+	public void pauseSounds() {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.pauseSounds();
+			}
+		}
+	}
+
+	public void continueSounds() {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.continueSounds();
+			}
+		}
+	}
+
+	public void stopSounds() {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.stopSounds();
+			}
+		}
 	}
 
 	public IEntity getEntityByID(int id){
@@ -654,7 +700,8 @@ public class ScriptWorld implements IWorld {
 	public void explode(double x, double y, double z, float range, boolean fire, boolean grief){
 		world.newExplosion(null, x, y, z, range, fire, grief);
 	}
-	
+
+	@Deprecated
 	public IPlayer[] getAllServerPlayers(){
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
 		IPlayer[] arr = new IPlayer[list.size()];
@@ -665,6 +712,7 @@ public class ScriptWorld implements IWorld {
 		return arr;
 	}
 
+	@Deprecated
 	public String[] getPlayerNames() {
 		IPlayer[] players = getAllServerPlayers();
 		String[] names = new String[players.length];

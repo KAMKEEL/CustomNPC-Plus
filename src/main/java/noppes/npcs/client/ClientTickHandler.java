@@ -6,6 +6,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.controllers.MusicController;
+import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.client.gui.player.GuiQuestLog;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumPlayerPacket;
@@ -43,6 +44,7 @@ public class ClientTickHandler{
 			prevWorld = mc.theWorld;
 			MusicController.Instance.stopMusic();
 		}
+		ScriptSoundController.Instance.onUpdate();
 	}
 
 	@SubscribeEvent

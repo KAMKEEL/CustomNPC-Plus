@@ -8,6 +8,7 @@ import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptScoreboard;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public interface IWorld {
@@ -81,6 +82,16 @@ public interface IWorld {
     void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch);
 
     void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
+
+    void playSound(int id, ISound sound);
+
+    void stopSound(int id);
+
+    void pauseSounds();
+
+    void continueSounds();
+
+    void stopSounds();
 
     IEntity getEntityByID(int id);
 

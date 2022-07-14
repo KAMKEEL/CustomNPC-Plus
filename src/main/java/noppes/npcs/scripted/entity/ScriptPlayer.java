@@ -14,8 +14,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.Vec3;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldSettings;
 import noppes.npcs.*;
 import noppes.npcs.constants.EnumPacketClient;
@@ -34,14 +32,14 @@ import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
+import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.*;
-import noppes.npcs.scripted.interfaces.handler.IPlayerData;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
@@ -477,6 +475,26 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void playSound(String name, float volume, float pitch){
 		player.playSound(name, volume, pitch);
+	}
+
+	public void playSound(int id, ISound sound) {
+		NoppesUtilPlayer.playSoundTo(player, id, (ScriptSound) sound);
+	}
+
+	public void stopSound(int id) {
+		NoppesUtilPlayer.stopSoundFor(player, id);
+	}
+
+	public void pauseSounds() {
+		NoppesUtilPlayer.pauseSoundsFor(player);
+	}
+
+	public void continueSounds() {
+		NoppesUtilPlayer.continueSoundsFor(player);
+	}
+
+	public void stopSounds() {
+		NoppesUtilPlayer.stopSoundsFor(player);
 	}
 
 	public void mountEntity(Entity ridingEntity){
