@@ -37,6 +37,7 @@ import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.handler.data.IDialog;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.handler.data.ISound;
@@ -111,15 +112,30 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		player.getFoodStats().addStats(0,saturation-prevSaturation);
 	}
-	
-	public boolean hasFinishedQuest(int id){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
-		return data.finishedQuests.containsKey(id);
+
+	public void showDialog(IDialog dialog) {
+		if (dialog != null) {
+			showDialog(dialog.getId());
+		}
 	}
-	
-	public boolean hasActiveQuest(int id){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
-		return data.activeQuests.containsKey(id);
+
+	public boolean hasReadDialog(IDialog dialog) {
+		if (dialog != null) {
+			return hasReadDialog(dialog.getId());
+		}
+		return false;
+	}
+
+	public void readDialog(IDialog dialog) {
+		if (dialog != null) {
+			this.readDialog(dialog.getId());
+		}
+	}
+
+	public void unreadDialog(IDialog dialog) {
+		if (dialog != null) {
+			this.unreadDialog(dialog.getId());
+		}
 	}
 
 	public void showDialog(int id){
@@ -129,7 +145,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		NoppesUtilServer.openDialog(player, new EntityDialogNpc(this.player.worldObj), dialog, 0);
 	}
-	
+
 	public boolean hasReadDialog(int id){
 		PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
 		return data.dialogsRead.contains(id);
@@ -141,6 +157,52 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void unreadDialog(int id) {
 		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
+	}
+
+	public boolean hasFinishedQuest(IQuest quest) {
+		if (quest == null)
+			return false;
+		return hasFinishedQuest(quest.getId());
+	}
+
+	public boolean hasActiveQuest(IQuest quest) {
+		if (quest == null)
+			return false;
+		return hasActiveQuest(quest.getId());
+	}
+
+	public void startQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		startQuest(quest.getId());
+	}
+
+	public void finishQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		finishQuest(quest.getId());
+	}
+
+	public void stopQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		stopQuest(quest.getId());
+	}
+
+	public void removeQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		removeQuest(quest.getId());
+	}
+	
+	public boolean hasFinishedQuest(int id){
+		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		return data.finishedQuests.containsKey(id);
+	}
+	
+	public boolean hasActiveQuest(int id){
+		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		return data.activeQuests.containsKey(id);
 	}
 
 	/**
