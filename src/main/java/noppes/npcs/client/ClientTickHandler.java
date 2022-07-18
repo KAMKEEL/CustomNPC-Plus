@@ -57,7 +57,17 @@ public class ClientTickHandler{
 		boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
 		boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
 
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()), Boolean.valueOf(isCtrlPressed), Boolean.valueOf(isShiftPressed), Boolean.valueOf(isAltPressed), Boolean.valueOf(isMetaPressed));
+		StringBuilder keysDownString = new StringBuilder();
+		for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
+			if (Keyboard.isKeyDown(i)) {
+				keysDownString.append(Integer.valueOf(i)).append(",");
+			}
+		}
+		if (keysDownString.length() > 0) {//Removes last comma for later parsing
+			keysDownString.deleteCharAt(keysDownString.length() - 1);
+		}
+
+		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()), isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDownString.toString());
 	}
 
 	@SubscribeEvent
@@ -88,7 +98,7 @@ public class ClientTickHandler{
 				keysDownString.deleteCharAt(keysDownString.length() - 1);
 			}
 
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, new Object[]{Integer.valueOf(key), Boolean.valueOf(isCtrlPressed), Boolean.valueOf(isShiftPressed), Boolean.valueOf(isAltPressed), Boolean.valueOf(isMetaPressed), Boolean.valueOf(keyDown), keysDownString.toString()});
+			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, key, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keyDown, keysDownString.toString());
 		}
 	}
 
