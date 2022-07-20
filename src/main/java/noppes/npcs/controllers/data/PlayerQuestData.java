@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -114,7 +115,9 @@ public class PlayerQuestData implements IPlayerQuestData {
 	public boolean checkQuestCompletion(PlayerData playerData,EnumQuestType type) {
 		boolean bo = false;
 		EntityPlayer player = playerData.player;
-		for(QuestData data : this.activeQuests.values()){
+
+		ArrayList<QuestData> activeQuestValues = new ArrayList<>(this.activeQuests.values());
+		for(QuestData data : activeQuestValues){
 			if(data.quest.type != type && type != null)
 				continue;
 
