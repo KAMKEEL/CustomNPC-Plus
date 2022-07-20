@@ -770,8 +770,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	 * Add immutable task entries.
 	 */
 	public void addRegularEntries() {
-		this.tasks.addTask(this.taskCount++, new EntityAIReturn(this));
 		this.tasks.addTask(this.taskCount++, new EntityAIFollow(this));
+		this.tasks.addTask(this.taskCount++, new EntityAIReturn(this));
 		if (this.ai.standingType != EnumStandingType.NoRotation && this.ai.standingType != EnumStandingType.HeadRotation)
 			this.tasks.addTask(this.taskCount++, new EntityAIWatchClosest(this, EntityLivingBase.class, 5.0F));
 		this.tasks.addTask(this.taskCount++, new EntityAILook(this));
