@@ -116,7 +116,10 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         boolean hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.field_146167_a && mouseY < this.y + this.field_146161_f;
+        GL11.glPushMatrix();
+        GL11.glTranslatef(0.0F,0.0F,(float)this.id);
         this.drawLabel();
+        GL11.glPopMatrix();
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;
         }

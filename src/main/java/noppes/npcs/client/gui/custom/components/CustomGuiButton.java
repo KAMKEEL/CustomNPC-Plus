@@ -90,8 +90,6 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
     }
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
-        //GL11.func_179094_E();
-        //GL11.func_179109_b(0.0F, 0.0F, (float)this.id);
         GL11.glPushMatrix();
             float red = (color >> 16 & 255) / 255f;
             float green = (color >> 8  & 255) / 255f;
@@ -131,11 +129,12 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
                 //GL11.func_187401_a(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
                 this.drawTexturedModalRect(this.xPosition, this.yPosition, this.textureX, this.textureY + i * this.height, this.width, this.height);
                 this.drawCenteredString(fontRenderer, this.label, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, this.color);
-                if (this.field_146123_n && this.hoverText != null && this.hoverText.length > 0) {
-                    this.parent.hoverText = this.hoverText;
-                }
             }
         GL11.glPopMatrix();
+
+        if (this.field_146123_n && this.hoverText != null && this.hoverText.length > 0) {
+            this.parent.hoverText = this.hoverText;
+        }
     }
 
     public ICustomGuiComponent toComponent() {
