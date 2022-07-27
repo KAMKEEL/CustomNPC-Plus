@@ -1008,8 +1008,13 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param type Retaliation type. 0:normal, 1:panic, 2:retreat, 3:nothing
 	 */
 	public void setRetaliateType(int type){
+		if (type < 0)
+			type = 0;
+		if (type > 3)
+			type = 3;
+
 		npc.ai.onAttack = type;
-		npc.setResponse();
+		npc.updateTasks();
 	}
 	
 	/**

@@ -613,7 +613,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
         tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
 	}
-	private void updateTasks() {
+	public void updateTasks() {
 		if (worldObj == null || worldObj.isRemote)
 			return;
 		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
