@@ -72,6 +72,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return player.getCommandSenderName();
 	}
 
+	public void kick(String reason) {
+		player.playerNetServerHandler.kickPlayerFromServer(reason);
+	}
+
 	@Override
 	public void spawnParticle(IParticle entityParticle) {
 		entityParticle.spawnOnEntity(this);

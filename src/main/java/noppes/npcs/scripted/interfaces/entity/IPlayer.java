@@ -26,6 +26,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      */
     String getName();
 
+    void kick(String reason);
+
     void setPosition(double x, double y, double z);
 
     void setPosition(double x, double y, double z, int dimensionId);
