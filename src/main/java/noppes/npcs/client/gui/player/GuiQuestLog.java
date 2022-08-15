@@ -124,13 +124,13 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         super.drawScreen(i, j, f);
 
         if(noQuests){
-        	mc.fontRenderer.drawString(StatCollector.translateToLocal("quest.noquests"),guiLeft + 84,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString(StatCollector.translateToLocal("quest.noquests"),guiLeft + 84,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
         	return;
         }
         for(GuiMenuSideButton button: sideButtons.values().toArray(new GuiMenuSideButton[sideButtons.size()])){
         	button.drawButton(mc, i, j);
         }
-    	mc.fontRenderer.drawString(data.selectedCategory,guiLeft + 5,guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
+    	fontRendererObj.drawString(data.selectedCategory,guiLeft + 5,guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
 
         if(!data.hasSelectedQuest())
         	return;
@@ -138,11 +138,11 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         if (questDetails) {
         	drawProgress();
         	String title = StatCollector.translateToLocal("gui.text");
-        	mc.fontRenderer.drawString(title, guiLeft + 284 - mc.fontRenderer.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         } else {
         	drawQuestText();
         	String title = StatCollector.translateToLocal("quest.objectives");
-        	mc.fontRenderer.drawString(title, guiLeft + 168, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString(title, guiLeft + 168, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         }
 
         GL11.glPushMatrix();
@@ -165,7 +165,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
     private void drawProgress() {
         String complete = data.getComplete();
         if(complete != null && !complete.isEmpty())
-        	mc.fontRenderer.drawString(StatCollector.translateToLocalFormatted("quest.completewith", complete), guiLeft + 144, guiTop + 105, CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString(StatCollector.translateToLocalFormatted("quest.completewith", complete), guiLeft + 144, guiTop + 105, CustomNpcResourceListener.DefaultTextColor);
 
     	int yoffset = guiTop + 22;
         for(String process : data.getQuestStatus()){
@@ -181,7 +181,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         		}
         		process = name + process.substring(index);
         	}
-        	mc.fontRenderer.drawString("- " + process, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
 	        yoffset += 10;
         }
 	}
@@ -250,7 +250,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 
     @Override
 	public void save() {
-        if (this.data != null && !this.data.trackedQuestKey.isEmpty())
+        if (this.data != null)
         Client.sendData(EnumPacketServer.UpdateTrackedQuest, this.data.trackedQuestKey);
 	}
 	

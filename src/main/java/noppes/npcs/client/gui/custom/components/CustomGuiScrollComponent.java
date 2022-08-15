@@ -23,16 +23,9 @@ import org.lwjgl.opengl.GL11;
 public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHolder, IClickListener {
     GuiCustom parent;
     String[] hoverText;
-    public boolean multiSelect = false;
-
+    public boolean multiSelect;
     int color;
     float alpha;
-
-    public CustomGuiScrollComponent(Minecraft mc, GuiScreen parent, int id) {
-        super(parent, id);
-        this.mc = mc;
-        this.fontRendererObj = mc.fontRenderer;
-    }
 
     public CustomGuiScrollComponent(Minecraft mc, GuiScreen parent, int id, boolean multiSelect) {
         super(parent, id, multiSelect);

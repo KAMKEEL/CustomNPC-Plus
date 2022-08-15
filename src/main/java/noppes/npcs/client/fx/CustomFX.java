@@ -314,12 +314,22 @@ public class CustomFX extends EntityFX {
             } else {
                 tessellator.setBrightness(240);
             }
+
+            float textureXScale = 1.0F, textureYScale = 1.0F;
+            if (totalWidth > totalHeight) {
+                textureYScale = (float) totalHeight/totalWidth;
+                GL11.glScalef(1/textureYScale/2,1/textureYScale/2,1/textureYScale/2);
+            } else if(totalHeight > totalWidth) {
+                textureXScale = (float) totalWidth/totalHeight;
+                GL11.glScalef(1/textureXScale/2,1/textureXScale/2,1/textureXScale/2);
+            }
+
             tessellator.setColorOpaque_F(1, 1, 1);
             tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
-            tessellator.addVertexWithUV( (u2-u1)/2,  0,  (v2-v1)/2, u2, v2);
-            tessellator.addVertexWithUV( (u2-u1)/2,  0, -(v2-v1)/2, u2, v1);
-            tessellator.addVertexWithUV( -(u2-u1)/2,  0,  -(v2-v1)/2, u1, v1);
-            tessellator.addVertexWithUV( -(u2-u1)/2,  0, (v2-v1)/2, u1, v2);
+            tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0,  textureYScale * (v2-v1)/2, u2, v2);
+            tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0, textureYScale * -(v2-v1)/2, u2, v1);
+            tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0,  textureYScale * -(v2-v1)/2, u1, v1);
+            tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0, textureYScale * (v2-v1)/2, u1, v2);
             tessellator.draw();
         GL11.glPopMatrix();
     }
