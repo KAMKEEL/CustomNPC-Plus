@@ -1,0 +1,11 @@
+noppes.npcs.scripted.constants
+noppes.npcs.scripted.event
+noppes.npcs.scripted.interfaces
+noppes.npcs.scripted.interfaces.entity
+noppes.npcs.scripted.interfaces.gui
+noppes.npcs.scripted.interfaces.handler
+noppes.npcs.scripted.interfaces.handler.data
+noppes.npcs.scripted.interfaces.item
+noppes.npcs.scripted.interfaces.jobs
+noppes.npcs.scripted.interfaces.overlay
+noppes.npcs.scripted.interfaces.roles
