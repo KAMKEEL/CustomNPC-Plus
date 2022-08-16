@@ -248,7 +248,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		NoppesUtilServer.spawnScriptedParticle(compound, this.getWorld().getDimensionID());
 	}
 
-	public void spawnParticle(IParticle entityParticle) { entityParticle.spawnOnEntity(this); }
+	public void spawnParticle(IParticle entityParticle) { entityParticle.spawn(this); }
 
 	public int getEntityId(){
 		return entity.getEntityId();

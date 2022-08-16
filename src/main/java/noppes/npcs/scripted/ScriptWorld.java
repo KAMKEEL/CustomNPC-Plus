@@ -3,6 +3,7 @@ package noppes.npcs.scripted;
 import java.util.*;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,6 +16,7 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
@@ -29,6 +31,7 @@ import noppes.npcs.scripted.interfaces.IParticle;
 import noppes.npcs.scripted.interfaces.ITileEntity;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
 
@@ -150,6 +153,51 @@ public class ScriptWorld implements IWorld {
 		world.playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
 	}
 
+	public void playSound(int id, ISound sound) {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.playSound(id, sound);
+			}
+		}
+	}
+
+	public void stopSound(int id) {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.stopSound(id);
+			}
+		}
+	}
+
+	public void pauseSounds() {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.pauseSounds();
+			}
+		}
+	}
+
+	public void continueSounds() {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.continueSounds();
+			}
+		}
+	}
+
+	public void stopSounds() {
+		IPlayer[] players = getAllServerPlayers();
+		for (IPlayer player : players) {
+			if (player.getDimension() == this.getDimensionID()) {
+				player.stopSounds();
+			}
+		}
+	}
+
 	public IEntity getEntityByID(int id){
 		return NpcAPI.Instance().getIEntity(world.getEntityByID(id));
 	}
@@ -185,6 +233,35 @@ public class ScriptWorld implements IWorld {
 		}
 
 		return list.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] getEntitiesNear(IPos position, double range) {
+		ArrayList<IEntity> list = new ArrayList<>();
+
+		List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, AxisAlignedBB.getBoundingBox(
+				position.getX() - range, position.getY() - range, position.getZ() - range,
+				position.getX() + range, position.getY() + range, position.getZ() + range));
+		for(Entity entity : entities){
+			list.add(NpcAPI.Instance().getIEntity(entity));
+		}
+
+		list.sort((e1, e2) -> {
+			double dist1 = e1.getPos().distanceTo(position);
+			double dist2 = e2.getPos().distanceTo(position);
+
+			if (dist1 > dist2) {
+				return 1;
+			} else if (dist1 < dist2) {
+				return -1;
+			}
+			return 0;
+		});
+
+		return list.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] getEntitiesNear(double x, double y, double z, double range) {
+		return getEntitiesNear(new ScriptBlockPos(new BlockPos(x,y,z)), range);
 	}
 
 	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){
@@ -281,42 +358,63 @@ public class ScriptWorld implements IWorld {
 	public void removeBlock(int x, int y, int z){
 		world.setBlock(x, y, z, Blocks.air);
 	}
-	
-	/**
-	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos
-	 * @param lookVector should be a normalized direction vector
-	 * @param maxDistance
-	 * @return the first detected block but null if maxDistance is reached
-	 */
-	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance) {
-		if (startPos.length != 3 || lookVector.length != 3) return null;
+
+	public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		if (startPos.length != 3 || lookVector.length != 3) {
+			return null;
+		}
+
+		IPos pos;
 		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+
 		while (rep++ < maxDistance + 10) {
 			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+
 			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
-			//System.out.println("Checking block at ["+(int)currentPos.xCoord+","+(int)currentPos.yCoord+","+(int)currentPos.zCoord+"]");
-			if (block == null) continue;
+			if (block != null && stopOnBlock) {
+				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
+					&& (!stopOnCollision || block.canCollide()))
+				return pos;
+			}
+
 			double distance = Math.pow(
 					Math.pow(currentPos.xCoord-startPos[0],2)
-					+Math.pow(currentPos.yCoord-startPos[1],2)
-					+Math.pow(currentPos.zCoord-startPos[2],2)
+							+Math.pow(currentPos.yCoord-startPos[1],2)
+							+Math.pow(currentPos.zCoord-startPos[2],2)
 					, 0.5);
-			//System.out.println("current distance check: "+distance+" on rep "+rep);
-			if (distance > maxDistance) return null;
-			return block;
+			if (distance > maxDistance) {
+				return pos;
+			}
 		}
-		//System.out.println("ScriptWorld:WARNING: Repeated a ray cast to many times");
+
 		return null;
 	}
 
-	/**
-	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos
-	 * @param lookVector will normalize x, y, z to get a direction vector
-	 * @param maxDistance
-	 * @return the first detected block but null if maxDistance is reached
-	 */
+	public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance) {
+		return rayCastPos(startPos,lookVector,maxDistance,true, false, false);
+	}
+
+	public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
+	}
+
+	public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance) {
+		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, true, false, false);
+	}
+
+	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return getBlock(rayCastPos(startPos,lookVector,maxDistance,stopOnBlock,stopOnLiquid,stopOnCollision));
+	}
+
+	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance) {
+		return rayCastBlock(startPos, lookVector, maxDistance, true, false, false);
+	}
+
+	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
+	}
+
 	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance) {
 		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
 	}
@@ -348,6 +446,61 @@ public class ScriptWorld implements IWorld {
 			if (block == null) break;
 		}
 		return currentPos;
+	}
+
+	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
+										  int maxDistance, double offset, double range,
+										  boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		ArrayList<IEntity> entities = new ArrayList<>();
+
+		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
+		currentPos = currentPos.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
+
+		while (rep++ < maxDistance + 10) {
+			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
+			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+			IBlock block = getBlock(pos);
+
+			if (block != null && stopOnBlock) {
+				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
+						&& (!stopOnCollision || block.canCollide()))
+					return entities.toArray(new IEntity[0]);
+			}
+
+			IEntity[] entitiesNear = getEntitiesNear(pos,range);
+			for (IEntity entity : entitiesNear) {
+				if (!entities.contains(entity)) {
+					entities.add(entity);
+				}
+			}
+
+			double distance = Math.pow(
+					Math.pow(currentPos.xCoord-startPos[0],2)
+							+Math.pow(currentPos.yCoord-startPos[1],2)
+							+Math.pow(currentPos.zCoord-startPos[2],2)
+					, 0.5);
+			if (distance > maxDistance) {
+				break;
+			}
+		}
+
+		return entities.toArray(new IEntity[0]);
+	}
+
+	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,
+									 int maxDistance, double offset, double range,
+									 boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, stopOnBlock, stopOnLiquid, stopOnCollision);
+	}
+
+	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
+									 int maxDistance, double offset, double range) {
+		return rayCastEntities(startPos, lookVector, maxDistance, offset, range, true, false, true);
+	}
+
+	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,
+									 int maxDistance, double offset, double range) {
+		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, true, false, true);
 	}
 
 	public boolean canSeeSky(int x, int y, int z) {
@@ -547,7 +700,8 @@ public class ScriptWorld implements IWorld {
 	public void explode(double x, double y, double z, float range, boolean fire, boolean grief){
 		world.newExplosion(null, x, y, z, range, fire, grief);
 	}
-	
+
+	@Deprecated
 	public IPlayer[] getAllServerPlayers(){
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
 		IPlayer[] arr = new IPlayer[list.size()];
@@ -558,6 +712,7 @@ public class ScriptWorld implements IWorld {
 		return arr;
 	}
 
+	@Deprecated
 	public String[] getPlayerNames() {
 		IPlayer[] players = getAllServerPlayers();
 		String[] names = new String[players.length];
@@ -584,22 +739,25 @@ public class ScriptWorld implements IWorld {
 	 * @param name Name of the cloned entity
 	 * @return Returns the entity which was spawned
 	 */
-	public IEntity spawnClone(int x, int y, int z, int tab, String name){
+	public IEntity spawnClone(int x, int y, int z, int tab, String name, boolean ignoreProtection){
 		NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
 		if(compound == null)
 			return null;
-		Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, world);
-		if(entity == null)
-			return null;
-		return NpcAPI.Instance().getIEntity(entity);
+		Entity entity;
+		if (!ignoreProtection) {
+			entity = NoppesUtilServer.spawnCloneWithProtection(compound, x, y, z, world);
+		} else {
+			entity = NoppesUtilServer.spawnClone(compound, x, y, z, world);
+		}
+		return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
+	}
+
+	public IEntity spawnClone(int x, int y, int z, int tab, String name) {
+		return this.spawnClone(x,y,z,tab,name,true);
 	}
 	
 	public ScriptScoreboard getScoreboard(){
 		return new ScriptScoreboard();
-	}
-
-	public BlockPos getMCBlockPos(int x, int y, int z){
-		return new BlockPos(x,y,z);
 	}
 
 	/**

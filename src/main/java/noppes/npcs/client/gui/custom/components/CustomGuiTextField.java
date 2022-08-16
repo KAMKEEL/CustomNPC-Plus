@@ -40,7 +40,10 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
         float green = (color >> 8  & 255) / 255f;
         float blue = (color & 255) / 255f;
         GL11.glColor4f(red,green,blue,this.alpha);
+        GL11.glPushMatrix();
+        GL11.glTranslatef(0.0F,0.0F,(float)this.id);
         this.drawTextBox();
+        GL11.glPopMatrix();
         GL11.glColor4f(1.0F,1.0F,1.0F,1.0F);
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;

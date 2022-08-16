@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.scripted.ScriptScoreboard;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 
 public interface IWorld {
@@ -79,6 +79,16 @@ public interface IWorld {
 
     void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
 
+    void playSound(int id, ISound sound);
+
+    void stopSound(int id);
+
+    void pauseSounds();
+
+    void continueSounds();
+
+    void stopSounds();
+
     IEntity getEntityByID(int id);
 
     boolean spawnEntityInWorld(IEntity entity);
@@ -99,6 +109,10 @@ public interface IWorld {
     int countEntities(IEntity entity);
 
     IEntity[] getLoadedEntities();
+
+    IEntity[] getEntitiesNear(IPos position, double range);
+
+    IEntity[] getEntitiesNear(double x, double y, double z, double range);
 
     /**
      * Sets the block's tile entity at the given position.
@@ -156,23 +170,28 @@ public interface IWorld {
      */
     public void removeBlock(int x, int y, int z);
 
-    /**
-	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos
-	 * @param lookVector should be a normalized direction vector
-	 * @param maxDistance
-	 * @return the first detected block but null if maxDistance is reached
-	 */
-    public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
+    IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance);
+
+    IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance);
 
     /**
-	 * starting at the start position, draw a line in the lookVector direction until a block is detected
-	 * @param startPos
-	 * @param lookVector will normalize x, y, z to get a direction vector
-	 * @param maxDistance
-	 * @return the first detected block but null if maxDistance is reached
-	 */
-    public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
+     * starting at the start position, draw a line in the lookVector direction until a block is detected
+     * @param startPos
+     * @param lookVector should be a normalized direction vector
+     * @param maxDistance
+     * @return the first detected block but null if maxDistance is reached
+     */
+    IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance);
+
+    IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance);
 
     /**
      * @param startPos
@@ -180,6 +199,14 @@ public interface IWorld {
      * @return the position of the closest block of air to startPos
      */
     public IPos getNearestAir(IPos startPos, int maxHeight);
+
+    IEntity[] rayCastEntities(double[] startPos, double[] lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IEntity[] rayCastEntities(IPos startPos, IPos lookVector, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision);
+
+    IEntity[] rayCastEntities(double[] startPos, double[] lookVector, int maxDistance, double offset, double range);
+
+    IEntity[] rayCastEntities(IPos startPos, IPos lookVector, int maxDistance, double offset, double range);
 
     /**
      * @param x
@@ -346,17 +373,14 @@ public interface IWorld {
      * @param z The z position the clone will be spawned at
      * @param tab The tab in which the clone is
      * @param name Name of the cloned entity
+     * @param ignoreProtection Whether the spawning of this clone skips protection checks.
      * @return Returns the entity which was spawned
      */
+    IEntity spawnClone(int x, int y, int z, int tab, String name, boolean ignoreProtection);
+
     IEntity spawnClone(int x, int y, int z, int tab, String name);
 
     ScriptScoreboard getScoreboard();
-
-    /**
-     *
-     * @return An obfuscated MC BlockPos object.
-     */
-    BlockPos getMCBlockPos(int x, int y, int z);
 
     /**
      * @since 1.7.10c

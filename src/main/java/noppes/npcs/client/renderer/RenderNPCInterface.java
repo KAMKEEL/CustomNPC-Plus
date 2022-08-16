@@ -14,6 +14,7 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderLiving;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
@@ -42,6 +43,7 @@ import javax.imageio.ImageIO;
 
 public class RenderNPCInterface extends RenderLiving{
 	public static long LastTextureTick = 0;
+	public static RenderManager staticRenderManager;
 	public ModelBase originalModel;
 
 	public RenderNPCInterface(ModelBase model, float f){
@@ -212,6 +214,8 @@ public class RenderNPCInterface extends RenderLiving{
 		if(npc.ai.standingType == EnumStandingType.HeadRotation && !npc.isWalking() && !npc.isInteracting()){
 			npc.prevRenderYawOffset = npc.renderYawOffset = npc.ai.orientation;
 		}
+
+		staticRenderManager = this.renderManager;
 		super.doRender(entityliving, d, d1, d2, f, f1);
 	}
 

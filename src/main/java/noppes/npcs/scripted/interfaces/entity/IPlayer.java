@@ -6,9 +6,11 @@ import net.minecraft.util.EnumChatFormatting;
 import noppes.npcs.scripted.entity.ScriptDBCPlayer;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.handler.IPlayerData;
+import noppes.npcs.scripted.interfaces.handler.data.IDialog;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
@@ -24,6 +26,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      */
     String getName();
 
+    void kick(String reason);
+
     void setPosition(double x, double y, double z);
 
     void setPosition(double x, double y, double z, int dimensionId);
@@ -36,36 +40,69 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void setSaturation(float saturation);
 
-    public boolean hasReadDialog(int id);
+    void showDialog(IDialog dialog);
 
-    public void readDialog(int id);
+    boolean hasReadDialog(IDialog dialog);
 
-    public void unreadDialog(int id);
+    void readDialog(IDialog dialog);
+
+    void unreadDialog(IDialog dialog);
+
+    void showDialog(int id);
+
+    boolean hasReadDialog(int id);
+
+    void readDialog(int id);
+
+    void unreadDialog(int id);
+
+    boolean hasFinishedQuest(IQuest quest);
+
+    boolean hasActiveQuest(IQuest quest);
+
+    /**
+     * Add the quest from active quest list
+     * @param quest The quest
+     */
+    void startQuest(IQuest quest);
+
+    /**
+     * Add the quest from finished quest list
+     * @param quest The quest
+     */
+    void finishQuest(IQuest quest);
+    /**
+     * Removes the quest from active quest list
+     * @param quest The quest
+     */
+    void stopQuest(IQuest quest);
+
+    /**
+     * Removes the quest from active and finished quest list
+     * @param quest The quest
+     */
+    void removeQuest(IQuest quest);
 
     boolean hasFinishedQuest(int id);
 
     boolean hasActiveQuest(int id);
 
     /**
-     * Add the quest from active quest list
-     * @param id The Quest ID
+     * @param id The quest ID
      */
     void startQuest(int id);
 
     /**
-     * Add the quest from finished quest list
-     * @param id The Quest ID
+     * @param id The quest ID
      */
     void finishQuest(int id);
     /**
-     * Removes the quest from active quest list
-     * @param id The Quest ID
+     * @param id The quest ID
      */
     void stopQuest(int id);
 
     /**
-     * Removes the quest from active and finished quest list
-     * @param id The Quest ID
+     * @param id The quest ID
      */
     void removeQuest(int id);
 
@@ -188,6 +225,16 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void playSound(String name, float volume, float pitch);
 
+    void playSound(int id, ISound sound);
+
+    void stopSound(int id);
+
+    void pauseSounds();
+
+    void continueSounds();
+
+    void stopSounds();
+
     void mountEntity(Entity ridingEntity);
 
     IEntity dropOneItem(boolean dropStack);
@@ -226,8 +273,6 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      */
     ScriptPixelmonPlayerData getPixelmonData();
 
-    IBlock getLookingAtBlock(int maxDistance);
-
     ITimers getTimers();
 
     void updatePlayerInventory();
@@ -237,6 +282,8 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     boolean blocking();
 
     public IPlayerData getData();
+
+    boolean isScriptingDev();
 
     IQuest[] getActiveQuests();
 

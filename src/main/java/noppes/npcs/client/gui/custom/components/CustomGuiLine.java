@@ -50,7 +50,7 @@ public class CustomGuiLine extends Gui implements IGuiComponent {
             float blue = (color & 255) / 255f;
             GL11.glColor4f(red,green,blue,this.alpha);
 
-            GL11.glTranslatef(GuiCustom.guiLeft+this.x1,GuiCustom.guiTop+this.y1,0.0F);
+            GL11.glTranslatef(GuiCustom.guiLeft+this.x1,GuiCustom.guiTop+this.y1,(float)this.id);
             GL11.glRotated(-Math.toDegrees(Math.atan2(x2-x1,y2-y1)),0.0F,0.0F,1.0F);
             GL11.glRotated(rotation,0.0D,0.0D,1.0D);
             GL11.glScaled(thickness, distance,0.0D);

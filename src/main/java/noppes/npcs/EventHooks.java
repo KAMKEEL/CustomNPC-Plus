@@ -351,6 +351,11 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onPlayerAttacked(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.AttackedEvent event) {
+        handler.callScript(EnumScriptType.ATTACKED, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onPlayerDamaged(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.DamagedEvent event) {
         handler.callScript(EnumScriptType.DAMAGED, event);
         return NpcAPI.EVENT_BUS.post(event);
@@ -431,6 +436,11 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onPlayerAttack(PlayerDataScript handler, PlayerEvent.AttackEvent event) {
+        handler.callScript(EnumScriptType.ATTACK, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onPlayerDamagedEntity(PlayerDataScript handler, DamagedEntityEvent event) {
         handler.callScript(EnumScriptType.DAMAGED_ENTITY, event);
         return NpcAPI.EVENT_BUS.post(event);
@@ -442,9 +452,9 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onPlayerMouseClicked(EntityPlayerMP player, int button, int mouseWheel, boolean buttonDown) {
+    public static void onPlayerMouseClicked(EntityPlayerMP player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed, int[] heldKeys) {
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        PlayerEvent.MouseClickedEvent event = new PlayerEvent.MouseClickedEvent((IPlayer)NpcAPI.Instance().getIEntity(player), button, mouseWheel, buttonDown);
+        PlayerEvent.MouseClickedEvent event = new PlayerEvent.MouseClickedEvent((IPlayer)NpcAPI.Instance().getIEntity(player), button, mouseWheel, buttonDown, isCtrlPressed, isAltPressed, isShiftPressed, isMetaPressed, heldKeys);
         handler.callScript(EnumScriptType.MOUSE_CLICKED, event);
         NpcAPI.EVENT_BUS.post(event);
     }

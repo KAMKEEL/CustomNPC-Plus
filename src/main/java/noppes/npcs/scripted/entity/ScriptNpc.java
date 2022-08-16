@@ -452,12 +452,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.stats.maxDelay;
 	}
 
-	public void setRangedRage(int rangedRange) {
+	public void setRangedRange(int rangedRange) {
 		npc.stats.rangedRange = rangedRange;
 	}
-	public int getRangedRage() {
+	public int getRangedRange() {
 		return npc.stats.rangedRange;
 	}
+	public void setRangedRage(int rangedRage) { this.setRangedRange(rangedRage); }
+	public int getRangedRage() { return this.getRangedRange(); }
 
 	public void setFireRate(int rate) {
 		npc.stats.fireRate = rate;
@@ -1006,8 +1008,13 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param type Retaliation type. 0:normal, 1:panic, 2:retreat, 3:nothing
 	 */
 	public void setRetaliateType(int type){
+		if (type < 0)
+			type = 0;
+		if (type > 3)
+			type = 3;
+
 		npc.ai.onAttack = type;
-		npc.setResponse();
+		npc.updateTasks();
 	}
 	
 	/**

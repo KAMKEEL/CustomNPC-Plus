@@ -1,7 +1,6 @@
 package noppes.npcs.scripted.interfaces;
 
 import net.minecraft.tileentity.TileEntity;
-import noppes.npcs.scripted.ScriptBlock;
 import noppes.npcs.scripted.ScriptWorld;
 
 public interface ITileEntity {

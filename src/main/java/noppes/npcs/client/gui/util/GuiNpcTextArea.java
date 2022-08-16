@@ -27,7 +27,8 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
 	private int startClick = -1;
 	private boolean clickVerticalBar = false;
 	private boolean wrapLine = true;
-	
+	private List<String> lines = new ArrayList<>();
+
 	public GuiNpcTextArea(int id,GuiScreen guiscreen, int i, int j, int k, int l, String s) {
 		super(id,guiscreen, i, j, k, l, s);
 		posX = i;
@@ -40,33 +41,56 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
 	}
 
 	@Override
+	public void setText(String text) {
+		super.setText(text);
+
+		updateLineList();
+	}
+
+	public void updateLineList() {
+		List<String> list = new ArrayList<String>();
+		StringBuilder line = new StringBuilder();
+		for(char c : getText().toCharArray()){
+			if(c == '\r' || c == '\n'){
+				list.add(line.toString());
+				line = new StringBuilder();
+			}
+			else
+				line.append(c);
+		}
+		list.add(line.toString());
+		lines = list;
+	}
+
+	@Override
     public void updateCursorCounter(){
         cursorCounter++;
     }
-    
+
 	@Override
-    public boolean textboxKeyTyped(char c, int i){
-        if (isFocused() && canEdit){
-        	String originalText = getText();       
-        	this.setText(originalText);	
-        	if(c == '\r' || c == '\n'){
-        		this.setText(originalText.substring(0, cursorPosition) + c + originalText.substring(cursorPosition));
-        	}
-        	this.setCursorPositionZero();
-        	this.moveCursorBy(cursorPosition);
-        	boolean bo = super.textboxKeyTyped(c, i);
-        	String newText = getText();  
-        	if(i != Keyboard.KEY_DELETE)
-        		cursorPosition += newText.length() - originalText.length();
-    		if(i == Keyboard.KEY_LEFT && cursorPosition > 0)
-    			cursorPosition--;
-    		if(i == Keyboard.KEY_RIGHT && cursorPosition < newText.length())
-    			cursorPosition++;
-        	return bo;
-    		
-        }
-        return false;
-    }
+	public boolean textboxKeyTyped(char c, int i){
+		if (isFocused() && canEdit){
+			String originalText = getText();
+			this.setText(originalText);
+			if(c == '\r' || c == '\n'){
+				this.setText(originalText.substring(0, cursorPosition) + c + originalText.substring(cursorPosition));
+			}
+			this.setCursorPositionZero();
+			this.moveCursorBy(cursorPosition);
+			boolean bo = super.textboxKeyTyped(c, i);
+			updateLineList();
+			String newText = getText();
+			if(i != Keyboard.KEY_DELETE)
+				cursorPosition += newText.length() - originalText.length();
+			if(i == Keyboard.KEY_LEFT && cursorPosition > 0)
+				cursorPosition--;
+			if(i == Keyboard.KEY_RIGHT && cursorPosition < newText.length())
+				cursorPosition++;
+			return bo;
+
+		}
+		return false;
+	}
 	
 	@Override
     public void mouseClicked(int i, int j, int k){
@@ -84,7 +108,6 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
     	int x = i - posX;
     	int y = (j - posY - 4) / font.height() + getStartLineY();
     	cursorPosition = 0;
-        List<String> lines = getLines();
         int charCount = 0;
         int lineCount = 0;
         int maxSize = width - (isScrolling()?14:4);
@@ -153,8 +176,7 @@ public class GuiNpcTextArea extends GuiNpcTextField implements IGui{
         int startLine = getStartLineY();
         
         int maxLine = height / font.height() + startLine;
-        
-        List<String> lines = getLines();
+
         int charCount = 0;
         int lineCount = 0;
         int maxSize = width - (isScrolling()?14:4);

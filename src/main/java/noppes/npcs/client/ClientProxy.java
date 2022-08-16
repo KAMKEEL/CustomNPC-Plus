@@ -131,6 +131,7 @@ import noppes.npcs.client.renderer.blocks.BlockWeaponRackRenderer;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
+import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 
@@ -158,6 +159,7 @@ public class ClientProxy extends CommonProxy {
 		CustomNpcs.Channel.register(new PacketHandlerClient());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 		new MusicController();
+		new ScriptSoundController();
 
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcPony.class, new RenderNPCPony());
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcCrystal.class, new RenderNpcCrystal(new ModelNpcCrystal(0.5F)));

@@ -103,4 +103,13 @@ public interface IBlock {
      * @return An INbt object which can modify the block's tile entity's NBT data.
      */
     INbt getTileEntityNBT();
+
+    /**
+     *
+     * @param maxVolume The volume threshold to determine whether this block's bounding box collides, if it has one.
+     * @return Whether this block can be collided with
+     */
+    boolean canCollide(double maxVolume);
+
+    boolean canCollide();
 }

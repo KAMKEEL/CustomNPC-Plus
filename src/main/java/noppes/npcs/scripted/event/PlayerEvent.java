@@ -58,15 +58,26 @@ public class PlayerEvent extends CustomNPCsEvent {
     }
 
     public static class MouseClickedEvent extends PlayerEvent {
+        public final boolean isCtrlPressed;
+        public final boolean isAltPressed;
+        public final boolean isShiftPressed;
+        public final boolean isMetaPressed;
+        public final int[] keysDown;
+
         public final int button;
         public final int mouseWheel;
         public final boolean buttonDown;
 
-        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown){
+        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys){
             super(player);
             this.button = button;
             this.mouseWheel = mouseWheel;
             this.buttonDown = buttonDown;
+            this.isCtrlPressed = isCtrlPressed;
+            this.isAltPressed = isAltPressed;
+            this.isShiftPressed = isShiftPressed;
+            this.isMetaPressed = isMetaPressed;
+            this.keysDown = heldKeys;
         }
     }
 
@@ -123,6 +134,20 @@ public class PlayerEvent extends CustomNPCsEvent {
         public TimerEvent(IPlayer player, int id) {
             super(player);
             this.id = id;
+        }
+    }
+
+    @Cancelable
+    public static class AttackedEvent extends PlayerEvent {
+        public final IDamageSource damageSource;
+        public final IEntity source;
+        public final float damage;
+
+        public AttackedEvent(IPlayer player, Entity source, float damage, DamageSource damagesource) {
+            super(player);
+            this.source = NpcAPI.Instance().getIEntity(source);
+            this.damage = damage;
+            this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
     }
 
@@ -213,6 +238,20 @@ public class PlayerEvent extends CustomNPCsEvent {
     }
 
     @Cancelable
+    public static class AttackEvent extends PlayerEvent {
+        public final IDamageSource damageSource;
+        public final IEntity target;
+        public float damage;
+
+        public AttackEvent(IPlayer player, Entity target, float damage, DamageSource damagesource) {
+            super(player);
+            this.target = NpcAPI.Instance().getIEntity(target);
+            this.damage = damage;
+            this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
+        }
+    }
+
+    @Cancelable
     public static class DamagedEntityEvent extends PlayerEvent {
         public final IDamageSource damageSource;
         public final IEntity target;
@@ -271,18 +310,6 @@ public class PlayerEvent extends CustomNPCsEvent {
         public TossEvent(IPlayer player, IItemStack item) {
             super(player);
             this.item = item;
-        }
-    }
-
-    @Cancelable
-    public static class AttackEvent extends PlayerEvent {
-        public final int type;
-        public final Object target;
-
-        public AttackEvent(IPlayer player, int type, Object target) {
-            super(player);
-            this.type = type;
-            this.target = target;
         }
     }
 

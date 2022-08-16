@@ -71,6 +71,7 @@ import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 
@@ -321,6 +322,41 @@ public class NoppesUtilServer {
 			if (player.worldObj.provider.dimensionId == dimensionId) {
 				Server.sendData((EntityPlayerMP) player, EnumPacketClient.SCRIPTED_PARTICLE, compound);
 			}
+		}
+	}
+
+	public static void playSound(int id, ScriptSound sound) {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.playSoundTo((EntityPlayerMP) player, id, sound);
+		}
+	}
+
+	public static void stopSound(int id) {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.stopSoundFor((EntityPlayerMP) player, id);
+		}
+	}
+
+	public static void pauseSounds() {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.pauseSoundsFor((EntityPlayerMP) player);
+		}
+	}
+
+	public static void continueSounds() {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.continueSoundsFor((EntityPlayerMP) player);
+		}
+	}
+
+	public static void stopSounds() {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.stopSoundsFor((EntityPlayerMP) player);
 		}
 	}
 
@@ -636,8 +672,28 @@ public class NoppesUtilServer {
 		Server.sendData(player, EnumPacketClient.GUI_CLOSE, i, comp);
 	}
 	
-	public static Entity spawnClone(NBTTagCompound compound, int x, int y,
+	public static Entity spawnCloneWithProtection(NBTTagCompound compound, int x, int y,
 			int z, World worldObj) {
+		ServerCloneController.Instance.cleanTags(compound);
+		compound.setTag("Pos", NBTTags.nbtDoubleList(x + 0.5, y, z + 0.5));
+		Entity entity = EntityList.createEntityFromNBT(compound, worldObj);
+		if(entity == null){
+			return null;
+		}
+		entity.setPosition((double) x + 0.5, (double) y, (double) z + 0.5);
+		if(entity instanceof EntityNPCInterface){
+			EntityNPCInterface npc = (EntityNPCInterface) entity;
+			npc.ai.startPos = new int[]{MathHelper.floor_double(npc.posX),MathHelper.floor_double(npc.posY),MathHelper.floor_double(npc.posZ)};
+			npc.ticksExisted = 0;
+			npc.totalTicksAlive = 0;
+		}
+		worldObj.spawnEntityInWorld(entity);
+		entity.prevPosY = entity.lastTickPosY = entity.posY = y + 1;
+		return entity;
+	}
+
+	public static Entity spawnClone(NBTTagCompound compound, int x, int y,
+									int z, World worldObj) {
 		ServerCloneController.Instance.cleanTags(compound);
 		compound.setTag("Pos", NBTTags.nbtDoubleList(x + 0.5, y + 1, z + 0.5));
 		Entity entity = EntityList.createEntityFromNBT(compound, worldObj);
@@ -653,6 +709,7 @@ public class NoppesUtilServer {
 		worldObj.spawnEntityInWorld(entity);
 		return entity;
 	}
+
 	public static boolean isOp(EntityPlayer player) {
 		return MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
 	}

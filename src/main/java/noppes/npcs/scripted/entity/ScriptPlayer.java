@@ -1,9 +1,6 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -17,13 +14,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
+import noppes.npcs.*;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -41,17 +33,16 @@ import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
+import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.interfaces.IParticle;
-import noppes.npcs.scripted.interfaces.handler.IPlayerData;
+import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.scripted.interfaces.handler.data.IDialog;
 import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.IBlock;
-import noppes.npcs.scripted.interfaces.IContainer;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
@@ -79,6 +70,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 */
 	public String getName(){
 		return player.getCommandSenderName();
+	}
+
+	public void kick(String reason) {
+		player.playerNetServerHandler.kickPlayerFromServer(reason);
 	}
 
 	@Override
@@ -121,15 +116,30 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		player.getFoodStats().addStats(0,saturation-prevSaturation);
 	}
-	
-	public boolean hasFinishedQuest(int id){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
-		return data.finishedQuests.containsKey(id);
+
+	public void showDialog(IDialog dialog) {
+		if (dialog != null) {
+			showDialog(dialog.getId());
+		}
 	}
-	
-	public boolean hasActiveQuest(int id){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
-		return data.activeQuests.containsKey(id);
+
+	public boolean hasReadDialog(IDialog dialog) {
+		if (dialog != null) {
+			return hasReadDialog(dialog.getId());
+		}
+		return false;
+	}
+
+	public void readDialog(IDialog dialog) {
+		if (dialog != null) {
+			this.readDialog(dialog.getId());
+		}
+	}
+
+	public void unreadDialog(IDialog dialog) {
+		if (dialog != null) {
+			this.unreadDialog(dialog.getId());
+		}
 	}
 
 	public void showDialog(int id){
@@ -139,7 +149,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		NoppesUtilServer.openDialog(player, new EntityDialogNpc(this.player.worldObj), dialog, 0);
 	}
-	
+
 	public boolean hasReadDialog(int id){
 		PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
 		return data.dialogsRead.contains(id);
@@ -151,6 +161,52 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void unreadDialog(int id) {
 		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
+	}
+
+	public boolean hasFinishedQuest(IQuest quest) {
+		if (quest == null)
+			return false;
+		return hasFinishedQuest(quest.getId());
+	}
+
+	public boolean hasActiveQuest(IQuest quest) {
+		if (quest == null)
+			return false;
+		return hasActiveQuest(quest.getId());
+	}
+
+	public void startQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		startQuest(quest.getId());
+	}
+
+	public void finishQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		finishQuest(quest.getId());
+	}
+
+	public void stopQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		stopQuest(quest.getId());
+	}
+
+	public void removeQuest(IQuest quest) {
+		if (quest == null)
+			return;
+		removeQuest(quest.getId());
+	}
+	
+	public boolean hasFinishedQuest(int id){
+		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		return data.finishedQuests.containsKey(id);
+	}
+	
+	public boolean hasActiveQuest(int id){
+		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		return data.activeQuests.containsKey(id);
 	}
 
 	/**
@@ -487,6 +543,26 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		player.playSound(name, volume, pitch);
 	}
 
+	public void playSound(int id, ISound sound) {
+		NoppesUtilPlayer.playSoundTo(player, id, (ScriptSound) sound);
+	}
+
+	public void stopSound(int id) {
+		NoppesUtilPlayer.stopSoundFor(player, id);
+	}
+
+	public void pauseSounds() {
+		NoppesUtilPlayer.pauseSoundsFor(player);
+	}
+
+	public void continueSounds() {
+		NoppesUtilPlayer.continueSoundsFor(player);
+	}
+
+	public void stopSounds() {
+		NoppesUtilPlayer.stopSoundsFor(player);
+	}
+
 	public void mountEntity(Entity ridingEntity){
 		player.mountEntity(ridingEntity);
 	}
@@ -550,14 +626,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return new ScriptPixelmonPlayerData(player);
 	}
 
-	public IBlock getLookingAtBlock(int maxDistance) {
-		Vec3 lookVec = player.getLookVec();
-		return getWorld().rayCastBlock(
-				new double[] {player.posX, player.posY+player.getEyeHeight(), player.posZ},
-				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
-				maxDistance);
-	}
-
 	public ITimers getTimers() {
 		return PlayerDataController.instance.getPlayerData(player).timers;
 	}
@@ -599,6 +667,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 
 		return this.data;
+	}
+
+	public boolean isScriptingDev() {
+		return CustomNpcs.isScriptDev(player);
 	}
 
 	public IQuest[] getActiveQuests() {

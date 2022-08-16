@@ -35,7 +35,6 @@ import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.*;
-import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.containers.ContainerNpcInterface;
@@ -50,6 +49,7 @@ import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.handler.data.IFaction;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
@@ -334,6 +334,13 @@ public class NpcAPI extends AbstractNpcAPI {
         return arr;
     }
 
+    public String[] getPlayerNames() {
+        IPlayer[] players = getAllServerPlayers();
+        String[] names = new String[players.length];
+        for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
+        return names;
+    }
+
     public void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch){
         entity.getWorld().getMCWorld().playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
     }
@@ -359,6 +366,30 @@ public class NpcAPI extends AbstractNpcAPI {
     @Deprecated
     public IParticle createEntityParticle(String directory){
         return new ScriptParticle(directory);
+    }
+
+    public ISound createSound(String directory) {
+        return new ScriptSound(directory);
+    }
+
+    public void playSound(int id, ISound sound) {
+        NoppesUtilServer.playSound(id, (ScriptSound) sound);
+    }
+
+    public void stopSound(int id) {
+        NoppesUtilServer.stopSound(id);
+    }
+
+    public void pauseSounds() {
+        NoppesUtilServer.pauseSounds();
+    }
+
+    public void continueSounds() {
+        NoppesUtilServer.continueSounds();
+    }
+
+    public void stopSounds() {
+        NoppesUtilServer.stopSounds();
     }
 
     public int getServerTime() {

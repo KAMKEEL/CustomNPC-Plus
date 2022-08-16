@@ -25,6 +25,8 @@ import noppes.npcs.Server;
 import noppes.npcs.ServerEventsHandler;
 import noppes.npcs.client.ClientProxy.FontContainer;
 import noppes.npcs.client.controllers.MusicController;
+import noppes.npcs.client.controllers.ScriptClientSound;
+import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
@@ -304,6 +306,26 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					ClientEventHandler.disabledButtonTimes.put(Integer.parseInt(s), length);
 				}
 			} catch (Exception ignored) {}
+		}
+		else if(type == EnumPacketClient.PLAY_SOUND_TO) {
+			int id = buffer.readInt();
+			NBTTagCompound compound = Server.readNBT(buffer);
+			ScriptClientSound sound = ScriptClientSound.fromScriptSound(compound, player.worldObj);
+
+			ScriptSoundController.Instance.playSound(id,sound);
+		}
+		else if(type == EnumPacketClient.STOP_SOUND_FOR) {
+			int id = buffer.readInt();
+			ScriptSoundController.Instance.stopSound(id);
+		}
+		else if(type == EnumPacketClient.PAUSE_SOUNDS) {
+			ScriptSoundController.Instance.pauseAllSounds();
+		}
+		else if(type == EnumPacketClient.CONTINUE_SOUNDS) {
+			ScriptSoundController.Instance.continueAllSounds();
+		}
+		else if(type == EnumPacketClient.STOP_SOUNDS) {
+			ScriptSoundController.Instance.stopAllSounds();
 		}
 	}
 }

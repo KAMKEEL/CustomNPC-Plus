@@ -103,6 +103,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 hookList.add("init");
                 hookList.add("tick");
                 hookList.add("interact");
+                hookList.add("attack");
+                hookList.add("attacked");
                 hookList.add("damagedEntity");
                 hookList.add("damaged");
                 hookList.add("kills");
@@ -318,11 +320,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public void confirmClicked(boolean flag, int i) {
         if(flag) {
             if(i == 0) {
-                this.openLink("http://www.kodevelopment.nl/minecraft/customnpcs/scripting");
+                this.openLink("https://www.curseforge.com/minecraft/mc-mods/customnpc-plus");
             }
 
             if(i == 1) {
-                this.openLink("http://www.kodevelopment.nl/customnpcs/api/");
+                this.openLink("https://kamkeel.github.io/CustomNPC-Plus/");
             }
 
             if(i == 2) {
@@ -378,6 +380,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         if(guibutton.id == 101) {
             (this.getTextField(2)).setText(NoppesStringUtils.getClipboardContents());
+            this.setScript();
         }
 
         ScriptContainer container;
@@ -425,7 +428,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
             if(container != null) {
                 this.setScript();
-                this.AWTWindow = new GuiJTextArea(container.script).setListener(this);
+                AWTWindow = new GuiJTextArea(container.script).setListener(this);
             }
         }
 

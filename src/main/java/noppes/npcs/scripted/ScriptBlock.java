@@ -10,6 +10,7 @@ import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -130,5 +131,20 @@ public class ScriptBlock implements IBlock {
         NBTTagCompound compound = new NBTTagCompound();
         this.tile.writeToNBT(compound);
         return NpcAPI.Instance().getINbt(compound);
+    }
+
+    public boolean canCollide(double maxVolume) {
+        AxisAlignedBB alignedBB = block.getCollisionBoundingBoxFromPool(world.getMCWorld(),getX(),getY(),getZ());
+        if (alignedBB == null) {
+            return false;
+        }
+        double xEdge = alignedBB.maxX - alignedBB.minX;
+        double yEdge = alignedBB.maxY - alignedBB.minY;
+        double zEdge = alignedBB.maxZ - alignedBB.minZ;
+        return Math.abs(xEdge * yEdge * zEdge) > maxVolume;
+    }
+
+    public boolean canCollide() {
+        return canCollide(0);
     }
 }

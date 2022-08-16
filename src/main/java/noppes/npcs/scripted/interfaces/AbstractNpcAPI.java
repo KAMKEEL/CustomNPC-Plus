@@ -22,13 +22,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.*;
+import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
 import noppes.npcs.scripted.interfaces.handler.*;
+import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
@@ -153,6 +156,8 @@ public abstract class AbstractNpcAPI {
 
     public abstract IPlayer[] getAllServerPlayers();
 
+    public abstract String[] getPlayerNames();
+
     public abstract IItemStack createItem(String id, int damage, int size);
 
     public abstract void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch);
@@ -178,6 +183,18 @@ public abstract class AbstractNpcAPI {
 
     @Deprecated
     public abstract IParticle createEntityParticle(String directory);
+
+    public abstract ISound createSound(String directory);
+
+    public abstract void playSound(int id, ISound sound);
+
+    public abstract void stopSound(int id);
+
+    public abstract void pauseSounds();
+
+    public abstract void continueSounds();
+
+    public abstract void stopSounds();
 
     /**
      *

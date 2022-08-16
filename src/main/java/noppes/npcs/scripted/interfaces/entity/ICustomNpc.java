@@ -254,8 +254,8 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     void setMaxProjectileDelay(int maxDelay);
     int getMaxProjectileDelay();
 
-    void setRangedRage(int rangedRange);
-    int getRangedRage();
+    void setRangedRange(int rangedRange);
+    int getRangedRange();
 
     void setFireRate(int rate);
     int getFireRate();

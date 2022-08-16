@@ -47,6 +47,13 @@ public class ScriptContainer {
 
     public void readFromNBT(NBTTagCompound compound) {
         this.script = compound.getString("Script");
+        for (int i = 0; i < CustomNpcs.ExpandedScriptLimit; i++) {
+            if (compound.hasKey("ExpandedScript"+i)) {
+                this.script += compound.getString("ExpandedScript"+i);
+            } else {
+                break;
+            }
+        }
         //this.type = compound.getString("Type");
         this.console = NBTTags.GetLongStringMap(compound.getTagList("Console", 10));
         this.scripts = NBTTags.getStringList(compound.getTagList("ScriptList", 10));
@@ -54,7 +61,29 @@ public class ScriptContainer {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setString("Script", this.script);
+        if (this.script.length() < 65535) {
+            compound.setString("Script", this.script);
+        } else {
+            if (CustomNpcs.ExpandedScriptLimit > 0) {
+                int i = 0;
+                int length = this.script.length();
+                while (length > 0 && i <= CustomNpcs.ExpandedScriptLimit) {
+                    String str = "";
+                    if (i == 0) {
+                        compound.setString("Script", this.script.substring(0, 65535));
+                        str = this.script.substring(0, 65535);
+                    } else {
+                        int end = (length - 65535) >= 0 ? 65535 * (i + 1) : 65535 * i + length;
+                        str = this.script.substring(65535 * i, end);
+                        compound.setString("ExpandedScript" + (i - 1), str);
+                    }
+                    i++;
+                    length -= str.length();
+                }
+            } else {
+                compound.setString("Script", this.script.substring(0, 65535));
+            }
+        }
         //compound.setString("Type", this.type);
         compound.setTag("Console", NBTTags.NBTLongStringMap(this.console));
         compound.setTag("ScriptList", NBTTags.nbtStringList(this.scripts));

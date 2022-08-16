@@ -6,6 +6,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.controllers.MusicController;
+import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.client.gui.player.GuiQuestLog;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumPlayerPacket;
@@ -43,14 +44,30 @@ public class ClientTickHandler{
 			prevWorld = mc.theWorld;
 			MusicController.Instance.stopMusic();
 		}
+		ScriptSoundController.Instance.onUpdate();
 	}
 
 	@SubscribeEvent
 	public void onMouse(InputEvent.MouseInputEvent event){
-		if(Mouse.getEventButton() == -1 && Mouse.getDWheel() == 0)
+		if(Mouse.getEventButton() == -1 && Mouse.getEventDWheel() == 0)
 			return;
 
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, new Object[]{Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton())});
+		boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
+		boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
+		boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
+		boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
+
+		StringBuilder keysDownString = new StringBuilder();
+		for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
+			if (Keyboard.isKeyDown(i)) {
+				keysDownString.append(Integer.valueOf(i)).append(",");
+			}
+		}
+		if (keysDownString.length() > 0) {//Removes last comma for later parsing
+			keysDownString.deleteCharAt(keysDownString.length() - 1);
+		}
+
+		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()), isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDownString.toString());
 	}
 
 	@SubscribeEvent
@@ -81,7 +98,7 @@ public class ClientTickHandler{
 				keysDownString.deleteCharAt(keysDownString.length() - 1);
 			}
 
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, new Object[]{Integer.valueOf(key), Boolean.valueOf(isCtrlPressed), Boolean.valueOf(isShiftPressed), Boolean.valueOf(isAltPressed), Boolean.valueOf(isMetaPressed), Boolean.valueOf(keyDown), keysDownString.toString()});
+			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, key, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keyDown, keysDownString.toString());
 		}
 	}
 

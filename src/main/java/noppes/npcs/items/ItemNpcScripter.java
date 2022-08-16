@@ -5,6 +5,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -31,11 +33,15 @@ public class ItemNpcScripter extends Item{
     }
 
     @Override
-    public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer){
-        if(!par2World.isRemote)
-            return par1ItemStack;
-        CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, par3EntityPlayer);
-        return par1ItemStack;
+    public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player){
+        if(!world.isRemote)
+            return itemStack;
+        if(!CustomNpcs.isScriptDev(player)){
+            player.addChatMessage(new ChatComponentTranslation("availability.permission"));
+        } else {
+            CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);
+        }
+        return itemStack;
     }
 
     @SideOnly(Side.CLIENT)

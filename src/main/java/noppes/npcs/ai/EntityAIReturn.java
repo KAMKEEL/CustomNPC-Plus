@@ -1,7 +1,6 @@
 package noppes.npcs.ai;
 
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumMovingType;
@@ -34,13 +33,9 @@ public class EntityAIReturn extends EntityAIBase
 			return false;
 		}
 
-		if (npc.getNavigator().noPath() || (!npc.isAttacking() && wasAttacked)){
-			return true;
+		if(npc.hasOwner() || npc.isKilled() || npc.isInteracting()){
+			return false;
 		}
-
-    	if(npc.hasOwner() || npc.isKilled() || npc.isInteracting()){
-    		return false;
-    	}
     	
     	if (npc.ai.findShelter == 0 && (!npc.worldObj.isDaytime() || npc.worldObj.isRaining()) && !npc.worldObj.provider.hasNoSky){
     		if (npc.worldObj.canBlockSeeTheSky((int)npc.getStartXPos(), (int)npc.getStartYPos(), (int)npc.getStartZPos()) || npc.worldObj.getFullBlockLightValue((int)npc.getStartXPos(), (int)npc.getStartYPos(), (int)npc.getStartZPos()) <= 8){
@@ -63,7 +58,11 @@ public class EntityAIReturn extends EntityAIBase
 
     	if(npc.ai.movingType == EnumMovingType.MovingPath && npc.ai.getDistanceSqToPathPoint() < CustomNpcs.NpcNavRange * CustomNpcs.NpcNavRange)
     		return false;
-    	
+
+		if (npc.getNavigator().noPath() || (!npc.isAttacking() && wasAttacked)) {
+			return true;
+		}
+
     	if(npc.ai.movingType == EnumMovingType.Wandering)
     		return this.npc.getDistanceSq(npc.getStartXPos(), npc.getStartYPos(), npc.getStartZPos()) > npc.ai.walkingRange * npc.ai.walkingRange;
 
