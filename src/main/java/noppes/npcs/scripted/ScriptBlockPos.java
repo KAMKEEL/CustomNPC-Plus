@@ -81,7 +81,7 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos add(IPos pos) {
-        return new ScriptBlockPos(this.blockPos.add(pos.getMCBlockPos()));
+        return new ScriptBlockPos(this.blockPos.add(this.blockPos));
     }
 
     public IPos subtract(int x, int y, int z) {
@@ -98,10 +98,6 @@ public class ScriptBlockPos implements IPos {
 
     public IPos offset(int direction, int n) {
         return new ScriptBlockPos(this.blockPos.offset(EnumFacing.values()[direction], n));
-    }
-
-    public BlockPos getMCBlockPos() {
-        return this.blockPos;
     }
 
     public double[] normalize() {

@@ -5,8 +5,6 @@
 
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.util.math.BlockPos;
-
 public interface IPos {
     int getX();
 
@@ -139,12 +137,6 @@ public interface IPos {
      * @return The normalized vector of this block position.
      */
     double[] normalize();
-
-    /**
-     *
-     * @return An obfuscated MC BlockPos object.
-     */
-    BlockPos getMCBlockPos();
 
     /**
      * Offsets the block by 1 block in the given direction and returns the resulting IPos object

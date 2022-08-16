@@ -1,10 +1,6 @@
 package noppes.npcs.scripted.interfaces;
 
-import net.minecraft.block.BlockLiquid;
-import net.minecraft.util.Vec3;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.ScriptScoreboard;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.entity.IPlayer;
@@ -385,12 +381,6 @@ public interface IWorld {
     IEntity spawnClone(int x, int y, int z, int tab, String name);
 
     ScriptScoreboard getScoreboard();
-
-    /**
-     *
-     * @return An obfuscated MC BlockPos object.
-     */
-    BlockPos getMCBlockPos(int x, int y, int z);
 
     /**
      * @since 1.7.10c

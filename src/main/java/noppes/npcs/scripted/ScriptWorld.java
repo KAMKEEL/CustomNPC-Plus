@@ -760,10 +760,6 @@ public class ScriptWorld implements IWorld {
 		return new ScriptScoreboard();
 	}
 
-	public BlockPos getMCBlockPos(int x, int y, int z){
-		return new BlockPos(x,y,z);
-	}
-
 	/**
 	 * @since 1.7.10c
 	 * Expert use only
