@@ -55,6 +55,8 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 
 
 ## 🔗 Want to check out my other projects?
+[MorePlayerModels+](https://github.com/KAMKEEL/MorePlayerModels-Plus) is a continuation on the 1.7.10 MorePlayerModels version. It is not intended to be as polished as CustomNPC+. It will feature Alex, Steve64x64 skins. Hiding Body Parts. Advanced URL Selector. 3D Skins.
+
 [Plugin Mod](https://github.com/KAMKEEL/Plugin-Mod) is a mod designed to add more aesthetic items for RPG and storytelling. It is compatible with CustomNPC+ and has many items intended to be used and wielded by created NPCs.
 
 [RPG Messenger](https://github.com/KAMKEEL/RPGMessenger) is a bukkit plugin designed to allow operators to create messagable NPCs for RPG Servers. Allows a 'RPG Controller' to reply quickly as NPCs, form groupchats, and messagable parties.
