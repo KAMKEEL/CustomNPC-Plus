@@ -1429,6 +1429,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             this.motionY = 0.4000000059604645D;
         }
     }
+	@Override
+	public void addVelocity(double p_70024_1_, double p_70024_3_, double p_70024_5_) {
+		if (this.attackingPlayer != null) {
+			float f2 = 0.5F * (2 - stats.resistances.knockback);
+			super.addVelocity(p_70024_1_ * (double)f2,p_70024_3_ * (double)f2,p_70024_5_ * (double)f2);
+		} else {
+			super.addVelocity(p_70024_1_,p_70024_3_,p_70024_5_);
+		}
+	}
     
 	public Faction getFaction() {
 		String[] split = dataWatcher.getWatchableObjectString(13).split(":");
