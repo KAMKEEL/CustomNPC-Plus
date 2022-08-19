@@ -614,8 +614,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     postRenderOverlay();
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
     }
 }
