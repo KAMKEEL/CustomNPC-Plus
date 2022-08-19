@@ -366,7 +366,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
 
             Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
-            ModelBipedBody.getField("onGround").set(m, (int) player.getSwingProgress(event.partialRenderTick));
             ModelBipedBody.getField("isRiding").set(m, player.isRiding());
             ModelBipedBody.getField("isChild").set(m, player.isChild());
             ModelBipedBody.getField("isSneak").set(m, player.isSneaking());
@@ -502,7 +501,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
             Field rot6 = ModelBipedDBC.getField("rot6");
 
             Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
-            ModelBipedBody.getField("field_78095_p").set(m, (int) player.getSwingProgress(event.partialRenderTick));
             ModelBipedBody.getField("field_78093_q").set(m, player.isRiding());
             ModelBipedBody.getField("field_78091_s").set(m, player.isChild());
             ModelBipedBody.getField("field_78117_n").set(m, player.isSneaking());
