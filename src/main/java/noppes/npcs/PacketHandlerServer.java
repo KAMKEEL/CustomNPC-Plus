@@ -146,6 +146,9 @@ public class PacketHandlerServer{
 		String trackedQuestString = Server.readString(buffer);
 		if (trackedQuestString != null && trackedQuestString.contains(":")) {
 			String[] splitString = trackedQuestString.split(":");
+			if(splitString.length < 2){
+				return;
+			}
 			String categoryName = splitString[0];
 			String questName = splitString[1];
 
