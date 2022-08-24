@@ -238,7 +238,9 @@ public class RenderNPCHumanMale extends RenderNPCInterface
 
             IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack2, EQUIPPED);
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
-            
+            Class<?> clazz = itemstack2.getItem().getClass();
+            boolean pluginMod = itemstack2.getItem().getUnlocalizedName().contains("plug:");
+
             if (itemstack2.getItem() instanceof ItemBlock && (is3D || RenderBlocks.renderItemIn3d(Block.getBlockFromItem(itemstack2.getItem()).getRenderType())))
             {
                 var6 = 0.5F;
@@ -248,7 +250,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(-var6, -var6, var6);
             }
-            else if (itemstack2.getItem() instanceof ItemBow && customRenderer == null)
+            else if (itemstack2.getItem() instanceof ItemBow && (customRenderer == null || pluginMod))
             {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
@@ -257,7 +259,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(-100.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
             }
-            else if (itemstack2.getItem().isFull3D())
+            else if (itemstack2.getItem().isFull3D() && (customRenderer == null || pluginMod))
             {
                 var6 = 0.625F;
 
@@ -335,6 +337,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack2, BLOCK_3D));
 
             Class<?> clazz = itemstack2.getItem().getClass();
+            boolean pluginMod = itemstack2.getItem().getUnlocalizedName().contains("plug:");
             if(clazz.getSimpleName().equals("ItemShield") || clazz.getSimpleName().equals("ItemRotatedShield") || clazz.getSimpleName().equals("ItemClaw"))
             	GL11.glTranslatef(0.30f, 0, 0f);
             
@@ -347,7 +350,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(var6, -var6, var6);
             }
-            else if (itemstack2.getItem() instanceof ItemBow && customRenderer == null)
+            else if (itemstack2.getItem() instanceof ItemBow && (customRenderer == null || pluginMod))
             {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
