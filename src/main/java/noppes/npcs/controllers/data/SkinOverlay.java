@@ -10,7 +10,7 @@ public class SkinOverlay implements ISkinOverlay {
     public ResourceLocation location = null;
     public String texture;
     public boolean glow = true;
-    public boolean blend = false;
+    public boolean blend = true;
     public float alpha = 1.0F;
     public float size = 1.0F;
 
