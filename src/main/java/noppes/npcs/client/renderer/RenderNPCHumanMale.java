@@ -282,6 +282,14 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(-100.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
             }
+            else if(is3D){
+                var6 = 0.5F;
+                GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
+                var6 *= 0.75F;
+                GL11.glRotatef(20.0F, 1.0F, 0.0F, 0.0F);
+                GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
+                GL11.glScalef(-var6, -var6, var6);
+            }
             else
             {
                 var6 = 0.375F;
