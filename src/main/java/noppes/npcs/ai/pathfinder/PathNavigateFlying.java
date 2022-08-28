@@ -263,7 +263,7 @@ public class PathNavigateFlying extends PathNavigate {
 
         if (this.totalTicks - this.ticksAtLastPos > 100)
         {
-            if (vec3.squareDistanceTo(this.lastPosCheck) < this.speed/2)
+            if (vec3.squareDistanceTo(this.lastPosCheck) < 2.25D)
             {
                 this.clearPathEntity();
             }
