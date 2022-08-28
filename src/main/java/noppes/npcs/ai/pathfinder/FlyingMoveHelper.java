@@ -35,6 +35,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             double d2 = this.posZ - this.entity.posZ;
             double d4 = d0 * d0 + d1 * d1 + d2 * d2;
             double d5 = MathHelper.sqrt_double(d4);
+            speed = Math.min(d5/5.0D,speed);
 
             double heightOffGround = 0;
             if(this.entity.ai.hasFlyLimit) {
