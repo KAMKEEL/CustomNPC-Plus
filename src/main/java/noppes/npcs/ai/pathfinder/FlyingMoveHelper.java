@@ -6,8 +6,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 
-// Fly Change
-
 public class FlyingMoveHelper extends EntityMoveHelper{
     private final EntityNPCInterface entity;
 

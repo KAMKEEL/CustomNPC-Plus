@@ -46,7 +46,9 @@ public class TileWaypoint extends TileEntity {
 		for(EntityPlayer player : toCheck){
 			PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 			PlayerQuestData questData = playerData.questData;
-			for(QuestData data : questData.activeQuests.values()){
+
+			ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
+			for(QuestData data : activeQuestValues){
 				if(data.quest.type != EnumQuestType.Location)
 					continue;
 				QuestLocation quest = (QuestLocation) data.quest.questInterface;

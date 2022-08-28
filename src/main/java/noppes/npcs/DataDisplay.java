@@ -139,6 +139,7 @@ public class DataDisplay {
 		if (!nbttagcompound.hasKey("SkinOverlayData") && !glowTexture.isEmpty()) {
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
+
 			(new SkinOverlay(glowTexture)).writeToNBT(compound);
 
 			if (!nbttagcompound.hasKey("SkinOverlayData")) {
