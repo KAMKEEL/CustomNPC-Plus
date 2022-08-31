@@ -3,7 +3,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
@@ -15,21 +14,17 @@ import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 
 public class RenderCNPCPlayer extends RenderPlayer {
     public RenderCNPCHand itemRenderer = new RenderCNPCHand(Minecraft.getMinecraft());
@@ -60,13 +55,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
             return false;
         }
 
-        if (!Client.entitySkinOverlayTicks.containsKey(player.getUniqueID())) {
-            Client.entitySkinOverlayTicks.put(player.getUniqueID(), 1L);
-        } else {
-            long ticks = Client.entitySkinOverlayTicks.get(player.getUniqueID());
-            Client.entitySkinOverlayTicks.put(player.getUniqueID(), ticks + 1);
-        }
-        float partialTickTime = Client.entitySkinOverlayTicks.get(player.getUniqueID());
+        float partialTickTime = ClientEventHandler.partialHandTicks;
 
         // Overlay & Glow
         GL11.glEnable(GL11.GL_BLEND);
@@ -196,19 +185,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
             if (mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping() && !mc.gameSettings.hideGUI && !mc.playerController.enableEverythingIsScrewedUpMode())
             {
-                itemRenderer.updateEquippedItem();
                 entityRenderer.enableLightmap((double)partialTicks);
-                itemRenderer.renderItemInFirstPerson(partialTicks);
+                itemRenderer.renderOverlayInFirstPerson(partialTicks);
                 entityRenderer.disableLightmap((double)partialTicks);
             }
 
             GL11.glPopMatrix();
-
-            if (mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping())
-            {
-                entityRenderer.itemRenderer.renderOverlays(partialTicks);
-                hurtCameraEffect(partialTicks);
-            }
 
             if (mc.gameSettings.viewBobbing)
             {
@@ -243,32 +225,6 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
 
         return f1 + this.prevDebugCamFOV + (this.debugCamFOV - this.prevDebugCamFOV) * p_78481_1_;
-    }
-
-    public void updateFovModifierHand()
-    {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.renderViewEntity instanceof EntityPlayerSP)
-        {
-            EntityPlayerSP entityplayersp = (EntityPlayerSP)mc.renderViewEntity;
-            this.fovMultiplierTemp = entityplayersp.getFOVMultiplier();
-        }
-        else
-        {
-            this.fovMultiplierTemp = mc.thePlayer.getFOVMultiplier();
-        }
-        this.fovModifierHandPrev = this.fovModifierHand;
-        this.fovModifierHand += (this.fovMultiplierTemp - this.fovModifierHand) * 0.5F;
-
-        if (this.fovModifierHand > 1.5F)
-        {
-            this.fovModifierHand = 1.5F;
-        }
-
-        if (this.fovModifierHand < 0.1F)
-        {
-            this.fovModifierHand = 0.1F;
-        }
     }
 
     private void hurtCameraEffect(float p_78482_1_)
@@ -312,13 +268,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
     }
 
-    public void renderFirstPersonArm(EntityPlayer player, float partialTickTime)
+    public void renderFirstPersonArmOverlay(EntityPlayer player)
     {
-        Render render = RenderManager.instance.getEntityRenderObject(player);
-        RenderPlayer renderplayer = (RenderPlayer)render;
-        renderplayer.renderFirstPersonArm(player);
-
-        float gender = 1.0F;
+        float gender = -1;
         try {
             Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
             gender = (float) RenderPlayerJBRA.getMethod("genGet").invoke(null);
@@ -342,7 +294,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
                         overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
                 ))
-                    continue;;
+                    continue;
 
                 if (gender >= 2.0F) {
                     GL11.glRotatef(7F, 0, 0, 1);
@@ -360,173 +312,100 @@ public class RenderCNPCPlayer extends RenderPlayer {
     public void renderDBCModel(RenderPlayerEvent.Specials.Post event) {
         EntityPlayer player = event.entityPlayer;
 
-        try {
-            Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-            Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
-            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
+        Class<?> RenderPlayerJBRA = null;
+        Class<?> ModelBipedDBC = null;
+        Class<?> ModelBipedBody = null;
+        Method renderDBC = null;
+        Field rot1 = null,rot2 = null,rot3 = null,rot4 = null,rot5 = null,rot6 = null;
+        Object m = null;
+        ModelRenderer bipedHead = null,bipedBody = null,bipedRA = null,bipedLA = null,bipedRL = null,bipedLL = null;
+        ModelRenderer Brightarm = null,Bleftarm = null,rightleg = null,leftleg = null,body = null,hip = null;
+        ModelRenderer waist = null,bottom = null,Bbreast = null,Bbreast2 = null,breast = null,breast2 = null;
+        float childScl = 0.0F;
 
-            Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
+        try {
+            RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+            ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
+            ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
+
+            renderDBC = ModelBipedBody.getMethod("render",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
+            rot1 = ModelBipedDBC.getField("rot1");
+            rot2 = ModelBipedDBC.getField("rot2");
+            rot3 = ModelBipedDBC.getField("rot3");
+            rot4 = ModelBipedDBC.getField("rot4");
+            rot5 = ModelBipedDBC.getField("rot5");
+            rot6 = ModelBipedDBC.getField("rot6");
+
+            m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
             ModelBipedBody.getField("isRiding").set(m, player.isRiding());
             ModelBipedBody.getField("isChild").set(m, player.isChild());
             ModelBipedBody.getField("isSneak").set(m, player.isSneaking());
             ModelBipedBody.getField("y").set(null, ModelBipedDBC.getField("y").get(null));
 
-            ModelRenderer bipedHead = (ModelRenderer) ModelBipedBody.getField("bipedHead").get(m);
-            ModelRenderer bipedBody = (ModelRenderer) ModelBipedBody.getField("bipedBody").get(m);
-            ModelRenderer bipedRA = (ModelRenderer) ModelBipedBody.getField("bipedRightArm").get(m);
-            ModelRenderer bipedLA = (ModelRenderer) ModelBipedBody.getField("bipedLeftArm").get(m);
-            ModelRenderer bipedRL = (ModelRenderer) ModelBipedBody.getField("bipedRightLeg").get(m);
-            ModelRenderer bipedLL = (ModelRenderer) ModelBipedBody.getField("bipedLeftLeg").get(m);
+            bipedHead = (ModelRenderer) ModelBipedBody.getField("bipedHead").get(m);
+            bipedBody = (ModelRenderer) ModelBipedBody.getField("bipedBody").get(m);
+            bipedRA = (ModelRenderer) ModelBipedBody.getField("bipedRightArm").get(m);
+            bipedLA = (ModelRenderer) ModelBipedBody.getField("bipedLeftArm").get(m);
+            bipedRL = (ModelRenderer) ModelBipedBody.getField("bipedRightLeg").get(m);
+            bipedLL = (ModelRenderer) ModelBipedBody.getField("bipedLeftLeg").get(m);
 
-            ModelRenderer Brightarm = (ModelRenderer) ModelBipedBody.getField("Brightarm").get(m);
-            ModelRenderer Bleftarm = (ModelRenderer) ModelBipedBody.getField("Bleftarm").get(m);
-            ModelRenderer rightleg = (ModelRenderer) ModelBipedBody.getField("rightleg").get(m);
-            ModelRenderer leftleg = (ModelRenderer) ModelBipedBody.getField("leftleg").get(m);
-            ModelRenderer body = (ModelRenderer) ModelBipedBody.getField("body").get(m);
-            ModelRenderer hip = (ModelRenderer) ModelBipedBody.getField("hip").get(m);
-            ModelRenderer waist = (ModelRenderer) ModelBipedBody.getField("waist").get(m);
-            ModelRenderer bottom = (ModelRenderer) ModelBipedBody.getField("bottom").get(m);
-            ModelRenderer Bbreast = (ModelRenderer) ModelBipedBody.getField("Bbreast").get(m);
-            ModelRenderer Bbreast2 = (ModelRenderer) ModelBipedBody.getField("Bbreast2").get(m);
-            ModelRenderer breast = (ModelRenderer) ModelBipedBody.getField("breast").get(m);
-            ModelRenderer breast2 = (ModelRenderer) ModelBipedBody.getField("breast2").get(m);
-            float childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
-
-            Method renderDBC = ModelBipedBody.getMethod("render",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
-            Field rot1 = ModelBipedDBC.getField("rot1");
-            Field rot2 = ModelBipedDBC.getField("rot2");
-            Field rot3 = ModelBipedDBC.getField("rot3");
-            Field rot4 = ModelBipedDBC.getField("rot4");
-            Field rot5 = ModelBipedDBC.getField("rot5");
-            Field rot6 = ModelBipedDBC.getField("rot6");
-
-            if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-                for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
-                        continue;
-
-                    if (overlayData.location == null) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    } else {
-                        String str = overlayData.location.getResourceDomain() + ":" + overlayData.location.getResourcePath();
-                        if (!str.equals(overlayData.texture)) {
-                            overlayData.location = new ResourceLocation(overlayData.texture);
-                        }
-                    }
-
-                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
-                            overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
-                            overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
-                    ))
-                        continue;
-                    bipedHead.isHidden = true;
-                    renderDBC.invoke(m, player,
-                        (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
-                        (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
-                    );
-                    bipedHead.isHidden = false;
-
-                    bipedBody.isHidden = true;
-                    bipedRA.isHidden = true;
-                    bipedLA.isHidden = true;
-                    bipedRL.isHidden = true;
-                    bipedLL.isHidden = true;
-                    //Female render
-                    Brightarm.isHidden = true;
-                    Bleftarm.isHidden = true;
-                    rightleg.isHidden = true;
-                    leftleg.isHidden = true;
-                    body.isHidden = true;
-                    hip.isHidden = true;
-                    waist.isHidden = true;
-                    bottom.isHidden = true;
-                    Bbreast.isHidden = true;
-                    Bbreast2.isHidden = true;
-                    breast.isHidden = true;
-                    breast2.isHidden = true;
-                    if (player.isSneaking()) {
-                        GL11.glTranslatef(0, 0.06F, 0);
-                    }
-                    if (childScl > 1.5F) {
-                        GL11.glTranslatef(0, -0.015F, 0);
-                        GL11.glScalef(1.025F, 1.025F, 1.025F);
-                    } else {
-                        if (childScl > 1) {
-                            GL11.glTranslatef(0, -0.01F, 0);
-                            GL11.glScalef(1.025F, 1.025F, 1.025F);
-                        } else {
-                            GL11.glTranslatef(0, 0.0025F, 0);
-                            GL11.glScalef(1.02F, 1.02F, 1.02F);
-                        }
-                    }
-                    renderDBC.invoke(m, player,
-                            (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
-                            (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
-                    );
-                    bipedBody.isHidden = false;
-                    bipedRA.isHidden = false;
-                    bipedLA.isHidden = false;
-                    bipedRL.isHidden = false;
-                    bipedLL.isHidden = false;
-                    //Female render
-                    Brightarm.isHidden = false;
-                    Bleftarm.isHidden = false;
-                    rightleg.isHidden = false;
-                    leftleg.isHidden = false;
-                    body.isHidden = false;
-                    hip.isHidden = false;
-                    waist.isHidden = false;
-                    bottom.isHidden = false;
-                    Bbreast.isHidden = false;
-                    Bbreast2.isHidden = false;
-                    breast.isHidden = false;
-                    breast2.isHidden = false;
-
-                    postRenderOverlay();
-                }
-            }
+            Brightarm = (ModelRenderer) ModelBipedBody.getField("Brightarm").get(m);
+            Bleftarm = (ModelRenderer) ModelBipedBody.getField("Bleftarm").get(m);
+            rightleg = (ModelRenderer) ModelBipedBody.getField("rightleg").get(m);
+            leftleg = (ModelRenderer) ModelBipedBody.getField("leftleg").get(m);
+            body = (ModelRenderer) ModelBipedBody.getField("body").get(m);
+            hip = (ModelRenderer) ModelBipedBody.getField("hip").get(m);
+            waist = (ModelRenderer) ModelBipedBody.getField("waist").get(m);
+            bottom = (ModelRenderer) ModelBipedBody.getField("bottom").get(m);
+            Bbreast = (ModelRenderer) ModelBipedBody.getField("Bbreast").get(m);
+            Bbreast2 = (ModelRenderer) ModelBipedBody.getField("Bbreast2").get(m);
+            breast = (ModelRenderer) ModelBipedBody.getField("breast").get(m);
+            breast2 = (ModelRenderer) ModelBipedBody.getField("breast2").get(m);
+            childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
         } catch (Exception ignored) {}
 
         try {
-            Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-            Class<?> ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
-            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
+            RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+            ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
+            ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
 
-            Method renderDBC = ModelBipedBody.getMethod("func_78088_a",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
-            Field rot1 = ModelBipedDBC.getField("rot1");
-            Field rot2 = ModelBipedDBC.getField("rot2");
-            Field rot3 = ModelBipedDBC.getField("rot3");
-            Field rot4 = ModelBipedDBC.getField("rot4");
-            Field rot5 = ModelBipedDBC.getField("rot5");
-            Field rot6 = ModelBipedDBC.getField("rot6");
+            renderDBC = ModelBipedBody.getMethod("func_78088_a",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
+            rot1 = ModelBipedDBC.getField("rot1");
+            rot2 = ModelBipedDBC.getField("rot2");
+            rot3 = ModelBipedDBC.getField("rot3");
+            rot4 = ModelBipedDBC.getField("rot4");
+            rot5 = ModelBipedDBC.getField("rot5");
+            rot6 = ModelBipedDBC.getField("rot6");
 
-            Object m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
+            m = RenderPlayerJBRA.getField("modelMain").get(event.renderer);
             ModelBipedBody.getField("field_78093_q").set(m, player.isRiding());
             ModelBipedBody.getField("field_78091_s").set(m, player.isChild());
             ModelBipedBody.getField("field_78117_n").set(m, player.isSneaking());
             ModelBipedBody.getField("y").set(null, ModelBipedDBC.getField("y").get(null));
 
-            ModelRenderer bipedHead = (ModelRenderer) ModelBipedBody.getField("field_78116_c").get(m);
-            ModelRenderer bipedBody = (ModelRenderer) ModelBipedBody.getField("field_78115_e").get(m);
-            ModelRenderer bipedRA = (ModelRenderer) ModelBipedBody.getField("field_78112_f").get(m);
-            ModelRenderer bipedLA = (ModelRenderer) ModelBipedBody.getField("field_78113_g").get(m);
-            ModelRenderer bipedRL = (ModelRenderer) ModelBipedBody.getField("field_78123_h").get(m);
-            ModelRenderer bipedLL = (ModelRenderer) ModelBipedBody.getField("field_78124_i").get(m);
+            bipedHead = (ModelRenderer) ModelBipedBody.getField("field_78116_c").get(m);
+            bipedBody = (ModelRenderer) ModelBipedBody.getField("field_78115_e").get(m);
+            bipedRA = (ModelRenderer) ModelBipedBody.getField("field_78112_f").get(m);
+            bipedLA = (ModelRenderer) ModelBipedBody.getField("field_78113_g").get(m);
+            bipedRL = (ModelRenderer) ModelBipedBody.getField("field_78123_h").get(m);
+            bipedLL = (ModelRenderer) ModelBipedBody.getField("field_78124_i").get(m);
 
-            ModelRenderer Brightarm = (ModelRenderer) ModelBipedBody.getField("Brightarm").get(m);
-            ModelRenderer Bleftarm = (ModelRenderer) ModelBipedBody.getField("Bleftarm").get(m);
-            ModelRenderer rightleg = (ModelRenderer) ModelBipedBody.getField("rightleg").get(m);
-            ModelRenderer leftleg = (ModelRenderer) ModelBipedBody.getField("leftleg").get(m);
-            ModelRenderer body = (ModelRenderer) ModelBipedBody.getField("body").get(m);
-            ModelRenderer hip = (ModelRenderer) ModelBipedBody.getField("hip").get(m);
-            ModelRenderer waist = (ModelRenderer) ModelBipedBody.getField("waist").get(m);
-            ModelRenderer bottom = (ModelRenderer) ModelBipedBody.getField("bottom").get(m);
-            ModelRenderer Bbreast = (ModelRenderer) ModelBipedBody.getField("Bbreast").get(m);
-            ModelRenderer Bbreast2 = (ModelRenderer) ModelBipedBody.getField("Bbreast2").get(m);
-            ModelRenderer breast = (ModelRenderer) ModelBipedBody.getField("breast").get(m);
-            ModelRenderer breast2 = (ModelRenderer) ModelBipedBody.getField("breast2").get(m);
-            float childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
+            Brightarm = (ModelRenderer) ModelBipedBody.getField("Brightarm").get(m);
+            Bleftarm = (ModelRenderer) ModelBipedBody.getField("Bleftarm").get(m);
+            rightleg = (ModelRenderer) ModelBipedBody.getField("rightleg").get(m);
+            leftleg = (ModelRenderer) ModelBipedBody.getField("leftleg").get(m);
+            body = (ModelRenderer) ModelBipedBody.getField("body").get(m);
+            hip = (ModelRenderer) ModelBipedBody.getField("hip").get(m);
+            waist = (ModelRenderer) ModelBipedBody.getField("waist").get(m);
+            bottom = (ModelRenderer) ModelBipedBody.getField("bottom").get(m);
+            Bbreast = (ModelRenderer) ModelBipedBody.getField("Bbreast").get(m);
+            Bbreast2 = (ModelRenderer) ModelBipedBody.getField("Bbreast2").get(m);
+            breast = (ModelRenderer) ModelBipedBody.getField("breast").get(m);
+            breast2 = (ModelRenderer) ModelBipedBody.getField("breast2").get(m);
+            childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
+        } catch (Exception ignored) {}
 
+        try {
             if (Client.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
                     if (overlayData.texture.isEmpty())

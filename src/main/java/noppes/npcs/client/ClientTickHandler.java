@@ -18,6 +18,8 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
+
 public class ClientTickHandler{
 	private World prevWorld;
 	private boolean otherContainer = false;
@@ -27,9 +29,13 @@ public class ClientTickHandler{
 	
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onClientTick(TickEvent.ClientTickEvent event){
-		if(event.phase == Phase.END)
-			return;
 		Minecraft mc = Minecraft.getMinecraft();
+		if(event.phase == Phase.END) {
+			if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {
+				renderCNPCPlayer.itemRenderer.updateEquippedItem();
+			}
+			return;
+		}
 		if(mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer){
 			if(otherContainer){
 		    	NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);

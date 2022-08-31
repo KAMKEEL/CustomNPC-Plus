@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "noppes.npcs.mixin",
+  "plugin": "noppes.npcs.mixin.CustomNPCsMixinPlugin",
+  "refmap": "customnpcs.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8"
+}
