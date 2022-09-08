@@ -1,7 +1,6 @@
 package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,15 +10,15 @@ import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClientEventHandler {
-    private final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
+    public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
+    public static float partialHandTicks;
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
@@ -106,28 +105,11 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (hasOverlays(mc.thePlayer)) {
-            if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && event.phase == TickEvent.Phase.END) {
-                renderCNPCPlayer.itemRenderer.updateEquippedItem();
-                renderCNPCPlayer.updateFovModifierHand();
-            }
-        }
-    }
-
-    @SubscribeEvent
     public void onRenderHand(RenderHandEvent event) {
-        if (hasOverlays(Minecraft.getMinecraft().thePlayer)) {
-            GL11.glPushMatrix();
-                event.setCanceled(true);
-                GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-                renderCNPCPlayer.renderHand(event.partialTicks, event.renderPass);
-            GL11.glPopMatrix();
-        }
+        partialHandTicks = event.partialTicks;
     }
 
-    private boolean hasOverlays(EntityPlayer player) {
+    public static boolean hasOverlays(EntityPlayer player) {
         return Client.skinOverlays.containsKey(player.getUniqueID()) && Client.skinOverlays.get(player.getUniqueID()).values().size() > 0;
     }
 }
