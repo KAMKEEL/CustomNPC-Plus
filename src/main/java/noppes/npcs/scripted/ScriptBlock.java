@@ -24,19 +24,14 @@ public class ScriptBlock implements IBlock {
     protected final Block block;
     protected final BlockPos pos;
     protected final ScriptBlockPos bPos;
-    protected TileEntity tile;
+    protected ITileEntity tile;
 
     public ScriptBlock(World world, Block block, BlockPos pos) {
-        this.world = NpcAPI.Instance().getIWorld((WorldServer)world);
+        this.world = NpcAPI.Instance().getIWorld(world);
         this.block = block;
         this.pos = pos;
         this.bPos = new ScriptBlockPos(pos);
-        this.setTile(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
-    }
-
-    protected void setTile(TileEntity tile) {
-        world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),new ScriptTileEntity(tile));
-        this.tile = tile;
+        this.tile = new ScriptTileEntity<>(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
     }
 
     public IPos getPos() {
@@ -79,14 +74,14 @@ public class ScriptBlock implements IBlock {
     }
 
     public boolean isContainer() {
-        return this.tile != null && this.tile instanceof IInventory && ((IInventory) this.tile).getSizeInventory() > 0;
+        return this.tile != null && this.tile.getMCTileEntity() != null && this.tile.getMCTileEntity() instanceof IInventory && ((IInventory) this.tile.getMCTileEntity()).getSizeInventory() > 0;
     }
 
     public IContainer getContainer() {
         if(!this.isContainer()) {
             throw new CustomNPCsException("This block is not a container", new Object[0]);
         } else {
-            return NpcAPI.Instance().getIContainer((IInventory)this.tile);
+            return NpcAPI.Instance().getIContainer((IInventory)this.tile.getMCTileEntity());
         }
     }
 
@@ -95,7 +90,7 @@ public class ScriptBlock implements IBlock {
     }
 
     public String getDisplayName() {
-        return this.tile == null?this.getName():this.tile.blockType.getItemIconName();
+        return this.tile == null || this.tile.getMCTileEntity() == null ? this.getName():this.tile.getMCTileEntity().blockType.getItemIconName();
     }
 
     public IWorld getWorld() {
@@ -115,21 +110,21 @@ public class ScriptBlock implements IBlock {
     }
 
     public ITileEntity getTileEntity() {
-        return new ScriptTileEntity(this.tile);
+        return this.tile;
     }
 
     public void setTileEntity(ITileEntity tileEntity){
         world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),tileEntity);
-        this.tile = tileEntity.getMCTileEntity();
+        this.tile = tileEntity;
     }
 
     public TileEntity getMCTileEntity() {
-        return this.tile;
+        return this.tile.getMCTileEntity();
     }
 
     public INbt getTileEntityNBT() {
         NBTTagCompound compound = new NBTTagCompound();
-        this.tile.writeToNBT(compound);
+        this.tile.getMCTileEntity().writeToNBT(compound);
         return NpcAPI.Instance().getINbt(compound);
     }
 
