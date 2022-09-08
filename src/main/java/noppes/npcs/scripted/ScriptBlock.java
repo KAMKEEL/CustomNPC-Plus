@@ -23,7 +23,7 @@ public class ScriptBlock implements IBlock {
     protected final IWorld world;
     protected final Block block;
     protected final BlockPos pos;
-    protected final ScriptBlockPos bPos;
+    protected final IPos bPos;
     protected ITileEntity tile;
 
     public ScriptBlock(World world, Block block, BlockPos pos) {
