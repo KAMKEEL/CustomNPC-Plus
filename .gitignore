@@ -10,3 +10,4 @@ eclipse
 bin
 .metadata
 *.bak
+classes
