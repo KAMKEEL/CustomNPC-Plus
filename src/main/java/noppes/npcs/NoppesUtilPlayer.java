@@ -330,6 +330,9 @@ public class NoppesUtilPlayer {
         Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
 	}
 	public static void questCompletion(EntityPlayerMP player, int questId) {
+		if(player == null)
+			return;
+
 		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
 		QuestData data = questData.activeQuests.get(questId);
@@ -349,7 +352,10 @@ public class NoppesUtilPlayer {
 		while(var8.hasNext()) {
 			ItemStack item = (ItemStack)var8.next();
 			if (item.stackSize > 0) {
-				list.add(NpcAPI.Instance().getIItemStack(item));
+				IItemStack iStack = NpcAPI.Instance().getIItemStack(item);
+				if (iStack != null){
+					list.add(iStack);
+				}
 			}
 		}
 
