@@ -15,9 +15,16 @@ buildscript {
     }
 }
 
+configurations {
+    embed
+    compile.extendsFrom(embed)
+    shade
+    compile.extendsFrom(shade)
+}
+
 apply plugin: 'forge'
 
-version = "1.6.1"
+version = "1.6.2"
 group= "com.kamkeel.customnpc-plus" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -65,3 +72,96 @@ processResources
         }
 
 sourceSets {main { output.resourcesDir = output.classesDir }}
+
+jar {
+    manifest {
+        attributes(
+            'FMLAT': "customnpcs_at.cfg",
+        )
+    }
+}
+
+//##########################################################################################################
+//########################################    Mixin  Part   ################################################
+//##########################################################################################################
+//Add
+//--tweakClass org.spongepowered.asm.launch.MixinTweaker --mixin customnpcs.mixins.json
+//to your client and server program arguments if working in a dev environment.
+def yourMixinConfig = 'customnpcs.mixins.json'
+def refMapForYourConfig = 'customnpcs.refmap.json'
+def relativePathToMixinAP = 'tools/mixin-0.8-SNAPSHOT.jar'
+repositories {
+    maven {
+        name = "sponge"
+        url = "https://repo.spongepowered.org/maven/"
+    }
+}
+
+dependencies {
+    embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        // Mixin includes a lot of dependencies that are too up-to-date
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+        exclude module: 'log4j-core'
+    }
+}
+
+def refMap = "${tasks.compileJava.temporaryDir}" + File.separator + refMapForYourConfig
+
+def mixinSrg = "${tasks.reobf.temporaryDir}" + File.separator + "mixins.srg"
+
+jar {
+    configurations.shade.each { dep ->
+        from(project.zipTree(dep)){
+            exclude 'META-INF', 'META-INF/**'
+        }
+    }
+
+    from refMap
+    manifest {
+        attributes.put("TweakClass", "org.spongepowered.asm.launch.MixinTweaker")
+        attributes.put("FMLCorePluginContainsFMLMod", true)
+        attributes.put("ForceLoadAsMod", true)
+        attributes.put("MixinConfigs", yourMixinConfig)
+    }
+
+    // embed libraries in jar
+    from configurations.embed.collect {
+        exclude '**/LICENSE.txt'
+        it.isDirectory() ? it : zipTree(it)
+    }
+}
+
+reobf {
+    addExtraSrgFile mixinSrg
+}
+
+afterEvaluate {
+    def fixedRelPathToAP = relativePathToMixinAP
+    if(fixedRelPathToAP.startsWith('./') || fixedRelPathToAP.startsWith('.\\')){
+        fixedRelPathToAP = fixedRelPathToAP.substring(2)
+    } else if(fixedRelPathToAP.startsWith('/') || fixedRelPathToAP.startsWith('\\')){
+        fixedRelPathToAP = fixedRelPathToAP.substring(1)
+    }
+
+    tasks.compileJava {
+        println "Path: " + projectDir.absolutePath
+        options.compilerArgs += [
+                // There's a bug in the AnnotationProcessor for 0.7.11 that will generate the annotations pointing to the parent class instead of subclass
+                // resulting in the mixin not being applied.  This is fixed in 0.8, however 0.8 needs guava > 21.0, and minecraft ships with 17.0.
+                // So as a hacky workaround... ship with 0.7.11, but use the AP from 0.8 for compiling
+                "-processorpath", projectDir.absolutePath + '/' + fixedRelPathToAP,
+                "-processor", "org.spongepowered.tools.obfuscation.MixinObfuscationProcessorInjection,org.spongepowered.tools.obfuscation.MixinObfuscationProcessorTargets",
+                "-Xlint:-sunapi", "-XDenableSunApiLintControl", "-XDignore.symbol.file",
+                "-AreobfSrgFile=${tasks.reobf.srg}", "-AoutSrgFile=${mixinSrg}", "-AoutRefMapFile=${refMap}"
+        ]
+    }
+}
+
+sourceSets {
+    main {
+        ext.refMap = refMapForYourConfig
+    }
+}

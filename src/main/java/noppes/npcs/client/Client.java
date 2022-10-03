@@ -19,9 +19,7 @@ import noppes.npcs.controllers.data.SkinOverlay;
 public class Client {
 	public static OverlayQuestTracking questTrackingOverlay = null;
 	public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
-
 	public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
-	public static HashMap<UUID, Long> entitySkinOverlayTicks = new HashMap<>();
 
 	public static void sendData(EnumPacketServer enu, Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();

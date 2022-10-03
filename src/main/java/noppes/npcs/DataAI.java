@@ -32,8 +32,7 @@ public class DataAI {
 	public EnumNavType tacticalVariant = EnumNavType.Default;
 	public int useRangeMelee = 0;
 	public int tacticalRadius = 8;
-
-	// Fly Change
+	
 	public int movementType = 0;
 	public double flySpeed = 1.0D;
 	public double flyGravity = 0.0D;

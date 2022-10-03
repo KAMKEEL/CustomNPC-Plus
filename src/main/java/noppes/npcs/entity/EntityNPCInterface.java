@@ -397,6 +397,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return true;
 	}
 
+	@Override
 	public PathNavigate getNavigator() {
 		if(canFly())
 			return this.flyNavigator;
@@ -405,6 +406,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
+	@Override
 	public EntityMoveHelper getMoveHelper() {
 		if(canFly())
 			return this.flyMoveHelper;
@@ -413,6 +415,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
+	@Override
 	protected void updateAITasks()
 	{
 		if (this.isInWater() || this.stats.drowningType != 2) {

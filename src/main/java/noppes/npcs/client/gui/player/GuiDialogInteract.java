@@ -87,9 +87,12 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	calculateRowHeight();
 		this.scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 		this.drawDefaultBackground = dialog.darkenScreen;
-
-		optionStart = scaledResolution.getScaledHeight() - (options.size()) * (ClientProxy.Font.height() + dialog.optionSpaceY) - 20;
+		setOptionOffset();
     }
+
+	public void setOptionOffset() {
+		optionStart = scaledResolution.getScaledHeight() - (options.size()) * (ClientProxy.Font.height() + dialog.optionSpaceY) - 20;
+	}
 
     public void grabMouse(boolean grab){
 		 if(grab && !isGrabbed){
@@ -154,6 +157,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         }
         super.drawScreen(i, j, f);
+		setOptionOffset();
 
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(770, 771, 1, 0);
@@ -602,7 +606,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		textPauseTime = 0;
 
     	NoppesUtil.clickSound();
-
     }
     private void closed(){
     	grabMouse(false);

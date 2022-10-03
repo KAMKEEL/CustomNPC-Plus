@@ -6,8 +6,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 
-// Fly Change
-
 public class FlyingMoveHelper extends EntityMoveHelper{
     private final EntityNPCInterface entity;
 
@@ -37,6 +35,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             double d2 = this.posZ - this.entity.posZ;
             double d4 = d0 * d0 + d1 * d1 + d2 * d2;
             double d5 = MathHelper.sqrt_double(d4);
+            speed = Math.min(d5/5.0D,speed);
 
             double heightOffGround = 0;
             if(this.entity.ai.hasFlyLimit) {

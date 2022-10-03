@@ -72,12 +72,12 @@ public class ItemSoulstoneFilled extends Item {
     	Entity entity = EntityList.createEntityFromNBT(compound, world);
     	if(entity == null)
     		return false;
-    	entity.setPosition(x + 0.5, y - 0.5, z + 0.5);
+    	entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
     	if(entity instanceof EntityNPCInterface){
     		EntityNPCInterface npc = (EntityNPCInterface) entity;
     		npc.ai.startPos = new int[]{x, y, z};
     		npc.setHealth(npc.getMaxHealth());
-    		npc.setPosition((float)x + 0.5F, npc.getStartYPos() - 0.5, (float)z + 0.5F);
+    		npc.setPosition((float)x + 0.5F, npc.getStartYPos(), (float)z + 0.5F);
     		npc.advanced.soulStonePlayerName = player.getDisplayName();
     		npc.advanced.soulStoneInit = true;
     		if(npc.advanced.role == EnumRoleType.Companion && player != null){

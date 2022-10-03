@@ -1,5 +1,6 @@
 package noppes.npcs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -297,7 +298,8 @@ public class ServerEventsHandler {
 		boolean change = false;
 		String entityName = EntityList.getEntityString(entity);
 
-		for(QuestData data : questData.activeQuests.values()){
+		ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
+		for(QuestData data : activeQuestValues){
 			if(data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
 				continue;
 			if(data.quest.type == EnumQuestType.AreaKill && all){
