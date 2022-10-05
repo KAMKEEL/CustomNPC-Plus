@@ -77,8 +77,8 @@ public class ItemSoulstoneFilled extends Item {
     		EntityNPCInterface npc = (EntityNPCInterface) entity;
     		npc.ai.startPos = new int[]{x, y, z};
     		npc.setHealth(npc.getMaxHealth());
-    		npc.setPosition((float)x + 0.5F, npc.getStartYPos(), (float)z + 0.5F);
-    		npc.advanced.soulStonePlayerName = player.getDisplayName();
+			npc.setPosition((float)x + 0.5F, npc.getStartYPos() - 0.5, (float)z + 0.5F);
+			npc.advanced.soulStonePlayerName = player.getDisplayName();
     		npc.advanced.soulStoneInit = true;
     		if(npc.advanced.role == EnumRoleType.Companion && player != null){
     			PlayerData data = PlayerDataController.instance.getPlayerData(player);

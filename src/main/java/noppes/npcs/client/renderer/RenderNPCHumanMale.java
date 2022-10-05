@@ -259,7 +259,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(-100.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
             }
-            else if (itemstack2.getItem().isFull3D() && (customRenderer == null || pluginMod))
+            else if (itemstack2.getItem().isFull3D() && !is3D)
             {
                 var6 = 0.625F;
 
@@ -367,7 +367,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                 GL11.glRotatef(-100.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
             }
-            else if (itemstack2.getItem().isFull3D())
+            else if (itemstack2.getItem().isFull3D() && !is3D)
             {
                 var6 = 0.625F;
 

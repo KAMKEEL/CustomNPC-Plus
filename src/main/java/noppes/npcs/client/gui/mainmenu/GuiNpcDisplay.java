@@ -185,6 +185,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		}
 		else if(button.id == 11){
 			npc.display.skinOverlayData.overlayList.get(0).setGlow(button.getValue() == 0);
+			npc.display.skinOverlayData.overlayList.get(0).setBlend(button.getValue() == 0);
 			initGui();
 		}
 		else if(button.id == 14){
