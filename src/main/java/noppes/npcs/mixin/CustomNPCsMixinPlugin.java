@@ -1,5 +1,6 @@
 package noppes.npcs.mixin;
 
+import noppes.npcs.CustomNpcs;
 import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -32,9 +33,9 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         List<String> mixins = new ArrayList<>();
-
-        mixins.add("MixinEntityRenderer");
-
+        if (CustomNpcs.EntityRendererMixin){
+            mixins.add("MixinEntityRenderer");
+        }
         return mixins;
     }
 
