@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6.4-pre1")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6.4")
 public class CustomNpcs {
 
     @ConfigProp(info = "Disable Chat Bubbles")
