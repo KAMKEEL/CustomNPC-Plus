@@ -16,8 +16,8 @@ buildscript {
 }
 
 configurations {
-    mixins
-    compile.extendsFrom(mixins)
+    embed
+    compile.extendsFrom(embed)
     shade
     compile.extendsFrom(shade)
 }
@@ -98,7 +98,7 @@ repositories {
 }
 
 dependencies {
-    mixins('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+    embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
         // Mixin includes a lot of dependencies that are too up-to-date
         exclude module: 'launchwrapper'
         exclude module: 'guava'
@@ -127,34 +127,17 @@ jar {
         attributes.put("MixinConfigs", yourMixinConfig)
     }
 
-}
-
-// a task to run after the reobf task to create another jar with the contents of the mixin dependency
-task MixinsJar(type: Jar, dependsOn: reobf) {
-    classifier = "mixin-included"
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes.put("TweakClass", "org.spongepowered.asm.launch.MixinTweaker")
-        attributes.put("FMLCorePluginContainsFMLMod", true)
-        attributes.put("ForceLoadAsMod", true)
-        attributes.put("MixinConfigs", yourMixinConfig)
-    }
-    from configurations.mixins.collect {
+    // embed libraries in jar
+    from configurations.embed.collect {
         exclude '**/LICENSE.txt'
-        //exclude signature files (causing a SecurityException error)
-        exclude "**/**.RSA"
-        exclude "**/**.SF"
         it.isDirectory() ? it : zipTree(it)
     }
-    with jar
 }
+
 reobf {
     addExtraSrgFile mixinSrg
 }
 
-artifacts {
-    archives MixinsJar
-}
 afterEvaluate {
     def fixedRelPathToAP = relativePathToMixinAP
     if(fixedRelPathToAP.startsWith('./') || fixedRelPathToAP.startsWith('.\\')){
