@@ -160,7 +160,9 @@ public class NPCSpawning {
                 } catch (Exception e) {
                     continue;
                 }
-                entities.add(entity);
+                if (entity != null) {
+                    entities.add(entity);
+                }
             }
 
             Entity spawnEntity = entities.get((int)Math.floor(Math.random()*entities.size()));
