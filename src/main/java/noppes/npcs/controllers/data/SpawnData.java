@@ -58,7 +58,7 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 		airSpawning = compound.getBoolean("CaveSpawning");
 
 		spawnHeightMin = compound.getInteger("HeightMin");
-		if (compound.hasKey("HeightMax")) {
+		if (!compound.hasKey("HeightMax")) {
 			spawnHeightMax = 100;
 		} else {
 			spawnHeightMax = compound.getInteger("HeightMax");
