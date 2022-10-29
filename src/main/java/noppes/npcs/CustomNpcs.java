@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6.2-pre2")
+@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6.4")
 public class CustomNpcs {
 
     @ConfigProp(info = "Disable Chat Bubbles")
@@ -158,6 +158,9 @@ public class CustomNpcs {
 
 	@ConfigProp(info="Font size for custom fonts (doesn't work with minecrafts font)")
 	public static int FontSize = 18;
+
+    @ConfigProp(info = "Enables Overlay Mixins for Conflicts relating to Optifine or other Skin Renderers. If crashes occur, please disable.")
+    public static boolean EntityRendererMixin = true;
 
     public static FMLEventChannel Channel;
     public static FMLEventChannel ChannelPlayer;

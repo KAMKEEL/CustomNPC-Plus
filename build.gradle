@@ -24,7 +24,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.6.2-pre2"
+version = "1.6.4"
 group= "com.kamkeel.customnpc-plus" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -87,9 +87,15 @@ jar {
 //Add
 //--tweakClass org.spongepowered.asm.launch.MixinTweaker --mixin customnpcs.mixins.json
 //to your client and server program arguments if working in a dev environment.
+def embedMixin = !project.hasProperty("nomixin");
 def yourMixinConfig = 'customnpcs.mixins.json'
 def refMapForYourConfig = 'customnpcs.refmap.json'
 def relativePathToMixinAP = 'tools/mixin-0.8-SNAPSHOT.jar'
+
+if(!embedMixin){
+    version += "+nomixin"
+}
+
 repositories {
     maven {
         name = "sponge"
@@ -98,13 +104,24 @@ repositories {
 }
 
 dependencies {
-    embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
-        // Mixin includes a lot of dependencies that are too up-to-date
-        exclude module: 'launchwrapper'
-        exclude module: 'guava'
-        exclude module: 'gson'
-        exclude module: 'commons-io'
-        exclude module: 'log4j-core'
+    if(embedMixin){
+        embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+            // Mixin includes a lot of dependencies that are too up-to-date
+            exclude module: 'launchwrapper'
+            exclude module: 'guava'
+            exclude module: 'gson'
+            exclude module: 'commons-io'
+            exclude module: 'log4j-core'
+        }
+    } else {
+        implementation('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+            // Mixin includes a lot of dependencies that are too up-to-date
+            exclude module: 'launchwrapper'
+            exclude module: 'guava'
+            exclude module: 'gson'
+            exclude module: 'commons-io'
+            exclude module: 'log4j-core'
+        }
     }
 }
 

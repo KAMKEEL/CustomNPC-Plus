@@ -379,8 +379,10 @@ public class ScriptPlayerEventHandler {
             Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
-                IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
-                EventHooks.onPlayerDeath(handler,scriptPlayer, event.source, source);
+                try {
+                    IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
+                    EventHooks.onPlayerDeath(handler,scriptPlayer, event.source, source);
+                } catch (Exception ignored) {}
             }
 
             if(source instanceof EntityPlayer) {
