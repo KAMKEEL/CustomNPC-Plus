@@ -156,6 +156,10 @@ public class NPCSpawning {
             for (NBTTagCompound compound : allCompoundList) {
                 Entity entity;
                 try {
+                    Class<?> oclass = (Class<?>)EntityList.stringToClassMapping.get(compound.getString("id"));
+                    if (oclass == null) {
+                        continue;
+                    }
                     entity = EntityList.createEntityFromNBT(compound, world);
                 } catch (Exception e) {
                     continue;
@@ -165,10 +169,15 @@ public class NPCSpawning {
                 }
             }
 
+            if (entities.size() == 0) {
+                return false;
+            }
+
             Entity spawnEntity = entities.get((int)Math.floor(Math.random()*entities.size()));
 
-			if(!(spawnEntity instanceof EntityLiving))
-				return false;
+			if (!(spawnEntity instanceof EntityLiving)) {
+                return false;
+            }
 
 			entityliving = (EntityLiving) spawnEntity;
 			
@@ -192,7 +201,7 @@ public class NPCSpawning {
         if (canSpawn == Result.DENY || (canSpawn == Result.DEFAULT && !canEntitySpawn(data,entityliving)))
         	return false;
 
-        if (!EventHooks.onCNPCNaturalSpawn(data, new BlockPos(x,y,z), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn)) {
+        if (EventHooks.onCNPCNaturalSpawn(data, new BlockPos(x,y,z), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn)) {
             return false;
         }
         

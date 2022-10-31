@@ -104,7 +104,7 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 			slot = 5;
 
 		NBTTagCompound compound = new NBTTagCompound();
-		if (!entity.getMCEntity().writeToNBTOptional(compound)) {
+		if (entity != null && !entity.getMCEntity().writeToNBTOptional(compound)) {
 			throw new CustomNPCsException("Entity could not be written to NBT");
 		} else {
 			switch (slot) {
