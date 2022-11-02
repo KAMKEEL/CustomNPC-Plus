@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
@@ -158,7 +159,7 @@ public class DataScript implements IScriptHandler {
 	}
 	
 	public boolean isEnabled(){
-		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty();
+		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && CustomNpcs.ScriptingEnabled;
 	}
 
 	public Map<Long, String> getConsoleText() {
