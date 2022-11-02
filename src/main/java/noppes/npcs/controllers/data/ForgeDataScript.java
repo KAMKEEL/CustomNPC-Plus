@@ -81,7 +81,7 @@ public class ForgeDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
+        return this.enabled && CustomNpcs.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
     }
 
     public boolean isClient() {
@@ -89,7 +89,7 @@ public class ForgeDataScript implements IScriptHandler {
     }
 
     public boolean getEnabled() {
-        return CustomNpcs.GlobalForgeScripts && this.enabled;
+        return this.enabled;
     }
 
     public void setEnabled(boolean bo) {
