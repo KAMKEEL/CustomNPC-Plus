@@ -4,7 +4,10 @@ import java.util.*;
 
 import javax.script.ScriptEngine;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -12,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
+import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.IScriptHandler;
@@ -132,7 +136,9 @@ public class DataScript implements IScriptHandler {
 				ob = NpcAPI.Instance().getIEntity((Entity)ob);
 			script.engine.put(obs[i].toString(), ob);
 		}
-
+		if(CustomNpcs.ScriptLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ, Arrays.toString(obs)));
+		}
 		return callScript(script, event);
 	}
 
