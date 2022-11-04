@@ -146,17 +146,17 @@ public class LogWriter {
 
 			double frequency = (float)CustomNpcs.ScriptFrequency / 60;
 
-			stamp.counter++;
+
 
 			// Reset Log if 3 Minutes Pass
-			if (secondsSinceFirst > 180) {
+			if (secondsSinceFirst > 120) {
 				LogWriter.script(message);
 				stamp.counter = 1;
 				stamp.makeDate = new Date();
 				stamp.recentDate = new Date();
 			}
 			// ALWAYS Log the First 3 of Event
-			else if(secondsSinceFirst < 10 && stamp.counter < 4) {
+			else if(secondsSinceFirst < 10 && stamp.counter < 3) {
 				LogWriter.script(message);
 				stamp.recentDate = new Date();
 			}
@@ -170,7 +170,7 @@ public class LogWriter {
 				stamp.counter = 0;
 				stamp.recentDate = new Date();
 			}
-
+			stamp.counter++;
 		} else {
 			map.put(npcUUID, new NPCStamp());
 			LogWriter.script(message);
