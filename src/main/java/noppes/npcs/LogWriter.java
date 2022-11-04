@@ -1,7 +1,5 @@
 package noppes.npcs;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import noppes.npcs.constants.EnumScriptType;
 
 import java.io.File;
@@ -143,22 +141,36 @@ public class LogWriter {
 	public static void scriptLogCalculator(WeakHashMap<UUID, NPCStamp> map, UUID npcUUID, String message) {
 		if(map.containsKey(npcUUID)){
 			NPCStamp stamp = map.get(npcUUID);
-			long secondsSinceFirst = TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - stamp.date.getTime());
-			stamp.counter++;
+			long secondsSinceFirst = TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - stamp.makeDate.getTime());
+			long millisecSinceLast = TimeUnit.MILLISECONDS.toMillis(stamp.recentDate.getTime() - stamp.makeDate.getTime());
+
 			double frequency = (float)CustomNpcs.ScriptFrequency / 60;
 
-			if(secondsSinceFirst < 10 && stamp.counter < 5) {
+			stamp.counter++;
+
+			// Reset Log if 3 Minutes Pass
+			if (secondsSinceFirst > 180) {
 				LogWriter.script(message);
+				stamp.counter = 1;
+				stamp.makeDate = new Date();
+				stamp.recentDate = new Date();
+			}
+			// ALWAYS Log the First 3 of Event
+			else if(secondsSinceFirst < 10 && stamp.counter < 4) {
+				LogWriter.script(message);
+				stamp.recentDate = new Date();
+			}
+			// IF event occurs to QUICKLY Ignore.
+			else if (millisecSinceLast < CustomNpcs.ScriptIgnoreTime){
+				stamp.recentDate = new Date();
 			}
 			else if(secondsSinceFirst > 10 && (double)stamp.counter / secondsSinceFirst > frequency){
 				// WARN
 				LogWriter.script("[SPAM]:" + message);
 				stamp.counter = 0;
-			} else if (secondsSinceFirst > 60) {
-				LogWriter.script(message);
-				stamp.counter = 1;
-				stamp.date = new Date();
+				stamp.recentDate = new Date();
 			}
+
 		} else {
 			map.put(npcUUID, new NPCStamp());
 			LogWriter.script(message);
@@ -194,6 +206,7 @@ public class LogWriter {
 
 class NPCStamp
 {
-	public Date date = new Date();
+	public Date makeDate = new Date();
+	public Date recentDate = new Date();
 	public int counter = 1;
 };

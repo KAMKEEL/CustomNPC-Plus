@@ -62,8 +62,12 @@ public class CustomNpcs {
     @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs")
     public static boolean ScriptLogging = false;
 
-    @ConfigProp(info = "Amount of logs per minute that would be marked as SPAM [10, 300]")
+    @ConfigProp(info = "Amount of Messages marked as SPAM [5, 3000]. Higher Number means MORE accurate messages \n" +
+            "This frequency will determine if the log will print a line with [SPAM] to warn the console.")
     public static int ScriptFrequency = 30;
+
+    @ConfigProp(info = "IN Milliseconds 1s = 1000s. If a recent LOG of the same event is SENT within this threshold it will be ignored.")
+    public static int ScriptIgnoreTime = 2000;
 
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
