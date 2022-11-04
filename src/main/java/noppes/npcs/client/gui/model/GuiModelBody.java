@@ -14,7 +14,7 @@ public class GuiModelBody extends GuiModelInterface{
 	private final String[] arrBody = new String[]{"gui.no","gui.yes"};
 	private final String[] arrBodywear = new String[]{"gui.no","gui.yes","Solid"};
 	private final String[] arrWing = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6","Type7","Type8","Type9",
-            "Type10","Type11","Type12","Type13"};
+            "Type10","Type11","Type12","Type13","Type14","Type15"};
 	private final String[] arrBreasts = new String[]{"gui.no","Type1","Type2","Type3"};
 	private final String[] arrParticles = new String[]{"gui.no","Player","Type1", "Type2", "Rainbow", "Type3", "Type4", "Type5", "Type6", "Type7"};
 	private final String[] arrfins = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6"};

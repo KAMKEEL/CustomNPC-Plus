@@ -59,6 +59,16 @@ public class CustomNpcs {
             "Every additional compound tag adds 65535 more characters to your script length limit. Use incrementally, with caution.")
     public static int ExpandedScriptLimit = 2;
 
+    @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs")
+    public static boolean ScriptLogging = false;
+
+    @ConfigProp(info = "Amount of Messages marked as SPAM [5, 3000]. Lower Number means MORE accurate messages \n" +
+            "This frequency will determine if the log will print a line with [SPAM] to warn the console.")
+    public static int ScriptFrequency = 20;
+
+    @ConfigProp(info = "IN Milliseconds 1s = 1000s. If a recent LOG of the same event is SENT within this threshold it will be ignored.")
+    public static int ScriptIgnoreTime = 2000;
+
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
 
@@ -226,6 +236,14 @@ public class CustomNpcs {
 
         if (ExpandedScriptLimit < 0)
             ExpandedScriptLimit = 0;
+
+        if (ScriptFrequency < 5)
+            ScriptFrequency = 5;
+        if (ScriptFrequency > 3000)
+            ScriptFrequency = 3000;
+
+        if (ScriptIgnoreTime < 0)
+            ScriptIgnoreTime = 0;
 
         EnchantInterface.load();
         CustomItems.load();

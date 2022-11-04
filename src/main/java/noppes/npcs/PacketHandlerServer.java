@@ -176,7 +176,7 @@ public class PacketHandlerServer{
 	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		if (type == EnumPacketServer.ScriptGlobalGuiDataGet) {
 			NBTTagCompound compound = new NBTTagCompound();
-			compound.setBoolean("ScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
+			compound.setBoolean("ScriptsEnabled", CustomNpcs.ScriptingEnabled);
 			compound.setBoolean("PlayerScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
 			compound.setBoolean("GlobalNPCScriptsEnabled", CustomNpcs.GlobalNPCScripts);
 			compound.setBoolean("ForgeScriptsEnabled", CustomNpcs.GlobalForgeScripts);
@@ -184,7 +184,7 @@ public class PacketHandlerServer{
 		}
 		else if (type == EnumPacketServer.ScriptGlobalGuiDataSave) {
 			NBTTagCompound compound = Server.readNBT(buffer);
-			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("ScriptsEnabled");
+			CustomNpcs.ScriptingEnabled = compound.getBoolean("ScriptsEnabled");
 			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("PlayerScriptsEnabled");
 			CustomNpcs.GlobalNPCScripts = compound.getBoolean("GlobalNPCScriptsEnabled");
 			CustomNpcs.GlobalForgeScripts = compound.getBoolean("ForgeScriptsEnabled");
