@@ -62,9 +62,9 @@ public class CustomNpcs {
     @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs")
     public static boolean ScriptLogging = false;
 
-    @ConfigProp(info = "Amount of Messages marked as SPAM [5, 3000]. Higher Number means MORE accurate messages \n" +
+    @ConfigProp(info = "Amount of Messages marked as SPAM [5, 3000]. Lower Number means MORE accurate messages \n" +
             "This frequency will determine if the log will print a line with [SPAM] to warn the console.")
-    public static int ScriptFrequency = 30;
+    public static int ScriptFrequency = 20;
 
     @ConfigProp(info = "IN Milliseconds 1s = 1000s. If a recent LOG of the same event is SENT within this threshold it will be ignored.")
     public static int ScriptIgnoreTime = 2000;
@@ -237,10 +237,13 @@ public class CustomNpcs {
         if (ExpandedScriptLimit < 0)
             ExpandedScriptLimit = 0;
 
-        if (ScriptFrequency < 10)
-            ScriptFrequency = 10;
-        if (ScriptFrequency > 300)
-            ScriptFrequency = 300;
+        if (ScriptFrequency < 5)
+            ScriptFrequency = 5;
+        if (ScriptFrequency > 3000)
+            ScriptFrequency = 3000;
+
+        if (ScriptIgnoreTime < 0)
+            ScriptIgnoreTime = 0;
 
         EnchantInterface.load();
         CustomItems.load();
