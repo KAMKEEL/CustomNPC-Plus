@@ -357,9 +357,6 @@ public class ModelMPM extends ModelNPCMale{
 				if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 					for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 						try {
-							if (overlayData.getTexture().isEmpty())
-								continue;
-
 							if (((SkinOverlay)overlayData).getLocation() == null) {
 								((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
 							} else {
@@ -369,7 +366,8 @@ public class ModelMPM extends ModelNPCMale{
 								}
 							}
 
-							if (((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
+							if (overlayData.getTexture().isEmpty() || ((SkinOverlay)overlayData).getLocation() == null
+									|| ((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
 								continue;
 
 							try {

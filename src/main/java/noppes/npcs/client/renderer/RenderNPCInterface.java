@@ -23,6 +23,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
+import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
@@ -220,15 +221,14 @@ public class RenderNPCInterface extends RenderLiving{
 	}
 
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
-		super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
+		if (this.getEntityTexture(entityliving) != null) {
+			super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
+		}
 
 		if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 			for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 				try {
-					if (overlayData.getTexture().isEmpty())
-						continue;
-
 					if (((SkinOverlay)overlayData).getLocation() == null) {
 						((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
 					} else {
@@ -238,7 +238,8 @@ public class RenderNPCInterface extends RenderLiving{
 						}
 					}
 
-					if (((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
+					if (overlayData.getTexture().isEmpty() || ((SkinOverlay)overlayData).getLocation() == null
+							|| ((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
 						continue;
 
 					try {
