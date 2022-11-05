@@ -145,8 +145,11 @@ public class EntityAIReturn extends EntityAIBase
 	    		}
     		}
     	}
-        npc.getNavigator().clearPathEntity();
-        npc.getNavigator().tryMoveToXYZ(posX, posY, posZ, 1);
+
+		if (range > 1f) {
+			npc.getNavigator().clearPathEntity();
+			npc.getNavigator().tryMoveToXYZ(posX, posY, posZ, 1);
+		}
 	}
 
 	public void resetTask(){

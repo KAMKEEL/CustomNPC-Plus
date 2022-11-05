@@ -46,6 +46,9 @@ public class PathNavigateFlying extends PathNavigate {
     private boolean canSwim;
     private static final String __OBFID = "CL_00001627";
 
+    private int pathCooldown = 0;
+    private int maxCooldown = 2;
+
     public PathNavigateFlying(EntityLiving p_i45873_1_, World worldIn) {
         super(p_i45873_1_, worldIn);
         this.theEntity = (EntityNPCInterface)p_i45873_1_;
@@ -129,6 +132,13 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public boolean tryMoveToXYZ(double p_75492_1_, double p_75492_3_, double p_75492_5_, double p_75492_7_)
     {
+        if (this.pathCooldown == 0) {
+            this.pathCooldown = this.maxCooldown;
+        } else {
+            this.pathCooldown--;
+            return false;
+        }
+
         FlyPathEntity pathentity = this.getPathToXYZ((double)MathHelper.floor_double(p_75492_1_), (double)((int)p_75492_3_), (double)MathHelper.floor_double(p_75492_5_));
         return this.setPath(pathentity, p_75492_7_);
     }
@@ -146,6 +156,13 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public boolean tryMoveToEntityLiving(Entity p_75497_1_, double p_75497_2_)
     {
+        if (this.pathCooldown == 0) {
+            this.pathCooldown = this.maxCooldown;
+        } else {
+            this.pathCooldown--;
+            return false;
+        }
+
         FlyPathEntity pathentity = this.getPathToEntityLiving(p_75497_1_);
         return pathentity != null && this.setPath(pathentity, p_75497_2_);
     }
