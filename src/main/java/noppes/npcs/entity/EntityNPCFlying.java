@@ -48,8 +48,9 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
         this.motionY = d3;
 
-        if(this.getNavigator().noPath())
-            this.motionY = 0.0D;
+        if (this.getNavigator().noPath()) {
+            this.motionY = -Math.abs(this.ai.flyGravity);
+        }
 
         this.velocityChanged = true;
     }
