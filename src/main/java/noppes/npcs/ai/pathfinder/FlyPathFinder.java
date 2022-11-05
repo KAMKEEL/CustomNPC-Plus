@@ -7,6 +7,8 @@ import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.util.IntHashMap;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 
 public class FlyPathFinder extends PathFinder
@@ -321,88 +323,74 @@ public class FlyPathFinder extends PathFinder
     {
         boolean flag3 = false;
 
-        for (int l = blockX; l < blockX + pathPoint.xCoord; ++l)
+        Block block = entity.worldObj.getBlock(blockX, blockY, blockZ);
+
+        if(block == Blocks.air)
         {
-            for (int i1 = blockY; i1 < blockY + pathPoint.yCoord; ++i1)
+            Vec3 vec3 = Vec3.createVectorHelper(blockX, blockY, blockZ);
+            Vec3 vec31 = vec3.addVector(0, entity.height, 0);
+            MovingObjectPosition movingobjectposition = entity.worldObj.rayTraceBlocks(vec3, vec31, true);
+            if (movingobjectposition == null || movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+                return 2;
+            }
+        }
+
+        if (block == Blocks.trapdoor)
+        {
+            flag3 = true;
+        }
+        else if (block != Blocks.flowing_water && block != Blocks.water)
+        {
+            if (!isWoddenDoorAllowed && block == Blocks.wooden_door)
             {
-                for (int j1 = blockZ; j1 < blockZ + pathPoint.zCoord; ++j1)
-                {
-                    Block block = entity.worldObj.getBlock(l, i1, j1);
+                return 0;
+            }
+        }
+        else
+        {
+            if (isPathingInWater)
+            {
+                return -1;
+            }
 
-                    if(block == Blocks.air)
-                    {
-                        boolean heightClear = true;
-                        for (int currentY = blockY; currentY <= Math.ceil(blockY + entity.height); ++currentY) {
-                            Block b = entity.worldObj.getBlock(l, currentY, j1);
-                            if (b != Blocks.air) {
-                               heightClear = false;
-                               break;
-                            }
-                        }
-                        if (heightClear) {
-                            return 2;
-                        }
-                    }
+            flag3 = true;
+        }
 
-                    if (block == Blocks.trapdoor)
-                    {
-                        flag3 = true;
-                    }
-                    else if (block != Blocks.flowing_water && block != Blocks.water)
-                    {
-                        if (!isWoddenDoorAllowed && block == Blocks.wooden_door)
-                        {
-                            return 0;
-                        }
-                    }
-                    else
-                    {
-                        if (isPathingInWater)
-                        {
-                            return -1;
-                        }
+        int k1 = block.getRenderType();
 
-                        flag3 = true;
-                    }
+        if (entity.worldObj.getBlock(blockX, blockY, blockZ).getRenderType() == 9)
+        {
+            int j2 = MathHelper.floor_double(entity.posX);
+            int l1 = MathHelper.floor_double(entity.posY);
+            int i2 = MathHelper.floor_double(entity.posZ);
 
-                    int k1 = block.getRenderType();
+            if (entity.worldObj.getBlock(j2, l1, i2).getRenderType() != 9 && entity.worldObj.getBlock(j2, l1 - 1, i2).getRenderType() != 9)
+            {
+                return -3;
+            }
+        }
+        else if (!block.getBlocksMovement(entity.worldObj, blockX, blockY, blockZ) && (!isMovementBlockAllowed || block != Blocks.wooden_door))
+        {
+            if (k1 == 11 || block == Blocks.fence_gate || k1 == 32)
+            {
+                return -3;
+            }
 
-                    if (entity.worldObj.getBlock(l, i1, j1).getRenderType() == 9)
-                    {
-                        int j2 = MathHelper.floor_double(entity.posX);
-                        int l1 = MathHelper.floor_double(entity.posY);
-                        int i2 = MathHelper.floor_double(entity.posZ);
+            if (block == Blocks.trapdoor)
+            {
+                return -4;
+            }
 
-                        if (entity.worldObj.getBlock(j2, l1, i2).getRenderType() != 9 && entity.worldObj.getBlock(j2, l1 - 1, i2).getRenderType() != 9)
-                        {
-                            return -3;
-                        }
-                    }
-                    else if (!block.getBlocksMovement(entity.worldObj, l, i1, j1) && (!isMovementBlockAllowed || block != Blocks.wooden_door))
-                    {
-                        if (k1 == 11 || block == Blocks.fence_gate || k1 == 32)
-                        {
-                            return -3;
-                        }
+            Material material = block.getMaterial();
 
-                        if (block == Blocks.trapdoor)
-                        {
-                            return -4;
-                        }
+            if (material != Material.lava)
+            {
+                return 0;
+            }
 
-                        Material material = block.getMaterial();
-
-                        if (material != Material.lava)
-                        {
-                            return 0;
-                        }
-
-                        if (!entity.handleLavaMovement())
-                        {
-                            return -2;
-                        }
-                    }
-                }
+            if (!entity.handleLavaMovement())
+            {
+                return -2;
             }
         }
 
