@@ -11,6 +11,8 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 
+import java.util.ArrayList;
+
 public class FlyPathFinder extends PathFinder
 {
     /** Used to find obstacles */
@@ -164,61 +166,93 @@ public class FlyPathFinder extends PathFinder
             b0 = 1;
         }
 
-        for(int y = -1; y <= 1; y ++) {
+        FlyPathPoint pathpoint0 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
+        FlyPathPoint pathpoint1 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
+        FlyPathPoint pathpoint2 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
+
+        if (pathpoint0 != null && !pathpoint0.isFirst && pathpoint0.distanceTo(p_75860_4_) < p_75860_5_) {
+            this.pathOptions[i++] = pathpoint0;
+        }
+        if (pathpoint1 != null && !pathpoint1.isFirst && pathpoint1.distanceTo(p_75860_4_) < p_75860_5_) {
+            this.pathOptions[i++] = pathpoint1;
+        }
+        if (pathpoint2 != null && !pathpoint2.isFirst && pathpoint2.distanceTo(p_75860_4_) < p_75860_5_) {
+            this.pathOptions[i++] = pathpoint2;
+        }
+
+        int[][] unsafePoints = {
+            {0,0,0},
+            {0,0,0},
+            {0,0,0}
+        };
+
+        for(int j = 0; j <= 2; j ++) {
+            int y = j < 2 ? j : -1;
+
             FlyPathPoint pathpoint3 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0); //A
             FlyPathPoint pathpoint4 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0); //D
             FlyPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0); //B
             FlyPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0); //C
-
-            FlyPathPoint pathpoint7 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0);
 
             FlyPathPoint pathpoint8 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0); //2
             FlyPathPoint pathpoint9 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0); //4
             FlyPathPoint pathpoint10 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0); //3
             FlyPathPoint pathpoint11 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0); //1
 
-            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_) {
+            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[1][2] == 0) {
                 this.pathOptions[i++] = pathpoint3;
+            } else if (y == 0) {
+                unsafePoints[1][2] = 1;
             }
 
-            if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_) {
+            if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[0][1] == 0) {
                 this.pathOptions[i++] = pathpoint4;
+            } else if (y == 0) {
+                unsafePoints[0][1] = 1;
             }
 
-            if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_) {
+            if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[2][1] == 0) {
                 this.pathOptions[i++] = pathpoint5;
+            } else if (y == 0) {
+                unsafePoints[2][1] = 1;
             }
 
-            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_) {
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[1][0] == 0) {
                 this.pathOptions[i++] = pathpoint6;
+            } else if (y == 0) {
+                unsafePoints[1][0] = 1;
             }
 
-            if (pathpoint7 != null && !pathpoint7.isFirst && pathpoint7.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint7;
-            }
-
-            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ &&
+            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[2][2] == 0 &&
                     pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_ &&
                     pathpoint8 != null && !pathpoint8.isFirst && pathpoint8.distanceTo(p_75860_4_) < p_75860_5_) {
                 this.pathOptions[i++] = pathpoint8;
+            } else if (y == 0) {
+                unsafePoints[2][2] = 1;
             }
 
-            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ &&
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[0][0] == 0 &&
                     pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_ &&
                     pathpoint9 != null && !pathpoint9.isFirst && pathpoint9.distanceTo(p_75860_4_) < p_75860_5_) {
                 this.pathOptions[i++] = pathpoint9;
+            } else if (y == 0) {
+                unsafePoints[0][0] = 1;
             }
 
-            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ &&
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[2][0] == 0 &&
                     pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_ &&
                     pathpoint10 != null && !pathpoint10.isFirst && pathpoint10.distanceTo(p_75860_4_) < p_75860_5_) {
                 this.pathOptions[i++] = pathpoint10;
+            } else if (y == 0) {
+                unsafePoints[2][0] = 1;
             }
 
-            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ &&
+            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ && unsafePoints[0][2] == 0 &&
                     pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_ &&
                     pathpoint11 != null && !pathpoint11.isFirst && pathpoint11.distanceTo(p_75860_4_) < p_75860_5_) {
                 this.pathOptions[i++] = pathpoint11;
+            } else if (y == 0) {
+                unsafePoints[0][2] = 1;
             }
         }
 
