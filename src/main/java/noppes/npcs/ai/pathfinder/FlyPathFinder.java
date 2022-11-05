@@ -105,12 +105,12 @@ public class FlyPathFinder extends PathFinder
 
         BlockPos blockpos1 = new BlockPos(entity);
 
-        return this.openPoint(blockpos1.getX(), i, blockpos1.getZ());
+        return this.openPoint(blockpos1.getX(), i, blockpos1.getZ(), i);
     }
 
     public FlyPathPoint getPathPointToCoords(Entity entityIn, double x, double y, double z)
     {
-        return openPoint(MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z));
+        return openPoint(MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), (int)z);
     }
 
 
