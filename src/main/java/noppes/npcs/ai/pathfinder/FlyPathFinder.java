@@ -7,7 +7,9 @@ import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.util.IntHashMap;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
+import noppes.npcs.entity.EntityNPCInterface;
 
 public class FlyPathFinder extends PathFinder
 {
@@ -57,62 +59,105 @@ public class FlyPathFinder extends PathFinder
     /**
      * Internal implementation of creating a path from an entity to a point
      */
-    private FlyPathEntity createEntityPathTo(Entity p_75857_1_, double p_75857_2_, double p_75857_4_, double p_75857_6_, float p_75857_8_)
+//    private FlyPathEntity createEntityPathTo(Entity p_75857_1_, double p_75857_2_, double p_75857_4_, double p_75857_6_, float p_75857_8_)
+//    {
+//        this.path.clearPath();
+//        this.pointMap.clearMap();
+//        boolean flag = this.isPathingInWater;
+//        int i = MathHelper.floor_double(p_75857_1_.boundingBox.minY + 0.5D);
+//
+//        if (this.canEntityDrown && p_75857_1_.isInWater())
+//        {
+//            i = (int)p_75857_1_.boundingBox.minY;
+//
+//            for (Block block = this.worldMap.getBlock(MathHelper.floor_double(p_75857_1_.posX), i, MathHelper.floor_double(p_75857_1_.posZ)); block == Blocks.flowing_water || block == Blocks.water; block = this.worldMap.getBlock(MathHelper.floor_double(p_75857_1_.posX), i, MathHelper.floor_double(p_75857_1_.posZ)))
+//            {
+//                ++i;
+//            }
+//
+//            flag = this.isPathingInWater;
+//            this.isPathingInWater = false;
+//        }
+//
+//        FlyPathPoint pathpoint2 = this.openPoint(MathHelper.floor_double(p_75857_1_.boundingBox.minX), i, MathHelper.floor_double(p_75857_1_.boundingBox.minZ));
+//        FlyPathPoint pathpoint = this.openPoint(MathHelper.floor_double(p_75857_2_ - (double)(p_75857_1_.width / 2.0F)), MathHelper.floor_double(p_75857_4_), MathHelper.floor_double(p_75857_6_ - (double)(p_75857_1_.width / 2.0F)));
+//        FlyPathPoint pathpoint1 = new FlyPathPoint(MathHelper.floor_float(p_75857_1_.width + 1.0F), MathHelper.floor_float(p_75857_1_.height + 1.0F), MathHelper.floor_float(p_75857_1_.width + 1.0F));
+//        FlyPathEntity pathentity = this.addToPath(p_75857_1_, pathpoint2, pathpoint, pathpoint1, p_75857_8_);
+//        this.isPathingInWater = flag;
+//        return pathentity;
+//    }
+
+    private FlyPathEntity createEntityPathTo(Entity entityIn, double x, double y, double z, float distance)
     {
         this.path.clearPath();
         this.pointMap.clearMap();
-        boolean flag = this.isPathingInWater;
-        int i = MathHelper.floor_double(p_75857_1_.boundingBox.minY + 0.5D);
-
-        if (this.canEntityDrown && p_75857_1_.isInWater())
-        {
-            i = (int)p_75857_1_.boundingBox.minY;
-
-            for (Block block = this.worldMap.getBlock(MathHelper.floor_double(p_75857_1_.posX), i, MathHelper.floor_double(p_75857_1_.posZ)); block == Blocks.flowing_water || block == Blocks.water; block = this.worldMap.getBlock(MathHelper.floor_double(p_75857_1_.posX), i, MathHelper.floor_double(p_75857_1_.posZ)))
-            {
-                ++i;
-            }
-
-            flag = this.isPathingInWater;
-            this.isPathingInWater = false;
-        }
-
-        FlyPathPoint pathpoint2 = this.openPoint(MathHelper.floor_double(p_75857_1_.boundingBox.minX), i, MathHelper.floor_double(p_75857_1_.boundingBox.minZ));
-        FlyPathPoint pathpoint = this.openPoint(MathHelper.floor_double(p_75857_2_ - (double)(p_75857_1_.width / 2.0F)), MathHelper.floor_double(p_75857_4_), MathHelper.floor_double(p_75857_6_ - (double)(p_75857_1_.width / 2.0F)));
-        FlyPathPoint pathpoint1 = new FlyPathPoint(MathHelper.floor_float(p_75857_1_.width + 1.0F), MathHelper.floor_float(p_75857_1_.height + 1.0F), MathHelper.floor_float(p_75857_1_.width + 1.0F));
-        FlyPathEntity pathentity = this.addToPath(p_75857_1_, pathpoint2, pathpoint, pathpoint1, p_75857_8_);
-        this.isPathingInWater = flag;
+        FlyPathPoint pathpoint = this.getPathPointTo(entityIn);
+        FlyPathPoint pathpoint1 = this.getPathPointToCoords(entityIn, x, y, z);
+        FlyPathEntity pathentity = addToPath(entityIn, pathpoint, pathpoint1, distance);
         return pathentity;
     }
+
+    public FlyPathPoint getPathPointTo(Entity entity)
+    {
+        int i;
+
+        if (((EntityNPCInterface) entity).ai.canSwim && entity.isInWater())
+        {
+            i = (int)entity.boundingBox.minY;
+            BlockPos.MutableBlockPos blockpos$mutableblockpos = new BlockPos.MutableBlockPos(MathHelper.floor_double(entity.posX), i, MathHelper.floor_double(entity.posZ));
+
+            for (Block block = this.worldMap.getBlock(blockpos$mutableblockpos.getX(), blockpos$mutableblockpos.getY(), blockpos$mutableblockpos.getZ());
+                 block == Blocks.flowing_water || block == Blocks.water;
+                 block = this.worldMap.getBlock(blockpos$mutableblockpos.getX(), blockpos$mutableblockpos.getY(), blockpos$mutableblockpos.getZ()))
+            {
+                ++i;
+                blockpos$mutableblockpos.setPos(MathHelper.floor_double(entity.posX), i, MathHelper.floor_double(entity.posZ));
+            }
+        }
+        else
+        {
+            i = MathHelper.floor_double(entity.boundingBox.minY + 0.5D);
+        }
+
+        BlockPos blockpos1 = new BlockPos(entity);
+
+        return this.openPoint(blockpos1.getX(), i, blockpos1.getZ());
+    }
+
+    public FlyPathPoint getPathPointToCoords(Entity entityIn, double x, double y, double z)
+    {
+        return openPoint(MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z));
+    }
+
 
     /**
      * Adds a path from start to end and returns the whole path (args: unused, start, end, unused, maxDistance)
      */
-    private FlyPathEntity addToPath(Entity p_75861_1_, FlyPathPoint p_75861_2_, FlyPathPoint p_75861_3_, FlyPathPoint p_75861_4_, float p_75861_5_)
+    private FlyPathEntity addToPath(Entity entityIn, FlyPathPoint pathpointStart, FlyPathPoint pathpointEnd, float maxDistance)
     {
-        p_75861_2_.totalPathDistance = 0.0F;
-        p_75861_2_.distanceToNext = p_75861_2_.distanceToSquared(p_75861_3_);
-        p_75861_2_.distanceToTarget = p_75861_2_.distanceToNext;
+        pathpointStart.totalPathDistance = 0.0F;
+        pathpointStart.distanceToNext = pathpointStart.distanceToSquared(pathpointEnd);
+        pathpointStart.distanceToTarget = pathpointStart.distanceToNext;
         this.path.clearPath();
-        this.path.addPoint(p_75861_2_);
-        FlyPathPoint pathpoint3 = p_75861_2_;
+        this.path.addPoint(pathpointStart);
+        FlyPathPoint pathpoint3 = pathpointStart;
 
         while (!this.path.isPathEmpty())
         {
             FlyPathPoint pathpoint4 = this.path.dequeue();
 
-            if (pathpoint4.equals(p_75861_3_))
+            if (pathpoint4.equals(pathpointEnd))
             {
-                return this.createEntityPath(p_75861_2_, p_75861_3_);
+                return this.createEntityPath(pathpointStart, pathpointEnd);
             }
 
-            if (pathpoint4.distanceToSquared(p_75861_3_) < pathpoint3.distanceToSquared(p_75861_3_))
+            if (pathpoint4.distanceToSquared(pathpointEnd) < pathpoint3.distanceToSquared(pathpointEnd))
             {
                 pathpoint3 = pathpoint4;
             }
 
             pathpoint4.isFirst = true;
-            int i = this.findPathOptions(p_75861_1_, pathpoint4, p_75861_4_, p_75861_3_, p_75861_5_);
+            int i = this.findPathOptions(this.pathOptions, entityIn, pathpoint4, pathpointEnd, maxDistance);
 
             for (int j = 0; j < i; ++j)
             {
@@ -123,7 +168,7 @@ public class FlyPathFinder extends PathFinder
                 {
                     pathpoint5.previous = pathpoint4;
                     pathpoint5.totalPathDistance = f1;
-                    pathpoint5.distanceToNext = pathpoint5.distanceToSquared(p_75861_3_);
+                    pathpoint5.distanceToNext = pathpoint5.distanceToSquared(pathpointEnd);
 
                     if (pathpoint5.isAssigned())
                     {
@@ -138,13 +183,13 @@ public class FlyPathFinder extends PathFinder
             }
         }
 
-        if (pathpoint3 == p_75861_2_)
+        if (pathpoint3 == pathpointStart)
         {
             return null;
         }
         else
         {
-            return this.createEntityPath(p_75861_2_, pathpoint3);
+            return this.createEntityPath(pathpointStart, pathpoint3);
         }
     }
 
@@ -152,76 +197,176 @@ public class FlyPathFinder extends PathFinder
      * populates pathOptions with available points and returns the number of options found (args: unused1, currentPoint,
      * unused2, targetPoint, maxDistance)
      */
-    private int findPathOptions(Entity p_75860_1_, FlyPathPoint p_75860_2_, FlyPathPoint p_75860_3_, FlyPathPoint p_75860_4_, float p_75860_5_)
+    public int findPathOptions(FlyPathPoint[] pathOptions, Entity entityIn, FlyPathPoint currentPoint, FlyPathPoint targetPoint, float maxDistance)
     {
         int i = 0;
-        byte b0 = 0;
+        FlyPathPoint pathpoint = this.openPoint(currentPoint.xCoord, currentPoint.yCoord, currentPoint.zCoord + 1);
+        FlyPathPoint pathpoint1 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord);
+        FlyPathPoint pathpoint2 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord);
+        FlyPathPoint pathpoint3 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord, currentPoint.zCoord - 1);
+        FlyPathPoint pathpoint4 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord);
+        FlyPathPoint pathpoint5 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord);
 
-        if (this.getVerticalOffset(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_) == 1)
+        if (pathpoint != null && !pathpoint.isFirst && pathpoint.distanceTo(targetPoint) < maxDistance)
         {
-            b0 = 1;
+            pathOptions[i++] = pathpoint;
         }
 
-        for(int y = -1; y <= 1; y ++) {
-            FlyPathPoint pathpoint3 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0); //A
-            FlyPathPoint pathpoint4 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0); //D
-            FlyPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0); //B
-            FlyPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0); //C
+        if (pathpoint1 != null && !pathpoint1.isFirst && pathpoint1.distanceTo(targetPoint) < maxDistance)
+        {
+            pathOptions[i++] = pathpoint1;
+        }
 
-            FlyPathPoint pathpoint7 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + y, p_75860_2_.zCoord, p_75860_3_, b0);
+        if (pathpoint2 != null && !pathpoint2.isFirst && pathpoint2.distanceTo(targetPoint) < maxDistance)
+        {
+            pathOptions[i++] = pathpoint2;
+        }
 
-            FlyPathPoint pathpoint8 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0); //2
-            FlyPathPoint pathpoint9 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0); //4
-            FlyPathPoint pathpoint10 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord - 1, p_75860_3_, b0); //3
-            FlyPathPoint pathpoint11 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + y, p_75860_2_.zCoord + 1, p_75860_3_, b0); //1
+        if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(targetPoint) < maxDistance)
+        {
+            pathOptions[i++] = pathpoint3;
+        }
 
-            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint3;
+        if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(targetPoint) < maxDistance)
+        {
+            pathOptions[i++] = pathpoint4;
+        }
+
+        if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(targetPoint) < maxDistance)
+        {
+            pathOptions[i++] = pathpoint5;
+        }
+
+        boolean flag = pathpoint3 == null;
+        boolean flag1 = pathpoint == null;
+        boolean flag2 = pathpoint2 == null;
+        boolean flag3 = pathpoint1 == null;
+        boolean flag4 = pathpoint4 == null;
+        boolean flag5 = pathpoint5 == null;
+
+        if (flag && flag3)
+        {
+            FlyPathPoint pathpoint6 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord - 1);
+
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint6;
             }
+        }
 
-            if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint4;
+        if (flag && flag2)
+        {
+            FlyPathPoint pathpoint7 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord - 1);
+
+            if (pathpoint7 != null && !pathpoint7.isFirst && pathpoint7.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint7;
             }
+        }
 
-            if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint5;
+        if (flag1 && flag3)
+        {
+            FlyPathPoint pathpoint8 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord + 1);
+
+            if (pathpoint8 != null && !pathpoint8.isFirst && pathpoint8.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint8;
             }
+        }
 
-            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint6;
+        if (flag1 && flag2)
+        {
+            FlyPathPoint pathpoint9 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord + 1);
+
+            if (pathpoint9 != null && !pathpoint9.isFirst && pathpoint9.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint9;
             }
+        }
 
-            if (pathpoint7 != null && !pathpoint7.isFirst && pathpoint7.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint7;
+        if (flag && flag4)
+        {
+            FlyPathPoint pathpoint10 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord - 1);
+
+            if (pathpoint10 != null && !pathpoint10.isFirst && pathpoint10.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint10;
             }
+        }
 
-            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint8 != null && !pathpoint8.isFirst && pathpoint8.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint8;
+        if (flag1 && flag4)
+        {
+            FlyPathPoint pathpoint11 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord + 1);
+
+            if (pathpoint11 != null && !pathpoint11.isFirst && pathpoint11.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint11;
             }
+        }
 
-            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint9 != null && !pathpoint9.isFirst && pathpoint9.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint9;
+        if (flag2 && flag4)
+        {
+            FlyPathPoint pathpoint12 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord + 1, currentPoint.zCoord);
+
+            if (pathpoint12 != null && !pathpoint12.isFirst && pathpoint12.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint12;
             }
+        }
 
-            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint10 != null && !pathpoint10.isFirst && pathpoint10.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint10;
+        if (flag3 && flag4)
+        {
+            FlyPathPoint pathpoint13 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord + 1, currentPoint.zCoord);
+
+            if (pathpoint13 != null && !pathpoint13.isFirst && pathpoint13.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint13;
             }
+        }
 
-            if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(p_75860_4_) < p_75860_5_ &&
-                    pathpoint11 != null && !pathpoint11.isFirst && pathpoint11.distanceTo(p_75860_4_) < p_75860_5_) {
-                this.pathOptions[i++] = pathpoint11;
+        if (flag && flag5)
+        {
+            FlyPathPoint pathpoint14 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord - 1);
+
+            if (pathpoint14 != null && !pathpoint14.isFirst && pathpoint14.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint14;
+            }
+        }
+
+        if (flag1 && flag5)
+        {
+            FlyPathPoint pathpoint15 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord + 1);
+
+            if (pathpoint15 != null && !pathpoint15.isFirst && pathpoint15.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint15;
+            }
+        }
+
+        if (flag2 && flag5)
+        {
+            FlyPathPoint pathpoint16 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord - 1, currentPoint.zCoord);
+
+            if (pathpoint16 != null && !pathpoint16.isFirst && pathpoint16.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint16;
+            }
+        }
+
+        if (flag3 && flag5)
+        {
+            FlyPathPoint pathpoint17 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord - 1, currentPoint.zCoord);
+
+            if (pathpoint17 != null && !pathpoint17.isFirst && pathpoint17.distanceTo(targetPoint) < maxDistance)
+            {
+                pathOptions[i++] = pathpoint17;
             }
         }
 
         return i;
     }
+
 
     /**
      * Returns a point that the entity can safely move to
