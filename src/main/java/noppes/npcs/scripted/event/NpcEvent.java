@@ -106,6 +106,7 @@ public class NpcEvent extends CustomNPCsEvent {
         }
     }
 
+    @Cancelable
     public static class RangedLaunchedEvent extends NpcEvent {
         public final IEntityLivingBase target;
         public float damage;
@@ -199,6 +200,7 @@ public class NpcEvent extends CustomNPCsEvent {
         }
     }
 
+    @Cancelable
     public static class DiedEvent extends NpcEvent {
         public final IDamageSource damageSource;
         public final String type;
