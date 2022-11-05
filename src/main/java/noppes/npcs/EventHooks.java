@@ -139,15 +139,15 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onNPCDialog(EntityNPCInterface npc, EntityPlayer player, int dialogId, int optionId, Dialog dialog) {
+    public static boolean onNPCDialog(EntityNPCInterface npc, EntityPlayer player, int dialogId, int optionId, Dialog dialog) {
         if(npc == null || npc.wrappedNPC == null)
-            return;
+            return false;
 
         NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG, event);
         npc.script.callScript(EnumScriptType.DIALOG, event, "player", event.getPlayer(), "dialog", event.getDialogId(), "option", event.getOptionId(), "dialogObj", event.getDialog());
 
-        NpcAPI.EVENT_BUS.post(event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onNPCDialogClosed(EntityNPCInterface npc, EntityPlayer player, int dialogId, int optionId, Dialog dialog) {

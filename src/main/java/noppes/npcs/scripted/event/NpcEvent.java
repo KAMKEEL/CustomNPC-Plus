@@ -248,6 +248,7 @@ public class NpcEvent extends CustomNPCsEvent {
         }
     }
 
+    @Cancelable
     public static class DialogEvent extends NpcEvent {
         public final IPlayer player;
         public final int id;

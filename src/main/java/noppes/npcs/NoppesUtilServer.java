@@ -183,6 +183,9 @@ public class NoppesUtilServer {
 		Dialog dialog = dia.copy(player);
 
 		if (!npc.isRemote()) {
+			if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
+				return;
+			}
 			EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 		}
 
@@ -204,10 +207,6 @@ public class NoppesUtilServer {
         if(!data.dialogsRead.contains(dialog.id))
         	data.dialogsRead.add(dialog.id);
 		setEditingNpc(player, npc);
-
-		if (!npc.isRemote()) {
-			EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog);
-		}
 	}
 	public static void runCommand(EntityPlayer player, String name, String command){
         runCommand(player, name, command, player);
