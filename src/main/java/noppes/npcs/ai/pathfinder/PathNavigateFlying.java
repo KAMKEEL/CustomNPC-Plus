@@ -505,7 +505,7 @@ public class PathNavigateFlying extends PathNavigate {
         int i2 = j + l;
         int j2 = k + l;
         ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, i1, j1, k1, l1, i2, j2, 0);
-        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
+        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_, p_72865_1_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }
@@ -524,7 +524,7 @@ public class PathNavigateFlying extends PathNavigate {
         int l2 = i1 + k1;
         int i3 = j1 + k1;
         ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, l1, i2, j2, k2, l2, i3, 0);
-        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_)).createEntityPathTo(p_72844_1_, p_72844_2_, p_72844_3_, p_72844_4_, p_72844_5_);
+        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_, p_72844_1_)).createEntityPathTo(p_72844_1_, p_72844_2_, p_72844_3_, p_72844_4_, p_72844_5_);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }

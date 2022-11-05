@@ -25,6 +25,8 @@ public class FlyPathPoint extends PathPoint
     public FlyPathPoint previous;
     /** Indicates this is the origin */
     public boolean isFirst;
+    public float costMalus;
+    public PathNodeType nodeType = PathNodeType.BLOCKED;
     private static final String __OBFID = "CL_00000574";
 
     public FlyPathPoint(int p_i2135_1_, int p_i2135_2_, int p_i2135_3_)
@@ -44,7 +46,7 @@ public class FlyPathPoint extends PathPoint
     /**
      * Returns the linear distance to another path point
      */
-    public float distanceTo(net.minecraft.pathfinding.PathPoint p_75829_1_)
+    public float distanceTo(FlyPathPoint p_75829_1_)
     {
         float f = (float)(p_75829_1_.xCoord - this.xCoord);
         float f1 = (float)(p_75829_1_.yCoord - this.yCoord);
@@ -55,7 +57,7 @@ public class FlyPathPoint extends PathPoint
     /**
      * Returns the squared distance to another path point
      */
-    public float distanceToSquared(net.minecraft.pathfinding.PathPoint p_75832_1_)
+    public float distanceToSquared(FlyPathPoint p_75832_1_)
     {
         float f = (float)(p_75832_1_.xCoord - this.xCoord);
         float f1 = (float)(p_75832_1_.yCoord - this.yCoord);
