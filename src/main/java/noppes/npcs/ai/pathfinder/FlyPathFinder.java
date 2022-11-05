@@ -1,18 +1,23 @@
 package noppes.npcs.ai.pathfinder;
 
-import net.minecraft.block.Block;
+import com.google.common.collect.Maps;
+import net.minecraft.block.*;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathPoint;
-import net.minecraft.util.IntHashMap;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.IntHashMap;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import javax.annotation.Nullable;
+import java.util.EnumSet;
+import java.util.Map;
 
 public class FlyPathFinder extends PathFinder
 {
@@ -21,7 +26,7 @@ public class FlyPathFinder extends PathFinder
     /** The path being generated */
     private FlyPath path = new FlyPath();
     /** The points in the path */
-    private IntHashMap pointMap = new IntHashMap();
+    protected final IntHashMap<FlyPathPoint> pointMap = new IntHashMap<FlyPathPoint>();
     /** Selection of path points to add to the path */
     private FlyPathPoint[] pathOptions = new FlyPathPoint[32];
     /** should the PathFinder go through wodden door blocks */
@@ -32,10 +37,13 @@ public class FlyPathFinder extends PathFinder
     /** tells the FathFinder to not stop pathing underwater */
     private boolean canEntityDrown;
     private static final String __OBFID = "CL_00000576";
+    private Entity theEntity;
+    private final Map<PathNodeType, Float> mapPathPriority = Maps.newEnumMap(PathNodeType.class);
 
-    public FlyPathFinder(IBlockAccess p_i2137_1_, boolean p_i2137_2_, boolean p_i2137_3_, boolean p_i2137_4_, boolean p_i2137_5_)
+    public FlyPathFinder(IBlockAccess p_i2137_1_, boolean p_i2137_2_, boolean p_i2137_3_, boolean p_i2137_4_, boolean p_i2137_5_, Entity p_72865_1_)
     {
         super(p_i2137_1_,p_i2137_2_,p_i2137_3_,p_i2137_4_,p_i2137_5_);
+        this.theEntity = p_72865_1_;
         this.worldMap = p_i2137_1_;
         this.isWoddenDoorAllowed = p_i2137_2_;
         this.isMovementBlockAllowed = p_i2137_3_;
@@ -62,33 +70,6 @@ public class FlyPathFinder extends PathFinder
     /**
      * Internal implementation of creating a path from an entity to a point
      */
-//    private FlyPathEntity createEntityPathTo(Entity p_75857_1_, double p_75857_2_, double p_75857_4_, double p_75857_6_, float p_75857_8_)
-//    {
-//        this.path.clearPath();
-//        this.pointMap.clearMap();
-//        boolean flag = this.isPathingInWater;
-//        int i = MathHelper.floor_double(p_75857_1_.boundingBox.minY + 0.5D);
-//
-//        if (this.canEntityDrown && p_75857_1_.isInWater())
-//        {
-//            i = (int)p_75857_1_.boundingBox.minY;
-//
-//            for (Block block = this.worldMap.getBlock(MathHelper.floor_double(p_75857_1_.posX), i, MathHelper.floor_double(p_75857_1_.posZ)); block == Blocks.flowing_water || block == Blocks.water; block = this.worldMap.getBlock(MathHelper.floor_double(p_75857_1_.posX), i, MathHelper.floor_double(p_75857_1_.posZ)))
-//            {
-//                ++i;
-//            }
-//
-//            flag = this.isPathingInWater;
-//            this.isPathingInWater = false;
-//        }
-//
-//        FlyPathPoint pathpoint2 = this.openPoint(MathHelper.floor_double(p_75857_1_.boundingBox.minX), i, MathHelper.floor_double(p_75857_1_.boundingBox.minZ));
-//        FlyPathPoint pathpoint = this.openPoint(MathHelper.floor_double(p_75857_2_ - (double)(p_75857_1_.width / 2.0F)), MathHelper.floor_double(p_75857_4_), MathHelper.floor_double(p_75857_6_ - (double)(p_75857_1_.width / 2.0F)));
-//        FlyPathPoint pathpoint1 = new FlyPathPoint(MathHelper.floor_float(p_75857_1_.width + 1.0F), MathHelper.floor_float(p_75857_1_.height + 1.0F), MathHelper.floor_float(p_75857_1_.width + 1.0F));
-//        FlyPathEntity pathentity = this.addToPath(p_75857_1_, pathpoint2, pathpoint, pathpoint1, p_75857_8_);
-//        this.isPathingInWater = flag;
-//        return pathentity;
-//    }
 
     private FlyPathEntity createEntityPathTo(Entity entityIn, double x, double y, double z, float distance)
     {
@@ -441,16 +422,53 @@ public class FlyPathFinder extends PathFinder
     /**
      * Returns a mapped point or creates and adds one
      */
+//    @Nullable
+//    private FlyPathPoint openPoint(int p_75854_1_, int p_75854_2_, int p_75854_3_)
+//    {
+//        int l = FlyPathPoint.makeHash(p_75854_1_, p_75854_2_, p_75854_3_);
+//        FlyPathPoint pathpoint = (FlyPathPoint)this.pointMap.lookup(l);
+//
+//        if (pathpoint == null)
+//        {
+//            pathpoint = new FlyPathPoint(p_75854_1_, p_75854_2_, p_75854_3_);
+//            this.pointMap.addKey(l, pathpoint);
+//        }
+//
+//        return pathpoint;
+//    }
+
     @Nullable
-    private FlyPathPoint openPoint(int p_75854_1_, int p_75854_2_, int p_75854_3_)
+    protected FlyPathPoint openPoint(int x, int y, int z)
     {
-        int l = FlyPathPoint.makeHash(p_75854_1_, p_75854_2_, p_75854_3_);
-        FlyPathPoint pathpoint = (FlyPathPoint)this.pointMap.lookup(l);
+        FlyPathPoint pathpoint = null;
+        BlockPos blockPos = new BlockPos(x, y, z);
+        PathNodeType pathnodetype = this.getPathNodeType((EntityLiving) this.theEntity, blockPos);
+        float f = getPathPriority(pathnodetype);
+
+        if (f >= 0.0F)
+        {
+            pathpoint = openPoint(x, y, z, x);
+            pathpoint.nodeType = pathnodetype;
+            pathpoint.costMalus = Math.max(pathpoint.costMalus, f);
+
+            if (pathnodetype == PathNodeType.WALKABLE)
+            {
+                ++pathpoint.costMalus;
+            }
+        }
+
+        return pathnodetype != PathNodeType.OPEN && pathnodetype != PathNodeType.WALKABLE ? pathpoint : pathpoint;
+    }
+
+    protected FlyPathPoint openPoint(int x, int y, int z, int b)
+    {
+        int i = FlyPathPoint.makeHash(x, y, z);
+        FlyPathPoint pathpoint = this.pointMap.lookup(i);
 
         if (pathpoint == null)
         {
-            pathpoint = new FlyPathPoint(p_75854_1_, p_75854_2_, p_75854_3_);
-            this.pointMap.addKey(l, pathpoint);
+            pathpoint = new FlyPathPoint(x, y, z);
+            this.pointMap.addKey(i, pathpoint);
         }
 
         return pathpoint;
@@ -484,8 +502,8 @@ public class FlyPathFinder extends PathFinder
                         for (int currentY = blockY; currentY <= Math.ceil(blockY + entity.height); ++currentY) {
                             Block b = entity.worldObj.getBlock(l, currentY, j1);
                             if (b != Blocks.air) {
-                               heightClear = false;
-                               break;
+                                heightClear = false;
+                                break;
                             }
                         }
                         if (heightClear) {
@@ -583,4 +601,224 @@ public class FlyPathFinder extends PathFinder
 
         return new FlyPathEntity(apathpoint);
     }
+
+
+
+
+    public PathNodeType getPathNodeType(IBlockAccess blockaccessIn, int x, int y, int z, EntityLiving entitylivingIn, int xSize, int ySize, int zSize, boolean canBreakDoorsIn, boolean canEnterDoorsIn)
+    {
+        EnumSet<PathNodeType> enumset = EnumSet.<PathNodeType>noneOf(PathNodeType.class);
+        PathNodeType pathnodetype = PathNodeType.BLOCKED;
+        double d0 = (double)entitylivingIn.width / 2.0D;
+        BlockPos blockpos = new BlockPos(entitylivingIn);
+        pathnodetype = this.getPathNodeType(blockaccessIn, x, y, z, xSize, ySize, zSize, canBreakDoorsIn, canEnterDoorsIn, enumset, pathnodetype, blockpos);
+
+        if (enumset.contains(PathNodeType.FENCE))
+        {
+            return PathNodeType.FENCE;
+        }
+        else
+        {
+            PathNodeType pathnodetype1 = PathNodeType.BLOCKED;
+
+            for (PathNodeType pathnodetype2 : enumset)
+            {
+                if (getPathPriority(pathnodetype2) < 0.0F)
+                {
+                    return pathnodetype2;
+                }
+
+                if (getPathPriority(pathnodetype2) >= getPathPriority(pathnodetype1))
+                {
+                    pathnodetype1 = pathnodetype2;
+                }
+            }
+
+            if (pathnodetype == PathNodeType.OPEN && getPathPriority(pathnodetype1) == 0.0F)
+            {
+                return PathNodeType.OPEN;
+            }
+            else
+            {
+                return pathnodetype1;
+            }
+        }
+    }
+
+    public PathNodeType getPathNodeType(IBlockAccess p_193577_1_, int x, int y, int z, int xSize, int ySize, int zSize, boolean canOpenDoorsIn, boolean canEnterDoorsIn, EnumSet<PathNodeType> p_193577_10_, PathNodeType p_193577_11_, BlockPos p_193577_12_)
+    {
+        for (int i = 0; i < xSize; ++i)
+        {
+            for (int j = 0; j < ySize; ++j)
+            {
+                for (int k = 0; k < zSize; ++k)
+                {
+                    int l = i + x;
+                    int i1 = j + y;
+                    int j1 = k + z;
+                    PathNodeType pathnodetype = this.getPathNodeType(p_193577_1_, l, i1, j1);
+
+                    if (pathnodetype == PathNodeType.DOOR_WOOD_CLOSED && canOpenDoorsIn && canEnterDoorsIn)
+                    {
+                        pathnodetype = PathNodeType.WALKABLE;
+                    }
+
+                    if (pathnodetype == PathNodeType.DOOR_OPEN && !canEnterDoorsIn)
+                    {
+                        pathnodetype = PathNodeType.BLOCKED;
+                    }
+
+                    if (pathnodetype == PathNodeType.RAIL && !(p_193577_1_.getBlock(p_193577_12_.getX(), p_193577_12_.getY(), p_193577_12_.getZ()) instanceof BlockRailBase) && !(p_193577_1_.getBlock(p_193577_12_.down().getX(), p_193577_12_.down().getY(), p_193577_12_.down().getZ()) instanceof BlockRailBase))
+                    {
+                        pathnodetype = PathNodeType.FENCE;
+                    }
+
+                    if (i == 0 && j == 0 && k == 0)
+                    {
+                        p_193577_11_ = pathnodetype;
+                    }
+
+                    p_193577_10_.add(pathnodetype);
+                }
+            }
+        }
+
+        return p_193577_11_;
+    }
+
+    public PathNodeType getPathNodeType(IBlockAccess blockaccessIn, int x, int y, int z)
+    {
+        PathNodeType pathnodetype = this.getPathNodeTypeRaw(blockaccessIn, x, y, z);
+
+        if (pathnodetype == PathNodeType.OPEN && y >= 1)
+        {
+            PathNodeType pathnodetype1 = this.getPathNodeTypeRaw(blockaccessIn, x, y - 1, z);
+            pathnodetype = pathnodetype1 != PathNodeType.WALKABLE && pathnodetype1 != PathNodeType.OPEN && pathnodetype1 != PathNodeType.WATER && pathnodetype1 != PathNodeType.LAVA ? PathNodeType.WALKABLE : PathNodeType.OPEN;
+
+            if (pathnodetype1 == PathNodeType.DAMAGE_FIRE)
+            {
+                pathnodetype = PathNodeType.DAMAGE_FIRE;
+            }
+
+            if (pathnodetype1 == PathNodeType.DAMAGE_CACTUS)
+            {
+                pathnodetype = PathNodeType.DAMAGE_CACTUS;
+            }
+
+            if (pathnodetype1 == PathNodeType.DAMAGE_OTHER) pathnodetype = PathNodeType.DAMAGE_OTHER;
+        }
+
+        pathnodetype = this.checkNeighborBlocks(blockaccessIn, x, y, z, pathnodetype);
+        return pathnodetype;
+    }
+
+    public PathNodeType checkNeighborBlocks(IBlockAccess worldmap, int x, int y, int z, PathNodeType p_193578_5_)
+    {
+        BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos = BlockPos.PooledMutableBlockPos.retain();
+
+        if (p_193578_5_ == PathNodeType.WALKABLE)
+        {
+            for (int i = -1; i <= 1; ++i)
+            {
+                for (int j = -1; j <= 1; ++j)
+                {
+                    if (i != 0 || j != 0)
+                    {
+                        blockpos$pooledmutableblockpos.setPos(i + x, y, j + z);
+                        Block block = worldmap.getBlock(blockpos$pooledmutableblockpos.getX(), blockpos$pooledmutableblockpos.getY(), blockpos$pooledmutableblockpos.getZ());
+                        if (block == Blocks.cactus)
+                        {
+                            p_193578_5_ = PathNodeType.DANGER_CACTUS;
+                        }
+                        else if (block == Blocks.fire)
+                        {
+                            p_193578_5_ = PathNodeType.DANGER_FIRE;
+                        }
+                    }
+                }
+            }
+        }
+
+        blockpos$pooledmutableblockpos.release();
+        return p_193578_5_;
+    }
+
+    protected PathNodeType getPathNodeTypeRaw(IBlockAccess worldmap, int p_189553_2_, int p_189553_3_, int p_189553_4_)
+    {
+        BlockPos blockpos = new BlockPos(p_189553_2_, p_189553_3_, p_189553_4_);
+        Block block = worldmap.getBlock(blockpos.getX(), blockpos.getY(), blockpos.getZ());
+        Material material = block.getMaterial();
+
+        if (material == Material.air)
+        {
+            return PathNodeType.OPEN;
+        }
+        else if (block != Blocks.trapdoor && block != Blocks.waterlily)
+        {
+            if (block == Blocks.fire)
+            {
+                return PathNodeType.DAMAGE_FIRE;
+            }
+            else if (block == Blocks.cactus)
+            {
+                return PathNodeType.DAMAGE_CACTUS;
+            }
+            else if (block instanceof BlockDoor && material == Material.wood)
+            {
+                return PathNodeType.DOOR_WOOD_CLOSED;
+            }
+            else if (block instanceof BlockDoor && material == Material.iron)
+            {
+                return PathNodeType.DOOR_IRON_CLOSED;
+            }
+            else if (block instanceof BlockRailBase)
+            {
+                return PathNodeType.RAIL;
+            }
+            else if (!(block instanceof BlockFence) && !(block instanceof BlockWall) && (!(block instanceof BlockFenceGate)))
+            {
+                if (material == Material.water)
+                {
+                    return PathNodeType.WATER;
+                }
+                else if (material == Material.lava)
+                {
+                    return PathNodeType.LAVA;
+                }
+                else
+                {
+                    return block.getBlocksMovement(worldmap, blockpos.getX(), blockpos.getY(), blockpos.getZ()) ? PathNodeType.OPEN : PathNodeType.BLOCKED;
+                }
+            }
+            else
+            {
+                return PathNodeType.FENCE;
+            }
+        }
+        else
+        {
+            return PathNodeType.TRAPDOOR;
+        }
+    }
+
+    private PathNodeType getPathNodeType(EntityLiving p_192559_1_, BlockPos p_192559_2_)
+    {
+        return this.getPathNodeType(p_192559_1_, p_192559_2_.getX(), p_192559_2_.getY(), p_192559_2_.getZ());
+    }
+
+    private PathNodeType getPathNodeType(EntityLiving p_192558_1_, int p_192558_2_, int p_192558_3_, int p_192558_4_)
+    {
+        int entitySizeX = MathHelper.floor_double(p_192558_1_.width + 1.0F);
+        int entitySizeY = MathHelper.floor_double(p_192558_1_.height + 1.0F);
+        int entitySizeZ = MathHelper.floor_double(p_192558_1_.width + 1.0F);
+        return this.getPathNodeType(this.worldMap, p_192558_2_, p_192558_3_, p_192558_4_, p_192558_1_, entitySizeX, entitySizeY, entitySizeZ, false, false);
+    }
+
+    public float getPathPriority(PathNodeType nodeType)
+    {
+        Float f = this.mapPathPriority.get(nodeType);
+        return f == null ? nodeType.getPriority() : f.floatValue();
+    }
+
+
 }

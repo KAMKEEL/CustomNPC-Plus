@@ -19,6 +19,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 
 /**
+ * Pasted in from 1.9, with the Vec3d constructor removed
  */
 @Immutable
 public class BlockPos extends Vec3i
