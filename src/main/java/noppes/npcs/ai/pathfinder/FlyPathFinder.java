@@ -5,11 +5,14 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathFinder;
+import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.IntHashMap;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import javax.annotation.Nullable;
 
 public class FlyPathFinder extends PathFinder
 {
@@ -438,6 +441,7 @@ public class FlyPathFinder extends PathFinder
     /**
      * Returns a mapped point or creates and adds one
      */
+    @Nullable
     private FlyPathPoint openPoint(int p_75854_1_, int p_75854_2_, int p_75854_3_)
     {
         int l = FlyPathPoint.makeHash(p_75854_1_, p_75854_2_, p_75854_3_);
