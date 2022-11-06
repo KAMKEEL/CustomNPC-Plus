@@ -54,10 +54,7 @@ import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
@@ -236,6 +233,20 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IPos getIPos(float x, float y, float z) {
         return this.getIPos((int)x,(int)y,(int)z);
+    }
+
+    public IPos[] getAllInBox(IPos from, IPos to, boolean sortByDistance) {
+        Iterator<BlockPos> posIterable = BlockPos.getAllInBox(from.getMCPos(),to.getMCPos()).iterator();
+        ArrayList<IPos> list = new ArrayList<>();
+        posIterable.forEachRemaining(BlockPos -> list.add(this.getIPos(BlockPos)));
+        if (sortByDistance) {
+            list.sort(Comparator.comparingDouble(pos -> pos.distanceTo(from)));
+        }
+        return list.toArray(new IPos[0]);
+    }
+
+    public IPos[] getAllInBox(IPos from, IPos to) {
+        return this.getAllInBox(from,to,true);
     }
 
     public INbt getINbt(NBTTagCompound nbtTagCompound) {

@@ -19,7 +19,22 @@ public interface IBlock {
      *
      * @return An IPos object with the block's XYZ position.
      */
-    IPos getPos();
+    IPos getPosition();
+
+    /**
+     * Moves the block to a new position in the given world. The old position is replaced with air.
+     *
+     * @param pos The new position of the block
+     * @param world The destination world of the block
+     * @return Whether the block was successfully placed
+     */
+    boolean setPosition(IPos pos, IWorld world);
+
+    boolean setPosition(IPos pos);
+
+    boolean setPosition(int x, int y, int z, IWorld world);
+
+    boolean setPosition(int x, int y, int z);
 
     /**
      *

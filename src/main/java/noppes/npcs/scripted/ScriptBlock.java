@@ -20,10 +20,10 @@ import noppes.npcs.util.LRUHashMap;
 
 public class ScriptBlock implements IBlock {
     private static final Map<String, IBlock> blockCache = new LRUHashMap(400);
-    protected final IWorld world;
-    protected final Block block;
-    protected final BlockPos pos;
-    protected final IPos bPos;
+    protected IWorld world;
+    protected Block block;
+    protected BlockPos pos;
+    protected IPos bPos;
     protected ITileEntity tile;
 
     public ScriptBlock(World world, Block block, BlockPos pos) {
@@ -34,8 +34,54 @@ public class ScriptBlock implements IBlock {
         this.tile = NpcAPI.Instance().getITileEntity(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
     }
 
+    public IPos getPosition() {
+        return this.bPos;
+    }
+
     public IPos getPos() {
         return this.bPos;
+    }
+
+    public boolean setPosition(IPos pos, IWorld world) {
+        if (pos == null || world == null || !world.setBlock(pos, this))
+            return false;
+
+        this.world.removeBlock(this.getPos());
+        this.world = world;
+
+        this.block = world.getBlock(pos).getMCBlock();
+        this.pos = pos.getMCPos();
+        this.bPos = pos;
+        this.tile = NpcAPI.Instance().getITileEntity(world.getMCWorld().getTileEntity(pos.getX(),pos.getY(),pos.getZ()));
+        return true;
+    }
+
+    public boolean setPosition(IPos pos) {
+        return this.setPosition(pos,world);
+    }
+
+    public boolean setPos(IPos pos, IWorld world) {
+        return this.setPosition(pos,world);
+    }
+
+    public boolean setPos(IPos pos) {
+        return this.setPosition(pos);
+    }
+
+    public boolean setPosition(int x, int y, int z, IWorld world) {
+        return this.setPos(NpcAPI.Instance().getIPos(x,y,z),world);
+    }
+
+    public boolean setPosition(int x, int y, int z) {
+        return this.setPos(NpcAPI.Instance().getIPos(x,y,z));
+    }
+
+    public boolean setPos(int x, int y, int z, IWorld world) {
+        return this.setPosition(x,y,z, world);
+    }
+
+    public boolean setPos(int x, int y, int z) {
+        return this.setPosition(x,y,z);
     }
 
     public int getX() {
@@ -147,5 +193,9 @@ public class ScriptBlock implements IBlock {
 
     public boolean canCollide() {
         return canCollide(0);
+    }
+
+    public String toString() {
+        return this.getName() + " @" + this.getPos() + (world == null ? "" : " in DIM" + world.getDimensionID());
     }
 }

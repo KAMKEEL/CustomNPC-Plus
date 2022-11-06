@@ -85,20 +85,51 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public void setPosition(double x, double y, double z){
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);
 	}
+	public void setPos(double x, double y, double z) {
+		this.setPosition(x,y,z);
+	}
 
 	public void setPosition(IPos pos) {
 		this.setPosition(pos.getX(),pos.getY(),pos.getZ());
 	}
+	public void setPos(IPos pos) {
+		this.setPosition(pos);
+	}
 
-	public void setPosition(double x, double y, double z, int dimensionId){
+	public void setPosition(double x, double y, double z, int dimensionId) {
 		if (NpcAPI.Instance().getIWorld(dimensionId) == null)
 			return;
 
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, dimensionId);
 	}
+	public void setPos(double x, double y, double z, int dimensionId) {
+		this.setPosition(x,y,z,dimensionId);
+	}
+	public void setPosition(double x, double y, double z, IWorld world) {
+		this.setPosition(x,y,z,world.getDimensionID());
+	}
+	public void setPos(double x, double y, double z, IWorld world) {
+		this.setPos(x,y,z,world.getDimensionID());
+	}
 
 	public void setPosition(IPos pos, int dimensionId) {
 		this.setPosition(pos.getX(),pos.getY(),pos.getZ(), dimensionId);
+	}
+	public void setPos(IPos pos, int dimensionId) {
+		this.setPosition(pos,dimensionId);
+	}
+	public void setPosition(IPos pos, IWorld world) {
+		this.setPosition(pos.getX(),pos.getY(),pos.getZ(),world.getDimensionID());
+	}
+	public void setPos(IPos pos, IWorld world) {
+		this.setPosition(pos,world.getDimensionID());
+	}
+
+	public void setDimension(int dimension) {
+		this.setPosition(this.getPos(),dimension);
+	}
+	public void setDimension(IWorld world) {
+		this.setDimension(world.getDimensionID());
 	}
 
 	public int getHunger(){

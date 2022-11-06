@@ -418,16 +418,16 @@ public class ScriptWorld implements IWorld {
 	}
 
 
-	public void setBlock(int x, int y, int z, IBlock block){
+	public boolean setBlock(int x, int y, int z, IBlock block){
 		if(block == null || block.getMCBlock().isAir(world, x, y, z)){
 			this.removeBlock(x, y, z);
-			return;
+			return false;
 		}
-		world.setBlock(x, y, z, block.getMCBlock());
+		return world.setBlock(x, y, z, block.getMCBlock());
 	}
 
-	public void setBlock(IPos pos, IBlock block){
-		this.setBlock(pos.getX(),pos.getY(),pos.getZ(),block);
+	public boolean setBlock(IPos pos, IBlock block){
+		return this.setBlock(pos.getX(),pos.getY(),pos.getZ(),block);
 	}
 
 	/**
@@ -436,19 +436,20 @@ public class ScriptWorld implements IWorld {
 	 * @param z World position z
 	 * @param item The block to be set
 	 */
-	public void setBlock(int x, int y, int z, IItemStack item){
+	public boolean setBlock(int x, int y, int z, IItemStack item){
 		if(item == null){
 			this.removeBlock(x, y, z);
-			return;
+			return false;
 		}
 		Block block = Block.getBlockFromItem(item.getMCItemStack().getItem());
 		if(block == null || block == Blocks.air)
-			return;
-		world.setBlock(x, y, z, block);
+			return false;
+
+		return world.setBlock(x, y, z, block);
 	}
 
-	public void setBlock(IPos pos, IItemStack itemStack){
-		this.setBlock(pos.getX(),pos.getY(),pos.getZ(),itemStack);
+	public boolean setBlock(IPos pos, IItemStack itemStack){
+		return this.setBlock(pos.getX(),pos.getY(),pos.getZ(),itemStack);
 	}
 
 	/**
@@ -892,5 +893,9 @@ public class ScriptWorld implements IWorld {
 
 	public int getDimensionID(){
 		return world.provider.dimensionId;
+	}
+
+	public String toString() {
+		return "DIM" + this.getDimensionID();
 	}
 }

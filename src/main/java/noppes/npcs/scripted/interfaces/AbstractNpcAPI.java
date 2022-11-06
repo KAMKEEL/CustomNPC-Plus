@@ -116,6 +116,19 @@ public abstract class AbstractNpcAPI {
 
     public abstract IPos getIPos(float x, float y, float z);
 
+    /**
+     * Forms a box with corners as the input IPos parameters, and returns all
+     * points inside the box as a list of IPos vectors.
+     *
+     * @param from The starting IPos vector, first corner of the box.
+     * @param to The ending IPos vector, opposite corner of the box.
+     * @param sortByDistance Sorts the list by distance from the "from" IPos parameter.
+     * @return The list of all IPos vectors inside the box.
+     */
+    public abstract IPos[] getAllInBox(IPos from, IPos to, boolean sortByDistance);
+
+    public abstract IPos[] getAllInBox(IPos from, IPos to);
+
     public abstract IContainer getIContainer(IInventory var1);
 
     public abstract IContainer getIContainer(Container var1);

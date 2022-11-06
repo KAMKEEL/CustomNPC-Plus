@@ -33,6 +33,10 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
 
     void setPosition(double x, double y, double z, int dimensionId);
     void setPosition(IPos pos, int dimensionId);
+    void setPosition(double x, double y, double z, IWorld world);
+    void setPosition(IPos pos, IWorld world);
+
+    void setDimension(int dimension);
 
     int getHunger();
 

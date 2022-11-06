@@ -152,6 +152,16 @@ public interface IPos {
      */
     IPos offset(int direction, int n);
 
+    IPos crossProduct(int x, int y, int z);
+
+    IPos crossProduct(IPos pos);
+
+    IPos divide(float scalar);
+
+    long toLong();
+
+    IPos fromLong(long serialized);
+
     /**
      *
      * @param pos The IPos object to calculate the distance to

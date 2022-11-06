@@ -186,8 +186,8 @@ public interface IWorld {
      * @param z World position z
      * @param item The block to be set
      */
-    void setBlock(int x, int y, int z, IItemStack item);
-    void setBlock(IPos pos, IItemStack item);
+    boolean setBlock(int x, int y, int z, IItemStack item);
+    boolean setBlock(IPos pos, IItemStack item);
 
 	/**
 	 * @param x World position x
@@ -195,8 +195,8 @@ public interface IWorld {
 	 * @param z World position z
 	 * @param block The block to be set
 	 */
-	void setBlock(int x, int y, int z, IBlock block);
-    void setBlock(IPos pos, IBlock block);
+    boolean setBlock(int x, int y, int z, IBlock block);
+    boolean setBlock(IPos pos, IBlock block);
 
     /**
      * @param x World position x

@@ -6,6 +6,7 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3i;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.scripted.interfaces.IPos;
 
@@ -100,6 +101,28 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.offset(EnumFacing.values()[direction], n));
     }
 
+    public IPos crossProduct(int x, int y, int z) {
+        return this.crossProduct(NpcAPI.Instance().getIPos(x,y,z));
+    }
+
+    public IPos crossProduct(IPos pos) {
+        return NpcAPI.Instance().getIPos(this.blockPos.crossProduct(new Vec3i(-pos.getX(), -pos.getY(), -pos.getZ())));
+    }
+
+    public IPos divide(float scalar) {
+        return NpcAPI.Instance().getIPos(
+        getX()/scalar , getY()/scalar, getZ()/scalar
+        );
+    }
+
+    public long toLong() {
+        return blockPos.toLong();
+    }
+
+    public IPos fromLong(long serialized) {
+        return NpcAPI.Instance().getIPos(BlockPos.fromLong(serialized));
+    }
+
     public double[] normalize() {
         double d = Math.sqrt((double)(this.blockPos.getX() * this.blockPos.getX() + this.blockPos.getY() * this.blockPos.getY() + this.blockPos.getZ() * this.blockPos.getZ()));
         return new double[]{(double)this.getX() / d, (double)this.getY() / d, (double)this.getZ() / d};
@@ -114,5 +137,9 @@ public class ScriptBlockPos implements IPos {
 
     public BlockPos getMCPos() {
         return this.blockPos;
+    }
+
+    public String toString() {
+        return "(" + this.getX() + ", " + this.getY() + ", " + this.getZ() + ")";
     }
 }
