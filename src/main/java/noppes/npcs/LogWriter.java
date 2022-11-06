@@ -22,6 +22,7 @@ import java.util.logging.StreamHandler;
 
 public class LogWriter {
 	private final static String name = "CustomNPCs";
+	private final static String nameLog = "CustomNPCLog";
 	private final static Logger logger = Logger.getLogger(name);
 
 	private final static WeakHashMap<UUID, NPCStamp> InitCacheMap = new WeakHashMap<UUID, NPCStamp>();
@@ -65,8 +66,11 @@ public class LogWriter {
 			handler = new StreamHandler(new FileOutputStream(file), new Formatter() {
 				@Override
 				public String format(LogRecord record) {
-					StackTraceElement element = Thread.currentThread().getStackTrace()[8];
-					String line = "[" + element.getClassName() + ":" + element.getLineNumber() + "] ";
+					String line = "";
+					if (record.getLevel() != NPCLogLevel.CNPCLog){
+						StackTraceElement element = Thread.currentThread().getStackTrace()[8];
+						line = "[" + element.getClassName() + ":" + element.getLineNumber() + "] ";
+					}
 					String time = "[" + dateformat.format(new Date(record.getMillis())) + "][" + record.getLevel() + "]" + line;
 					if(record.getThrown() != null){
 						StringWriter sw = new StringWriter();
@@ -82,9 +86,8 @@ public class LogWriter {
 			logger.setUseParentHandlers(false);
 			Handler consoleHandler = new ConsoleHandler();
 			consoleHandler.setFormatter(handler.getFormatter());
-			consoleHandler.setLevel(Level.FINEST);
+			consoleHandler.setLevel(Level.ALL);
 			logger.addHandler(consoleHandler);
-			
 			logger.setLevel(Level.ALL);
 			info(new Date().toString());
 		} catch (SecurityException e) {
@@ -145,10 +148,7 @@ public class LogWriter {
 			long millisecSinceLast = TimeUnit.MILLISECONDS.toMillis(stamp.recentDate.getTime() - stamp.makeDate.getTime());
 
 			double frequency = (float)CustomNpcs.ScriptFrequency / 60;
-
-
-
-			// Reset Log if 3 Minutes Pass
+			// Reset Log if 2 Minutes Pass
 			if (secondsSinceFirst > 120) {
 				LogWriter.script(message);
 				stamp.counter = 1;
@@ -178,7 +178,7 @@ public class LogWriter {
 	}
 
 	public static void script(Object msg) {
-		logger.log(Level.ALL, msg.toString());
+		logger.log(NPCLogLevel.CNPCLog, msg.toString());
 		handler.flush();
 	}
 

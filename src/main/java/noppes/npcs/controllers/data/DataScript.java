@@ -137,7 +137,11 @@ public class DataScript implements IScriptHandler {
 			script.engine.put(obs[i].toString(), ob);
 		}
 		if(CustomNpcs.ScriptLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-			LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ, Arrays.toString(obs)));
+			if(obs.length > 1 && obs[1] == null){
+				LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s)", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ));
+			} else {
+				LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ, Arrays.toString(obs)));
+			}
 		}
 		return callScript(script, event);
 	}
