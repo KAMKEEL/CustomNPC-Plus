@@ -52,25 +52,6 @@ public class ServerEventsHandler {
 	public static EntityVillager Merchant;
 	public static Entity mounted;
 
-//	private HashMap<String, Integer> exps = new HashMap<String, Integer>();
-//
-//	@SubscribeEvent
-//	public void onUpdate(LivingUpdateEvent event){
-//		if(!(event.entityLiving instanceof EntityPlayer))
-//			return;
-//		EntityPlayer player = (EntityPlayer) event.entityLiving;
-//		if(exps.containsKey(player.getCommandSenderName())){
-//			int prevExp = exps.get(player.getCommandSenderName());
-//			if(prevExp > player.experienceTotal){
-//				player.addChatMessage(new ChatComponentText("Omg exp was gotten:" + (player.experienceTotal - prevExp)));
-//			}
-//			else if(prevExp < player.experienceTotal){
-//				player.addChatMessage(new ChatComponentText("Omg exp was lost:" + (prevExp - player.experienceTotal)));
-//			}
-//		}
-//		exps.put(player.getCommandSenderName(), player.experienceTotal);
-//	}
-
 	@SubscribeEvent
 	public void invoke(EntityInteractEvent event) {
 		ItemStack item = event.entityPlayer.getCurrentEquippedItem();
@@ -86,7 +67,7 @@ public class ServerEventsHandler {
 		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && event.target instanceof EntityLivingBase) {
 			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
 			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
+				LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
 			}
 		}
 
@@ -97,7 +78,7 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 			NoppesUtilServer.sendOpenGui(event.entityPlayer, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) event.target);
 			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
+				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
 		}
 		else if(item.getItem() == CustomItems.cloner && !isRemote && !(event.target instanceof EntityPlayer)){
@@ -118,7 +99,7 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 			Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.GUI, EnumGuiType.Script.ordinal());
 			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
+				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
 		}
 		else if(item.getItem() == CustomItems.mount){
