@@ -119,10 +119,16 @@ public class ScriptBlock implements IBlock {
     }
 
     public TileEntity getMCTileEntity() {
+        if (this.tile == null)
+            return null;
+
         return this.tile.getMCTileEntity();
     }
 
     public INbt getTileEntityNBT() {
+        if (this.tile == null || this.tile.getMCTileEntity() == null)
+            return null;
+
         NBTTagCompound compound = new NBTTagCompound();
         this.tile.getMCTileEntity().writeToNBT(compound);
         return NpcAPI.Instance().getINbt(compound);
