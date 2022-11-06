@@ -459,7 +459,7 @@ public class PlayerEvent extends CustomNPCsEvent {
 
         public Bonemeal(IPlayer player, int x, int y, int z, World world) {
             super(player);
-            this.block = API.getIBlock(world, x, y, z);
+            this.block = API.getIBlock(NpcAPI.Instance().getIWorld(world), x, y, z);
             this.x = x;
             this.y = y;
             this.z = z;

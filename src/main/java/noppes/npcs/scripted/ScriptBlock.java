@@ -30,7 +30,7 @@ public class ScriptBlock implements IBlock {
         this.world = NpcAPI.Instance().getIWorld(world);
         this.block = block;
         this.pos = pos;
-        this.bPos = new ScriptBlockPos(pos);
+        this.bPos = NpcAPI.Instance().getIPos(pos);
         this.tile = new ScriptTileEntity<>(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
     }
 
@@ -64,13 +64,13 @@ public class ScriptBlock implements IBlock {
             return this;
         } else {
             this.world.getMCWorld().setBlock(getX(),getY(),getZ(),block);
-            return NpcAPI.Instance().getIBlock(world.getMCWorld(), block, new BlockPos(getX(),getY(),getZ()));
+            return NpcAPI.Instance().getIBlock(world, getX(),getY(),getZ());
         }
     }
 
     public IBlock setBlock(IBlock block) {
         this.world.getMCWorld().setBlock(getX(),getY(),getZ(),block.getMCBlock());
-        return NpcAPI.Instance().getIBlock(world.getMCWorld(), block.getMCBlock(), new BlockPos(getX(),getY(),getZ()));
+        return NpcAPI.Instance().getIBlock(world, getX(),getY(),getZ());
     }
 
     public boolean isContainer() {

@@ -30,4 +30,50 @@ public class ScriptJobBard extends ScriptJobInterface implements IJobBard {
 		job.song = song;
 		npc.script.clientNeedsUpdate = true;
 	}
+
+	/**
+	 *
+	 * @param i The id of the instrument. IDs:
+	 *          0 - None,
+	 *          1 - Banjo,
+	 *          2 - Violin,
+	 *          3 - Guitar,
+	 *          4 - Harp,
+	 *          5 - FrenchHorn
+	 */
+	public void setInstrument(int i) {
+		this.job.setInstrument(i);
+	}
+
+	public int getInstrumentId() {
+		return this.job.getInstrument().ordinal();
+	}
+
+	public void setMinRange(int range) {
+		this.job.minRange = range;
+	}
+	public int getMinRange() {
+		return this.job.minRange;
+	}
+
+	public void setMaxRange(int range) {
+		this.job.maxRange = range;
+	}
+	public int getMaxRange() {
+		return this.job.maxRange;
+	}
+
+	public void setStreaming(boolean streaming) {
+		this.job.isStreamer = streaming;
+	}
+	public boolean getStreaming() {
+		return this.job.isStreamer;
+	}
+
+	public void hasOffRange(boolean value) {
+		this.job.hasOffRange = value;
+	}
+	public boolean hasOffRange() {
+		return this.job.hasOffRange;
+	}
 }

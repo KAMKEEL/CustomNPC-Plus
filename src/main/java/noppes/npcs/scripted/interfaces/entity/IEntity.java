@@ -95,6 +95,10 @@ public interface IEntity<T extends Entity> {
 
     void setMotion(double x, double y, double z);
 
+    void setMotion(IPos pos);
+
+    IPos getMotion();
+
     boolean isAirborne();
     
     /**
@@ -119,9 +123,9 @@ public interface IEntity<T extends Entity> {
      */
     void setPosition(double x, double y, double z);
 
-    IPos getPos();
+    void setPosition(IPos pos);
 
-    void setPos(IPos pos);
+    IPos getPosition();
 
     int getDimension();
 
@@ -305,6 +309,7 @@ public interface IEntity<T extends Entity> {
     void knockback(int power, float direction);
 
     void knockback(int xpower, int ypower, int zpower, float direction);
+    void knockback(IPos pos, float direction);
 
     void setImmune(int ticks);
 
@@ -340,6 +345,8 @@ public interface IEntity<T extends Entity> {
     public INbt getAllNbt();
 
     public void setNbt(INbt nbt);
+
+    INbt getNbtOptional();
 
     void storeAsClone(int tab, String name);
 

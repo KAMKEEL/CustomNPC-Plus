@@ -103,7 +103,7 @@ public class ScriptItemEventHandler {
             try {
                 if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
                     IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                    ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock(event.entityPlayer.worldObj, new BlockPos(event.entityPlayer.posX, event.entityPlayer.posY, event.entityPlayer.posZ)));
+                    ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock(NpcAPI.Instance().getIWorld(event.entityPlayer.worldObj), NpcAPI.Instance().getIPos(event.entityPlayer.posX, event.entityPlayer.posY, event.entityPlayer.posZ)));
                     event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
                 }
             } catch(Exception e) {}

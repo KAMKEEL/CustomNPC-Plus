@@ -22,7 +22,6 @@ import java.util.logging.StreamHandler;
 
 public class LogWriter {
 	private final static String name = "CustomNPCs";
-	private final static String nameLog = "CustomNPCLog";
 	private final static Logger logger = Logger.getLogger(name);
 
 	private final static WeakHashMap<UUID, NPCStamp> InitCacheMap = new WeakHashMap<UUID, NPCStamp>();
@@ -66,11 +65,8 @@ public class LogWriter {
 			handler = new StreamHandler(new FileOutputStream(file), new Formatter() {
 				@Override
 				public String format(LogRecord record) {
-					String line = "";
-					if (record.getLevel() != NPCLogLevel.CNPCLog){
-						StackTraceElement element = Thread.currentThread().getStackTrace()[8];
-						line = "[" + element.getClassName() + ":" + element.getLineNumber() + "] ";
-					}
+					StackTraceElement element = Thread.currentThread().getStackTrace()[8];
+					String line = "[" + element.getClassName() + ":" + element.getLineNumber() + "] ";
 					String time = "[" + dateformat.format(new Date(record.getMillis())) + "][" + record.getLevel() + "]" + line;
 					if(record.getThrown() != null){
 						StringWriter sw = new StringWriter();
@@ -86,8 +82,9 @@ public class LogWriter {
 			logger.setUseParentHandlers(false);
 			Handler consoleHandler = new ConsoleHandler();
 			consoleHandler.setFormatter(handler.getFormatter());
-			consoleHandler.setLevel(Level.ALL);
+			consoleHandler.setLevel(Level.FINEST);
 			logger.addHandler(consoleHandler);
+			
 			logger.setLevel(Level.ALL);
 			info(new Date().toString());
 		} catch (SecurityException e) {
@@ -102,63 +99,39 @@ public class LogWriter {
 	public static void postScriptLog(UUID npcUUID, EnumScriptType type, String message) {
 		switch (type){
 			case INIT:
-				if(!CustomNpcs.InitIgnore){
-					scriptLogCalculator(InitCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(InitCacheMap, npcUUID, message);
 				break;
 			case TICK:
-				if(!CustomNpcs.TickIgnore){
-					scriptLogCalculator(TickCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(TickCacheMap, npcUUID, message);
 				break;
 			case INTERACT:
-				if(!CustomNpcs.InteractIgnore){
-					scriptLogCalculator(InteractCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(InteractCacheMap, npcUUID, message);
 				break;
 			case DIALOG:
-				if(!CustomNpcs.DialogIgnore){
-					scriptLogCalculator(DialogCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(DialogCacheMap, npcUUID, message);
 				break;
 			case DAMAGED:
-				if(!CustomNpcs.DamagedIgnore){
-					scriptLogCalculator(DamagedCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(DamagedCacheMap, npcUUID, message);
 				break;
 			case KILLED:
-				if(!CustomNpcs.KilledIgnore){
-					scriptLogCalculator(KilledCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(KilledCacheMap, npcUUID, message);
 				break;
 			case ATTACK:
-				if(!CustomNpcs.AttackIgnore){
-					scriptLogCalculator(AttackCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(AttackCacheMap, npcUUID, message);
 				break;
 			case TARGET:
-				if(!CustomNpcs.TargetIgnore){
-					scriptLogCalculator(TargetCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(TargetCacheMap, npcUUID, message);
 				break;
 			case COLLIDE:
-				if(!CustomNpcs.CollideIgnore){
-					scriptLogCalculator(CollideCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(CollideCacheMap, npcUUID, message);
 				break;
 			case KILLS:
-				if(!CustomNpcs.KillsIgnore){
-					scriptLogCalculator(KillsCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(KillsCacheMap, npcUUID, message);
 			case DIALOG_CLOSE:
-				if(!CustomNpcs.DialogCloseIgnore){
-					scriptLogCalculator(DialogCloseCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(DialogCloseCacheMap, npcUUID, message);
 				break;
 			case TIMER:
-				if(!CustomNpcs.TimerIgnore){
-					scriptLogCalculator(TimerCacheMap, npcUUID, message);
-				}
+				scriptLogCalculator(TimerCacheMap, npcUUID, message);
 				break;
 			default:
 				break;
@@ -172,7 +145,10 @@ public class LogWriter {
 			long millisecSinceLast = TimeUnit.MILLISECONDS.toMillis(stamp.recentDate.getTime() - stamp.makeDate.getTime());
 
 			double frequency = (float)CustomNpcs.ScriptFrequency / 60;
-			// Reset Log if 2 Minutes Pass
+
+
+
+			// Reset Log if 3 Minutes Pass
 			if (secondsSinceFirst > 120) {
 				LogWriter.script(message);
 				stamp.counter = 1;
@@ -202,7 +178,7 @@ public class LogWriter {
 	}
 
 	public static void script(Object msg) {
-		logger.log(NPCLogLevel.CNPCLog, msg.toString());
+		logger.log(Level.ALL, msg.toString());
 		handler.flush();
 	}
 

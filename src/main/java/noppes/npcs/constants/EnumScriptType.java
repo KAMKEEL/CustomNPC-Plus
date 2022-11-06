@@ -85,11 +85,6 @@ public enum EnumScriptType {
 
 	public String function;
 
-	public static EnumScriptType valueOfIgnoreCase(String channelName) {
-		channelName = channelName.toUpperCase();
-		return valueOf(channelName);
-	}
-
 	private EnumScriptType(String function) {
 		this.function = function;
 	}

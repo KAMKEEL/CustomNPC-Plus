@@ -29,8 +29,10 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
     void kick(String reason);
 
     void setPosition(double x, double y, double z);
+    void setPosition(IPos pos);
 
     void setPosition(double x, double y, double z, int dimensionId);
+    void setPosition(IPos pos, int dimensionId);
 
     int getHunger();
 
@@ -210,6 +212,7 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * @param z The z position
      */
     void setSpawnpoint(int x, int y, int z);
+    void setSpawnpoint(IPos pos);
 
     void resetSpawnpoint();
 

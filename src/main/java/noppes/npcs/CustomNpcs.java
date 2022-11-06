@@ -23,7 +23,6 @@ import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.ConfigLoader;
 import noppes.npcs.config.ConfigProp;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
@@ -33,7 +32,6 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.Timer;
 import java.util.UUID;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6.4")
@@ -61,12 +59,7 @@ public class CustomNpcs {
             "Every additional compound tag adds 65535 more characters to your script length limit. Use incrementally, with caution.")
     public static int ExpandedScriptLimit = 2;
 
-    @ConfigProp(info = "Enables if Player Information (WAND-USE) should be printed to CustomNPCs Logs. IF on Server \n" +
-            "Logs will only be present SERVER-SIDE only in CustomNPCs-latest, -1, -2, and -3")
-    public static boolean PlayerLogging = false;
-
-    @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs. IF on Server \n" +
-        "Logs will only be present SERVER-SIDE only in CustomNPCs-latest, -1, -2, and -3")
+    @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs")
     public static boolean ScriptLogging = false;
 
     @ConfigProp(info = "Amount of Messages marked as SPAM [5, 3000]. Lower Number means MORE accurate messages \n" +
@@ -75,10 +68,6 @@ public class CustomNpcs {
 
     @ConfigProp(info = "IN Milliseconds 1s = 1000s. If a recent LOG of the same event is SENT within this threshold it will be ignored.")
     public static int ScriptIgnoreTime = 2000;
-
-    @ConfigProp(info = "Comma separated list of NPC Script Types that will omit these from the logs,\n" +
-            "INIT,TICK,INTERACT,DIALOG,DAMAGED,KILLED,ATTACK,TARGET,COLLIDE,KILLS,DIALOG_CLOSE,TIMER")
-    public static String ScriptLogIgnoreType = "TICK";
 
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
@@ -192,19 +181,6 @@ public class CustomNpcs {
 
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
 
-    public static boolean InitIgnore = false;
-    public static boolean TickIgnore = false;
-    public static boolean InteractIgnore = false;
-    public static boolean DialogIgnore = false;
-    public static boolean DamagedIgnore = false;
-    public static boolean KilledIgnore = false;
-    public static boolean AttackIgnore = false;
-    public static boolean TargetIgnore = false;
-    public static boolean CollideIgnore = false;
-    public static boolean KillsIgnore = false;
-    public static boolean DialogCloseIgnore = false;
-    public static boolean TimerIgnore = false;
-
     public CustomNpcs() {
         instance = this;
     }
@@ -229,7 +205,7 @@ public class CustomNpcs {
 
         try {
             ScriptDevs.clear();
-            String[] uuidStrings = ScriptDevIDs.split(",");
+            String[] uuidStrings = ScriptDevIDs.split(";");
             for (String s : uuidStrings) {
                 ScriptDevs.add(UUID.fromString(s));
             }
@@ -268,55 +244,6 @@ public class CustomNpcs {
 
         if (ScriptIgnoreTime < 0)
             ScriptIgnoreTime = 0;
-
-        try {
-            String[] ignoreTypes = ScriptLogIgnoreType.split(",");
-            for (String s : ignoreTypes) {
-                EnumScriptType type = EnumScriptType.valueOfIgnoreCase(s);
-                if(type != null){
-                    switch (type){
-                        case INIT:
-                            InitIgnore = true;
-                            break;
-                        case TICK:
-                            TickIgnore = true;
-                            break;
-                        case INTERACT:
-                            InteractIgnore = true;
-                            break;
-                        case DIALOG:
-                            DialogIgnore = true;
-                            break;
-                        case DAMAGED:
-                            DamagedIgnore = true;
-                            break;
-                        case KILLED:
-                            KilledIgnore = true;
-                            break;
-                        case ATTACK:
-                            AttackIgnore = true;
-                            break;
-                        case TARGET:
-                            TargetIgnore = true;
-                            break;
-                        case COLLIDE:
-                            CollideIgnore = true;
-                            break;
-                        case KILLS:
-                            KillsIgnore = true;
-                            break;
-                        case DIALOG_CLOSE:
-                            DialogCloseIgnore = true;
-                            break;
-                        case TIMER:
-                            TimerIgnore = true;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
 
         EnchantInterface.load();
         CustomItems.load();

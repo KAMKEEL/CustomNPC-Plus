@@ -86,11 +86,19 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, player.dimension);
 	}
 
+	public void setPosition(IPos pos) {
+		this.setPosition(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	public void setPosition(double x, double y, double z, int dimensionId){
 		if (NpcAPI.Instance().getIWorld(dimensionId) == null)
 			return;
 
 		NoppesUtilPlayer.teleportPlayer(player, x, y, z, dimensionId);
+	}
+
+	public void setPosition(IPos pos, int dimensionId) {
+		this.setPosition(pos.getX(),pos.getY(),pos.getZ(), dimensionId);
 	}
 
 	public int getHunger(){
@@ -504,6 +512,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		z = ValueUtil.CorrectInt(z, -30000000, 30000000);
 		y = ValueUtil.CorrectInt(y, 0, 256);
         player.setSpawnChunk(new ChunkCoordinates(x, y, z), true);
+	}
+
+	public void setSpawnpoint(IPos pos){
+		this.setSpawnpoint(pos.getX(),pos.getY(),pos.getZ());
 	}
 	
 	public void resetSpawnpoint(){

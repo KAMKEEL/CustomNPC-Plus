@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import noppes.npcs.scripted.interfaces.IPos;
 
 public class ScriptBlockPos implements IPos {
-    private BlockPos blockPos;
+    public BlockPos blockPos;
 
     public ScriptBlockPos(BlockPos pos) {
         this.blockPos = pos;
@@ -29,75 +29,75 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos up() {
-        return new ScriptBlockPos(this.blockPos.up());
+        return NpcAPI.Instance().getIPos(this.blockPos.up());
     }
 
     public IPos up(int n) {
-        return new ScriptBlockPos(this.blockPos.up(n));
+        return NpcAPI.Instance().getIPos(this.blockPos.up(n));
     }
 
     public IPos down() {
-        return new ScriptBlockPos(this.blockPos.down());
+        return NpcAPI.Instance().getIPos(this.blockPos.down());
     }
 
     public IPos down(int n) {
-        return new ScriptBlockPos(this.blockPos.down(n));
+        return NpcAPI.Instance().getIPos(this.blockPos.down(n));
     }
 
     public IPos north() {
-        return new ScriptBlockPos(this.blockPos.north());
+        return NpcAPI.Instance().getIPos(this.blockPos.north());
     }
 
     public IPos north(int n) {
-        return new ScriptBlockPos(this.blockPos.north(n));
+        return NpcAPI.Instance().getIPos(this.blockPos.north(n));
     }
 
     public IPos east() {
-        return new ScriptBlockPos(this.blockPos.east());
+        return NpcAPI.Instance().getIPos(this.blockPos.east());
     }
 
     public IPos east(int n) {
-        return new ScriptBlockPos(this.blockPos.east(n));
+        return NpcAPI.Instance().getIPos(this.blockPos.east(n));
     }
 
     public IPos south() {
-        return new ScriptBlockPos(this.blockPos.south());
+        return NpcAPI.Instance().getIPos(this.blockPos.south());
     }
 
     public IPos south(int n) {
-        return new ScriptBlockPos(this.blockPos.south(n));
+        return NpcAPI.Instance().getIPos(this.blockPos.south(n));
     }
 
     public IPos west() {
-        return new ScriptBlockPos(this.blockPos.west());
+        return NpcAPI.Instance().getIPos(this.blockPos.west());
     }
 
     public IPos west(int n) {
-        return new ScriptBlockPos(this.blockPos.west(n));
+        return NpcAPI.Instance().getIPos(this.blockPos.west(n));
     }
 
     public IPos add(int x, int y, int z) {
-        return new ScriptBlockPos(this.blockPos.add(x, y, z));
+        return NpcAPI.Instance().getIPos(this.blockPos.add(x, y, z));
     }
 
     public IPos add(IPos pos) {
-        return new ScriptBlockPos(this.blockPos.add(this.blockPos));
+        return NpcAPI.Instance().getIPos(this.blockPos.add(this.blockPos));
     }
 
     public IPos subtract(int x, int y, int z) {
-        return new ScriptBlockPos(this.blockPos.add(-x, -y, -z));
+        return NpcAPI.Instance().getIPos(this.blockPos.add(-x, -y, -z));
     }
 
     public IPos subtract(IPos pos) {
-        return new ScriptBlockPos(this.blockPos.add(-pos.getX(), -pos.getY(), -pos.getZ()));
+        return NpcAPI.Instance().getIPos(this.blockPos.add(-pos.getX(), -pos.getY(), -pos.getZ()));
     }
 
     public IPos offset(int direction) {
-        return new ScriptBlockPos(this.blockPos.offset(EnumFacing.values()[direction]));
+        return NpcAPI.Instance().getIPos(this.blockPos.offset(EnumFacing.values()[direction]));
     }
 
     public IPos offset(int direction, int n) {
-        return new ScriptBlockPos(this.blockPos.offset(EnumFacing.values()[direction], n));
+        return NpcAPI.Instance().getIPos(this.blockPos.offset(EnumFacing.values()[direction], n));
     }
 
     public double[] normalize() {
@@ -110,5 +110,9 @@ public class ScriptBlockPos implements IPos {
         double d1 = (double)(this.getY() - pos.getY());
         double d2 = (double)(this.getZ() - pos.getZ());
         return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+    }
+
+    public BlockPos getMCPos() {
+        return this.blockPos;
     }
 }

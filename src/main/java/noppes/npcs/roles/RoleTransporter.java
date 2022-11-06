@@ -12,6 +12,7 @@ import noppes.npcs.controllers.data.PlayerTransportData;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
 
 public class RoleTransporter extends RoleInterface{
 	
@@ -77,12 +78,12 @@ public class RoleTransporter extends RoleInterface{
 		}
 	}
 	
-	private void unlock(EntityPlayer player, TransportLocation loc){
+	public void unlock(EntityPlayer player, ITransportLocation loc){
 		PlayerTransportData data = PlayerDataController.instance.getPlayerData(player).transportData;
 		if(data.transports.contains(transportId))
 			return;
 		data.transports.add(transportId);
-		player.addChatMessage(new ChatComponentTranslation("transporter.unlock", loc.name));
+		player.addChatMessage(new ChatComponentTranslation("transporter.unlock", loc.getName()));
 	}
 	public TransportLocation getLocation(){
 		if(npc.isRemote())
@@ -94,9 +95,9 @@ public class RoleTransporter extends RoleInterface{
 		return loc != null && loc.id == transportId;
 	}
 
-	public void setTransport(TransportLocation location) {
-		transportId = location.id;
-		name = location.name;
+	public void setTransport(ITransportLocation location) {
+		transportId = location.getId();
+		name = location.getName();
 	}
 
 }

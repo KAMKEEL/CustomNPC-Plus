@@ -2,6 +2,8 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.TransportController;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
 
 public class TransportLocation implements ITransportLocation {
@@ -76,6 +78,16 @@ public class TransportLocation implements ITransportLocation {
 		this.posX = x;
 		this.posY = y;
 		this.posZ = z;
+	}
+
+	public void setPosition(IPos pos) {
+		this.posX = pos.getX();
+		this.posY = pos.getY();
+		this.posZ = pos.getZ();
+	}
+
+	public IPos getPos() {
+		return NpcAPI.Instance().getIPos(this.posX, this.posY, this.posZ);
 	}
 
 	public double getX() {

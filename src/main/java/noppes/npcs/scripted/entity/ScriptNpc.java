@@ -18,6 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
@@ -151,6 +152,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.script.clientNeedsUpdate = true;
 	}
 
+	public IPos getHome() {
+		return NpcAPI.Instance().getIPos(npc.ai.startPos[0],npc.ai.startPos[1],npc.ai.startPos[2]);
+	}
+
 	/**
 	 * @return Home position x
 	 */
@@ -201,6 +206,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setHome(int x, int y, int z){
 		npc.ai.startPos = new int[]{x, y, z};
 	}
+
+	public void setHome(IPos pos){
+		npc.ai.startPos = new int[]{pos.getX(), pos.getY(), pos.getZ()};
+	}
+
 	/**
 	 * @param health New max health
 	 */
@@ -1133,7 +1143,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void setSkinType(byte type) {
 		npc.display.skinType = type;
-		npc.updateClient = true;
+		npc.script.clientNeedsUpdate = true;
 	}
 
 	public byte getSkinType() {
@@ -1146,7 +1156,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		this.npc.display.url = url;
 		npc.textureLocation = null;
 		npc.display.skinType = 2;
-		npc.updateClient = true;
+		npc.script.clientNeedsUpdate = true;
 	}
 
 	public String getSkinUrl() {
@@ -1155,7 +1165,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void setCloakTexture(String cloakTexture) {
 		npc.display.cloakTexture = cloakTexture;
-		npc.updateClient = true;
+		npc.script.clientNeedsUpdate = true;
 	}
 
 	public String getCloakTexture() {
@@ -1168,7 +1178,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		}
 
 		this.getOverlays().add(0, NpcAPI.Instance().createSkinOverlay(overlayTexture));
-		npc.updateClient = true;
+		npc.script.clientNeedsUpdate = true;
 	}
 
 	public String getOverlayTexture() {
@@ -1190,4 +1200,6 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void updateClient() { this.npc.updateClient(); }
+
+	public void updateAI() { this.npc.updateTasks(); }
 }
