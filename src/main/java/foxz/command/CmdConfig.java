@@ -147,11 +147,11 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean chunkloaders(String[] args){
     	if(args.length == 0){
-    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + CustomNpcs.ChuckLoaders);
+    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + CustomNpcs.ChunkLoaders);
     	}
     	else{
     		try{
-    			CustomNpcs.ChuckLoaders = Integer.parseInt(args[0]);
+    			CustomNpcs.ChunkLoaders = Integer.parseInt(args[0]);
     		}
     		catch(NumberFormatException ex){
     			sendmessage("Didnt get a number");
@@ -160,11 +160,11 @@ public class CmdConfig extends ChMcLogger {
 			CustomNpcs.Config.updateConfig();
 			
     		int size = ChunkController.instance.size();
-			if(size > CustomNpcs.ChuckLoaders){
-				ChunkController.instance.unload(size - CustomNpcs.ChuckLoaders);
-				sendmessage(size - CustomNpcs.ChuckLoaders + " chunksloaders unloaded");
+			if(size > CustomNpcs.ChunkLoaders){
+				ChunkController.instance.unload(size - CustomNpcs.ChunkLoaders);
+				sendmessage(size - CustomNpcs.ChunkLoaders + " chunksloaders unloaded");
 			}
-    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + CustomNpcs.ChuckLoaders);
+    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + CustomNpcs.ChunkLoaders);
     	}
         return true;
     }

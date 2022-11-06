@@ -11,6 +11,7 @@ import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.INpc;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
@@ -51,6 +52,18 @@ public abstract class AbstractNpcAPI {
 
     public abstract void stopServer();
 
+    public abstract int getCurrentPlayerCount();
+
+    public abstract int getMaxPlayers();
+
+    public abstract void kickAllPlayers();
+
+    public abstract boolean isHardcore();
+
+    public abstract File getFile(String path);
+
+    public abstract String getServerOwner();
+
     public abstract IFactionHandler getFactions();
 
     public abstract IRecipeHandler getRecipes();
@@ -78,6 +91,10 @@ public abstract class AbstractNpcAPI {
     public abstract ICustomNpc<?> spawnNPC(IWorld world, IPos pos);
 
     public abstract IEntity<?> getIEntity(Entity var1);
+
+    public abstract IPlayer<?> getPlayer(String username);
+
+    public abstract INpc[] getChunkLoadingNPCs();
 
     public abstract IEntity<?>[] getLoadedEntities();
 

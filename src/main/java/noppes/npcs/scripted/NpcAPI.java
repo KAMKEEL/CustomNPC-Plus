@@ -11,6 +11,7 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.INpc;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
@@ -56,6 +57,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
@@ -74,7 +76,31 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public void stopServer() {
-        CustomNpcs.getServer().initiateShutdown();
+        MinecraftServer.getServer().initiateShutdown();
+    }
+
+    public int getCurrentPlayerCount() {
+        return MinecraftServer.getServer().getConfigurationManager().getCurrentPlayerCount();
+    }
+
+    public int getMaxPlayers() {
+        return MinecraftServer.getServer().getConfigurationManager().getMaxPlayers();
+    }
+
+    public void kickAllPlayers() {
+        MinecraftServer.getServer().getConfigurationManager().removeAllPlayers();
+    }
+
+    public boolean isHardcore() {
+        return MinecraftServer.getServer().isHardcore();
+    }
+
+    public File getFile(String path) {
+        return MinecraftServer.getServer().getFile(path);
+    }
+
+    public String getServerOwner() {
+        return MinecraftServer.getServer().getServerOwner();
     }
 
     public IFactionHandler getFactions() {
@@ -144,6 +170,18 @@ public class NpcAPI extends AbstractNpcAPI {
             entity.registerExtendedProperties("ScriptedObject", data);
             return data.base;
         }
+    }
+
+    public INpc[] getChunkLoadingNPCs() {
+        ArrayList<INpc> list = new ArrayList<>();
+        Set<Entity> npcSet = ChunkController.instance.tickets.keySet();
+        for (Entity entity : npcSet) {
+            if (entity instanceof EntityNPCInterface) {
+                list.add((INpc) NpcAPI.Instance().getIEntity(entity));
+            }
+        }
+
+        return list.toArray(new INpc[0]);
     }
 
     public IEntity<?>[] getLoadedEntities() {
@@ -351,6 +389,15 @@ public class NpcAPI extends AbstractNpcAPI {
         return CustomNpcs.MARKOV_GENERATOR[dictionary].fetch(gender);
     }
 
+    /**
+     * @param username The username of the player to be returned
+     * @return The Player with name. Null is returned when the player isn't found
+     */
+    public IPlayer<?> getPlayer(String username) {
+        EntityPlayerMP player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
+        return player == null ? null : (IPlayer<?>) NpcAPI.Instance().getIEntity(player);
+    }
+
     public IPlayer<?>[] getAllServerPlayers(){
         List<?> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
         IPlayer<?>[] arr = new IPlayer[list.size()];
@@ -362,10 +409,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public String[] getPlayerNames() {
-        IPlayer<?>[] players = getAllServerPlayers();
-        String[] names = new String[players.length];
-        for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
-        return names;
+        return MinecraftServer.getServer().getConfigurationManager().getAllUsernames();
     }
 
     public void playSoundAtEntity(IEntity<?> entity, String sound, float volume, float pitch){

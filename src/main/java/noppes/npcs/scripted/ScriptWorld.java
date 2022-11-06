@@ -608,9 +608,9 @@ public class ScriptWorld implements IWorld {
 		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, true, false, true);
 	}
 
+	@Deprecated
 	/**
-	 * @param name The name of the player to be returned
-	 * @return The Player with name. Null is returned when the player isnt found
+	 * Deprecated. Use NpcAPI.Instance().getPlayer(name) instead.
 	 */
 	public IPlayer getPlayer(String name){
 		EntityPlayer player = world.getPlayerEntityByName(name);

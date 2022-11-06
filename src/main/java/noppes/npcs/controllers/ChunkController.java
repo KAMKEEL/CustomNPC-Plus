@@ -1,6 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,16 +15,16 @@ import net.minecraftforge.common.ForgeChunkManager.Type;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobChunkLoader;
 
 public class ChunkController implements LoadingCallback{	
 	public static ChunkController instance;
 	
-	private HashMap<Entity,Ticket> tickets = new HashMap<Entity,Ticket>();
+	public HashMap<Entity,Ticket> tickets = new HashMap<Entity,Ticket>();
 	
 	public ChunkController(){
 		instance = this;
 	}
+
 	public void clear(){
 		tickets = new HashMap<Entity,Ticket>();
 	}
@@ -34,7 +33,7 @@ public class ChunkController implements LoadingCallback{
 		Ticket ticket = tickets.get(npc);
 		if(ticket != null)
 			return ticket;
-		if(size() >= CustomNpcs.ChuckLoaders)
+		if(size() >= CustomNpcs.ChunkLoaders)
 			return null;
 		ticket = ForgeChunkManager.requestTicket(CustomNpcs.instance, npc.worldObj, Type.ENTITY);
 		if(ticket == null)
