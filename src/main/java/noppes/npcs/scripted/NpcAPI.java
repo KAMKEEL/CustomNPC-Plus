@@ -171,15 +171,17 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public ITileEntity getITileEntity(IWorld world, IPos pos) {
-        return new ScriptTileEntity<>(world.getMCWorld().getTileEntity(pos.getX(), pos.getY(),pos.getZ()));
+        TileEntity tileEntity = world.getMCWorld().getTileEntity(pos.getX(), pos.getY(),pos.getZ());
+        return this.getITileEntity(tileEntity);
     }
 
     public ITileEntity getITileEntity(IWorld world, int x, int y, int z) {
-        return new ScriptTileEntity<>(world.getMCWorld().getTileEntity(x,y,z));
+        TileEntity tileEntity = world.getMCWorld().getTileEntity(x,y,z);
+        return this.getITileEntity(tileEntity);
     }
 
     public ITileEntity getITileEntity(TileEntity tileEntity) {
-        return new ScriptTileEntity<>(tileEntity);
+        return tileEntity == null ? null : new ScriptTileEntity<>(tileEntity);
     }
 
     public IPos getIPos(BlockPos pos) {
