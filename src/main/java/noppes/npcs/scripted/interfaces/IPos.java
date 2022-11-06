@@ -5,6 +5,8 @@
 
 package noppes.npcs.scripted.interfaces;
 
+import net.minecraft.util.math.BlockPos;
+
 public interface IPos {
     int getX();
 
@@ -156,4 +158,6 @@ public interface IPos {
      * @return The distance between this IPos object and the other.
      */
     double distanceTo(IPos pos);
+
+    BlockPos getMCPos();
 }

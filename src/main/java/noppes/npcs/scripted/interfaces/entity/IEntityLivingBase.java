@@ -146,4 +146,12 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
      * @param item Item to be set
      */
     void setArmor(int slot, IItemStack item);
+
+    void setAIMoveSpeed(float speed);
+
+    float getAIMoveSpeed();
+
+    void setAbsorptionAmount(float amount);
+
+    float getAbsorptionAmount();
 }

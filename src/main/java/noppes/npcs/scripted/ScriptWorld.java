@@ -18,7 +18,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
@@ -34,9 +33,10 @@ import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
 import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.scripted.scoreboard.ScriptScoreboard;
 
 public class ScriptWorld implements IWorld {
-	private static Map<String,Object> tempData = new HashMap<String,Object>();
+	private static final Map<String,Object> tempData = new HashMap<>();
 	public WorldServer world;
 	public ScriptWorld(WorldServer world){
 		this.world = world;
@@ -60,7 +60,7 @@ public class ScriptWorld implements IWorld {
 	public long getTime(){
 		return world.getWorldTime();
 	}
-	
+
 	/**
 	 * @return The total world time
 	 */
@@ -79,30 +79,59 @@ public class ScriptWorld implements IWorld {
 	 * @return The block at the given position. Returns null if there isn't a block
 	 */
 	public IBlock getBlock(int x, int y, int z){
-		Block block = world.getBlock(x, y, z);
-		if(block == null || block.isAir(world, x, y, z))
-			return null;
-		return NpcAPI.Instance().getIBlock(world, block, new BlockPos(x,y,z));
+		return NpcAPI.Instance().getIBlock(this, x,y,z);
+	}
+
+	/**
+	 * @param pos
+	 * @return The block at the given position. Returns null if there isn't a block
+	 */
+	public IBlock getBlock(IPos pos){
+		return NpcAPI.Instance().getIBlock(this, pos);
+	}
+
+	public boolean isBlockFreezable(IPos pos) {
+		return this.isBlockFreezable(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	public boolean isBlockFreezable(int x, int y, int z){
 		return world.isBlockFreezable(x,y,z);
 	}
 
+	public boolean isBlockFreezableNaturally(IPos pos) {
+		return this.isBlockFreezableNaturally(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	public boolean isBlockFreezableNaturally(int x, int y, int z){
 		return world.isBlockFreezableNaturally(x,y,z);
+	}
+
+	public boolean canBlockFreeze(IPos pos, boolean adjacentToWater) {
+		return this.canBlockFreeze(pos.getX(),pos.getY(),pos.getZ(), adjacentToWater);
 	}
 
 	public boolean canBlockFreeze(int x, int y, int z, boolean adjacentToWater){
 		return world.canBlockFreeze(x,y,z,adjacentToWater);
 	}
 
+	public boolean canBlockFreezeBody(IPos pos, boolean adjacentToWater) {
+		return this.canBlockFreezeBody(pos.getX(),pos.getY(),pos.getZ(), adjacentToWater);
+	}
+
 	public boolean canBlockFreezeBody(int x, int y, int z, boolean adjacentToWater){
 		return world.canBlockFreezeBody(x,y,z,adjacentToWater);
 	}
 
+	public boolean canSnowAt(IPos pos, boolean checkLight) {
+		return this.canSnowAt(pos.getX(),pos.getY(),pos.getZ(), checkLight);
+	}
+
 	public boolean canSnowAt(int x, int y, int z, boolean checkLight){
 		return world.func_147478_e(x,y,z,checkLight);
+	}
+
+	public boolean canSnowAtBody(IPos pos, boolean checkLight) {
+		return this.canSnowAtBody(pos.getX(),pos.getY(),pos.getZ(), checkLight);
 	}
 
 	public boolean canSnowAtBody(int x, int y, int z, boolean checkLight){
@@ -110,39 +139,66 @@ public class ScriptWorld implements IWorld {
 	}
 
 	public IBlock getTopBlock(int x, int z){
-		int y;
-		for (y = 63; !world.isAirBlock(x, y + 1, z); ++y) {;}
-		Block block = world.getBlock(x, y, z);
+		return NpcAPI.Instance().getIBlock(this, x, world.getTopSolidOrLiquidBlock(x,z) ,z);
+	}
 
-		return NpcAPI.Instance().getIBlock(world, block, new BlockPos(x,y,z));
+	public IBlock getTopBlock(IPos pos) {
+		return this.getTopBlock(pos.getX(),pos.getZ());
 	}
 
 	public int getHeightValue(int x, int z){
 		return world.getHeightValue(x,z);
 	}
 
+	public int getHeightValue(IPos pos) {
+		return this.getHeightValue(pos.getX(),pos.getZ());
+	}
+
 	public int getChunkHeightMapMinimum(int x, int z){
 		return world.getChunkHeightMapMinimum(x,z);
+	}
+
+	public int getChunkHeightMapMinimum(IPos pos){
+		return this.getChunkHeightMapMinimum(pos.getX(),pos.getZ());
 	}
 
 	public int getBlockMetadata(int x, int y, int z){
 		return world.getBlockMetadata(x,y,z);
 	}
 
+	public int getBlockMetadata(IPos pos){
+		return this.getBlockMetadata(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	public boolean setBlockMetadataWithNotify(int x, int y, int z, int metadata, int flag){
 		return world.setBlockMetadataWithNotify(x,y,z,metadata,flag);
 	}
 
-	public boolean canBlockSeeTheSky(int x, int y, int z){
-		return world.canBlockSeeTheSky(x,y,z);
+	public boolean setBlockMetadataWithNotify(IPos pos, int metadata, int flag){
+		return this.setBlockMetadataWithNotify(pos.getX(),pos.getY(),pos.getZ(), metadata, flag);
+	}
+
+	public boolean canSeeSky(int x, int y, int z) {
+		return world.canBlockSeeTheSky(x, y, z);
+	}
+	public boolean canSeeSky(IPos pos) {
+		return canSeeSky(pos.getX(), pos.getY(), pos.getZ());
 	}
 
 	public int getFullBlockLightValue(int x, int y, int z){
 		return world.getFullBlockLightValue(x,y,z);
 	}
 
+	public int getFullBlockLightValue(IPos pos){
+		return this.getFullBlockLightValue(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	public int getBlockLightValue(int x, int y, int z){
 		return world.getBlockLightValue(x,y,z);
+	}
+
+	public int getBlockLightValue(IPos pos){
+		return this.getBlockLightValue(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	public void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch){
@@ -206,6 +262,15 @@ public class ScriptWorld implements IWorld {
 		return world.spawnEntityInWorld(entity.getMCEntity());
 	}
 
+	public boolean spawnEntityInWorld(IEntity entity, double x, double y, double z){
+		entity.setPosition(x, y, z);
+		return this.spawnEntityInWorld(entity);
+	}
+
+	public boolean spawnEntityInWorld(IEntity entity, IPos pos) {
+		return this.spawnEntityInWorld(entity, pos.getX(), pos.getY(), pos.getZ());
+	}
+
 	public IPlayer getClosestPlayerToEntity(IEntity entity, double range){
 		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayerToEntity(entity.getMCEntity(), range));
 	}
@@ -214,12 +279,20 @@ public class ScriptWorld implements IWorld {
 		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestPlayer(x,y,z, range));
 	}
 
+	public IPlayer getClosestPlayer(IPos pos, double range){
+		return this.getClosestPlayer(pos.getX(),pos.getY(),pos.getZ(), range);
+	}
+
 	public IPlayer getClosestVulnerablePlayerToEntity(IEntity entity, double range){
 		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayerToEntity(entity.getMCEntity(), range));
 	}
 
 	public IPlayer getClosestVulnerablePlayer(double x, double y, double z, double range){
 		return (IPlayer) NpcAPI.Instance().getIEntity(world.getClosestVulnerablePlayer(x,y,z, range));
+	}
+
+	public IPlayer getClosestVulnerablePlayer(IPos pos, double range){
+		return this.getClosestVulnerablePlayer(pos.getX(),pos.getY(),pos.getZ(), range);
 	}
 
 	public int countEntities(IEntity entity){
@@ -246,8 +319,8 @@ public class ScriptWorld implements IWorld {
 		}
 
 		list.sort((e1, e2) -> {
-			double dist1 = e1.getPos().distanceTo(position);
-			double dist2 = e2.getPos().distanceTo(position);
+			double dist1 = e1.getPosition().distanceTo(position);
+			double dist2 = e2.getPosition().distanceTo(position);
 
 			if (dist1 > dist2) {
 				return 1;
@@ -261,19 +334,31 @@ public class ScriptWorld implements IWorld {
 	}
 
 	public IEntity[] getEntitiesNear(double x, double y, double z, double range) {
-		return getEntitiesNear(new ScriptBlockPos(new BlockPos(x,y,z)), range);
+		return getEntitiesNear(NpcAPI.Instance().getIPos(x,y,z), range);
 	}
 
 	public void setTileEntity(int x, int y, int z, ITileEntity tileEntity){
 		world.setTileEntity(x,y,z,tileEntity.getMCTileEntity());
 	}
 
+	public void setTileEntity(IPos pos, ITileEntity tileEntity){
+		this.setTileEntity(pos.getX(),pos.getY(),pos.getZ(),tileEntity);
+	}
+
 	public void removeTileEntity(int x, int y, int z){
 		world.removeTileEntity(x,y,z);
 	}
 
+	public void removeTileEntity(IPos pos){
+		this.removeTileEntity(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	public boolean isBlockFullCube(int x, int y, int z){
 		return world.func_147469_q(x,y,z);
+	}
+
+	public boolean isBlockFullCube(IPos pos){
+		return this.isBlockFullCube(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	public long getSeed(){
@@ -284,20 +369,24 @@ public class ScriptWorld implements IWorld {
 		world.setSpawnLocation(x,y,z);
 	}
 
+	public void setSpawnLocation(IPos pos){
+		this.setSpawnLocation(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	public boolean canLightningStrikeAt(int x, int y, int z){
 		return world.canLightningStrikeAt(x,y,z);
+	}
+
+	public boolean canLightningStrikeAt(IPos pos){
+		return this.canLightningStrikeAt(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	public boolean isBlockHighHumidity(int x, int y, int z){
 		return world.isBlockHighHumidity(x,y,z);
 	}
 
-	/**
-	 * @param pos
-	 * @return The block at the given position. Returns null if there isn't a block
-	 */
-	public IBlock getBlock(IPos pos){
-		return getBlock(pos.getX(), pos.getY(), pos.getZ());
+	public boolean isBlockHighHumidity(IPos pos){
+		return this.canLightningStrikeAt(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	/**
@@ -309,10 +398,10 @@ public class ScriptWorld implements IWorld {
 	 */
 	public String getSignText(int x, int y, int z){
 		TileEntity tile = world.getTileEntity(x, y, z);
-		
+
 		if(tile instanceof TileBigSign)
 			return ((TileBigSign)tile).getText();
-		
+
 		if(tile instanceof TileEntitySign){
 			TileEntitySign tileSign = (TileEntitySign)tile;
 			String s = tileSign.signText[0] + "\n";
@@ -321,16 +410,24 @@ public class ScriptWorld implements IWorld {
 			s += tileSign.signText[3];
 			return s;
 		}
-		
+
 		return null;
 	}
-	
+	public String getSignText(IPos pos) {
+		return this.getSignText(pos.getX(),pos.getY(),pos.getZ());
+	}
+
+
 	public void setBlock(int x, int y, int z, IBlock block){
 		if(block == null || block.getMCBlock().isAir(world, x, y, z)){
-			removeBlock(x, y, z);
+			this.removeBlock(x, y, z);
 			return;
 		}
 		world.setBlock(x, y, z, block.getMCBlock());
+	}
+
+	public void setBlock(IPos pos, IBlock block){
+		this.setBlock(pos.getX(),pos.getY(),pos.getZ(),block);
 	}
 
 	/**
@@ -341,7 +438,7 @@ public class ScriptWorld implements IWorld {
 	 */
 	public void setBlock(int x, int y, int z, IItemStack item){
 		if(item == null){
-			removeBlock(x, y, z);
+			this.removeBlock(x, y, z);
 			return;
 		}
 		Block block = Block.getBlockFromItem(item.getMCItemStack().getItem());
@@ -349,7 +446,11 @@ public class ScriptWorld implements IWorld {
 			return;
 		world.setBlock(x, y, z, block);
 	}
-	
+
+	public void setBlock(IPos pos, IItemStack itemStack){
+		this.setBlock(pos.getX(),pos.getY(),pos.getZ(),itemStack);
+	}
+
 	/**
 	 * @param x World position x
 	 * @param y World position y
@@ -357,6 +458,10 @@ public class ScriptWorld implements IWorld {
 	 */
 	public void removeBlock(int x, int y, int z){
 		world.setBlock(x, y, z, Blocks.air);
+	}
+
+	public void removeBlock(IPos pos){
+		this.removeBlock(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
@@ -369,7 +474,7 @@ public class ScriptWorld implements IWorld {
 
 		while (rep++ < maxDistance + 10) {
 			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
-			pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+			pos = NpcAPI.Instance().getIPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord);
 
 			IBlock block = getBlock((int)currentPos.xCoord, (int)currentPos.yCoord, (int)currentPos.zCoord);
 			if (block != null && stopOnBlock) {
@@ -458,7 +563,7 @@ public class ScriptWorld implements IWorld {
 
 		while (rep++ < maxDistance + 10) {
 			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
-			IPos pos = new ScriptBlockPos(new BlockPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord));
+			IPos pos = NpcAPI.Instance().getIPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord);
 			IBlock block = getBlock(pos);
 
 			if (block != null && stopOnBlock) {
@@ -503,14 +608,6 @@ public class ScriptWorld implements IWorld {
 		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, true, false, true);
 	}
 
-	public boolean canSeeSky(int x, int y, int z) {
-		return world.canBlockSeeTheSky(x, y, z);
-	}
-
-	public boolean canSeeSky(IPos pos) {
-		return canSeeSky(pos.getX(), pos.getY(), pos.getZ());
-	}
-
 	/**
 	 * @param name The name of the player to be returned
 	 * @return The Player with name. Null is returned when the player isnt found
@@ -525,7 +622,7 @@ public class ScriptWorld implements IWorld {
 	public IPlayer getPlayerByUUID(String uuid){
 		return (IPlayer) NpcAPI.Instance().getIEntity(world.func_152378_a(UUID.fromString(uuid)));
 	}
-	
+
 	/**
 	 * @param time The world time to be set
 	 */
@@ -539,21 +636,21 @@ public class ScriptWorld implements IWorld {
 	public boolean isDay(){
 		return world.getWorldTime() % 24000 < 12000;
 	}
-	
+
 	/**
 	 * @return Whether or not its currently raining
 	 */
 	public boolean isRaining(){
 		return world.getWorldInfo().isRaining();
 	}
-	
+
 	/**
 	 * @param bo Set if it's raining
 	 */
 	public void setRaining(boolean bo){
 		world.getWorldInfo().setRaining(bo);
 	}
-	
+
 	/**
 	 * @param x The x position
 	 * @param y The y position
@@ -562,7 +659,11 @@ public class ScriptWorld implements IWorld {
 	public void thunderStrike(double x, double y, double z){
         world.addWeatherEffect(new EntityLightningBolt(world, x, y, z));
 	}
-	
+
+	public void thunderStrike(IPos pos){
+		this.thunderStrike(pos.getX(),pos.getY(),pos.getZ());
+	}
+
 	/**
 	 * Sends a packet from the server to the client everytime its called. Probably should not use this too much.
 	 * @param particle Particle name. Particle name list: http://minecraft.gamepedia.com/Particles
@@ -578,7 +679,11 @@ public class ScriptWorld implements IWorld {
 	public void spawnParticle(String particle, double x, double y, double z, double dx, double dy, double dz, double speed, int count){
 		world.func_147487_a(particle, x, y, z, count, dx, dy, dz, speed);
 	}
-	
+
+	public void spawnParticle(String particle, IPos pos, double dx, double dy, double dz, double speed, int count){
+		this.spawnParticle(particle, pos.getX(), pos.getY(), pos.getZ(), dx, dy, dz, speed, count);
+	}
+
 	/**
 	 * @param id The items name
 	 * @param damage The damage value
@@ -605,7 +710,7 @@ public class ScriptWorld implements IWorld {
 	public Object getTempData(String key){
 		return tempData.get(key);
 	}
-	
+
 	/**
 	 * Tempdata gets cleared when the server restarts. All worlds share the same temp data.
 	 * @param key The key for the data stored
@@ -614,7 +719,7 @@ public class ScriptWorld implements IWorld {
 	public void setTempData(String key, Object value){
 		tempData.put(key, value);
 	}
-	
+
 	/**
 	 * @param key The key thats going to be tested against the temp data
 	 * @return Whether or not temp data containes the key
@@ -622,21 +727,21 @@ public class ScriptWorld implements IWorld {
 	public boolean hasTempData(String key){
 		return tempData.containsKey(key);
 	}
-	
+
 	/**
 	 * @param key The key for the temp data to be removed
 	 */
 	public void removeTempData(String key){
 		tempData.remove(key);
 	}
-	
+
 	/**
 	 * Removes all tempdata
 	 */
 	public void clearTempData(){
 		tempData.clear();
 	}
-	
+
 	/**
 	 * @param key The key of the data to be returned
 	 * @return Returns the stored data
@@ -650,7 +755,7 @@ public class ScriptWorld implements IWorld {
 			return ((NBTPrimitive)base).func_150286_g();
 		return ((NBTTagString)base).func_150285_a_();
 	}
-	
+
 	/**
 	 * Stored data persists through world restart. Unlike tempdata only Strings and Numbers can be saved
 	 * @param key The key for the data stored
@@ -664,7 +769,7 @@ public class ScriptWorld implements IWorld {
 			compound.setString(key, (String)value);
 		ScriptController.Instance.shouldSave = true;
 	}
-	
+
 	/**
 	 * @param key The key of the data to be checked
 	 * @return Returns whether or not the stored data contains the key
@@ -672,7 +777,7 @@ public class ScriptWorld implements IWorld {
 	public boolean hasStoredData(String key){
 		return ScriptController.Instance.compound.hasKey(key);
 	}
-	
+
 	/**
 	 * @param key The key of the data to be removed
 	 */
@@ -680,7 +785,7 @@ public class ScriptWorld implements IWorld {
 		ScriptController.Instance.compound.removeTag(key);
 		ScriptController.Instance.shouldSave = true;
 	}
-	
+
 	/**
 	 * Remove all stored data
 	 */
@@ -688,7 +793,7 @@ public class ScriptWorld implements IWorld {
 		ScriptController.Instance.compound = new NBTTagCompound();
 		ScriptController.Instance.shouldSave = true;
 	}
-	
+
 	/**
 	 * @param x Position x
 	 * @param y Position y
@@ -701,6 +806,10 @@ public class ScriptWorld implements IWorld {
 		world.newExplosion(null, x, y, z, range, fire, grief);
 	}
 
+	public void explode(IPos pos, float range, boolean fire, boolean grief){
+		this.explode(pos.getX(),pos.getY(),pos.getZ(),range,fire,grief);
+	}
+
 	@Deprecated
 	public IPlayer[] getAllServerPlayers(){
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
@@ -708,7 +817,7 @@ public class ScriptWorld implements IWorld {
 		for(int i = 0; i < list.size(); i++){
 			arr[i] = (IPlayer) NpcAPI.Instance().getIEntity(list.get(i));
 		}
-		
+
 		return arr;
 	}
 
@@ -729,7 +838,11 @@ public class ScriptWorld implements IWorld {
 	public String getBiomeName(int x, int z){
 		return world.getBiomeGenForCoords(x, z).biomeName;
 	}
-	
+
+	public String getBiomeName(IPos pos){
+		return this.getBiomeName(pos.getX(),pos.getZ());
+	}
+
 	/**
 	 * Lets you spawn a server side cloned entity
 	 * @param x The x position the clone will be spawned at
@@ -752,10 +865,18 @@ public class ScriptWorld implements IWorld {
 		return entity == null ? null : NpcAPI.Instance().getIEntity(entity);
 	}
 
+	public IEntity spawnClone(IPos pos, int tab, String name, boolean ignoreProtection) {
+		return this.spawnClone(pos.getX(),pos.getY(),pos.getZ(),tab,name,ignoreProtection);
+	}
+
 	public IEntity spawnClone(int x, int y, int z, int tab, String name) {
 		return this.spawnClone(x,y,z,tab,name,true);
 	}
-	
+
+	public IEntity spawnClone(IPos pos, int tab, String name) {
+		return this.spawnClone(pos.getX(),pos.getY(),pos.getZ(),tab,name);
+	}
+
 	public ScriptScoreboard getScoreboard(){
 		return new ScriptScoreboard();
 	}

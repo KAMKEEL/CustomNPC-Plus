@@ -518,7 +518,7 @@ public class EventHooks {
     public static boolean onCNPCNaturalSpawn(INaturalSpawn naturalSpawn, BlockPos blockPos, boolean animalSpawnPassed, boolean monsterSpawnPassed, boolean liquidSpawnPassed, boolean airSpawnPassed) {
         ForgeDataScript handler = ScriptController.Instance.forgeScripts;
         if (handler.isEnabled()) {
-            IPos attemptPosition = new ScriptBlockPos(blockPos);
+            IPos attemptPosition = NpcAPI.Instance().getIPos(blockPos);
             CustomNPCsEvent.CNPCNaturalSpawnEvent event = new CustomNPCsEvent.CNPCNaturalSpawnEvent(naturalSpawn, attemptPosition, animalSpawnPassed, monsterSpawnPassed, liquidSpawnPassed, airSpawnPassed);
             handler.callScript("onCNPCNaturalSpawn", event);
             return NpcAPI.EVENT_BUS.post(event);

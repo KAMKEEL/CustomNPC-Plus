@@ -6,6 +6,7 @@
 package noppes.npcs.scripted.interfaces.entity;
 
 import net.minecraft.entity.EntityCreature;
+import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.ITimers;
 import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
 import noppes.npcs.scripted.interfaces.handler.data.IFaction;
@@ -72,6 +73,8 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      */
     void setTexture(String texture);
 
+    IPos getHome();
+
     /**
      * @return Home position x
      */
@@ -108,6 +111,9 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      * @param z The home z position
      */
     void setHome(int x, int y, int z);
+
+    void setHome(IPos pos);
+
     /**
      * @param health New max health
      */
@@ -808,4 +814,6 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     int getCollisionType();
 
     void updateClient();
+
+    void updateAI();
 }

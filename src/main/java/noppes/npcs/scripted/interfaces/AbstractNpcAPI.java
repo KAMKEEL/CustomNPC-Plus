@@ -17,6 +17,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -66,23 +67,37 @@ public abstract class AbstractNpcAPI {
 
     public abstract String[] getAllBiomeNames();
 
-    public abstract ICustomNpc createNPC(World var1);
+    public abstract ICustomNpc<?> createNPC(IWorld var1);
 
     /**
      *
      * Spawns a new NPC in the world at the given coordinates and returns an ICustomNpc object of it.
      */
-    public abstract ICustomNpc spawnNPC(World var1, int var2, int var3, int var4);
+    public abstract ICustomNpc<?> spawnNPC(IWorld var1, int var2, int var3, int var4);
 
-    public abstract IEntity getIEntity(Entity var1);
+    public abstract ICustomNpc<?> spawnNPC(IWorld world, IPos pos);
 
-    public abstract IEntity[] getLoadedEntities();
+    public abstract IEntity<?> getIEntity(Entity var1);
 
-    public abstract IBlock getIBlock(World var1, BlockPos var2);
+    public abstract IEntity<?>[] getLoadedEntities();
 
-    public abstract IBlock getIBlock(World world, Block block, BlockPos pos);
+    public abstract IBlock getIBlock(IWorld world, int x, int y, int z);
 
-    public abstract IBlock getIBlock(World world, int x, int y, int z);
+    public abstract IBlock getIBlock(IWorld world, IPos pos);
+
+    public abstract ITileEntity getITileEntity(IWorld world, IPos pos);
+
+    public abstract ITileEntity getITileEntity(IWorld world, int x, int y, int z);
+
+    public abstract ITileEntity getITileEntity(TileEntity tileEntity);
+
+    public abstract IPos getIPos(BlockPos pos);
+
+    public abstract IPos getIPos(int x, int y, int z);
+
+    public abstract IPos getIPos(double x, double y, double z);
+
+    public abstract IPos getIPos(float x, float y, float z);
 
     public abstract IContainer getIContainer(IInventory var1);
 
@@ -98,7 +113,7 @@ public abstract class AbstractNpcAPI {
 
     public abstract IDamageSource getIDamageSource(DamageSource var1);
 
-    public abstract IDamageSource getIDamageSource(IEntity entity);
+    public abstract IDamageSource getIDamageSource(IEntity<?> entity);
 
     public abstract EventBus events();
 
@@ -117,7 +132,7 @@ public abstract class AbstractNpcAPI {
             return null;
         } else {
             try {
-                Class c = Class.forName("noppes.npcs.scripted.NpcAPI");
+                Class<?> c = Class.forName("noppes.npcs.scripted.NpcAPI");
                 instance = (AbstractNpcAPI) c.getMethod("Instance").invoke((Object) null);
             } catch (Exception var1) {
                 var1.printStackTrace();
@@ -154,15 +169,15 @@ public abstract class AbstractNpcAPI {
 
     public abstract INbt stringToNbt(String str);
 
-    public abstract IPlayer[] getAllServerPlayers();
+    public abstract IPlayer<?>[] getAllServerPlayers();
 
     public abstract String[] getPlayerNames();
 
     public abstract IItemStack createItem(String id, int damage, int size);
 
-    public abstract void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch);
+    public abstract void playSoundAtEntity(IEntity<?> entity, String sound, float volume, float pitch);
 
-    public abstract void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch);
+    public abstract void playSoundToNearExcept(IPlayer<?> player, String sound, float volume, float pitch);
 
     /**
      *

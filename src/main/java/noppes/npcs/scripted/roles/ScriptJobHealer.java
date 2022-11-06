@@ -16,6 +16,20 @@ public class ScriptJobHealer extends ScriptJobInterface implements IJobHealer {
 	public void heal(IEntityLivingBase entity, float amount){
 		job.heal(entity.getMCEntity(), amount);
 	}
+
+	public void setRange(int range) {
+		this.job.range = range;
+	}
+	public int getRange() {
+		return this.job.range;
+	}
+
+	public void setSpeed(int speed) {
+		this.job.speed = speed;
+	}
+	public int getSpeed() {
+		return this.job.speed;
+	}
 	
 	@Override
 	public int getType(){

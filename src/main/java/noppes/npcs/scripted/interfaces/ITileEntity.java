@@ -16,13 +16,17 @@ public interface ITileEntity {
      *
      * @return The world this tile entity is in.
      */
-    ScriptWorld getWorld();
+    IWorld getWorld();
+
+    void setWorld(IWorld world);
 
     /**
      *
      * @return An obfuscated MC tile entity object.
      */
     TileEntity getMCTileEntity();
+
+    void markDirty();
 
     /**
      * Reads an INbt compound tag, creates a tile entity based on the data, and replaces this entity with the new one.
@@ -33,6 +37,7 @@ public interface ITileEntity {
      * @return The distance of this tile entity from the point given by the x, y, and z parameters.
      */
     double getDistanceFrom(double x, double y, double z);
+    double getDistanceFrom(IPos pos);
 
     /**
      * @return A new IBlock object based on this tile entity's type.

@@ -4,25 +4,37 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.interfaces.IBlock;
-import noppes.npcs.scripted.interfaces.INbt;
-import noppes.npcs.scripted.interfaces.ITileEntity;
+import noppes.npcs.scripted.interfaces.*;
 
 public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
     protected T tileEntity;
+    protected IWorld world;
 
-    public ScriptTileEntity(T tileEntity) { this.tileEntity = tileEntity; }
+    public ScriptTileEntity(T tileEntity) {
+        this.tileEntity = tileEntity;
+        this.world = NpcAPI.Instance().getIWorld(tileEntity.getWorldObj());
+    }
 
     public int getBlockMetadata(){
         return tileEntity.getBlockMetadata();
     }
 
-    public ScriptWorld getWorld(){
-        return (ScriptWorld) NpcAPI.Instance().getIWorld((WorldServer) tileEntity.getWorldObj());
+    public IWorld getWorld(){
+        return world;
+    }
+
+    public void setWorld(IWorld world) {
+        this.tileEntity.setWorldObj(world.getMCWorld());
+        this.world = world;
     }
 
     public TileEntity getMCTileEntity() {
         return this.tileEntity;
+    }
+
+    public void markDirty()
+    {
+        this.tileEntity.markDirty();
     }
 
     public void readFromNBT(INbt nbt){
@@ -33,8 +45,12 @@ public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
         return this.tileEntity.getDistanceFrom(x,y,z);
     }
 
+    public double getDistanceFrom(IPos pos){
+        return this.getDistanceFrom(pos.getX(),pos.getY(),pos.getZ());
+    }
+
     public IBlock getBlockType(){
-        return NpcAPI.Instance().getIBlock(tileEntity.getWorldObj(), tileEntity.getBlockType(), new BlockPos(tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord));
+        return NpcAPI.Instance().getIBlock(world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
     }
 
     public boolean isInvalid(){
