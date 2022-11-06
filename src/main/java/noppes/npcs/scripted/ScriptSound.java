@@ -156,7 +156,7 @@ public class ScriptSound implements ISound {
     }
 
     public IPos getPos() {
-        return NpcAPI.Instance().getIPos(xPosF, yPosF, zPosF);
+        return new ScriptBlockPos(new BlockPos(xPosF,yPosF,zPosF));
     }
 
     public float getX() {

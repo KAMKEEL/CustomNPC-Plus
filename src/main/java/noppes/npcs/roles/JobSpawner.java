@@ -250,7 +250,7 @@ public class JobSpawner extends JobInterface{
 		return null;
 	}
 
-	public boolean isEmpty(){
+	private boolean isEmpty(){
 		if(compound1 != null && compound1.hasKey("id"))
 			return false;
 		if(compound2 != null && compound2.hasKey("id"))
@@ -365,7 +365,7 @@ public class JobSpawner extends JobInterface{
 		return living;
 	}
 
-	public NBTTagCompound getCompound(int i) {
+	private NBTTagCompound getCompound(int i) {
 		if(i <= 1 && compound1 != null && compound1.hasKey("id")){
 			number = 1;
 			return compound1;
@@ -394,7 +394,7 @@ public class JobSpawner extends JobInterface{
 	}
 
 	
-	public List<EntityLivingBase> getNearbySpawned(){
+	private List<EntityLivingBase> getNearbySpawned(){
 		List<EntityLivingBase> spawnList = new ArrayList<EntityLivingBase>();
 		List<EntityLivingBase> list = npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(40, 40, 40));
 		for(EntityLivingBase entity : list){

@@ -2,6 +2,7 @@ package noppes.npcs.items;
 
 import java.util.List;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,6 +12,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
@@ -73,6 +76,9 @@ public class ItemSoulstoneFilled extends Item {
     	if(entity == null)
     		return false;
     	entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
+		if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			LogWriter.script(String.format("[%s] %s PLACED ENTITY %s", "SOULSTONE", player.getCommandSenderName(), entity));
+		}
     	if(entity instanceof EntityNPCInterface){
     		EntityNPCInterface npc = (EntityNPCInterface) entity;
     		npc.ai.startPos = new int[]{x, y, z};

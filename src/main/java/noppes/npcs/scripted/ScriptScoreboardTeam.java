@@ -1,4 +1,4 @@
-package noppes.npcs.scripted.scoreboard;
+package noppes.npcs.scripted;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package noppes.npcs.scripted.scoreboard;
+package noppes.npcs.scripted;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,8 @@ import net.minecraft.server.MinecraftServer;
  */
 public class ScriptScoreboard {
 	private Scoreboard board;
-
-	public ScriptScoreboard(){
+	
+	protected ScriptScoreboard(){
 		board = MinecraftServer.getServer().worldServerForDimension(0).getScoreboard();
 	}
 	

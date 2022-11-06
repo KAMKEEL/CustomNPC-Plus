@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -13,6 +15,8 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -23,6 +27,7 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
     
@@ -191,7 +196,6 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 	    			return;
     			Client.sendData(EnumPacketServer.SpawnMob, false, posX, posY, posZ, compound);
 	    		close();
-	    		
     		}
     	}
     	if(id == 2){

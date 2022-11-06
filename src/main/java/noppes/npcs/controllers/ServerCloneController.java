@@ -19,7 +19,6 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.handler.ICloneHandler;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 import noppes.npcs.scripted.interfaces.IWorld;
@@ -210,16 +209,8 @@ public class ServerCloneController implements ICloneHandler {
 		}
 	}
 
-	public IEntity spawn(IPos pos, int tab, String name, IWorld world, boolean ignoreProtection) {
-		return this.spawn(pos.getX(),pos.getY(),pos.getZ(),tab,name,world,ignoreProtection);
-	}
-
 	public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world) {
 		return spawn(x, y, z, tab, name, world, true);
-	}
-
-	public IEntity spawn(IPos pos, int tab, String name, IWorld world) {
-		return this.spawn(pos.getX(),pos.getY(),pos.getZ(),tab,name,world);
 	}
 
 	public IEntity[] getTab(int tab, IWorld world) {
