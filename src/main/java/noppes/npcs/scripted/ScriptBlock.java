@@ -31,7 +31,7 @@ public class ScriptBlock implements IBlock {
         this.block = block;
         this.pos = pos;
         this.bPos = NpcAPI.Instance().getIPos(pos);
-        this.tile = new ScriptTileEntity<>(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
+        this.tile = NpcAPI.Instance().getITileEntity(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
     }
 
     public IPos getPos() {
