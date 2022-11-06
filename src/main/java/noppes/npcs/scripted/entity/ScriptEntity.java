@@ -363,14 +363,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		this.setMotionZ(z);
 	}
 
-	public void setMotion(IPos pos) {
-		this.setMotion(pos.getX(),pos.getY(),pos.getZ());
-	}
-
-	public IPos getMotion() {
-		return NpcAPI.Instance().getIPos(entity.motionX,entity.motionY,entity.motionZ);
-	}
-
 	public boolean isAirborne(){
 		return entity.isAirBorne;
 	}
@@ -406,19 +398,11 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 
 	public IPos getPos() {
-		return NpcAPI.Instance().getIPos(entity.posX, entity.posY, entity.posZ);
-	}
-
-	public IPos getPosition() {
-		return getPos();
+		return new ScriptBlockPos(new BlockPos(entity.posX,entity.posY,entity.posZ));
 	}
 
 	public void setPos(IPos pos) {
 		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
-	}
-
-	public void setPosition(IPos pos) {
-		this.setPos(pos);
 	}
 
 	public int getDimension(){
@@ -746,10 +730,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.velocityChanged = true;
 	}
 
-	public void knockback(IPos pos, float direction){
-		this.knockback(pos.getX(),pos.getY(),pos.getZ(),direction);
-	}
-
 	public void setImmune(int ticks) {
 		entity.hurtResistantTime = ticks;
 	};
@@ -807,11 +787,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public void setNbt(INbt nbt) {
 		this.entity.readFromNBT(nbt.getMCNBT());
-	}
-
-	public INbt getNbtOptional() {
-		NBTTagCompound compound = new NBTTagCompound();
-		return this.entity.writeToNBTOptional(compound) ? NpcAPI.Instance().getINbt(compound) : null;
 	}
 
 	public void storeAsClone(int tab, String name) {

@@ -5,6 +5,11 @@
 
 package noppes.npcs.scripted;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import cpw.mods.fml.common.eventhandler.EventBus;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import net.minecraft.block.Block;
@@ -14,13 +19,13 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
@@ -29,22 +34,24 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.items.ItemScripted;
+import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.scripted.interfaces.handler.*;
 import noppes.npcs.scripted.interfaces.*;
 import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
 import noppes.npcs.scripted.interfaces.gui.ICustomGui;
-import noppes.npcs.scripted.interfaces.handler.*;
+import noppes.npcs.scripted.interfaces.handler.data.IFaction;
 import noppes.npcs.scripted.interfaces.handler.data.ISound;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
 import noppes.npcs.scripted.interfaces.overlay.ICustomOverlay;
 import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
@@ -52,13 +59,8 @@ import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 public class NpcAPI extends AbstractNpcAPI {
-    private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
+    private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap(10);
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
@@ -108,7 +110,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     @Override
     public String[] getAllBiomeNames() {
-        List<String> biomes = new ArrayList<>();
+        List<String> biomes = new ArrayList<String>();
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
             if (base != null && base.biomeName != null) {
                 biomes.add(base.biomeName);
@@ -118,7 +120,7 @@ public class NpcAPI extends AbstractNpcAPI {
         return biomes.toArray(new String[]{});
     }
 
-    public IEntity<?> getIEntity(Entity entity) {
+    public IEntity getIEntity(Entity entity) {
         if(entity == null)
             return null;
         if(entity instanceof EntityNPCInterface)
@@ -128,26 +130,26 @@ public class NpcAPI extends AbstractNpcAPI {
             if(data != null)
                 return data.base;
             if(entity instanceof EntityPlayerMP)
-                data = new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
+                data = new ScriptEntityData(new ScriptPlayer((EntityPlayerMP) entity));
             else if(PixelmonHelper.isPixelmon(entity))
-                return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
+                return new ScriptPixelmon((EntityTameable) entity);
             else if(entity instanceof EntityAnimal)
-                data = new ScriptEntityData(new ScriptAnimal<>((EntityAnimal) entity));
+                data = new ScriptEntityData(new ScriptAnimal((EntityAnimal) entity));
             else if(entity instanceof EntityMob)
-                data = new ScriptEntityData(new ScriptMonster<>((EntityMob) entity));
+                data = new ScriptEntityData(new ScriptMonster((EntityMob) entity));
             else if(entity instanceof EntityLiving)
-                data = new ScriptEntityData(new ScriptLiving<>((EntityLiving) entity));
+                data = new ScriptEntityData(new ScriptLiving((EntityLiving) entity));
             else if(entity instanceof EntityLivingBase)
-                data = new ScriptEntityData(new ScriptLivingBase<>((EntityLivingBase)entity));
+                data = new ScriptEntityData(new ScriptLivingBase((EntityLivingBase)entity));
             else
-                data = new ScriptEntityData(new ScriptEntity<>(entity));
+                data = new ScriptEntityData(new ScriptEntity(entity));
             entity.registerExtendedProperties("ScriptedObject", data);
             return data.base;
         }
     }
 
-    public IEntity<?>[] getLoadedEntities() {
-        ArrayList<IEntity<?>> list = new ArrayList<>();
+    public IEntity[] getLoadedEntities() {
+        ArrayList<IEntity> list = new ArrayList<>();
 
         for (IWorld world : worldCache.values()) {
             for (Object obj : world.getMCWorld().loadedEntityList) {
@@ -158,44 +160,16 @@ public class NpcAPI extends AbstractNpcAPI {
         return list.toArray(new IEntity[0]);
     }
 
-    public IBlock getIBlock(IWorld world, int x, int y, int z) {
-        Block block = world.getMCWorld().getBlock(x, y, z);
-        if(block == null || block.isAir(world.getMCWorld(), x, y, z))
-            return null;
-
-        return new ScriptBlock(world.getMCWorld(), world.getMCWorld().getBlock(x, y, z), new BlockPos(x,y,z));
+    public IBlock getIBlock(World world, BlockPos pos) {
+        return new ScriptBlock(world, world.getBlock(pos.getX(),pos.getY(),pos.getZ()), pos);
     }
 
-    public IBlock getIBlock(IWorld world, IPos pos) {
-        return this.getIBlock(world, pos.getX(),pos.getY(),pos.getZ());
+    public IBlock getIBlock(World world, Block block, BlockPos pos) {
+        return new ScriptBlock(world, block, pos);
     }
 
-    public ITileEntity getITileEntity(IWorld world, IPos pos) {
-        return new ScriptTileEntity<>(world.getMCWorld().getTileEntity(pos.getX(), pos.getY(),pos.getZ()));
-    }
-
-    public ITileEntity getITileEntity(IWorld world, int x, int y, int z) {
-        return new ScriptTileEntity<>(world.getMCWorld().getTileEntity(x,y,z));
-    }
-
-    public ITileEntity getITileEntity(TileEntity tileEntity) {
-        return new ScriptTileEntity<>(tileEntity);
-    }
-
-    public IPos getIPos(BlockPos pos) {
-        return new ScriptBlockPos(pos);
-    }
-
-    public IPos getIPos(int x, int y, int z) {
-        return new ScriptBlockPos(new BlockPos(x,y,z));
-    }
-
-    public IPos getIPos(double x, double y, double z) {
-        return this.getIPos((int)x,(int)y,(int)z);
-    }
-
-    public IPos getIPos(float x, float y, float z) {
-        return this.getIPos((int)x,(int)y,(int)z);
+    public IBlock getIBlock(World world, int x, int y, int z) {
+        return new ScriptBlock(world, world.getBlock(x, y, z), new BlockPos(x,y,z));
     }
 
     public INbt getINbt(NBTTagCompound nbtTagCompound) {
@@ -207,36 +181,32 @@ public class NpcAPI extends AbstractNpcAPI {
             try {
                 return this.getINbt(NBTJsonUtil.Convert(str));
             } catch (JsonException var3) {
-                throw new CustomNPCsException(var3, "Failed converting " + str);
+                throw new CustomNPCsException(var3, "Failed converting " + str, new Object[0]);
             }
         } else {
-            throw new CustomNPCsException("Cant cast empty string to nbt");
+            throw new CustomNPCsException("Cant cast empty string to nbt", new Object[0]);
         }
     }
 
-    public ICustomNpc<?> createNPC(IWorld world) {
-        if (world.getMCWorld().isRemote) {
+    public ICustomNpc createNPC(World world) {
+        if (world.isRemote) {
             return null;
         } else {
-            EntityCustomNpc npc = new EntityCustomNpc(world.getMCWorld());
+            EntityCustomNpc npc = new EntityCustomNpc(world);
             return npc.wrappedNPC;
         }
     }
 
-    public ICustomNpc<?> spawnNPC(IWorld world, int x, int y, int z) {
-        if (world.getMCWorld().isRemote) {
+    public ICustomNpc spawnNPC(World world, int x, int y, int z) {
+        if (world.isRemote) {
             return null;
         } else {
-            EntityCustomNpc npc = new EntityCustomNpc(world.getMCWorld());
-            npc.setPositionAndRotation((double)x + 0.5D, y, (double)z + 0.5D, 0.0F, 0.0F);
+            EntityCustomNpc npc = new EntityCustomNpc(world);
+            npc.setPositionAndRotation((double)x + 0.5D, (double)y, (double)z + 0.5D, 0.0F, 0.0F);
             npc.setHealth(npc.getMaxHealth());
-            world.getMCWorld().spawnEntityInWorld(npc);
+            world.spawnEntityInWorld(npc);
             return npc.wrappedNPC;
         }
-    }
-
-    public ICustomNpc<?> spawnNPC(IWorld world, IPos pos) {
-        return this.spawnNPC(world, pos.getX(), pos.getY(), pos.getZ());
     }
 
     public static AbstractNpcAPI Instance() {
@@ -280,22 +250,25 @@ public class NpcAPI extends AbstractNpcAPI {
         ScriptWorld w = worldCache.get(world.provider.dimensionId);
         if (w != null) {
             w.world.provider.dimensionId = world.provider.dimensionId;
+            return w;
         } else {
             worldCache.put(world.provider.dimensionId, w = ScriptWorld.createNew(world.provider.dimensionId));
+            return w;
         }
-        return w;
     }
 
     public IWorld getIWorld(int dimensionId) {
         WorldServer[] var2 = CustomNpcs.getServer().worldServers;
+        int var3 = var2.length;
 
-        for (WorldServer world : var2) {
+        for(int var4 = 0; var4 < var3; ++var4) {
+            WorldServer world = var2[var4];
             if (world.provider.dimensionId == dimensionId) {
                 return this.getIWorld(world);
             }
         }
 
-        throw new CustomNPCsException("Unknown dimension id: " + dimensionId);
+        throw new CustomNPCsException("Unknown dimension id: " + dimensionId, new Object[0]);
     }
 
     public IContainer getIContainer(IInventory inventory) {
@@ -303,12 +276,12 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IContainer getIContainer(Container container) {
-        return container instanceof ContainerNpcInterface ? ContainerNpcInterface.getOrCreateIContainer((ContainerNpcInterface)container) : new ScriptContainer(container);
+        return (IContainer)(container instanceof ContainerNpcInterface ? ContainerNpcInterface.getOrCreateIContainer((ContainerNpcInterface)container) : new ScriptContainer(container));
     }
 
     private void checkWorld() {
         if (CustomNpcs.getServer() == null || CustomNpcs.getServer().isServerStopped()) {
-            throw new CustomNPCsException("No world is loaded right now");
+            throw new CustomNPCsException("No world is loaded right now", new Object[0]);
         }
     }
 
@@ -335,7 +308,7 @@ public class NpcAPI extends AbstractNpcAPI {
         return new ScriptDamageSource(damagesource);
     }
 
-    public IDamageSource getIDamageSource(IEntity<?> entity) {
+    public IDamageSource getIDamageSource(IEntity entity) {
         if(entity.getType() == 1)//if player
             return new ScriptDamageSource(new EntityDamageSource("player",entity.getMCEntity()));
         else
@@ -351,29 +324,29 @@ public class NpcAPI extends AbstractNpcAPI {
         return CustomNpcs.MARKOV_GENERATOR[dictionary].fetch(gender);
     }
 
-    public IPlayer<?>[] getAllServerPlayers(){
-        List<?> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
-        IPlayer<?>[] arr = new IPlayer[list.size()];
+    public IPlayer[] getAllServerPlayers(){
+        List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+        IPlayer[] arr = new IPlayer[list.size()];
         for(int i = 0; i < list.size(); i++){
-            arr[i] = (IPlayer<?>) NpcAPI.Instance().getIEntity((EntityPlayerMP)list.get(i));
+            arr[i] = (IPlayer) NpcAPI.Instance().getIEntity(list.get(i));
         }
 
         return arr;
     }
 
     public String[] getPlayerNames() {
-        IPlayer<?>[] players = getAllServerPlayers();
+        IPlayer[] players = getAllServerPlayers();
         String[] names = new String[players.length];
         for (int i = 0; i < names.length; ++i) names[i] = players[i].getDisplayName();
         return names;
     }
 
-    public void playSoundAtEntity(IEntity<?> entity, String sound, float volume, float pitch){
+    public void playSoundAtEntity(IEntity entity, String sound, float volume, float pitch){
         entity.getWorld().getMCWorld().playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
     }
 
-    public void playSoundToNearExcept(IPlayer<?> player, String sound, float volume, float pitch){
-        player.getWorld().getMCWorld().playSoundToNearExcept(player.getMCEntity(), sound, volume, pitch);
+    public void playSoundToNearExcept(IPlayer player, String sound, float volume, float pitch){
+        player.getWorld().getMCWorld().playSoundToNearExcept((EntityPlayerMP) player.getMCEntity(), sound, volume, pitch);
     }
 
     public String getMOTD()

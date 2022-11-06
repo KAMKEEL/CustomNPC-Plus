@@ -3,7 +3,6 @@ package noppes.npcs.scripted;
 import net.minecraft.nbt.*;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.scripted.interfaces.IParticle;
-import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.IWorld;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
 
@@ -229,13 +228,6 @@ public class ScriptParticle implements IParticle {
     }
     public double getZ() {
         return z;
-    }
-
-    public void setPosition(IPos pos) {
-        this.setPosition(pos.getX(),pos.getY(),pos.getZ());
-    }
-    public void getPos() {
-        NpcAPI.Instance().getIPos(x,y,z);
     }
 
     public void setMotion(double motionX, double motionY, double motionZ, float gravity){

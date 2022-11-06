@@ -119,7 +119,7 @@ public class ScriptPlayerEventHandler {
         if(!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.getPlayer());
-            noppes.npcs.scripted.event.PlayerEvent.BreakEvent ev = new noppes.npcs.scripted.event.PlayerEvent.BreakEvent(scriptPlayer, NpcAPI.Instance().getIBlock(NpcAPI.Instance().getIWorld(event.world), NpcAPI.Instance().getIPos(event.x,event.y,event.z)), event.getExpToDrop());
+            noppes.npcs.scripted.event.PlayerEvent.BreakEvent ev = new noppes.npcs.scripted.event.PlayerEvent.BreakEvent(scriptPlayer, NpcAPI.Instance().getIBlock(event.world, new BlockPos(event.x,event.y,event.z)), event.getExpToDrop());
             event.setCanceled(EventHooks.onPlayerBreak(handler, ev));
             event.setExpToDrop(ev.exp);
         }

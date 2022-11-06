@@ -137,9 +137,6 @@ public interface IParticle {
     double getY();
     double getZ();
 
-    void setPosition(IPos pos);
-    void getPos();
-
     void setMotion(double motionX, double motionY, double motionZ, float gravity);
     double getMotionX();
     double getMotionY();

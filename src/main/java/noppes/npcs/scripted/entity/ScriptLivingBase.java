@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.potion.Potion;
@@ -7,14 +8,18 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Vec3;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptDamageSource;
-import noppes.npcs.scripted.constants.EntityType;
+import net.minecraft.util.math.BlockPos;
+import noppes.npcs.scripted.ScriptBlockPos;
 import noppes.npcs.scripted.interfaces.IBlock;
 import noppes.npcs.scripted.interfaces.IPos;
 import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
 import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptDamageSource;
+
+import java.util.ArrayList;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -103,7 +108,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 
 	public IPos getLookVector() {
 		Vec3 lookVec = entity.getLookVec();
-		return NpcAPI.Instance().getIPos(lookVec.xCoord,lookVec.yCoord,lookVec.zCoord);
+		return new ScriptBlockPos(new BlockPos(lookVec.xCoord,lookVec.yCoord,lookVec.zCoord));
 	}
 
 	public IBlock getLookingAtBlock(int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
@@ -242,55 +247,5 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	 */
 	public void setArmor(int slot, IItemStack item){
 		entity.setCurrentItemOrArmor(slot + 1, item == null?null:item.getMCItemStack());
-	}
-
-	public boolean isChild() {
-		return this.entity.isChild();
-	}
-
-	public void renderBrokenItemStack(IItemStack itemStack)
-	{
-		this.entity.renderBrokenItemStack(itemStack.getMCItemStack());
-	}
-
-	public boolean isOnLadder()
-	{
-		return this.entity.isOnLadder();
-	}
-
-	public int getTotalArmorValue()
-	{
-		return this.entity.getTotalArmorValue();
-	}
-
-	public int getArrowCountInEntity() {
-		return this.entity.getArrowCountInEntity();
-	}
-
-	public void setArrowCountInEntity(int count)
-	{
-		this.entity.setArrowCountInEntity(count);
-	}
-
-	public void dismountEntity(IEntity entity) {
-		this.entity.dismountEntity(entity.getMCEntity());
-	}
-
-	public void setAIMoveSpeed(float speed)
-	{
-		this.entity.setAIMoveSpeed(speed);
-	}
-
-	public float getAIMoveSpeed() {
-		return this.entity.getAIMoveSpeed();
-	}
-
-	public void setAbsorptionAmount(float amount)
-	{
-		this.entity.setAbsorptionAmount(amount);
-	}
-
-	public float getAbsorptionAmount() {
-		return this.entity.getAbsorptionAmount();
 	}
 }
