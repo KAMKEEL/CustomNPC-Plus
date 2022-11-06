@@ -277,28 +277,40 @@ public class CustomNpcs {
                     switch (type){
                         case INIT:
                             InitIgnore = true;
+                            break;
                         case TICK:
                             TickIgnore = true;
+                            break;
                         case INTERACT:
                             InteractIgnore = true;
+                            break;
                         case DIALOG:
                             DialogIgnore = true;
+                            break;
                         case DAMAGED:
                             DamagedIgnore = true;
+                            break;
                         case KILLED:
                             KilledIgnore = true;
+                            break;
                         case ATTACK:
                             AttackIgnore = true;
+                            break;
                         case TARGET:
                             TargetIgnore = true;
+                            break;
                         case COLLIDE:
                             CollideIgnore = true;
+                            break;
                         case KILLS:
                             KillsIgnore = true;
+                            break;
                         case DIALOG_CLOSE:
                             DialogCloseIgnore = true;
+                            break;
                         case TIMER:
                             TimerIgnore = true;
+                            break;
                         default:
                             break;
                     }
