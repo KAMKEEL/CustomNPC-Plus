@@ -1,5 +1,7 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
 
@@ -196,6 +198,9 @@ public class PacketHandlerServer{
 			npc.script.readFromNBT(Server.readNBT(buffer));
 			npc.updateAI = true;
 			npc.script.hasInited = false;
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 		else if(type == EnumPacketServer.ScriptDataGet){
 			NBTTagCompound compound = npc.script.writeToNBT(new NBTTagCompound());
@@ -368,6 +373,9 @@ public class PacketHandlerServer{
 
 	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
 		if(type == EnumPacketServer.Delete){
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 			npc.delete();
 			NoppesUtilServer.deleteNpc(npc,player);
 		}
@@ -403,6 +411,9 @@ public class PacketHandlerServer{
 			npc.reset();
 			if(npc.linkedData != null)
 				LinkedNpcController.Instance.saveNpcData(npc);
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s CLOSE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 			NoppesUtilServer.setEditingNpc(player, null);
 		}
 		else if(type == EnumPacketServer.BanksGet){
@@ -429,12 +440,18 @@ public class PacketHandlerServer{
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) entity);
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 		else if(type == EnumPacketServer.RemoteDelete){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			npc = (EntityNPCInterface) entity;
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 			npc.delete();
 			NoppesUtilServer.deleteNpc(npc,player);
 			NoppesUtilServer.sendNearbyNpcs(player);
@@ -861,6 +878,9 @@ public class PacketHandlerServer{
 			if(entity == null){
 				player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
 				return;
+			}
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
 			}
 		}
 		else if(type == EnumPacketServer.MobSpawner){

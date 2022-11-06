@@ -102,39 +102,63 @@ public class LogWriter {
 	public static void postScriptLog(UUID npcUUID, EnumScriptType type, String message) {
 		switch (type){
 			case INIT:
-				scriptLogCalculator(InitCacheMap, npcUUID, message);
+				if(!CustomNpcs.InitIgnore){
+					scriptLogCalculator(InitCacheMap, npcUUID, message);
+				}
 				break;
 			case TICK:
-				scriptLogCalculator(TickCacheMap, npcUUID, message);
+				if(!CustomNpcs.TickIgnore){
+					scriptLogCalculator(TickCacheMap, npcUUID, message);
+				}
 				break;
 			case INTERACT:
-				scriptLogCalculator(InteractCacheMap, npcUUID, message);
+				if(!CustomNpcs.InteractIgnore){
+					scriptLogCalculator(InteractCacheMap, npcUUID, message);
+				}
 				break;
 			case DIALOG:
-				scriptLogCalculator(DialogCacheMap, npcUUID, message);
+				if(!CustomNpcs.DialogIgnore){
+					scriptLogCalculator(DialogCacheMap, npcUUID, message);
+				}
 				break;
 			case DAMAGED:
-				scriptLogCalculator(DamagedCacheMap, npcUUID, message);
+				if(!CustomNpcs.DamagedIgnore){
+					scriptLogCalculator(DamagedCacheMap, npcUUID, message);
+				}
 				break;
 			case KILLED:
-				scriptLogCalculator(KilledCacheMap, npcUUID, message);
+				if(!CustomNpcs.KilledIgnore){
+					scriptLogCalculator(KilledCacheMap, npcUUID, message);
+				}
 				break;
 			case ATTACK:
-				scriptLogCalculator(AttackCacheMap, npcUUID, message);
+				if(!CustomNpcs.AttackIgnore){
+					scriptLogCalculator(AttackCacheMap, npcUUID, message);
+				}
 				break;
 			case TARGET:
-				scriptLogCalculator(TargetCacheMap, npcUUID, message);
+				if(!CustomNpcs.TargetIgnore){
+					scriptLogCalculator(TargetCacheMap, npcUUID, message);
+				}
 				break;
 			case COLLIDE:
-				scriptLogCalculator(CollideCacheMap, npcUUID, message);
+				if(!CustomNpcs.CollideIgnore){
+					scriptLogCalculator(CollideCacheMap, npcUUID, message);
+				}
 				break;
 			case KILLS:
-				scriptLogCalculator(KillsCacheMap, npcUUID, message);
+				if(!CustomNpcs.KillsIgnore){
+					scriptLogCalculator(KillsCacheMap, npcUUID, message);
+				}
 			case DIALOG_CLOSE:
-				scriptLogCalculator(DialogCloseCacheMap, npcUUID, message);
+				if(!CustomNpcs.DialogCloseIgnore){
+					scriptLogCalculator(DialogCloseCacheMap, npcUUID, message);
+				}
 				break;
 			case TIMER:
-				scriptLogCalculator(TimerCacheMap, npcUUID, message);
+				if(!CustomNpcs.TimerIgnore){
+					scriptLogCalculator(TimerCacheMap, npcUUID, message);
+				}
 				break;
 			default:
 				break;
