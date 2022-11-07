@@ -268,7 +268,13 @@ public class PathNavigateFlying extends PathNavigate {
 
     public void onUpdateNavigation()
     {
+
         ++this.totalTicks;
+
+        if (this.tryUpdatePath)
+        {
+            this.updatePath();
+        }
 
         if (!this.noPath())
         {
@@ -276,37 +282,85 @@ public class PathNavigateFlying extends PathNavigate {
             {
                 this.pathFollow();
             }
+            else if (this.currentPath != null && this.currentPath.getCurrentPathIndex() < this.currentPath.getCurrentPathLength())
+
+                if (!this.noPath())
+                {
+                    Vec3 vec3d = this.currentPath.getVectorFromIndex(this.theEntity, this.currentPath.getCurrentPathIndex());
+                    Vec3 vec3 = this.currentPath.getPosition(this.theEntity);
+
+                    if (MathHelper.floor_double(this.theEntity.posX) == MathHelper.floor_double(vec3d.xCoord) && MathHelper.floor_double(this.theEntity.posY) == MathHelper.floor_double(vec3d.yCoord) && MathHelper.floor_double(this.theEntity.posZ) == MathHelper.floor_double(vec3d.zCoord))
+                        if (vec3 != null)
+                        {
+                            this.currentPath.setCurrentPathIndex(this.currentPath.getCurrentPathIndex() + 1);
+                            this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
+                        }
+                }
 
             if (!this.noPath())
             {
-                Vec3 vec3 = this.currentPath.getPosition(this.theEntity);
-
-                if (vec3 != null)
-                {
-                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
-                }
+                Vec3 vec3d1 = this.currentPath.getPosition(this.theEntity);
+                this.theEntity.getMoveHelper().setMoveTo(vec3d1.xCoord, vec3d1.yCoord, vec3d1.zCoord, this.speed);
             }
         }
     }
+
+//    private void pathFollow()
+//    {
+//        Vec3 vec3 = this.getEntityPosition();
+//        int i = this.currentPath.getCurrentPathLength();
+//
+//        float f = this.theEntity.width * this.theEntity.width;
+//        int k;
+//
+//        for (k = this.currentPath.getCurrentPathIndex(); k < i; ++k)
+//        {
+//            if (vec3.squareDistanceTo(this.currentPath.getVectorFromIndex(this.theEntity, k)) < (double)f)
+//            {
+//                this.currentPath.setCurrentPathIndex(k + 1);
+//            }
+//        }
+//
+//        k = MathHelper.floor_double(this.theEntity.width + 1.0F);
+//        int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
+//        int i1 = k;
+//
+//        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
+//        {
+//            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
+//            {
+//                this.currentPath.setCurrentPathIndex(j1);
+//                break;
+//            }
+//        }
+//
+//        this.checkForStuck(vec3);
+//    }
 
     private void pathFollow()
     {
         Vec3 vec3 = this.getEntityPosition();
         int i = this.currentPath.getCurrentPathLength();
-
-        float f = this.theEntity.width * this.theEntity.width;
-        int k;
-
-        for (k = this.currentPath.getCurrentPathIndex(); k < i; ++k)
+        for (int j = this.currentPath.getCurrentPathIndex(); j < this.currentPath.getCurrentPathLength(); ++j)
         {
-            if (vec3.squareDistanceTo(this.currentPath.getVectorFromIndex(this.theEntity, k)) < (double)f)
+            if ((double)this.currentPath.getPathPointFromIndex(j).yCoord != Math.floor(vec3.yCoord))
             {
-                this.currentPath.setCurrentPathIndex(k + 1);
+                i = j;
+                break;
             }
         }
 
-        k = MathHelper.floor_double(this.theEntity.width + 1.0F);
-        int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
+        this.maxDistanceToWaypoint = this.theEntity.width > 0.75F ? this.theEntity.width / 2.0F : 0.75F - this.theEntity.width / 2.0F;
+        Vec3 vec3d1 = this.currentPath.getCurrentPos();
+
+        if (MathHelper.abs((float)(this.theEntity.posX - (vec3d1.xCoord + 0.5D))) < this.maxDistanceToWaypoint && MathHelper.abs((float)(this.theEntity.posZ - (vec3d1.zCoord + 0.5D))) < this.maxDistanceToWaypoint && Math.abs(this.theEntity.posY - vec3d1.yCoord) < 1.0D)
+        {
+            this.currentPath.setCurrentPathIndex(this.currentPath.getCurrentPathIndex() + 1);
+        }
+
+        int k = MathHelper.ceiling_double_int(this.theEntity.width);
+        // Adjust Size HERE
+        int l = MathHelper.ceiling_double_int(this.theEntity.height + 1.0F);
         int i1 = k;
 
         for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
@@ -320,6 +374,7 @@ public class PathNavigateFlying extends PathNavigate {
 
         this.checkForStuck(vec3);
     }
+
 
     /**
      * If null path or reached the end
