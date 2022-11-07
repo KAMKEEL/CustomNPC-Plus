@@ -486,6 +486,36 @@ public class FlyPathFinder extends PathFinder
         }
     }
 
+    public PathNodeType getPathNodeType(IBlockAccess blockaccessIn, int x, int y, int z)
+    {
+        PathNodeType pathnodetype = this.getPathNodeTypeRaw(blockaccessIn, x, y, z);
+
+        if (pathnodetype == PathNodeType.OPEN && y >= 1)
+        {
+            PathNodeType pathnodetype1 = this.getPathNodeTypeRaw(blockaccessIn, x, y - 1, z);
+
+            if (pathnodetype1 != PathNodeType.DAMAGE_FIRE && pathnodetype1 != PathNodeType.LAVA)
+            {
+                if (pathnodetype1 == PathNodeType.DAMAGE_CACTUS)
+                {
+                    pathnodetype = PathNodeType.DAMAGE_CACTUS;
+                }
+                else if (pathnodetype1 == PathNodeType.DAMAGE_OTHER) pathnodetype = PathNodeType.DAMAGE_OTHER;
+                else
+                {
+                    pathnodetype = pathnodetype1 != PathNodeType.WALKABLE && pathnodetype1 != PathNodeType.OPEN && pathnodetype1 != PathNodeType.WATER ? PathNodeType.WALKABLE : PathNodeType.OPEN;
+                }
+            }
+            else
+            {
+                pathnodetype = PathNodeType.DAMAGE_FIRE;
+            }
+        }
+
+        pathnodetype = this.checkNeighborBlocks(blockaccessIn, x, y, z, pathnodetype);
+        return pathnodetype;
+    }
+
     public PathNodeType getPathNodeType(IBlockAccess blockAccess, int x, int y, int z, int xSize, int ySize, int zSize, boolean canOpenDoorsIn, boolean canEnterDoorsIn, EnumSet<PathNodeType> p_193577_10_, PathNodeType p_193577_11_, BlockPos p_193577_12_)
     {
         for (int i = 0; i < xSize; ++i)
@@ -527,41 +557,24 @@ public class FlyPathFinder extends PathFinder
         return p_193577_11_;
     }
 
-    public PathNodeType getPathNodeType(IBlockAccess blockaccessIn, int x, int y, int z)
+    private PathNodeType getPathNodeType(EntityLiving p_192559_1_, BlockPos p_192559_2_)
     {
-        PathNodeType pathnodetype = this.getPathNodeTypeRaw(blockaccessIn, x, y, z);
-
-        if (pathnodetype == PathNodeType.OPEN && y >= 1)
-        {
-            PathNodeType pathnodetype1 = this.getPathNodeTypeRaw(blockaccessIn, x, y - 1, z);
-
-            if (pathnodetype1 != PathNodeType.DAMAGE_FIRE && pathnodetype1 != PathNodeType.LAVA)
-            {
-                if (pathnodetype1 == PathNodeType.DAMAGE_CACTUS)
-                {
-                    pathnodetype = PathNodeType.DAMAGE_CACTUS;
-                }
-                else if (pathnodetype1 == PathNodeType.DAMAGE_OTHER) pathnodetype = PathNodeType.DAMAGE_OTHER;
-                else
-                {
-                    pathnodetype = pathnodetype1 != PathNodeType.WALKABLE && pathnodetype1 != PathNodeType.OPEN && pathnodetype1 != PathNodeType.WATER ? PathNodeType.WALKABLE : PathNodeType.OPEN;
-                }
-            }
-            else
-            {
-                pathnodetype = PathNodeType.DAMAGE_FIRE;
-            }
-        }
-
-        pathnodetype = this.checkNeighborBlocks(blockaccessIn, x, y, z, pathnodetype);
-        return pathnodetype;
+        return this.getPathNodeType(p_192559_1_, p_192559_2_.getX(), p_192559_2_.getY(), p_192559_2_.getZ());
     }
 
-    public PathNodeType checkNeighborBlocks(IBlockAccess worldmap, int x, int y, int z, PathNodeType p_193578_5_)
+    private PathNodeType getPathNodeType(EntityLiving p_192558_1_, int p_192558_2_, int p_192558_3_, int p_192558_4_)
+    {
+        int entitySizeX = MathHelper.floor_double(this.theEntity.width + 1.0F);
+        int entitySizeY = MathHelper.floor_double(this.theEntity.height + 1.0F);
+        int entitySizeZ = MathHelper.floor_double(this.theEntity.width + 1.0F);
+        return this.getPathNodeType(this.worldMap, p_192558_2_, p_192558_3_, p_192558_4_, p_192558_1_, entitySizeX, entitySizeY, entitySizeZ, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 1);
+    }
+
+    public PathNodeType checkNeighborBlocks(IBlockAccess worldmap, int x, int y, int z, PathNodeType type)
     {
         BlockPos.PooledMutableBlockPos blockpos$pooledmutableblockpos = BlockPos.PooledMutableBlockPos.retain();
 
-        if (p_193578_5_ == PathNodeType.WALKABLE)
+        if (type == PathNodeType.WALKABLE)
         {
             for (int i = -1; i <= 1; ++i)
             {
@@ -573,11 +586,11 @@ public class FlyPathFinder extends PathFinder
                         Block block = worldmap.getBlock(blockpos$pooledmutableblockpos.getX(), blockpos$pooledmutableblockpos.getY(), blockpos$pooledmutableblockpos.getZ());
                         if (block == Blocks.cactus)
                         {
-                            p_193578_5_ = PathNodeType.DANGER_CACTUS;
+                            type = PathNodeType.DANGER_CACTUS;
                         }
                         else if (block == Blocks.fire)
                         {
-                            p_193578_5_ = PathNodeType.DANGER_FIRE;
+                            type = PathNodeType.DANGER_FIRE;
                         }
                     }
                 }
@@ -585,7 +598,7 @@ public class FlyPathFinder extends PathFinder
         }
 
         blockpos$pooledmutableblockpos.release();
-        return p_193578_5_;
+        return type;
     }
 
     protected PathNodeType getPathNodeTypeRaw(IBlockAccess worldmap, int p_189553_2_, int p_189553_3_, int p_189553_4_)
@@ -648,19 +661,6 @@ public class FlyPathFinder extends PathFinder
         {
             return PathNodeType.TRAPDOOR;
         }
-    }
-
-    private PathNodeType getPathNodeType(EntityLiving p_192559_1_, BlockPos p_192559_2_)
-    {
-        return this.getPathNodeType(p_192559_1_, p_192559_2_.getX(), p_192559_2_.getY(), p_192559_2_.getZ());
-    }
-
-    private PathNodeType getPathNodeType(EntityLiving p_192558_1_, int p_192558_2_, int p_192558_3_, int p_192558_4_)
-    {
-        int entitySizeX = MathHelper.floor_double(p_192558_1_.width + 1.0F);
-        int entitySizeY = MathHelper.floor_double(p_192558_1_.height + 1.0F);
-        int entitySizeZ = MathHelper.floor_double(p_192558_1_.width + 1.0F);
-        return this.getPathNodeType(this.worldMap, p_192558_2_, p_192558_3_, p_192558_4_, p_192558_1_, entitySizeX, entitySizeY, entitySizeZ, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 1);
     }
 
     public float getPathPriority(PathNodeType nodeType)
