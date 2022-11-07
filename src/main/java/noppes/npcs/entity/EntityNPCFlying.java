@@ -39,7 +39,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         }
 
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
-        if (heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit) {
+        if (heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit || heightOffGround < this.height) {
             super.moveEntityWithHeading(p_70612_1_,p_70612_2_);
             return;
         }
