@@ -245,6 +245,43 @@ public class CustomNpcs {
         if (ScriptIgnoreTime < 0)
             ScriptIgnoreTime = 0;
 
+        try {
+            String[] ignoreTypes = ScriptLogIgnoreType.split(",");
+            for (String s : ignoreTypes) {
+                EnumScriptType type = EnumScriptType.valueOfIgnoreCase(s);
+                if(type != null){
+                    switch (type){
+                        case INIT:
+                            InitIgnore = true;
+                        case TICK:
+                            TickIgnore = true;
+                        case INTERACT:
+                            InteractIgnore = true;
+                        case DIALOG:
+                            DialogIgnore = true;
+                        case DAMAGED:
+                            DamagedIgnore = true;
+                        case KILLED:
+                            KilledIgnore = true;
+                        case ATTACK:
+                            AttackIgnore = true;
+                        case TARGET:
+                            TargetIgnore = true;
+                        case COLLIDE:
+                            CollideIgnore = true;
+                        case KILLS:
+                            KillsIgnore = true;
+                        case DIALOG_CLOSE:
+                            DialogCloseIgnore = true;
+                        case TIMER:
+                            TimerIgnore = true;
+                        default:
+                            break;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
         EnchantInterface.load();
         CustomItems.load();
         
