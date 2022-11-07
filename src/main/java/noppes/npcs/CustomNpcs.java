@@ -140,7 +140,7 @@ public class CustomNpcs {
     public static int EnchantStartId = 100;
 
     @ConfigProp(info = "Number of chunk loading npcs that can be active at the same time")
-    public static int ChuckLoaders = 20;
+    public static int ChunkLoaders = 20;
 
     @ConfigProp(info = "The maximum number of images any dialog can hold.")
     public static int DialogImageLimit = 10;
