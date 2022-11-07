@@ -29,6 +29,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
 
             double speed = this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
             double verticalSpeed = this.speed * this.entity.ai.flySpeed/8.0D;
+            this.entity.setAIMoveSpeed((float)speed);
 
             double d0 = this.posX - this.entity.posX;
             double d1 = this.posY - this.entity.posY;
