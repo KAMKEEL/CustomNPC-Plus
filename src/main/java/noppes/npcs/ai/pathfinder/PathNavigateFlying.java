@@ -283,7 +283,7 @@ public class PathNavigateFlying extends PathNavigate {
                 this.pathFollow();
             }
             else if (this.currentPath != null && this.currentPath.getCurrentPathIndex() < this.currentPath.getCurrentPathLength())
-
+            {
                 if (!this.noPath())
                 {
                     Vec3 vec3d = this.currentPath.getVectorFromIndex(this.theEntity, this.currentPath.getCurrentPathIndex());
@@ -296,11 +296,14 @@ public class PathNavigateFlying extends PathNavigate {
                             this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
                         }
                 }
-
+            }
             if (!this.noPath())
             {
-                Vec3 vec3d1 = this.currentPath.getPosition(this.theEntity);
-                this.theEntity.getMoveHelper().setMoveTo(vec3d1.xCoord, vec3d1.yCoord, vec3d1.zCoord, this.speed);
+                Vec3 vec3 = this.currentPath.getPosition(this.theEntity);
+                if (vec3 != null)
+                {
+                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
+                }
             }
         }
     }
