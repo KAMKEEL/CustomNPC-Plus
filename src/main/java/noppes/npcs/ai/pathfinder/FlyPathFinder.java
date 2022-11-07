@@ -393,7 +393,7 @@ public class FlyPathFinder extends PathFinder
 
         if (f >= 0.0F)
         {
-            pathpoint = openPoint(x, y, z, x);
+            pathpoint = this.openPoint(x, y, z, 0);
             pathpoint.nodeType = pathnodetype;
             pathpoint.costMalus = Math.max(pathpoint.costMalus, f);
 
