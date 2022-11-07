@@ -1,5 +1,7 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
 
@@ -100,11 +102,11 @@ public class PacketHandlerServer{
 			}
 
 			if(type.needsNpc && npc == null){
-				
+
 			}
 			else if(type.hasPermission() && !CustomNpcsPermissions.hasPermission(player, type.permission)){
 				//player doesnt have permission to do this
-			}			
+			}
 			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
@@ -196,6 +198,9 @@ public class PacketHandlerServer{
 			npc.script.readFromNBT(Server.readNBT(buffer));
 			npc.updateAI = true;
 			npc.script.hasInited = false;
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 		else if(type == EnumPacketServer.ScriptDataGet){
 			NBTTagCompound compound = npc.script.writeToNBT(new NBTTagCompound());
@@ -291,7 +296,7 @@ public class PacketHandlerServer{
 			NoppesUtilPlayer.teleportPlayer(player, coords.posX, coords.posY, coords.posZ, dimension);
 		}
 	}
-	
+
 	private void movingPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException {
 		if(type == EnumPacketServer.MovingPathGet){
 			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.ai.writeToNBT(new NBTTagCompound()));
@@ -311,7 +316,7 @@ public class PacketHandlerServer{
 			tile.writeToNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
-		else if(type == EnumPacketServer.DialogCategoriesGet){		
+		else if(type == EnumPacketServer.DialogCategoriesGet){
 			NoppesUtilServer.sendScrollData(player, DialogController.instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogsGetFromDialog){
@@ -368,6 +373,9 @@ public class PacketHandlerServer{
 
 	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
 		if(type == EnumPacketServer.Delete){
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 			npc.delete();
 			NoppesUtilServer.deleteNpc(npc,player);
 		}
@@ -403,6 +411,9 @@ public class PacketHandlerServer{
 			npc.reset();
 			if(npc.linkedData != null)
 				LinkedNpcController.Instance.saveNpcData(npc);
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s CLOSE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 			NoppesUtilServer.setEditingNpc(player, null);
 		}
 		else if(type == EnumPacketServer.BanksGet){
@@ -420,7 +431,7 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendBank(player,bank);
 		}
 		else if(type == EnumPacketServer.BankRemove){
-			BankController.getInstance().removeBank(buffer.readInt());			
+			BankController.getInstance().removeBank(buffer.readInt());
 			NoppesUtilServer.sendBankDataAll(player);
 			NoppesUtilServer.sendBank(player,new Bank());
 		}
@@ -429,12 +440,18 @@ public class PacketHandlerServer{
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) entity);
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 		else if(type == EnumPacketServer.RemoteDelete){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			npc = (EntityNPCInterface) entity;
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 			npc.delete();
 			NoppesUtilServer.deleteNpc(npc,player);
 			NoppesUtilServer.sendNearbyNpcs(player);
@@ -717,7 +734,7 @@ public class PacketHandlerServer{
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.JobSave){
-			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound()); 
+			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
 			NBTTagCompound compound = Server.readNBT(buffer);
 			Set<String> names = compound.func_150296_c();
 			for(String name : names)
@@ -731,10 +748,10 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setBoolean("JobData", true);
 			npc.jobInterface.writeToNBT(compound);
-			
+
 			if(npc.advanced.job == EnumJobType.Spawner)
 				((JobSpawner)npc.jobInterface).cleanCompound(compound);
-			
+
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 
 			if(npc.advanced.job == EnumJobType.Spawner)
@@ -818,10 +835,10 @@ public class PacketHandlerServer{
 		}
 		else
 			blockPackets(type, buffer, player);
-		
+
 	}
 	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
-		 if(type == EnumPacketServer.SpawnRider){
+		if(type == EnumPacketServer.SpawnRider){
 			Entity entity = EntityList.createEntityFromNBT(Server.readNBT(buffer), player.worldObj);
 			player.worldObj.spawnEntityInWorld(entity);
 			entity.mountEntity(ServerEventsHandler.mounted);
@@ -830,15 +847,15 @@ public class PacketHandlerServer{
 			player.mountEntity(ServerEventsHandler.mounted);
 		}
 		else if(type == EnumPacketServer.CloneList){
-	        NBTTagList list = new NBTTagList();
-	        
-	        for(String name : ServerCloneController.Instance.getClones(buffer.readInt()))
-	        	list.appendTag(new NBTTagString(name));
-	        
-	        NBTTagCompound compound = new NBTTagCompound();
-	        compound.setTag("List", list);
-	        
-	        Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			NBTTagList list = new NBTTagList();
+
+			for(String name : ServerCloneController.Instance.getClones(buffer.readInt()))
+				list.appendTag(new NBTTagString(name));
+
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setTag("List", list);
+
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
 			warn(player,"tried todo something with the wrong tool, probably a hacker");
@@ -861,6 +878,9 @@ public class PacketHandlerServer{
 			if(entity == null){
 				player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
 				return;
+			}
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
 			}
 		}
 		else if(type == EnumPacketServer.MobSpawner){
@@ -892,26 +912,26 @@ public class PacketHandlerServer{
 			int tab = buffer.readInt();
 			ServerCloneController.Instance.removeClone(Server.readString(buffer), tab);
 
-	        NBTTagList list = new NBTTagList();
-	        
-	        for(String name : ServerCloneController.Instance.getClones(tab))
-	        	list.appendTag(new NBTTagString(name));
-	        
-	        NBTTagCompound compound = new NBTTagCompound();
-	        compound.setTag("List", list);
-	        
-	        Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			NBTTagList list = new NBTTagList();
+
+			for(String name : ServerCloneController.Instance.getClones(tab))
+				list.appendTag(new NBTTagString(name));
+
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setTag("List", list);
+
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.CloneList){
-	        NBTTagList list = new NBTTagList();
-	        
-	        for(String name : ServerCloneController.Instance.getClones(buffer.readInt()))
-	        	list.appendTag(new NBTTagString(name));
-	        
-	        NBTTagCompound compound = new NBTTagCompound();
-	        compound.setTag("List", list);
-	        
-	        Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			NBTTagList list = new NBTTagList();
+
+			for(String name : ServerCloneController.Instance.getClones(buffer.readInt()))
+				list.appendTag(new NBTTagString(name));
+
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setTag("List", list);
+
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
 			warn(player,"tried todo something with the wrong tool, probably a hacker");

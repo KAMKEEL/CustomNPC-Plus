@@ -35,17 +35,17 @@ public class DataScript implements IScriptHandler {
 	private final static EntityType entities = new EntityType();
 	private final static JobType jobs = new JobType();
 	private final static RoleType roles = new RoleType();
-	
+
 	public String scriptLanguage = "ECMAScript";
 	private EntityNPCInterface npc;
 	public boolean enabled = false;
-	
+
 	public ICustomNpc dummyNpc;
 	public IWorld dummyWorld;
 	public boolean clientNeedsUpdate = false;
 	public boolean aiNeedsUpdate = false;
 	public boolean hasInited = false;
-	
+
 	public DataScript(EntityNPCInterface npc) {
 		for (int i = 0; i < 12; i++) {
 			scripts.add(new ScriptContainer(this));
@@ -80,7 +80,7 @@ public class DataScript implements IScriptHandler {
 		compound.setBoolean("ScriptEnabled", enabled);
 		return compound;
 	}
-	
+
 	private List<ScriptContainer> readScript(NBTTagList list){
 		List<ScriptContainer> scripts = new ArrayList<>();
 		for (int i = 0; i < 12; i++) {
@@ -96,7 +96,7 @@ public class DataScript implements IScriptHandler {
 		}
 		return scripts;
 	}
-	
+
 	private NBTTagList writeScript(List<ScriptContainer> scripts){
 		NBTTagList list = new NBTTagList();
 		for(int type = 0; type < scripts.size(); type++){
@@ -137,7 +137,11 @@ public class DataScript implements IScriptHandler {
 			script.engine.put(obs[i].toString(), ob);
 		}
 		if(CustomNpcs.ScriptLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-			LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ, Arrays.toString(obs)));
+			if(obs.length > 1 && obs[1] == null){
+				LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s)", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ));
+			} else {
+				LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ, Arrays.toString(obs)));
+			}
 		}
 		return callScript(script, event);
 	}
@@ -163,7 +167,7 @@ public class DataScript implements IScriptHandler {
 		}
 		return event.isCanceled();
 	}
-	
+
 	public boolean isEnabled(){
 		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && CustomNpcs.ScriptingEnabled;
 	}
@@ -236,5 +240,5 @@ public class DataScript implements IScriptHandler {
 		if(world instanceof WorldServer)
 			dummyWorld = new ScriptWorld((WorldServer) world);
 	}
-	
+
 }

@@ -23,6 +23,7 @@ import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.ConfigLoader;
 import noppes.npcs.config.ConfigProp;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
@@ -32,6 +33,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Timer;
 import java.util.UUID;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.6.4")
@@ -59,7 +61,12 @@ public class CustomNpcs {
             "Every additional compound tag adds 65535 more characters to your script length limit. Use incrementally, with caution.")
     public static int ExpandedScriptLimit = 2;
 
-    @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs")
+    @ConfigProp(info = "Enables if Player Information (WAND-USE) should be printed to CustomNPCs Logs. IF on Server \n" +
+            "Logs will only be present SERVER-SIDE only in CustomNPCs-latest, -1, -2, and -3")
+    public static boolean PlayerLogging = false;
+
+    @ConfigProp(info = "Enables if Scripting Information should be printed to CustomNPCs Logs. IF on Server \n" +
+            "Logs will only be present SERVER-SIDE only in CustomNPCs-latest, -1, -2, and -3")
     public static boolean ScriptLogging = false;
 
     @ConfigProp(info = "Amount of Messages marked as SPAM [5, 3000]. Lower Number means MORE accurate messages \n" +
@@ -68,6 +75,10 @@ public class CustomNpcs {
 
     @ConfigProp(info = "IN Milliseconds 1s = 1000s. If a recent LOG of the same event is SENT within this threshold it will be ignored.")
     public static int ScriptIgnoreTime = 2000;
+
+    @ConfigProp(info = "Comma separated list of NPC Script Types that will omit these from the logs,\n" +
+            "INIT,TICK,INTERACT,DIALOG,DAMAGED,KILLED,ATTACK,TARGET,COLLIDE,KILLS,DIALOG_CLOSE,TIMER")
+    public static String ScriptLogIgnoreType = "TICK";
 
     @ConfigProp(info = "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.")
     public static int NpcNavRange = 32;
@@ -119,7 +130,7 @@ public class CustomNpcs {
             "Get a player's UUID from a site like NameMC or the API IPlayer.getUniqueID() function!\n" +
             "If left empty and ScriptsOpsOnly is false, anyone can see and edit scripts with a scripter.")
     public static String ScriptDevIDs = "";
-    
+
     @ConfigProp(info = "Default interact line. Leave empty to not have one")
     public static String DefaultInteractLine = "Hello @p";
 
@@ -129,7 +140,7 @@ public class CustomNpcs {
     public static int EnchantStartId = 100;
 
     @ConfigProp(info = "Number of chunk loading npcs that can be active at the same time")
-    public static int ChunkLoaders = 20;
+    public static int ChuckLoaders = 20;
 
     @ConfigProp(info = "The maximum number of images any dialog can hold.")
     public static int DialogImageLimit = 10;
@@ -144,42 +155,55 @@ public class CustomNpcs {
 
     @ConfigProp(info = "Enables leaves decay")
     public static boolean LeavesDecayEnabled = true;
-    
+
     @ConfigProp(info = "Enables Vine Growth")
     public static boolean VineGrowthEnabled = true;
 
     @ConfigProp(info = "Enables Ice Melting")
     public static boolean IceMeltsEnabled = true;
-    
+
     @ConfigProp(info = "Normal players can use soulstone on animals")
-	public static boolean SoulStoneAnimals = true;
-    
+    public static boolean SoulStoneAnimals = true;
+
     @ConfigProp(info = "Normal players can use soulstone on villagers")
-	public static boolean SoulStoneVillagers = false;
-    
+    public static boolean SoulStoneVillagers = false;
+
     @ConfigProp(info = "Normal players can use soulstone on all npcs")
-	public static boolean SoulStoneNPCs = false;
-    
+    public static boolean SoulStoneNPCs = false;
+
     @ConfigProp(info = "Normal players can use soulstone on friendly npcs")
-	public static boolean SoulStoneFriendlyNPCs = false;
+    public static boolean SoulStoneFriendlyNPCs = false;
 
-	@ConfigProp(info="When set to Minecraft it will use minecrafts font, when Default it will use OpenSans. Can only use fonts installed on your PC")
-	public static String FontType = "Default";
+    @ConfigProp(info="When set to Minecraft it will use minecrafts font, when Default it will use OpenSans. Can only use fonts installed on your PC")
+    public static String FontType = "Default";
 
-	@ConfigProp(info="Font size for custom fonts (doesn't work with minecrafts font)")
-	public static int FontSize = 18;
+    @ConfigProp(info="Font size for custom fonts (doesn't work with minecrafts font)")
+    public static int FontSize = 18;
 
     @ConfigProp(info = "Enables Overlay Mixins for Conflicts relating to Optifine or other Skin Renderers. If crashes occur, please disable.")
     public static boolean EntityRendererMixin = true;
 
     public static FMLEventChannel Channel;
     public static FMLEventChannel ChannelPlayer;
-    
+
     public static ConfigLoader Config;
 
     public static ArrayList<UUID> ScriptDevs = new ArrayList<>();
 
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
+
+    public static boolean InitIgnore = false;
+    public static boolean TickIgnore = false;
+    public static boolean InteractIgnore = false;
+    public static boolean DialogIgnore = false;
+    public static boolean DamagedIgnore = false;
+    public static boolean KilledIgnore = false;
+    public static boolean AttackIgnore = false;
+    public static boolean TargetIgnore = false;
+    public static boolean CollideIgnore = false;
+    public static boolean KillsIgnore = false;
+    public static boolean DialogCloseIgnore = false;
+    public static boolean TimerIgnore = false;
 
     public CustomNpcs() {
         instance = this;
@@ -205,7 +229,7 @@ public class CustomNpcs {
 
         try {
             ScriptDevs.clear();
-            String[] uuidStrings = ScriptDevIDs.split(";");
+            String[] uuidStrings = ScriptDevIDs.split(",");
             for (String s : uuidStrings) {
                 ScriptDevs.add(UUID.fromString(s));
             }
@@ -245,9 +269,58 @@ public class CustomNpcs {
         if (ScriptIgnoreTime < 0)
             ScriptIgnoreTime = 0;
 
+        try {
+            String[] ignoreTypes = ScriptLogIgnoreType.split(",");
+            for (String s : ignoreTypes) {
+                EnumScriptType type = EnumScriptType.valueOfIgnoreCase(s);
+                if(type != null){
+                    switch (type){
+                        case INIT:
+                            InitIgnore = true;
+                            break;
+                        case TICK:
+                            TickIgnore = true;
+                            break;
+                        case INTERACT:
+                            InteractIgnore = true;
+                            break;
+                        case DIALOG:
+                            DialogIgnore = true;
+                            break;
+                        case DAMAGED:
+                            DamagedIgnore = true;
+                            break;
+                        case KILLED:
+                            KilledIgnore = true;
+                            break;
+                        case ATTACK:
+                            AttackIgnore = true;
+                            break;
+                        case TARGET:
+                            TargetIgnore = true;
+                            break;
+                        case COLLIDE:
+                            CollideIgnore = true;
+                            break;
+                        case KILLS:
+                            KillsIgnore = true;
+                            break;
+                        case DIALOG_CLOSE:
+                            DialogCloseIgnore = true;
+                            break;
+                        case TIMER:
+                            TimerIgnore = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
         EnchantInterface.load();
         CustomItems.load();
-        
+
         proxy.load();
         NetworkRegistry.INSTANCE.registerGuiHandler(this, proxy);
 
@@ -266,8 +339,8 @@ public class CustomNpcs {
         MinecraftForge.EVENT_BUS.register(scriptItemEventHandler);
         FMLCommonHandler.instance().bus().register(scriptItemEventHandler);
 
-		FMLCommonHandler.instance().bus().register(new ServerTickHandler());
-        
+        FMLCommonHandler.instance().bus().register(new ServerTickHandler());
+
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");
         registerNpc(EntityNPCVillager.class, "npcvillager");
         registerNpc(EntityNpcPony.class, "npcpony");
@@ -302,7 +375,7 @@ public class CustomNpcs {
         ForgeChunkManager.setForcedChunkLoadingCallback(this, new ChunkController());
 
         new CustomNpcsPermissions();
-        
+
         PixelmonHelper.load();
     }
 
@@ -324,7 +397,7 @@ public class CustomNpcs {
 
     @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
-    	ChunkController.instance.clear();
+        ChunkController.instance.clear();
         new QuestController();
         new PlayerDataController();
         new FactionController();
@@ -341,30 +414,30 @@ public class CustomNpcs {
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){
-        	Block block = (Block) Block.blockRegistry.getObject(name);
-        	if(block instanceof BlockLeavesBase){
-        		block.setTickRandomly(LeavesDecayEnabled);
-        	}
-        	if(block instanceof BlockVine){
-        		block.setTickRandomly(VineGrowthEnabled);
-        	}
-        	if(block instanceof BlockIce){
-        		block.setTickRandomly(IceMeltsEnabled);
-        	}
+            Block block = (Block) Block.blockRegistry.getObject(name);
+            if(block instanceof BlockLeavesBase){
+                block.setTickRandomly(LeavesDecayEnabled);
+            }
+            if(block instanceof BlockVine){
+                block.setTickRandomly(VineGrowthEnabled);
+            }
+            if(block instanceof BlockIce){
+                block.setTickRandomly(IceMeltsEnabled);
+            }
         }
     }
-    
+
     //Loading items in the about to start event was corrupting items with a damage value
     @EventHandler
     public void started(FMLServerStartedEvent event) {
-    	RecipeController.instance.load();
+        RecipeController.instance.load();
         new DialogController();
         new BankController();
         QuestController.instance.load();
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
     }
-    
+
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){
         ServerCloneController.Instance = null;
