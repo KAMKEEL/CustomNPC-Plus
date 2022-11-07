@@ -5,6 +5,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.pathfinding.PathEntity;
+import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
@@ -52,6 +53,8 @@ public class PathNavigateFlying extends PathNavigate {
     protected BlockPos targetPos;
     protected boolean tryUpdatePath;
     protected long lastTimeUpdated;
+
+    protected FlyPathFinder pathFinder;
 
     public PathNavigateFlying(EntityLiving entityIN, World worldIn) {
         super(entityIN, worldIn);
@@ -504,40 +507,32 @@ public class PathNavigateFlying extends PathNavigate {
         }
     }
 
-    public NPCPath getPathEntityToEntity(Entity p_72865_1_, Entity p_72865_2_, float p_72865_3_, boolean p_72865_4_, boolean p_72865_5_, boolean p_72865_6_, boolean p_72865_7_)
+    public ChunkCache createChunkCache(World world, BlockPos blockFrom, BlockPos blockTo){
+        return new ChunkCache(world, blockFrom.getX(), blockFrom.getY(), blockFrom.getZ(), blockTo.getX(), blockTo.getY(), blockTo.getZ(), 0);
+    }
+
+    public NPCPath getPathEntityToEntity(Entity entityFrom, Entity entityTo, float distance, boolean openDoors, boolean breakDoors, boolean pathWater, boolean canSwim)
     {
+        float f = this.getPathSearchRange();
         this.theEntity.worldObj.theProfiler.startSection("pathfind");
-        int i = MathHelper.floor_double(p_72865_1_.posX);
-        int j = MathHelper.floor_double(p_72865_1_.posY + 1.0D);
-        int k = MathHelper.floor_double(p_72865_1_.posZ);
-        int l = (int)(p_72865_3_ + 16.0F);
-        int i1 = i - l;
-        int j1 = j - l;
-        int k1 = k - l;
-        int l1 = i + l;
-        int i2 = j + l;
-        int j2 = k + l;
-        ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, i1, j1, k1, l1, i2, j2, 0);
-        NPCPath pathentity = (new FlyPathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_, p_72865_1_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
+        BlockPos blockpos1 = (new BlockPos(this.theEntity)).up();
+        int i = (int)(f + 16.0F);
+        ChunkCache chunkcache = createChunkCache(this.worldObj, blockpos1.add(-i, -i, -i), blockpos1.add(i, i, i));
+        this.pathFinder = new FlyPathFinder(chunkcache, openDoors, breakDoors, pathWater, canSwim, this.theEntity);
+        NPCPath pathentity = this.pathFinder.createEntityPathTo(entityFrom, entityTo, distance);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }
 
-    public NPCPath getEntityPathToXYZ(Entity p_72844_1_, int x, int y, int z, float p_72844_5_, boolean p_72844_6_, boolean p_72844_7_, boolean p_72844_8_, boolean p_72844_9_)
+    public NPCPath getEntityPathToXYZ(Entity entityFrom, int x, int y, int z, float distance, boolean openDoors, boolean breakDoors, boolean pathWater, boolean canSwim)
     {
+        float f = this.getPathSearchRange();
         this.theEntity.worldObj.theProfiler.startSection("pathfind");
-        int l = MathHelper.floor_double(p_72844_1_.posX);
-        int i1 = MathHelper.floor_double(p_72844_1_.posY);
-        int j1 = MathHelper.floor_double(p_72844_1_.posZ);
-        int k1 = (int)(p_72844_5_ + 8.0F);
-        int l1 = l - k1;
-        int i2 = i1 - k1;
-        int j2 = j1 - k1;
-        int k2 = l + k1;
-        int l2 = i1 + k1;
-        int i3 = j1 + k1;
-        ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, l1, i2, j2, k2, l2, i3, 0);
-        NPCPath pathentity = (new FlyPathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_, p_72844_1_)).createEntityPathTo(p_72844_1_, x, y, z, p_72844_5_);
+        BlockPos blockpos1 = (new BlockPos(this.theEntity)).up();
+        int i = (int)(f + 16.0F);
+        ChunkCache chunkcache = createChunkCache(this.worldObj, blockpos1.add(-i, -i, -i), blockpos1.add(i, i, i));
+        this.pathFinder = new FlyPathFinder(chunkcache, openDoors, breakDoors, pathWater, canSwim, this.theEntity);
+        NPCPath pathentity = this.pathFinder.createEntityPathTo(entityFrom, this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ(), f);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }
