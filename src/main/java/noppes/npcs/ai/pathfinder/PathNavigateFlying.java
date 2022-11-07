@@ -1,5 +1,7 @@
 package noppes.npcs.ai.pathfinder;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -13,6 +15,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import javax.annotation.Nullable;
@@ -267,31 +270,21 @@ public class PathNavigateFlying extends PathNavigate {
     {
         ++this.totalTicks;
 
-        if (this.tryUpdatePath)
-        {
-            this.updatePath();
-        }
-
         if (!this.noPath())
         {
             if (this.canNavigate())
             {
                 this.pathFollow();
             }
-            else if (this.currentPath != null && this.currentPath.getCurrentPathIndex() < this.currentPath.getCurrentPathLength())
-            {
-                Vec3 vec3d = this.currentPath.getVectorFromIndex(this.theEntity, this.currentPath.getCurrentPathIndex());
-
-                if (MathHelper.floor_double(this.theEntity.posX) == MathHelper.floor_double(vec3d.xCoord) && MathHelper.floor_double(this.theEntity.posY) == MathHelper.floor_double(vec3d.yCoord) && MathHelper.floor_double(this.theEntity.posZ) == MathHelper.floor_double(vec3d.zCoord))
-                {
-                    this.currentPath.setCurrentPathIndex(this.currentPath.getCurrentPathIndex() + 1);
-                }
-            }
 
             if (!this.noPath())
             {
-                Vec3 vec3d1 = this.currentPath.getPosition(this.theEntity);
-                this.theEntity.getMoveHelper().setMoveTo(vec3d1.xCoord, vec3d1.yCoord, vec3d1.zCoord, this.speed);
+                Vec3 vec3 = this.currentPath.getPosition(this.theEntity);
+
+                if (vec3 != null)
+                {
+                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
+                }
             }
         }
     }
@@ -300,25 +293,20 @@ public class PathNavigateFlying extends PathNavigate {
     {
         Vec3 vec3 = this.getEntityPosition();
         int i = this.currentPath.getCurrentPathLength();
-        for (int j = this.currentPath.getCurrentPathIndex(); j < this.currentPath.getCurrentPathLength(); ++j)
+
+        float f = this.theEntity.width * this.theEntity.width;
+        int k;
+
+        for (k = this.currentPath.getCurrentPathIndex(); k < i; ++k)
         {
-            if ((double)this.currentPath.getPathPointFromIndex(j).yCoord != Math.floor(vec3.yCoord))
+            if (vec3.squareDistanceTo(this.currentPath.getVectorFromIndex(this.theEntity, k)) < (double)f)
             {
-                i = j;
-                break;
+                this.currentPath.setCurrentPathIndex(k + 1);
             }
         }
 
-        this.maxDistanceToWaypoint = this.theEntity.width > 0.75F ? this.theEntity.width / 2.0F : 0.75F - this.theEntity.width / 2.0F;
-        Vec3 vec3d1 = this.currentPath.getCurrentPos();
-
-        if (MathHelper.abs((float)(this.theEntity.posX - (vec3d1.xCoord + 0.5D))) < this.maxDistanceToWaypoint && MathHelper.abs((float)(this.theEntity.posZ - (vec3d1.zCoord + 0.5D))) < this.maxDistanceToWaypoint && Math.abs(this.theEntity.posY - vec3d1.yCoord) < 1.0D)
-        {
-            this.currentPath.setCurrentPathIndex(this.currentPath.getCurrentPathIndex() + 1);
-        }
-
-        int k = MathHelper.ceiling_double_int(this.theEntity.width);
-        int l = MathHelper.ceiling_double_int(this.theEntity.height);
+        k = MathHelper.ceiling_float_int(this.theEntity.width);
+        int l = (int)this.theEntity.height + 1;
         int i1 = k;
 
         for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
@@ -333,46 +321,6 @@ public class PathNavigateFlying extends PathNavigate {
         this.checkForStuck(vec3);
     }
 
-    protected void checkForStuck(Vec3 positionVec3)
-    {
-        if (this.totalTicks - this.ticksAtLastPos > 100)
-        {
-            if (positionVec3.squareDistanceTo(this.lastPosCheck) < 2.25D)
-            {
-                this.clearPathEntity();
-            }
-
-            this.ticksAtLastPos = this.totalTicks;
-            this.lastPosCheck = positionVec3;
-        }
-
-        if (this.currentPath != null && !this.currentPath.isFinished())
-        {
-            Vec3 vec3d = this.currentPath.getCurrentPos();
-
-            if (vec3d.equals(this.timeoutCachedNode))
-            {
-                this.timeoutTimer += System.currentTimeMillis() - this.lastTimeoutCheck;
-            }
-            else
-            {
-                this.timeoutCachedNode = vec3d;
-                double d0 = positionVec3.distanceTo(this.timeoutCachedNode);
-                this.timeoutLimit = this.theEntity.getAIMoveSpeed() > 0.0F ? d0 / (double)this.theEntity.getAIMoveSpeed() * 1000.0D : 0.0D;
-            }
-
-            if (this.timeoutLimit > 0.0D && (double)this.timeoutTimer > this.timeoutLimit * 3.0D)
-            {
-                this.timeoutCachedNode = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);;
-                this.timeoutTimer = 0L;
-                this.timeoutLimit = 0.0D;
-                this.clearPathEntity();
-            }
-
-            this.lastTimeoutCheck = System.currentTimeMillis();
-        }
-    }
-
     /**
      * If null path or reached the end
      */
@@ -384,7 +332,6 @@ public class PathNavigateFlying extends PathNavigate {
     /**
      * sets active PathEntity to null
      */
-    @Override
     public void clearPathEntity()
     {
         this.currentPath = null;
@@ -427,84 +374,194 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 posVec31, Vec3 posVec32, int sizeX, int sizeY, int sizeZ)
+    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int entityXSize, int entityYSize, int entityZSize)
     {
-        int i = MathHelper.floor_double(posVec31.xCoord);
-        int j = MathHelper.floor_double(posVec31.yCoord);
-        int k = MathHelper.floor_double(posVec31.zCoord);
-        double d0 = posVec32.xCoord - posVec31.xCoord;
-        double d1 = posVec32.yCoord - posVec31.yCoord;
-        double d2 = posVec32.zCoord - posVec31.zCoord;
-        double d3 = d0 * d0 + d1 * d1 + d2 * d2;
+        int l = MathHelper.floor_double(p_75493_1_.xCoord);
+        int i1 = MathHelper.floor_double(p_75493_1_.zCoord);
+        double d0 = p_75493_2_.xCoord - p_75493_1_.xCoord;
+        double d1 = p_75493_2_.zCoord - p_75493_1_.zCoord;
+        double d2 = d0 * d0 + d1 * d1;
 
-        if (d3 < 1.0E-8D)
+        if (d2 < 1.0E-8D)
         {
             return false;
         }
         else
         {
-            double d4 = 1.0D / Math.sqrt(d3);
-            d0 = d0 * d4;
-            d1 = d1 * d4;
-            d2 = d2 * d4;
-            double d5 = 1.0D / Math.abs(d0);
-            double d6 = 1.0D / Math.abs(d1);
-            double d7 = 1.0D / Math.abs(d2);
-            double d8 = (double)i - posVec31.xCoord;
-            double d9 = (double)j - posVec31.yCoord;
-            double d10 = (double)k - posVec31.zCoord;
+            double d3 = 1.0D / Math.sqrt(d2);
+            d0 *= d3;
+            d1 *= d3;
+            entityXSize += 2;
+            entityZSize += 2;
 
-            if (d0 >= 0.0D)
+            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1))
             {
-                ++d8;
+                return false;
             }
-
-            if (d1 >= 0.0D)
+            else
             {
-                ++d9;
-            }
+                entityXSize -= 2;
+                entityZSize -= 2;
+                double d4 = 1.0D / Math.abs(d0);
+                double d5 = 1.0D / Math.abs(d1);
+                double d6 = (double)(l * 1) - p_75493_1_.xCoord;
+                double d7 = (double)(i1 * 1) - p_75493_1_.zCoord;
 
-            if (d2 >= 0.0D)
-            {
-                ++d10;
-            }
-
-            d8 = d8 / d0;
-            d9 = d9 / d1;
-            d10 = d10 / d2;
-            int l = d0 < 0.0D ? -1 : 1;
-            int i1 = d1 < 0.0D ? -1 : 1;
-            int j1 = d2 < 0.0D ? -1 : 1;
-            int k1 = MathHelper.floor_double(posVec32.xCoord);
-            int l1 = MathHelper.floor_double(posVec32.yCoord);
-            int i2 = MathHelper.floor_double(posVec32.zCoord);
-            int j2 = k1 - i;
-            int k2 = l1 - j;
-            int l2 = i2 - k;
-
-            while (j2 * l > 0 || k2 * i1 > 0 || l2 * j1 > 0)
-            {
-                if (d8 < d10 && d8 <= d9)
+                if (d0 >= 0.0D)
                 {
-                    d8 += d5;
-                    i += l;
-                    j2 = k1 - i;
+                    ++d6;
                 }
-                else if (d9 < d8 && d9 <= d10)
+
+                if (d1 >= 0.0D)
                 {
-                    d9 += d6;
-                    j += i1;
-                    k2 = l1 - j;
+                    ++d7;
                 }
-                else
+
+                d6 /= d0;
+                d7 /= d1;
+                int j1 = d0 < 0.0D ? -1 : 1;
+                int k1 = d1 < 0.0D ? -1 : 1;
+                int l1 = MathHelper.floor_double(p_75493_2_.xCoord);
+                int i2 = MathHelper.floor_double(p_75493_2_.zCoord);
+                int j2 = l1 - l;
+                int k2 = i2 - i1;
+
+                do
                 {
-                    d10 += d7;
-                    k += j1;
-                    l2 = i2 - k;
+                    if (j2 * j1 <= 0 && k2 * k1 <= 0)
+                    {
+                        return true;
+                    }
+
+                    if (d6 < d7)
+                    {
+                        d6 += d4;
+                        l += j1;
+                        j2 = l1 - l;
+                    }
+                    else
+                    {
+                        d7 += d5;
+                        i1 += k1;
+                        k2 = i2 - i1;
+                    }
+                }
+                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1));
+
+                return false;
+            }
+        }
+    }
+
+    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
+    {
+        int k1 = p_75483_1_ - p_75483_4_ / 2;
+        int l1 = p_75483_3_ - p_75483_6_ / 2;
+
+        if (!this.isPositionClear(k1, p_75483_2_, l1, p_75483_4_, p_75483_5_, p_75483_6_, p_75483_7_, p_75483_8_, p_75483_10_))
+        {
+            return false;
+        }
+        else
+        {
+            for (int i2 = k1; i2 < k1 + p_75483_4_; ++i2)
+            {
+                for (int j2 = l1; j2 < l1 + p_75483_6_; ++j2)
+                {
+                    double d2 = (double)i2 + 0.5D - p_75483_7_.xCoord;
+                    double d3 = (double)j2 + 0.5D - p_75483_7_.zCoord;
+
+                    if (d2 * p_75483_8_ + d3 * p_75483_10_ >= 0.0D)
+                    {
+                        Block block = this.worldObj.getBlock(i2, p_75483_2_ - 1, j2);
+                        Material material = block.getMaterial();
+
+                        if (material == Material.water && !this.theEntity.isInWater())
+                        {
+                            return false;
+                        }
+
+                        if (material == Material.lava)
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
 
             return true;
+        }
+    }
+
+    private boolean isPositionClear(int x, int y, int z, int entityXSize, int entityYSize, int entityZSize, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
+    {
+        return pathFinder.getPathNodeType(this.theEntity.worldObj, x, y, z, (EntityLiving) this.theEntity, entityXSize, entityYSize, entityZSize, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 1).getPriority() == 0;
+    }
+
+    /*private boolean isPositionClear(int p_75496_1_, int p_75496_2_, int p_75496_3_, int p_75496_4_, int p_75496_5_, int p_75496_6_, Vec3 p_75496_7_, double p_75496_8_, double p_75496_10_)
+    {
+        for (int k1 = p_75496_1_; k1 < p_75496_1_ + p_75496_4_; ++k1)
+        {
+            for (int l1 = p_75496_2_; l1 < p_75496_2_ + p_75496_5_; ++l1)
+            {
+                for (int i2 = p_75496_3_; i2 < p_75496_3_ + p_75496_6_; ++i2)
+                {
+                    double d2 = (double)k1 + 0.5D - p_75496_7_.xCoord;
+                    double d3 = (double)i2 + 0.5D - p_75496_7_.zCoord;
+
+                    if (d2 * p_75496_8_ + d3 * p_75496_10_ >= 0.0D)
+                    {
+                        Block block = this.worldObj.getBlock(k1, l1, i2);
+
+                        if (!block.getBlocksMovement(this.worldObj, k1, l1, i2))
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }*/
+
+    protected void checkForStuck(Vec3 positionVec3)
+    {
+        if (this.totalTicks - this.ticksAtLastPos > 100)
+        {
+            if (positionVec3.squareDistanceTo(this.lastPosCheck) < 2.25D)
+            {
+                this.clearPathEntity();
+            }
+
+            this.ticksAtLastPos = this.totalTicks;
+            this.lastPosCheck = positionVec3;
+        }
+
+        if (this.currentPath != null && !this.currentPath.isFinished())
+        {
+            Vec3 vec3d = this.currentPath.getCurrentPos();
+
+            if (vec3d.equals(this.timeoutCachedNode))
+            {
+                this.timeoutTimer += System.currentTimeMillis() - this.lastTimeoutCheck;
+            }
+            else
+            {
+                this.timeoutCachedNode = vec3d;
+                double d0 = positionVec3.distanceTo(this.timeoutCachedNode);
+                this.timeoutLimit = this.theEntity.getAIMoveSpeed() > 0.0F ? d0 / (double)this.theEntity.getAIMoveSpeed() * 1000.0D : 0.0D;
+            }
+
+            if (this.timeoutLimit > 0.0D && (double)this.timeoutTimer > this.timeoutLimit * 3.0D)
+            {
+                this.timeoutCachedNode = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);;
+                this.timeoutTimer = 0L;
+                this.timeoutLimit = 0.0D;
+                this.clearPathEntity();
+            }
+
+            this.lastTimeoutCheck = System.currentTimeMillis();
         }
     }
 
