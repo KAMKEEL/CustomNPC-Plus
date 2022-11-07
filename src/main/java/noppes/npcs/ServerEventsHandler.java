@@ -83,6 +83,9 @@ public class ServerEventsHandler {
 
 		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && event.target instanceof EntityLivingBase) {
 			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
+			}
 		}
 
 		if(item.getItem() == CustomItems.wand && npcInteracted && !isRemote){
@@ -91,6 +94,9 @@ public class ServerEventsHandler {
 			}
 			event.setCanceled(true);
 			NoppesUtilServer.sendOpenGui(event.entityPlayer, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) event.target);
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 		else if(item.getItem() == CustomItems.cloner && !isRemote && !(event.target instanceof EntityPlayer)){
 			NBTTagCompound compound = new NBTTagCompound();
@@ -109,6 +115,9 @@ public class ServerEventsHandler {
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
 			Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.GUI, EnumGuiType.Script.ordinal());
+			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 		else if(item.getItem() == CustomItems.mount){
 			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
