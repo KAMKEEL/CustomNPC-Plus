@@ -280,7 +280,10 @@ public class PathNavigateFlying extends PathNavigate {
         {
             if (this.canNavigate())
             {
-                this.pathFollow();
+                if (((EntityNPCInterface)this.theEntity).display.modelSize >= 5)
+                    this.pathFollowBig();
+                else
+                    this.pathFollowSmall();
             }
             else if (this.currentPath != null && this.currentPath.getCurrentPathIndex() < this.currentPath.getCurrentPathLength())
 
@@ -305,39 +308,39 @@ public class PathNavigateFlying extends PathNavigate {
         }
     }
 
-//    private void pathFollow()
-//    {
-//        Vec3 vec3 = this.getEntityPosition();
-//        int i = this.currentPath.getCurrentPathLength();
-//
-//        float f = this.theEntity.width * this.theEntity.width;
-//        int k;
-//
-//        for (k = this.currentPath.getCurrentPathIndex(); k < i; ++k)
-//        {
-//            if (vec3.squareDistanceTo(this.currentPath.getVectorFromIndex(this.theEntity, k)) < (double)f)
-//            {
-//                this.currentPath.setCurrentPathIndex(k + 1);
-//            }
-//        }
-//
-//        k = MathHelper.floor_double(this.theEntity.width + 1.0F);
-//        int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
-//        int i1 = k;
-//
-//        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
-//        {
-//            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
-//            {
-//                this.currentPath.setCurrentPathIndex(j1);
-//                break;
-//            }
-//        }
-//
-//        this.checkForStuck(vec3);
-//    }
+    private void pathFollowBig()
+    {
+        Vec3 vec3 = this.getEntityPosition();
+        int i = this.currentPath.getCurrentPathLength();
 
-    private void pathFollow()
+        float f = this.theEntity.width * this.theEntity.width;
+        int k;
+
+        for (k = this.currentPath.getCurrentPathIndex(); k < i; ++k)
+        {
+            if (vec3.squareDistanceTo(this.currentPath.getVectorFromIndex(this.theEntity, k)) < (double)f)
+            {
+                this.currentPath.setCurrentPathIndex(k + 1);
+            }
+        }
+
+        k = MathHelper.floor_double(this.theEntity.width + 1.0F);
+        int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
+        int i1 = k;
+
+        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
+        {
+            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
+            {
+                this.currentPath.setCurrentPathIndex(j1);
+                break;
+            }
+        }
+
+        this.checkForStuck(vec3);
+    }
+
+    private void pathFollowSmall()
     {
         Vec3 vec3 = this.getEntityPosition();
         int i = this.currentPath.getCurrentPathLength();
