@@ -3,7 +3,7 @@ package noppes.npcs.ai.pathfinder;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
 
-public class FlyPathPoint extends PathPoint
+public class NPCPathPoint extends PathPoint
 {
     /** The x coordinate of this point */
     public final int xCoord;
@@ -22,58 +22,67 @@ public class FlyPathPoint extends PathPoint
     /** The distance to the target */
     public float distanceToTarget;
     /** The point preceding this in its assigned path */
-    public FlyPathPoint previous;
+    public NPCPathPoint previous;
     /** Indicates this is the origin */
     public boolean isFirst;
     public float costMalus;
+    public float cost;
+    public float distanceFromOrigin;
     public PathNodeType nodeType = PathNodeType.BLOCKED;
-    private static final String __OBFID = "CL_00000574";
 
-    public FlyPathPoint(int p_i2135_1_, int p_i2135_2_, int p_i2135_3_)
+    public NPCPathPoint(int xIn, int yIn, int zIn)
     {
-        super(p_i2135_1_,p_i2135_2_,p_i2135_3_);
-        this.xCoord = p_i2135_1_;
-        this.yCoord = p_i2135_2_;
-        this.zCoord = p_i2135_3_;
-        this.hash = makeHash(p_i2135_1_, p_i2135_2_, p_i2135_3_);
+        super(xIn,yIn,zIn);
+        this.xCoord = xIn;
+        this.yCoord = yIn;
+        this.zCoord = zIn;
+        this.hash = makeHash(xIn, yIn, zIn);
     }
 
-    public static int makeHash(int p_75830_0_, int p_75830_1_, int p_75830_2_)
+    public static int makeHash(int xIn, int yIn, int zIn)
     {
-        return p_75830_1_ & 255 | (p_75830_0_ & 32767) << 8 | (p_75830_2_ & 32767) << 24 | (p_75830_0_ < 0 ? Integer.MIN_VALUE : 0) | (p_75830_2_ < 0 ? 32768 : 0);
+        return yIn & 255 | (xIn & 32767) << 8 | (zIn & 32767) << 24 | (xIn < 0 ? Integer.MIN_VALUE : 0) | (zIn < 0 ? 32768 : 0);
     }
 
     /**
      * Returns the linear distance to another path point
      */
-    public float distanceTo(FlyPathPoint p_75829_1_)
+    public float distanceTo(NPCPathPoint point)
     {
-        float f = (float)(p_75829_1_.xCoord - this.xCoord);
-        float f1 = (float)(p_75829_1_.yCoord - this.yCoord);
-        float f2 = (float)(p_75829_1_.zCoord - this.zCoord);
+        float f = (float)(point.xCoord - this.xCoord);
+        float f1 = (float)(point.yCoord - this.yCoord);
+        float f2 = (float)(point.zCoord - this.zCoord);
         return MathHelper.sqrt_float(f * f + f1 * f1 + f2 * f2);
     }
 
     /**
      * Returns the squared distance to another path point
      */
-    public float distanceToSquared(FlyPathPoint p_75832_1_)
+    public float distanceToSquared(NPCPathPoint point)
     {
-        float f = (float)(p_75832_1_.xCoord - this.xCoord);
-        float f1 = (float)(p_75832_1_.yCoord - this.yCoord);
-        float f2 = (float)(p_75832_1_.zCoord - this.zCoord);
+        float f = (float)(point.xCoord - this.xCoord);
+        float f1 = (float)(point.yCoord - this.yCoord);
+        float f2 = (float)(point.zCoord - this.zCoord);
         return f * f + f1 * f1 + f2 * f2;
     }
 
-    public boolean equals(Object p_equals_1_)
+    public float distanceManhattan(NPCPathPoint point)
     {
-        if (!(p_equals_1_ instanceof FlyPathPoint))
+        float f = (float)Math.abs(point.xCoord - this.xCoord);
+        float f1 = (float)Math.abs(point.yCoord - this.yCoord);
+        float f2 = (float)Math.abs(point.zCoord - this.zCoord);
+        return f + f1 + f2;
+    }
+
+    public boolean equals(Object point)
+    {
+        if (!(point instanceof NPCPathPoint))
         {
             return false;
         }
         else
         {
-            FlyPathPoint pathpoint = (FlyPathPoint)p_equals_1_;
+            NPCPathPoint pathpoint = (NPCPathPoint)point;
             return this.hash == pathpoint.hash && this.xCoord == pathpoint.xCoord && this.yCoord == pathpoint.yCoord && this.zCoord == pathpoint.zCoord;
         }
     }

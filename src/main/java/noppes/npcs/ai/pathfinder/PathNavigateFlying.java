@@ -1,31 +1,30 @@
 package noppes.npcs.ai.pathfinder;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.monster.EntityZombie;
-import net.minecraft.entity.passive.EntityChicken;
-import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import javax.annotation.Nullable;
 
 public class PathNavigateFlying extends PathNavigate {
     private EntityNPCInterface theEntity;
     private World worldObj;
     /** The PathEntity being followed. */
-    private FlyPathEntity currentPath;
+    protected NPCPath currentPath;
     private double speed;
     /** The number of blocks (extra) +/- in each axis that get pulled out as cache for the pathfinder's search space */
     private IAttributeInstance pathSearchRange;
+    protected float maxDistanceToWaypoint = 0.5F;
     private boolean noSunPathfind;
     /** Time, in number of ticks, following the current path */
     private int totalTicks;
@@ -33,6 +32,10 @@ public class PathNavigateFlying extends PathNavigate {
     private int ticksAtLastPos;
     /** Coordinates of the entity's position last time a check was done (part of monitoring getting 'stuck') */
     private Vec3 lastPosCheck = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);
+    private Vec3 timeoutCachedNode = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);
+    private long timeoutTimer;
+    private long lastTimeoutCheck;
+    private double timeoutLimit;
     /** Specifically, if a wooden door block is even considered to be passable by the pathfinder */
     private boolean canPassOpenWoodenDoors = true;
     /** If door blocks are considered passable even when closed */
@@ -46,14 +49,33 @@ public class PathNavigateFlying extends PathNavigate {
     private boolean canSwim;
     private static final String __OBFID = "CL_00001627";
 
-    private int pathCooldown = 0;
-    private int maxCooldown = 2;
+    protected BlockPos targetPos;
+    protected boolean tryUpdatePath;
+    protected long lastTimeUpdated;
 
-    public PathNavigateFlying(EntityLiving p_i45873_1_, World worldIn) {
-        super(p_i45873_1_, worldIn);
-        this.theEntity = (EntityNPCInterface)p_i45873_1_;
+    public PathNavigateFlying(EntityLiving entityIN, World worldIn) {
+        super(entityIN, worldIn);
+        this.theEntity = (EntityNPCInterface)entityIN;
         this.worldObj = worldIn;
-        this.pathSearchRange = p_i45873_1_.getEntityAttribute(SharedMonsterAttributes.followRange);
+        this.pathSearchRange = entityIN.getEntityAttribute(SharedMonsterAttributes.followRange);
+    }
+
+    public void updatePath()
+    {
+        if (this.worldObj.getTotalWorldTime() - this.lastTimeUpdated > 20L)
+        {
+            if (this.targetPos != null)
+            {
+                this.currentPath = null;
+                this.currentPath = this.getPathToXYZ(this.targetPos.getX(), this.targetPos.getY(), this.targetPos.getZ());
+                this.lastTimeUpdated = this.worldObj.getTotalWorldTime();
+                this.tryUpdatePath = false;
+            }
+        }
+        else
+        {
+            this.tryUpdatePath = true;
+        }
     }
 
     public void setAvoidsWater(boolean p_75491_1_)
@@ -122,9 +144,21 @@ public class PathNavigateFlying extends PathNavigate {
     /**
      * Returns the path to the given coordinates
      */
-    public FlyPathEntity getPathToXYZ(double p_75488_1_, double p_75488_3_, double p_75488_5_)
+    public NPCPath getPathToXYZ(double x, double y, double z)
     {
-        return !this.canNavigate() ? null : this.getEntityPathToXYZ(this.theEntity, MathHelper.floor_double(p_75488_1_), (int)p_75488_3_, MathHelper.floor_double(p_75488_5_), this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
+        BlockPos pos = new BlockPos(x, y, z);
+        if (!this.canNavigate())
+        {
+            return null;
+        }
+        else if (this.currentPath != null && !this.currentPath.isFinished() && pos.equals(this.targetPos))
+        {
+            return this.currentPath;
+        }
+        else {
+            this.targetPos = pos;
+            return this.getEntityPathToXYZ(this.theEntity, MathHelper.floor_double(x), (int)y, MathHelper.floor_double(z), this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
+        }
     }
 
     /**
@@ -132,23 +166,32 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public boolean tryMoveToXYZ(double p_75492_1_, double p_75492_3_, double p_75492_5_, double p_75492_7_)
     {
-        if (this.pathCooldown == 0) {
-            this.pathCooldown = this.maxCooldown;
-        } else {
-            this.pathCooldown--;
-            return false;
-        }
-
-        FlyPathEntity pathentity = this.getPathToXYZ((double)MathHelper.floor_double(p_75492_1_), (double)((int)p_75492_3_), (double)MathHelper.floor_double(p_75492_5_));
+        NPCPath pathentity = this.getPathToXYZ((double)MathHelper.floor_double(p_75492_1_), (double)((int)p_75492_3_), (double)MathHelper.floor_double(p_75492_5_));
         return this.setPath(pathentity, p_75492_7_);
     }
 
     /**
      * Returns the path to the given EntityLiving
      */
-    public FlyPathEntity getPathToEntityLiving(Entity p_75494_1_)
+    public NPCPath getPathToEntityLiving(Entity entity)
     {
-        return !this.canNavigate() ? null : this.getPathEntityToEntity(this.theEntity, p_75494_1_, this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
+        if (!this.canNavigate())
+        {
+            return null;
+        }
+        else
+        {
+            BlockPos blockpos = new BlockPos(entity);
+            if (this.currentPath != null && !this.currentPath.isFinished() && blockpos.equals(this.targetPos))
+            {
+                return this.currentPath;
+            }
+            else
+            {
+                this.targetPos = blockpos;
+                return this.getPathEntityToEntity(this.theEntity, entity, this.getPathSearchRange(), this.canPassOpenWoodenDoors, this.canPassClosedWoodenDoors, this.avoidsWater, this.canSwim);
+            }
+        }
     }
 
     /**
@@ -156,14 +199,7 @@ public class PathNavigateFlying extends PathNavigate {
      */
     public boolean tryMoveToEntityLiving(Entity p_75497_1_, double p_75497_2_)
     {
-        if (this.pathCooldown == 0) {
-            this.pathCooldown = this.maxCooldown;
-        } else {
-            this.pathCooldown--;
-            return false;
-        }
-
-        FlyPathEntity pathentity = this.getPathToEntityLiving(p_75497_1_);
+        NPCPath pathentity = this.getPathToEntityLiving(p_75497_1_);
         return pathentity != null && this.setPath(pathentity, p_75497_2_);
     }
 
@@ -171,19 +207,19 @@ public class PathNavigateFlying extends PathNavigate {
      * sets the active path data if path is 100% unique compared to old path, checks to adjust path for sun avoiding
      * ents and stores end coords
      */
-    public boolean setPath(PathEntity pathEntity, double p_75484_2_)
+    public boolean setPath(@Nullable PathEntity pathEntity, double speed)
     {
-        FlyPathEntity p_75484_1_ = (FlyPathEntity) pathEntity;
-        if (p_75484_1_ == null)
+        NPCPath NPCPath = (NPCPath) pathEntity;
+        if (NPCPath == null)
         {
             this.currentPath = null;
             return false;
         }
         else
         {
-            if (!p_75484_1_.isSamePath(this.currentPath))
+            if (!NPCPath.isSamePath(this.currentPath))
             {
-                this.currentPath = p_75484_1_;
+                this.currentPath = NPCPath;
             }
 
             if (this.noSunPathfind)
@@ -197,12 +233,10 @@ public class PathNavigateFlying extends PathNavigate {
             }
             else
             {
-                this.speed = p_75484_2_;
+                this.speed = speed;
                 Vec3 vec3 = this.getEntityPosition();
                 this.ticksAtLastPos = this.totalTicks;
-                this.lastPosCheck.xCoord = vec3.xCoord;
-                this.lastPosCheck.yCoord = vec3.yCoord;
-                this.lastPosCheck.zCoord = vec3.zCoord;
+                this.lastPosCheck = vec3;
                 return true;
             }
         }
@@ -230,21 +264,31 @@ public class PathNavigateFlying extends PathNavigate {
     {
         ++this.totalTicks;
 
+        if (this.tryUpdatePath)
+        {
+            this.updatePath();
+        }
+
         if (!this.noPath())
         {
             if (this.canNavigate())
             {
                 this.pathFollow();
             }
+            else if (this.currentPath != null && this.currentPath.getCurrentPathIndex() < this.currentPath.getCurrentPathLength())
+            {
+                Vec3 vec3d = this.currentPath.getVectorFromIndex(this.theEntity, this.currentPath.getCurrentPathIndex());
+
+                if (MathHelper.floor_double(this.theEntity.posX) == MathHelper.floor_double(vec3d.xCoord) && MathHelper.floor_double(this.theEntity.posY) == MathHelper.floor_double(vec3d.yCoord) && MathHelper.floor_double(this.theEntity.posZ) == MathHelper.floor_double(vec3d.zCoord))
+                {
+                    this.currentPath.setCurrentPathIndex(this.currentPath.getCurrentPathIndex() + 1);
+                }
+            }
 
             if (!this.noPath())
             {
-                Vec3 vec3 = this.currentPath.getPosition(this.theEntity);
-
-                if (vec3 != null)
-                {
-                    this.theEntity.getMoveHelper().setMoveTo(vec3.xCoord, vec3.yCoord, vec3.zCoord, this.speed);
-                }
+                Vec3 vec3d1 = this.currentPath.getPosition(this.theEntity);
+                this.theEntity.getMoveHelper().setMoveTo(vec3d1.xCoord, vec3d1.yCoord, vec3d1.zCoord, this.speed);
             }
         }
     }
@@ -253,20 +297,25 @@ public class PathNavigateFlying extends PathNavigate {
     {
         Vec3 vec3 = this.getEntityPosition();
         int i = this.currentPath.getCurrentPathLength();
-
-        float f = this.theEntity.width * this.theEntity.width;
-        int k;
-
-        for (k = this.currentPath.getCurrentPathIndex(); k < i; ++k)
+        for (int j = this.currentPath.getCurrentPathIndex(); j < this.currentPath.getCurrentPathLength(); ++j)
         {
-            if (vec3.squareDistanceTo(this.currentPath.getVectorFromIndex(this.theEntity, k)) < (double)f)
+            if ((double)this.currentPath.getPathPointFromIndex(j).yCoord != Math.floor(vec3.yCoord))
             {
-                this.currentPath.setCurrentPathIndex(k + 1);
+                i = j;
+                break;
             }
         }
 
-        k = MathHelper.ceiling_float_int(this.theEntity.width);
-        int l = (int)this.theEntity.height + 1;
+        this.maxDistanceToWaypoint = this.theEntity.width > 0.75F ? this.theEntity.width / 2.0F : 0.75F - this.theEntity.width / 2.0F;
+        Vec3 vec3d1 = this.currentPath.getCurrentPos();
+
+        if (MathHelper.abs((float)(this.theEntity.posX - (vec3d1.xCoord + 0.5D))) < this.maxDistanceToWaypoint && MathHelper.abs((float)(this.theEntity.posZ - (vec3d1.zCoord + 0.5D))) < this.maxDistanceToWaypoint && Math.abs(this.theEntity.posY - vec3d1.yCoord) < 1.0D)
+        {
+            this.currentPath.setCurrentPathIndex(this.currentPath.getCurrentPathIndex() + 1);
+        }
+
+        int k = MathHelper.ceiling_double_int(this.theEntity.width);
+        int l = MathHelper.ceiling_double_int(this.theEntity.height);
         int i1 = k;
 
         for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
@@ -278,17 +327,46 @@ public class PathNavigateFlying extends PathNavigate {
             }
         }
 
+        this.checkForStuck(vec3);
+    }
+
+    protected void checkForStuck(Vec3 positionVec3)
+    {
         if (this.totalTicks - this.ticksAtLastPos > 100)
         {
-            if (vec3.squareDistanceTo(this.lastPosCheck) < 2.25D)
+            if (positionVec3.squareDistanceTo(this.lastPosCheck) < 2.25D)
             {
                 this.clearPathEntity();
             }
 
             this.ticksAtLastPos = this.totalTicks;
-            this.lastPosCheck.xCoord = vec3.xCoord;
-            this.lastPosCheck.yCoord = vec3.yCoord;
-            this.lastPosCheck.zCoord = vec3.zCoord;
+            this.lastPosCheck = positionVec3;
+        }
+
+        if (this.currentPath != null && !this.currentPath.isFinished())
+        {
+            Vec3 vec3d = this.currentPath.getCurrentPos();
+
+            if (vec3d.equals(this.timeoutCachedNode))
+            {
+                this.timeoutTimer += System.currentTimeMillis() - this.lastTimeoutCheck;
+            }
+            else
+            {
+                this.timeoutCachedNode = vec3d;
+                double d0 = positionVec3.distanceTo(this.timeoutCachedNode);
+                this.timeoutLimit = this.theEntity.getAIMoveSpeed() > 0.0F ? d0 / (double)this.theEntity.getAIMoveSpeed() * 1000.0D : 0.0D;
+            }
+
+            if (this.timeoutLimit > 0.0D && (double)this.timeoutTimer > this.timeoutLimit * 3.0D)
+            {
+                this.timeoutCachedNode = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);;
+                this.timeoutTimer = 0L;
+                this.timeoutLimit = 0.0D;
+                this.clearPathEntity();
+            }
+
+            this.lastTimeoutCheck = System.currentTimeMillis();
         }
     }
 
@@ -345,118 +423,80 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int entityXSize, int entityYSize, int entityZSize)
+    private boolean isDirectPathBetweenPoints(Vec3 posVec31, Vec3 posVec32, int sizeX, int sizeY, int sizeZ)
     {
-        int l = MathHelper.floor_double(p_75493_1_.xCoord);
-        int i1 = MathHelper.floor_double(p_75493_1_.zCoord);
-        double d0 = p_75493_2_.xCoord - p_75493_1_.xCoord;
-        double d1 = p_75493_2_.zCoord - p_75493_1_.zCoord;
-        double d2 = d0 * d0 + d1 * d1;
+        int i = MathHelper.floor_double(posVec31.xCoord);
+        int j = MathHelper.floor_double(posVec31.yCoord);
+        int k = MathHelper.floor_double(posVec31.zCoord);
+        double d0 = posVec32.xCoord - posVec31.xCoord;
+        double d1 = posVec32.yCoord - posVec31.yCoord;
+        double d2 = posVec32.zCoord - posVec31.zCoord;
+        double d3 = d0 * d0 + d1 * d1 + d2 * d2;
 
-        if (d2 < 1.0E-8D)
+        if (d3 < 1.0E-8D)
         {
             return false;
         }
         else
         {
-            double d3 = 1.0D / Math.sqrt(d2);
-            d0 *= d3;
-            d1 *= d3;
-            entityXSize += 2;
-            entityZSize += 2;
+            double d4 = 1.0D / Math.sqrt(d3);
+            d0 = d0 * d4;
+            d1 = d1 * d4;
+            d2 = d2 * d4;
+            double d5 = 1.0D / Math.abs(d0);
+            double d6 = 1.0D / Math.abs(d1);
+            double d7 = 1.0D / Math.abs(d2);
+            double d8 = (double)i - posVec31.xCoord;
+            double d9 = (double)j - posVec31.yCoord;
+            double d10 = (double)k - posVec31.zCoord;
 
-            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1))
+            if (d0 >= 0.0D)
             {
-                return false;
+                ++d8;
             }
-            else
+
+            if (d1 >= 0.0D)
             {
-                entityXSize -= 2;
-                entityZSize -= 2;
-                double d4 = 1.0D / Math.abs(d0);
-                double d5 = 1.0D / Math.abs(d1);
-                double d6 = (double)(l * 1) - p_75493_1_.xCoord;
-                double d7 = (double)(i1 * 1) - p_75493_1_.zCoord;
-
-                if (d0 >= 0.0D)
-                {
-                    ++d6;
-                }
-
-                if (d1 >= 0.0D)
-                {
-                    ++d7;
-                }
-
-                d6 /= d0;
-                d7 /= d1;
-                int j1 = d0 < 0.0D ? -1 : 1;
-                int k1 = d1 < 0.0D ? -1 : 1;
-                int l1 = MathHelper.floor_double(p_75493_2_.xCoord);
-                int i2 = MathHelper.floor_double(p_75493_2_.zCoord);
-                int j2 = l1 - l;
-                int k2 = i2 - i1;
-
-                do
-                {
-                    if (j2 * j1 <= 0 && k2 * k1 <= 0)
-                    {
-                        return true;
-                    }
-
-                    if (d6 < d7)
-                    {
-                        d6 += d4;
-                        l += j1;
-                        j2 = l1 - l;
-                    }
-                    else
-                    {
-                        d7 += d5;
-                        i1 += k1;
-                        k2 = i2 - i1;
-                    }
-                }
-                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1));
-
-                return false;
+                ++d9;
             }
-        }
-    }
 
-    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        int k1 = p_75483_1_ - p_75483_4_ / 2;
-        int l1 = p_75483_3_ - p_75483_6_ / 2;
-
-        if (!this.isPositionClear(k1, p_75483_2_, l1, p_75483_4_, p_75483_5_, p_75483_6_, p_75483_7_, p_75483_8_, p_75483_10_))
-        {
-            return false;
-        }
-        else
-        {
-            for (int i2 = k1; i2 < k1 + p_75483_4_; ++i2)
+            if (d2 >= 0.0D)
             {
-                for (int j2 = l1; j2 < l1 + p_75483_6_; ++j2)
+                ++d10;
+            }
+
+            d8 = d8 / d0;
+            d9 = d9 / d1;
+            d10 = d10 / d2;
+            int l = d0 < 0.0D ? -1 : 1;
+            int i1 = d1 < 0.0D ? -1 : 1;
+            int j1 = d2 < 0.0D ? -1 : 1;
+            int k1 = MathHelper.floor_double(posVec32.xCoord);
+            int l1 = MathHelper.floor_double(posVec32.yCoord);
+            int i2 = MathHelper.floor_double(posVec32.zCoord);
+            int j2 = k1 - i;
+            int k2 = l1 - j;
+            int l2 = i2 - k;
+
+            while (j2 * l > 0 || k2 * i1 > 0 || l2 * j1 > 0)
+            {
+                if (d8 < d10 && d8 <= d9)
                 {
-                    double d2 = (double)i2 + 0.5D - p_75483_7_.xCoord;
-                    double d3 = (double)j2 + 0.5D - p_75483_7_.zCoord;
-
-                    if (d2 * p_75483_8_ + d3 * p_75483_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(i2, p_75483_2_ - 1, j2);
-                        Material material = block.getMaterial();
-
-                        if (material == Material.water && !this.theEntity.isInWater())
-                        {
-                            return false;
-                        }
-
-                        if (material == Material.lava)
-                        {
-                            return false;
-                        }
-                    }
+                    d8 += d5;
+                    i += l;
+                    j2 = k1 - i;
+                }
+                else if (d9 < d8 && d9 <= d10)
+                {
+                    d9 += d6;
+                    j += i1;
+                    k2 = l1 - j;
+                }
+                else
+                {
+                    d10 += d7;
+                    k += j1;
+                    l2 = i2 - k;
                 }
             }
 
@@ -464,34 +504,7 @@ public class PathNavigateFlying extends PathNavigate {
         }
     }
 
-    private boolean isPositionClear(int p_75496_1_, int p_75496_2_, int p_75496_3_, int p_75496_4_, int p_75496_5_, int p_75496_6_, Vec3 p_75496_7_, double p_75496_8_, double p_75496_10_)
-    {
-        for (int k1 = p_75496_1_; k1 < p_75496_1_ + p_75496_4_; ++k1)
-        {
-            for (int l1 = p_75496_2_; l1 < p_75496_2_ + p_75496_5_; ++l1)
-            {
-                for (int i2 = p_75496_3_; i2 < p_75496_3_ + p_75496_6_; ++i2)
-                {
-                    double d2 = (double)k1 + 0.5D - p_75496_7_.xCoord;
-                    double d3 = (double)i2 + 0.5D - p_75496_7_.zCoord;
-
-                    if (d2 * p_75496_8_ + d3 * p_75496_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(k1, l1, i2);
-
-                        if (!block.getBlocksMovement(this.worldObj, k1, l1, i2))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
-    public FlyPathEntity getPathEntityToEntity(Entity p_72865_1_, Entity p_72865_2_, float p_72865_3_, boolean p_72865_4_, boolean p_72865_5_, boolean p_72865_6_, boolean p_72865_7_)
+    public NPCPath getPathEntityToEntity(Entity p_72865_1_, Entity p_72865_2_, float p_72865_3_, boolean p_72865_4_, boolean p_72865_5_, boolean p_72865_6_, boolean p_72865_7_)
     {
         this.theEntity.worldObj.theProfiler.startSection("pathfind");
         int i = MathHelper.floor_double(p_72865_1_.posX);
@@ -505,12 +518,12 @@ public class PathNavigateFlying extends PathNavigate {
         int i2 = j + l;
         int j2 = k + l;
         ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, i1, j1, k1, l1, i2, j2, 0);
-        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_, p_72865_1_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
+        NPCPath pathentity = (new FlyPathFinder(chunkcache, p_72865_4_, p_72865_5_, p_72865_6_, p_72865_7_, p_72865_1_)).createEntityPathTo(p_72865_1_, p_72865_2_, p_72865_3_);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }
 
-    public FlyPathEntity getEntityPathToXYZ(Entity p_72844_1_, int p_72844_2_, int p_72844_3_, int p_72844_4_, float p_72844_5_, boolean p_72844_6_, boolean p_72844_7_, boolean p_72844_8_, boolean p_72844_9_)
+    public NPCPath getEntityPathToXYZ(Entity p_72844_1_, int x, int y, int z, float p_72844_5_, boolean p_72844_6_, boolean p_72844_7_, boolean p_72844_8_, boolean p_72844_9_)
     {
         this.theEntity.worldObj.theProfiler.startSection("pathfind");
         int l = MathHelper.floor_double(p_72844_1_.posX);
@@ -524,7 +537,7 @@ public class PathNavigateFlying extends PathNavigate {
         int l2 = i1 + k1;
         int i3 = j1 + k1;
         ChunkCache chunkcache = new ChunkCache(this.theEntity.worldObj, l1, i2, j2, k2, l2, i3, 0);
-        FlyPathEntity pathentity = (new FlyPathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_, p_72844_1_)).createEntityPathTo(p_72844_1_, p_72844_2_, p_72844_3_, p_72844_4_, p_72844_5_);
+        NPCPath pathentity = (new FlyPathFinder(chunkcache, p_72844_6_, p_72844_7_, p_72844_8_, p_72844_9_, p_72844_1_)).createEntityPathTo(p_72844_1_, x, y, z, p_72844_5_);
         this.theEntity.worldObj.theProfiler.endSection();
         return pathentity;
     }

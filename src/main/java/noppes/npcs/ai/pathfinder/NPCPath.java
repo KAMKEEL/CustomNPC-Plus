@@ -5,19 +5,18 @@ import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.Vec3;
 
-public class FlyPathEntity extends PathEntity{
+public class NPCPath extends PathEntity{
     public final PathPoint[] points;
     /** PathEntity Array Index the Entity is currently targeting */
     public int currentPathIndex;
     /** The total length of the path */
     public int pathLength;
-    private static final String __OBFID = "CL_00000575";
 
-    public FlyPathEntity(PathPoint[] p_i2136_1_)
+    public NPCPath(PathPoint[] pointsIn)
     {
-        super(p_i2136_1_);
-        this.points = p_i2136_1_;
-        this.pathLength = p_i2136_1_.length;
+        super(pointsIn);
+        this.points = pointsIn;
+        this.pathLength = pointsIn.length;
     }
 
     /**
@@ -75,11 +74,11 @@ public class FlyPathEntity extends PathEntity{
     /**
      * Gets the vector of the PathPoint associated with the given index.
      */
-    public Vec3 getVectorFromIndex(Entity p_75881_1_, int p_75881_2_)
+    public Vec3 getVectorFromIndex(Entity entity, int index)
     {
-        double d0 = (double)this.points[p_75881_2_].xCoord + (double)((int)(p_75881_1_.width + 1.0F)) * 0.5D;
-        double d1 = (double)this.points[p_75881_2_].yCoord;
-        double d2 = (double)this.points[p_75881_2_].zCoord + (double)((int)(p_75881_1_.width + 1.0F)) * 0.5D;
+        double d0 = (double)this.points[index].xCoord + (double)((int)(entity.width + 1.0F)) * 0.5D;
+        double d1 = (double)this.points[index].yCoord;
+        double d2 = (double)this.points[index].zCoord + (double)((int)(entity.width + 1.0F)) * 0.5D;
         return Vec3.createVectorHelper(d0, d1, d2);
     }
 
@@ -91,17 +90,23 @@ public class FlyPathEntity extends PathEntity{
         return this.getVectorFromIndex(p_75878_1_, this.currentPathIndex);
     }
 
+    public Vec3 getCurrentPos()
+    {
+        PathPoint pathpoint = this.points[this.currentPathIndex];
+        return Vec3.createVectorHelper((double)pathpoint.xCoord, (double)pathpoint.yCoord, (double)pathpoint.zCoord);
+    }
+
     /**
      * Returns true if the EntityPath are the same. Non instance related equals.
      */
     public boolean isSamePath(PathEntity pathEntity)
     {
-        FlyPathEntity p_75876_1_ = (FlyPathEntity) pathEntity;
-        if (p_75876_1_ == null)
+        NPCPath NPCPath = (NPCPath) pathEntity;
+        if (NPCPath == null)
         {
             return false;
         }
-        else if (p_75876_1_.points.length != this.points.length)
+        else if (NPCPath.points.length != this.points.length)
         {
             return false;
         }
@@ -109,7 +114,7 @@ public class FlyPathEntity extends PathEntity{
         {
             for (int i = 0; i < this.points.length; ++i)
             {
-                if (this.points[i].xCoord != p_75876_1_.points[i].xCoord || this.points[i].yCoord != p_75876_1_.points[i].yCoord || this.points[i].zCoord != p_75876_1_.points[i].zCoord)
+                if (this.points[i].xCoord != NPCPath.points[i].xCoord || this.points[i].yCoord != NPCPath.points[i].yCoord || this.points[i].zCoord != NPCPath.points[i].zCoord)
                 {
                     return false;
                 }
@@ -122,9 +127,9 @@ public class FlyPathEntity extends PathEntity{
     /**
      * Returns true if the final PathPoint in the PathEntity is equal to Vec3D coords.
      */
-    public boolean isDestinationSame(Vec3 p_75880_1_)
+    public boolean isDestinationSame(Vec3 vec3)
     {
         PathPoint pathpoint = this.getFinalPathPoint();
-        return pathpoint == null ? false : pathpoint.xCoord == (int)p_75880_1_.xCoord && pathpoint.zCoord == (int)p_75880_1_.zCoord;
+        return pathpoint == null ? false : pathpoint.xCoord == (int)vec3.xCoord && pathpoint.zCoord == (int)vec3.zCoord;
     }
 }

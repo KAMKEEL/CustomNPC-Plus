@@ -1,17 +1,16 @@
 package noppes.npcs.ai.pathfinder;
 
-public class FlyPath {
-    private FlyPathPoint[] pathPoints = new FlyPathPoint[1024];
+public class PathHeap {
+    private NPCPathPoint[] pathPoints = new NPCPathPoint[128];
     /** The number of points in this path */
     private int count;
-    private static final String __OBFID = "CL_00000573";
 
     /**
      * Adds a point to the path
      */
-    public FlyPathPoint addPoint(FlyPathPoint p_75849_1_)
+    public NPCPathPoint addPoint(NPCPathPoint pathPoint)
     {
-        if (p_75849_1_.index >= 0)
+        if (pathPoint.index >= 0)
         {
             throw new IllegalStateException("OW KNOWS!");
         }
@@ -19,15 +18,15 @@ public class FlyPath {
         {
             if (this.count == this.pathPoints.length)
             {
-                FlyPathPoint[] apathpoint = new FlyPathPoint[this.count << 1];
+                NPCPathPoint[] apathpoint = new NPCPathPoint[this.count << 1];
                 System.arraycopy(this.pathPoints, 0, apathpoint, 0, this.count);
                 this.pathPoints = apathpoint;
             }
 
-            this.pathPoints[this.count] = p_75849_1_;
-            p_75849_1_.index = this.count;
+            this.pathPoints[this.count] = pathPoint;
+            pathPoint.index = this.count;
             this.sortBack(this.count++);
-            return p_75849_1_;
+            return pathPoint;
         }
     }
 
@@ -42,9 +41,9 @@ public class FlyPath {
     /**
      * Returns and removes the first point in the path
      */
-    public FlyPathPoint dequeue()
+    public NPCPathPoint dequeue()
     {
-        FlyPathPoint pathpoint = this.pathPoints[0];
+        NPCPathPoint pathpoint = this.pathPoints[0];
         this.pathPoints[0] = this.pathPoints[--this.count];
         this.pathPoints[this.count] = null;
 
@@ -60,58 +59,58 @@ public class FlyPath {
     /**
      * Changes the provided point's distance to target
      */
-    public void changeDistance(FlyPathPoint p_75850_1_, float p_75850_2_)
+    public void changeDistance(NPCPathPoint point, float distance)
     {
-        float f1 = p_75850_1_.distanceToTarget;
-        p_75850_1_.distanceToTarget = p_75850_2_;
+        float f1 = point.distanceToTarget;
+        point.distanceToTarget = distance;
 
-        if (p_75850_2_ < f1)
+        if (distance < f1)
         {
-            this.sortBack(p_75850_1_.index);
+            this.sortBack(point.index);
         }
         else
         {
-            this.sortForward(p_75850_1_.index);
+            this.sortForward(point.index);
         }
     }
 
     /**
      * Sorts a point to the left
      */
-    private void sortBack(int p_75847_1_)
+    private void sortBack(int index)
     {
-        FlyPathPoint pathpoint = this.pathPoints[p_75847_1_];
+        NPCPathPoint pathpoint = this.pathPoints[index];
         int j;
 
-        for (float f = pathpoint.distanceToTarget; p_75847_1_ > 0; p_75847_1_ = j)
+        for (float f = pathpoint.distanceToTarget; index > 0; index = j)
         {
-            j = p_75847_1_ - 1 >> 1;
-            FlyPathPoint pathpoint1 = this.pathPoints[j];
+            j = index - 1 >> 1;
+            NPCPathPoint pathpoint1 = this.pathPoints[j];
 
             if (f >= pathpoint1.distanceToTarget)
             {
                 break;
             }
 
-            this.pathPoints[p_75847_1_] = pathpoint1;
-            pathpoint1.index = p_75847_1_;
+            this.pathPoints[index] = pathpoint1;
+            pathpoint1.index = index;
         }
 
-        this.pathPoints[p_75847_1_] = pathpoint;
-        pathpoint.index = p_75847_1_;
+        this.pathPoints[index] = pathpoint;
+        pathpoint.index = index;
     }
 
     /**
      * Sorts a point to the right
      */
-    private void sortForward(int p_75846_1_)
+    private void sortForward(int index)
     {
-        FlyPathPoint pathpoint = this.pathPoints[p_75846_1_];
+        NPCPathPoint pathpoint = this.pathPoints[index];
         float f = pathpoint.distanceToTarget;
 
         while (true)
         {
-            int j = 1 + (p_75846_1_ << 1);
+            int j = 1 + (index << 1);
             int k = j + 1;
 
             if (j >= this.count)
@@ -119,9 +118,9 @@ public class FlyPath {
                 break;
             }
 
-            FlyPathPoint pathpoint1 = this.pathPoints[j];
+            NPCPathPoint pathpoint1 = this.pathPoints[j];
             float f1 = pathpoint1.distanceToTarget;
-            FlyPathPoint pathpoint2;
+            NPCPathPoint pathpoint2;
             float f2;
 
             if (k >= this.count)
@@ -142,9 +141,9 @@ public class FlyPath {
                     break;
                 }
 
-                this.pathPoints[p_75846_1_] = pathpoint1;
-                pathpoint1.index = p_75846_1_;
-                p_75846_1_ = j;
+                this.pathPoints[index] = pathpoint1;
+                pathpoint1.index = index;
+                index = j;
             }
             else
             {
@@ -153,21 +152,18 @@ public class FlyPath {
                     break;
                 }
 
-                this.pathPoints[p_75846_1_] = pathpoint2;
-                pathpoint2.index = p_75846_1_;
-                p_75846_1_ = k;
+                this.pathPoints[index] = pathpoint2;
+                pathpoint2.index = index;
+                index = k;
             }
         }
 
-        this.pathPoints[p_75846_1_] = pathpoint;
-        pathpoint.index = p_75846_1_;
+        this.pathPoints[index] = pathpoint;
+        pathpoint.index = index;
     }
 
     /**
      * Returns true if this path contains no points
      */
-    public boolean isPathEmpty()
-    {
-        return this.count == 0;
-    }
+    public boolean isPathEmpty() { return this.count == 0; }
 }
