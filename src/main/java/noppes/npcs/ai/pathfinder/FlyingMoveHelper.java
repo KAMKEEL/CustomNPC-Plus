@@ -14,6 +14,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
     private double posZ;
     private double speed;
     private boolean update;
+    private int courseChangeCooldown;
 
     public FlyingMoveHelper(EntityNPCInterface entity){
         super(entity);
@@ -65,21 +66,32 @@ public class FlyingMoveHelper extends EntityMoveHelper{
         }
     }
 
-    private float limitAngle(float p_75639_1_, float p_75639_2_, float p_75639_3_)
+    private float limitAngle(float angleIn, float lower, float upper)
     {
-        float f3 = MathHelper.wrapAngleTo180_float(p_75639_2_ - p_75639_1_);
+        float f = MathHelper.wrapAngleTo180_float(lower - angleIn);
 
-        if (f3 > p_75639_3_)
+        if (f > upper)
         {
-            f3 = p_75639_3_;
+            f = upper;
         }
 
-        if (f3 < -p_75639_3_)
+        if (f < -upper)
         {
-            f3 = -p_75639_3_;
+            f = -upper;
         }
 
-        return p_75639_1_ + f3;
+        float f1 = angleIn + f;
+
+        if (f1 < 0.0F)
+        {
+            f1 += 360.0F;
+        }
+        else if (f1 > 360.0F)
+        {
+            f1 -= 360.0F;
+        }
+
+        return f1;
     }
 
     /**
