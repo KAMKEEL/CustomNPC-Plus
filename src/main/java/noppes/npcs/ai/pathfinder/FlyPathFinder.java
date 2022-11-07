@@ -253,12 +253,12 @@ public class FlyPathFinder extends PathFinder
             pathOptions[i++] = pathpoint5;
         }
 
-        boolean flag = pathpoint3 == null || pathpoint3.costMalus != 0.0F;
-        boolean flag1 = pathpoint == null || pathpoint.costMalus != 0.0F;
-        boolean flag2 = pathpoint2 == null || pathpoint2.costMalus != 0.0F;
-        boolean flag3 = pathpoint1 == null || pathpoint1.costMalus != 0.0F;
-        boolean flag4 = pathpoint4 == null || pathpoint4.costMalus != 0.0F;
-        boolean flag5 = pathpoint5 == null || pathpoint5.costMalus != 0.0F;
+        boolean flag = pathpoint3 != null && pathpoint3.costMalus >= 0.0F;
+        boolean flag1 = pathpoint != null && pathpoint.costMalus >= 0.0F;
+        boolean flag2 = pathpoint2 != null && pathpoint2.costMalus >= 0.0F;
+        boolean flag3 = pathpoint1 != null && pathpoint1.costMalus >= 0.0F;
+        boolean flag4 = pathpoint4 != null && pathpoint4.costMalus >= 0.0F;
+        boolean flag5 = pathpoint5 != null && pathpoint5.costMalus >= 0.0F;
 
         if (flag && flag3)
         {
