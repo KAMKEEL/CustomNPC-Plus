@@ -305,8 +305,8 @@ public class PathNavigateFlying extends PathNavigate {
             }
         }
 
-        k = MathHelper.ceiling_float_int(this.theEntity.width);
-        int l = (int)this.theEntity.height + 1;
+        k = MathHelper.floor_double(this.theEntity.width + 1.0F);
+        int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
         int i1 = k;
 
         for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
