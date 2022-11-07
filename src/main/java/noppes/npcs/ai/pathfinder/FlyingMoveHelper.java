@@ -14,7 +14,6 @@ public class FlyingMoveHelper extends EntityMoveHelper{
     private double posZ;
     private double speed;
     private boolean update;
-    private int courseChangeCooldown;
 
     public FlyingMoveHelper(EntityNPCInterface entity){
         super(entity);
