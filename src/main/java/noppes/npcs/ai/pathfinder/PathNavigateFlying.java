@@ -384,6 +384,7 @@ public class PathNavigateFlying extends PathNavigate {
     /**
      * sets active PathEntity to null
      */
+    @Override
     public void clearPathEntity()
     {
         this.currentPath = null;
