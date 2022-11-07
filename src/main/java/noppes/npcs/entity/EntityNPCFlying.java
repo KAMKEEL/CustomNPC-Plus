@@ -5,6 +5,8 @@ import net.minecraft.world.World;
 
 public abstract class EntityNPCFlying extends EntityNPCInterface {
 
+    public boolean flyLimitAllow = false;
+
 	public EntityNPCFlying(World world) {
 		super(world);
 	}
@@ -39,10 +41,16 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         }
 
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
-        if (heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit || heightOffGround < this.height) {
-            super.moveEntityWithHeading(p_70612_1_,p_70612_2_);
-            return;
+        if (heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit || (heightOffGround < this.height && this.motionY == 0)) {
+            this.flyLimitAllow = false;
+            if (!this.getNavigator().noPath() && this.motionY > 0) {
+                this.motionY = 0;
+            } else {
+                super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+                return;
+            }
         }
+        this.flyLimitAllow = true;
 
         double d3 = this.motionY;
         super.moveEntityWithHeading(p_70612_1_, p_70612_2_);

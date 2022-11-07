@@ -4,6 +4,7 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
+import noppes.npcs.entity.EntityNPCFlying;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class FlyingMoveHelper extends EntityMoveHelper{
@@ -37,21 +38,11 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             double d5 = MathHelper.sqrt_double(d4);
             speed = Math.min(d5/5.0D,speed);
 
-            double heightOffGround = 0;
-            if(this.entity.ai.hasFlyLimit) {
-                for (int blockY = (int) this.posY; blockY > 0; blockY--) {
-                    heightOffGround = this.posY - blockY;
-                    if (this.entity.worldObj.getBlock((int) this.posX, blockY, (int) this.posZ) != Blocks.air || heightOffGround > this.entity.ai.flyHeightLimit){
-                        break;
-                    }
-                }
-            }
-
             if (this.entity.hurtTime == 0 && d4 > 0.5D) {
                 this.entity.motionX += (speed * (d0 / d5) - this.entity.motionX) * speed;
                 this.entity.motionZ += (speed * (d2 / d5) - this.entity.motionZ) * speed;
 
-                if (heightOffGround < this.entity.ai.flyHeightLimit || !this.entity.ai.hasFlyLimit) {
+                if (((EntityNPCFlying)this.entity).flyLimitAllow || !this.entity.ai.hasFlyLimit) {
                     this.entity.motionY = verticalSpeed * (d1 / d5);
                     if (this.entity.motionY > 0) {
                         this.entity.motionY += 0.1D;
