@@ -1059,12 +1059,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		killedtime = 0;
 		extinguish();
 		this.clearActivePotions();
-		moveEntityWithHeading(0,0);
-		distanceWalkedModified = 0;
 		getNavigator().clearPathEntity();
-		if(canFly()){
+		if(this.canFly()){
+			((PathNavigateFlying)getNavigator()).targetPos = null;
+			((PathNavigateFlying)getNavigator()).clearPathEntity();
 			((FlyingMoveHelper)getMoveHelper()).update = false;
 		}
+		moveEntityWithHeading(0,0);
+		distanceWalkedModified = 0;
 		currentAnimation = EnumAnimation.NONE;
 		updateHitbox();
 		updateAI = true;
