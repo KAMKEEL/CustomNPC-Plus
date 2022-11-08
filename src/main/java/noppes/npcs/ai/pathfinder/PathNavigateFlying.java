@@ -51,13 +51,12 @@ public class PathNavigateFlying extends PathNavigate {
      * upwards when underwater
      */
     private boolean canSwim;
-    private static final String __OBFID = "CL_00001627";
 
-    protected BlockPos targetPos;
+    public BlockPos targetPos;
     protected boolean tryUpdatePath;
     protected long lastTimeUpdated;
 
-    protected FlyPathFinder pathFinder;
+    public FlyPathFinder pathFinder;
 
     public PathNavigateFlying(EntityLiving entityIN, World worldIn) {
         super(entityIN, worldIn);
@@ -393,6 +392,7 @@ public class PathNavigateFlying extends PathNavigate {
     /**
      * sets active PathEntity to null
      */
+    @Override
     public void clearPathEntity()
     {
         this.currentPath = null;
@@ -435,12 +435,12 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 p_75493_1_, Vec3 p_75493_2_, int entityXSize, int entityYSize, int entityZSize)
+    private boolean isDirectPathBetweenPoints(Vec3 vec31, Vec3 vec32, int entityXSize, int entityYSize, int entityZSize)
     {
-        int l = MathHelper.floor_double(p_75493_1_.xCoord);
-        int i1 = MathHelper.floor_double(p_75493_1_.zCoord);
-        double d0 = p_75493_2_.xCoord - p_75493_1_.xCoord;
-        double d1 = p_75493_2_.zCoord - p_75493_1_.zCoord;
+        int l = MathHelper.floor_double(vec31.xCoord);
+        int i1 = MathHelper.floor_double(vec31.zCoord);
+        double d0 = vec32.xCoord - vec31.xCoord;
+        double d1 = vec32.zCoord - vec31.zCoord;
         double d2 = d0 * d0 + d1 * d1;
 
         if (d2 < 1.0E-8D)
@@ -455,7 +455,7 @@ public class PathNavigateFlying extends PathNavigate {
             entityXSize += 2;
             entityZSize += 2;
 
-            if (!this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1))
+            if (!this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1))
             {
                 return false;
             }
@@ -465,8 +465,8 @@ public class PathNavigateFlying extends PathNavigate {
                 entityZSize -= 2;
                 double d4 = 1.0D / Math.abs(d0);
                 double d5 = 1.0D / Math.abs(d1);
-                double d6 = (double)(l * 1) - p_75493_1_.xCoord;
-                double d7 = (double)(i1 * 1) - p_75493_1_.zCoord;
+                double d6 = (double)(l * 1) - vec31.xCoord;
+                double d7 = (double)(i1 * 1) - vec31.zCoord;
 
                 if (d0 >= 0.0D)
                 {
@@ -482,8 +482,8 @@ public class PathNavigateFlying extends PathNavigate {
                 d7 /= d1;
                 int j1 = d0 < 0.0D ? -1 : 1;
                 int k1 = d1 < 0.0D ? -1 : 1;
-                int l1 = MathHelper.floor_double(p_75493_2_.xCoord);
-                int i2 = MathHelper.floor_double(p_75493_2_.zCoord);
+                int l1 = MathHelper.floor_double(vec32.xCoord);
+                int i2 = MathHelper.floor_double(vec32.zCoord);
                 int j2 = l1 - l;
                 int k2 = i2 - i1;
 
@@ -507,7 +507,7 @@ public class PathNavigateFlying extends PathNavigate {
                         k2 = i2 - i1;
                     }
                 }
-                while (this.isSafeToStandAt(l, (int)p_75493_1_.yCoord, i1, entityXSize, entityYSize, entityZSize, p_75493_1_, d0, d1));
+                while (this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1));
 
                 return false;
             }

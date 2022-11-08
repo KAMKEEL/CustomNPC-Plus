@@ -30,14 +30,6 @@ public class FlyPathFinder extends PathFinder
     protected final IntHashMap<NPCPathPoint> pointMap = new IntHashMap<NPCPathPoint>();
     /** Selection of path points to add to the path */
     private NPCPathPoint[] pathOptions = new NPCPathPoint[32];
-    /** should the PathFinder go through wodden door blocks */
-    private boolean isWoddenDoorAllowed;
-    /** should the PathFinder disregard BlockMovement type materials in its path */
-    private boolean isMovementBlockAllowed;
-    private boolean isPathingInWater;
-    /** tells the FathFinder to not stop pathing underwater */
-    private boolean canEntityDrown;
-    private static final String __OBFID = "CL_00000576";
     private Entity theEntity;
     private final Map<PathNodeType, Float> mapPathPriority = Maps.newEnumMap(PathNodeType.class);
 
@@ -46,10 +38,6 @@ public class FlyPathFinder extends PathFinder
         super(_worldMap,doorsAllowed,closedDoors,canPathWater,canDrown);
         this.theEntity = entityIn;
         this.worldMap = _worldMap;
-        this.isWoddenDoorAllowed = doorsAllowed;
-        this.isMovementBlockAllowed = closedDoors;
-        this.isPathingInWater = canPathWater;
-        this.canEntityDrown = canDrown;
     }
 
     /**
