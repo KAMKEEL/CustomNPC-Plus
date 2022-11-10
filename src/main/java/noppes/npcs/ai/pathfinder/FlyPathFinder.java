@@ -144,8 +144,15 @@ public class FlyPathFinder extends PathFinder
         this.path.addPoint(p_75861_2_);
         NPCPathPoint pathpoint3 = p_75861_2_;
 
+        int x = 0;
         while (!this.path.isPathEmpty())
         {
+            x++;
+
+            if (x >= 200) {
+                break;
+            }
+
             NPCPathPoint pathpoint4 = this.path.dequeue();
 
             if (pathpoint4.equals(p_75861_3_))
@@ -245,12 +252,12 @@ public class FlyPathFinder extends PathFinder
             this.pathOptions[i++] = pathpoint5;
         }
 
-        boolean flag = pathpoint3 != null;// && pathpoint3.costMalus != 0.0F;
-        boolean flag1 = pathpoint0 != null;// && pathpoint0.costMalus != 0.0F;
-        boolean flag2 = pathpoint2 != null;// && pathpoint2.costMalus != 0.0F;
-        boolean flag3 = pathpoint1 != null;// && pathpoint1.costMalus != 0.0F;
-        boolean flag4 = pathpoint4 != null;// && pathpoint4.costMalus != 0.0F;
-        boolean flag5 = pathpoint5 != null;// && pathpoint5.costMalus != 0.0F;
+        boolean flag = pathpoint3 != null && pathpoint3.costMalus != 1 && pathpoint3.costMalus != 2;
+        boolean flag1 = pathpoint0 != null && pathpoint0.costMalus != 1 && pathpoint0.costMalus != 2;
+        boolean flag2 = pathpoint2 != null && pathpoint2.costMalus != 1 && pathpoint2.costMalus != 2;
+        boolean flag3 = pathpoint1 != null && pathpoint1.costMalus != 1 && pathpoint1.costMalus != 2;
+        boolean flag4 = pathpoint4 != null && pathpoint4.costMalus != 1 && pathpoint4.costMalus != 2;
+        boolean flag5 = pathpoint5 != null && pathpoint5.costMalus != 1 && pathpoint5.costMalus != 2;
 
         if (flag && flag3)
         {
@@ -382,18 +389,23 @@ public class FlyPathFinder extends PathFinder
 
         if (i1 == 2)
         {
-            return this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+            pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+            pathpoint1.costMalus = i1;
+            return pathpoint1;
         }
         else
         {
             if (i1 == 1)
             {
                 pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+                pathpoint1.costMalus = i1;
             }
 
-            if (pathpoint1 == null && p_75858_6_ > 0 && i1 != -3 && i1 != -4 && this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_, p_75858_5_) == 1)
+            int vertOffset2 = this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_, p_75858_5_);
+            if (pathpoint1 == null && p_75858_6_ > 0 && i1 != -3 && i1 != -4 && vertOffset2 == 1)
             {
                 pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_);
+                pathpoint1.costMalus = vertOffset2;
                 p_75858_3_ += p_75858_6_;
             }
 
@@ -426,6 +438,7 @@ public class FlyPathFinder extends PathFinder
                     if (p_75858_3_ > 0)
                     {
                         pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+                        pathpoint1.costMalus = k1;
                     }
                 }
 
@@ -434,7 +447,6 @@ public class FlyPathFinder extends PathFinder
                     return null;
                 }
             }
-
             return pathpoint1;
         }
     }
