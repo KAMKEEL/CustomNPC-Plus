@@ -453,6 +453,7 @@ public class PathNavigateFlying extends PathNavigate {
             d0 *= d3;
             d1 *= d3;
             entityXSize += 2;
+            entityYSize += 2;
             entityZSize += 2;
 
             if (!this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1))
@@ -462,6 +463,7 @@ public class PathNavigateFlying extends PathNavigate {
             else
             {
                 entityXSize -= 2;
+                entityYSize -= 2;
                 entityZSize -= 2;
                 double d4 = 1.0D / Math.abs(d0);
                 double d5 = 1.0D / Math.abs(d1);
