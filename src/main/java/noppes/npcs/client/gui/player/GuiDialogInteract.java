@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
@@ -65,6 +66,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private boolean isGrabbed = false;
 	private int textSoundTime = 0;
 	private int textPauseTime = 0;
+
+	private HashMap<Integer,GuiDialogImage> dialogImages = new HashMap<>();
 
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog){
     	super(npc);
@@ -171,10 +174,16 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		}
 
 		for (IDialogImage dialogImage : dialog.dialogImages.values()) {
-			GuiDialogImage image = new GuiDialogImage((DialogImage) dialogImage);
-
-			if (image.imageType != 0)
+			if (dialogImage.getImageType() != 0)
 				continue;
+
+			GuiDialogImage image;
+			if (dialogImages.containsKey(dialogImage.getId())) {
+				image = dialogImages.get(dialogImage.getId());
+			} else {
+				image = new GuiDialogImage((DialogImage) dialogImage);
+				dialogImages.put(dialogImage.getId(),image);
+			}
 
 			GL11.glEnable(GL11.GL_BLEND);
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
@@ -190,10 +199,16 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 		GL11.glPushMatrix();
 		for (IDialogImage dialogImage : dialog.dialogImages.values()) {
-			GuiDialogImage image = new GuiDialogImage((DialogImage) dialogImage);
-
-			if (image.imageType != 1)
+			if (dialogImage.getImageType() != 1)
 				continue;
+
+			GuiDialogImage image;
+			if (dialogImages.containsKey(dialogImage.getId())) {
+				image = dialogImages.get(dialogImage.getId());
+			} else {
+				image = new GuiDialogImage((DialogImage) dialogImage);
+				dialogImages.put(dialogImage.getId(),image);
+			}
 
 			GL11.glEnable(GL11.GL_BLEND);
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
@@ -453,10 +468,16 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 			GL11.glPushMatrix();
 			for (IDialogImage dialogImage : dialog.dialogImages.values()) {
-				GuiDialogImage image = new GuiDialogImage((DialogImage) dialogImage);
-
-				if (image.imageType != 2)
+				if (dialogImage.getImageType() != 2)
 					continue;
+
+				GuiDialogImage image;
+				if (dialogImages.containsKey(dialogImage.getId())) {
+					image = dialogImages.get(dialogImage.getId());
+				} else {
+					image = new GuiDialogImage((DialogImage) dialogImage);
+					dialogImages.put(dialogImage.getId(),image);
+				}
 
 				GL11.glEnable(GL11.GL_BLEND);
 				OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
@@ -618,6 +639,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 	public void appendDialog(Dialog dialog) {
 		closeOnEsc = !dialog.disableEsc;
+		this.dialogImages.clear();
 		this.dialog = dialog;
 		this.options = new ArrayList<Integer>();
 
