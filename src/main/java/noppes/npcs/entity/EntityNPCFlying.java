@@ -1,6 +1,8 @@
 package noppes.npcs.entity;
 
 import net.minecraft.init.Blocks;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public abstract class EntityNPCFlying extends EntityNPCInterface {
@@ -33,10 +35,21 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         return false;
     }
 
-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_)
+    @Override
+    public void moveEntityWithHeading(float strafe, float forward) {
+        if(this.canFly() && this.hurtTime == 0) {
+            this.moveFlyingWithHeading(strafe, forward);
+            this.updateLimbSwing();
+        }
+        else {
+            super.moveEntityWithHeading(strafe, forward);
+        }
+    }
+
+    public void moveFlyingWithHeading(float strafe, float forward)
     {
         if(!this.canFly() || this.hurtTime != 0) {
-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+            super.moveEntityWithHeading(strafe, forward);
             return;
         }
 
@@ -46,20 +59,33 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;
             } else {
-                super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+                super.moveEntityWithHeading(strafe, forward);
                 return;
             }
         }
         this.flyLimitAllow = true;
 
         double d3 = this.motionY;
-        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+        super.moveEntityWithHeading(strafe, forward);
         this.motionY = d3;
 
         if (this.getNavigator().noPath()) {
             this.motionY = -Math.abs(this.ai.flyGravity);
         }
 
+        this.updateLimbSwing();
         this.velocityChanged = true;
+    }
+
+    public void updateLimbSwing() {
+        this.prevLimbSwingAmount = this.limbSwingAmount;
+        double distanceX = this.posX - this.prevPosX;
+        double distanceZ = this.posZ - this.prevPosZ;
+        float distance = MathHelper.sqrt_double(distanceX * distanceX + distanceZ * distanceZ) * 4.0F;
+        if (distance > 1.0F) {
+            distance = 1.0F;
+        }
+        this.limbSwingAmount += (distance - this.limbSwingAmount) * 0.4F;
+        this.limbSwing += this.limbSwingAmount;
     }
 }
