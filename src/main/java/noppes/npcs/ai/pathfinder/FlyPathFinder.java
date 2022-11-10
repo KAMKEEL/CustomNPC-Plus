@@ -8,6 +8,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathFinder;
+import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.IntHashMap;
@@ -33,11 +34,22 @@ public class FlyPathFinder extends PathFinder
     private Entity theEntity;
     private final Map<PathNodeType, Float> mapPathPriority = Maps.newEnumMap(PathNodeType.class);
 
+
+    private boolean isPathingInWater;
+    private boolean isMovementBlockAllowed;
+    private boolean isWoodenDoorAllowed;
+    private boolean canEntityDrown;
+
     public FlyPathFinder(IBlockAccess _worldMap, boolean doorsAllowed, boolean closedDoors, boolean canPathWater, boolean canDrown, Entity entityIn)
     {
         super(_worldMap,doorsAllowed,closedDoors,canPathWater,canDrown);
         this.theEntity = entityIn;
         this.worldMap = _worldMap;
+
+        this.isWoodenDoorAllowed = doorsAllowed;
+        this.isMovementBlockAllowed = closedDoors;
+        this.isPathingInWater = canPathWater;
+        this.canEntityDrown = canDrown;
     }
 
     /**
@@ -66,7 +78,8 @@ public class FlyPathFinder extends PathFinder
         this.pointMap.clearMap();
         NPCPathPoint pathpoint = this.getStart();
         NPCPathPoint pathpoint1 = this.getPathPointToCoords(entityIn, x, y, z);
-        NPCPath pathentity = addToPath(entityIn, pathpoint, pathpoint1, distance);
+        NPCPathPoint pathPoint2 = new NPCPathPoint((int)Math.ceil(entityIn.width),(int)Math.ceil(entityIn.height),(int)Math.ceil(entityIn.width));
+        NPCPath pathentity = addToPath(entityIn, pathpoint, pathpoint1, pathPoint2, distance);
         return pathentity;
     }
 
@@ -107,93 +120,78 @@ public class FlyPathFinder extends PathFinder
 
                 if (this.getPathPriority(pathnodetype) >= 0.0F)
                 {
-                    return openPoint(blockpos.getX(), blockpos.getY(), blockpos.getZ(), 0);
+                    return openPoint(blockpos.getX(), blockpos.getY(), blockpos.getZ());
                 }
             }
         }
 
-        return openPoint(blockpos1.getX(), i, blockpos1.getZ(), 0);
+        return openPoint(blockpos1.getX(), i, blockpos1.getZ());
     }
     
 
     public NPCPathPoint getPathPointToCoords(Entity entityIn, double x, double y, double z)
     {
-        return openPoint(MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), 0);
+        return openPoint(MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z));
     }
 
 
-    /**
-     * Adds a path from start to end and returns the whole path (args: unused, start, end, unused, maxDistance)
-     */
-    private NPCPath addToPath(Entity entityIn, NPCPathPoint pathFrom, NPCPathPoint pathTo, float maxDistance)
+    private NPCPath addToPath(Entity p_75861_1_, NPCPathPoint p_75861_2_, NPCPathPoint p_75861_3_, NPCPathPoint p_75861_4_, float p_75861_5_)
     {
-        pathFrom.totalPathDistance = 0.0F;
-        pathFrom.distanceToNext = pathFrom.distanceManhattan(pathTo);
-        pathFrom.distanceToTarget = pathFrom.distanceToNext;
+        p_75861_2_.totalPathDistance = 0.0F;
+        p_75861_2_.distanceToNext = p_75861_2_.distanceToSquared(p_75861_3_);
+        p_75861_2_.distanceToTarget = p_75861_2_.distanceToNext;
         this.path.clearPath();
-        this.path.addPoint(pathFrom);
-        NPCPathPoint pathpoint = pathFrom;
-        int i = 0;
+        this.path.addPoint(p_75861_2_);
+        NPCPathPoint pathpoint3 = p_75861_2_;
 
         while (!this.path.isPathEmpty())
         {
-            ++i;
+            NPCPathPoint pathpoint4 = this.path.dequeue();
 
-            if (i >= 200)
+            if (pathpoint4.equals(p_75861_3_))
             {
-                break;
+                return this.createEntityPath(p_75861_2_, p_75861_3_);
             }
 
-            NPCPathPoint pathpoint1 = this.path.dequeue();
-
-            if (pathpoint1.equals(pathTo))
+            if (pathpoint4.distanceToSquared(p_75861_3_) < pathpoint3.distanceToSquared(p_75861_3_))
             {
-                pathpoint = pathTo;
-                break;
+                pathpoint3 = pathpoint4;
             }
 
-            if (pathpoint1.distanceManhattan(pathTo) < pathpoint.distanceManhattan(pathTo))
+            pathpoint4.isFirst = true;
+            int i = this.findPathOptions(p_75861_1_, pathpoint4, p_75861_4_, p_75861_3_, p_75861_5_);
+
+            for (int j = 0; j < i; ++j)
             {
-                pathpoint = pathpoint1;
-            }
+                NPCPathPoint pathpoint5 = this.pathOptions[j];
+                float f1 = pathpoint4.totalPathDistance + pathpoint4.distanceToSquared(pathpoint5);
 
-            pathpoint1.isFirst = true;
-            int j = this.findPathOptions(this.pathOptions, entityIn, pathpoint1, pathTo, maxDistance);
-
-            for (int k = 0; k < j; ++k)
-            {
-                NPCPathPoint pathpoint2 = this.pathOptions[k];
-                float f = pathpoint1.distanceManhattan(pathpoint2);
-                pathpoint2.distanceFromOrigin = pathpoint1.distanceFromOrigin + f;
-                pathpoint2.cost = f + pathpoint2.costMalus;
-                float f1 = pathpoint1.totalPathDistance + pathpoint2.cost;
-
-                if (pathpoint2.distanceFromOrigin < maxDistance && (!pathpoint2.isAssigned() || f1 < pathpoint2.totalPathDistance))
+                if (!pathpoint5.isAssigned() || f1 < pathpoint5.totalPathDistance)
                 {
-                    pathpoint2.previous = pathpoint1;
-                    pathpoint2.totalPathDistance = f1;
-                    pathpoint2.distanceToNext = pathpoint2.distanceManhattan(pathTo) + pathpoint2.costMalus;
+                    pathpoint5.previous = pathpoint4;
+                    pathpoint5.totalPathDistance = f1;
+                    pathpoint5.distanceToNext = pathpoint5.distanceToSquared(p_75861_3_);
 
-                    if (pathpoint2.isAssigned())
+                    if (pathpoint5.isAssigned())
                     {
-                        this.path.changeDistance(pathpoint2, pathpoint2.totalPathDistance + pathpoint2.distanceToNext);
+                        this.path.changeDistance(pathpoint5, pathpoint5.totalPathDistance + pathpoint5.distanceToNext);
                     }
                     else
                     {
-                        pathpoint2.distanceToTarget = pathpoint2.totalPathDistance + pathpoint2.distanceToNext;
-                        this.path.addPoint(pathpoint2);
+                        pathpoint5.distanceToTarget = pathpoint5.totalPathDistance + pathpoint5.distanceToNext;
+                        this.path.addPoint(pathpoint5);
                     }
                 }
             }
         }
 
-        if (pathpoint == pathFrom)
+        if (pathpoint3 == p_75861_2_)
         {
             return null;
         }
         else
         {
-            return this.createEntityPath(pathFrom, pathpoint);
+            return this.createEntityPath(p_75861_2_, pathpoint3);
         }
     }
 
@@ -201,56 +199,62 @@ public class FlyPathFinder extends PathFinder
      * populates pathOptions with available points and returns the number of options found (args: unused1, currentPoint,
      * unused2, targetPoint, maxDistance)
      */
-    public int findPathOptions(NPCPathPoint[] pathOptions, Entity entityIn, NPCPathPoint currentPoint, NPCPathPoint targetPoint, float maxDistance)
+    private int findPathOptions(Entity p_75860_1_, NPCPathPoint p_75860_2_, NPCPathPoint p_75860_3_, NPCPathPoint targetPoint, float maxDistance)
     {
         int i = 0;
-        NPCPathPoint pathpoint = this.openPoint(currentPoint.xCoord, currentPoint.yCoord, currentPoint.zCoord + 1);
-        NPCPathPoint pathpoint1 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord);
-        NPCPathPoint pathpoint2 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord);
-        NPCPathPoint pathpoint3 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord, currentPoint.zCoord - 1);
-        NPCPathPoint pathpoint4 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord);
-        NPCPathPoint pathpoint5 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord);
+        byte b0 = 0;
 
-        if (pathpoint != null && !pathpoint.isFirst && pathpoint.distanceTo(targetPoint) < maxDistance)
+        /*if (this.getVerticalOffset(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_) == 1) {
+            b0 = 1;
+        }*/
+
+        NPCPathPoint pathpoint0 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+        NPCPathPoint pathpoint1 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint2 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint3 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+        NPCPathPoint pathpoint4 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
+
+        if (pathpoint0 != null && !pathpoint0.isFirst && pathpoint0.distanceTo(targetPoint) < maxDistance)
         {
-            pathOptions[i++] = pathpoint;
+            this.pathOptions[i++] = pathpoint0;
         }
 
         if (pathpoint1 != null && !pathpoint1.isFirst && pathpoint1.distanceTo(targetPoint) < maxDistance)
         {
-            pathOptions[i++] = pathpoint1;
+            this.pathOptions[i++] = pathpoint1;
         }
 
         if (pathpoint2 != null && !pathpoint2.isFirst && pathpoint2.distanceTo(targetPoint) < maxDistance)
         {
-            pathOptions[i++] = pathpoint2;
+            this.pathOptions[i++] = pathpoint2;
         }
 
         if (pathpoint3 != null && !pathpoint3.isFirst && pathpoint3.distanceTo(targetPoint) < maxDistance)
         {
-            pathOptions[i++] = pathpoint3;
+            this.pathOptions[i++] = pathpoint3;
         }
 
         if (pathpoint4 != null && !pathpoint4.isFirst && pathpoint4.distanceTo(targetPoint) < maxDistance)
         {
-            pathOptions[i++] = pathpoint4;
+            this.pathOptions[i++] = pathpoint4;
         }
 
         if (pathpoint5 != null && !pathpoint5.isFirst && pathpoint5.distanceTo(targetPoint) < maxDistance)
         {
-            pathOptions[i++] = pathpoint5;
+            this.pathOptions[i++] = pathpoint5;
         }
 
-        boolean flag = pathpoint3 != null && pathpoint3.costMalus != 0.0F;
-        boolean flag1 = pathpoint != null && pathpoint.costMalus != 0.0F;
-        boolean flag2 = pathpoint2 != null && pathpoint2.costMalus != 0.0F;
-        boolean flag3 = pathpoint1 != null && pathpoint1.costMalus != 0.0F;
-        boolean flag4 = pathpoint4 != null && pathpoint4.costMalus != 0.0F;
-        boolean flag5 = pathpoint5 != null && pathpoint5.costMalus != 0.0F;
+        boolean flag = pathpoint3 != null;// && pathpoint3.costMalus != 0.0F;
+        boolean flag1 = pathpoint0 != null;// && pathpoint0.costMalus != 0.0F;
+        boolean flag2 = pathpoint2 != null;// && pathpoint2.costMalus != 0.0F;
+        boolean flag3 = pathpoint1 != null;// && pathpoint1.costMalus != 0.0F;
+        boolean flag4 = pathpoint4 != null;// && pathpoint4.costMalus != 0.0F;
+        boolean flag5 = pathpoint5 != null;// && pathpoint5.costMalus != 0.0F;
 
         if (flag && flag3)
         {
-            NPCPathPoint pathpoint6 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord - 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -260,141 +264,231 @@ public class FlyPathFinder extends PathFinder
 
         if (flag && flag2)
         {
-            NPCPathPoint pathpoint7 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord - 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
 
-            if (pathpoint7 != null && !pathpoint7.isFirst && pathpoint7.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint7;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag1 && flag3)
         {
-            NPCPathPoint pathpoint8 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord + 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
 
-            if (pathpoint8 != null && !pathpoint8.isFirst && pathpoint8.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint8;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag1 && flag2)
         {
-            NPCPathPoint pathpoint9 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord + 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
 
-            if (pathpoint9 != null && !pathpoint9.isFirst && pathpoint9.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint9;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag && flag4)
         {
-            NPCPathPoint pathpoint10 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord - 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord - 1, p_75860_3_, b0);
 
-            if (pathpoint10 != null && !pathpoint10.isFirst && pathpoint10.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint10;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag1 && flag4)
         {
-            NPCPathPoint pathpoint11 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord + 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord + 1, p_75860_3_, b0);
 
-            if (pathpoint11 != null && !pathpoint11.isFirst && pathpoint11.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint11;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag2 && flag4)
         {
-            NPCPathPoint pathpoint12 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord + 1, currentPoint.zCoord);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
 
-            if (pathpoint12 != null && !pathpoint12.isFirst && pathpoint12.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint12;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag3 && flag4)
         {
-            NPCPathPoint pathpoint13 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord + 1, currentPoint.zCoord);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
 
-            if (pathpoint13 != null && !pathpoint13.isFirst && pathpoint13.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint13;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag && flag5)
         {
-            NPCPathPoint pathpoint14 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord - 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord - 1, p_75860_3_, b0);
 
-            if (pathpoint14 != null && !pathpoint14.isFirst && pathpoint14.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint14;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag1 && flag5)
         {
-            NPCPathPoint pathpoint15 = this.openPoint(currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord + 1);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord + 1, p_75860_3_, b0);
 
-            if (pathpoint15 != null && !pathpoint15.isFirst && pathpoint15.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint15;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag2 && flag5)
         {
-            NPCPathPoint pathpoint16 = this.openPoint(currentPoint.xCoord + 1, currentPoint.yCoord - 1, currentPoint.zCoord);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
 
-            if (pathpoint16 != null && !pathpoint16.isFirst && pathpoint16.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint16;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         if (flag3 && flag5)
         {
-            NPCPathPoint pathpoint17 = this.openPoint(currentPoint.xCoord - 1, currentPoint.yCoord - 1, currentPoint.zCoord);
+            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
 
-            if (pathpoint17 != null && !pathpoint17.isFirst && pathpoint17.distanceTo(targetPoint) < maxDistance)
+            if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
-                pathOptions[i++] = pathpoint17;
+                pathOptions[i++] = pathpoint6;
             }
         }
 
         return i;
     }
 
-    @Nullable
-    protected NPCPathPoint openPoint(int x, int y, int z)
+    private NPCPathPoint getSafePoint(Entity p_75858_1_, int p_75858_2_, int p_75858_3_, int p_75858_4_, NPCPathPoint p_75858_5_, int p_75858_6_)
     {
-        NPCPathPoint pathpoint = null;
-        BlockPos blockPos = new BlockPos(x, y, z);
-        PathNodeType pathnodetype = this.getPathNodeType((EntityLiving) this.theEntity, blockPos);
-        float f = getPathPriority(pathnodetype);
+        NPCPathPoint pathpoint1 = null;
+        int i1 = this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_, p_75858_4_, p_75858_5_);
 
-        if (f >= 0.0F)
+        if (i1 == 2)
         {
-            pathpoint = this.openPoint(x, y, z, 0);
-            pathpoint.nodeType = pathnodetype;
-            pathpoint.costMalus = Math.max(pathpoint.costMalus, f);
-
-            if (pathnodetype == PathNodeType.WALKABLE)
-            {
-                ++pathpoint.costMalus;
-            }
+            return this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
         }
+        else
+        {
+            if (i1 == 1)
+            {
+                pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+            }
 
-        return pathnodetype != PathNodeType.OPEN && pathnodetype != PathNodeType.WALKABLE ? pathpoint : pathpoint;
+            if (pathpoint1 == null && p_75858_6_ > 0 && i1 != -3 && i1 != -4 && this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_, p_75858_5_) == 1)
+            {
+                pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_);
+                p_75858_3_ += p_75858_6_;
+            }
+
+            if (pathpoint1 != null)
+            {
+                int j1 = 0;
+                int k1 = 0;
+
+                while (p_75858_3_ > 0)
+                {
+                    k1 = this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_ - 1, p_75858_4_, p_75858_5_);
+
+                    if (this.isPathingInWater && k1 == -1)
+                    {
+                        return null;
+                    }
+
+                    if (k1 != 1)
+                    {
+                        break;
+                    }
+
+                    if (j1++ >= p_75858_1_.getMaxSafePointTries())
+                    {
+                        return null;
+                    }
+
+                    --p_75858_3_;
+
+                    if (p_75858_3_ > 0)
+                    {
+                        pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+                    }
+                }
+
+                if (k1 == -2)
+                {
+                    return null;
+                }
+            }
+
+            return pathpoint1;
+        }
     }
 
-    protected NPCPathPoint openPoint(int x, int y, int z, int b)
+    public int getVerticalOffset(Entity entity, int x, int y, int z, PathPoint pathEndpoint)
+    {
+        return getVerticalOffset(entity, x, y, z, pathEndpoint, this.isPathingInWater, this.isMovementBlockAllowed, this.isWoodenDoorAllowed);
+    }
+
+    private int getVerticalOffset(Entity entity, int x, int y, int z, PathPoint pathEndpoint, boolean isPathingInWater, boolean isMovementBlockAllowed, boolean isWoodenDoorAllowed)
+    {
+        PathNodeType pathnodetype = this.getPathNodeType((EntityLiving) entity, new BlockPos(x,y,z));
+
+        switch (pathnodetype) {
+            case BLOCKED:
+                return 0;
+            case OPEN:
+                return 2;
+            case WALKABLE:
+                return 1;
+            case TRAPDOOR:
+                return -4;
+            case FENCE:
+                return -3;
+            case LAVA:
+                return -2;
+            case WATER:
+                return -1;
+            case RAIL:
+                return 2;
+            case DANGER_FIRE:
+                return -1;
+            case DAMAGE_FIRE:
+                return -2;
+            case DANGER_CACTUS:
+                return -1;
+            case DAMAGE_CACTUS:
+                return -2;
+            case DANGER_OTHER:
+                return -1;
+            case DAMAGE_OTHER:
+                return -2;
+            case DOOR_OPEN:
+                return 1;
+            case DOOR_WOOD_CLOSED:
+                return 0;
+            case DOOR_IRON_CLOSED:
+                return 0;
+        }
+
+        return 1;
+    }
+
+    protected NPCPathPoint openPoint(int x, int y, int z)
     {
         int i = NPCPathPoint.makeHash(x, y, z);
         NPCPathPoint pathpoint = this.pointMap.lookup(i);

@@ -220,7 +220,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public int getMaxSafePointTries()
 	{
-		return 10;
+		return 3;
 	}
 
     @Override
