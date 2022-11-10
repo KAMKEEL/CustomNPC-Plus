@@ -40,6 +40,9 @@ public class FlyPathFinder extends PathFinder
     private boolean isWoodenDoorAllowed;
     private boolean canEntityDrown;
 
+    private int drowningType;
+    private boolean immuneToFire;
+
     public FlyPathFinder(IBlockAccess _worldMap, boolean doorsAllowed, boolean closedDoors, boolean canPathWater, boolean canDrown, Entity entityIn)
     {
         super(_worldMap,doorsAllowed,closedDoors,canPathWater,canDrown);
@@ -76,6 +79,10 @@ public class FlyPathFinder extends PathFinder
     {
         this.path.clearPath();
         this.pointMap.clearMap();
+
+        this.drowningType = ((EntityNPCInterface)theEntity).stats.drowningType;
+        this.immuneToFire = ((EntityNPCInterface)theEntity).stats.immuneToFire;
+
         NPCPathPoint pathpoint = this.getStart();
         NPCPathPoint pathpoint1 = this.getPathPointToCoords(entityIn, x, y, z);
         NPCPathPoint pathPoint2 = new NPCPathPoint((int)Math.ceil(entityIn.width),(int)Math.ceil(entityIn.height),(int)Math.ceil(entityIn.width));
@@ -206,21 +213,22 @@ public class FlyPathFinder extends PathFinder
      * populates pathOptions with available points and returns the number of options found (args: unused1, currentPoint,
      * unused2, targetPoint, maxDistance)
      */
-    private int findPathOptions(Entity p_75860_1_, NPCPathPoint p_75860_2_, NPCPathPoint p_75860_3_, NPCPathPoint targetPoint, float maxDistance)
+    private int findPathOptions(Entity entity, NPCPathPoint currentPoint, NPCPathPoint p_75860_3_, NPCPathPoint targetPoint, float maxDistance)
     {
         int i = 0;
         byte b0 = 0;
 
-        /*if (this.getVerticalOffset(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_) == 1) {
+        if (this.getVerticalOffset(entity, currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord, p_75860_3_) == 1)
+        {
             b0 = 1;
-        }*/
+        }
 
-        NPCPathPoint pathpoint0 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
-        NPCPathPoint pathpoint1 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
-        NPCPathPoint pathpoint2 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord, p_75860_3_, b0);
-        NPCPathPoint pathpoint3 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
-        NPCPathPoint pathpoint4 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
-        NPCPathPoint pathpoint5 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint0 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord, currentPoint.zCoord + 1, p_75860_3_, b0);
+        NPCPathPoint pathpoint1 = this.getSafePoint(entity, currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint2 = this.getSafePoint(entity, currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint3 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord, currentPoint.zCoord - 1, p_75860_3_, b0);
+        NPCPathPoint pathpoint4 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord, p_75860_3_, b0);
+        NPCPathPoint pathpoint5 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord, p_75860_3_, b0);
 
         if (pathpoint0 != null && !pathpoint0.isFirst && pathpoint0.distanceTo(targetPoint) < maxDistance)
         {
@@ -261,7 +269,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag && flag3)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord - 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -271,7 +279,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag && flag2)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord - 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -281,7 +289,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag1 && flag3)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord - 1, currentPoint.yCoord, currentPoint.zCoord + 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -291,7 +299,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag1 && flag2)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord + 1, currentPoint.yCoord, currentPoint.zCoord + 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -301,7 +309,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag && flag4)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord - 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -311,7 +319,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag1 && flag4)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord + 1, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord + 1, currentPoint.zCoord + 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -321,7 +329,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag2 && flag4)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord + 1, currentPoint.yCoord + 1, currentPoint.zCoord, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -331,7 +339,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag3 && flag4)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord + 1, p_75860_2_.zCoord, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord - 1, currentPoint.yCoord + 1, currentPoint.zCoord, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -341,7 +349,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag && flag5)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord - 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord - 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -351,7 +359,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag1 && flag5)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord, p_75860_2_.yCoord - 1, p_75860_2_.zCoord + 1, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord, currentPoint.yCoord - 1, currentPoint.zCoord + 1, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -361,7 +369,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag2 && flag5)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord + 1, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord + 1, currentPoint.yCoord - 1, currentPoint.zCoord, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -371,7 +379,7 @@ public class FlyPathFinder extends PathFinder
 
         if (flag3 && flag5)
         {
-            NPCPathPoint pathpoint6 = this.getSafePoint(p_75860_1_, p_75860_2_.xCoord - 1, p_75860_2_.yCoord - 1, p_75860_2_.zCoord, p_75860_3_, b0);
+            NPCPathPoint pathpoint6 = this.getSafePoint(entity, currentPoint.xCoord - 1, currentPoint.yCoord - 1, currentPoint.zCoord, p_75860_3_, b0);
 
             if (pathpoint6 != null && !pathpoint6.isFirst && pathpoint6.distanceTo(targetPoint) < maxDistance)
             {
@@ -382,31 +390,36 @@ public class FlyPathFinder extends PathFinder
         return i;
     }
 
-    private NPCPathPoint getSafePoint(Entity p_75858_1_, int p_75858_2_, int p_75858_3_, int p_75858_4_, NPCPathPoint p_75858_5_, int p_75858_6_)
+    private NPCPathPoint getSafePoint(Entity entity, int x, int y, int z, NPCPathPoint p_75858_5_, int p_75858_6_)
     {
         NPCPathPoint pathpoint1 = null;
-        int i1 = this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_, p_75858_4_, p_75858_5_);
+        PathNodeType pathNodeType1 = this.getPathNodeType(entity,x,y,z);
+        int i1 = this.nodeTypeToOffset(pathNodeType1);
 
         if (i1 == 2)
         {
-            pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+            pathpoint1 = this.openPoint(x, y, z);
             pathpoint1.costMalus = i1;
+            pathpoint1.nodeType = pathNodeType1;
             return pathpoint1;
         }
         else
         {
             if (i1 == 1)
             {
-                pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+                pathpoint1 = this.openPoint(x, y, z);
                 pathpoint1.costMalus = i1;
+                pathpoint1.nodeType = pathNodeType1;
             }
 
-            int vertOffset2 = this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_, p_75858_5_);
+            PathNodeType pathNodeType2 = this.getPathNodeType(entity, x,y + p_75858_6_, z);
+            int vertOffset2 = this.nodeTypeToOffset(pathNodeType2);
             if (pathpoint1 == null && p_75858_6_ > 0 && i1 != -3 && i1 != -4 && vertOffset2 == 1)
             {
-                pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_ + p_75858_6_, p_75858_4_);
+                pathpoint1 = this.openPoint(x, y + p_75858_6_, z);
                 pathpoint1.costMalus = vertOffset2;
-                p_75858_3_ += p_75858_6_;
+                pathpoint1.nodeType = pathNodeType2;
+                y += p_75858_6_;
             }
 
             if (pathpoint1 != null)
@@ -414,9 +427,10 @@ public class FlyPathFinder extends PathFinder
                 int j1 = 0;
                 int k1 = 0;
 
-                while (p_75858_3_ > 0)
+                while (y > 0)
                 {
-                    k1 = this.getVerticalOffset(p_75858_1_, p_75858_2_, p_75858_3_ - 1, p_75858_4_, p_75858_5_);
+                    PathNodeType pathNodeType3 = this.getPathNodeType(entity,x, y - 1, z);
+                    k1 = this.nodeTypeToOffset(pathNodeType3);
 
                     if (this.isPathingInWater && k1 == -1)
                     {
@@ -428,17 +442,18 @@ public class FlyPathFinder extends PathFinder
                         break;
                     }
 
-                    if (j1++ >= p_75858_1_.getMaxSafePointTries())
+                    if (j1++ >= entity.getMaxSafePointTries())
                     {
                         return null;
                     }
 
-                    --p_75858_3_;
+                    --y;
 
-                    if (p_75858_3_ > 0)
+                    if (y > 0)
                     {
-                        pathpoint1 = this.openPoint(p_75858_2_, p_75858_3_, p_75858_4_);
+                        pathpoint1 = this.openPoint(x, y, z);
                         pathpoint1.costMalus = k1;
+                        pathpoint1.nodeType = pathNodeType3;
                     }
                 }
 
@@ -451,16 +466,13 @@ public class FlyPathFinder extends PathFinder
         }
     }
 
-    public int getVerticalOffset(Entity entity, int x, int y, int z, PathPoint pathEndpoint)
+    private PathNodeType getPathNodeType(Entity entity, int x, int y, int z)
     {
-        return getVerticalOffset(entity, x, y, z, pathEndpoint, this.isPathingInWater, this.isMovementBlockAllowed, this.isWoodenDoorAllowed);
+        return this.getPathNodeType((EntityLiving) entity, new BlockPos(x,y,z));
     }
 
-    private int getVerticalOffset(Entity entity, int x, int y, int z, PathPoint pathEndpoint, boolean isPathingInWater, boolean isMovementBlockAllowed, boolean isWoodenDoorAllowed)
-    {
-        PathNodeType pathnodetype = this.getPathNodeType((EntityLiving) entity, new BlockPos(x,y,z));
-
-        switch (pathnodetype) {
+    public int nodeTypeToOffset(PathNodeType nodeType) {
+        switch (nodeType) {
             case BLOCKED:
                 return 0;
             case OPEN:
@@ -512,6 +524,12 @@ public class FlyPathFinder extends PathFinder
         }
 
         return pathpoint;
+    }
+
+    public NPCPathPoint getPointFromHash(int x, int y, int z)
+    {
+        int i = NPCPathPoint.makeHash(x, y, z);
+        return this.pointMap.lookup(i);
     }
 
     /**
@@ -682,7 +700,7 @@ public class FlyPathFinder extends PathFinder
                         {
                             type = PathNodeType.DANGER_CACTUS;
                         }
-                        else if (block == Blocks.fire)
+                        else if (block == Blocks.fire && !immuneToFire)
                         {
                             type = PathNodeType.DANGER_FIRE;
                         }
@@ -703,13 +721,13 @@ public class FlyPathFinder extends PathFinder
 
         if (material == Material.air)
         {
-            return PathNodeType.OPEN;
+            return drowningType == 2 ? PathNodeType.WATER : PathNodeType.OPEN;
         }
         else if (block != Blocks.trapdoor && block != Blocks.waterlily)
         {
             if (block == Blocks.fire)
             {
-                return PathNodeType.DAMAGE_FIRE;
+                return immuneToFire ? PathNodeType.OPEN : PathNodeType.DAMAGE_FIRE;
             }
             else if (block == Blocks.cactus)
             {
@@ -735,11 +753,11 @@ public class FlyPathFinder extends PathFinder
             {
                 if (material == Material.water)
                 {
-                    return PathNodeType.WATER;
+                    return drowningType == 1 ? PathNodeType.WATER :  PathNodeType.OPEN;
                 }
                 else if (material == Material.lava)
                 {
-                    return PathNodeType.LAVA;
+                    return immuneToFire ? PathNodeType.OPEN : PathNodeType.LAVA;
                 }
                 else
                 {

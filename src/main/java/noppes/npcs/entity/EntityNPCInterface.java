@@ -1620,6 +1620,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.isImmuneToFire = immuneToFire;
 		stats.immuneToFire = immuneToFire;
 	}
+
+	public boolean handleLavaMovement()
+	{
+		return !stats.immuneToFire && super.handleLavaMovement();
+	}
+
+	public boolean handleWaterMovement()
+	{
+		return stats.drowningType == 1 && super.handleWaterMovement();
+	}
 	
 	public void setAvoidWater(boolean avoidWater) {
 		this.getNavigator().setAvoidsWater(avoidWater);
