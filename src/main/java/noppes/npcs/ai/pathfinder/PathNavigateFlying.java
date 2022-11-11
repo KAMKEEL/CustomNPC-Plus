@@ -437,10 +437,48 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 pos1, Vec3 pos2, int entityXSize, int entityYSize, int entityZSize)
+    private boolean isDirectPathBetweenPoints(Vec3 startPos, Vec3 endPos, int entityXSize, int entityYSize, int entityZSize)
     {
-        MovingObjectPosition var6 = this.worldObj.func_147447_a(pos1, Vec3.createVectorHelper(pos2.xCoord, pos2.yCoord + (double)this.theEntity.height * 0.5D, pos2.zCoord), false, true, false);
-        return var6 == null || var6.typeOfHit == MovingObjectPosition.MovingObjectType.MISS;
+        Vec3 pos1 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord);
+        MovingObjectPosition var1 = this.worldObj.func_147447_a(pos1, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double)this.theEntity.height, endPos.zCoord), false, false, false);
+
+        Vec3 pos2 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord);
+        MovingObjectPosition var2 = this.worldObj.func_147447_a(pos2, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double)this.theEntity.height * 0.1D, endPos.zCoord), false, false, false);
+
+        Vec3 pos3 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord);
+        MovingObjectPosition var3 = this.worldObj.func_147447_a(pos3, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + + (double)this.theEntity.height * 0.1D, endPos.zCoord), false, false, false);
+
+        Vec3 pos4 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord);
+        MovingObjectPosition var4 = this.worldObj.func_147447_a(pos4, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double)this.theEntity.height, endPos.zCoord), false, false, false);
+
+        Vec3 pos5 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
+        MovingObjectPosition var5 = this.worldObj.func_147447_a(pos5, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord, endPos.zCoord), false, false, false);
+
+        Vec3 pos6 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord);
+        Vec3 pos7 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width,endPos.yCoord + (double)this.theEntity.height, endPos.zCoord);
+        MovingObjectPosition var6 = this.worldObj.func_147447_a(pos6, pos7, false, false, false);
+
+        Vec3 pos8 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord);
+        Vec3 pos9 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width,endPos.yCoord + (double)this.theEntity.height * 0.1D, endPos.zCoord);
+        MovingObjectPosition var7 = this.worldObj.func_147447_a(pos8, pos9, false, false, false);
+
+        Vec3 pos10 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord - this.theEntity.width);
+        Vec3 pos11 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord + (double)this.theEntity.height, endPos.zCoord + this.theEntity.width);
+        MovingObjectPosition var8 = this.worldObj.func_147447_a(pos10, pos11, false, false, false);
+
+        Vec3 pos12 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord - this.theEntity.width);
+        Vec3 pos13 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord + (double)this.theEntity.height * 0.1D, endPos.zCoord + this.theEntity.width);
+        MovingObjectPosition var9 = this.worldObj.func_147447_a(pos12, pos13, false, false, false);
+
+        return (var1 == null || var1.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var2 == null || var2.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var3 == null || var3.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var4 == null || var4.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var5 == null || var5.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var6 == null || var6.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var7 == null || var7.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var8 == null || var8.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
+                && (var9 == null || var9.typeOfHit == MovingObjectPosition.MovingObjectType.MISS);
     }
 
     protected void checkForStuck(Vec3 positionVec3)
