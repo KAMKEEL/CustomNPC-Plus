@@ -6,11 +6,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
@@ -435,158 +437,11 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 vec31, Vec3 vec32, int entityXSize, int entityYSize, int entityZSize)
+    private boolean isDirectPathBetweenPoints(Vec3 pos1, Vec3 pos2, int entityXSize, int entityYSize, int entityZSize)
     {
-        int l = MathHelper.floor_double(vec31.xCoord);
-        int i1 = MathHelper.floor_double(vec31.zCoord);
-        double d0 = vec32.xCoord - vec31.xCoord;
-        double d1 = vec32.zCoord - vec31.zCoord;
-        double d2 = d0 * d0 + d1 * d1;
-
-        if (d2 < 1.0E-8D)
-        {
-            return false;
-        }
-        else
-        {
-            double d3 = 1.0D / Math.sqrt(d2);
-            d0 *= d3;
-            d1 *= d3;
-            entityXSize += 2;
-            entityYSize += 2;
-            entityZSize += 2;
-
-            if (!this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1))
-            {
-                return false;
-            }
-            else
-            {
-                entityXSize -= 2;
-                entityYSize -= 2;
-                entityZSize -= 2;
-                double d4 = 1.0D / Math.abs(d0);
-                double d5 = 1.0D / Math.abs(d1);
-                double d6 = (double)(l * 1) - vec31.xCoord;
-                double d7 = (double)(i1 * 1) - vec31.zCoord;
-
-                if (d0 >= 0.0D)
-                {
-                    ++d6;
-                }
-
-                if (d1 >= 0.0D)
-                {
-                    ++d7;
-                }
-
-                d6 /= d0;
-                d7 /= d1;
-                int j1 = d0 < 0.0D ? -1 : 1;
-                int k1 = d1 < 0.0D ? -1 : 1;
-                int l1 = MathHelper.floor_double(vec32.xCoord);
-                int i2 = MathHelper.floor_double(vec32.zCoord);
-                int j2 = l1 - l;
-                int k2 = i2 - i1;
-
-                do
-                {
-                    if (j2 * j1 <= 0 && k2 * k1 <= 0)
-                    {
-                        return true;
-                    }
-
-                    if (d6 < d7)
-                    {
-                        d6 += d4;
-                        l += j1;
-                        j2 = l1 - l;
-                    }
-                    else
-                    {
-                        d7 += d5;
-                        i1 += k1;
-                        k2 = i2 - i1;
-                    }
-                }
-                while (this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1));
-
-                return false;
-            }
-        }
+        MovingObjectPosition var6 = this.worldObj.func_147447_a(pos1, Vec3.createVectorHelper(pos2.xCoord, pos2.yCoord + (double)this.theEntity.height * 0.5D, pos2.zCoord), false, true, false);
+        return var6 == null || var6.typeOfHit == MovingObjectPosition.MovingObjectType.MISS;
     }
-
-    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        int k1 = p_75483_1_ - p_75483_4_ / 2;
-        int l1 = p_75483_3_ - p_75483_6_ / 2;
-
-        if (!this.isPositionClear(k1, p_75483_2_, l1, p_75483_4_, p_75483_5_, p_75483_6_, p_75483_7_, p_75483_8_, p_75483_10_))
-        {
-            return false;
-        }
-        else
-        {
-            for (int i2 = k1; i2 < k1 + p_75483_4_; ++i2)
-            {
-                for (int j2 = l1; j2 < l1 + p_75483_6_; ++j2)
-                {
-                    double d2 = (double)i2 + 0.5D - p_75483_7_.xCoord;
-                    double d3 = (double)j2 + 0.5D - p_75483_7_.zCoord;
-
-                    if (d2 * p_75483_8_ + d3 * p_75483_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(i2, p_75483_2_ - 1, j2);
-                        Material material = block.getMaterial();
-
-                        if (material == Material.water && !this.theEntity.isInWater())
-                        {
-                            return false;
-                        }
-
-                        if (material == Material.lava)
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
-    }
-
-    private boolean isPositionClear(int x, int y, int z, int entityXSize, int entityYSize, int entityZSize, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        return pathFinder.getPathNodeType(this.theEntity.worldObj, x, y, z, (EntityLiving) this.theEntity, entityXSize, entityYSize, entityZSize, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 1).getPriority() == 0;
-    }
-
-    /*private boolean isPositionClear(int p_75496_1_, int p_75496_2_, int p_75496_3_, int p_75496_4_, int p_75496_5_, int p_75496_6_, Vec3 p_75496_7_, double p_75496_8_, double p_75496_10_)
-    {
-        for (int k1 = p_75496_1_; k1 < p_75496_1_ + p_75496_4_; ++k1)
-        {
-            for (int l1 = p_75496_2_; l1 < p_75496_2_ + p_75496_5_; ++l1)
-            {
-                for (int i2 = p_75496_3_; i2 < p_75496_3_ + p_75496_6_; ++i2)
-                {
-                    double d2 = (double)k1 + 0.5D - p_75496_7_.xCoord;
-                    double d3 = (double)i2 + 0.5D - p_75496_7_.zCoord;
-
-                    if (d2 * p_75496_8_ + d3 * p_75496_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(k1, l1, i2);
-
-                        if (!block.getBlocksMovement(this.worldObj, k1, l1, i2))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
-    }*/
 
     protected void checkForStuck(Vec3 positionVec3)
     {
