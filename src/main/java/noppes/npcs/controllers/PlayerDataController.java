@@ -94,7 +94,6 @@ public class PlayerDataController {
 		NBTTagCompound compound = data.getNBT();
 		executor.execute(() -> {
 			String filename = data.uuid + ".json";
-			FMLLog.info(String.format("[CustomNPCs] PlayerData Real Saving: %s", data.player.getCommandSenderName()));
 			try {
 				File saveDir = getSaveDir();
 				File file = new File(saveDir, filename+"_new");
