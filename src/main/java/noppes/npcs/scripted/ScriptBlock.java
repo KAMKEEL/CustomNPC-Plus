@@ -195,6 +195,34 @@ public class ScriptBlock implements IBlock {
         return canCollide(0);
     }
 
+    public void setBounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+        this.block.setBlockBounds(minX,minY,minZ,maxX,maxY,maxZ);
+    }
+
+    public double getBlockBoundsMinX() {
+        return this.block.getBlockBoundsMinX();
+    }
+
+    public double getBlockBoundsMinY() {
+        return this.block.getBlockBoundsMinY();
+    }
+
+    public double getBlockBoundsMinZ() {
+        return this.block.getBlockBoundsMinZ();
+    }
+
+    public double getBlockBoundsMaxX() {
+        return this.block.getBlockBoundsMaxX();
+    }
+
+    public double getBlockBoundsMaxY() {
+        return this.block.getBlockBoundsMaxY();
+    }
+
+    public double getBlockBoundsMaxZ() {
+        return this.block.getBlockBoundsMaxZ();
+    }
+
     public String toString() {
         return this.getName() + " @" + this.getPos() + (world == null ? "" : " in DIM" + world.getDimensionID());
     }

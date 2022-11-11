@@ -127,4 +127,18 @@ public interface IBlock {
     boolean canCollide(double maxVolume);
 
     boolean canCollide();
+
+    void setBounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
+
+    double getBlockBoundsMinX();
+
+    double getBlockBoundsMinY();
+
+    double getBlockBoundsMinZ();
+
+    double getBlockBoundsMaxX();
+
+    double getBlockBoundsMaxY();
+
+    double getBlockBoundsMaxZ();
 }
