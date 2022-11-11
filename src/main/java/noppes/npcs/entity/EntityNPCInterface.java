@@ -1335,15 +1335,19 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		int j = getStartPos()[1];
 		int k = getStartPos()[2];
 		double yy = 0;
-		for (int ii = j; ii >= 0; ii--) {
-			Block block = worldObj.getBlock(i, ii, k);
-			if (block == null)
-				continue;
-			AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
-			if (bb == null)
-				continue;
-			yy = bb.maxY;
-			break;
+		if (!this.canFly()) {
+			for (int ii = j; ii >= 0; ii--) {
+				Block block = worldObj.getBlock(i, ii, k);
+				if (block == null)
+					continue;
+				AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
+				if (bb == null)
+					continue;
+				yy = bb.maxY;
+				break;
+			}
+		} else {
+			yy = j;
 		}
 		if (yy <= 0)
 			setDead();
