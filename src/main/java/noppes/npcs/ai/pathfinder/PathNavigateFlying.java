@@ -439,46 +439,63 @@ public class PathNavigateFlying extends PathNavigate {
      */
     private boolean isDirectPathBetweenPoints(Vec3 startPos, Vec3 endPos, int entityXSize, int entityYSize, int entityZSize)
     {
-        Vec3 pos1 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord);
-        MovingObjectPosition var1 = this.worldObj.func_147447_a(pos1, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double)this.theEntity.height, endPos.zCoord), false, false, false);
+        Vec3 pos17 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
+        Vec3 pos18 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord, endPos.zCoord);
+        MovingObjectPosition var10 = this.worldObj.func_147447_a(pos17, pos18, false, false, false);
+        if (!(var10 == null || var10.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+            return false;
 
-        Vec3 pos2 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord);
-        MovingObjectPosition var2 = this.worldObj.func_147447_a(pos2, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double)this.theEntity.height * 0.1D, endPos.zCoord), false, false, false);
+        if (this.theEntity.motionY >= 0) {
+            Vec3 pos1 = Vec3.createVectorHelper(startPos.xCoord + this.theEntity.width, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord);
+            Vec3 pos2 = Vec3.createVectorHelper(endPos.xCoord - this.theEntity.width, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord);
+            MovingObjectPosition var2 = this.worldObj.func_147447_a(pos1, pos2, false, false, false);
+            if (!(var2 == null || var2.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
 
-        Vec3 pos3 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord);
-        MovingObjectPosition var3 = this.worldObj.func_147447_a(pos3, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + + (double)this.theEntity.height * 0.1D, endPos.zCoord), false, false, false);
+            Vec3 pos5 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord);
+            Vec3 pos6 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord);
+            MovingObjectPosition var4 = this.worldObj.func_147447_a(pos5, pos6, false, false, false);
+            if (!(var4 == null || var4.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
 
-        Vec3 pos4 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord);
-        MovingObjectPosition var4 = this.worldObj.func_147447_a(pos4, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double)this.theEntity.height, endPos.zCoord), false, false, false);
+            Vec3 pos9 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord + this.theEntity.width);
+            Vec3 pos10 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord - this.theEntity.width);
+            MovingObjectPosition var6 = this.worldObj.func_147447_a(pos9, pos10, false, false, false);
+            if (!(var6 == null || var6.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
 
-        Vec3 pos5 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
-        MovingObjectPosition var5 = this.worldObj.func_147447_a(pos5, Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord, endPos.zCoord), false, false, false);
+            Vec3 pos13 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord - this.theEntity.width);
+            Vec3 pos14 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord + this.theEntity.width);
+            MovingObjectPosition var8 = this.worldObj.func_147447_a(pos14, pos13, false, false, false);
+            if (!(var8 == null || var8.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
+        } else {
+            Vec3 pos3 = Vec3.createVectorHelper(startPos.xCoord + this.theEntity.width, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord);
+            Vec3 pos4 = Vec3.createVectorHelper(endPos.xCoord - this.theEntity.width, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord);
+            MovingObjectPosition var3 = this.worldObj.func_147447_a(pos3, pos4, false, false, false);
+            if (!(var3 == null || var3.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
 
-        Vec3 pos6 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord);
-        Vec3 pos7 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width,endPos.yCoord + (double)this.theEntity.height, endPos.zCoord);
-        MovingObjectPosition var6 = this.worldObj.func_147447_a(pos6, pos7, false, false, false);
+            Vec3 pos7 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord);
+            Vec3 pos8 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord);
+            MovingObjectPosition var5 = this.worldObj.func_147447_a(pos7, pos8, false, false, false);
+            if (!(var5 == null || var5.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
 
-        Vec3 pos8 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord);
-        Vec3 pos9 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width,endPos.yCoord + (double)this.theEntity.height * 0.1D, endPos.zCoord);
-        MovingObjectPosition var7 = this.worldObj.func_147447_a(pos8, pos9, false, false, false);
+            Vec3 pos11 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord + this.theEntity.width);
+            Vec3 pos12 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord - this.theEntity.width);
+            MovingObjectPosition var7 = this.worldObj.func_147447_a(pos11, pos12, false, false, false);
+            if (!(var7 == null || var7.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
 
-        Vec3 pos10 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height * 0.1D, startPos.zCoord - this.theEntity.width);
-        Vec3 pos11 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord + (double)this.theEntity.height, endPos.zCoord + this.theEntity.width);
-        MovingObjectPosition var8 = this.worldObj.func_147447_a(pos10, pos11, false, false, false);
+            Vec3 pos15 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord - this.theEntity.width);
+            Vec3 pos16 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord + this.theEntity.width);
+            MovingObjectPosition var9 = this.worldObj.func_147447_a(pos15, pos16, false, false, false);
+            if (!(var9 == null || var9.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                return false;
+        }
 
-        Vec3 pos12 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord + (double)this.theEntity.height, startPos.zCoord - this.theEntity.width);
-        Vec3 pos13 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord + (double)this.theEntity.height * 0.1D, endPos.zCoord + this.theEntity.width);
-        MovingObjectPosition var9 = this.worldObj.func_147447_a(pos12, pos13, false, false, false);
-
-        return (var1 == null || var1.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var2 == null || var2.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var3 == null || var3.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var4 == null || var4.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var5 == null || var5.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var6 == null || var6.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var7 == null || var7.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var8 == null || var8.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
-                && (var9 == null || var9.typeOfHit == MovingObjectPosition.MovingObjectType.MISS);
+        return true;
     }
 
     protected void checkForStuck(Vec3 positionVec3)
