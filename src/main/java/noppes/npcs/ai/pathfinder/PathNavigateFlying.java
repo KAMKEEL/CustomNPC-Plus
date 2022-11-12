@@ -1,14 +1,12 @@
 package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathEntity;
-import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
@@ -17,12 +15,15 @@ import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.LRUHashMap;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 public class PathNavigateFlying extends PathNavigate {
+    private static final Map<CacheKey, Boolean> pathClearCache = new LRUHashMap<>(5000);
+
     private EntityNPCInterface theEntity;
     private World worldObj;
     /** The PathEntity being followed. */
@@ -330,16 +331,7 @@ public class PathNavigateFlying extends PathNavigate {
 
         k = MathHelper.floor_double(this.theEntity.width + 1.0F);
         int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
-        int i1 = k;
-
-        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
-        {
-            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
-            {
-                this.currentPath.setCurrentPathIndex(j1);
-                break;
-            }
-        }
+        this.trimPath(vec3,i,k,l);
 
         this.checkForStuck(vec3);
     }
@@ -366,20 +358,25 @@ public class PathNavigateFlying extends PathNavigate {
         }
 
         int k = MathHelper.ceiling_double_int(this.theEntity.width);
-        // Adjust Size HERE
         int l = MathHelper.ceiling_double_int(this.theEntity.height + 1.0F);
-        int i1 = k;
+        this.trimPath(vec3,i,k,l);
 
-        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
+        this.checkForStuck(vec3);
+    }
+
+    public void trimPath(Vec3 position, int pathLength, int width, int height) {
+        for (int j1 = pathLength - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
         {
-            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
+            Vec3 pathPoint = this.currentPath.getVectorFromIndex(this.theEntity, j1);
+            if (position.distanceTo(pathPoint) > 6)
+                continue;
+
+            if (this.isDirectPathBetweenPoints(position, pathPoint, width, height))
             {
                 this.currentPath.setCurrentPathIndex(j1);
                 break;
             }
         }
-
-        this.checkForStuck(vec3);
     }
 
 
@@ -437,65 +434,342 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 startPos, Vec3 endPos, int entityXSize, int entityYSize, int entityZSize)
+    private boolean isDirectPathBetweenPoints(Vec3 startPos, Vec3 endPos, int width, int height)
     {
         Vec3 pos17 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
         Vec3 pos18 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord, endPos.zCoord);
-        MovingObjectPosition var10 = this.worldObj.func_147447_a(pos17, pos18, false, false, false);
-        if (!(var10 == null || var10.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+        if (this.rayTraceBlocks(pos17, pos18, false, false, false, width, height))
             return false;
 
-        if (this.theEntity.motionY >= 0) {
-            Vec3 pos1 = Vec3.createVectorHelper(startPos.xCoord + this.theEntity.width, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord);
-            Vec3 pos2 = Vec3.createVectorHelper(endPos.xCoord - this.theEntity.width, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord);
-            MovingObjectPosition var2 = this.worldObj.func_147447_a(pos1, pos2, false, false, false);
-            if (!(var2 == null || var2.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
+        return true;
+    }
 
-            Vec3 pos5 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord);
-            Vec3 pos6 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord);
-            MovingObjectPosition var4 = this.worldObj.func_147447_a(pos5, pos6, false, false, false);
-            if (!(var4 == null || var4.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
+    public boolean rayTraceBlocks(Vec3 p_147447_1_, Vec3 p_147447_2_, boolean p_147447_3_, boolean p_147447_4_, boolean p_147447_5_, int width, int height)
+    {
+        if (!Double.isNaN(p_147447_1_.xCoord) && !Double.isNaN(p_147447_1_.yCoord) && !Double.isNaN(p_147447_1_.zCoord))
+        {
+            if (!Double.isNaN(p_147447_2_.xCoord) && !Double.isNaN(p_147447_2_.yCoord) && !Double.isNaN(p_147447_2_.zCoord))
+            {
+                int i = MathHelper.floor_double(p_147447_2_.xCoord);
+                int j = MathHelper.floor_double(p_147447_2_.yCoord);
+                int k = MathHelper.floor_double(p_147447_2_.zCoord);
+                int l = MathHelper.floor_double(p_147447_1_.xCoord);
+                int i1 = MathHelper.floor_double(p_147447_1_.yCoord);
+                int j1 = MathHelper.floor_double(p_147447_1_.zCoord);
+                Block block = this.worldObj.getBlock(l, i1, j1);
+                int k1 = this.worldObj.getBlockMetadata(l, i1, j1);
 
-            Vec3 pos9 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord + this.theEntity.width);
-            Vec3 pos10 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord - this.theEntity.width);
-            MovingObjectPosition var6 = this.worldObj.func_147447_a(pos9, pos10, false, false, false);
-            if (!(var6 == null || var6.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
+                if ((!p_147447_4_ || block.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null) && block.canCollideCheck(k1, p_147447_3_))
+                {
+                    MovingObjectPosition movingobjectposition = block.collisionRayTrace(this.worldObj, l, i1, j1, p_147447_1_, p_147447_2_);
 
-            Vec3 pos13 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height * 0.1D, startPos.zCoord - this.theEntity.width);
-            Vec3 pos14 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height, endPos.zCoord + this.theEntity.width);
-            MovingObjectPosition var8 = this.worldObj.func_147447_a(pos14, pos13, false, false, false);
-            if (!(var8 == null || var8.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
-        } else {
-            Vec3 pos3 = Vec3.createVectorHelper(startPos.xCoord + this.theEntity.width, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord);
-            Vec3 pos4 = Vec3.createVectorHelper(endPos.xCoord - this.theEntity.width, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord);
-            MovingObjectPosition var3 = this.worldObj.func_147447_a(pos3, pos4, false, false, false);
-            if (!(var3 == null || var3.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
+                    if (movingobjectposition != null && movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.MISS)
+                    {
+                        return true;
+                    }
+                }
 
-            Vec3 pos7 = Vec3.createVectorHelper(startPos.xCoord - this.theEntity.width, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord);
-            Vec3 pos8 = Vec3.createVectorHelper(endPos.xCoord + this.theEntity.width, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord);
-            MovingObjectPosition var5 = this.worldObj.func_147447_a(pos7, pos8, false, false, false);
-            if (!(var5 == null || var5.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
+                MovingObjectPosition movingobjectposition2 = null;
+                k1 = 200;
 
-            Vec3 pos11 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord + this.theEntity.width);
-            Vec3 pos12 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord - this.theEntity.width);
-            MovingObjectPosition var7 = this.worldObj.func_147447_a(pos11, pos12, false, false, false);
-            if (!(var7 == null || var7.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
-                return false;
+                while (k1-- >= 0)
+                {
+                    if (Double.isNaN(p_147447_1_.xCoord) || Double.isNaN(p_147447_1_.yCoord) || Double.isNaN(p_147447_1_.zCoord))
+                    {
+                        return false;
+                    }
 
-            Vec3 pos15 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord + (double) this.theEntity.height, startPos.zCoord - this.theEntity.width);
-            Vec3 pos16 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord + (double) this.theEntity.height * 0.1D, endPos.zCoord + this.theEntity.width);
-            MovingObjectPosition var9 = this.worldObj.func_147447_a(pos15, pos16, false, false, false);
-            if (!(var9 == null || var9.typeOfHit == MovingObjectPosition.MovingObjectType.MISS))
+                    if (l == i && i1 == j && j1 == k)
+                    {
+                        if (p_147447_5_) {
+                            return movingobjectposition2 != null && movingobjectposition2.typeOfHit != MovingObjectPosition.MovingObjectType.MISS;
+                        }
+                        return false;
+                    }
+
+                    boolean flag6 = true;
+                    boolean flag3 = true;
+                    boolean flag4 = true;
+                    double d0 = 999.0D;
+                    double d1 = 999.0D;
+                    double d2 = 999.0D;
+
+                    if (i > l)
+                    {
+                        d0 = (double)l + 1.0D;
+                    }
+                    else if (i < l)
+                    {
+                        d0 = (double)l + 0.0D;
+                    }
+                    else
+                    {
+                        flag6 = false;
+                    }
+
+                    if (j > i1)
+                    {
+                        d1 = (double)i1 + 1.0D;
+                    }
+                    else if (j < i1)
+                    {
+                        d1 = (double)i1 + 0.0D;
+                    }
+                    else
+                    {
+                        flag3 = false;
+                    }
+
+                    if (k > j1)
+                    {
+                        d2 = (double)j1 + 1.0D;
+                    }
+                    else if (k < j1)
+                    {
+                        d2 = (double)j1 + 0.0D;
+                    }
+                    else
+                    {
+                        flag4 = false;
+                    }
+
+                    double d3 = 999.0D;
+                    double d4 = 999.0D;
+                    double d5 = 999.0D;
+                    double d6 = p_147447_2_.xCoord - p_147447_1_.xCoord;
+                    double d7 = p_147447_2_.yCoord - p_147447_1_.yCoord;
+                    double d8 = p_147447_2_.zCoord - p_147447_1_.zCoord;
+
+                    if (flag6)
+                    {
+                        d3 = (d0 - p_147447_1_.xCoord) / d6;
+                    }
+
+                    if (flag3)
+                    {
+                        d4 = (d1 - p_147447_1_.yCoord) / d7;
+                    }
+
+                    if (flag4)
+                    {
+                        d5 = (d2 - p_147447_1_.zCoord) / d8;
+                    }
+
+                    boolean flag5 = false;
+                    byte b0;
+
+                    if (d3 < d4 && d3 < d5)
+                    {
+                        if (i > l)
+                        {
+                            b0 = 4;
+                        }
+                        else
+                        {
+                            b0 = 5;
+                        }
+
+                        p_147447_1_.xCoord = d0;
+                        p_147447_1_.yCoord += d7 * d3;
+                        p_147447_1_.zCoord += d8 * d3;
+                    }
+                    else if (d4 < d5)
+                    {
+                        if (j > i1)
+                        {
+                            b0 = 0;
+                        }
+                        else
+                        {
+                            b0 = 1;
+                        }
+
+                        p_147447_1_.xCoord += d6 * d4;
+                        p_147447_1_.yCoord = d1;
+                        p_147447_1_.zCoord += d8 * d4;
+                    }
+                    else
+                    {
+                        if (k > j1)
+                        {
+                            b0 = 2;
+                        }
+                        else
+                        {
+                            b0 = 3;
+                        }
+
+                        p_147447_1_.xCoord += d6 * d5;
+                        p_147447_1_.yCoord += d7 * d5;
+                        p_147447_1_.zCoord = d2;
+                    }
+
+                    Vec3 vec32 = Vec3.createVectorHelper(p_147447_1_.xCoord, p_147447_1_.yCoord, p_147447_1_.zCoord);
+                    l = (int)(vec32.xCoord = (double)MathHelper.floor_double(p_147447_1_.xCoord));
+
+                    if (b0 == 5)
+                    {
+                        --l;
+                        ++vec32.xCoord;
+                    }
+
+                    i1 = (int)(vec32.yCoord = (double)MathHelper.floor_double(p_147447_1_.yCoord));
+
+                    if (b0 == 1)
+                    {
+                        --i1;
+                        ++vec32.yCoord;
+                    }
+
+                    j1 = (int)(vec32.zCoord = (double)MathHelper.floor_double(p_147447_1_.zCoord));
+
+                    if (b0 == 3)
+                    {
+                        --j1;
+                        ++vec32.zCoord;
+                    }
+
+                    boolean value = false;
+                    for (int x = 1 - width; x < width; x++) {
+                        if (value) {
+                            break;
+                        }
+                        for (int y = 0; y <= height; y++) {
+                            if (value) {
+                                break;
+                            }
+                            for (int z = 1 - width; z < width; z++) {
+                                l += x;
+                                i1 += y;
+                                j1 += z;
+
+                                CacheKey key = new CacheKey(this.theEntity, Vec3.createVectorHelper(l,i1,j1));
+                                Boolean hashCollides = PathNavigateFlying.pathClearCache.get(key);
+                                if (hashCollides != null && hashCollides) {
+                                    value = true;
+                                    l -= x;
+                                    i1 -= y;
+                                    j1 -= z;
+                                    break;
+                                }
+
+                                Block block2 = this.worldObj.getBlock(l, i1, j1);
+                                int meta2 = this.worldObj.getBlockMetadata(l, i1, j1);
+
+                                if (block2 != Blocks.air && (!p_147447_4_ || block2.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null)
+                                        && block2.canCollideCheck(meta2, p_147447_3_)) {
+                                    if (!block2.getBlocksMovement(this.worldObj, l, i1, j1)) {
+                                        value = true;
+                                        l -= x;
+                                        i1 -= y;
+                                        j1 -= z;
+                                        break;
+                                    }
+                                    MovingObjectPosition movingobjectposition = block2.collisionRayTrace(this.worldObj, l, i1, j1, p_147447_1_, p_147447_2_);
+
+                                    if (movingobjectposition != null && movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.MISS) {
+                                        value = true;
+                                        l -= x;
+                                        i1 -= y;
+                                        j1 -= z;
+                                        break;
+                                    } else {
+                                        movingobjectposition2 = new MovingObjectPosition(l, i1, j1, b0, p_147447_1_, false);
+                                    }
+                                }
+
+                                l -= x;
+                                i1 -= y;
+                                j1 -= z;
+                            }
+                        }
+                    }
+
+                    for (int x = 1 - width; x < width; x++) {
+                        for (int y = 0; y <= height; y++) {
+                            for (int z = 1 - width; z < width; z++) {
+                                l += x;
+                                i1 += y;
+                                j1 += z;
+                                CacheKey key = new CacheKey(this.theEntity, Vec3.createVectorHelper(l,i1,j1));
+
+                                if (value) {
+                                    PathNavigateFlying.pathClearCache.put(key, true);
+                                } else {
+                                    PathNavigateFlying.pathClearCache.put(key, false);
+                                }
+
+                                l -= x;
+                                i1 -= y;
+                                j1 -= z;
+                            }
+                        }
+                    }
+
+                    if (value) {
+                        return true;
+                    }
+                }
+
+                if (p_147447_5_) {
+                    return movingobjectposition2 != null && movingobjectposition2.typeOfHit != MovingObjectPosition.MovingObjectType.MISS;
+                }
                 return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    static class CacheKey {
+        private final World world;
+        private final double posX, posY, posZ;
+
+        public CacheKey(Entity entity, Vec3 vec3) {
+            this.world = entity.worldObj;
+            this.posX = vec3.xCoord;
+            this.posY = vec3.yCoord;
+            this.posZ = vec3.zCoord;
         }
 
-        return true;
+        @Override
+        public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+
+            CacheKey cacheKey = (CacheKey) o;
+
+            if (Double.compare(cacheKey.posX, posX) != 0)
+                return false;
+            if (Double.compare(cacheKey.posY, posY) != 0)
+                return false;
+            if (Double.compare(cacheKey.posZ, posZ) != 0)
+                return false;
+
+            return world.equals(cacheKey.world);
+        }
+
+        @Override
+        public int hashCode() {
+            int result;
+            long temp;
+            result = world.hashCode();
+            temp = Double.doubleToLongBits(posX);
+            result = 31 * result + (int) (temp ^ (temp >>> 32));
+            temp = Double.doubleToLongBits(posY);
+            result = 31 * result + (int) (temp ^ (temp >>> 32));
+            temp = Double.doubleToLongBits(posZ);
+            result = 31 * result + (int) (temp ^ (temp >>> 32));
+            return result;
+        }
     }
 
     protected void checkForStuck(Vec3 positionVec3)
