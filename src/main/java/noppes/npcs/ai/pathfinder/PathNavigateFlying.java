@@ -16,13 +16,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.util.LRUHashMap;
-
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public class PathNavigateFlying extends PathNavigate {
-    private static final Map<CacheKey, Boolean> pathClearCache = new LRUHashMap<>(5000);
 
     private EntityNPCInterface theEntity;
     private World worldObj;
@@ -643,16 +639,6 @@ public class PathNavigateFlying extends PathNavigate {
                                 i1 += y;
                                 j1 += z;
 
-                                CacheKey key = new CacheKey(this.theEntity, Vec3.createVectorHelper(l,i1,j1));
-                                Boolean hashCollides = PathNavigateFlying.pathClearCache.get(key);
-                                if (hashCollides != null && hashCollides) {
-                                    value = true;
-                                    l -= x;
-                                    i1 -= y;
-                                    j1 -= z;
-                                    break;
-                                }
-
                                 Block block2 = this.worldObj.getBlock(l, i1, j1);
                                 int meta2 = this.worldObj.getBlockMetadata(l, i1, j1);
 
@@ -685,27 +671,6 @@ public class PathNavigateFlying extends PathNavigate {
                         }
                     }
 
-                    for (int x = 1 - width; x < width; x++) {
-                        for (int y = 0; y <= height; y++) {
-                            for (int z = 1 - width; z < width; z++) {
-                                l += x;
-                                i1 += y;
-                                j1 += z;
-                                CacheKey key = new CacheKey(this.theEntity, Vec3.createVectorHelper(l,i1,j1));
-
-                                if (value) {
-                                    PathNavigateFlying.pathClearCache.put(key, true);
-                                } else {
-                                    PathNavigateFlying.pathClearCache.put(key, false);
-                                }
-
-                                l -= x;
-                                i1 -= y;
-                                j1 -= z;
-                            }
-                        }
-                    }
-
                     if (value) {
                         return true;
                     }
@@ -724,51 +689,6 @@ public class PathNavigateFlying extends PathNavigate {
         else
         {
             return false;
-        }
-    }
-
-    static class CacheKey {
-        private final World world;
-        private final double posX, posY, posZ;
-
-        public CacheKey(Entity entity, Vec3 vec3) {
-            this.world = entity.worldObj;
-            this.posX = vec3.xCoord;
-            this.posY = vec3.yCoord;
-            this.posZ = vec3.zCoord;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
-
-            CacheKey cacheKey = (CacheKey) o;
-
-            if (Double.compare(cacheKey.posX, posX) != 0)
-                return false;
-            if (Double.compare(cacheKey.posY, posY) != 0)
-                return false;
-            if (Double.compare(cacheKey.posZ, posZ) != 0)
-                return false;
-
-            return world.equals(cacheKey.world);
-        }
-
-        @Override
-        public int hashCode() {
-            int result;
-            long temp;
-            result = world.hashCode();
-            temp = Double.doubleToLongBits(posX);
-            result = 31 * result + (int) (temp ^ (temp >>> 32));
-            temp = Double.doubleToLongBits(posY);
-            result = 31 * result + (int) (temp ^ (temp >>> 32));
-            temp = Double.doubleToLongBits(posZ);
-            result = 31 * result + (int) (temp ^ (temp >>> 32));
-            return result;
         }
     }
 
