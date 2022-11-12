@@ -371,6 +371,8 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
      */
     void setDrowningType(int type);
 
+    boolean canBreathe();
+
     /**
      * @param type The AnimationType
      */

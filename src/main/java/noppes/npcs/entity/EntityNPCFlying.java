@@ -35,7 +35,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
     public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_)
     {
-        if(!this.canFly() || this.hurtTime != 0) {
+        if(!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
             super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
             return;
         }

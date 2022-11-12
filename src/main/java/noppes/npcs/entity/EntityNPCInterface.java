@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.*;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.*;
@@ -415,10 +416,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
+	public boolean canBreathe() {
+		return this.isInWater() && this.stats.drowningType == 2 || !this.isInWater() && this.stats.drowningType == 1 || this.stats.drowningType == 0;
+	}
+
 	@Override
 	protected void updateAITasks()
 	{
-		if (this.isInWater() || this.stats.drowningType != 2) {
+		if (this.canBreathe()) {
 			this.getNavigator().onUpdateNavigation();
 			this.getMoveHelper().onUpdateMoveHelper();
 			try {
@@ -1054,7 +1059,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.setRevengeTarget(null);
 		this.deathTime = 0;
 		//fleeingTick = 0;
-		if(ai.returnToStart && !hasOwner())
+		if(ai.returnToStart && !hasOwner() && !this.isRemote())
 			setLocationAndAngles(getStartXPos(), getStartYPos(), getStartZPos(), rotationYaw, rotationPitch);
 		killedtime = 0;
 		extinguish();
@@ -1351,7 +1356,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		if (yy <= 0)
 			setDead();
-		yy += 0.5;
+		//yy += 0.5;
 		return yy;
 	}
 
@@ -1632,7 +1637,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public boolean handleWaterMovement()
 	{
-		return stats.drowningType == 1 && super.handleWaterMovement();
+		if (stats.drowningType != 1) {
+			if (this.worldObj.handleMaterialAcceleration(this.boundingBox.expand(0.0D, -0.4000000059604645D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this)) {
+				this.fallDistance = 0.0F;
+				this.inWater = true;
+				this.setFire(0);
+			} else {
+				this.inWater = false;
+			}
+			return false;
+		} else {
+			return super.handleWaterMovement();
+		}
+	}
+
+	public boolean canBreatheUnderwater()
+	{
+		return stats.drowningType != 1;
 	}
 	
 	public void setAvoidWater(boolean avoidWater) {

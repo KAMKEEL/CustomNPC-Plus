@@ -1071,6 +1071,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.stats.drowningType = type;
 	}
 
+	public boolean canBreathe() {
+		return npc.canBreathe();
+	}
+
 	@Override
 	public long getAge(){
 		return npc.totalTicksAlive;

@@ -473,40 +473,30 @@ public class FlyPathFinder extends PathFinder
 
     public int nodeTypeToOffset(PathNodeType nodeType) {
         switch (nodeType) {
-            case BLOCKED:
-                return 0;
-            case OPEN:
-                return 2;
-            case WALKABLE:
-                return 1;
             case TRAPDOOR:
                 return -4;
             case FENCE:
                 return -3;
             case LAVA:
-                return -2;
-            case WATER:
-                return -1;
-            case RAIL:
-                return 2;
-            case DANGER_FIRE:
-                return -1;
             case DAMAGE_FIRE:
-                return -2;
-            case DANGER_CACTUS:
-                return -1;
             case DAMAGE_CACTUS:
-                return -2;
-            case DANGER_OTHER:
-                return -1;
             case DAMAGE_OTHER:
                 return -2;
-            case DOOR_OPEN:
-                return 1;
+            case WATER:
+            case DANGER_FIRE:
+            case DANGER_CACTUS:
+            case DANGER_OTHER:
+                return -1;
+            case BLOCKED:
             case DOOR_WOOD_CLOSED:
-                return 0;
             case DOOR_IRON_CLOSED:
                 return 0;
+            case WALKABLE:
+            case DOOR_OPEN:
+                return 1;
+            case OPEN:
+            case RAIL:
+                return 2;
         }
 
         return 1;
@@ -524,12 +514,6 @@ public class FlyPathFinder extends PathFinder
         }
 
         return pathpoint;
-    }
-
-    public NPCPathPoint getPointFromHash(int x, int y, int z)
-    {
-        int i = NPCPathPoint.makeHash(x, y, z);
-        return this.pointMap.lookup(i);
     }
 
     /**
@@ -721,7 +705,7 @@ public class FlyPathFinder extends PathFinder
 
         if (material == Material.air)
         {
-            return drowningType == 2 ? PathNodeType.WATER : PathNodeType.OPEN;
+            return PathNodeType.OPEN;
         }
         else if (block != Blocks.trapdoor && block != Blocks.waterlily)
         {
