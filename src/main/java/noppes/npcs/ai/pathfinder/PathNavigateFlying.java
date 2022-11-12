@@ -1,7 +1,6 @@
 package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -439,7 +438,7 @@ public class PathNavigateFlying extends PathNavigate {
     {
         Vec3 pos17 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
         Vec3 pos18 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord, endPos.zCoord);
-        if (this.rayTraceBlocks(pos17, pos18, true, false, false, width, height))
+        if (this.rayTraceBlocks(pos17, pos18, false, false, false, width, height))
             return false;
 
         return true;
@@ -657,19 +656,15 @@ public class PathNavigateFlying extends PathNavigate {
                                 Block block2 = this.worldObj.getBlock(l, i1, j1);
                                 int meta2 = this.worldObj.getBlockMetadata(l, i1, j1);
 
-                                if ((!p_147447_4_ || block2.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null)
+                                if (block2 != Blocks.air && (!p_147447_4_ || block2.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null)
                                         && block2.canCollideCheck(meta2, p_147447_3_)) {
-                                    if (block2.getMaterial() == Material.lava && !this.theEntity.isImmuneToFire() ||
-                                            block2.getMaterial() == Material.air && this.theEntity.stats.drowningType == 2 ||
-                                            block2.getMaterial() == Material.water && this.theEntity.stats.drowningType == 1 ||
-                                            !block2.getBlocksMovement(this.worldObj, l, i1, j1)) {
+                                    if (!block2.getBlocksMovement(this.worldObj, l, i1, j1)) {
                                         value = true;
                                         l -= x;
                                         i1 -= y;
                                         j1 -= z;
                                         break;
                                     }
-
                                     MovingObjectPosition movingobjectposition = block2.collisionRayTrace(this.worldObj, l, i1, j1, p_147447_1_, p_147447_2_);
 
                                     if (movingobjectposition != null && movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.MISS) {
