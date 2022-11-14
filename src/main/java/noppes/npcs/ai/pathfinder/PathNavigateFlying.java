@@ -1,6 +1,7 @@
 package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -434,7 +435,7 @@ public class PathNavigateFlying extends PathNavigate {
     {
         Vec3 pos17 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
         Vec3 pos18 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord, endPos.zCoord);
-        if (this.rayTraceBlocks(pos17, pos18, false, false, false, width, height))
+        if (this.rayTraceBlocks(pos17, pos18, true, false, false, width, height))
             return false;
 
         return true;
@@ -626,7 +627,7 @@ public class PathNavigateFlying extends PathNavigate {
                     }
 
                     boolean value = false;
-                    for (int x = 1 - width; x < width; x++) {
+                    for (int x = -width; x <= width; x++) {
                         if (value) {
                             break;
                         }
@@ -634,7 +635,11 @@ public class PathNavigateFlying extends PathNavigate {
                             if (value) {
                                 break;
                             }
-                            for (int z = 1 - width; z < width; z++) {
+                            for (int z = -width; z <= width; z++) {
+                                if (Math.abs(x) == Math.abs(z)) {
+                                    continue;
+                                }
+
                                 l += x;
                                 i1 += y;
                                 j1 += z;
@@ -642,8 +647,11 @@ public class PathNavigateFlying extends PathNavigate {
                                 Block block2 = this.worldObj.getBlock(l, i1, j1);
                                 int meta2 = this.worldObj.getBlockMetadata(l, i1, j1);
 
-                                if (block2 != Blocks.air && (!p_147447_4_ || block2.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null)
-                                        && block2.canCollideCheck(meta2, p_147447_3_)) {
+                                boolean collideCheck = (!p_147447_4_ || block2.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null) && block2.canCollideCheck(meta2, p_147447_3_);
+                                boolean noCollisionBlock = block2 == Blocks.air || block2.getMaterial() == Material.lava && this.theEntity.isImmuneToFire() ||
+                                        block2.getMaterial() == Material.water && this.theEntity.stats.drowningType == 2;
+
+                                if (collideCheck && !noCollisionBlock) {
                                     if (!block2.getBlocksMovement(this.worldObj, l, i1, j1)) {
                                         value = true;
                                         l -= x;
@@ -652,7 +660,6 @@ public class PathNavigateFlying extends PathNavigate {
                                         break;
                                     }
                                     MovingObjectPosition movingobjectposition = block2.collisionRayTrace(this.worldObj, l, i1, j1, p_147447_1_, p_147447_2_);
-
                                     if (movingobjectposition != null && movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.MISS) {
                                         value = true;
                                         l -= x;

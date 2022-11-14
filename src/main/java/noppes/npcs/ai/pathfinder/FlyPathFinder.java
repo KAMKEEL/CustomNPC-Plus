@@ -737,7 +737,7 @@ public class FlyPathFinder extends PathFinder
             {
                 if (material == Material.water)
                 {
-                    return drowningType == 1 ? PathNodeType.WATER :  PathNodeType.OPEN;
+                    return ((EntityNPCInterface)this.theEntity).ai.canSwim ? PathNodeType.OPEN :  PathNodeType.WATER;
                 }
                 else if (material == Material.lava)
                 {

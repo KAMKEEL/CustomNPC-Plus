@@ -21,6 +21,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityThrowable;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
@@ -423,13 +424,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	@Override
 	protected void updateAITasks()
 	{
-		if (this.canBreathe()) {
-			this.getNavigator().onUpdateNavigation();
-			this.getMoveHelper().onUpdateMoveHelper();
-			try {
-				super.updateAITasks();
-			} catch (ConcurrentModificationException ignored){}
-		} else {
+		this.getNavigator().onUpdateNavigation();
+		this.getMoveHelper().onUpdateMoveHelper();
+		try {
+			super.updateAITasks();
+		} catch (ConcurrentModificationException ignored){}
+
+		if (!this.canBreathe()) {
 			this.setAir(this.decreaseAirSupply(this.getAir()));
 
 			if (this.getAir() <= -20) {
@@ -1340,10 +1341,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		int j = getStartPos()[1];
 		int k = getStartPos()[2];
 		double yy = 0;
-		if (!this.canFly()) {
-			for (int ii = j; ii >= 0; ii--) {
+		for (int ii = j; ii >= 0; ii--) {
+			if (this.canFly()) {
+				if (ii < j - 1) {
+					yy = j;
+					break;
+				}
 				Block block = worldObj.getBlock(i, ii, k);
-				if (block == null)
+				AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
+				if (bb != null) {
+					yy = bb.maxY;
+					break;
+				}
+			} else {
+				Block block = worldObj.getBlock(i, ii, k);
+				if (block == null || block == Blocks.air)
 					continue;
 				AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
 				if (bb == null)
@@ -1351,12 +1363,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				yy = bb.maxY;
 				break;
 			}
-		} else {
-			yy = j;
 		}
 		if (yy <= 0)
 			setDead();
-		//yy += 0.5;
 		return yy;
 	}
 
@@ -1638,7 +1647,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean handleWaterMovement()
 	{
 		if (stats.drowningType != 1) {
-			if (this.worldObj.handleMaterialAcceleration(this.boundingBox.expand(0.0D, -0.4000000059604645D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this)) {
+			if (this.worldObj.handleMaterialAcceleration(this.boundingBox.expand(0.0D, -this.height/2.0D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this)) {
 				this.fallDistance = 0.0F;
 				this.inWater = true;
 				this.setFire(0);
