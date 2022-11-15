@@ -101,7 +101,7 @@ public class CmdNoppes extends ChMcLogger {
         cmdfaction.processCommand(this.pcParam, args);
         
         for(PlayerData playerdata : cmdfaction.data){
-        	playerdata.saveNBTData(null);
+        	playerdata.savePlayerDataOnFile();
         }
         return true;
     }

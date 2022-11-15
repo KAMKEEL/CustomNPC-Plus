@@ -479,7 +479,7 @@ public class NoppesUtilServer {
             if(pl != null){
             	playerdata.setNBT(new NBTTagCompound());
                 sendPlayerData(type, player, name);
-                playerdata.saveNBTData(null);
+                playerdata.savePlayerDataOnFile();
                 return;
             }
         }
@@ -488,27 +488,27 @@ public class NoppesUtilServer {
         	int questId = buffer.readInt();
         	data.activeQuests.remove(questId);
         	data.finishedQuests.remove(questId);
-            playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
         if(type == EnumPlayerData.Dialog){
         	PlayerDialogData data = playerdata.dialogData;
         	data.dialogsRead.remove(buffer.readInt());
-            playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
         if(type == EnumPlayerData.Transport){
         	PlayerTransportData data = playerdata.transportData;
         	data.transports.remove(buffer.readInt());
-            playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
         if(type == EnumPlayerData.Bank){
         	PlayerBankData data = playerdata.bankData;
         	data.banks.remove(buffer.readInt());
-            playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
         if(type == EnumPlayerData.Factions){
         	PlayerFactionData data = playerdata.factionData;
         	data.factionData.remove(buffer.readInt());
-            playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
         sendPlayerData(type, player, name);
 	}

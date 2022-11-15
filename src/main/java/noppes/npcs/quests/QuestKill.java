@@ -161,7 +161,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 					this.parent.setKilled(questdata, killed);
 					data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
 					data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
-					data.saveNBTData(data.getNBT());
+					data.savePlayerDataOnFile();
 				}
 			} else {
 				throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);

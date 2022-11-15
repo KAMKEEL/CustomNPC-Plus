@@ -27,6 +27,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
@@ -276,7 +277,7 @@ public class ServerEventsHandler {
 		}
 		if(event.entityLiving instanceof EntityPlayer){
 			PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer)event.entityLiving);
-			data.saveNBTData(null);
+			data.savePlayerDataOnFile();
 		}
 	}
 
@@ -358,6 +359,12 @@ public class ServerEventsHandler {
 			return;
 		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
 		data.updateCompanion(event.world);
+	}
+
+	@SubscribeEvent
+	public void world(PlayerEvent.SaveToFile event){
+		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
+		data.savePlayerDataOnFile();
 	}
 
 	@SubscribeEvent
