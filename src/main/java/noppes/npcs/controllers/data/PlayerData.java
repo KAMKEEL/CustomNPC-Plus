@@ -49,12 +49,20 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public boolean isGUIOpen = false;
 
 	@Override
-	public void saveNBTData(NBTTagCompound compound) {
+	public void saveNBTData(NBTTagCompound nbtTagCompound) {
+		//Do Nothing
+	}
+
+	public void savePlayerDataOnFile() {
 		PlayerDataController.instance.savePlayerData(this);
 	}
 
 	@Override
 	public void loadNBTData(NBTTagCompound compound) {
+		//Do Nothing
+	}
+
+	public void loadPlayerDataFromFile() {
 		NBTTagCompound data = PlayerDataController.instance.loadPlayerData(player.getPersistentID().toString());
 		if(data.hasNoTags()){
 			data = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
@@ -130,11 +138,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public void setGUIOpen(boolean bool) {
 		isGUIOpen = bool;
-		saveNBTData(null);
+		savePlayerDataOnFile();
 	}
 
 	public boolean getGUIOpen() {
-		loadNBTData(null);
+		loadPlayerDataFromFile();
 		return isGUIOpen;
 	}
 
@@ -149,7 +157,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		activeCompanion = npc;
 		if(npc != null)
 			((RoleCompanion)npc.roleInterface).companionID = companionID;
-		saveNBTData(null);
+		savePlayerDataOnFile();
 	}
 
 	public void updateCompanion(World world) {

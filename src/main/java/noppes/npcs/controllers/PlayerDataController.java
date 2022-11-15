@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -86,21 +89,24 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
+	private static Executor executor = Executors.newSingleThreadExecutor();
 	public void savePlayerData(PlayerData data){
 		NBTTagCompound compound = data.getNBT();
-		String filename = data.uuid + ".json";
-		try {
-			File saveDir = getSaveDir();
-			File file = new File(saveDir, filename+"_new");
-			File file1 = new File(saveDir, filename);
-			NBTJsonUtil.SaveFile(file, compound);
-			if(file1.exists()){
-				file1.delete();
+		executor.execute(() -> {
+			String filename = data.uuid + ".json";
+			try {
+				File saveDir = getSaveDir();
+				File file = new File(saveDir, filename+"_new");
+				File file1 = new File(saveDir, filename);
+				NBTJsonUtil.SaveFile(file, compound);
+				if(file1.exists()){
+					file1.delete();
+				}
+				file.renameTo(file1);
+			} catch (Exception e) {
+				LogWriter.except(e);
 			}
-			file.renameTo(file1);
-		} catch (Exception e) {
-			LogWriter.except(e);
-		}
+		});
 	}
 
 	public PlayerBankData getBankData(EntityPlayer player, int bankId) {
@@ -117,7 +123,7 @@ public class PlayerDataController {
 		if(data == null){
 			player.registerExtendedProperties("CustomNpcsData", data = new PlayerData());
 			data.player = player;
-			data.loadNBTData(null);
+			data.loadPlayerDataFromFile();
 		}
 		data.player = player;
 		return data;
