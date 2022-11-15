@@ -51,9 +51,8 @@ public class FlyingMoveHelper extends EntityMoveHelper{
                 }
 
                 this.entity.velocityChanged = true;
+                this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),20.0F);
             }
-
-            this.entity.rotationYaw = this.limitAngle(this.entity.rotationYaw,(float) ((Math.atan2(-d0, -d2) + Math.PI) * -(180F / Math.PI)),20.0F);
         }
     }
 

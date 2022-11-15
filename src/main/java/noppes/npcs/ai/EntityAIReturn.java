@@ -137,7 +137,7 @@ public class EntityAIReturn extends EntityAIBase
     			distance /= 2;
     		if(distance > 2){
 	    		Vec3 start = Vec3.createVectorHelper(posX, posY, posZ);
-	    		Vec3 pos = RandomPositionGeneratorAlt.findRandomTargetBlockTowards(npc, distance,distance /2 > 7? 7:distance/2, start);
+	    		Vec3 pos = RandomPositionGeneratorAlt.findRandomTargetBlockTowards(npc, distance, Math.min(distance / 2, 7), start);
 	    		if(pos != null){
 	    			posX = pos.xCoord;
 	    			posY = pos.yCoord;
@@ -146,7 +146,7 @@ public class EntityAIReturn extends EntityAIBase
     		}
     	}
 
-		if (range > 1f) {
+		if (range > 1.1f) {
 			npc.getNavigator().clearPathEntity();
 			npc.getNavigator().tryMoveToXYZ(posX, posY, posZ, 1);
 		}

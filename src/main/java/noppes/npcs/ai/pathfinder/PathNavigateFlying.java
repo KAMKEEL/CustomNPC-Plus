@@ -6,21 +6,21 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.init.Blocks;
 import net.minecraft.pathfinding.PathEntity;
-import net.minecraft.pathfinding.PathFinder;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
-import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import javax.annotation.Nullable;
 
 public class PathNavigateFlying extends PathNavigate {
+
     private EntityNPCInterface theEntity;
     private World worldObj;
     /** The PathEntity being followed. */
@@ -328,16 +328,7 @@ public class PathNavigateFlying extends PathNavigate {
 
         k = MathHelper.floor_double(this.theEntity.width + 1.0F);
         int l = MathHelper.floor_double(this.theEntity.height + 1.0F);
-        int i1 = k;
-
-        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
-        {
-            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
-            {
-                this.currentPath.setCurrentPathIndex(j1);
-                break;
-            }
-        }
+        this.trimPath(vec3,i,k,l);
 
         this.checkForStuck(vec3);
     }
@@ -364,20 +355,25 @@ public class PathNavigateFlying extends PathNavigate {
         }
 
         int k = MathHelper.ceiling_double_int(this.theEntity.width);
-        // Adjust Size HERE
         int l = MathHelper.ceiling_double_int(this.theEntity.height + 1.0F);
-        int i1 = k;
+        this.trimPath(vec3,i,k,l);
 
-        for (int j1 = i - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
+        this.checkForStuck(vec3);
+    }
+
+    public void trimPath(Vec3 position, int pathLength, int width, int height) {
+        for (int j1 = pathLength - 1; j1 >= this.currentPath.getCurrentPathIndex(); --j1)
         {
-            if (this.isDirectPathBetweenPoints(vec3, this.currentPath.getVectorFromIndex(this.theEntity, j1), k, l, i1))
+            Vec3 pathPoint = this.currentPath.getVectorFromIndex(this.theEntity, j1);
+            if (position.distanceTo(pathPoint) > 6)
+                continue;
+
+            if (this.isDirectPathBetweenPoints(position, pathPoint, width, height))
             {
                 this.currentPath.setCurrentPathIndex(j1);
                 break;
             }
         }
-
-        this.checkForStuck(vec3);
     }
 
 
@@ -435,156 +431,273 @@ public class PathNavigateFlying extends PathNavigate {
      * Returns true when an entity of specified size could safely walk in a straight line between the two points. Args:
      * pos1, pos2, entityXSize, entityYSize, entityZSize
      */
-    private boolean isDirectPathBetweenPoints(Vec3 vec31, Vec3 vec32, int entityXSize, int entityYSize, int entityZSize)
+    private boolean isDirectPathBetweenPoints(Vec3 startPos, Vec3 endPos, int width, int height)
     {
-        int l = MathHelper.floor_double(vec31.xCoord);
-        int i1 = MathHelper.floor_double(vec31.zCoord);
-        double d0 = vec32.xCoord - vec31.xCoord;
-        double d1 = vec32.zCoord - vec31.zCoord;
-        double d2 = d0 * d0 + d1 * d1;
-
-        if (d2 < 1.0E-8D)
-        {
+        Vec3 pos17 = Vec3.createVectorHelper(startPos.xCoord,startPos.yCoord, startPos.zCoord);
+        Vec3 pos18 = Vec3.createVectorHelper(endPos.xCoord,endPos.yCoord, endPos.zCoord);
+        if (this.rayTraceBlocks(pos17, pos18, true, false, false, width, height))
             return false;
-        }
-        else
-        {
-            double d3 = 1.0D / Math.sqrt(d2);
-            d0 *= d3;
-            d1 *= d3;
-            entityXSize += 2;
-            entityZSize += 2;
 
-            if (!this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1))
+        return true;
+    }
+
+    public boolean rayTraceBlocks(Vec3 p_147447_1_, Vec3 p_147447_2_, boolean p_147447_3_, boolean p_147447_4_, boolean p_147447_5_, int width, int height)
+    {
+        if (!Double.isNaN(p_147447_1_.xCoord) && !Double.isNaN(p_147447_1_.yCoord) && !Double.isNaN(p_147447_1_.zCoord))
+        {
+            if (!Double.isNaN(p_147447_2_.xCoord) && !Double.isNaN(p_147447_2_.yCoord) && !Double.isNaN(p_147447_2_.zCoord))
             {
+                int i = MathHelper.floor_double(p_147447_2_.xCoord);
+                int j = MathHelper.floor_double(p_147447_2_.yCoord);
+                int k = MathHelper.floor_double(p_147447_2_.zCoord);
+                int l = MathHelper.floor_double(p_147447_1_.xCoord);
+                int i1 = MathHelper.floor_double(p_147447_1_.yCoord);
+                int j1 = MathHelper.floor_double(p_147447_1_.zCoord);
+                Block block = this.worldObj.getBlock(l, i1, j1);
+                int k1 = this.worldObj.getBlockMetadata(l, i1, j1);
+
+                if ((!p_147447_4_ || block.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null) && block.canCollideCheck(k1, p_147447_3_))
+                {
+                    MovingObjectPosition movingobjectposition = block.collisionRayTrace(this.worldObj, l, i1, j1, p_147447_1_, p_147447_2_);
+
+                    if (movingobjectposition != null && movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.MISS)
+                    {
+                        return true;
+                    }
+                }
+
+                MovingObjectPosition movingobjectposition2 = null;
+                k1 = 200;
+
+                while (k1-- >= 0)
+                {
+                    if (Double.isNaN(p_147447_1_.xCoord) || Double.isNaN(p_147447_1_.yCoord) || Double.isNaN(p_147447_1_.zCoord))
+                    {
+                        return false;
+                    }
+
+                    if (l == i && i1 == j && j1 == k)
+                    {
+                        if (p_147447_5_) {
+                            return movingobjectposition2 != null && movingobjectposition2.typeOfHit != MovingObjectPosition.MovingObjectType.MISS;
+                        }
+                        return false;
+                    }
+
+                    boolean flag6 = true;
+                    boolean flag3 = true;
+                    boolean flag4 = true;
+                    double d0 = 999.0D;
+                    double d1 = 999.0D;
+                    double d2 = 999.0D;
+
+                    if (i > l)
+                    {
+                        d0 = (double)l + 1.0D;
+                    }
+                    else if (i < l)
+                    {
+                        d0 = (double)l + 0.0D;
+                    }
+                    else
+                    {
+                        flag6 = false;
+                    }
+
+                    if (j > i1)
+                    {
+                        d1 = (double)i1 + 1.0D;
+                    }
+                    else if (j < i1)
+                    {
+                        d1 = (double)i1 + 0.0D;
+                    }
+                    else
+                    {
+                        flag3 = false;
+                    }
+
+                    if (k > j1)
+                    {
+                        d2 = (double)j1 + 1.0D;
+                    }
+                    else if (k < j1)
+                    {
+                        d2 = (double)j1 + 0.0D;
+                    }
+                    else
+                    {
+                        flag4 = false;
+                    }
+
+                    double d3 = 999.0D;
+                    double d4 = 999.0D;
+                    double d5 = 999.0D;
+                    double d6 = p_147447_2_.xCoord - p_147447_1_.xCoord;
+                    double d7 = p_147447_2_.yCoord - p_147447_1_.yCoord;
+                    double d8 = p_147447_2_.zCoord - p_147447_1_.zCoord;
+
+                    if (flag6)
+                    {
+                        d3 = (d0 - p_147447_1_.xCoord) / d6;
+                    }
+
+                    if (flag3)
+                    {
+                        d4 = (d1 - p_147447_1_.yCoord) / d7;
+                    }
+
+                    if (flag4)
+                    {
+                        d5 = (d2 - p_147447_1_.zCoord) / d8;
+                    }
+
+                    boolean flag5 = false;
+                    byte b0;
+
+                    if (d3 < d4 && d3 < d5)
+                    {
+                        if (i > l)
+                        {
+                            b0 = 4;
+                        }
+                        else
+                        {
+                            b0 = 5;
+                        }
+
+                        p_147447_1_.xCoord = d0;
+                        p_147447_1_.yCoord += d7 * d3;
+                        p_147447_1_.zCoord += d8 * d3;
+                    }
+                    else if (d4 < d5)
+                    {
+                        if (j > i1)
+                        {
+                            b0 = 0;
+                        }
+                        else
+                        {
+                            b0 = 1;
+                        }
+
+                        p_147447_1_.xCoord += d6 * d4;
+                        p_147447_1_.yCoord = d1;
+                        p_147447_1_.zCoord += d8 * d4;
+                    }
+                    else
+                    {
+                        if (k > j1)
+                        {
+                            b0 = 2;
+                        }
+                        else
+                        {
+                            b0 = 3;
+                        }
+
+                        p_147447_1_.xCoord += d6 * d5;
+                        p_147447_1_.yCoord += d7 * d5;
+                        p_147447_1_.zCoord = d2;
+                    }
+
+                    Vec3 vec32 = Vec3.createVectorHelper(p_147447_1_.xCoord, p_147447_1_.yCoord, p_147447_1_.zCoord);
+                    l = (int)(vec32.xCoord = (double)MathHelper.floor_double(p_147447_1_.xCoord));
+
+                    if (b0 == 5)
+                    {
+                        --l;
+                        ++vec32.xCoord;
+                    }
+
+                    i1 = (int)(vec32.yCoord = (double)MathHelper.floor_double(p_147447_1_.yCoord));
+
+                    if (b0 == 1)
+                    {
+                        --i1;
+                        ++vec32.yCoord;
+                    }
+
+                    j1 = (int)(vec32.zCoord = (double)MathHelper.floor_double(p_147447_1_.zCoord));
+
+                    if (b0 == 3)
+                    {
+                        --j1;
+                        ++vec32.zCoord;
+                    }
+
+                    boolean value = false;
+                    for (int x = -width; x <= width; x++) {
+                        if (value) {
+                            break;
+                        }
+                        for (int y = 0; y <= height; y++) {
+                            if (value) {
+                                break;
+                            }
+                            for (int z = -width; z <= width; z++) {
+                                if (Math.abs(x) == Math.abs(z)) {
+                                    continue;
+                                }
+
+                                l += x;
+                                i1 += y;
+                                j1 += z;
+
+                                Block block2 = this.worldObj.getBlock(l, i1, j1);
+                                int meta2 = this.worldObj.getBlockMetadata(l, i1, j1);
+
+                                boolean collideCheck = (!p_147447_4_ || block2.getCollisionBoundingBoxFromPool(this.worldObj, l, i1, j1) != null) && block2.canCollideCheck(meta2, p_147447_3_);
+                                boolean noCollisionBlock = block2 == Blocks.air || block2.getMaterial() == Material.lava && this.theEntity.isImmuneToFire() ||
+                                        block2.getMaterial() == Material.water && this.theEntity.stats.drowningType == 2;
+
+                                if (collideCheck && !noCollisionBlock) {
+                                    if (!block2.getBlocksMovement(this.worldObj, l, i1, j1)) {
+                                        value = true;
+                                        l -= x;
+                                        i1 -= y;
+                                        j1 -= z;
+                                        break;
+                                    }
+                                    MovingObjectPosition movingobjectposition = block2.collisionRayTrace(this.worldObj, l, i1, j1, p_147447_1_, p_147447_2_);
+                                    if (movingobjectposition != null && movingobjectposition.typeOfHit != MovingObjectPosition.MovingObjectType.MISS) {
+                                        value = true;
+                                        l -= x;
+                                        i1 -= y;
+                                        j1 -= z;
+                                        break;
+                                    } else {
+                                        movingobjectposition2 = new MovingObjectPosition(l, i1, j1, b0, p_147447_1_, false);
+                                    }
+                                }
+
+                                l -= x;
+                                i1 -= y;
+                                j1 -= z;
+                            }
+                        }
+                    }
+
+                    if (value) {
+                        return true;
+                    }
+                }
+
+                if (p_147447_5_) {
+                    return movingobjectposition2 != null && movingobjectposition2.typeOfHit != MovingObjectPosition.MovingObjectType.MISS;
+                }
                 return false;
             }
             else
             {
-                entityXSize -= 2;
-                entityZSize -= 2;
-                double d4 = 1.0D / Math.abs(d0);
-                double d5 = 1.0D / Math.abs(d1);
-                double d6 = (double)(l * 1) - vec31.xCoord;
-                double d7 = (double)(i1 * 1) - vec31.zCoord;
-
-                if (d0 >= 0.0D)
-                {
-                    ++d6;
-                }
-
-                if (d1 >= 0.0D)
-                {
-                    ++d7;
-                }
-
-                d6 /= d0;
-                d7 /= d1;
-                int j1 = d0 < 0.0D ? -1 : 1;
-                int k1 = d1 < 0.0D ? -1 : 1;
-                int l1 = MathHelper.floor_double(vec32.xCoord);
-                int i2 = MathHelper.floor_double(vec32.zCoord);
-                int j2 = l1 - l;
-                int k2 = i2 - i1;
-
-                do
-                {
-                    if (j2 * j1 <= 0 && k2 * k1 <= 0)
-                    {
-                        return true;
-                    }
-
-                    if (d6 < d7)
-                    {
-                        d6 += d4;
-                        l += j1;
-                        j2 = l1 - l;
-                    }
-                    else
-                    {
-                        d7 += d5;
-                        i1 += k1;
-                        k2 = i2 - i1;
-                    }
-                }
-                while (this.isSafeToStandAt(l, (int)vec31.yCoord, i1, entityXSize, entityYSize, entityZSize, vec31, d0, d1));
-
                 return false;
             }
         }
-    }
-
-    private boolean isSafeToStandAt(int p_75483_1_, int p_75483_2_, int p_75483_3_, int p_75483_4_, int p_75483_5_, int p_75483_6_, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        int k1 = p_75483_1_ - p_75483_4_ / 2;
-        int l1 = p_75483_3_ - p_75483_6_ / 2;
-
-        if (!this.isPositionClear(k1, p_75483_2_, l1, p_75483_4_, p_75483_5_, p_75483_6_, p_75483_7_, p_75483_8_, p_75483_10_))
+        else
         {
             return false;
         }
-        else
-        {
-            for (int i2 = k1; i2 < k1 + p_75483_4_; ++i2)
-            {
-                for (int j2 = l1; j2 < l1 + p_75483_6_; ++j2)
-                {
-                    double d2 = (double)i2 + 0.5D - p_75483_7_.xCoord;
-                    double d3 = (double)j2 + 0.5D - p_75483_7_.zCoord;
-
-                    if (d2 * p_75483_8_ + d3 * p_75483_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(i2, p_75483_2_ - 1, j2);
-                        Material material = block.getMaterial();
-
-                        if (material == Material.water && !this.theEntity.isInWater())
-                        {
-                            return false;
-                        }
-
-                        if (material == Material.lava)
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
     }
-
-    private boolean isPositionClear(int x, int y, int z, int entityXSize, int entityYSize, int entityZSize, Vec3 p_75483_7_, double p_75483_8_, double p_75483_10_)
-    {
-        return pathFinder.getPathNodeType(this.theEntity.worldObj, x, y, z, (EntityLiving) this.theEntity, entityXSize, entityYSize, entityZSize, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 1).getPriority() == 0;
-    }
-
-    /*private boolean isPositionClear(int p_75496_1_, int p_75496_2_, int p_75496_3_, int p_75496_4_, int p_75496_5_, int p_75496_6_, Vec3 p_75496_7_, double p_75496_8_, double p_75496_10_)
-    {
-        for (int k1 = p_75496_1_; k1 < p_75496_1_ + p_75496_4_; ++k1)
-        {
-            for (int l1 = p_75496_2_; l1 < p_75496_2_ + p_75496_5_; ++l1)
-            {
-                for (int i2 = p_75496_3_; i2 < p_75496_3_ + p_75496_6_; ++i2)
-                {
-                    double d2 = (double)k1 + 0.5D - p_75496_7_.xCoord;
-                    double d3 = (double)i2 + 0.5D - p_75496_7_.zCoord;
-
-                    if (d2 * p_75496_8_ + d3 * p_75496_10_ >= 0.0D)
-                    {
-                        Block block = this.worldObj.getBlock(k1, l1, i2);
-
-                        if (!block.getBlocksMovement(this.worldObj, k1, l1, i2))
-                        {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
-    }*/
 
     protected void checkForStuck(Vec3 positionVec3)
     {

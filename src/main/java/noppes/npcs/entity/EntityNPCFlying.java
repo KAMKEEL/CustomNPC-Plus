@@ -1,8 +1,7 @@
 package noppes.npcs.entity;
 
-import net.minecraft.init.Blocks;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 public abstract class EntityNPCFlying extends EntityNPCInterface {
@@ -48,13 +47,24 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
     public void moveFlyingWithHeading(float strafe, float forward)
     {
-        if(!this.canFly() || this.hurtTime != 0) {
-            super.moveEntityWithHeading(strafe, forward);
+        if(!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
+            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
             return;
         }
 
+        boolean aboveLimit = false;
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
-        if (heightOffGround > this.ai.flyHeightLimit && this.ai.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
+        if (heightOffGround < 0) {
+            Vec3 pos = Vec3.createVectorHelper(this.posX,this.posY,this.posZ);
+            Vec3 posLimit = Vec3.createVectorHelper(this.posX,this.posY - this.ai.flyHeightLimit,this.posZ);
+            MovingObjectPosition mob = this.worldObj.rayTraceBlocks(pos,posLimit,true);
+            if (mob == null || mob.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) {
+                aboveLimit = true;
+            }
+        } else if (heightOffGround > this.ai.flyHeightLimit) {
+            aboveLimit = true;
+        }
+        if (aboveLimit && this.ai.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
             this.flyLimitAllow = false;
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;

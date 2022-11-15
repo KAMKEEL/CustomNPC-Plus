@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.*;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.*;
@@ -20,6 +21,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityThrowable;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
@@ -220,7 +222,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public int getMaxSafePointTries()
 	{
-		return 10;
+		return 3;
 	}
 
     @Override
@@ -415,16 +417,20 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
+	public boolean canBreathe() {
+		return this.isInWater() && this.stats.drowningType == 2 || !this.isInWater() && this.stats.drowningType == 1 || this.stats.drowningType == 0;
+	}
+
 	@Override
 	protected void updateAITasks()
 	{
-		if (this.isInWater() || this.stats.drowningType != 2) {
-			this.getNavigator().onUpdateNavigation();
-			this.getMoveHelper().onUpdateMoveHelper();
-			try {
-				super.updateAITasks();
-			} catch (ConcurrentModificationException ignored){}
-		} else {
+		this.getNavigator().onUpdateNavigation();
+		this.getMoveHelper().onUpdateMoveHelper();
+		try {
+			super.updateAITasks();
+		} catch (ConcurrentModificationException ignored){}
+
+		if (!this.canBreathe()) {
 			this.setAir(this.decreaseAirSupply(this.getAir()));
 
 			if (this.getAir() <= -20) {
@@ -1054,7 +1060,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.setRevengeTarget(null);
 		this.deathTime = 0;
 		//fleeingTick = 0;
-		if(ai.returnToStart && !hasOwner())
+		if(ai.returnToStart && !hasOwner() && !this.isRemote())
 			setLocationAndAngles(getStartXPos(), getStartYPos(), getStartZPos(), rotationYaw, rotationPitch);
 		killedtime = 0;
 		extinguish();
@@ -1336,18 +1342,30 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		int k = getStartPos()[2];
 		double yy = 0;
 		for (int ii = j; ii >= 0; ii--) {
-			Block block = worldObj.getBlock(i, ii, k);
-			if (block == null)
-				continue;
-			AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
-			if (bb == null)
-				continue;
-			yy = bb.maxY;
-			break;
+			if (this.canFly()) {
+				if (ii < j - 1) {
+					yy = j;
+					break;
+				}
+				Block block = worldObj.getBlock(i, ii, k);
+				AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
+				if (bb != null) {
+					yy = bb.maxY;
+					break;
+				}
+			} else {
+				Block block = worldObj.getBlock(i, ii, k);
+				if (block == null || block == Blocks.air)
+					continue;
+				AxisAlignedBB bb = block.getCollisionBoundingBoxFromPool(worldObj, i, ii, k);
+				if (bb == null)
+					continue;
+				yy = bb.maxY;
+				break;
+			}
 		}
 		if (yy <= 0)
 			setDead();
-		yy += 0.5;
 		return yy;
 	}
 
@@ -1619,6 +1637,32 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public void setImmuneToFire(boolean immuneToFire) {
 		this.isImmuneToFire = immuneToFire;
 		stats.immuneToFire = immuneToFire;
+	}
+
+	public boolean handleLavaMovement()
+	{
+		return !stats.immuneToFire && super.handleLavaMovement();
+	}
+
+	public boolean handleWaterMovement()
+	{
+		if (stats.drowningType != 1) {
+			if (this.worldObj.handleMaterialAcceleration(this.boundingBox.expand(0.0D, -this.height/2.0D, 0.0D).contract(0.001D, 0.001D, 0.001D), Material.water, this)) {
+				this.fallDistance = 0.0F;
+				this.inWater = true;
+				this.setFire(0);
+			} else {
+				this.inWater = false;
+			}
+			return false;
+		} else {
+			return super.handleWaterMovement();
+		}
+	}
+
+	public boolean canBreatheUnderwater()
+	{
+		return stats.drowningType != 1;
 	}
 	
 	public void setAvoidWater(boolean avoidWater) {
