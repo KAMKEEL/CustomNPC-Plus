@@ -9,25 +9,25 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
     public boolean flyLimitAllow = false;
 
-	public EntityNPCFlying(World world) {
-		super(world);
-	}
+    public EntityNPCFlying(World world) {
+        super(world);
+    }
 
-	@Override
-	public boolean canFly(){
-		return ai.movementType == 1;
-	}
+    @Override
+    public boolean canFly(){
+        return ai.movementType == 1;
+    }
 
     @Override
     public void fall(float distance) {
-    	if(!canFly())
-    		super.fall(distance);
+        if(!canFly())
+            super.fall(distance);
     }
 
     @Override
     protected void updateFallState(double p_180433_1_, boolean p_180433_3_) {
-    	if(!canFly())
-    		super.updateFallState(p_180433_1_, p_180433_3_);
+        if(!canFly())
+            super.updateFallState(p_180433_1_, p_180433_3_);
     }
 
     @Override
@@ -35,21 +35,10 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         return false;
     }
 
-    @Override
-    public void moveEntityWithHeading(float strafe, float forward) {
-        if(this.canFly() && this.hurtTime == 0) {
-            this.moveFlyingWithHeading(strafe, forward);
-            this.updateLimbSwing();
-        }
-        else {
-            super.moveEntityWithHeading(strafe, forward);
-        }
-    }
-
-    public void moveFlyingWithHeading(float strafe, float forward)
+    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_)
     {
         if(!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
-            super.moveEntityWithHeading(strafe, forward);
+            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
             return;
         }
 
@@ -70,14 +59,14 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;
             } else {
-                super.moveEntityWithHeading(strafe, forward);
+                super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
                 return;
             }
         }
         this.flyLimitAllow = true;
 
         double d3 = this.motionY;
-        super.moveEntityWithHeading(strafe, forward);
+        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
         this.motionY = d3;
 
         if (this.getNavigator().noPath()) {
