@@ -22,7 +22,6 @@ import java.util.logging.StreamHandler;
 
 public class LogWriter {
 	private final static String name = "CustomNPCs";
-	private final static String nameLog = "CustomNPCLog";
 	private final static Logger logger = Logger.getLogger(name);
 
 	private final static WeakHashMap<UUID, NPCStamp> InitCacheMap = new WeakHashMap<UUID, NPCStamp>();
