@@ -41,7 +41,7 @@ public class ModelWings extends ModelPartInterface {
 		lWing.rotateAngleZ = -0.5090659F;
 
 		float motion = Math.abs(MathHelper.sin(par1 * 0.033F + (float)Math.PI) * 0.4F) * par2;
-		if(!entity.onGround || motion > 0.01){	
+		if ((!entity.worldObj.isRemote && !entity.onGround) || motion > 0.1D) {
 			float speed = (float) (0.55f + 0.5f * motion);
             float y = MathHelper.sin(par3 * 0.67F);
 
@@ -50,8 +50,7 @@ public class ModelWings extends ModelPartInterface {
 
             lWing.rotateAngleZ -= y * 0.5f * speed;
             lWing.rotateAngleX += y * 0.5f * speed;
-		}
-		else{
+		} else {
 	        lWing.rotateAngleZ += MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
 	        rWing.rotateAngleZ -= MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
 	        lWing.rotateAngleX += MathHelper.sin(par3 * 0.067F) * 0.05F;
