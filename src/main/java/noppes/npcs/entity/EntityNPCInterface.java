@@ -92,11 +92,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataScript script;
 	public DataTransform transform;
 	public DataTimers timers;
-	
+
 	public String linkedName = "";
 	public long linkedLast = 0;
 	public LinkedData linkedData;
-	
+
 	public float baseHeight = 1.8f;
 	public float scaleX, scaleY, scaleZ;
 	private boolean wasKilled = false;
@@ -111,23 +111,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public int itemGiverId = 0;
 
 	public Faction faction; //should only be used server side
-	
+
 	private EntityAIRangedAttack aiRange;
 	private EntityAIBase aiResponse, aiLeap, aiSprint, aiAttackTarget;
-		
+
 	public List<EntityLivingBase> interactingEntities = new ArrayList<EntityLivingBase>();
 
 	public ResourceLocation textureLocation = null;
 	public ResourceLocation textureCloakLocation = null;
-	
+
 	public EnumAnimation currentAnimation = EnumAnimation.NONE;
-	
+
 	public int npcVersion = VersionCompatibility.ModRev;
 	public IChatMessages messages;
 
 	public boolean updateClient = false;
 	public boolean updateAI = false;
-	
+
 	public FlyingMoveHelper flyMoveHelper = new FlyingMoveHelper(this);
 	public PathNavigate flyNavigator = new PathNavigateFlying(this, worldObj);
 
@@ -144,10 +144,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			dialogs = new HashMap<Integer, DialogOption>();
 			if(!CustomNpcs.DefaultInteractLine.isEmpty())
 				advanced.interactLines.lines.put(0, new Line(CustomNpcs.DefaultInteractLine));
-			
+
 			experienceValue = 0;
 			scaleX = scaleY = scaleZ = 0.9375f;
-	        
+
 			faction = getFaction();
 			setFaction(faction.id);
 			setSize(1, 1);
@@ -160,27 +160,27 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		catch(Exception e){
 			e.printStackTrace();
 		}
-	}	
-	
+	}
+
 	@Override
-    protected void applyEntityAttributes(){
-        super.applyEntityAttributes();
-        
+	protected void applyEntityAttributes(){
+		super.applyEntityAttributes();
+
 		display = new DataDisplay(this);
 		stats = new DataStats(this);
-		ai = new DataAI(this);		
+		ai = new DataAI(this);
 		advanced = new DataAdvanced(this);
 		inventory = new DataInventory(this);
 		transform = new DataTransform(this);
 		script = new DataScript(this);
 		timers = new DataTimers(this);
-        this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
+		this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
-        this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
+		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
 		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(this.getSpeed());
-        this.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(stats.getAttackStrength());
-    }
+		this.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(stats.getAttackStrength());
+	}
 
 	@Override
 	protected void entityInit() {
@@ -190,20 +190,20 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.dataWatcher.addObject(15, Integer.valueOf(0)); // isWalking
 		this.dataWatcher.addObject(16, String.valueOf("")); // Role
 	}
-    protected boolean isAIEnabled(){
-        return true;
-    }
-    
-    @Override
-    public boolean getLeashed(){
-        return false; //Prevents npcs from being leashed
-    }
+	protected boolean isAIEnabled(){
+		return true;
+	}
 
-    @Override
-    public boolean isEntityAlive(){
-    	return super.isEntityAlive() && !isKilled();
-    }
-    
+	@Override
+	public boolean getLeashed(){
+		return false; //Prevents npcs from being leashed
+	}
+
+	@Override
+	public boolean isEntityAlive(){
+		return super.isEntityAlive() && !isKilled();
+	}
+
 	@Override
 	public void onUpdate(){
 		super.onUpdate();
@@ -214,7 +214,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			this.timers.update();
 		}
 	}
-	
+
 	public void setWorld(World world){
 		super.setWorld(world);
 		script.setWorld(world);
@@ -225,83 +225,83 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return 3;
 	}
 
-    @Override
-    public boolean attackEntityAsMob(Entity par1Entity){
-        float f = stats.getAttackStrength();
-        
-    	if (stats.attackSpeed < 10){
-        	par1Entity.hurtResistantTime = 0;
-        }
-    	if(par1Entity instanceof EntityLivingBase && !isRemote()){
+	@Override
+	public boolean attackEntityAsMob(Entity par1Entity){
+		float f = stats.getAttackStrength();
+
+		if (stats.attackSpeed < 10){
+			par1Entity.hurtResistantTime = 0;
+		}
+		if(par1Entity instanceof EntityLivingBase && !isRemote()){
 			NpcEvent.MeleeAttackEvent event = new NpcEvent.MeleeAttackEvent(wrappedNPC, f, (EntityLivingBase)par1Entity);
 			if(EventHooks.onNPCMeleeAttack(this, event))
 				return false;
 			f = event.getDamage();
-    	}
-    	
-        boolean var4 = par1Entity.attackEntityFrom(new NpcDamageSource("mob", this), f);
+		}
 
-        if (var4){
-        	if(getOwner() instanceof EntityPlayer)
-        		NPCEntityHelper.setRecentlyHit((EntityLivingBase)par1Entity);
-            if (stats.knockback > 0){
-                par1Entity.addVelocity((double)(-MathHelper.sin(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F), 0.1D, (double)(MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F));
-                this.motionX *= 0.6D;
-                this.motionZ *= 0.6D;
-            }
-            if(advanced.role == EnumRoleType.Companion){
-            	((RoleCompanion)roleInterface).attackedEntity(par1Entity);
-            }
-        }
+		boolean var4 = par1Entity.attackEntityFrom(new NpcDamageSource("mob", this), f);
 
-        if (stats.potionType != EnumPotionType.None){
-        	if (stats.potionType != EnumPotionType.Fire)
-        		((EntityLivingBase)par1Entity).addPotionEffect(new PotionEffect(this.getPotionEffect(stats.potionType), stats.potionDuration * 20, stats.potionAmp));
-        	else
-        		par1Entity.setFire(stats.potionDuration);
-        }
-        return var4;
-    }
+		if (var4){
+			if(getOwner() instanceof EntityPlayer)
+				NPCEntityHelper.setRecentlyHit((EntityLivingBase)par1Entity);
+			if (stats.knockback > 0){
+				par1Entity.addVelocity((double)(-MathHelper.sin(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F), 0.1D, (double)(MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F));
+				this.motionX *= 0.6D;
+				this.motionZ *= 0.6D;
+			}
+			if(advanced.role == EnumRoleType.Companion){
+				((RoleCompanion)roleInterface).attackedEntity(par1Entity);
+			}
+		}
 
-    @Override
-    public void onLivingUpdate(){
-    	if(CustomNpcs.FreezeNPCs)
-    		return;
-    	totalTicksAlive++;
-        this.updateArmSwingProgress();
-        if(this.ticksExisted % 20 == 0)
+		if (stats.potionType != EnumPotionType.None){
+			if (stats.potionType != EnumPotionType.Fire)
+				((EntityLivingBase)par1Entity).addPotionEffect(new PotionEffect(this.getPotionEffect(stats.potionType), stats.potionDuration * 20, stats.potionAmp));
+			else
+				par1Entity.setFire(stats.potionDuration);
+		}
+		return var4;
+	}
+
+	@Override
+	public void onLivingUpdate(){
+		if(CustomNpcs.FreezeNPCs)
+			return;
+		totalTicksAlive++;
+		this.updateArmSwingProgress();
+		if(this.ticksExisted % 20 == 0)
 			faction = getFaction();
 		if(!worldObj.isRemote){
-	    	if(!isKilled() && this.ticksExisted % 20 == 0){
-	    		if(this.getHealth() < this.getMaxHealth()){
-	    			if(stats.healthRegen > 0 && !isAttacking())
-	    				heal(stats.healthRegen);
-	    			if(stats.combatRegen > 0 && isAttacking())
-	    				heal(stats.combatRegen);
-	    		}
-	    		if(faction.getsAttacked && !isAttacking()){
-	    			List<EntityMob> list = this.worldObj.getEntitiesWithinAABB(EntityMob.class, this.boundingBox.expand(16, 16, 16));
-	    			for(EntityMob mob : list){
-	    				if(mob.getAttackTarget() == null && this.canSee(mob)){
-		    	    		if(mob instanceof EntityZombie && !mob.getEntityData().hasKey("AttackNpcs")){
-		    	    	        mob.tasks.addTask(2, new EntityAIAttackOnCollide(mob, EntityLivingBase.class, 1.0D, false));
-		    	    	        mob.getEntityData().setBoolean("AttackNpcs", true);
-		    	    		}
-	    					mob.setAttackTarget(this);
-	    				}
-	    			}
-	    		}
-	    		if(linkedData != null && linkedData.time > linkedLast){
-	    			LinkedNpcController.Instance.loadNpcData(this);
-	    		}
+			if(!isKilled() && this.ticksExisted % 20 == 0){
+				if(this.getHealth() < this.getMaxHealth()){
+					if(stats.healthRegen > 0 && !isAttacking())
+						heal(stats.healthRegen);
+					if(stats.combatRegen > 0 && isAttacking())
+						heal(stats.combatRegen);
+				}
+				if(faction.getsAttacked && !isAttacking()){
+					List<EntityMob> list = this.worldObj.getEntitiesWithinAABB(EntityMob.class, this.boundingBox.expand(16, 16, 16));
+					for(EntityMob mob : list){
+						if(mob.getAttackTarget() == null && this.canSee(mob)){
+							if(mob instanceof EntityZombie && !mob.getEntityData().hasKey("AttackNpcs")){
+								mob.tasks.addTask(2, new EntityAIAttackOnCollide(mob, EntityLivingBase.class, 1.0D, false));
+								mob.getEntityData().setBoolean("AttackNpcs", true);
+							}
+							mob.setAttackTarget(this);
+						}
+					}
+				}
+				if(linkedData != null && linkedData.time > linkedLast){
+					LinkedNpcController.Instance.loadNpcData(this);
+				}
 				if(updateClient){
-	    			this.updateClient();
-	    		}
-	    		if(updateAI){
-	    			updateTasks();
-	    			updateAI = false;
-	    		}
-	    	}
+					this.updateClient();
+				}
+				if(updateAI){
+					updateTasks();
+					updateAI = false;
+				}
+			}
 			if(getHealth() <= 0){
 				clearActivePotions();
 				setBoolFlag(true, 8);
@@ -309,41 +309,41 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setBoolFlag(this.getAttackTarget() != null, 4);
 			setBoolFlag(!getNavigator().noPath(), 1);
 			setBoolFlag(isInteracting(), 2);
-			
+
 			onCollide();
 		}
-		
+
 		if(wasKilled != isKilled() && wasKilled){
 			reset();
 		}
-		
-		wasKilled = isKilled();
-		
-		if (this.worldObj.isDaytime() && !this.worldObj.isRemote && this.stats.burnInSun){
-            float f = this.getBrightness(1.0F);
 
-            if (f > 0.5F && this.rand.nextFloat() * 30.0F < (f - 0.4F) * 2.0F && this.worldObj.canBlockSeeTheSky(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ))){
-                this.setFire(8);
-            }
-        }
-		
-        super.onLivingUpdate();
-        
-        if (worldObj.isRemote){
-        	 if(roleInterface != null){
-     			roleInterface.clientUpdate();
-     		}
-        	
-        	if(!display.cloakTexture.isEmpty())
-        		cloakUpdate();
+		wasKilled = isKilled();
+
+		if (this.worldObj.isDaytime() && !this.worldObj.isRemote && this.stats.burnInSun){
+			float f = this.getBrightness(1.0F);
+
+			if (f > 0.5F && this.rand.nextFloat() * 30.0F < (f - 0.4F) * 2.0F && this.worldObj.canBlockSeeTheSky(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posY), MathHelper.floor_double(this.posZ))){
+				this.setFire(8);
+			}
+		}
+
+		super.onLivingUpdate();
+
+		if (worldObj.isRemote){
+			if(roleInterface != null){
+				roleInterface.clientUpdate();
+			}
+
+			if(!display.cloakTexture.isEmpty())
+				cloakUpdate();
 			if(currentAnimation.ordinal() != dataWatcher.getWatchableObjectInt(14)){
 				currentAnimation = EnumAnimation.values()[dataWatcher.getWatchableObjectInt(14)];
 				updateHitbox();
 			}
 			if(advanced.job == EnumJobType.Bard)
 				((JobBard)jobInterface).onLivingUpdate();
-        }
-    }
+		}
+	}
 
 	public void updateClient() {
 		NBTTagCompound compound = writeSpawnData();
@@ -352,7 +352,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		updateClient = false;
 	}
 
-    
+
 	@Override
 	public boolean interact(EntityPlayer player) {
 		if(worldObj.isRemote)
@@ -369,7 +369,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				setAttackTarget(null);
 				if(currentItem.stackTagCompound == null)
 					currentItem.stackTagCompound = new NBTTagCompound();
-				
+
 				currentItem.stackTagCompound.setInteger("NPCID",this.getEntityId());
 				player.addChatMessage(new ChatComponentTranslation("Registered " + this.getCommandSenderName() + " to your NPC Pather"));
 				return true;
@@ -395,7 +395,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			roleInterface.interact(player);
 		else
 			say(player, advanced.getInteractLine());
-		
+
 		return true;
 	}
 
@@ -439,7 +439,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 		}
 	}
-	
+
 	public void addInteract(EntityLivingBase entity){
 		if( !ai.stopAndInteract || isAttacking() || !entity.isEntityAlive())
 			return;
@@ -450,7 +450,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(!interactingEntities.contains(entity))
 			interactingEntities.add(entity);
 	}
-	
+
 	public boolean isInteracting(){
 		if((ticksExisted - lastInteract) < 40 || isRemote() && getBoolFlag(2))
 			return true;
@@ -473,28 +473,28 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public boolean attackEntityFrom(DamageSource damagesource, float i) {
-        if (this.worldObj.isRemote || CustomNpcs.FreezeNPCs || (damagesource.damageType != null && damagesource.damageType.equals("inWall"))){
-            return false;
-        }
-        if(damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()){
-        	reset();
-        }
-        i = stats.resistances.applyResistance(damagesource, i);
-        if((float)this.hurtResistantTime > (float)this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
-        	return false;
-        
+		if (this.worldObj.isRemote || CustomNpcs.FreezeNPCs || (damagesource.damageType != null && damagesource.damageType.equals("inWall"))){
+			return false;
+		}
+		if(damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()){
+			reset();
+		}
+		i = stats.resistances.applyResistance(damagesource, i);
+		if((float)this.hurtResistantTime > (float)this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
+			return false;
+
 		Entity entity = damagesource.getEntity();
 
 		EntityLivingBase attackingEntity = null;
-		
-		if (entity instanceof EntityLivingBase) 
+
+		if (entity instanceof EntityLivingBase)
 			attackingEntity = (EntityLivingBase) entity;
 
 		if ((entity instanceof EntityArrow) && ((EntityArrow) entity).shootingEntity instanceof EntityLivingBase)
 			attackingEntity = (EntityLivingBase) ((EntityArrow) entity).shootingEntity;
 		else if ((entity instanceof EntityThrowable))
 			attackingEntity = ((EntityThrowable) entity).getThrower();
-		
+
 		if(attackingEntity != null && attackingEntity == getOwner())
 			return false;
 		else if (attackingEntity instanceof EntityNPCInterface){
@@ -510,13 +510,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(EventHooks.onNPCDamaged(this, event) || isKilled())
 			return false;
 		i = event.getDamage();
-		
+
 		if(isKilled())
 			return false;
-		
+
 		if(attackingEntity == null)
 			return super.attackEntityFrom(damagesource, i);
-		
+
 		try{
 			if (isAttacking()){
 				if(getAttackTarget() != null && attackingEntity != null && this.getDistanceSqToEntity(getAttackTarget()) > this.getDistanceSqToEntity(attackingEntity)){
@@ -524,13 +524,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				}
 				return super.attackEntityFrom(damagesource, i);
 			}
-			
+
 			if (i > 0) {
 				List<EntityNPCInterface> inRange = worldObj.getEntitiesWithinAABB(EntityNPCInterface.class, this.boundingBox.expand(32D, 16D, 32D));
 				for (EntityNPCInterface npc : inRange) {
 					if (npc.isKilled() || !npc.advanced.defendFaction || npc.faction.id != faction.id)
 						continue;
-					
+
 					if (npc.canSee(this) || npc.ai.directLOS || npc.canSee(attackingEntity))
 						npc.onAttack(attackingEntity);
 				}
@@ -550,11 +550,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			return;
 		super.setAttackTarget(entity);
 	}
-	
+
 	@Override
-    public void setAttackTarget(EntityLivingBase entity){
-    	if(entity instanceof EntityPlayer && ((EntityPlayer)entity).capabilities.disableDamage || entity != null && entity == getOwner())
-    		return;
+	public void setAttackTarget(EntityLivingBase entity){
+		if(entity instanceof EntityPlayer && ((EntityPlayer)entity).capabilities.disableDamage || entity != null && entity == getOwner())
+			return;
 		if (!isRemote()) {
 			if (getAttackTarget() != entity && entity != null) {
 				NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(wrappedNPC,entity);
@@ -572,17 +572,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 					saySurrounding(line.formatTarget(entity));
 			}
 		}
-		
+
 		super.setAttackTarget(entity);
-    }
+	}
 
 	@Override
 	public void attackEntityWithRangedAttack(EntityLivingBase entity, float f) {
-        ItemStack proj = inventory.getProjectile();
-        if(proj == null){
-    		updateTasks();
-        	return;
-        }
+		ItemStack proj = inventory.getProjectile();
+		if(proj == null){
+			updateTasks();
+			return;
+		}
 		if (!isRemote()) {
 			NpcEvent.RangedLaunchedEvent event = new NpcEvent.RangedLaunchedEvent(wrappedNPC,stats.pDamage,entity);
 			if (EventHooks.onNPCRangedAttack(this, event))
@@ -593,34 +593,34 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 			this.playSound(this.stats.fireSound, 2.0F, 1.0f);
 		}
-    }
-	
+	}
+
 	public EntityProjectile shoot(EntityLivingBase entity, int accuracy, ItemStack proj, boolean indirect){
 		return shoot(entity.posX, entity.boundingBox.minY + (double)(entity.height / 2.0F), entity.posZ, accuracy, proj, indirect);
 	}
-	
+
 	public EntityProjectile shoot(double x, double y, double z, int accuracy, ItemStack proj, boolean indirect){
-        EntityProjectile projectile = new EntityProjectile(this.worldObj, this, proj.copy(), true);
-        //TODO calculate height of the thrower
-        double varX = x - this.posX;
+		EntityProjectile projectile = new EntityProjectile(this.worldObj, this, proj.copy(), true);
+		//TODO calculate height of the thrower
+		double varX = x - this.posX;
 		double varY = y - (this.posY + this.getEyeHeight());
 		double varZ = z - this.posZ;
 		float varF = projectile.hasGravity() ? MathHelper.sqrt_double(varX * varX + varZ * varZ) : 0.0F;
 		float angle = projectile.getAngleForXYZ(varX, varY, varZ, varF, indirect);
 		float acc = 20.0F - MathHelper.floor_float(accuracy / 5.0F);
-        projectile.setThrowableHeading(varX, varY, varZ, angle, acc);
-        worldObj.spawnEntityInWorld(projectile);
-        return projectile;
+		projectile.setThrowableHeading(varX, varY, varZ, angle, acc);
+		worldObj.spawnEntityInWorld(projectile);
+		return projectile;
 	}
-	
+
 	private void clearTasks(EntityAITasks tasks){
-        Iterator iterator = tasks.taskEntries.iterator();
-        List<EntityAITaskEntry> list = new ArrayList(tasks.taskEntries);
-        for (EntityAITaskEntry entityaitaskentry : list)
-        {
-            tasks.removeTask(entityaitaskentry.action);
-        }
-        tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
+		Iterator iterator = tasks.taskEntries.iterator();
+		List<EntityAITaskEntry> list = new ArrayList(tasks.taskEntries);
+		for (EntityAITaskEntry entityaitaskentry : list)
+		{
+			tasks.removeTask(entityaitaskentry.action);
+		}
+		tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
 	}
 	public void updateTasks() {
 		if (worldObj == null || worldObj.isRemote)
@@ -633,8 +633,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.targetTasks.addTask(0, new EntityAIClearTarget(this));
 		this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
 		this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ai.directLOS, false, attackEntitySelector));
-        this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
-        this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
+		this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
+		this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
 
 		if (canFly()) {
 			this.getNavigator().setCanSwim(true);
@@ -649,75 +649,75 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.setMoveType();
 		this.addRegularEntries();
 	}
-	
+
 	private void removeTask(EntityAIBase task){
 		if(task != null)
 			tasks.removeTask(task);
 	}
-	
+
 	/*
 	 * Branch task function for setting how an NPC responds to a threat
 	 */
-	public void setResponse(){	
+	public void setResponse(){
 		removeTask(aiLeap);
 		removeTask(aiResponse);
 		removeTask(aiSprint);
 		removeTask(aiAttackTarget);
 		removeTask(aiRange);
 		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
-        
-        if (this.ai.onAttack == 1) 
-        	this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
-        
-        else if (this.ai.onAttack == 2)  {
-        	this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
-        	this.setCanSprint();
-        }
-        
-        else if (this.ai.onAttack == 0) {
-        	this.setCanLeap();
-        	this.setCanSprint();
-        	if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
-        	{
-	        	switch(this.ai.tacticalVariant)
-	        	{
-	        		case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.0D, this.ai.tacticalRadius)); break;
-	        		case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, this.ai.tacticalRadius, true)); break;
-	        		case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
-	        		case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
-	        		case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
-	        		default :
-	        	}
-        	}
-        	else
-        	{
-        		switch(this.ai.tacticalVariant)
-        		{
-        			case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIDodgeShoot(this)); break;
-        			case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, stats.rangedRange, false)); break;
-        			case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
-        			case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
-        			case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
-        			default :
-        		}
-        	}
-        	this.tasks.addTask(this.taskCount, aiAttackTarget = new EntityAIAttackTarget(this));
-        	((EntityAIAttackTarget)aiAttackTarget).navOverride(ai.tacticalVariant == EnumNavType.None);        	
-        	
-        	if(this.inventory.getProjectile() != null){
-        		this.tasks.addTask(this.taskCount++, aiRange = new EntityAIRangedAttack(this));
-        		aiRange.navOverride(ai.tacticalVariant == EnumNavType.None);
-        	}
-        }
-        else if (this.ai.onAttack == 3) {
-        	//do nothing
-        }
-    }
+
+		if (this.ai.onAttack == 1)
+			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
+
+		else if (this.ai.onAttack == 2)  {
+			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
+			this.setCanSprint();
+		}
+
+		else if (this.ai.onAttack == 0) {
+			this.setCanLeap();
+			this.setCanSprint();
+			if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
+			{
+				switch(this.ai.tacticalVariant)
+				{
+					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.0D, this.ai.tacticalRadius)); break;
+					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, this.ai.tacticalRadius, true)); break;
+					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
+					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
+					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
+					default :
+				}
+			}
+			else
+			{
+				switch(this.ai.tacticalVariant)
+				{
+					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIDodgeShoot(this)); break;
+					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, stats.rangedRange, false)); break;
+					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
+					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
+					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
+					default :
+				}
+			}
+			this.tasks.addTask(this.taskCount, aiAttackTarget = new EntityAIAttackTarget(this));
+			((EntityAIAttackTarget)aiAttackTarget).navOverride(ai.tacticalVariant == EnumNavType.None);
+
+			if(this.inventory.getProjectile() != null){
+				this.tasks.addTask(this.taskCount++, aiRange = new EntityAIRangedAttack(this));
+				aiRange.navOverride(ai.tacticalVariant == EnumNavType.None);
+			}
+		}
+		else if (this.ai.onAttack == 3) {
+			//do nothing
+		}
+	}
 
 	/*
 	 * Branch task function for setting if an NPC wanders or not
 	 */
-	public void setMoveType(){	
+	public void setMoveType(){
 		if (ai.movingType == EnumMovingType.Wandering){
 			this.tasks.addTask(this.taskCount++, new EntityAIWander(this));
 		}
@@ -742,7 +742,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		this.getNavigator().setBreakDoors(aiDoor != null);
 	}
-	
+
 	/*
 	 * Branch task function for finding shelter under the appropriate conditions
 	 */
@@ -758,7 +758,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			this.tasks.addTask(this.taskCount++, new EntityAIFindShade(this));
 		}
 	}
-		
+
 	/*
 	 * Branch task function for leaping
 	 */
@@ -766,7 +766,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if (this.ai.canLeap)
 			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAILeapAtTarget(this, 0.4F));
 	}
-	
+
 	/*
 	 * Branch task function for sprinting
 	 */
@@ -774,7 +774,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if (this.ai.canSprint)
 			this.tasks.addTask(this.taskCount++, aiSprint = new EntityAISprintToTarget(this));
 	}
-	
+
 	/*
 	 * Add immutable task entries.
 	 */
@@ -791,7 +791,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(transform.isValid())
 			this.tasks.addTask(this.taskCount++, new EntityAITransform(this));
 	}
-	
+
 	/*
 	 * Function for getting proper move speeds. This way we don't have to modify them every time we use them.
 	 */
@@ -799,29 +799,29 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return (float)ai.getWalkingSpeed() / 20.0F;
 	}
 
-    @Override
+	@Override
 	public float getBlockPathWeight(int par1, int par2, int par3){
 		float weight = this.worldObj.getLightBrightness(par1, par2, par3) - 0.5F;
-    	Block block = worldObj.getBlock(par1, par2, par3);
-    	if(block.isOpaqueCube())
-    		weight += 10;
-    	return weight;
-    }
-    
+		Block block = worldObj.getBlock(par1, par2, par3);
+		if(block.isOpaqueCube())
+			weight += 10;
+		return weight;
+	}
+
 	/*
 	 * Used for getting the applied potion effect from dataStats.
 	 */
 	private int getPotionEffect(EnumPotionType p) {
 		switch(p)
 		{
-		case Poison : return Potion.poison.id;
-		case Hunger : return Potion.hunger.id;
-		case Weakness : return Potion.weakness.id;
-		case Slowness : return Potion.moveSlowdown.id;
-		case Nausea : return Potion.confusion.id;
-		case Blindness : return Potion.blindness.id;
-		case Wither : return Potion.wither.id;
-		default : return 0;
+			case Poison : return Potion.poison.id;
+			case Hunger : return Potion.hunger.id;
+			case Weakness : return Potion.weakness.id;
+			case Slowness : return Potion.moveSlowdown.id;
+			case Nausea : return Potion.confusion.id;
+			case Blindness : return Potion.blindness.id;
+			case Wither : return Potion.wither.id;
+			default : return 0;
 		}
 	}
 
@@ -832,23 +832,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
-    @Override
+	@Override
 	protected int decreaseAirSupply(int par1)
-    {
+	{
 		if (this.stats.drowningType == 0)
 			return par1;
-        return super.decreaseAirSupply(par1);
-    }
+		return super.decreaseAirSupply(par1);
+	}
 
-    @Override
+	@Override
 	public EnumCreatureAttribute getCreatureAttribute()
-    {
-        return this.stats.creatureType;
-    }
-    
-    /**
-     * Returns the sound this mob makes while it's alive.
-     */
+	{
+		return this.stats.creatureType;
+	}
+
+	/**
+	 * Returns the sound this mob makes while it's alive.
+	 */
 	@Override
 	protected String getLivingSound() {
 		if (!this.isEntityAlive())
@@ -860,71 +860,71 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	@Override
-    public int getTalkInterval(){
-        return 160;
-    }
-    /**
-     * Returns the sound this mob makes when it is hurt.
-     */
-    @Override
-    protected String getHurtSound(){
-    	if(this.advanced.hurtSound.isEmpty())
-    		return null;
-        return this.advanced.hurtSound;
-    }
-
-    /**
-     * Returns the sound this mob makes on death.
-     */
-    @Override
-    protected String getDeathSound(){
-    	if(this.advanced.deathSound.isEmpty())
-    		return null;
-        return this.advanced.deathSound;
-    }
-	
+	public int getTalkInterval(){
+		return 160;
+	}
+	/**
+	 * Returns the sound this mob makes when it is hurt.
+	 */
 	@Override
-    protected float getSoundPitch(){
+	protected String getHurtSound(){
+		if(this.advanced.hurtSound.isEmpty())
+			return null;
+		return this.advanced.hurtSound;
+	}
+
+	/**
+	 * Returns the sound this mob makes on death.
+	 */
+	@Override
+	protected String getDeathSound(){
+		if(this.advanced.deathSound.isEmpty())
+			return null;
+		return this.advanced.deathSound;
+	}
+
+	@Override
+	protected float getSoundPitch(){
 		if(this.advanced.disablePitch)
 			return 1;
-    	return super.getSoundPitch();
-    }
-    
-    /**
-     * Plays step sound at given x, y, z for the entity
-     */
-    @Override
-    protected void func_145780_a(int p_145780_1_, int p_145780_2_, int p_145780_3_, Block p_145780_4_)
-    {
-    	if (!this.advanced.stepSound.equals(""))
-    	{
-    		this.playSound(this.advanced.stepSound, 0.15F, 1.0F);
-    	}
-    	else
-    	{
-    		super.func_145780_a(p_145780_1_, p_145780_2_, p_145780_3_, p_145780_4_);
-    	}
-    }
+		return super.getSoundPitch();
+	}
 
-    
-    public EntityPlayerMP getFakePlayer(){
-    	if(worldObj.isRemote)
-    		return null;
+	/**
+	 * Plays step sound at given x, y, z for the entity
+	 */
+	@Override
+	protected void func_145780_a(int p_145780_1_, int p_145780_2_, int p_145780_3_, Block p_145780_4_)
+	{
+		if (!this.advanced.stepSound.equals(""))
+		{
+			this.playSound(this.advanced.stepSound, 0.15F, 1.0F);
+		}
+		else
+		{
+			super.func_145780_a(p_145780_1_, p_145780_2_, p_145780_3_, p_145780_4_);
+		}
+	}
+
+
+	public EntityPlayerMP getFakePlayer(){
+		if(worldObj.isRemote)
+			return null;
 		if(chateventPlayer == null)
 			chateventPlayer = new FakePlayer((WorldServer)worldObj, chateventProfile);
 		EntityUtil.Copy(this, chateventPlayer);
 		chateventProfile.npc = this;
 		chateventPlayer.refreshDisplayName();
 		return chateventPlayer;
-    }
+	}
 
 	public void saySurrounding(Line line) {
 		if (line == null || line.text == null || getFakePlayer() == null)
 			return;
 		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.text, new ChatComponentTranslation(line.text.replace("%", "%%")));
-        if (MinecraftForge.EVENT_BUS.post(event) || event.component == null){
-            return;
-        }
+		if (MinecraftForge.EVENT_BUS.post(event) || event.component == null){
+			return;
+		}
 		line.text = event.component.getUnformattedText().replace("%%", "%");
 		List<EntityPlayer> inRange = worldObj.getEntitiesWithinAABB(
 				EntityPlayer.class, this.boundingBox.expand(20D, 20D, 20D));
@@ -934,16 +934,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public void say(EntityPlayer player, Line line) {
 		if (line == null || !this.canSee(player) || line.text == null)
-			return;		
-		
+			return;
+
 		if(!line.sound.isEmpty()){
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.sound, (float)posX, (float)posY, (float)posZ);
 		}
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.text, !line.hideText);
 	}
-    public boolean getAlwaysRenderNameTagForRender(){
-    	return true;
-    }
+	public boolean getAlwaysRenderNameTagForRender(){
+		return true;
+	}
 
 	@Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
@@ -962,23 +962,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			itemGiverId = -1;
 		}
 		advanced.readToNBT(compound);
-        if (advanced.role != EnumRoleType.None && roleInterface != null) 
-            roleInterface.readFromNBT(compound);
-        if (advanced.job != EnumJobType.None && jobInterface != null)
-            jobInterface.readFromNBT(compound);        
-        
+		if (advanced.role != EnumRoleType.None && roleInterface != null)
+			roleInterface.readFromNBT(compound);
+		if (advanced.job != EnumJobType.None && jobInterface != null)
+			jobInterface.readFromNBT(compound);
+
 		inventory.readEntityFromNBT(compound);
 		transform.readToNBT(compound);
-		
-		killedtime = compound.getLong("KilledTime");	
+
+		killedtime = compound.getLong("KilledTime");
 		totalTicksAlive = compound.getLong("TotalTicksAlive");
-		
+
 		linkedName = compound.getString("LinkedNpcName");
-		
+
 		if(!isRemote())
 			LinkedNpcController.Instance.loadNpcData(this);
-		
-        this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
+
+		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
 
 		this.updateTasks();
 	}
@@ -994,22 +994,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		script.writeToNBT(compound);
 		timers.writeToNBT(compound);
 		advanced.writeToNBT(compound);
-        if (advanced.role != EnumRoleType.None && roleInterface != null)
-            roleInterface.writeToNBT(compound);
-        if (advanced.job != EnumJobType.None && jobInterface != null)
-            jobInterface.writeToNBT(compound);
-        
+		if (advanced.role != EnumRoleType.None && roleInterface != null)
+			roleInterface.writeToNBT(compound);
+		if (advanced.job != EnumJobType.None && jobInterface != null)
+			jobInterface.writeToNBT(compound);
+
 		inventory.writeEntityToNBT(compound);
 		transform.writeToNBT(compound);
 
 		compound.setLong("KilledTime", killedtime);
-		compound.setLong("TotalTicksAlive", totalTicksAlive);		
+		compound.setLong("TotalTicksAlive", totalTicksAlive);
 		compound.setInteger("ModRev", npcVersion);
 		compound.setString("LinkedNpcName", linkedName);
 	}
 
 	public void updateHitbox() {
-		
+
 		if(currentAnimation == EnumAnimation.LYING || currentAnimation == EnumAnimation.CRAWLING){
 			width = 0.8f;
 			height = 0.4f;
@@ -1024,7 +1024,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		width = (width / 5f) * display.modelSize;
 		height = (height / 5f) * display.modelSize;
-		
+
 		this.setPosition(posX, posY, posZ);
 	}
 
@@ -1034,7 +1034,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			super.onDeathUpdate();
 			return;
 		}
-		
+
 		++this.deathTime;
 		if(worldObj.isRemote)
 			return;
@@ -1047,7 +1047,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 		}
 	}
-	
+
 	public void reset() {
 		hasDied = false;
 		isDead = false;
@@ -1055,7 +1055,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		setSprinting(false);
 		setHealth(getMaxHealth());
 		dataWatcher.updateObject(14, 0); // animation Normal
-		dataWatcher.updateObject(15, 0); 
+		dataWatcher.updateObject(15, 0);
 		this.setAttackTarget(null);
 		this.setRevengeTarget(null);
 		this.deathTime = 0;
@@ -1080,7 +1080,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(getOwner() != null){
 			getOwner().setLastAttacker(null);
 		}
-		
+
 		if(jobInterface != null)
 			jobInterface.reset();
 
@@ -1089,22 +1089,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
-    public void onCollide() {	
-    	if(!isEntityAlive() || ticksExisted % 4 != 0)
-    		return;
-    	
-        AxisAlignedBB axisalignedbb = null;
+	public void onCollide() {
+		if(!isEntityAlive() || ticksExisted % 4 != 0)
+			return;
 
-        if (this.ridingEntity != null && this.ridingEntity.isEntityAlive()){
-            axisalignedbb = this.boundingBox.func_111270_a(this.ridingEntity.boundingBox).expand(1.0D, 0.0D, 1.0D);
-        }
-        else{
-            axisalignedbb = this.boundingBox.expand(1.0D, 0.5D, 1.0D);
-        }
+		AxisAlignedBB axisalignedbb = null;
 
-        List list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, axisalignedbb);
-        if(list == null)
-        	return;
+		if (this.ridingEntity != null && this.ridingEntity.isEntityAlive()){
+			axisalignedbb = this.boundingBox.func_111270_a(this.ridingEntity.boundingBox).expand(1.0D, 0.0D, 1.0D);
+		}
+		else{
+			axisalignedbb = this.boundingBox.expand(1.0D, 0.5D, 1.0D);
+		}
+
+		List list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, axisalignedbb);
+		if(list == null)
+			return;
 
 		if (!isRemote()) {
 			for (int i = 0; i < list.size(); ++i) {
@@ -1114,16 +1114,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				}
 			}
 		}
-        
-    }
- 
 
-    
+	}
+
+
+
 	@Override
 	public void setInPortal(){
 		//prevent npcs from walking into portals
 	}
-	
+
 	public double field_20066_r;
 	public double field_20065_s;
 	public double field_20064_t;
@@ -1179,36 +1179,36 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			return inventory.getWeapon();
 	}
 
-    @Override
-    public ItemStack getEquipmentInSlot(int slot){
-    	if(slot == 0)
-    		return inventory.weapons.get(0);
-        return inventory.armorItemInSlot(4 - slot);
-    }
+	@Override
+	public ItemStack getEquipmentInSlot(int slot){
+		if(slot == 0)
+			return inventory.weapons.get(0);
+		return inventory.armorItemInSlot(4 - slot);
+	}
 
-    @Override
-    public ItemStack func_130225_q(int slot){
-        return inventory.armorItemInSlot(3 - slot);
-    }
+	@Override
+	public ItemStack func_130225_q(int slot){
+		return inventory.armorItemInSlot(3 - slot);
+	}
 
-    @Override
-    public void setCurrentItemOrArmor(int slot, ItemStack item){
-    	if(slot == 0)
-    		inventory.setWeapon(item);
-    	else{
-    		inventory.armor.put(4 - slot, item);
-    	}
-    }
-    private static final ItemStack[] lastActive = new ItemStack[5];
-    @Override
-    public ItemStack[] getLastActiveItems(){
-    	return lastActive;
-    }
-    
-    @Override
-    protected void dropEquipment(boolean p_82160_1_, int p_82160_2_){
-    	
-    }
+	@Override
+	public void setCurrentItemOrArmor(int slot, ItemStack item){
+		if(slot == 0)
+			inventory.setWeapon(item);
+		else{
+			inventory.armor.put(4 - slot, item);
+		}
+	}
+	private static final ItemStack[] lastActive = new ItemStack[5];
+	@Override
+	public ItemStack[] getLastActiveItems(){
+		return lastActive;
+	}
+
+	@Override
+	protected void dropEquipment(boolean p_82160_1_, int p_82160_2_){
+
+	}
 
 	public ItemStack getOffHand() {
 		if (isAttacking())
@@ -1218,26 +1218,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		else
 			return inventory.getOffHand();
 	}
-	
+
 	@Override
 	public void onDeath(DamageSource damagesource){
 		setSprinting(false);
 		getNavigator().clearPathEntity();
 		extinguish();
 		clearActivePotions();
-		
+
 		Entity entity = damagesource.getEntity();
 
 		EntityLivingBase attackingEntity = null;
-		
-		if (entity instanceof EntityLivingBase) 
+
+		if (entity instanceof EntityLivingBase)
 			attackingEntity = (EntityLivingBase) entity;
 
 		if ((entity instanceof EntityArrow) && ((EntityArrow) entity).shootingEntity instanceof EntityLivingBase)
 			attackingEntity = (EntityLivingBase) ((EntityArrow) entity).shootingEntity;
 		else if ((entity instanceof EntityThrowable))
 			attackingEntity = ((EntityThrowable) entity).getThrower();
-				
+
 
 		int droppedXp = inventory.getDroppedXp();
 		ArrayList<ItemStack> droppedItems = inventory.getDroppedItems(damagesource);
@@ -1263,7 +1263,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		super.onDeath(damagesource);
 	}
-	
+
 	@Override
 	public void setDead() {
 		hasDied = true;
@@ -1281,7 +1281,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			getNavigator().clearPathEntity();
 			if(killedtime <= 0)
 				killedtime = stats.respawnTime * 1000 + System.currentTimeMillis();
-			
+
 			if (advanced.role != EnumRoleType.None && roleInterface != null)
 				roleInterface.killed();
 			if (advanced.job != EnumJobType.None && jobInterface != null)
@@ -1296,22 +1296,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			jobInterface.delete();
 		super.setDead();
 	}
-	
+
 	public float getStartXPos(){
-		
+
 		return getStartPos()[0] + ai.bodyOffsetX / 10;
 	}
-	
+
 	public float getStartZPos(){
 		return getStartPos()[2] + ai.bodyOffsetZ / 10;
 	}
-	
+
 	public int[] getStartPos(){
 		if(ai.startPos == null || ai.startPos.length != 3)
-			ai.startPos = new int[] { 
-				MathHelper.floor_double(posX),
-				MathHelper.floor_double(posY),
-				MathHelper.floor_double(posZ) };
+			ai.startPos = new int[] {
+					MathHelper.floor_double(posX),
+					MathHelper.floor_double(posY),
+					MathHelper.floor_double(posZ) };
 		return ai.startPos;
 	}
 
@@ -1327,14 +1327,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public IIcon getItemIcon(ItemStack par1ItemStack, int par2){
-        if (par1ItemStack.getItem() instanceof ItemBow){
-            return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
-        }
+		if (par1ItemStack.getItem() instanceof ItemBow){
+			return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
+		}
 		EntityPlayer player = CustomNpcs.proxy.getPlayer();
 		if(player == null)
 			return super.getItemIcon(par1ItemStack, par2);
 		return player.getItemIcon(par1ItemStack, par2);
-    }
+	}
 
 	public double getStartYPos() {
 		int i = getStartPos()[0];
@@ -1401,7 +1401,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 		}
 	}
-	
+
 	@Override
 	public boolean isPlayerSleeping() {
 		return currentAnimation == EnumAnimation.LYING && !isAttacking();
@@ -1415,7 +1415,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean isWalking() {
 		return ai.movingType != EnumMovingType.Standing || isAttacking() || isFollower() || getBoolFlag(1);
 	}
-	
+
 	public void setBoolFlag(boolean bo, int id){
 		int i = dataWatcher.getWatchableObjectInt(15);
 		if(bo && (i & id) == 0)
@@ -1423,7 +1423,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(!bo && (i & id) != 0)
 			dataWatcher.updateObject(15, i - id);
 	}
-	
+
 	/**
 	 * 1: walking, 2:interacting, 4:attacking, 8:killed
 	 */
@@ -1436,25 +1436,25 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return currentAnimation == EnumAnimation.SNEAKING;
 	}
 	@Override
-    public void knockBack(Entity par1Entity, float par2, double par3, double par5)
-    {
+	public void knockBack(Entity par1Entity, float par2, double par3, double par5)
+	{
 		if(stats.resistances.knockback >= 2)
 			return;
-        this.isAirBorne = true;
-        float f1 = MathHelper.sqrt_double(par3 * par3 + par5 * par5);
-        float f2 = 0.5F *  (2 - stats.resistances.knockback);
-        this.motionX /= 2.0D;
-        this.motionY /= 2.0D;
-        this.motionZ /= 2.0D;
-        this.motionX -= par3 / (double)f1 * (double)f2;
-        this.motionY += 0.2 + f2 / 2;
-        this.motionZ -= par5 / (double)f1 * (double)f2;
+		this.isAirBorne = true;
+		float f1 = MathHelper.sqrt_double(par3 * par3 + par5 * par5);
+		float f2 = 0.5F *  (2 - stats.resistances.knockback);
+		this.motionX /= 2.0D;
+		this.motionY /= 2.0D;
+		this.motionZ /= 2.0D;
+		this.motionX -= par3 / (double)f1 * (double)f2;
+		this.motionY += 0.2 + f2 / 2;
+		this.motionZ -= par5 / (double)f1 * (double)f2;
 
-        if (this.motionY > 0.4000000059604645D)
-        {
-            this.motionY = 0.4000000059604645D;
-        }
-    }
+		if (this.motionY > 0.4000000059604645D)
+		{
+			this.motionY = 0.4000000059604645D;
+		}
+	}
 	@Override
 	public void addVelocity(double p_70024_1_, double p_70024_3_, double p_70024_5_) {
 		if (this.attackingPlayer != null) {
@@ -1464,7 +1464,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			super.addVelocity(p_70024_1_,p_70024_3_,p_70024_5_);
 		}
 	}
-    
+
 	public Faction getFaction() {
 		String[] split = dataWatcher.getWatchableObjectString(13).split(":");
 		int faction = 0;
@@ -1502,15 +1502,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			str = str.substring(0, 64);
 		dataWatcher.updateObject(13, str);
 	}
-	
+
 	@Override
 	public boolean isPotionApplicable(PotionEffect effect){
 		if(stats.potionImmune)
 			return false;
 		if(getCreatureAttribute() == EnumCreatureAttribute.ARTHROPOD && effect.getPotionID() == Potion.poison.id)
 			return false;
-        return super.isPotionApplicable(effect);
-    }
+		return super.isPotionApplicable(effect);
+	}
 
 	public boolean isAttacking() {
 		return getBoolFlag(4);
@@ -1557,7 +1557,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			roleInterface.writeToNBT(bard);
 			compound.setTag("Companion", bard);
 		}
-		
+
 		if(this instanceof EntityCustomNpc){
 			compound.setTag("ModelData", ((EntityCustomNpc)this).modelData.writeToNBT());
 		}
@@ -1568,7 +1568,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		try {
 			readSpawnData(Server.readNBT(buf));
 		} catch (IOException e) {
-		} 
+		}
 	}
 	public void readSpawnData(NBTTagCompound compound) {
 		stats.maxHealth = compound.getDouble("MaxHealth");
@@ -1577,7 +1577,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		ai.movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		ai.orientation = compound.getInteger("Orientation");
-		
+
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
 		inventory.setArmor(NBTTags.getItemStackList(compound.getTagList("Armor", 10)));
 		inventory.setWeapons(NBTTags.getItemStackList(compound.getTagList("Weapons", 10)));
@@ -1586,15 +1586,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(advanced.job == EnumJobType.Bard){
 			NBTTagCompound bard = compound.getCompoundTag("Bard");
 			jobInterface.readFromNBT(bard);
-		}		
+		}
 		if(advanced.job == EnumJobType.Puppet){
 			NBTTagCompound puppet = compound.getCompoundTag("Puppet");
 			jobInterface.readFromNBT(puppet);
-		}	
+		}
 		if(advanced.role == EnumRoleType.Companion){
 			NBTTagCompound puppet = compound.getCompoundTag("Companion");
 			roleInterface.readFromNBT(puppet);
-		}		
+		}
 		if(this instanceof EntityCustomNpc){
 			((EntityCustomNpc)this).modelData.readFromNBT(compound.getCompoundTag("ModelData"));
 		}
@@ -1620,20 +1620,20 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	@Override
 	public boolean canCommandSenderUseCommand(int var1, String var2) {
 		if(CustomNpcs.NpcUseOpCommands)
-	        return true;
-        return var1 <= 2;
+			return true;
+		return var1 <= 2;
 	}
 
 	@Override
 	public ChunkCoordinates getPlayerCoordinates() {
-        return new ChunkCoordinates(MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ));
+		return new ChunkCoordinates(MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ));
 	}
-	
+
 	@Override
 	public boolean canAttackClass(Class par1Class)
-    {
-        return EntityBat.class != par1Class;
-    }
+	{
+		return EntityBat.class != par1Class;
+	}
 	public void setImmuneToFire(boolean immuneToFire) {
 		this.isImmuneToFire = immuneToFire;
 		stats.immuneToFire = immuneToFire;
@@ -1664,7 +1664,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	{
 		return stats.drowningType != 1;
 	}
-	
+
 	public void setAvoidWater(boolean avoidWater) {
 		this.getNavigator().setAvoidsWater(avoidWater);
 		ai.avoidsWater = avoidWater;
@@ -1675,10 +1675,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			super.fall(par1);
 	}
 	@Override
-    public void setInWeb(){
-    	if(!ai.ignoreCobweb)
-    		super.setInWeb();
-    }
+	public void setInWeb(){
+		if(!ai.ignoreCobweb)
+			super.setInWeb();
+	}
 
 	@Override
 	public boolean canBeCollidedWith(){
@@ -1702,8 +1702,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 					Entity entity = (Entity) list.get(i);
 
 					if (this.canBePushed() ||
-						(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
-						(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
+							(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
+							(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
 					) {
 						super.collideWithEntity(entity);
 					}
@@ -1739,8 +1739,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				d0 *= (double)(1.0F - this.entityCollisionReduction);
 				d1 *= (double)(1.0F - this.entityCollisionReduction);
 				if (this.canBePushed() ||
-					(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
-					(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
+						(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
+						(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
 				)
 					this.addVelocity(-d0, 0.0D, -d1);
 				entity.addVelocity(d0, 0.0D, d1);
@@ -1766,20 +1766,20 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public String getRoleDataWatcher(){
 		return dataWatcher.getWatchableObjectString(16);
 	}
-	
+
 	public void setRoleDataWatcher(String s){
 		dataWatcher.updateObject(16, s);
 	}
-	
+
 	@Override
 	public World getEntityWorld() {
 		return worldObj;
 	}
 
 	@Override
-    public boolean isInvisibleToPlayer(EntityPlayer player){
-        return (scriptInvisibleToPlayer(player) || display.visible == 1) && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
-    }
+	public boolean isInvisibleToPlayer(EntityPlayer player){
+		return (scriptInvisibleToPlayer(player) || display.visible == 1) && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand);
+	}
 
 	public boolean scriptInvisibleToPlayer(EntityPlayer player){
 		return display.invisibleToList != null && display.invisibleToList.contains(player.getPersistentID());
@@ -1789,44 +1789,44 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public boolean isInvisible(){
 		return display.visible != 0;
 	}
-	
+
 	@Override
 	public void addChatMessage(IChatComponent var1) {}
-	
+
 	public void setCurrentAnimation(EnumAnimation animation) {
-    	currentAnimation = animation;
-    	dataWatcher.updateObject(14, animation.ordinal());
+		currentAnimation = animation;
+		dataWatcher.updateObject(14, animation.ordinal());
 	}
-	
+
 	public boolean canSee(Entity entity){
 		return this.getEntitySenses().canSee(entity);
 	}
-	
+
 	public boolean isFollower() {
-		return advanced.role == EnumRoleType.Follower && ((RoleFollower) roleInterface).isFollowing() || 
-				advanced.role == EnumRoleType.Companion && ((RoleCompanion) roleInterface).isFollowing() || 
+		return advanced.role == EnumRoleType.Follower && ((RoleFollower) roleInterface).isFollowing() ||
+				advanced.role == EnumRoleType.Companion && ((RoleCompanion) roleInterface).isFollowing() ||
 				advanced.job == EnumJobType.Follower && ((JobFollower)jobInterface).isFollowing();
 	}
-		
+
 	public EntityLivingBase getOwner(){
 		if(roleInterface instanceof RoleFollower)
 			return ((RoleFollower)roleInterface).owner;
-		
+
 		if(roleInterface instanceof RoleCompanion)
 			return ((RoleCompanion)roleInterface).owner;
 
 		if(jobInterface instanceof JobFollower)
 			return ((JobFollower)jobInterface).following;
-		
+
 		return null;
 	}
-	
+
 	public boolean hasOwner(){
-		return advanced.role == EnumRoleType.Follower && ((RoleFollower) roleInterface).hasOwner() || 
-				advanced.role == EnumRoleType.Companion && ((RoleCompanion) roleInterface).hasOwner() || 
+		return advanced.role == EnumRoleType.Follower && ((RoleFollower) roleInterface).hasOwner() ||
+				advanced.role == EnumRoleType.Companion && ((RoleCompanion) roleInterface).hasOwner() ||
 				advanced.job == EnumJobType.Follower && ((JobFollower)jobInterface).hasOwner();
 	}
-	
+
 	public int followRange() {
 		if(advanced.role == EnumRoleType.Follower && ((RoleFollower) roleInterface).isFollowing())
 			return 36;
@@ -1834,7 +1834,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			return ((RoleCompanion) roleInterface).followRange();
 		if(advanced.job == EnumJobType.Follower && ((JobFollower)jobInterface).isFollowing())
 			return 16;
-		
+
 		return 225;
 	}
 
@@ -1845,42 +1845,42 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	@Override
-    protected float applyArmorCalculations(DamageSource source, float damage){
+	protected float applyArmorCalculations(DamageSource source, float damage){
 		if(advanced.role == EnumRoleType.Companion)
 			damage = ((RoleCompanion)roleInterface).applyArmorCalculations(source, damage);
-    	return damage;
-    }
+		return damage;
+	}
 
 	@Override
-    public boolean isOnSameTeam(EntityLivingBase entity){
+	public boolean isOnSameTeam(EntityLivingBase entity){
 		if(entity instanceof EntityPlayer && !isRemote() && getFaction().isFriendlyToPlayer((EntityPlayer)entity))
 			return true;
-        return super.isOnSameTeam(entity);
-    }
-	
+		return super.isOnSameTeam(entity);
+	}
+
 	public void setDataWatcher(DataWatcher dataWatcher) {
 		this.dataWatcher = dataWatcher;
 	}
 
 	@Override
-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_){
-        double d0 = this.posX;
-        double d1 = this.posY;
-        double d2 = this.posZ;
-    	super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
-    	if(advanced.role == EnumRoleType.Companion && !isRemote())
-    		((RoleCompanion)roleInterface).addMovementStat(this.posX - d0, this.posY - d1, this.posZ - d2);
-    }
-	
+	public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_){
+		double d0 = this.posX;
+		double d1 = this.posY;
+		double d2 = this.posZ;
+		super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+		if(advanced.role == EnumRoleType.Companion && !isRemote())
+			((RoleCompanion)roleInterface).addMovementStat(this.posX - d0, this.posY - d1, this.posZ - d2);
+	}
+
 	@Override
-    public boolean allowLeashing(){
-    	return false;
-    }
-	
+	public boolean allowLeashing(){
+		return false;
+	}
+
 	@Override
-    public boolean shouldDismountInWater(Entity rider){
-    	return false;
-    }
+	public boolean shouldDismountInWater(Entity rider){
+		return false;
+	}
 
 	// Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64
 	public int getModelType()
