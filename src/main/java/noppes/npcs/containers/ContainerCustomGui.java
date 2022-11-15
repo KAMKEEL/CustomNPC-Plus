@@ -14,8 +14,8 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.EventHooks;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.gui.IItemSlot;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 

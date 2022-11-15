@@ -12,9 +12,9 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.scripted.interfaces.IContainer;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.IContainer;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
 
 public class ScriptContainer implements IContainer {
     private IInventory inventory;

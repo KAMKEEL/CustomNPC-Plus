@@ -14,9 +14,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
@@ -26,15 +24,13 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.*;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.entity.IPlayer;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {

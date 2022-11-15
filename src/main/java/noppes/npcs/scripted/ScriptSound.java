@@ -1,10 +1,9 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.nbt.*;
-import net.minecraft.util.math.BlockPos;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.handler.data.ISound;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.handler.data.ISound;
 
 import java.lang.reflect.Field;
 

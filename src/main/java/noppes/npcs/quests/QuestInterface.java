@@ -10,8 +10,8 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestInterface;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
+import noppes.npcs.api.handler.data.IQuestInterface;
+import noppes.npcs.api.handler.data.IQuestObjective;
 
 public abstract class QuestInterface implements IQuestInterface {
 	public int questId;

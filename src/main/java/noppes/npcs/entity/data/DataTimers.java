@@ -13,7 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.interfaces.ITimers;
+import noppes.npcs.api.ITimers;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
 

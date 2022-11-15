@@ -3,8 +3,8 @@ package noppes.npcs.controllers.data;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.handler.data.ITransportLocation;
 
 public class TransportLocation implements ITransportLocation {
 	public int id = -1;

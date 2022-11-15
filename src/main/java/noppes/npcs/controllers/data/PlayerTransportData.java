@@ -6,8 +6,8 @@ import java.util.HashSet;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.TransportController;
-import noppes.npcs.scripted.interfaces.handler.IPlayerTransportData;
-import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
+import noppes.npcs.api.handler.IPlayerTransportData;
+import noppes.npcs.api.handler.data.ITransportLocation;
 
 public class PlayerTransportData implements IPlayerTransportData {
 	private final PlayerData parent;

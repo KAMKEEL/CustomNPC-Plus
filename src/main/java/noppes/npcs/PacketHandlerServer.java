@@ -53,7 +53,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 public class PacketHandlerServer{

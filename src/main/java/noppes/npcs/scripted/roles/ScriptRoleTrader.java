@@ -4,10 +4,10 @@ import foxz.utils.Market;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.roles.IRoleTrader;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.roles.IRoleTrader;
 
 public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader {
 	private RoleTrader role;

@@ -5,7 +5,7 @@ import java.util.HashMap;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.BankController;
-import noppes.npcs.scripted.interfaces.handler.IPlayerBankData;
+import noppes.npcs.api.handler.IPlayerBankData;
 
 public class PlayerBankData implements IPlayerBankData {
 	private final PlayerData parent;

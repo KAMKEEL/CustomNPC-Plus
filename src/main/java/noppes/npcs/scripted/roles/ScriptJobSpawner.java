@@ -12,12 +12,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.scripted.interfaces.INbt;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.jobs.IJobSpawner;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.jobs.IJobSpawner;
 
 public class ScriptJobSpawner extends ScriptJobInterface implements IJobSpawner {
 	private final JobSpawner job;

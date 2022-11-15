@@ -18,19 +18,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.*;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.IParticle;
-import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.INbt;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.IParticle;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.item.IItemStack;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;

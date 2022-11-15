@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.event;
 
-import noppes.npcs.scripted.interfaces.handler.data.IDialog;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.handler.data.IDialog;
+import noppes.npcs.api.entity.IPlayer;
 
 public class DialogEvent extends CustomNPCsEvent {
     public final IDialog dialog;

@@ -4,9 +4,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
-import noppes.npcs.scripted.interfaces.roles.IRoleTransporter;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ITransportLocation;
+import noppes.npcs.api.roles.IRoleTransporter;
 
 public class ScriptRoleTransporter extends ScriptRoleInterface implements IRoleTransporter {
 	private final RoleTransporter role;

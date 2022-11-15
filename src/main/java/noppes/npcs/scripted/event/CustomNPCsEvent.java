@@ -7,10 +7,9 @@ package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
+import noppes.npcs.api.AbstractNpcAPI;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.handler.data.INaturalSpawn;
 
 public class CustomNPCsEvent extends Event{
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();

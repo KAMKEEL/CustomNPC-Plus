@@ -2,11 +2,10 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.entity.IAnimal;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.IAnimal;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
 
 public class ScriptAnimal<T extends EntityAnimal> extends ScriptLiving<T> implements IAnimal {
 	protected T entity;

@@ -14,9 +14,9 @@ import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.controllers.data.DialogOption;
-import noppes.npcs.scripted.interfaces.handler.IDialogHandler;
-import noppes.npcs.scripted.interfaces.handler.data.IDialog;
-import noppes.npcs.scripted.interfaces.handler.data.IDialogCategory;
+import noppes.npcs.api.handler.IDialogHandler;
+import noppes.npcs.api.handler.data.IDialog;
+import noppes.npcs.api.handler.data.IDialogCategory;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class DialogController implements IDialogHandler {

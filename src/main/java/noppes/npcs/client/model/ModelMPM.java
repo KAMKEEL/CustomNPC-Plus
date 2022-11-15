@@ -26,7 +26,7 @@ import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
 
-import noppes.npcs.scripted.interfaces.ISkinOverlay;
+import noppes.npcs.api.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;

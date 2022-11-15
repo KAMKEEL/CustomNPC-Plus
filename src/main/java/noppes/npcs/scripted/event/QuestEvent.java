@@ -1,9 +1,9 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IPlayer;
 
 public class QuestEvent extends CustomNPCsEvent {
     public final IQuest quest;

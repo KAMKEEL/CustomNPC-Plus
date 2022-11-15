@@ -5,8 +5,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.roles.IRoleFollower;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.roles.IRoleFollower;
 
 public class ScriptRoleFollower extends ScriptRoleInterface implements IRoleFollower {
 	private RoleFollower role;

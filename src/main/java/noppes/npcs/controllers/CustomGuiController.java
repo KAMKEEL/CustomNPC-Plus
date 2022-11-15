@@ -12,8 +12,8 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.event.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.scripted.NpcAPI;
 

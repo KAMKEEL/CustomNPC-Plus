@@ -1,7 +1,6 @@
 package noppes.npcs.controllers.data;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -20,8 +19,8 @@ import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
 import noppes.npcs.quests.QuestItem;
-import noppes.npcs.scripted.interfaces.handler.IPlayerQuestData;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
+import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.data.IQuest;
 
 public class PlayerQuestData implements IPlayerQuestData {
 	private final PlayerData parent;

@@ -16,8 +16,8 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
-import noppes.npcs.scripted.interfaces.handler.*;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.handler.*;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;

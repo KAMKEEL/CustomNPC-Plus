@@ -2,9 +2,7 @@ package noppes.npcs.scripted;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.interfaces.*;
+import noppes.npcs.api.*;
 
 public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
     protected T tileEntity;

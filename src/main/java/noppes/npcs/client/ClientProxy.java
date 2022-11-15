@@ -136,7 +136,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 
 import noppes.npcs.items.ItemScripted;
-import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.api.IWorld;
 import org.lwjgl.input.Keyboard;
 
 import tconstruct.client.tabs.InventoryTabFactions;

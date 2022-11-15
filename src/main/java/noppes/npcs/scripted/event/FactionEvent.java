@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.event;
 
-import noppes.npcs.scripted.interfaces.handler.data.IFaction;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.entity.IPlayer;
 
 public class FactionEvent extends CustomNPCsEvent {
     public final IFaction faction;

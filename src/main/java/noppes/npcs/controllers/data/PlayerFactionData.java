@@ -10,8 +10,8 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.FactionEvent;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.IPlayerFactionData;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerFactionData;
 
 public class PlayerFactionData implements IPlayerFactionData {
 	private final PlayerData parent;

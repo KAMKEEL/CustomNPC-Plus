@@ -13,8 +13,8 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestLocation;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
+import noppes.npcs.api.handler.data.IQuestLocation;
+import noppes.npcs.api.handler.data.IQuestObjective;
 
 public class QuestLocation extends QuestInterface implements IQuestLocation {
 	public String location = "";

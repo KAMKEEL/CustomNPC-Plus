@@ -15,7 +15,7 @@ import noppes.npcs.containers.*;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import cpw.mods.fml.common.network.IGuiHandler;
-import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.api.IWorld;
 
 public class CommonProxy implements IGuiHandler {
 

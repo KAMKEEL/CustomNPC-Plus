@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.scripted.interfaces.item.IItemBook;
+import noppes.npcs.api.item.IItemBook;
 
 import java.util.ArrayList;
 import java.util.List;

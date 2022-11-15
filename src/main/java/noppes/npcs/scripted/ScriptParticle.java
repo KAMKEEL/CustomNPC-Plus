@@ -2,10 +2,10 @@ package noppes.npcs.scripted;
 
 import net.minecraft.nbt.*;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.scripted.interfaces.IParticle;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.api.IParticle;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntity;
 
 import java.lang.reflect.Field;
 

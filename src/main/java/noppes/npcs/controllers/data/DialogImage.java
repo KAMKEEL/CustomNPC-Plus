@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.handler.data.IDialogImage;
+import noppes.npcs.api.handler.data.IDialogImage;
 
 public class DialogImage implements IDialogImage {
     public int id;

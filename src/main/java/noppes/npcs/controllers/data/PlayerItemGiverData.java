@@ -7,8 +7,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.scripted.interfaces.handler.IPlayerItemGiverData;
-import noppes.npcs.scripted.interfaces.jobs.IJobItemGiver;
+import noppes.npcs.api.handler.IPlayerItemGiverData;
+import noppes.npcs.api.jobs.IJobItemGiver;
 import noppes.npcs.scripted.roles.ScriptJobItemGiver;
 
 public class PlayerItemGiverData implements IPlayerItemGiverData {

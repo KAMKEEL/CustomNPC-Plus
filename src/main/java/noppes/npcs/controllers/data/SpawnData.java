@@ -12,9 +12,9 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.IWorld;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.handler.data.INaturalSpawn;
 
 public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 	public List<String> biomes = new ArrayList<String>();

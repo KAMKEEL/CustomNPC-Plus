@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.overlay;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.overlay.IOverlayTexturedRect;
+import noppes.npcs.api.overlay.IOverlayTexturedRect;
 
 public class ScriptOverlayTexturedRect extends ScriptOverlayComponent implements IOverlayTexturedRect {
     int width;

@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.customoverlay.components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
@@ -11,7 +10,7 @@ import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
-import noppes.npcs.scripted.interfaces.overlay.ICustomOverlayComponent;
+import noppes.npcs.api.overlay.ICustomOverlayComponent;
 import noppes.npcs.scripted.overlay.ScriptOverlayTexturedRect;
 import org.lwjgl.opengl.GL11;
 

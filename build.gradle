@@ -35,6 +35,14 @@ archivesBaseName = "CustomNPC-Plus"
 minecraft {
     version = "1.7.10-10.13.4.1614-1.7.10"
     runDir = "eclipse"
+
+    sourceSets {
+        api {
+            java {
+                srcDir 'src/api/java'
+            }
+        }
+    }
 }
 
 sourceCompatibility = 1.8
@@ -78,6 +86,8 @@ processResources
 sourceSets {main { output.resourcesDir = output.classesDir }}
 
 jar {
+    from sourceSets.api.output
+
     manifest {
         attributes(
             'FMLAT': "customnpcs_at.cfg",

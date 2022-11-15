@@ -29,7 +29,7 @@ import noppes.npcs.controllers.data.DialogImage;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.scripted.interfaces.handler.data.IDialogImage;
+import noppes.npcs.api.handler.data.IDialogImage;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;

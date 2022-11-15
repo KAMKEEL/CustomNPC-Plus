@@ -9,9 +9,8 @@ import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.handler.data.IPlayerMail;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.handler.data.IPlayerMail;
+import noppes.npcs.api.item.IItemStack;
 
 import java.util.ArrayList;
 

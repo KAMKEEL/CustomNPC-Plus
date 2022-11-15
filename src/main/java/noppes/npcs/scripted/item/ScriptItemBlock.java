@@ -2,7 +2,7 @@ package noppes.npcs.scripted.item;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
-import noppes.npcs.scripted.interfaces.item.IItemBlock;
+import noppes.npcs.api.item.IItemBlock;
 
 public class ScriptItemBlock extends ScriptItemStack implements IItemBlock {
     protected String blockName;

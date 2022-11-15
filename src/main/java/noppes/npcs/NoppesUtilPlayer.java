@@ -36,10 +36,9 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
-import noppes.npcs.scripted.interfaces.handler.data.ISound;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 
 public class NoppesUtilPlayer {
