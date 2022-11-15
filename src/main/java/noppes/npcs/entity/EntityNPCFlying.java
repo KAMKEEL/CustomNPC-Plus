@@ -1,5 +1,6 @@
 package noppes.npcs.entity;
 
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
@@ -48,7 +49,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
     public void moveFlyingWithHeading(float strafe, float forward)
     {
         if(!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+            super.moveEntityWithHeading(strafe, forward);
             return;
         }
 
