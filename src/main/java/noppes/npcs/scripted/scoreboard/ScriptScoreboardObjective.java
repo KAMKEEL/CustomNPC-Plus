@@ -1,11 +1,12 @@
 package noppes.npcs.scripted.scoreboard;
 
 import net.minecraft.scoreboard.ScoreObjective;
+import noppes.npcs.api.scoreboard.IScoreboardObjective;
 
-public class ScriptScoreboardObjective {
+public class ScriptScoreboardObjective implements IScoreboardObjective {
 	private ScoreObjective objective;
 	
-	protected ScriptScoreboardObjective(ScoreObjective objective){
+	public ScriptScoreboardObjective(ScoreObjective objective){
 		this.objective = objective;
 	}
 	
