@@ -20,6 +20,7 @@ import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
 public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
@@ -40,6 +41,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public ChatEvent(IPlayer player, String message) {
             super(player);
             this.message = message;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CHAT.function;
         }
 
         public void setMessage(String message) {
@@ -69,6 +74,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.isMetaPressed = isMetaPressed;
             this.keyDown = keyDown;
             this.keysDown = heldKeys;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.KEY_PRESSED.function;
         }
 
         public int getKey() {
@@ -123,6 +132,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.keysDown = heldKeys;
         }
 
+        public String getHookName() {
+            return EnumScriptType.MOUSE_CLICKED.function;
+        }
+
         public int getButton() {
             return button;
         }
@@ -164,6 +177,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.amount = orb.xpValue;
         }
 
+        public String getHookName() {
+            return EnumScriptType.PICKUP_XP.function;
+        }
+
         public int getAmount() {
             return amount;
         }
@@ -177,6 +194,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.change = change;
         }
 
+        public String getHookName() {
+            return EnumScriptType.LEVEL_UP.function;
+        }
+
         public int getChange() {
             return change;
         }
@@ -186,17 +207,29 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public LogoutEvent(IPlayer player) {
             super(player);
         }
+
+        public String getHookName() {
+            return EnumScriptType.LOGOUT.function;
+        }
     }
 
     public static class LoginEvent extends PlayerEvent implements IPlayerEvent.LoginEvent {
         public LoginEvent(IPlayer player) {
             super(player);
         }
+
+        public String getHookName() {
+            return EnumScriptType.LOGIN.function;
+        }
     }
 
     public static class RespawnEvent extends PlayerEvent implements IPlayerEvent.RespawnEvent {
         public RespawnEvent(IPlayer player) {
             super(player);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.RESPAWN.function;
         }
     }
 
@@ -208,6 +241,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             super(player);
             this.fromDim = fromDim;
             this.toDim = toDim;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CHANGED_DIM.function;
         }
 
         public int getFromDim() {
@@ -227,6 +264,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.id = id;
         }
 
+        public String getHookName() {
+            return EnumScriptType.TIMER.function;
+        }
+
         public int getId() {
             return id;
         }
@@ -243,6 +284,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.source = NpcAPI.Instance().getIEntity(source);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.ATTACKED.function;
         }
 
         public IDamageSource getDamageSource() {
@@ -272,6 +317,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
 
+        public String getHookName() {
+            return EnumScriptType.DAMAGED.function;
+        }
+
         public IDamageSource getDamageSource() {
             return damageSource;
         }
@@ -290,6 +339,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public LightningEvent(IPlayer player) {
             super(player);
         }
+
+        public String getHookName() {
+            return EnumScriptType.LIGHTNING.function;
+        }
     }
 
     @Cancelable
@@ -303,6 +356,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.name = name;
             this.pitch = pitch;
             this.volume = volume;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.PLAYSOUND.function;
         }
 
         public String getName() {
@@ -327,6 +384,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.distance = distance;
         }
 
+        public String getHookName() {
+            return EnumScriptType.FALL.function;
+        }
+
         public float getDistance() {
             return distance;
         }
@@ -336,6 +397,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public JumpEvent(IPlayer player){
             super(player);
         }
+
+        public String getHookName() {
+            return EnumScriptType.JUMP.function;
+        }
     }
 
     public static class KilledEntityEvent extends PlayerEvent implements IPlayerEvent.KilledEntityEvent {
@@ -344,6 +409,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public KilledEntityEvent(IPlayer player, EntityLivingBase entity) {
             super(player);
             this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.KILLS.function;
         }
 
         public IEntityLivingBase getEntity() {
@@ -361,6 +430,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
             this.type = damagesource.getDamageType();
             this.source = NpcAPI.Instance().getIEntity(entity);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.KILLED.function;
         }
 
         public IDamageSource getDamageSource() {
@@ -387,6 +460,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.charge = charge;
         }
 
+        public String getHookName() {
+            return EnumScriptType.RANGED_LAUNCHED.function;
+        }
+
         public IItemStack getBow() {
             return bow;
         }
@@ -407,6 +484,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.target = NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.ATTACK.function;
         }
 
         public IDamageSource getDamageSource() {
@@ -435,6 +516,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.damageSource = NpcAPI.Instance().getIDamageSource(damagesource);
         }
 
+        public String getHookName() {
+            return EnumScriptType.DAMAGED_ENTITY.function;
+        }
+
         public IDamageSource getDamageSource() {
             return damageSource;
         }
@@ -456,6 +541,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.container = container;
         }
 
+        public String getHookName() {
+            return EnumScriptType.CONTAINER_CLOSED.function;
+        }
+
         public IContainer getContainer() {
             return container;
         }
@@ -467,6 +556,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public ContainerOpen(IPlayer player, IContainer container) {
             super(player);
             this.container = container;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CONTAINER_OPEN.function;
         }
 
         public IContainer getContainer() {
@@ -483,6 +576,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.item = item;
         }
 
+        public String getHookName() {
+            return EnumScriptType.PICKUP.function;
+        }
+
         public IItemStack getItem() {
             return item;
         }
@@ -497,6 +594,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.items = items;
         }
 
+        public String getHookName() {
+            return EnumScriptType.DROP.function;
+        }
+
         public IItemStack[] getItems() {
             return items;
         }
@@ -509,6 +610,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public TossEvent(IPlayer player, IItemStack item) {
             super(player);
             this.item = item;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.TOSS.function;
         }
 
         public IItemStack getItem() {
@@ -527,6 +632,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.target = target;
         }
 
+        public String getHookName() {
+            return EnumScriptType.INTERACT.function;
+        }
+
         public int getType() {
             return type;
         }
@@ -540,11 +649,19 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public UpdateEvent(IPlayer player) {
             super(player);
         }
+
+        public String getHookName() {
+            return EnumScriptType.TICK.function;
+        }
     }
 
     public static class InitEvent extends PlayerEvent implements IPlayerEvent.InitEvent {
         public InitEvent(IPlayer player) {
             super(player);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.INIT.function;
         }
     }
 
@@ -557,6 +674,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
 
             this.item = NpcAPI.Instance().getIItemStack(item);
             this.duration = duration;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.START_USING_ITEM.function;
         }
 
         public IItemStack getItem() {
@@ -578,6 +699,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.duration = duration;
         }
 
+        public String getHookName() {
+            return EnumScriptType.USING_ITEM.function;
+        }
+
         public IItemStack getItem() {
             return item;
         }
@@ -595,6 +720,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
 
             this.item = NpcAPI.Instance().getIItemStack(item);
             this.duration = duration;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.STOP_USING_ITEM.function;
         }
 
         public IItemStack getItem() {
@@ -616,6 +745,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.duration = duration;
         }
 
+        public String getHookName() {
+            return EnumScriptType.FINISH_USING_ITEM.function;
+        }
+
         public IItemStack getItem() {
             return item;
         }
@@ -634,6 +767,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             super(player);
             this.block = block;
             this.exp = exp;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.BREAK_BLOCK.function;
         }
 
         public IBlock getBlock() {
@@ -657,6 +794,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.x = x;
             this.y = y;
             this.z = z;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.USE_HOE.function;
         }
 
         public IItemStack getHoe() {
@@ -684,6 +825,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.setSpawn = setSpawn;
         }
 
+        public String getHookName() {
+            return EnumScriptType.WAKE_UP.function;
+        }
+
         public boolean setSpawn() {
             return setSpawn;
         }
@@ -699,6 +844,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.x = x;
             this.y = y;
             this.z = z;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.SLEEP.function;
         }
 
         public int getX() {
@@ -722,6 +871,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.description = description;
         }
 
+        public String getHookName() {
+            return EnumScriptType.ACHIEVEMENT.function;
+        }
+
         public String getDescription() {
             return description;
         }
@@ -735,6 +888,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             super(player);
             this.current = NpcAPI.Instance().getIItemStack(current);
             this.result = NpcAPI.Instance().getIItemStack(result);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.FILL_BUCKET.function;
         }
 
         public IItemStack getCurrent() {
@@ -760,6 +917,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             this.z = z;
         }
 
+        public String getHookName() {
+            return EnumScriptType.BONEMEAL.function;
+        }
+
         public IBlock getBlock() {
             return block;
         }
@@ -780,6 +941,10 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class RangedChargeEvent extends PlayerEvent implements IPlayerEvent.RangedChargeEvent {
         public RangedChargeEvent(IPlayer player) {
             super(player);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.RANGED_LAUNCHED.function;
         }
     }
 }

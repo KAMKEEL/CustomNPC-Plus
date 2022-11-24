@@ -4,6 +4,7 @@ import cpw.mods.fml.common.eventhandler.Cancelable;
 import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.constants.EnumScriptType;
 
 public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
     public final IFaction faction;
@@ -22,6 +23,10 @@ public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
         return faction;
     }
 
+    public String getHookName() {
+        return EnumScriptType.FACTION_EVENT.function;
+    }
+
     @Cancelable
     public static class FactionPoints extends FactionEvent implements IFactionEvent.FactionPoints {
         public boolean decrease;
@@ -31,6 +36,10 @@ public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
             super(player, faction);
             this.decrease = decrease;
             this.points = points;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.FACTION_POINTS.function;
         }
 
         public boolean decreased() {

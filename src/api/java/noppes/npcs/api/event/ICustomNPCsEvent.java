@@ -6,6 +6,8 @@ import noppes.npcs.api.handler.data.INaturalSpawn;
 
 public interface ICustomNPCsEvent {
 
+    String getHookName();
+
     @Cancelable
     interface CNPCNaturalSpawnEvent extends ICustomNPCsEvent {
         INaturalSpawn getNaturalSpawn();

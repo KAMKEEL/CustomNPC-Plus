@@ -519,7 +519,7 @@ public class EventHooks {
     public static boolean onCNPCNaturalSpawn(CustomNPCsEvent.CNPCNaturalSpawnEvent event) {
         ForgeDataScript handler = ScriptController.Instance.forgeScripts;
         if (handler.isEnabled()) {
-            handler.callScript("onCNPCNaturalSpawn", event);
+            handler.callScript(EnumScriptType.CNPC_NATURAL_SPAWN, event);
             return NpcAPI.EVENT_BUS.post(event);
         }
         return true;

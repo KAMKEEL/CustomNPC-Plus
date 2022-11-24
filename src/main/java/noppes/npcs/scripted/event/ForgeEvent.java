@@ -10,6 +10,7 @@ import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.event.IForgeEvent;
+import noppes.npcs.constants.EnumScriptType;
 
 @Cancelable
 public class ForgeEvent extends CustomNPCsEvent implements IForgeEvent {
@@ -23,6 +24,10 @@ public class ForgeEvent extends CustomNPCsEvent implements IForgeEvent {
         return event;
     }
 
+    public String getHookName() {
+        return EnumScriptType.FORGE_EVENT.function;
+    }
+
     @Cancelable
     public static class WorldEvent extends ForgeEvent implements IForgeEvent.WorldEvent {
         public final IWorld world;
@@ -30,6 +35,10 @@ public class ForgeEvent extends CustomNPCsEvent implements IForgeEvent {
         public WorldEvent(net.minecraftforge.event.world.WorldEvent event, IWorld world) {
             super(event);
             this.world = world;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.FORGE_WORLD.function;
         }
 
         public IWorld getWorld() {
@@ -46,6 +55,10 @@ public class ForgeEvent extends CustomNPCsEvent implements IForgeEvent {
             this.entity = entity;
         }
 
+        public String getHookName() {
+            return EnumScriptType.FORGE_ENTITY.function;
+        }
+
         public IEntity getEntity() {
             return entity;
         }
@@ -54,6 +67,10 @@ public class ForgeEvent extends CustomNPCsEvent implements IForgeEvent {
     public static class InitEvent extends ForgeEvent implements IForgeEvent.InitEvent {
         public InitEvent() {
             super((Event)null);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.FORGE_INIT.function;
         }
     }
 }

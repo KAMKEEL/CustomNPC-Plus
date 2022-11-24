@@ -5,6 +5,7 @@ import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.constants.EnumScriptType;
 
 public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     public final IItemCustom item;
@@ -17,9 +18,17 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         return item;
     }
 
+    public String getHookName() {
+        return EnumScriptType.CUSTOM_ITEM_EVENT.function;
+    }
+
     public static class InitEvent extends ItemEvent implements IItemEvent.InitEvent {
         public InitEvent(IItemCustom item) {
             super(item);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.INIT.function;
         }
     }
 
@@ -29,6 +38,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public UpdateEvent(IItemCustom item, IEntity entity) {
             super(item);
             this.entity = entity;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.TICK.function;
         }
 
         public IEntity getEntity() {
@@ -45,6 +58,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             super(item);
             this.entity = entity;
             this.player = player;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.TOSSED.function;
         }
 
         public IEntity getEntity() {
@@ -64,6 +81,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             this.player = player;
         }
 
+        public String getHookName() {
+            return EnumScriptType.PICKEDUP.function;
+        }
+
         public IPlayer getPlayer() {
             return player;
         }
@@ -76,6 +97,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public SpawnEvent(IItemCustom item, IEntity entity){
             super(item);
             this.entity = entity;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.SPAWN.function;
         }
 
         public IEntity getEntity() {
@@ -94,6 +119,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             this.type = type;
             this.target = target;
             this.player = player;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.INTERACT.function;
         }
 
         public int getType() {
@@ -122,6 +151,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             this.swingingEntity = swingingEntity;
         }
 
+        public String getHookName() {
+            return EnumScriptType.ATTACK.function;
+        }
+
         public int getType() {
             return type;
         }
@@ -145,6 +178,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             this.duration = duration;
         }
 
+        public String getHookName() {
+            return EnumScriptType.START_USING_ITEM.function;
+        }
+
         public IPlayer getPlayer() {
             return player;
         }
@@ -161,6 +198,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             super(item);
             this.player = player;
             this.duration = duration;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.USING_ITEM.function;
         }
 
         public IPlayer getPlayer() {
@@ -181,6 +222,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             this.duration = duration;
         }
 
+        public String getHookName() {
+            return EnumScriptType.STOP_USING_ITEM.function;
+        }
+
         public IPlayer getPlayer() {
             return player;
         }
@@ -197,6 +242,10 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             super(item);
             this.player = player;
             this.duration = duration;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.FINISH_USING_ITEM.function;
         }
 
         public IPlayer getPlayer() {

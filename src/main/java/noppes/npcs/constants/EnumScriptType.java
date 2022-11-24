@@ -45,15 +45,19 @@ public enum EnumScriptType {
 	PROJECTILE_IMPACT("projectileImpact"),
 	LEVEL_UP("levelUp"),
 	KEY_PRESSED("keyPressed"),
+	QUEST_EVENT("questEvent"),
 	QUEST_START("questStart"),
 	QUEST_COMPLETED("questCompleted"),
 	QUEST_TURNIN("questTurnIn"),
+	FACTION_EVENT("factionEvent"),
 	FACTION_POINTS("factionPoints"),
+	DIALOG_EVENT("dialogEvent"),
 	DIALOG_OPEN("dialogOpen"),
 	DIALOG_OPTION("dialogOption"),
 	CUSTOM_CHEST_CLOSED("customChestClosed"),
 	CUSTOM_CHEST_CLICKED("customChestClicked"),
 	SCRIPT_COMMAND("scriptCommand"),
+	CUSTOM_GUI_EVENT("customGuiEvent"),
 	CUSTOM_GUI_CLOSED("customGuiClosed"),
 	CUSTOM_GUI_BUTTON("customGuiButton"),
 	CUSTOM_GUI_SLOT("customGuiSlot"),
@@ -79,9 +83,12 @@ public enum EnumScriptType {
 	RESPAWN("respawn"),
 	CHANGED_DIM("changedDim"),
 	BREAK_BLOCK("breakBlock"),
+	FORGE_EVENT("forgeEvent"),
 	FORGE_INIT("forgeInit"),
 	FORGE_ENTITY("forgeEntity"),
-	FORGE_WORLD("forgeWorld");
+	FORGE_WORLD("forgeWorld"),
+	CNPC_NATURAL_SPAWN("onCNPCNaturalSpawn"),
+	CUSTOM_ITEM_EVENT("customItemEvent");
 
 	public String function;
 

@@ -6,14 +6,19 @@ import noppes.npcs.api.event.ICustomGuiEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.constants.EnumScriptType;
 
-public class CustomGuiEvent extends Event implements ICustomGuiEvent {
+public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
     public final IPlayer player;
     public final ICustomGui gui;
 
     public CustomGuiEvent(IPlayer player, ICustomGui gui) {
         this.player = player;
         this.gui = gui;
+    }
+
+    public String getHookName() {
+        return EnumScriptType.CUSTOM_GUI_EVENT.function;
     }
 
     public IPlayer getPlayer() {
@@ -36,6 +41,10 @@ public class CustomGuiEvent extends Event implements ICustomGuiEvent {
             this.buttonId = buttonId;
         }
 
+        public String getHookName() {
+            return EnumScriptType.CUSTOM_GUI_BUTTON.function;
+        }
+
         public int getId() {
             return this.buttonId;
         }
@@ -49,6 +58,10 @@ public class CustomGuiEvent extends Event implements ICustomGuiEvent {
             this.textfieldId = textfieldId;
         }
 
+        public String getHookName() {
+            return EnumScriptType.CUSTOM_GUI_TEXTFIELD.function;
+        }
+
         public int getId() {
             return this.textfieldId;
         }
@@ -57,6 +70,10 @@ public class CustomGuiEvent extends Event implements ICustomGuiEvent {
     public static class CloseEvent extends CustomGuiEvent implements ICustomGuiEvent.CloseEvent {
         public CloseEvent(IPlayer player, ICustomGui gui) {
             super(player, gui);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CUSTOM_GUI_CLOSED.function;
         }
     }
 
@@ -72,6 +89,10 @@ public class CustomGuiEvent extends Event implements ICustomGuiEvent {
             this.selection = selection;
             this.doubleClick = doubleClick;
             this.scrollIndex = scrollIndex;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CUSTOM_GUI_SCROLL.function;
         }
 
         public int getId() {
@@ -101,6 +122,10 @@ public class CustomGuiEvent extends Event implements ICustomGuiEvent {
             this.stack = stack;
         }
 
+        public String getHookName() {
+            return EnumScriptType.CUSTOM_GUI_SLOT.function;
+        }
+
         public int getId() {
             return this.slotId;
         }
@@ -126,6 +151,10 @@ public class CustomGuiEvent extends Event implements ICustomGuiEvent {
             this.stack = stack;
             this.dragType = dragType;
             this.clickType = clickType;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CUSTOM_GUI_SLOT_CLICKED.function;
         }
 
         public int getId() {

@@ -11,9 +11,14 @@ import noppes.npcs.api.AbstractNpcAPI;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.event.ICustomNPCsEvent;
 import noppes.npcs.api.handler.data.INaturalSpawn;
+import noppes.npcs.constants.EnumScriptType;
 
 public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();
+
+    public String getHookName() {
+        return "CNPCEvent";
+    }
 
     public CustomNPCsEvent() {
     }
@@ -41,6 +46,10 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
             this.monsterSpawnPassed = monsterSpawnPassed;
             this.liquidSpawnPassed = liquidSpawnPassed;
             this.airSpawnPassed = airSpawnPassed;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CNPC_NATURAL_SPAWN.function;
         }
 
         public INaturalSpawn getNaturalSpawn() {
