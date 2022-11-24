@@ -3,7 +3,6 @@ package noppes.npcs.api.entity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.api.*;
-import noppes.npcs.scripted.entity.ScriptDBCPlayer;
 import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.data.IDialog;
@@ -12,7 +11,6 @@ import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
-import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 
 public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> {
     /**
@@ -277,13 +275,13 @@ public interface IPlayer<T extends EntityPlayerMP> extends IEntityLivingBase<T> 
      * Requires pixelmon to be installed
      * @since 1.7.10d
      */
-    ScriptPixelmonPlayerData getPixelmonData();
+    IPixelmonPlayerData getPixelmonData();
 
     ITimers getTimers();
 
     void updatePlayerInventory();
 
-    ScriptDBCPlayer<T> getDBCPlayer();
+    IDBCPlayer getDBCPlayer();
 
     boolean blocking();
 

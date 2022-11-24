@@ -6,6 +6,8 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.jobs.IJob;
+import noppes.npcs.api.roles.IRole;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumNavType;
@@ -331,7 +333,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return Returns the npcs current role
 	 */
-	public ScriptRoleInterface getRole(){
+	public IRole getRole(){
 		if(npc.advanced.role == EnumRoleType.Bank)
 			return new ScriptRoleBank(npc);
 		else if(npc.advanced.role == EnumRoleType.Follower)
@@ -357,7 +359,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return Returns the npcs current job
 	 */
-	public ScriptJobInterface getJob(){
+	public IJob getJob(){
 		if(npc.advanced.job == EnumJobType.Bard)
 			return new ScriptJobBard(npc);
 		else if(npc.advanced.job == EnumJobType.Conversation)

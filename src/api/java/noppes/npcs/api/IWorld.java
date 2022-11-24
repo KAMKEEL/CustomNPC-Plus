@@ -1,7 +1,7 @@
 package noppes.npcs.api;
 
 import net.minecraft.world.WorldServer;
-import noppes.npcs.scripted.scoreboard.ScriptScoreboard;
+import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.ISound;
@@ -408,7 +408,7 @@ public interface IWorld {
     IEntity spawnClone(int x, int y, int z, int tab, String name);
     IEntity spawnClone(IPos pos, int tab, String name);
 
-    ScriptScoreboard getScoreboard();
+    IScoreboard getScoreboard();
 
     /**
      * @since 1.7.10c

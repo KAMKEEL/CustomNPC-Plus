@@ -17,7 +17,6 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.api.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.entity.ScriptNpc;

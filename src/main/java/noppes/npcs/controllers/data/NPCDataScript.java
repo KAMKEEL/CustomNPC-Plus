@@ -7,7 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.api.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;

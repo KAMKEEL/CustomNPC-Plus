@@ -19,7 +19,6 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.api.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 
 public class ForgeDataScript implements IScriptHandler {

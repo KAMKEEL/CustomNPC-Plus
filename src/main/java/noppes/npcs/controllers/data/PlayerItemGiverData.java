@@ -49,15 +49,15 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 	}
 
 	public long getTime(IJobItemGiver jobItemGiver){
-		return itemgivers.get(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId);
+		return itemgivers.get(((JobItemGiver) jobItemGiver).itemGiverId);
 	}
 
 	public void setTime(IJobItemGiver jobItemGiver, long day) {
-		itemgivers.put(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId, day);
+		itemgivers.put(((JobItemGiver) jobItemGiver).itemGiverId, day);
 	}
 
 	public boolean hasInteractedBefore(IJobItemGiver jobItemGiver) {
-		return itemgivers.containsKey(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId);
+		return itemgivers.containsKey(((JobItemGiver) jobItemGiver).itemGiverId);
 	}
 
 	public IJobItemGiver[] getItemGivers() {

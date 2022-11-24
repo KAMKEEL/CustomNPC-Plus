@@ -21,6 +21,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
@@ -878,7 +879,7 @@ public class ScriptWorld implements IWorld {
 		return this.spawnClone(pos.getX(),pos.getY(),pos.getZ(),tab,name);
 	}
 
-	public ScriptScoreboard getScoreboard(){
+	public IScoreboard getScoreboard(){
 		return new ScriptScoreboard();
 	}
 

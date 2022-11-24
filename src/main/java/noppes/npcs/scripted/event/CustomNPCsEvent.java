@@ -11,7 +11,7 @@ import noppes.npcs.api.AbstractNpcAPI;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.handler.data.INaturalSpawn;
 
-public class CustomNPCsEvent extends Event{
+public class CustomNPCsEvent extends Event implements noppes.npcs.api.event.CustomNPCsEvent {
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();
 
     public CustomNPCsEvent() {
@@ -24,7 +24,7 @@ public class CustomNPCsEvent extends Event{
     public boolean isCancelled(){return this.isCanceled();}
 
     @Cancelable
-    public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent {
+    public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent implements noppes.npcs.api.event.CustomNPCsEvent.CNPCNaturalSpawnEvent {
         public final INaturalSpawn naturalSpawn;
         public final IPos attemptPosition;
         public final boolean animalSpawnPassed;
@@ -40,6 +40,30 @@ public class CustomNPCsEvent extends Event{
             this.monsterSpawnPassed = monsterSpawnPassed;
             this.liquidSpawnPassed = liquidSpawnPassed;
             this.airSpawnPassed = airSpawnPassed;
+        }
+
+        public INaturalSpawn getNaturalSpawn() {
+            return this.naturalSpawn;
+        }
+
+        public IPos getAttemptPosition() {
+            return this.attemptPosition;
+        }
+
+        public boolean animalSpawnPassed() {
+            return this.animalSpawnPassed;
+        }
+
+        public boolean monsterSpawnPassed() {
+            return this.monsterSpawnPassed;
+        }
+
+        public boolean liquidSpawnPassed() {
+            return this.liquidSpawnPassed;
+        }
+
+        public boolean airSpawnPassed() {
+            return this.airSpawnPassed;
         }
     }
 }

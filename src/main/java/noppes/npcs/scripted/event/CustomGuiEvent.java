@@ -15,6 +15,14 @@ public class CustomGuiEvent extends Event {
         this.gui = gui;
     }
 
+    public IPlayer getPlayer() {
+        return this.player;
+    }
+
+    public ICustomGui getGui() {
+        return gui;
+    }
+
     public static class ButtonEvent extends CustomGuiEvent {
         public final int buttonId;
 

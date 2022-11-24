@@ -7,6 +7,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Vec3;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptDamageSource;
 import noppes.npcs.scripted.constants.EntityType;
@@ -49,7 +50,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 			entity.attackEntityFrom(new EntityDamageSource(source.getTypeName(),source.getMCEntity()),damage);
 	}
 
-	public void hurt(float damage, ScriptDamageSource damageSource) {
+	public void hurt(float damage, IDamageSource damageSource) {
 		entity.attackEntityFrom(damageSource.getMCDamageSource(),damage);
 	}
 	

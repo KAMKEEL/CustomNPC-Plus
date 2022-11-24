@@ -663,7 +663,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * Requires pixelmon to be installed
 	 * @since 1.7.10d
 	 */
-	public ScriptPixelmonPlayerData getPixelmonData(){
+	public IPixelmonPlayerData getPixelmonData(){
 		if(!PixelmonHelper.Enabled)
 			return null;
 		return new ScriptPixelmonPlayerData(player);

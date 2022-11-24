@@ -6,7 +6,6 @@
 package noppes.npcs.api.gui;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.gui.ScriptGuiComponent;
 
 public interface ICustomGuiComponent {
     int getID();
@@ -41,5 +40,5 @@ public interface ICustomGuiComponent {
 
     NBTTagCompound toNBT(NBTTagCompound nbt);
 
-    ScriptGuiComponent fromNBT(NBTTagCompound nbt);
+    ICustomGuiComponent fromNBT(NBTTagCompound nbt);
 }

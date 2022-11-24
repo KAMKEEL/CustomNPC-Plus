@@ -2,9 +2,9 @@ package noppes.npcs.api.entity;
 
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.api.IBlock;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.scripted.ScriptDamageSource;
 
 public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T> {
     /**
@@ -21,7 +21,7 @@ public interface IEntityLivingBase<T extends EntityLivingBase> extends IEntity<T
 
     void hurt(float damage, IEntity source);
 
-    void hurt(float damage, ScriptDamageSource damageSource);
+    void hurt(float damage, IDamageSource damageSource);
 
     /**
      * @return Entity's max health

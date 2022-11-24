@@ -8,7 +8,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.api.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 
 public class NBTTags {
 

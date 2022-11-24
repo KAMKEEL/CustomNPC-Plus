@@ -11,8 +11,8 @@ import noppes.npcs.api.ITimers;
 import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.scripted.roles.ScriptJobInterface;
-import noppes.npcs.scripted.roles.ScriptRoleInterface;
+import noppes.npcs.api.jobs.IJob;
+import noppes.npcs.api.roles.IRole;
 
 public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
@@ -201,14 +201,14 @@ public interface ICustomNpc<T extends EntityCreature> extends IEntityLiving<T> {
     /**
      * @return Returns the npcs current role
      */
-    ScriptRoleInterface getRole();
+    IRole getRole();
 
     void setRole(int role);
 
     /**
      * @return Returns the npcs current job
      */
-    ScriptJobInterface getJob();
+    IJob getJob();
 
     void setJob(int job);
 

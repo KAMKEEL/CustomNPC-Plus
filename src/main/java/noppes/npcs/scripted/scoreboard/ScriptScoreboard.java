@@ -9,11 +9,12 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
+import noppes.npcs.api.scoreboard.IScoreboard;
 
 /**
  * @author Karel
  */
-public class ScriptScoreboard {
+public class ScriptScoreboard implements IScoreboard {
 	private Scoreboard board;
 
 	public ScriptScoreboard(){

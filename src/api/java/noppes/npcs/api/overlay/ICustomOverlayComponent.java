@@ -1,7 +1,6 @@
 package noppes.npcs.api.overlay;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.overlay.ScriptOverlayComponent;
 
 public interface ICustomOverlayComponent {
     int getID();
@@ -32,5 +31,5 @@ public interface ICustomOverlayComponent {
 
     NBTTagCompound toNBT(NBTTagCompound nbt);
 
-    ScriptOverlayComponent fromNBT(NBTTagCompound nbt);
+    ICustomOverlayComponent fromNBT(NBTTagCompound nbt);
 }

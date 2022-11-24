@@ -1,7 +1,6 @@
 package noppes.npcs.api.item;
-import noppes.npcs.controllers.IScriptHandler;
 
-public interface IItemCustom extends IItemStack, IScriptHandler {
+public interface IItemCustom extends IItemStack {
 
     boolean getEnabled();
 

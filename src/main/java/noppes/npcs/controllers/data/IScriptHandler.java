@@ -3,12 +3,13 @@
 // (powered by Fernflower decompiler)
 //
 
-package noppes.npcs.api;
+package noppes.npcs.controllers.data;
 
 import java.util.List;
 import java.util.Map;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.ScriptContainer;
 
 public interface IScriptHandler {
     void callScript(EnumScriptType var1, Event var2);
