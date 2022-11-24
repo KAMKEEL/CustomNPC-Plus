@@ -374,10 +374,10 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onPlayerFall(PlayerDataScript handler, IPlayer player, float distance) {
+    public static boolean onPlayerFall(PlayerDataScript handler, IPlayer player, float distance) {
         PlayerEvent.FallEvent event = new PlayerEvent.FallEvent(player,distance);
         handler.callScript(EnumScriptType.FALL, event);
-        NpcAPI.EVENT_BUS.post(event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerJump(PlayerDataScript handler, IPlayer player) {
@@ -516,11 +516,9 @@ public class EventHooks {
         }
     }
 
-    public static boolean onCNPCNaturalSpawn(INaturalSpawn naturalSpawn, BlockPos blockPos, boolean animalSpawnPassed, boolean monsterSpawnPassed, boolean liquidSpawnPassed, boolean airSpawnPassed) {
+    public static boolean onCNPCNaturalSpawn(CustomNPCsEvent.CNPCNaturalSpawnEvent event) {
         ForgeDataScript handler = ScriptController.Instance.forgeScripts;
         if (handler.isEnabled()) {
-            IPos attemptPosition = NpcAPI.Instance().getIPos(blockPos);
-            CustomNPCsEvent.CNPCNaturalSpawnEvent event = new CustomNPCsEvent.CNPCNaturalSpawnEvent(naturalSpawn, attemptPosition, animalSpawnPassed, monsterSpawnPassed, liquidSpawnPassed, airSpawnPassed);
             handler.callScript("onCNPCNaturalSpawn", event);
             return NpcAPI.EVENT_BUS.post(event);
         }
@@ -577,22 +575,22 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onFactionPoints(FactionEvent.FactionPoints event){
+    public static boolean onFactionPoints(FactionEvent.FactionPoints event){
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
         handler.callScript(EnumScriptType.FACTION_POINTS, event);
-        NpcAPI.EVENT_BUS.post(event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onDialogOpen(DialogEvent.DialogOpen event){
+    public static boolean onDialogOpen(DialogEvent.DialogOpen event){
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
         handler.callScript(EnumScriptType.DIALOG_OPEN, event);
-        NpcAPI.EVENT_BUS.post(event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onDialogOption(DialogEvent.DialogOption event){
+    public static boolean onDialogOption(DialogEvent.DialogOption event){
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
         handler.callScript(EnumScriptType.DIALOG_OPTION, event);
-        NpcAPI.EVENT_BUS.post(event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onDialogClosed(DialogEvent.DialogClosed event){

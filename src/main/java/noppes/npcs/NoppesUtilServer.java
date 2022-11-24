@@ -186,7 +186,9 @@ public class NoppesUtilServer {
 			if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
 				return;
 			}
-			EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+			if (EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog))) {
+				return;
+			}
 		}
 
 		if(npc instanceof EntityDialogNpc){

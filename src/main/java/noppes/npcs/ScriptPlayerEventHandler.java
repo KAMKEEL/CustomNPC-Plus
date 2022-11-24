@@ -319,7 +319,7 @@ public class ScriptPlayerEventHandler {
             if (event.entityLiving instanceof EntityPlayer) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
-                EventHooks.onPlayerFall(handler, scriptPlayer, event.distance);
+                event.setCanceled(EventHooks.onPlayerFall(handler, scriptPlayer, event.distance));
             }
         }
     }

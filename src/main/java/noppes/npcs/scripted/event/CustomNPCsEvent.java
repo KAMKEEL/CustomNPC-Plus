@@ -9,9 +9,10 @@ import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.api.AbstractNpcAPI;
 import noppes.npcs.api.IPos;
+import noppes.npcs.api.event.ICustomNPCsEvent;
 import noppes.npcs.api.handler.data.INaturalSpawn;
 
-public class CustomNPCsEvent extends Event implements noppes.npcs.api.event.CustomNPCsEvent {
+public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();
 
     public CustomNPCsEvent() {
@@ -24,9 +25,9 @@ public class CustomNPCsEvent extends Event implements noppes.npcs.api.event.Cust
     public boolean isCancelled(){return this.isCanceled();}
 
     @Cancelable
-    public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent implements noppes.npcs.api.event.CustomNPCsEvent.CNPCNaturalSpawnEvent {
+    public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent implements ICustomNPCsEvent.CNPCNaturalSpawnEvent {
         public final INaturalSpawn naturalSpawn;
-        public final IPos attemptPosition;
+        public IPos attemptPosition;
         public final boolean animalSpawnPassed;
         public final boolean monsterSpawnPassed;
         public final boolean liquidSpawnPassed;
@@ -44,6 +45,10 @@ public class CustomNPCsEvent extends Event implements noppes.npcs.api.event.Cust
 
         public INaturalSpawn getNaturalSpawn() {
             return this.naturalSpawn;
+        }
+
+        public void setAttemptPosition(IPos attemptPosition) {
+            this.attemptPosition = attemptPosition;
         }
 
         public IPos getAttemptPosition() {

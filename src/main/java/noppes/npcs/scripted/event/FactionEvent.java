@@ -1,9 +1,11 @@
 package noppes.npcs.scripted.event;
 
+import cpw.mods.fml.common.eventhandler.Cancelable;
+import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.api.entity.IPlayer;
 
-public class FactionEvent extends CustomNPCsEvent {
+public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
     public final IFaction faction;
     public final IPlayer player;
 
@@ -12,7 +14,16 @@ public class FactionEvent extends CustomNPCsEvent {
         this.player = player;
     }
 
-    public static class FactionPoints extends FactionEvent {
+    public IPlayer getPlayer() {
+        return player;
+    }
+
+    public IFaction getFaction() {
+        return faction;
+    }
+
+    @Cancelable
+    public static class FactionPoints extends FactionEvent implements IFactionEvent.FactionPoints {
         public boolean decrease;
         public int points;
 
@@ -20,6 +31,14 @@ public class FactionEvent extends CustomNPCsEvent {
             super(player, faction);
             this.decrease = decrease;
             this.points = points;
+        }
+
+        public boolean decreased() {
+            return decrease;
+        }
+
+        public int getPoints() {
+            return points;
         }
     }
 }

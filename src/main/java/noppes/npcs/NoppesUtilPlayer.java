@@ -273,8 +273,10 @@ public class NoppesUtilPlayer {
 		if(dialog == null)
 			return;
 		DialogOption option = dialog.options.get(optionId);
+		if (EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+			return;
+
 		if (!npc.isRemote()) {
-			EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 			EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
 
 			if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
@@ -343,6 +345,8 @@ public class NoppesUtilPlayer {
 			return;
 
 		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
+		if (event.isCancelled())
+			return;
 		event.expReward = data.quest.rewardExp;
 
 		List<IItemStack> list = new ArrayList();
