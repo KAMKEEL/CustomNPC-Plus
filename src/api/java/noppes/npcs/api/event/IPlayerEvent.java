@@ -14,13 +14,13 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
     IPlayer getPlayer();
 
     @Cancelable
-    interface ChatEvent {
+    interface ChatEvent extends IPlayerEvent {
         void setMessage(String message);
 
         String getMessage();
     }
 
-    interface KeyPressedEvent {
+    interface KeyPressedEvent extends IPlayerEvent {
         int getKey();
 
         boolean isCtrlPressed();
@@ -36,7 +36,7 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
         int[] getKeysDown();
     }
 
-    interface MouseClickedEvent {
+    interface MouseClickedEvent extends IPlayerEvent {
         int getButton();
 
         int getMouseWheel();
@@ -54,35 +54,35 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
         int[] getKeysDown();
     }
 
-    interface PickupXPEvent {
+    interface PickupXPEvent extends IPlayerEvent {
         int getAmount();
     }
 
-    interface LevelUpEvent {
+    interface LevelUpEvent extends IPlayerEvent {
         int getChange();
     }
 
-    interface LogoutEvent {
+    interface LogoutEvent extends IPlayerEvent {
     }
 
-    interface LoginEvent {
+    interface LoginEvent extends IPlayerEvent {
     }
 
-    interface RespawnEvent {
+    interface RespawnEvent extends IPlayerEvent {
     }
 
-    interface ChangedDimension {
+    interface ChangedDimension extends IPlayerEvent {
         int getFromDim();
 
         int getToDim();
     }
 
-    interface TimerEvent {
+    interface TimerEvent extends IPlayerEvent {
         int getId();
     }
 
     @Cancelable
-    interface AttackedEvent {
+    interface AttackedEvent extends IPlayerEvent {
         IDamageSource getDamageSource();
 
         IEntity getSource();
@@ -91,7 +91,7 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface DamagedEvent {
+    interface DamagedEvent extends IPlayerEvent {
         IDamageSource getDamageSource();
 
         IEntity getSource();
@@ -100,11 +100,11 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface LightningEvent {
+    interface LightningEvent extends IPlayerEvent {
     }
 
     @Cancelable
-    interface SoundEvent {
+    interface SoundEvent extends IPlayerEvent {
         String getName();
 
         float getPitch();
@@ -113,18 +113,18 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface FallEvent {
+    interface FallEvent extends IPlayerEvent {
         float getDistance();
     }
 
-    interface JumpEvent {
+    interface JumpEvent extends IPlayerEvent {
     }
 
-    interface KilledEntityEvent {
+    interface KilledEntityEvent extends IPlayerEvent {
         IEntityLivingBase getEntity();
     }
 
-    interface DiedEvent {
+    interface DiedEvent extends IPlayerEvent {
         IDamageSource getDamageSource();
 
         String getType();
@@ -133,14 +133,14 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface RangedLaunchedEvent {
+    interface RangedLaunchedEvent extends IPlayerEvent {
         IItemStack getBow();
 
         int getCharge();
     }
 
     @Cancelable
-    interface AttackEvent {
+    interface AttackEvent extends IPlayerEvent {
         IDamageSource getDamageSource();
 
         IEntity getTarget();
@@ -149,7 +149,7 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface DamagedEntityEvent {
+    interface DamagedEntityEvent extends IPlayerEvent {
         IDamageSource getDamageSource();
 
         IEntity getTarget();
@@ -157,74 +157,74 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
         float getDamage();
     }
 
-    interface ContainerClosed {
+    interface ContainerClosed extends IPlayerEvent {
         IContainer getContainer();
     }
 
-    interface ContainerOpen {
+    interface ContainerOpen extends IPlayerEvent {
         IContainer getContainer();
     }
 
     @Cancelable
-    interface PickUpEvent {
+    interface PickUpEvent extends IPlayerEvent {
         IItemStack getItem();
     }
 
     @Cancelable
-    interface DropEvent {
+    interface DropEvent extends IPlayerEvent {
         IItemStack[] getItems();
     }
 
     @Cancelable
-    interface TossEvent {
+    interface TossEvent extends IPlayerEvent {
         IItemStack getItem();
     }
 
     @Cancelable
-    interface InteractEvent {
+    interface InteractEvent extends IPlayerEvent {
         int getType();
 
         IEntity getTarget();
     }
 
-    interface UpdateEvent {
+    interface UpdateEvent extends IPlayerEvent {
     }
 
-    interface InitEvent {
+    interface InitEvent extends IPlayerEvent {
     }
 
-    interface StartUsingItem {
+    interface StartUsingItem extends IPlayerEvent {
         IItemStack getItem();
 
         int getDuration();
     }
 
-    interface UsingItem {
+    interface UsingItem extends IPlayerEvent {
         IItemStack getItem();
 
         int getDuration();
     }
 
-    interface StopUsingItem {
+    interface StopUsingItem extends IPlayerEvent {
         IItemStack getItem();
 
         int getDuration();
     }
 
-    interface FinishUsingItem {
+    interface FinishUsingItem extends IPlayerEvent {
         IItemStack getItem();
 
         int getDuration();
     }
 
     @Cancelable
-    interface BreakEvent {
+    interface BreakEvent extends IPlayerEvent {
         IBlock getBlock();
 
         int getExp();
     }
 
-    interface UseHoeEvent {
+    interface UseHoeEvent extends IPlayerEvent {
         IItemStack getHoe();
 
         int getX();
@@ -234,11 +234,11 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
         int getZ();
     }
 
-    interface WakeUpEvent {
+    interface WakeUpEvent extends IPlayerEvent {
         boolean setSpawn();
     }
 
-    interface SleepEvent {
+    interface SleepEvent extends IPlayerEvent {
         int getX();
 
         int getY();
@@ -246,17 +246,17 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
         int getZ();
     }
 
-    interface AchievementEvent {
+    interface AchievementEvent extends IPlayerEvent {
         String getDescription();
     }
 
-    interface FillBucketEvent {
+    interface FillBucketEvent extends IPlayerEvent {
         IItemStack getCurrent() ;
 
         IItemStack getFilled();
     }
 
-    interface BonemealEvent {
+    interface BonemealEvent extends IPlayerEvent {
         IBlock getBlock();
 
         int getX();
@@ -266,6 +266,6 @@ public interface IPlayerEvent extends ICustomNPCsEvent {
         int getZ();
     }
 
-    interface RangedChargeEvent {
+    interface RangedChargeEvent extends IPlayerEvent {
     }
 }

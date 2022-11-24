@@ -9,31 +9,31 @@ public interface IItemEvent extends ICustomNPCsEvent {
 
     IItemCustom getItem();
 
-    interface InitEvent {
+    interface InitEvent extends IItemEvent {
     }
 
-    interface UpdateEvent {
+    interface UpdateEvent extends IItemEvent {
         IEntity getEntity();
     }
 
     @Cancelable
-    interface TossedEvent {
+    interface TossedEvent extends IItemEvent {
         IEntity getEntity();
 
         IPlayer getPlayer();
     }
 
-    interface PickedUpEvent {
+    interface PickedUpEvent extends IItemEvent {
         IPlayer getPlayer();
     }
 
     @Cancelable
-    interface SpawnEvent {
+    interface SpawnEvent extends IItemEvent {
         IEntity getEntity();
     }
 
     @Cancelable
-    interface InteractEvent {
+    interface InteractEvent extends IItemEvent {
         int getType();
 
         IEntity getTarget();
@@ -42,7 +42,7 @@ public interface IItemEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface AttackEvent {
+    interface AttackEvent extends IItemEvent {
         int getType();
 
         IEntity getTarget();
@@ -50,25 +50,25 @@ public interface IItemEvent extends ICustomNPCsEvent {
         IEntity getSwingingEntity();
     }
 
-    interface StartUsingItem {
+    interface StartUsingItem extends IItemEvent {
         IPlayer getPlayer();
 
         int getDuration();
     }
 
-    interface UsingItem {
+    interface UsingItem extends IItemEvent {
         IPlayer getPlayer();
 
         int getDuration();
     }
 
-    interface StopUsingItem {
+    interface StopUsingItem extends IItemEvent {
         IPlayer getPlayer();
 
         int getDuration();
     }
 
-    interface FinishUsingItem {
+    interface FinishUsingItem extends IItemEvent {
         IPlayer getPlayer();
 
         int getDuration();

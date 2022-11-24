@@ -11,13 +11,13 @@ public interface IDialogEvent extends ICustomNPCsEvent {
     IDialog getDialog();
 
     @Cancelable
-    interface DialogOpen {
+    interface DialogOpen extends IDialogEvent {
     }
 
     @Cancelable
-    interface DialogOption {
+    interface DialogOption extends IDialogEvent {
     }
 
-    interface DialogClosed {
+    interface DialogClosed extends IDialogEvent {
     }
 }

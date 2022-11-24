@@ -11,15 +11,15 @@ public interface IQuestEvent extends ICustomNPCsEvent {
 
     IQuest getQuest();
 
-    interface QuestCompletedEvent {
+    interface QuestCompletedEvent extends IQuestEvent {
     }
 
     @Cancelable
-    interface QuestStartEvent {
+    interface QuestStartEvent extends IQuestEvent {
     }
 
     @Cancelable
-    interface QuestTurnedInEvent {
+    interface QuestTurnedInEvent extends IQuestEvent {
         void setExpReward(int expReward);
 
         void setItemRewards(IItemStack[] itemRewards);

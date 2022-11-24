@@ -13,16 +13,16 @@ public interface ICustomGuiEvent extends ICustomNPCsEvent {
 
     int getId();
 
-    interface ButtonEvent {
+    interface ButtonEvent extends ICustomGuiEvent {
     }
 
-    interface UnfocusedEvent {
+    interface UnfocusedEvent extends ICustomGuiEvent {
     }
 
-    interface CloseEvent {
+    interface CloseEvent extends ICustomGuiEvent {
     }
 
-    interface ScrollEvent {
+    interface ScrollEvent extends ICustomGuiEvent {
         String[] getSelection();
 
         boolean doubleClick();
@@ -30,12 +30,12 @@ public interface ICustomGuiEvent extends ICustomNPCsEvent {
         int getScrollIndex();
     }
 
-    interface SlotEvent {
+    interface SlotEvent extends ICustomGuiEvent {
         IItemStack getStack();
     }
 
     @Cancelable
-    interface SlotClickEvent {
+    interface SlotClickEvent extends ICustomGuiEvent {
         IItemStack getStack();
 
         int getDragType();

@@ -11,7 +11,7 @@ public interface IFactionEvent extends ICustomNPCsEvent {
     IFaction getFaction();
 
     @Cancelable
-    interface FactionPoints {
+    interface FactionPoints extends IFactionEvent {
         boolean decreased();
 
         int getPoints();

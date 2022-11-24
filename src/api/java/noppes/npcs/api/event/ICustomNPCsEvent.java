@@ -7,7 +7,7 @@ import noppes.npcs.api.handler.data.INaturalSpawn;
 public interface ICustomNPCsEvent {
 
     @Cancelable
-    interface CNPCNaturalSpawnEvent {
+    interface CNPCNaturalSpawnEvent extends ICustomNPCsEvent {
         INaturalSpawn getNaturalSpawn();
 
         void setAttemptPosition(IPos attemptPosition);

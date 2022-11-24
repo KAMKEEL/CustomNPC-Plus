@@ -13,16 +13,16 @@ public interface INpcEvent extends ICustomNPCsEvent {
 
     ICustomNpc getNpc();
 
-    interface TimerEvent {
+    interface TimerEvent extends INpcEvent {
         int getId();
     }
 
-    interface CollideEvent {
+    interface CollideEvent extends INpcEvent{
         IEntity getEntity();
     }
 
     @Cancelable
-    interface DamagedEvent {
+    interface DamagedEvent extends INpcEvent {
 
         IEntity getSource();
 
@@ -40,7 +40,7 @@ public interface INpcEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface RangedLaunchedEvent {
+    interface RangedLaunchedEvent extends INpcEvent {
         IEntityLivingBase getTarget();
 
         void setDamage(float damage);
@@ -49,7 +49,7 @@ public interface INpcEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface MeleeAttackEvent {
+    interface MeleeAttackEvent extends INpcEvent {
         IEntityLivingBase getTarget();
 
         void setDamage(float damage);
@@ -62,7 +62,7 @@ public interface INpcEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface DiedEvent {
+    interface DiedEvent extends INpcEvent {
         IEntity getSource();
 
         IDamageSource getDamageSource();
@@ -79,12 +79,12 @@ public interface INpcEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface InteractEvent {
+    interface InteractEvent extends INpcEvent {
         IPlayer getPlayer();
     }
 
     @Cancelable
-    interface DialogEvent {
+    interface DialogEvent extends INpcEvent {
         IPlayer getPlayer();
 
         IDialog getDialog();
@@ -94,7 +94,7 @@ public interface INpcEvent extends ICustomNPCsEvent {
         int getOptionId();
     }
 
-    interface DialogClosedEvent {
+    interface DialogClosedEvent extends INpcEvent {
         IPlayer getPlayer();
 
         IDialog getDialog();
@@ -105,20 +105,20 @@ public interface INpcEvent extends ICustomNPCsEvent {
     }
 
     @Cancelable
-    interface TargetLostEvent {
+    interface TargetLostEvent extends INpcEvent {
         IEntityLivingBase getTarget();
     }
 
     @Cancelable
-    interface TargetEvent {
+    interface TargetEvent extends INpcEvent {
         void setTarget(IEntityLivingBase entity);
 
         IEntityLivingBase getTarget();
     }
 
-    interface UpdateEvent {
+    interface UpdateEvent extends INpcEvent {
     }
 
-    interface InitEvent {
+    interface InitEvent extends INpcEvent {
     }
 }
