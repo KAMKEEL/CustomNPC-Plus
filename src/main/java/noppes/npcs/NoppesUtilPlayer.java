@@ -36,10 +36,9 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
-import noppes.npcs.scripted.interfaces.handler.data.ISound;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 
 public class NoppesUtilPlayer {
@@ -274,8 +273,10 @@ public class NoppesUtilPlayer {
 		if(dialog == null)
 			return;
 		DialogOption option = dialog.options.get(optionId);
+		if (EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+			return;
+
 		if (!npc.isRemote()) {
-			EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
 			EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
 
 			if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
@@ -344,6 +345,8 @@ public class NoppesUtilPlayer {
 			return;
 
 		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
+		if (event.isCancelled())
+			return;
 		event.expReward = data.quest.rewardExp;
 
 		List<IItemStack> list = new ArrayList();

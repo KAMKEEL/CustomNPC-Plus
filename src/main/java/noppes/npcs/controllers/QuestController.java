@@ -12,9 +12,9 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
-import noppes.npcs.scripted.interfaces.handler.IQuestHandler;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestCategory;
+import noppes.npcs.api.handler.IQuestHandler;
+import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.handler.data.IQuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class QuestController implements IQuestHandler {

@@ -8,8 +8,8 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.interfaces.ISkinOverlay;
-import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
+import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.api.handler.IOverlayHandler;
 import java.util.HashMap;
 import java.util.Map;
 

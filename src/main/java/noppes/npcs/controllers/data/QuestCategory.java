@@ -6,8 +6,8 @@ import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestCategory;
+import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.handler.data.IQuestCategory;
 
 public class QuestCategory implements IQuestCategory {
 	public HashMap<Integer,Quest> quests;

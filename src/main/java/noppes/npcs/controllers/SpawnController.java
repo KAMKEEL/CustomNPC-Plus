@@ -20,8 +20,8 @@ import net.minecraft.util.WeightedRandom;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.SpawnData;
-import noppes.npcs.scripted.interfaces.handler.INaturalSpawnsHandler;
-import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
+import noppes.npcs.api.handler.INaturalSpawnsHandler;
+import noppes.npcs.api.handler.data.INaturalSpawn;
 
 public class SpawnController implements INaturalSpawnsHandler {
 	public HashMap<String,List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>() ;

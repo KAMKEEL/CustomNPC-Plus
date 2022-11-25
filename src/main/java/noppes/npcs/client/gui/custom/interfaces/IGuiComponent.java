@@ -6,7 +6,7 @@
 package noppes.npcs.client.gui.custom.interfaces;
 
 import net.minecraft.client.Minecraft;
-import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 
 public interface IGuiComponent {
     int getID();

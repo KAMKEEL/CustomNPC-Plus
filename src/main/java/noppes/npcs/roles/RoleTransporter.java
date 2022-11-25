@@ -12,7 +12,7 @@ import noppes.npcs.controllers.data.PlayerTransportData;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
+import noppes.npcs.api.handler.data.ITransportLocation;
 
 public class RoleTransporter extends RoleInterface{
 	

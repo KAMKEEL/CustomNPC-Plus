@@ -23,7 +23,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
-import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
@@ -33,7 +32,7 @@ import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import noppes.npcs.scripted.interfaces.ISkinOverlay;
+import noppes.npcs.api.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;

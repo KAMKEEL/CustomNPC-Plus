@@ -21,18 +21,19 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.scripted.interfaces.IBlock;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.IParticle;
-import noppes.npcs.scripted.interfaces.ITileEntity;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.data.ISound;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.IWorld;
+import noppes.npcs.api.IBlock;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.IParticle;
+import noppes.npcs.api.ITileEntity;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ISound;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.scripted.scoreboard.ScriptScoreboard;
 
 public class ScriptWorld implements IWorld {
@@ -878,7 +879,7 @@ public class ScriptWorld implements IWorld {
 		return this.spawnClone(pos.getX(),pos.getY(),pos.getZ(),tab,name);
 	}
 
-	public ScriptScoreboard getScoreboard(){
+	public IScoreboard getScoreboard(){
 		return new ScriptScoreboard();
 	}
 

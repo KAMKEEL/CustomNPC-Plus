@@ -6,11 +6,12 @@ import java.util.List;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.EnumChatFormatting;
+import noppes.npcs.api.scoreboard.IScoreboardTeam;
 
-public class ScriptScoreboardTeam {
+public class ScriptScoreboardTeam implements IScoreboardTeam {
 	private ScorePlayerTeam team;
 	private Scoreboard board;
-	protected ScriptScoreboardTeam(ScorePlayerTeam team, Scoreboard board){
+	public ScriptScoreboardTeam(ScorePlayerTeam team, Scoreboard board){
 		this.team = team;
 		this.board = board;
 	}

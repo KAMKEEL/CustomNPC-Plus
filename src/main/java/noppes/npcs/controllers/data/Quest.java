@@ -15,12 +15,12 @@ import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.quests.QuestLocation;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.interfaces.handler.data.IQuest;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestCategory;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestInterface;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
-import noppes.npcs.scripted.interfaces.IContainer;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.handler.data.IQuestCategory;
+import noppes.npcs.api.handler.data.IQuestInterface;
+import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.api.IContainer;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.NpcAPI;
 
 public class Quest implements ICompatibilty, IQuest {

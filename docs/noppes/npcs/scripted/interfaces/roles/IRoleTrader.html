@@ -48,8 +48,8 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleMailman.html" title="interface in noppes.npcs.scripted.interfaces.roles"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTransporter.html" title="interface in noppes.npcs.scripted.interfaces.roles"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleMailman.html" title="interface in noppes.npcs.api.roles"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTransporter.html" title="interface in noppes.npcs.api.roles"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?noppes/npcs/scripted/interfaces/roles/IRoleTrader.html" target="_top">Frames</a></li>
@@ -91,7 +91,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">noppes.npcs.scripted.interfaces.roles</div>
+<div class="subTitle">noppes.npcs.api.roles</div>
 <h2 title="Interface IRoleTrader" class="title">Interface IRoleTrader</h2>
 </div>
 <div class="contentContainer">
@@ -100,12 +100,12 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html" title="interface in noppes.npcs.scripted.interfaces.roles">IRole</a></dd>
+<dd><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html" title="interface in noppes.npcs.api.roles">IRole</a></dd>
 </dl>
 <hr>
 <br>
 <pre>public interface <span class="typeNameLabel">IRoleTrader</span>
-extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html" title="interface in noppes.npcs.scripted.interfaces.roles">IRole</a></pre>
+extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html" title="interface in noppes.npcs.api.roles">IRole</a></pre>
 </li>
 </ul>
 </div>
@@ -132,8 +132,8 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#disableSlot-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">disableSlot</a></span>(int&nbsp;slot,
-           <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#disableSlot-int-noppes.npcs.api.entity.IPlayer-">disableSlot</a></span>(int&nbsp;slot,
+           <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</code>
 <div class="block">disables the slot for this player</div>
 </td>
 </tr>
@@ -145,13 +145,13 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#enableSlot-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">enableSlot</a></span>(int&nbsp;slot,
-          <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#enableSlot-int-noppes.npcs.api.entity.IPlayer-">enableSlot</a></span>(int&nbsp;slot,
+          <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</code>
 <div class="block">enables the slot for this player</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>[]</code></td>
+<td class="colFirst"><code><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#getCurrency-int-">getCurrency</a></span>(int&nbsp;slot)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -164,11 +164,11 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#getPurchaseNum-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">getPurchaseNum</a></span>(int&nbsp;slot,
-              <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#getPurchaseNum-int-noppes.npcs.api.entity.IPlayer-">getPurchaseNum</a></span>(int&nbsp;slot,
+              <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
-<td class="colFirst"><code><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a></code></td>
+<td class="colFirst"><code><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#getSellOption-int-">getSellOption</a></span>(int&nbsp;slot)</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
@@ -177,8 +177,8 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#isSlotEnabled-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">isSlotEnabled</a></span>(int&nbsp;slot,
-             <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#isSlotEnabled-int-noppes.npcs.api.entity.IPlayer-">isSlotEnabled</a></span>(int&nbsp;slot,
+             <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</code>&nbsp;</td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>void</code></td>
@@ -198,8 +198,8 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </tr>
 <tr id="i14" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#resetPurchaseNum-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">resetPurchaseNum</a></span>(int&nbsp;slot,
-                <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#resetPurchaseNum-int-noppes.npcs.api.entity.IPlayer-">resetPurchaseNum</a></span>(int&nbsp;slot,
+                <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</code>
 <div class="block">sets the purchase num for that slot and player to 0</div>
 </td>
 </tr>
@@ -209,23 +209,23 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </tr>
 <tr id="i16" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#setSellOption-int-noppes.npcs.scripted.interfaces.item.IItemStack-noppes.npcs.scripted.interfaces.item.IItemStack-">setSellOption</a></span>(int&nbsp;slot,
-             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;currency,
-             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;sold)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#setSellOption-int-noppes.npcs.api.item.IItemStack-noppes.npcs.api.item.IItemStack-">setSellOption</a></span>(int&nbsp;slot,
+             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;currency,
+             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;sold)</code>&nbsp;</td>
 </tr>
 <tr id="i17" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#setSellOption-int-noppes.npcs.scripted.interfaces.item.IItemStack-noppes.npcs.scripted.interfaces.item.IItemStack-noppes.npcs.scripted.interfaces.item.IItemStack-">setSellOption</a></span>(int&nbsp;slot,
-             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;currency,
-             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;currency2,
-             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;sold)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTrader.html#setSellOption-int-noppes.npcs.api.item.IItemStack-noppes.npcs.api.item.IItemStack-noppes.npcs.api.item.IItemStack-">setSellOption</a></span>(int&nbsp;slot,
+             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;currency,
+             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;currency2,
+             <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;sold)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.noppes.npcs.scripted.interfaces.roles.IRole">
+<li class="blockList"><a name="methods.inherited.from.class.noppes.npcs.api.roles.IRole">
 <!--   -->
 </a>
-<h3>Methods inherited from interface&nbsp;noppes.npcs.scripted.interfaces.roles.<a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html" title="interface in noppes.npcs.scripted.interfaces.roles">IRole</a></h3>
+<h3>Methods inherited from interface&nbsp;noppes.npcs.api.roles.<a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html" title="interface in noppes.npcs.api.roles">IRole</a></h3>
 <code><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html#getType--">getType</a></code></li>
 </ul>
 </li>
@@ -242,16 +242,16 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setSellOption-int-noppes.npcs.scripted.interfaces.item.IItemStack-noppes.npcs.scripted.interfaces.item.IItemStack-noppes.npcs.scripted.interfaces.item.IItemStack-">
+<a name="setSellOption-int-noppes.npcs.api.item.IItemStack-noppes.npcs.api.item.IItemStack-noppes.npcs.api.item.IItemStack-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setSellOption</h4>
 <pre>void&nbsp;setSellOption(int&nbsp;slot,
-                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;currency,
-                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;currency2,
-                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;sold)</pre>
+                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;currency,
+                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;currency2,
+                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;sold)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>slot</code> - Slot number 0-17</dd>
@@ -261,15 +261,15 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </dl>
 </li>
 </ul>
-<a name="setSellOption-int-noppes.npcs.scripted.interfaces.item.IItemStack-noppes.npcs.scripted.interfaces.item.IItemStack-">
+<a name="setSellOption-int-noppes.npcs.api.item.IItemStack-noppes.npcs.api.item.IItemStack-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>setSellOption</h4>
 <pre>void&nbsp;setSellOption(int&nbsp;slot,
-                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;currency,
-                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;sold)</pre>
+                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;currency,
+                   <a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;sold)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>slot</code> - Slot number 0-17</dd>
@@ -284,7 +284,7 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 <ul class="blockList">
 <li class="blockList">
 <h4>getSellOption</h4>
-<pre><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;getSellOption(int&nbsp;slot)</pre>
+<pre><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;getSellOption(int&nbsp;slot)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>slot</code> - </dd>
@@ -299,7 +299,7 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 <ul class="blockList">
 <li class="blockList">
 <h4>getCurrency</h4>
-<pre><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>[]&nbsp;getCurrency(int&nbsp;slot)</pre>
+<pre><a href="../../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>[]&nbsp;getCurrency(int&nbsp;slot)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>slot</code> - </dd>
@@ -362,14 +362,14 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </dl>
 </li>
 </ul>
-<a name="getPurchaseNum-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">
+<a name="getPurchaseNum-int-noppes.npcs.api.entity.IPlayer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getPurchaseNum</h4>
 <pre>int&nbsp;getPurchaseNum(int&nbsp;slot,
-                   <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</pre>
+                   <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>slot</code> - </dd>
@@ -403,14 +403,14 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </dl>
 </li>
 </ul>
-<a name="resetPurchaseNum-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">
+<a name="resetPurchaseNum-int-noppes.npcs.api.entity.IPlayer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>resetPurchaseNum</h4>
 <pre>void&nbsp;resetPurchaseNum(int&nbsp;slot,
-                      <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</pre>
+                      <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</pre>
 <div class="block">sets the purchase num for that slot and player to 0</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -434,14 +434,14 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </dl>
 </li>
 </ul>
-<a name="isSlotEnabled-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">
+<a name="isSlotEnabled-int-noppes.npcs.api.entity.IPlayer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>isSlotEnabled</h4>
 <pre>boolean&nbsp;isSlotEnabled(int&nbsp;slot,
-                      <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</pre>
+                      <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>slot</code> - </dd>
@@ -465,14 +465,14 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </dl>
 </li>
 </ul>
-<a name="disableSlot-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">
+<a name="disableSlot-int-noppes.npcs.api.entity.IPlayer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>disableSlot</h4>
 <pre>void&nbsp;disableSlot(int&nbsp;slot,
-                 <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</pre>
+                 <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</pre>
 <div class="block">disables the slot for this player</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -495,14 +495,14 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </dl>
 </li>
 </ul>
-<a name="enableSlot-int-noppes.npcs.scripted.interfaces.entity.IPlayer-">
+<a name="enableSlot-int-noppes.npcs.api.entity.IPlayer-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>enableSlot</h4>
 <pre>void&nbsp;enableSlot(int&nbsp;slot,
-                <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player)</pre>
+                <a href="../../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player)</pre>
 <div class="block">enables the slot for this player</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -538,8 +538,8 @@ extends <a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRole.html
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleMailman.html" title="interface in noppes.npcs.scripted.interfaces.roles"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTransporter.html" title="interface in noppes.npcs.scripted.interfaces.roles"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleMailman.html" title="interface in noppes.npcs.api.roles"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../noppes/npcs/scripted/interfaces/roles/IRoleTransporter.html" title="interface in noppes.npcs.api.roles"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?noppes/npcs/scripted/interfaces/roles/IRoleTrader.html" target="_top">Frames</a></li>

@@ -14,7 +14,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.scripted.interfaces.handler.data.IRecipe;
+import noppes.npcs.api.handler.data.IRecipe;
 
 public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 	public int id = -1;

@@ -9,11 +9,14 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
+import noppes.npcs.api.scoreboard.IScoreboard;
+import noppes.npcs.api.scoreboard.IScoreboardObjective;
+import noppes.npcs.api.scoreboard.IScoreboardTeam;
 
 /**
  * @author Karel
  */
-public class ScriptScoreboard {
+public class ScriptScoreboard implements IScoreboard {
 	private Scoreboard board;
 
 	public ScriptScoreboard(){
@@ -23,9 +26,9 @@ public class ScriptScoreboard {
 	/**
 	 * @return Returns an array with all ScoreboardObjectives
 	 */
-	public ScriptScoreboardObjective[] getObjectives(){
+	public IScoreboardObjective[] getObjectives(){
         List<ScoreObjective> collection = new ArrayList<ScoreObjective>(board.getScoreObjectives());
-        ScriptScoreboardObjective[] objectives = new ScriptScoreboardObjective[collection.size()];
+		IScoreboardObjective[] objectives = new IScoreboardObjective[collection.size()];
         for(int i = 0; i < collection.size(); i++){
         	objectives[i] = new ScriptScoreboardObjective(collection.get(i));
         }
@@ -36,7 +39,7 @@ public class ScriptScoreboard {
 	 * @param name Name of the objective
 	 * @return Returns the ScoreboardObjective
 	 */
-	public ScriptScoreboardObjective getObjective(String name){
+	public IScoreboardObjective getObjective(String name){
 		ScoreObjective obj = board.getObjective(name);
 		if(obj == null)
 			return null;
@@ -66,7 +69,7 @@ public class ScriptScoreboard {
 	 * @param criteria The criteria see http://minecraft.gamepedia.com/Scoreboard#Objectives
 	 * @return Returns the created ScoreboardObjective, returns null if it failed to create
 	 */
-	public ScriptScoreboardObjective addObjective(String objective, String criteria){
+	public IScoreboardObjective addObjective(String objective, String criteria){
 		if(hasObjective(objective))
 			return null;
         
@@ -143,17 +146,17 @@ public class ScriptScoreboard {
         	board.func_96516_a(player);
 	}
 	
-	public ScriptScoreboardTeam[] getTeams(){
+	public IScoreboardTeam[] getTeams(){
 		List<ScorePlayerTeam> list = new ArrayList<ScorePlayerTeam>(board.getTeams());
-		ScriptScoreboardTeam[] teams = new ScriptScoreboardTeam[list.size()];
+		IScoreboardTeam[] teams = new IScoreboardTeam[list.size()];
 		for(int i = 0; i < list.size(); i++){
 			teams[i] = new ScriptScoreboardTeam(list.get(i), board);
 		}
 		return teams;
 	}
 	
-	public ScriptScoreboardTeam getTeamByName(String name) {
-		ScriptScoreboardTeam[] teams = getTeams();
+	public IScoreboardTeam getTeamByName(String name) {
+		IScoreboardTeam[] teams = getTeams();
 		for (int i = 0; i < teams.length; i++) {
 			if (teams[i].getName().equals(name)) {
 				return teams[i];
@@ -166,13 +169,13 @@ public class ScriptScoreboard {
 		return board.getPlayersTeam(name) != null;
 	}
 	
-	public ScriptScoreboardTeam addTeam(String name){
+	public IScoreboardTeam addTeam(String name){
 		if(hasTeam(name))
 			return null;
 		return new ScriptScoreboardTeam(board.createTeam(name), board);
 	}
 	
-	public ScriptScoreboardTeam getTeam(String name){
+	public IScoreboardTeam getTeam(String name){
 		ScorePlayerTeam team = board.getPlayersTeam(name);
 		if(team == null)
 			return null;

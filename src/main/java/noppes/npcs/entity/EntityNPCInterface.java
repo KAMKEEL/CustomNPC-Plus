@@ -73,8 +73,8 @@ import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.*;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.*;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.util.GameProfileAlt;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 

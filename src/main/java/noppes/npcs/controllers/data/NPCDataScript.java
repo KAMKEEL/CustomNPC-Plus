@@ -7,12 +7,11 @@ import net.minecraft.util.math.BlockPos;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
+import noppes.npcs.api.entity.ICustomNpc;
 
 import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;

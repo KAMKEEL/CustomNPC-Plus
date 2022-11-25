@@ -24,8 +24,8 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraftforge.common.IPlantable;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptNbt;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.INbt;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.INbt;
 import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptItemStack implements IItemStack {

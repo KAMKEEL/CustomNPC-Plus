@@ -4,7 +4,7 @@ import java.util.HashSet;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.scripted.interfaces.handler.IPlayerDialogData;
+import noppes.npcs.api.handler.IPlayerDialogData;
 
 public class PlayerDialogData implements IPlayerDialogData {
 	private final PlayerData parent;

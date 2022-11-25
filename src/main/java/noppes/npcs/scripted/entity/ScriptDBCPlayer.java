@@ -5,8 +5,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.interfaces.entity.IDBCPlayer;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.IDBCPlayer;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> implements IDBCPlayer {

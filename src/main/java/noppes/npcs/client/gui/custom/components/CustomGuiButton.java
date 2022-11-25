@@ -16,7 +16,7 @@ import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.scripted.gui.ScriptGuiButton;
-import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 public class CustomGuiButton extends GuiButton implements IClickListener {

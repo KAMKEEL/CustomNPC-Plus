@@ -18,6 +18,7 @@ import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 

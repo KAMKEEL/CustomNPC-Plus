@@ -11,8 +11,8 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestKill;
-import noppes.npcs.scripted.interfaces.handler.data.IQuestObjective;
+import noppes.npcs.api.handler.data.IQuestKill;
+import noppes.npcs.api.handler.data.IQuestObjective;
 
 public class QuestKill extends QuestInterface implements IQuestKill {
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();

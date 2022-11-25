@@ -10,8 +10,8 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.FactionEvent;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.IPlayerFactionData;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerFactionData;
 
 public class PlayerFactionData implements IPlayerFactionData {
 	private final PlayerData parent;
@@ -63,7 +63,9 @@ public class PlayerFactionData implements IPlayerFactionData {
 	}
 
 	public void increasePoints(int factionId, int points, EntityPlayer player) {
-		EventHooks.onFactionPoints(new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points));
+		if (EventHooks.onFactionPoints(new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points)))
+			return;
+
 		if(!factionData.containsKey(factionId)){
 			Faction faction = FactionController.getInstance().get(factionId);
 			factionData.put(factionId, faction == null? -1 : faction.defaultPoints);

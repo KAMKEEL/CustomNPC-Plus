@@ -5,7 +5,6 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
@@ -15,9 +14,9 @@ import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.event.ItemEvent;
-import noppes.npcs.scripted.interfaces.item.IItemCustom;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.item.IItemCustom;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.util.HashMap;
@@ -103,7 +102,7 @@ public class ScriptItemEventHandler {
             try {
                 if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
                     IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                    ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock(NpcAPI.Instance().getIWorld(event.entityPlayer.worldObj), NpcAPI.Instance().getIPos(event.entityPlayer.posX, event.entityPlayer.posY, event.entityPlayer.posZ)));
+                    ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIEntity(event.target));
                     event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
                 }
             } catch(Exception e) {}

@@ -7,8 +7,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.scripted.interfaces.handler.IPlayerItemGiverData;
-import noppes.npcs.scripted.interfaces.jobs.IJobItemGiver;
+import noppes.npcs.api.handler.IPlayerItemGiverData;
+import noppes.npcs.api.jobs.IJobItemGiver;
 import noppes.npcs.scripted.roles.ScriptJobItemGiver;
 
 public class PlayerItemGiverData implements IPlayerItemGiverData {
@@ -49,15 +49,15 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 	}
 
 	public long getTime(IJobItemGiver jobItemGiver){
-		return itemgivers.get(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId);
+		return itemgivers.get(((JobItemGiver) jobItemGiver).itemGiverId);
 	}
 
 	public void setTime(IJobItemGiver jobItemGiver, long day) {
-		itemgivers.put(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId, day);
+		itemgivers.put(((JobItemGiver) jobItemGiver).itemGiverId, day);
 	}
 
 	public boolean hasInteractedBefore(IJobItemGiver jobItemGiver) {
-		return itemgivers.containsKey(((JobItemGiver) jobItemGiver.getJobInterface()).itemGiverId);
+		return itemgivers.containsKey(((JobItemGiver) jobItemGiver).itemGiverId);
 	}
 
 	public IJobItemGiver[] getItemGivers() {

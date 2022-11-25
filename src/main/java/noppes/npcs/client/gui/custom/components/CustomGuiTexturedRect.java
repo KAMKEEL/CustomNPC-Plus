@@ -8,7 +8,6 @@ package noppes.npcs.client.gui.custom.components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
@@ -17,7 +16,7 @@ import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
-import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;

@@ -4,8 +4,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
-import noppes.npcs.scripted.interfaces.jobs.IJob;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.jobs.IJob;
 
 public class ScriptJobInterface implements IJob {
 	public final EntityNPCInterface npc;

@@ -6,6 +6,8 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.jobs.IJob;
+import noppes.npcs.api.roles.IRole;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumNavType;
@@ -18,14 +20,14 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.ITimers;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
-import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.IOverlayHandler;
-import noppes.npcs.scripted.interfaces.handler.data.IFaction;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.ITimers;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.roles.ScriptJobBard;
 import noppes.npcs.scripted.roles.ScriptJobConversation;
 import noppes.npcs.scripted.roles.ScriptJobFollower;
@@ -331,7 +333,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return Returns the npcs current role
 	 */
-	public ScriptRoleInterface getRole(){
+	public IRole getRole(){
 		if(npc.advanced.role == EnumRoleType.Bank)
 			return new ScriptRoleBank(npc);
 		else if(npc.advanced.role == EnumRoleType.Follower)
@@ -357,7 +359,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return Returns the npcs current job
 	 */
-	public ScriptJobInterface getJob(){
+	public IJob getJob(){
 		if(npc.advanced.job == EnumJobType.Bard)
 			return new ScriptJobBard(npc);
 		else if(npc.advanced.job == EnumJobType.Conversation)

@@ -1,7 +1,7 @@
 package noppes.npcs.scripted.overlay;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.scripted.interfaces.overlay.IOverlayLabel;
+import noppes.npcs.api.overlay.IOverlayLabel;
 
 public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverlayLabel {
     String label;

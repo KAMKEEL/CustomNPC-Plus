@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
-import noppes.npcs.scripted.interfaces.overlay.ICustomOverlayComponent;
+import noppes.npcs.api.overlay.ICustomOverlayComponent;
 import noppes.npcs.scripted.overlay.ScriptOverlayLine;
 import org.lwjgl.opengl.GL11;
 

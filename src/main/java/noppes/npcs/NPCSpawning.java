@@ -26,6 +26,8 @@ import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.CustomNPCsEvent;
 
 public class NPCSpawning {
 	private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
@@ -201,10 +203,12 @@ public class NPCSpawning {
         if (canSpawn == Result.DENY || (canSpawn == Result.DEFAULT && !canEntitySpawn(data,entityliving)))
         	return false;
 
-        if (EventHooks.onCNPCNaturalSpawn(data, new BlockPos(x,y,z), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn)) {
+        CustomNPCsEvent.CNPCNaturalSpawnEvent event = new CustomNPCsEvent.CNPCNaturalSpawnEvent(data, NpcAPI.Instance().getIPos(new BlockPos(x,y,z)), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn);
+        if (EventHooks.onCNPCNaturalSpawn(event)) {
             return false;
         }
-        
+
+        entityliving.setPosition(event.attemptPosition.getX(),event.attemptPosition.getY(),event.attemptPosition.getZ());
         world.spawnEntityInWorld(entityliving);
     	
     	return true;

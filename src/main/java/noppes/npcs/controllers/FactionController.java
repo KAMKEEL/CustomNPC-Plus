@@ -18,8 +18,8 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.scripted.interfaces.handler.IFactionHandler;
-import noppes.npcs.scripted.interfaces.handler.data.IFaction;
+import noppes.npcs.api.handler.IFactionHandler;
+import noppes.npcs.api.handler.data.IFaction;
 
 public class FactionController implements IFactionHandler {
 	public HashMap<Integer,Faction> factions;

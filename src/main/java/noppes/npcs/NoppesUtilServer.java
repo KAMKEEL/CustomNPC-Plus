@@ -73,7 +73,7 @@ import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.entity.IPlayer;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -186,7 +186,9 @@ public class NoppesUtilServer {
 			if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
 				return;
 			}
-			EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+			if (EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog))) {
+				return;
+			}
 		}
 
 		if(npc instanceof EntityDialogNpc){

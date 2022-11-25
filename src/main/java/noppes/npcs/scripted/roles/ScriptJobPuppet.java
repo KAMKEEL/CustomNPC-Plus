@@ -3,7 +3,7 @@ package noppes.npcs.scripted.roles;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.scripted.interfaces.jobs.IJobPuppet;
+import noppes.npcs.api.jobs.IJobPuppet;
 
 public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	private JobPuppet job;

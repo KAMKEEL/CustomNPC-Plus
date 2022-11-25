@@ -7,13 +7,18 @@ package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.scripted.interfaces.AbstractNpcAPI;
-import noppes.npcs.scripted.interfaces.IPos;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.handler.data.INaturalSpawn;
+import noppes.npcs.api.AbstractNpcAPI;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.event.ICustomNPCsEvent;
+import noppes.npcs.api.handler.data.INaturalSpawn;
+import noppes.npcs.constants.EnumScriptType;
 
-public class CustomNPCsEvent extends Event{
+public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();
+
+    public String getHookName() {
+        return "CNPCEvent";
+    }
 
     public CustomNPCsEvent() {
     }
@@ -25,9 +30,9 @@ public class CustomNPCsEvent extends Event{
     public boolean isCancelled(){return this.isCanceled();}
 
     @Cancelable
-    public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent {
+    public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent implements ICustomNPCsEvent.CNPCNaturalSpawnEvent {
         public final INaturalSpawn naturalSpawn;
-        public final IPos attemptPosition;
+        public IPos attemptPosition;
         public final boolean animalSpawnPassed;
         public final boolean monsterSpawnPassed;
         public final boolean liquidSpawnPassed;
@@ -41,6 +46,38 @@ public class CustomNPCsEvent extends Event{
             this.monsterSpawnPassed = monsterSpawnPassed;
             this.liquidSpawnPassed = liquidSpawnPassed;
             this.airSpawnPassed = airSpawnPassed;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.CNPC_NATURAL_SPAWN.function;
+        }
+
+        public INaturalSpawn getNaturalSpawn() {
+            return this.naturalSpawn;
+        }
+
+        public void setAttemptPosition(IPos attemptPosition) {
+            this.attemptPosition = attemptPosition;
+        }
+
+        public IPos getAttemptPosition() {
+            return this.attemptPosition;
+        }
+
+        public boolean animalSpawnPassed() {
+            return this.animalSpawnPassed;
+        }
+
+        public boolean monsterSpawnPassed() {
+            return this.monsterSpawnPassed;
+        }
+
+        public boolean liquidSpawnPassed() {
+            return this.liquidSpawnPassed;
+        }
+
+        public boolean airSpawnPassed() {
+            return this.airSpawnPassed;
         }
     }
 }

@@ -11,25 +11,32 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.event.INpcEvent;
+import noppes.npcs.api.handler.data.IDialog;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.scripted.interfaces.*;
-import noppes.npcs.scripted.interfaces.entity.ICustomNpc;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
-import noppes.npcs.scripted.interfaces.entity.IEntityLivingBase;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
-import noppes.npcs.scripted.interfaces.item.IItemStack;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 
-public class NpcEvent extends CustomNPCsEvent {
+public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
     public final ICustomNpc npc;
 
     public NpcEvent(ICustomNpc npc) {
         this.npc = npc;
     }
 
-    public static class TimerEvent extends NpcEvent {
+    public ICustomNpc getNpc() {
+        return npc;
+    }
+
+    public static class TimerEvent extends NpcEvent implements INpcEvent.TimerEvent {
         public final int id;
 
         public TimerEvent(ICustomNpc npc, int id) {
@@ -37,22 +44,34 @@ public class NpcEvent extends CustomNPCsEvent {
             this.id = id;
         }
 
+        public String getHookName() {
+            return EnumScriptType.TIMER.function;
+        }
+
         public int getId(){
             return id;
         }
     }
 
-    public static class CollideEvent extends NpcEvent {
+    public static class CollideEvent extends NpcEvent implements INpcEvent.CollideEvent {
         public final IEntity entity;
 
         public CollideEvent(ICustomNpc npc, Entity entity) {
             super(npc);
             this.entity = NpcAPI.Instance().getIEntity(entity);
         }
+
+        public String getHookName() {
+            return EnumScriptType.COLLIDE.function;
+        }
+
+        public IEntity getEntity() {
+            return entity;
+        }
     }
 
     @Cancelable
-    public static class DamagedEvent extends NpcEvent {
+    public static class DamagedEvent extends NpcEvent implements INpcEvent.DamagedEvent {
         public final IDamageSource damageSource;
         public final IEntity source;
         public float damage;
@@ -71,11 +90,19 @@ public class NpcEvent extends CustomNPCsEvent {
             this.damagesource = damagesource;
         }
 
+        public String getHookName() {
+            return EnumScriptType.DAMAGED.function;
+        }
+
         /**
          * @return The source of the damage
          */
         public IEntity getSource(){
             return source;
+        }
+
+        public IDamageSource getDamageSource(){
+            return damageSource;
         }
 
         /**
@@ -107,7 +134,7 @@ public class NpcEvent extends CustomNPCsEvent {
     }
 
     @Cancelable
-    public static class RangedLaunchedEvent extends NpcEvent {
+    public static class RangedLaunchedEvent extends NpcEvent implements INpcEvent.RangedLaunchedEvent {
         public final IEntityLivingBase target;
         public float damage;
         //public List<IProjectile> projectiles = new ArrayList();
@@ -118,12 +145,23 @@ public class NpcEvent extends CustomNPCsEvent {
             this.damage = damage;
         }
 
+        public String getHookName() {
+            return EnumScriptType.RANGED_LAUNCHED.function;
+        }
+
         /**
          * @return The source of the damage
          * @deprecated
          */
         public IEntityLivingBase getTarget(){
             return target;
+        }
+
+        /**
+         * @param damage The new damage value
+         */
+        public void setDamage(float damage){
+            this.damage = damage;
         }
 
 
@@ -135,13 +173,6 @@ public class NpcEvent extends CustomNPCsEvent {
         }
 
         /**
-         * @param damage The new damage value
-         */
-        public void setDamage(float damage){
-            this.damage = damage;
-        }
-
-        /**
          * @return Returns the damage type
          */
         public boolean isRange(){
@@ -150,7 +181,7 @@ public class NpcEvent extends CustomNPCsEvent {
     }
 
     @Cancelable
-    public static class MeleeAttackEvent extends NpcEvent {
+    public static class MeleeAttackEvent extends NpcEvent implements INpcEvent.MeleeAttackEvent {
         public final IEntityLivingBase target;
         public float damage;
 
@@ -158,6 +189,10 @@ public class NpcEvent extends CustomNPCsEvent {
             super(npc);
             this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.ATTACK_MELEE.function;
         }
 
         /**
@@ -191,17 +226,25 @@ public class NpcEvent extends CustomNPCsEvent {
         }
     }
 
-    public static class KilledEntityEvent extends NpcEvent {
+    public static class KilledEntityEvent extends NpcEvent implements INpcEvent.KilledEntityEvent {
         public final IEntityLivingBase entity;
 
         public KilledEntityEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
             this.entity = (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity);
         }
+
+        public String getHookName() {
+            return EnumScriptType.KILLS.function;
+        }
+
+        public IEntityLivingBase getEntity() {
+            return entity;
+        }
     }
 
     @Cancelable
-    public static class DiedEvent extends NpcEvent {
+    public static class DiedEvent extends NpcEvent implements INpcEvent.DiedEvent {
         public final IDamageSource damageSource;
         public final String type;
         public final IEntity source;
@@ -223,6 +266,10 @@ public class NpcEvent extends CustomNPCsEvent {
             this.expDropped = expDropped;
         }
 
+        public String getHookName() {
+            return EnumScriptType.KILLED.function;
+        }
+
         /**
          * @return The source of the damage
          */
@@ -238,24 +285,48 @@ public class NpcEvent extends CustomNPCsEvent {
         public String getType(){
             return damageSource.getMCDamageSource().damageType;
         }
+
+        public void setDroppedItems(IItemStack[] droppedItems) {
+            this.droppedItems = droppedItems;
+        }
+
+        public IItemStack[] getDroppedItems() {
+            return droppedItems;
+        }
+
+        public void setExpDropped(int expDropped) {
+            this.expDropped = expDropped;
+        }
+
+        public int getExpDropped() {
+            return expDropped;
+        }
     }
 
     @Cancelable
-    public static class InteractEvent extends NpcEvent {
+    public static class InteractEvent extends NpcEvent implements INpcEvent.InteractEvent {
         public final IPlayer player;
 
         public InteractEvent(ICustomNpc npc, EntityPlayer player) {
             super(npc);
             this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
         }
+
+        public String getHookName() {
+            return EnumScriptType.INTERACT.function;
+        }
+
+        public IPlayer getPlayer() {
+            return player;
+        }
     }
 
     @Cancelable
-    public static class DialogEvent extends NpcEvent {
+    public static class DialogEvent extends NpcEvent implements INpcEvent.DialogEvent {
         public final IPlayer player;
         public final int id;
         public final int optionId;
-        public final Dialog dialogObj;
+        public final IDialog dialogObj;
 
         public final int dialog;
         public final int option;
@@ -271,11 +342,15 @@ public class NpcEvent extends CustomNPCsEvent {
             this.option = optionId;
         }
 
+        public String getHookName() {
+            return EnumScriptType.DIALOG.function;
+        }
+
         public IPlayer getPlayer() {
             return player;
         }
 
-        public Dialog getDialog() {
+        public IDialog getDialog() {
             return dialogObj;
         }
 
@@ -295,7 +370,7 @@ public class NpcEvent extends CustomNPCsEvent {
         }
     }
 
-    public static class DialogClosedEvent extends NpcEvent {
+    public static class DialogClosedEvent extends NpcEvent implements INpcEvent.DialogClosedEvent {
         public final IPlayer player;
         public final int id;
         public final int optionId;
@@ -313,6 +388,10 @@ public class NpcEvent extends CustomNPCsEvent {
 
             this.dialog = id;
             this.option = optionId;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.DIALOG_CLOSE.function;
         }
 
         public IPlayer getPlayer() {
@@ -340,22 +419,38 @@ public class NpcEvent extends CustomNPCsEvent {
     }
 
     @Cancelable
-    public static class TargetLostEvent extends NpcEvent {
+    public static class TargetLostEvent extends NpcEvent implements INpcEvent.TargetLostEvent {
         public final IEntityLivingBase entity;
 
         public TargetLostEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
             this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
         }
+
+        public String getHookName() {
+            return EnumScriptType.TARGET_LOST.function;
+        }
+
+        public IEntityLivingBase getTarget() {
+            return entity;
+        }
     }
 
     @Cancelable
-    public static class TargetEvent extends NpcEvent {
+    public static class TargetEvent extends NpcEvent implements INpcEvent.TargetEvent {
         public IEntityLivingBase entity;
 
         public TargetEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
             this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.TARGET.function;
+        }
+
+        public void setTarget(IEntityLivingBase entity){
+            this.entity = entity;
         }
 
         /**
@@ -364,21 +459,25 @@ public class NpcEvent extends CustomNPCsEvent {
         public IEntityLivingBase getTarget(){
             return entity;
         }
-
-        public void setTarget(IEntityLivingBase entity){
-            this.entity = entity;
-        }
     }
 
-    public static class UpdateEvent extends NpcEvent {
+    public static class UpdateEvent extends NpcEvent implements INpcEvent.UpdateEvent {
         public UpdateEvent(ICustomNpc npc) {
             super(npc);
         }
+
+        public String getHookName() {
+            return EnumScriptType.TICK.function;
+        }
     }
 
-    public static class InitEvent extends NpcEvent {
+    public static class InitEvent extends NpcEvent implements INpcEvent.InitEvent {
         public InitEvent(ICustomNpc npc) {
             super(npc);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.INIT.function;
         }
     }
 }

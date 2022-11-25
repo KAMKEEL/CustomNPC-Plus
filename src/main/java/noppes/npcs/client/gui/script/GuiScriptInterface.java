@@ -31,7 +31,7 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.controllers.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.NPCDataScript;

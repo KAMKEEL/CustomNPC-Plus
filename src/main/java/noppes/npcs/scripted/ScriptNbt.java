@@ -14,7 +14,7 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.scripted.interfaces.INbt;
+import noppes.npcs.api.INbt;
 import noppes.npcs.util.NBTJsonUtil;
 
 public class ScriptNbt implements INbt {

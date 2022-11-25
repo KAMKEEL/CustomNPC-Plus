@@ -7,8 +7,8 @@ import java.util.Vector;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.TransportController;
-import noppes.npcs.scripted.interfaces.handler.data.ITransportCategory;
-import noppes.npcs.scripted.interfaces.handler.data.ITransportLocation;
+import noppes.npcs.api.handler.data.ITransportCategory;
+import noppes.npcs.api.handler.data.ITransportLocation;
 
 public class TransportCategory implements ITransportCategory {
 	public int id = -1;

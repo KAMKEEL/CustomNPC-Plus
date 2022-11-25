@@ -6,9 +6,8 @@
 package noppes.npcs.scripted;
 
 import net.minecraft.util.DamageSource;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.interfaces.IDamageSource;
-import noppes.npcs.scripted.interfaces.entity.IEntity;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.entity.IEntity;
 
 public class ScriptDamageSource implements IDamageSource {
     private DamageSource source;

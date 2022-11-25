@@ -5,7 +5,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.scripted.interfaces.roles.IRole;
+import noppes.npcs.api.roles.IRole;
 
 public class ScriptRoleInterface implements IRole {
 	public final EntityNPCInterface npc;

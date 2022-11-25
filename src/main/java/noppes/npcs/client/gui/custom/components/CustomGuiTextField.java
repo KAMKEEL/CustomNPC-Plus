@@ -13,7 +13,7 @@ import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.gui.custom.interfaces.IDataHolder;
 import noppes.npcs.client.gui.custom.interfaces.IKeyListener;
 import noppes.npcs.scripted.gui.ScriptGuiTextField;
-import noppes.npcs.scripted.interfaces.gui.ICustomGuiComponent;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 public class CustomGuiTextField extends GuiTextField implements IKeyListener, IDataHolder, IClickListener {

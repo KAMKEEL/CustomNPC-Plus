@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.scripted.interfaces.handler.IPlayerMailData;
-import noppes.npcs.scripted.interfaces.handler.data.IPlayerMail;
+import noppes.npcs.api.handler.IPlayerMailData;
+import noppes.npcs.api.handler.data.IPlayerMail;
 
 public class PlayerMailData implements IPlayerMailData {
 	private final PlayerData parent;

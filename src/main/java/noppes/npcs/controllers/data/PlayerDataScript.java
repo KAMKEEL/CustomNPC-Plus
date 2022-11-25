@@ -16,10 +16,9 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.IScriptHandler;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.interfaces.entity.IPlayer;
+import noppes.npcs.api.entity.IPlayer;
 
 import javax.annotation.CheckForNull;
 
