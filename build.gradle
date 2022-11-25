@@ -19,6 +19,12 @@ buildscript {
     }
 }
 
+task submodulesUpdate(type:Exec) {
+    description 'Updates (and inits) git submodules'
+    commandLine 'git', 'submodule', 'update', '--init', '--recursive'
+    group 'Build Setup'
+}
+
 configurations {
     embed
     compile.extendsFrom(embed)
