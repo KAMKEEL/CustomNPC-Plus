@@ -20,32 +20,22 @@ I am not the original creator of CustomNPC. The original creator is @[Noppes](ht
 This mod is an ***update*** to CustomNPC and not an add-on. Do not install CustomNPC with CustomNPC-Plus. CustomNPC-Plus does not remove any functional features from the original mod. It expands upon CustomNPC with original features and backported features from newer versions. Simply drag CustomNPC-Plus into any client/server mods folder to utilize. Please **backup** before using as this could still have unforeseen errors. Report any bugs if found, thank you and enjoy.
 
 ### ❓ Features:
-- More Wing Types
-- More Fin Types
-- More Capes*
-- More Overlays
-- Added Horns
-- Added Dolphin Tail
-- Larger Clone GUI
-- More Clone Tabs
-- Increased Resolution to Additional Body Parts
-- 64x64 Skin Textures work on all models
-- 1.8 Skins  (64x64)
+- Flying NPC (Smart Pathfinding)
+- 1.8 Skin Support (64x64) (3D Bodywear)
 - Alex Model (64x64)
-- Fix Part Rendering
-- Backported GUI Features
-- Backported New Part Models
-- Custom Part Disabling
+- Additional Parts: [Wings, Fins, Capes, Horns, Tail]
+- Hide Body Parts [Arms, Legs, Head, Body]
+- Custom Overlays
+- Updated Cloner GUI (with more Tabs!)
 - Markov Name Generator
-- Flying NPCS
-- Dark Mode (Link down below)
+- Backported GUI Features
+- Dark Mode GUI (Link down below)
 
 #### Scripting:
 - Java Doc: [kamkeel.github.io/CustomNPC-Plus](https://kamkeel.github.io/CustomNPC-Plus/)  
 - Scripted Items
 - Player Overlays
 - GUI Overlays
-- Scripting Fixes / New Functions: [Documentation History](https://github.com/PewDizinho/CustomNPCPlus-Script-Documentation)
 (We never remove script functionality, only add on existing functions)
 
 ## 🔰 Skin Model Feature:
