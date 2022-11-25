@@ -67,7 +67,9 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 
 [CustomNPC+ Dark Mode](https://github.com/KAMKEEL/CustomNPC-Plus-Dark-Mode) is a resource pack for CustomNPC+ that alters all GUIs within the mod to a dark variant that is both clean and pleasing to look at.
 
-## Compiling / Building
+## Cloning / Compiling / Building
+
+git clone call `git submodule update --init --recursive`
 
 Using IntelliJ, take the following steps: 
 1. Run `setupDecompWorkspace` under the `forgegradle` tab.
