@@ -99,7 +99,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>noppes.npcs.api.AbstractNpcAPI</li>
+<li>noppes.npcs.scripted.interfaces.AbstractNpcAPI</li>
 </ul>
 </li>
 </ul>
@@ -163,14 +163,14 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#continueSounds--">continueSounds</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/gui/ICustomGui.html" title="interface in noppes.npcs.api.gui">ICustomGui</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/gui/ICustomGui.html" title="interface in noppes.npcs.scripted.interfaces.gui">ICustomGui</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#createCustomGui-int-int-int-boolean-">createCustomGui</a></span>(int&nbsp;id,
                int&nbsp;width,
                int&nbsp;height,
                boolean&nbsp;pauseGame)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/overlay/ICustomOverlay.html" title="interface in noppes.npcs.api.overlay">ICustomOverlay</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/overlay/ICustomOverlay.html" title="interface in noppes.npcs.scripted.interfaces.overlay">ICustomOverlay</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#createCustomOverlay-int-">createCustomOverlay</a></span>(int&nbsp;id)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
@@ -180,13 +180,13 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#createItem-java.lang.String-int-int-">createItem</a></span>(java.lang.String&nbsp;id,
           int&nbsp;damage,
           int&nbsp;size)</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.api.entity">ICustomNpc</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.scripted.interfaces.entity">ICustomNpc</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#createNPC-net.minecraft.world.World-">createNPC</a></span>(net.minecraft.world.World&nbsp;var1)</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
@@ -198,7 +198,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#createSkinOverlay-java.lang.String-">createSkinOverlay</a></span>(java.lang.String&nbsp;texture)</code>&nbsp;</td>
 </tr>
 <tr id="i11" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.api.handler.data">ISound</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.scripted.interfaces.handler.data">ISound</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#createSound-java.lang.String-">createSound</a></span>(java.lang.String&nbsp;directory)</code>&nbsp;</td>
 </tr>
 <tr id="i12" class="altColor">
@@ -219,7 +219,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i16" class="altColor">
 <td class="colFirst"><code>abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#executeCommand-noppes.npcs.api.IWorld-java.lang.String-">executeCommand</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/IWorld.html" title="interface in noppes.npcs.scripted.interfaces">IWorld</a>&nbsp;var1,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#executeCommand-noppes.npcs.scripted.interfaces.IWorld-java.lang.String-">executeCommand</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/IWorld.html" title="interface in noppes.npcs.scripted.interfaces">IWorld</a>&nbsp;var1,
               java.lang.String&nbsp;var2)</code>&nbsp;</td>
 </tr>
 <tr id="i17" class="rowColor">
@@ -227,19 +227,19 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getAllBiomeNames--">getAllBiomeNames</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i18" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>[]</code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getAllServerPlayers--">getAllServerPlayers</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i19" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/ICloneHandler.html" title="interface in noppes.npcs.api.handler">ICloneHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/ICloneHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">ICloneHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getClones--">getClones</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i20" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IDialogHandler.html" title="interface in noppes.npcs.api.handler">IDialogHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IDialogHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IDialogHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getDialogs--">getDialogs</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i21" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IFactionHandler.html" title="interface in noppes.npcs.api.handler">IFactionHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IFactionHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IFactionHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getFactions--">getFactions</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i22" class="altColor">
@@ -278,14 +278,14 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i29" class="rowColor">
 <td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/IDamageSource.html" title="interface in noppes.npcs.scripted.interfaces">IDamageSource</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getIDamageSource-noppes.npcs.api.entity.IEntity-">getIDamageSource</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>&nbsp;entity)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getIDamageSource-noppes.npcs.scripted.interfaces.entity.IEntity-">getIDamageSource</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>&nbsp;entity)</code>&nbsp;</td>
 </tr>
 <tr id="i30" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getIEntity-net.minecraft.entity.Entity-">getIEntity</a></span>(net.minecraft.entity.Entity&nbsp;var1)</code>&nbsp;</td>
 </tr>
 <tr id="i31" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getIItemStack-net.minecraft.item.ItemStack-">getIItemStack</a></span>(net.minecraft.item.ItemStack&nbsp;var1)</code>&nbsp;</td>
 </tr>
 <tr id="i32" class="altColor">
@@ -305,11 +305,11 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getIWorlds--">getIWorlds</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i36" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>[]</code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getLoadedEntities--">getLoadedEntities</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i37" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/ITransportHandler.html" title="interface in noppes.npcs.api.handler">ITransportHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/ITransportHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">ITransportHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getLocations--">getLocations</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i38" class="altColor">
@@ -317,7 +317,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getMOTD--">getMOTD</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i39" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/INaturalSpawnsHandler.html" title="interface in noppes.npcs.api.handler">INaturalSpawnsHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/INaturalSpawnsHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">INaturalSpawnsHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getNaturalSpawns--">getNaturalSpawns</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i40" class="altColor">
@@ -325,7 +325,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getPlayerNames--">getPlayerNames</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i41" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IQuestHandler.html" title="interface in noppes.npcs.api.handler">IQuestHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IQuestHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IQuestHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getQuests--">getQuests</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i42" class="altColor">
@@ -336,7 +336,7 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i43" class="rowColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IRecipeHandler.html" title="interface in noppes.npcs.api.handler">IRecipeHandler</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/handler/IRecipeHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IRecipeHandler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#getRecipes--">getRecipes</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i44" class="altColor">
@@ -361,19 +361,19 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i49" class="rowColor">
 <td class="colFirst"><code>abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#playSound-int-noppes.npcs.api.handler.data.ISound-">playSound</a></span>(int&nbsp;id,
-         <a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.api.handler.data">ISound</a>&nbsp;sound)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#playSound-int-noppes.npcs.scripted.interfaces.handler.data.ISound-">playSound</a></span>(int&nbsp;id,
+         <a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.scripted.interfaces.handler.data">ISound</a>&nbsp;sound)</code>&nbsp;</td>
 </tr>
 <tr id="i50" class="altColor">
 <td class="colFirst"><code>abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#playSoundAtEntity-noppes.npcs.api.entity.IEntity-java.lang.String-float-float-">playSoundAtEntity</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>&nbsp;entity,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#playSoundAtEntity-noppes.npcs.scripted.interfaces.entity.IEntity-java.lang.String-float-float-">playSoundAtEntity</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>&nbsp;entity,
                  java.lang.String&nbsp;sound,
                  float&nbsp;volume,
                  float&nbsp;pitch)</code>&nbsp;</td>
 </tr>
 <tr id="i51" class="rowColor">
 <td class="colFirst"><code>abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#playSoundToNearExcept-noppes.npcs.api.entity.IPlayer-java.lang.String-float-float-">playSoundToNearExcept</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#playSoundToNearExcept-noppes.npcs.scripted.interfaces.entity.IPlayer-java.lang.String-float-float-">playSoundToNearExcept</a></span>(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player,
                      java.lang.String&nbsp;sound,
                      float&nbsp;volume,
                      float&nbsp;pitch)</code>&nbsp;</td>
@@ -387,7 +387,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#sizeOfObject-java.lang.Object-">sizeOfObject</a></span>(java.lang.Object&nbsp;obj)</code>&nbsp;</td>
 </tr>
 <tr id="i54" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.api.entity">ICustomNpc</a></code></td>
+<td class="colFirst"><code>abstract <a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.scripted.interfaces.entity">ICustomNpc</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html#spawnNPC-net.minecraft.world.World-int-int-int-">spawnNPC</a></span>(net.minecraft.world.World&nbsp;var1,
         int&nbsp;var2,
         int&nbsp;var3,
@@ -474,7 +474,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getFactions</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IFactionHandler.html" title="interface in noppes.npcs.api.handler">IFactionHandler</a>&nbsp;getFactions()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IFactionHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IFactionHandler</a>&nbsp;getFactions()</pre>
 </li>
 </ul>
 <a name="getRecipes--">
@@ -483,7 +483,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getRecipes</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IRecipeHandler.html" title="interface in noppes.npcs.api.handler">IRecipeHandler</a>&nbsp;getRecipes()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IRecipeHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IRecipeHandler</a>&nbsp;getRecipes()</pre>
 </li>
 </ul>
 <a name="getQuests--">
@@ -492,7 +492,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getQuests</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IQuestHandler.html" title="interface in noppes.npcs.api.handler">IQuestHandler</a>&nbsp;getQuests()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IQuestHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IQuestHandler</a>&nbsp;getQuests()</pre>
 </li>
 </ul>
 <a name="getDialogs--">
@@ -501,7 +501,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getDialogs</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IDialogHandler.html" title="interface in noppes.npcs.api.handler">IDialogHandler</a>&nbsp;getDialogs()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/IDialogHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">IDialogHandler</a>&nbsp;getDialogs()</pre>
 </li>
 </ul>
 <a name="getClones--">
@@ -510,7 +510,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getClones</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/ICloneHandler.html" title="interface in noppes.npcs.api.handler">ICloneHandler</a>&nbsp;getClones()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/ICloneHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">ICloneHandler</a>&nbsp;getClones()</pre>
 </li>
 </ul>
 <a name="getNaturalSpawns--">
@@ -519,7 +519,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getNaturalSpawns</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/INaturalSpawnsHandler.html" title="interface in noppes.npcs.api.handler">INaturalSpawnsHandler</a>&nbsp;getNaturalSpawns()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/INaturalSpawnsHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">INaturalSpawnsHandler</a>&nbsp;getNaturalSpawns()</pre>
 </li>
 </ul>
 <a name="getLocations--">
@@ -528,7 +528,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getLocations</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/ITransportHandler.html" title="interface in noppes.npcs.api.handler">ITransportHandler</a>&nbsp;getLocations()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/ITransportHandler.html" title="interface in noppes.npcs.scripted.interfaces.handler">ITransportHandler</a>&nbsp;getLocations()</pre>
 </li>
 </ul>
 <a name="getAllBiomeNames--">
@@ -546,7 +546,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>createNPC</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.api.entity">ICustomNpc</a>&nbsp;createNPC(net.minecraft.world.World&nbsp;var1)</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.scripted.interfaces.entity">ICustomNpc</a>&nbsp;createNPC(net.minecraft.world.World&nbsp;var1)</pre>
 </li>
 </ul>
 <a name="spawnNPC-net.minecraft.world.World-int-int-int-">
@@ -555,7 +555,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>spawnNPC</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.api.entity">ICustomNpc</a>&nbsp;spawnNPC(net.minecraft.world.World&nbsp;var1,
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/ICustomNpc.html" title="interface in noppes.npcs.scripted.interfaces.entity">ICustomNpc</a>&nbsp;spawnNPC(net.minecraft.world.World&nbsp;var1,
                                     int&nbsp;var2,
                                     int&nbsp;var3,
                                     int&nbsp;var4)</pre>
@@ -568,7 +568,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getIEntity</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>&nbsp;getIEntity(net.minecraft.entity.Entity&nbsp;var1)</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>&nbsp;getIEntity(net.minecraft.entity.Entity&nbsp;var1)</pre>
 </li>
 </ul>
 <a name="getLoadedEntities--">
@@ -577,7 +577,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getLoadedEntities</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>[]&nbsp;getLoadedEntities()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>[]&nbsp;getLoadedEntities()</pre>
 </li>
 </ul>
 <a name="getIBlock-net.minecraft.world.World-net.minecraft.util.math.BlockPos-">
@@ -637,7 +637,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getIItemStack</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;getIItemStack(net.minecraft.item.ItemStack&nbsp;var1)</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;getIItemStack(net.minecraft.item.ItemStack&nbsp;var1)</pre>
 </li>
 </ul>
 <a name="getIWorld-net.minecraft.world.World-">
@@ -676,13 +676,13 @@ extends java.lang.Object</pre>
 <pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/IDamageSource.html" title="interface in noppes.npcs.scripted.interfaces">IDamageSource</a>&nbsp;getIDamageSource(net.minecraft.util.DamageSource&nbsp;var1)</pre>
 </li>
 </ul>
-<a name="getIDamageSource-noppes.npcs.api.entity.IEntity-">
+<a name="getIDamageSource-noppes.npcs.scripted.interfaces.entity.IEntity-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getIDamageSource</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/IDamageSource.html" title="interface in noppes.npcs.scripted.interfaces">IDamageSource</a>&nbsp;getIDamageSource(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>&nbsp;entity)</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/IDamageSource.html" title="interface in noppes.npcs.scripted.interfaces">IDamageSource</a>&nbsp;getIDamageSource(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>&nbsp;entity)</pre>
 </li>
 </ul>
 <a name="events--">
@@ -730,7 +730,7 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/AbstractNpcAPI.html" title="class in noppes.npcs.scripted.interfaces">AbstractNpcAPI</a>&nbsp;Instance()</pre>
 </li>
 </ul>
-<a name="executeCommand-noppes.npcs.api.IWorld-java.lang.String-">
+<a name="executeCommand-noppes.npcs.scripted.interfaces.IWorld-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -793,7 +793,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getAllServerPlayers</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>[]&nbsp;getAllServerPlayers()</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>[]&nbsp;getAllServerPlayers()</pre>
 </li>
 </ul>
 <a name="getPlayerNames--">
@@ -811,30 +811,30 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>createItem</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.api.item">IItemStack</a>&nbsp;createItem(java.lang.String&nbsp;id,
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/item/IItemStack.html" title="interface in noppes.npcs.scripted.interfaces.item">IItemStack</a>&nbsp;createItem(java.lang.String&nbsp;id,
                                       int&nbsp;damage,
                                       int&nbsp;size)</pre>
 </li>
 </ul>
-<a name="playSoundAtEntity-noppes.npcs.api.entity.IEntity-java.lang.String-float-float-">
+<a name="playSoundAtEntity-noppes.npcs.scripted.interfaces.entity.IEntity-java.lang.String-float-float-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>playSoundAtEntity</h4>
-<pre>public abstract&nbsp;void&nbsp;playSoundAtEntity(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.api.entity">IEntity</a>&nbsp;entity,
+<pre>public abstract&nbsp;void&nbsp;playSoundAtEntity(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IEntity.html" title="interface in noppes.npcs.scripted.interfaces.entity">IEntity</a>&nbsp;entity,
                                        java.lang.String&nbsp;sound,
                                        float&nbsp;volume,
                                        float&nbsp;pitch)</pre>
 </li>
 </ul>
-<a name="playSoundToNearExcept-noppes.npcs.api.entity.IPlayer-java.lang.String-float-float-">
+<a name="playSoundToNearExcept-noppes.npcs.scripted.interfaces.entity.IPlayer-java.lang.String-float-float-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>playSoundToNearExcept</h4>
-<pre>public abstract&nbsp;void&nbsp;playSoundToNearExcept(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.api.entity">IPlayer</a>&nbsp;player,
+<pre>public abstract&nbsp;void&nbsp;playSoundToNearExcept(<a href="../../../../noppes/npcs/scripted/interfaces/entity/IPlayer.html" title="interface in noppes.npcs.scripted.interfaces.entity">IPlayer</a>&nbsp;player,
                                            java.lang.String&nbsp;sound,
                                            float&nbsp;volume,
                                            float&nbsp;pitch)</pre>
@@ -896,17 +896,17 @@ public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/IParti
 <ul class="blockList">
 <li class="blockList">
 <h4>createSound</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.api.handler.data">ISound</a>&nbsp;createSound(java.lang.String&nbsp;directory)</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.scripted.interfaces.handler.data">ISound</a>&nbsp;createSound(java.lang.String&nbsp;directory)</pre>
 </li>
 </ul>
-<a name="playSound-int-noppes.npcs.api.handler.data.ISound-">
+<a name="playSound-int-noppes.npcs.scripted.interfaces.handler.data.ISound-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>playSound</h4>
 <pre>public abstract&nbsp;void&nbsp;playSound(int&nbsp;id,
-                               <a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.api.handler.data">ISound</a>&nbsp;sound)</pre>
+                               <a href="../../../../noppes/npcs/scripted/interfaces/handler/data/ISound.html" title="interface in noppes.npcs.scripted.interfaces.handler.data">ISound</a>&nbsp;sound)</pre>
 </li>
 </ul>
 <a name="stopSound-int-">
@@ -1018,7 +1018,7 @@ public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/IParti
 <ul class="blockList">
 <li class="blockList">
 <h4>createCustomGui</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/gui/ICustomGui.html" title="interface in noppes.npcs.api.gui">ICustomGui</a>&nbsp;createCustomGui(int&nbsp;id,
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/gui/ICustomGui.html" title="interface in noppes.npcs.scripted.interfaces.gui">ICustomGui</a>&nbsp;createCustomGui(int&nbsp;id,
                                            int&nbsp;width,
                                            int&nbsp;height,
                                            boolean&nbsp;pauseGame)</pre>
@@ -1039,7 +1039,7 @@ public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/IParti
 <ul class="blockList">
 <li class="blockList">
 <h4>createCustomOverlay</h4>
-<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/overlay/ICustomOverlay.html" title="interface in noppes.npcs.api.overlay">ICustomOverlay</a>&nbsp;createCustomOverlay(int&nbsp;id)</pre>
+<pre>public abstract&nbsp;<a href="../../../../noppes/npcs/scripted/interfaces/overlay/ICustomOverlay.html" title="interface in noppes.npcs.scripted.interfaces.overlay">ICustomOverlay</a>&nbsp;createCustomOverlay(int&nbsp;id)</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>A new ICustomOverlay overlay object with the given ID.</dd>

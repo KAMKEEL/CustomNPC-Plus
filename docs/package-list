@@ -1,7 +1,6 @@
-noppes.npcs.scripted.constants
-noppes.npcs.scripted.event
-noppes.npcs.scripted.interfaces
+noppes.npcs.api
 noppes.npcs.api.entity
+noppes.npcs.api.event
 noppes.npcs.api.gui
 noppes.npcs.api.handler
 noppes.npcs.api.handler.data
@@ -9,3 +8,4 @@ noppes.npcs.api.item
 noppes.npcs.api.jobs
 noppes.npcs.api.overlay
 noppes.npcs.api.roles
+noppes.npcs.api.scoreboard
