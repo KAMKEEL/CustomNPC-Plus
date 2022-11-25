@@ -22,6 +22,7 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 ### ❓ Features:
 - Flying NPC (Smart Pathfinding)
 - 1.8 Skin Support (64x64) (3D Bodywear)
+- Full URL64 Selector (Downloads FULL Size Images for Custom Mob Skins)
 - Alex Model (64x64)
 - Additional Parts: [Wings, Fins, Capes, Horns, Tail]
 - Hide Body Parts [Arms, Legs, Head, Body]
@@ -47,12 +48,14 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 ##### ❔ Please note all *local* skins in this version of CustomNPC, must match the model selected.
 <img src="images/skinAnimation.gif" width="474" height="260"/>
 
-#### Scale/Puppet Reset:
-<img src="images/guiAnimation.gif" width="474" height="260"/>
+#### Flying NPCs:
+<img src="images/FlyingNPC.gif" width="474" height="260"/>
 
 #### Url64:
 <img src="images/Url64Example.gif" width="474" height="260"/>
 
+#### DarkMode + Cloner GUI:
+<img src="images/ClonerGUI-DarkMode.png" width="474" height="260"/>
 
 ## 🔗 Want to check out my other projects?
 [Plugin Mod](https://github.com/KAMKEEL/Plugin-Mod) is a mod designed to add more aesthetic items for RPG and storytelling. It is compatible with CustomNPC+ and has many items intended to be used and wielded by created NPCs.
