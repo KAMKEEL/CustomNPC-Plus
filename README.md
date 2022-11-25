@@ -29,12 +29,16 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Updated Cloner GUI (with more Tabs!)
 - Markov Name Generator
 - Backported GUI Features
-- Dark Mode GUI (Link down below)
+- Dark Mode GUI (Link Below)
+- 1.12 Scripting Features (Details below)
 
 #### Scripting:
-- Java Doc: [kamkeel.github.io/CustomNPC-Plus](https://kamkeel.github.io/CustomNPC-Plus/)  
+- CustomNPC+ Api: [API](https://github.com/KAMKEEL/CustomNPC-Plus-API)
+- Java Doc: [kamkeel.github.io/CustomNPC-Plus](https://kamkeel.github.io/CustomNPC-Plus/)
 - Scripted Items
 - Player Overlays
+- Script Timers
+- Global Scripts
 - GUI Overlays
 (We never remove script functionality, only add on existing functions)
 
