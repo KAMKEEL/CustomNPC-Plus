@@ -32,6 +32,7 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Backported GUI Features
 - Dark Mode GUI (Link Below)
 - 1.12 Scripting Features (Details below)
+- Script Logging (See Config)
 
 #### Scripting:
 - CustomNPC+ Api: [API](https://github.com/KAMKEEL/CustomNPC-Plus-API)
