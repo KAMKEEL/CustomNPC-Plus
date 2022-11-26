@@ -9,6 +9,7 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.api.scoreboard.IScoreboardObjective;
 import noppes.npcs.api.scoreboard.IScoreboardTeam;
@@ -99,7 +100,11 @@ public class ScriptScoreboard implements IScoreboard {
 
         Score sco = board.func_96529_a(player, objec);
         sco.setScorePoints(score);
-	}	
+	}
+
+	public void setPlayerScore(IPlayer player, String objective, int score, String datatag){
+		this.setPlayerScore(player.getName(),objective,score,datatag);
+	}
 
 	/**
 	 * @since 1.7.10c
@@ -116,6 +121,10 @@ public class ScriptScoreboard implements IScoreboard {
         return board.func_96529_a(player, objec).getScorePoints(); 
 	}
 
+	public int getPlayerScore(IPlayer player, String objective, String datatag){
+		return this.getPlayerScore(player.getName(),objective,datatag);
+	}
+
 	/**
 	 * @version 1.8
 	 * @param player Name of a player or non existing thing
@@ -129,6 +138,10 @@ public class ScriptScoreboard implements IScoreboard {
 			return false;
 		
 		return board.func_96510_d(player).get(objec) != null;
+	}
+
+	public boolean hasPlayerObjective(IPlayer player, String objective, String datatag){
+		return this.hasPlayerObjective(player.getName(),objective,datatag);
 	}
 	
 	/**
@@ -144,6 +157,10 @@ public class ScriptScoreboard implements IScoreboard {
 
         if(board.func_96510_d(player).remove(objec) != null)
         	board.func_96516_a(player);
+	}
+
+	public void deletePlayerScore(IPlayer player, String objective, String datatag){
+		this.deletePlayerScore(player.getName(),objective,datatag);
 	}
 	
 	public IScoreboardTeam[] getTeams(){

@@ -6,6 +6,7 @@ import java.util.List;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.EnumChatFormatting;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.scoreboard.IScoreboardTeam;
 
 public class ScriptScoreboardTeam implements IScoreboardTeam {
@@ -35,9 +36,17 @@ public class ScriptScoreboardTeam implements IScoreboardTeam {
 	public void addPlayer(String player){
 		board.func_151392_a(player, getName());
 	}
+
+	public void addPlayer(IPlayer player) {
+		this.addPlayer(player.getName());
+	}
 	
 	public void removePlayer(String player){
 		board.removePlayerFromTeam(player, team);
+	}
+
+	public void removePlayer(IPlayer player) {
+		this.removePlayer(player.getName());
 	}
 	
 	public String[] getPlayers(){
