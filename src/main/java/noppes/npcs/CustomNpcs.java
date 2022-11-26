@@ -47,6 +47,11 @@ public class CustomNpcs {
     @ConfigProp(info = "Enables/Disables ALL scripting. You can still see and write code in the scripter, but these scripts won't run. True by default")
     public static boolean ScriptingEnabled = true;
 
+    @ConfigProp(info = "Enables/Disables the use of the the ECMA6 Javascript standard instead of ECMA5.1." +
+            "\nEnabling this adds many more features to JS in scripts, but may cause some scripts to break" +
+            "\non servers that run Java 8 or lower. Disabled by default.")
+    public static boolean ScriptingECMA6 = false;
+
     @ConfigProp(info = "Enables global player event scripts to be used in the scripter. You can still see and write code in the scripter, but these scripts won't run. True by default.")
     public static boolean GlobalPlayerScripts = true;
 
