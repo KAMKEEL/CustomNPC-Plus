@@ -216,6 +216,10 @@ public class ScriptContainer {
         engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
         engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLoading", true);
         engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowNativeAccess", true);
+        System.setProperty("polyglot.js.nashorn-compat", "true");
+        System.setProperty("polyglot.js.scripting", "true");
+        System.setProperty("polyglot.js.scripting", "true");
+        System.setProperty("polyglot.js.syntax-extensions", "true");
         this.engine = engine;
 
         currentScriptLanguage = scriptLanguage;
