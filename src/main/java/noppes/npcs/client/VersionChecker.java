@@ -17,7 +17,7 @@ public class VersionChecker extends Thread{
 		
 	}
 	public void run(){
-		String name = '\u00A7'+ "2CustomNpcs" + '\u00A7' + "f";
+		String name = '\u00A7'+ "cCustomNPC+" + '\u00A7' + "f";
 		String link = '\u00A7'+"9"+'\u00A7' + "nClick here"; 
 		String text =  name +" installed. For more info " + link;
 		
@@ -36,7 +36,7 @@ public class VersionChecker extends Thread{
 			}
         }
         ChatComponentTranslation message = new ChatComponentTranslation(text);
-        message.getChatStyle().setChatClickEvent(new ClickEvent(Action.OPEN_URL, "http://www.kodevelopment.nl/minecraft/customnpcs/"));
+        message.getChatStyle().setChatClickEvent(new ClickEvent(Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/customnpc-plus"));
         player.addChatMessage(message);
 	}
 }

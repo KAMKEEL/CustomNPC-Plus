@@ -33,7 +33,6 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.Timer;
 import java.util.UUID;
 
 @Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.7")
@@ -48,8 +47,8 @@ public class CustomNpcs {
     public static boolean ScriptingEnabled = true;
 
     @ConfigProp(info = "Enables/Disables the use of the the ECMA6 Javascript standard instead of ECMA5.1." +
-            "\nEnabling this adds many more features to JS in scripts, but may cause some scripts to break" +
-            "\non servers that run Java 8 or lower. Disabled by default.")
+            "\nEnabling this adds many more features to JS in scripts. Only use if on Java 8 or higher." +
+            "\nNot all ECMA 6 language is supported through this functionality.")
     public static boolean ScriptingECMA6 = false;
 
     @ConfigProp(info = "Enables global player event scripts to be used in the scripter. You can still see and write code in the scripter, but these scripts won't run. True by default.")
