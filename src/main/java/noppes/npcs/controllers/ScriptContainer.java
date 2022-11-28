@@ -9,10 +9,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.*;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
+import java.util.function.Predicate;
+import javax.script.*;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
@@ -212,7 +210,14 @@ public class ScriptContainer {
         if (CustomNpcs.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
             System.setProperty("nashorn.args", "--language=es6");
         }
-        engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowAllAccess", true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostAccess", true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLoading", true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowNativeAccess", true);
+        this.engine = engine;
+
         currentScriptLanguage = scriptLanguage;
     }
 }
