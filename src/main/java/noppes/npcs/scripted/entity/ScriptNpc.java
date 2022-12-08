@@ -351,6 +351,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		for (EnumRoleType e : EnumRoleType.values()) {
 			if (e.ordinal() == role) {
 				npc.advanced.role = e;
+				npc.advanced.setRole(role);
 				break;
 			}
 		}
@@ -383,6 +384,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		for (EnumJobType e : EnumJobType.values()) {
 			if (e.ordinal() == job) {
 				npc.advanced.job = e;
+				npc.advanced.setJob(job);
 				break;
 			}
 		}
