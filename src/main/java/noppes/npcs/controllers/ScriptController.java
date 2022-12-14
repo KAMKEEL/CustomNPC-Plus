@@ -70,13 +70,10 @@ public class ScriptController {
 			ScriptEngine scriptEngine = fac.getScriptEngine();
 			try {
 				scriptEngine.put("$RunTest",null);
-			} catch (Exception e) {
-				continue;
-			}
-
-			String ext = "." + fac.getExtensions().get(0).toLowerCase();
-			LogWriter.info(fac.getLanguageName() + ": " + ext);
-			languages.put(fac.getLanguageName(), ext);
+				String ext = "." + fac.getExtensions().get(0).toLowerCase();
+				LogWriter.info("Engine " + fac.getEngineName() + " running " + fac.getLanguageName() + " with extension: " + ext);
+				languages.put(fac.getLanguageName(), ext);
+			} catch (Exception ignored) {}
 		}
 	}
 
