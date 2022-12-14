@@ -58,6 +58,7 @@ import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
+    public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
@@ -66,6 +67,18 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+    }
+
+    public void addGlobalObject(String key, Object obj) {
+        NpcAPI.engineObjects.put(key,obj);
+    }
+
+    public void removeGlobalObject(String key) {
+        NpcAPI.engineObjects.remove(key);
+    }
+
+    public HashMap<String,Object> getEngineObjects() {
+        return NpcAPI.engineObjects;
     }
 
     public long sizeOfObject(Object obj) {

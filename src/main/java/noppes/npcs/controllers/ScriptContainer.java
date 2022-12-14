@@ -155,6 +155,9 @@ public class ScriptContainer {
                 }
 
                 engine.put("API", NpcAPI.Instance());
+                for (Map.Entry<String,Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
+                    engine.put(engineObjects.getKey(),engineObjects.getValue());
+                }
 
                 Current = this;
                 CurrentType = type;

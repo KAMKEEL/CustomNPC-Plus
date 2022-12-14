@@ -153,6 +153,9 @@ public class DataScript implements IScriptHandler {
 		engine.put("EntityType", entities);
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);
+		for (Map.Entry<String,Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
+			engine.put(engineObjects.getKey(),engineObjects.getValue());
+		}
 		script.run(engine);
 
 		if(clientNeedsUpdate){
