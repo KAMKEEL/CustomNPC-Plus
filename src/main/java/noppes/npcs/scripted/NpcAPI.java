@@ -319,6 +319,10 @@ public class NpcAPI extends AbstractNpcAPI {
         }
     }
 
+    public IItemStack createItemFromNBT(INbt nbt) {
+        return getIItemStack(ItemStack.loadItemStackFromNBT(nbt.getMCNBT()));
+    }
+
     public IItemStack createItem(String id, int damage, int size) {
         Item item = (Item) Item.itemRegistry.getObject(id);
         if (item == null)
