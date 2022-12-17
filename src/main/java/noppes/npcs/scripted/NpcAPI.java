@@ -77,6 +77,10 @@ public class NpcAPI extends AbstractNpcAPI {
         NpcAPI.engineObjects.remove(key);
     }
 
+    public boolean hasGlobalObject(String key) {
+        return NpcAPI.engineObjects.containsKey(key);
+    }
+
     public HashMap<String,Object> getEngineObjects() {
         return NpcAPI.engineObjects;
     }
