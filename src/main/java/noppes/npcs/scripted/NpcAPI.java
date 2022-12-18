@@ -6,8 +6,10 @@
 package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
+import foxz.command.ScriptedCommand;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import net.minecraft.block.Block;
+import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -67,6 +69,14 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+    }
+
+    public void registerICommand(ICommand command) {
+        ((CommandHandler)CustomNpcs.getServer().getCommandManager()).registerCommand((ScriptedCommand) command);
+    }
+
+    public ICommand getICommand(String commandName, int priorityLevel) {
+        return new ScriptedCommand(commandName,priorityLevel);
     }
 
     public void addGlobalObject(String key, Object obj) {
