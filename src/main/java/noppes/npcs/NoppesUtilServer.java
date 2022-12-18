@@ -19,6 +19,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
@@ -36,6 +37,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerData;
@@ -672,7 +675,7 @@ public class NoppesUtilServer {
 		}
 		Server.sendData(player, EnumPacketClient.GUI_CLOSE, i, comp);
 	}
-	
+
 	public static Entity spawnCloneWithProtection(NBTTagCompound compound, int x, int y,
 			int z, World worldObj) {
 		ServerCloneController.Instance.cleanTags(compound);
@@ -716,8 +719,19 @@ public class NoppesUtilServer {
 		if(entity == null){
 			return null;
 		}
-		worldObj.spawnEntityInWorld(entity);
-		return entity;
+		int i = MathHelper.floor_double(entity.posX / 16.0D);
+		int j = MathHelper.floor_double(entity.posZ / 16.0D);
+		if (!entity.forceSpawn && !worldObj.checkChunksExist(
+				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ
+			))
+		{
+			return null;
+		} else {
+			worldObj.getChunkFromChunkCoords(i, j).addEntity(entity);
+			worldObj.loadedEntityList.add(entity);
+			worldObj.onEntityAdded(entity);
+			return entity;
+		}
 	}
 
 	public static boolean isOp(EntityPlayer player) {
