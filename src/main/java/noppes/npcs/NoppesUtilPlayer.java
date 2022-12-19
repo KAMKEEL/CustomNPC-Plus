@@ -371,7 +371,6 @@ public class NoppesUtilPlayer {
 		EventHooks.onQuestTurnedIn(event);
 		IItemStack[] var12 = event.itemRewards;
 		int var14 = var12.length;
-
 		for(int var10 = 0; var10 < var14; ++var10) {
 			IItemStack item = var12[var10];
 			if (item != null) {
@@ -382,7 +381,6 @@ public class NoppesUtilPlayer {
 		data.quest.questInterface.handleComplete(player);
 		if(data.quest.rewardExp > 0){
 			player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
-
 			player.addExperience(data.quest.rewardExp);
 		}
 		data.quest.factionOptions.addPoints(player);
@@ -396,6 +394,7 @@ public class NoppesUtilPlayer {
 
 		PlayerQuestController.setQuestFinished(data.quest, player);
 		if(data.quest.hasNewQuest()) PlayerQuestController.addActiveQuest(data.quest.getNextQuest(), player);
+		playerData.savePlayerDataOnFile();
 	}
 	
 	public static boolean compareItems(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT){
