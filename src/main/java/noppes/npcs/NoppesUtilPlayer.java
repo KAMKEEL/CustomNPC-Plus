@@ -21,6 +21,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.oredict.OreDictionary;
+import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerPacket;
@@ -393,7 +394,11 @@ public class NoppesUtilPlayer {
 		}
 
 		PlayerQuestController.setQuestFinished(data.quest, player);
-		if(data.quest.hasNewQuest()) PlayerQuestController.addActiveQuest(data.quest.getNextQuest(), player);
+		if (data.quest.hasNewQuest()) {
+			Quest nextQuest = data.quest.getNextQuest();
+			PlayerQuestController.addActiveQuest(nextQuest, player);
+			NoppesUtilPlayer.sendTrackedQuestData(player,nextQuest);
+		}
 		playerData.savePlayerDataOnFile();
 	}
 	
