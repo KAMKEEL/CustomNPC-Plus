@@ -354,7 +354,7 @@ public class NoppesUtilPlayer {
 
 		while(var8.hasNext()) {
 			ItemStack item = (ItemStack)var8.next();
-			if (item.stackSize > 0) {
+			if (item != null && item.stackSize > 0) {
 				IItemStack iStack = NpcAPI.Instance().getIItemStack(item);
 				if (iStack != null){
 					list.add(iStack);
