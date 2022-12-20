@@ -11,6 +11,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
@@ -212,5 +213,19 @@ public class PlayerQuestData implements IPlayerQuestData {
 		}
 
 		return (IQuest[])quests.toArray(new IQuest[0]);
+	}
+
+	public long getLastCompletedTime(int id) {
+		if (this.hasFinishedQuest(id)) {
+			return this.finishedQuests.get(id);
+		}
+		return 0;
+	}
+
+	public void setLastCompletedTime(int id,long time) {
+		Quest quest = QuestController.instance.quests.get(id);
+		if (quest == null)
+			return;
+		this.finishedQuests.put(id,time);
 	}
 }

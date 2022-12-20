@@ -4,7 +4,10 @@ import java.util.Vector;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.EventHooks;
+import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
@@ -42,6 +45,13 @@ public class PlayerQuestController {
 			data.activeQuests.put(quest.id,new QuestData(quest));
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+		} else {
+			long timeUntilRepeat = quest.getTimeUntilRepeat(player);
+			if (timeUntilRepeat > 0 && quest.getIsRepeatable() && quest.repeat != EnumQuestRepeat.NONE && quest.repeat != EnumQuestRepeat.REPEATABLE) {
+				String timeString = NoppesUtilServer.millisToTime(timeUntilRepeat);
+				String message = "You have " + timeString + " left until you can repeat this quest.";
+				player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));
+			}
 		}
 	}
 	

@@ -546,4 +546,12 @@ public class NpcAPI extends AbstractNpcAPI {
     public ISkinOverlay createSkinOverlay(String texture) {
         return new SkinOverlay(texture);
     }
+
+    public String millisToTime(long millis) {
+        return NoppesUtilServer.millisToTime(millis);
+    }
+
+    public String ticksToTime(long ticks) {
+        return this.millisToTime(ticks * 50);
+    }
 }

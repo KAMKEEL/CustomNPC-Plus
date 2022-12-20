@@ -798,4 +798,41 @@ public class NoppesUtilServer {
 	public static boolean IsItemStackNull(ItemStack is) {
 		return is == null || is.stackSize == 0 || is.getItem() == null;
 	}
+
+	public static String millisToTime(long millis) {
+		long seconds = millis / 1000;
+		long minutes = seconds / 60;
+		long hours = minutes / 60;
+		long days = hours / 24;
+		long months = days / 30;
+		long years = months / 12;
+
+		months = months % 12;
+		days = days % 30;
+		hours = hours % 24;
+		minutes = minutes % 60;
+		seconds = seconds % 60;
+
+		StringBuilder sb = new StringBuilder();
+		if (years > 0) {
+			sb.append(years + " year(s) ");
+		}
+		if (months > 0) {
+			sb.append(months + " month(s) ");
+		}
+		if (days > 0) {
+			sb.append(days + " day(s) ");
+		}
+		if (hours > 0) {
+			sb.append(hours + " hour(s) ");
+		}
+		if (minutes > 0) {
+			sb.append(minutes + " minute(s) ");
+		}
+		if (seconds > 0) {
+			sb.append(seconds + " second(s)");
+		}
+
+		return sb.toString();
+	}
 }
