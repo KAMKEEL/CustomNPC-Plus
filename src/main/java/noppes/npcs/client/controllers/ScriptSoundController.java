@@ -35,6 +35,11 @@ public class ScriptSoundController {
         soundHandler.playSound(sound);
     }
 
+    public void playSound(ScriptClientSound sound) {
+        SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+        soundHandler.playSound(sound);
+    }
+
     public void stopSound(int id) {
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         if (sounds.containsKey(id)) {

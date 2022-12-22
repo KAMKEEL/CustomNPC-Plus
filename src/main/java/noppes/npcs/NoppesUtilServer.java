@@ -336,6 +336,13 @@ public class NoppesUtilServer {
 		}
 	}
 
+	public static void playSound(ScriptSound sound) {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.playSoundTo((EntityPlayerMP) player, sound);
+		}
+	}
+
 	public static void stopSound(int id) {
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
 		for (EntityPlayer player : list) {

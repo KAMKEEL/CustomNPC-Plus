@@ -590,6 +590,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.playSoundTo(player, id, (ScriptSound) sound);
 	}
 
+	public void playSound(ISound sound) {
+		NoppesUtilPlayer.playSoundTo(player, (ScriptSound) sound);
+	}
+
 	public void stopSound(int id) {
 		NoppesUtilPlayer.stopSoundFor(player, id);
 	}

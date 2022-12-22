@@ -505,6 +505,13 @@ public class NoppesUtilPlayer {
 		}
 	}
 
+	public static void playSoundTo(EntityPlayerMP player, ScriptSound sound) {
+		NBTTagCompound compound = sound.writeToNBT();
+		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
+			Server.sendData(player, EnumPacketClient.PLAY_SOUND_TO_NO_ID, compound);
+		}
+	}
+
 	public static void stopSoundFor(EntityPlayerMP player, int id) {
 		Server.sendData(player, EnumPacketClient.STOP_SOUND_FOR, id);
 	}

@@ -491,6 +491,10 @@ public class NpcAPI extends AbstractNpcAPI {
         NoppesUtilServer.playSound(id, (ScriptSound) sound);
     }
 
+    public void playSound(ISound sound) {
+        NoppesUtilServer.playSound((ScriptSound) sound);
+    }
+
     public void stopSound(int id) {
         NoppesUtilServer.stopSound(id);
     }

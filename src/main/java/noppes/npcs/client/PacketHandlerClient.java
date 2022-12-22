@@ -314,6 +314,11 @@ public class PacketHandlerClient extends PacketHandlerServer{
 
 			ScriptSoundController.Instance.playSound(id,sound);
 		}
+		else if(type == EnumPacketClient.PLAY_SOUND_TO_NO_ID) {
+			NBTTagCompound compound = Server.readNBT(buffer);
+			ScriptClientSound sound = ScriptClientSound.fromScriptSound(compound, player.worldObj);
+			ScriptSoundController.Instance.playSound(sound);
+		}
 		else if(type == EnumPacketClient.STOP_SOUND_FOR) {
 			int id = buffer.readInt();
 			ScriptSoundController.Instance.stopSound(id);
