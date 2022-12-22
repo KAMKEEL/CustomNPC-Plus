@@ -117,8 +117,8 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 
 	public void setRotation(int part, int rotationX, int rotationY, int rotationZ) {
 		this.setRotationX(part,rotationX);
-		this.setRotationX(part,rotationY);
-		this.setRotationX(part,rotationZ);
+		this.setRotationY(part,rotationY);
+		this.setRotationZ(part,rotationZ);
 	}
 
 	/**
