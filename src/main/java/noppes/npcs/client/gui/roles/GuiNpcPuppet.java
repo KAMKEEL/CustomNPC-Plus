@@ -42,8 +42,8 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 			addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
 			addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.whileAttacking?0:1));
 			addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
-			addButton(new GuiNpcButton(33, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.limitAngles?0:1));
-			addLabel(new GuiNpcLabel(33, "puppet.limitAngles", guiLeft + 30, y + 5, 0xFFFFFF));
+			addButton(new GuiNpcButton(33, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.fullAngles ?0:1));
+			addLabel(new GuiNpcLabel(33, "puppet.fullAngles", guiLeft + 30, y + 5, 0xFFFFFF));
 
 			addButton(new GuiNpcButton(35, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.animate ? 0 : 1));
 			addLabel(new GuiNpcLabel(35, "puppet.animate", guiLeft + 30, y + 5, 0xFFFFFF));
@@ -179,7 +179,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
     		job.whileAttacking = button.getValue() == 0;
     	}
 		if(btn.id == 33){
-			job.limitAngles = button.getValue() == 0;
+			job.fullAngles = button.getValue() == 0;
 		}
 		if(btn.id == 35){
 			job.animate = button.getValue() == 0;

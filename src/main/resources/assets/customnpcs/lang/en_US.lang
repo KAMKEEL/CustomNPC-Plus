@@ -1016,7 +1016,7 @@ puppet.animSpeed=Animation Speed
 puppet.pivotX=Pivot X
 puppet.pivotY=Pivot Y
 puppet.pivotZ=Pivot Z
-puppet.limitAngles=Limit Angles
+puppet.fullAngles=Full Angles
 
 guard.creepers=Attack Creepers
 guard.animals=Attack Animals

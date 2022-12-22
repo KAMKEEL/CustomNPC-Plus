@@ -628,7 +628,7 @@ public class ModelMPM extends ModelNPCMale{
 	}
 
 	public void setInterpolatedAngles(JobPuppet job, ModelRenderer modelPart, JobPuppet.PartConfig puppetPart) {
-		float pi = (float) Math.PI * (job.limitAngles ? 1 : 2);
+		float pi = (float) Math.PI * (job.fullAngles ? 2 : 1);
 		if (!job.animate) {
 			modelPart.rotateAngleX = puppetPart.rotationX * pi;
 			modelPart.rotateAngleY = puppetPart.rotationY * pi;
