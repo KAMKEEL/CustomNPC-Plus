@@ -570,6 +570,10 @@ public class ModelMPM extends ModelNPCMale{
 				this.bipedRightArm.rotationPointX = -MathHelper.cos(this.bipedBody.rotateAngleY) * 5.0F;
 				this.bipedLeftArm.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F;
 				this.bipedLeftArm.rotationPointX = MathHelper.cos(this.bipedBody.rotateAngleY) * 5.0F;
+				this.bipedRightLeg.rotationPointZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F;
+				this.bipedRightLeg.rotationPointX = -MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F;
+				this.bipedLeftLeg.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F;
+				this.bipedLeftLeg.rotationPointX = MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F;
 
 				job.bipedRotsHead = new float[]{bipedHead.rotateAngleX,bipedHead.rotateAngleY,bipedHead.rotateAngleZ};
 				job.bipedRotsBody = new float[]{bipedBody.rotateAngleX,bipedBody.rotateAngleY,bipedBody.rotateAngleZ};
