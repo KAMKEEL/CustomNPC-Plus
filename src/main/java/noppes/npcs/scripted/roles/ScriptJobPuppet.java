@@ -16,6 +16,14 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		this.job.animate = animated;
 	}
 
+	public boolean anglesLimited() {
+		return job.limitAngles;
+	}
+
+	public void setAnglesLimited(boolean limit) {
+		job.limitAngles = limit;
+	}
+
 	public boolean isAnimated() {
 		return this.job.animate;
 	}
@@ -192,7 +200,115 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		if(part == 5)
 			job.rleg.rotationZ = f;
 	}
-	
+
+	public int getOffsetX(int part) {
+		if(part == 0)
+			return floatToInt(job.head.pivotX);
+		if(part == 1)
+			return floatToInt(job.body.pivotX);
+		if(part == 2)
+			return floatToInt(job.larm.pivotX);
+		if(part == 3)
+			return floatToInt(job.rarm.pivotX);
+		if(part == 4)
+			return floatToInt(job.lleg.pivotX);
+		if(part == 5)
+			return floatToInt(job.rleg.pivotX);
+		return 0;
+	}
+
+	public int getOffsetY(int part) {
+		if(part == 0)
+			return floatToInt(job.head.pivotY);
+		if(part == 1)
+			return floatToInt(job.body.pivotY);
+		if(part == 2)
+			return floatToInt(job.larm.pivotY);
+		if(part == 3)
+			return floatToInt(job.rarm.pivotY);
+		if(part == 4)
+			return floatToInt(job.lleg.pivotY);
+		if(part == 5)
+			return floatToInt(job.rleg.pivotY);
+		return 0;
+	}
+
+	public int getOffsetZ(int part) {
+		if(part == 0)
+			return floatToInt(job.head.pivotZ);
+		if(part == 1)
+			return floatToInt(job.body.pivotZ);
+		if(part == 2)
+			return floatToInt(job.larm.pivotZ);
+		if(part == 3)
+			return floatToInt(job.rarm.pivotZ);
+		if(part == 4)
+			return floatToInt(job.lleg.pivotZ);
+		if(part == 5)
+			return floatToInt(job.rleg.pivotZ);
+		return 0;
+	}
+
+	public void setOffset(int part, int offsetX, int offsetY, int offsetZ) {
+		this.setOffsetX(part,offsetX);
+		this.setOffsetY(part,offsetY);
+		this.setOffsetZ(part,offsetZ);
+	}
+
+	public void setOffsetX(int part, int offset) {
+		if(getRotationZ(part) != offset)
+			npc.script.clientNeedsUpdate = true;
+
+		if(part == 0)
+			job.head.pivotX = offset;
+		if(part == 1)
+			job.body.pivotX = offset;
+		if(part == 2)
+			job.larm.pivotX = offset;
+		if(part == 3)
+			job.rarm.pivotX = offset;
+		if(part == 4)
+			job.lleg.pivotX = offset;
+		if(part == 5)
+			job.rleg.pivotX = offset;
+	}
+
+	public void setOffsetY(int part, int offset) {
+		if(getRotationZ(part) != offset)
+			npc.script.clientNeedsUpdate = true;
+
+		if(part == 0)
+			job.head.pivotY = offset;
+		if(part == 1)
+			job.body.pivotY = offset;
+		if(part == 2)
+			job.larm.pivotY = offset;
+		if(part == 3)
+			job.rarm.pivotY = offset;
+		if(part == 4)
+			job.lleg.pivotY = offset;
+		if(part == 5)
+			job.rleg.pivotY = offset;
+	}
+
+	public void setOffsetZ(int part, int offset) {
+		if(getRotationZ(part) != offset)
+			npc.script.clientNeedsUpdate = true;
+
+		if(part == 0)
+			job.head.pivotZ = offset;
+		if(part == 1)
+			job.body.pivotZ = offset;
+		if(part == 2)
+			job.larm.pivotZ = offset;
+		if(part == 3)
+			job.rarm.pivotZ = offset;
+		if(part == 4)
+			job.lleg.pivotZ = offset;
+		if(part == 5)
+			job.rleg.pivotZ = offset;
+	}
+
 	/**
 	 * @since 1.7.10c
 	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)

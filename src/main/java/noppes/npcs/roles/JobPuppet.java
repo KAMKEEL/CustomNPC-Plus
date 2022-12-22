@@ -15,6 +15,7 @@ public class JobPuppet extends JobInterface{
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
 	public boolean whileMoving = false;
+	public boolean limitAngles = true;
 
 	public boolean animate = false;
 	public float animRate = 1.0F;
@@ -43,6 +44,7 @@ public class JobPuppet extends JobInterface{
 		compound.setBoolean("PuppetStanding", whileStanding);
 		compound.setBoolean("PuppetAttacking", whileAttacking);
 		compound.setBoolean("PuppetMoving", whileMoving);
+		compound.setBoolean("PuppetLimitAngles", limitAngles);
 
 		compound.setBoolean("PuppetAnimate", animate);
 		compound.setFloat("PuppetAnimSpeed", animRate);
@@ -61,6 +63,7 @@ public class JobPuppet extends JobInterface{
 		whileStanding = compound.getBoolean("PuppetStanding");
 		whileAttacking = compound.getBoolean("PuppetAttacking");
 		whileMoving = compound.getBoolean("PuppetMoving");
+		limitAngles = compound.getBoolean("PuppetLimitAngles");
 
 		animate = compound.getBoolean("PuppetAnimate");
 		animRate = compound.getFloat("PuppetAnimSpeed");

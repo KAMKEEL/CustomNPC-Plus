@@ -42,14 +42,16 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 			addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
 			addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.whileAttacking?0:1));
 			addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
+			addButton(new GuiNpcButton(33, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.limitAngles?0:1));
+			addLabel(new GuiNpcLabel(33, "puppet.limitAngles", guiLeft + 30, y + 5, 0xFFFFFF));
 
-			addButton(new GuiNpcButton(33, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.animate ? 0 : 1));
-			addLabel(new GuiNpcLabel(33, "puppet.animate", guiLeft + 30, y + 5, 0xFFFFFF));
+			addButton(new GuiNpcButton(35, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.animate ? 0 : 1));
+			addLabel(new GuiNpcLabel(35, "puppet.animate", guiLeft + 30, y + 5, 0xFFFFFF));
 
 			if (job.animate) {
-				addTextField(new GuiNpcTextField(34, this, guiLeft + 120, y += 22, 40, 20, "" + job.animRate));
-				addLabel(new GuiNpcLabel(34, "puppet.animSpeed", guiLeft + 30, y + 5, 0xFFFFFF));
-				getTextField(34).floatsOnly = true;
+				addTextField(new GuiNpcTextField(36, this, guiLeft + 120, y += 22, 40, 20, "" + job.animRate));
+				addLabel(new GuiNpcLabel(36, "puppet.animSpeed", guiLeft + 30, y + 5, 0xFFFFFF));
+				getTextField(36).floatsOnly = true;
 			}
 
 			y += 24;
@@ -177,6 +179,9 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
     		job.whileAttacking = button.getValue() == 0;
     	}
 		if(btn.id == 33){
+			job.limitAngles = button.getValue() == 0;
+		}
+		if(btn.id == 35){
 			job.animate = button.getValue() == 0;
 			initGui();
 		}
@@ -205,7 +210,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 
 	@Override
 	public void unFocused(GuiNpcTextField textfield) {
-		if(textfield.id == 34) {
+		if(textfield.id == 36) {
 			job.animRate = textfield.getFloat();
 		}
 
