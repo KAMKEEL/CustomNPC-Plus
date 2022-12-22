@@ -570,10 +570,41 @@ public class ModelMPM extends ModelNPCMale{
 				this.bipedRightArm.rotationPointX = -MathHelper.cos(this.bipedBody.rotateAngleY) * 5.0F;
 				this.bipedLeftArm.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F;
 				this.bipedLeftArm.rotationPointX = MathHelper.cos(this.bipedBody.rotateAngleY) * 5.0F;
-				this.bipedRightLeg.rotationPointZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F;
-				this.bipedRightLeg.rotationPointX = -MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F;
-				this.bipedLeftLeg.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F;
-				this.bipedLeftLeg.rotationPointX = MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F;
+
+				this.bipedRightLeg.rotationPointX =
+						-MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
+						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+						-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+				this.bipedRightLeg.rotationPointY =
+						MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+				this.bipedRightLeg.rotationPointZ =
+						MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
+						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
+
+				this.bipedLeftLeg.rotationPointX =
+						MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
+						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+						-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+				this.bipedLeftLeg.rotationPointY =
+						MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+				this.bipedLeftLeg.rotationPointZ =
+						-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
+						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
+
+				this.addInterpolatedOffset(job,bipedHead,job.head);
+				this.addInterpolatedOffset(job,bipedHeadwear,job.head);
+				this.addInterpolatedOffset(job,bipedBody,job.body);
+				this.addInterpolatedOffset(job,bipedBodywear,job.body);
+				this.addInterpolatedOffset(job,bipedLeftArm,job.larm);
+				this.addInterpolatedOffset(job,bipedLeftArmwear,job.larm);
+				this.addInterpolatedOffset(job,bipedRightArm,job.rarm);
+				this.addInterpolatedOffset(job,bipedRightArmWear,job.rarm);
+				this.addInterpolatedOffset(job,bipedLeftLeg,job.lleg);
+				this.addInterpolatedOffset(job,bipedLeftLegWear,job.lleg);
+				this.addInterpolatedOffset(job,bipedRightLeg,job.rleg);
+				this.addInterpolatedOffset(job,bipedRightLegWear,job.rleg);
 
 				job.bipedRotsHead = new float[]{bipedHead.rotateAngleX,bipedHead.rotateAngleY,bipedHead.rotateAngleZ};
 				job.bipedRotsBody = new float[]{bipedBody.rotateAngleX,bipedBody.rotateAngleY,bipedBody.rotateAngleZ};
@@ -595,6 +626,21 @@ public class ModelMPM extends ModelNPCMale{
 			modelPart.rotateAngleX = (puppetPart.rotationX * pi - modelPart.rotateAngleX) * job.animRate /10f + modelPart.rotateAngleX;
 			modelPart.rotateAngleY = (puppetPart.rotationY * pi - modelPart.rotateAngleY) * job.animRate /10f + modelPart.rotateAngleY;
 			modelPart.rotateAngleZ = (puppetPart.rotationZ * pi - modelPart.rotateAngleZ) * job.animRate /10f + modelPart.rotateAngleZ;
+		}
+	}
+
+	public void addInterpolatedOffset(JobPuppet job, ModelRenderer modelPart, JobPuppet.PartConfig puppetPart) {
+		if (!job.animate) {
+			modelPart.rotationPointX += puppetPart.pivotX;
+			modelPart.rotationPointY += puppetPart.pivotY;
+			modelPart.rotationPointZ += puppetPart.pivotZ;
+		} else {
+			modelPart.rotationPointX += puppetPart.prevPivotX;
+			modelPart.rotationPointY += puppetPart.prevPivotY;
+			modelPart.rotationPointZ += puppetPart.prevPivotZ;
+			puppetPart.prevPivotX = (puppetPart.pivotX - puppetPart.prevPivotX) * job.animRate /10f + puppetPart.prevPivotX;
+			puppetPart.prevPivotY = (puppetPart.pivotY - puppetPart.prevPivotY) * job.animRate /10f + puppetPart.prevPivotY;
+			puppetPart.prevPivotZ = (puppetPart.pivotZ - puppetPart.prevPivotZ) * job.animRate /10f + puppetPart.prevPivotZ;
 		}
 	}
 

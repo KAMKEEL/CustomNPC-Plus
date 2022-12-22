@@ -61,8 +61,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		
 		addLabel(new GuiNpcLabel(20, "model.head", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 0){
-			drawSlider(y, job.head);
-			y += 90;
+			y += drawSlider(y, job.head);
 		}
 		else{
 			addButton(new GuiNpcButton(0, guiLeft + 110, y , 60, 20, "selectServer.edit"));
@@ -71,8 +70,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		
 		addLabel(new GuiNpcLabel(21, "model.body", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 1){
-			drawSlider(y, job.body);
-			y += 90;
+			y += drawSlider(y, job.body);
 		}
 		else{
 			addButton(new GuiNpcButton(1, guiLeft + 110, y , 60, 20, "selectServer.edit"));
@@ -81,8 +79,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		
 		addLabel(new GuiNpcLabel(22, "model.larm", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 2){
-			drawSlider(y, job.larm);
-			y += 90;
+			y += drawSlider(y, job.larm);
 		}
 		else{
 			addButton(new GuiNpcButton(2, guiLeft + 110, y , 60, 20, "selectServer.edit"));
@@ -91,8 +88,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		
 		addLabel(new GuiNpcLabel(23, "model.rarm", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 3){
-			drawSlider(y, job.rarm);
-			y += 90;
+			y += drawSlider(y, job.rarm);
 		}
 		else{
 			addButton(new GuiNpcButton(3, guiLeft + 110, y , 60, 20, "selectServer.edit"));
@@ -101,8 +97,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		
 		addLabel(new GuiNpcLabel(24, "model.lleg", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 4){
-			drawSlider(y, job.lleg);
-			y += 90;
+			y += drawSlider(y, job.lleg);;
 		}
 		else{
 			addButton(new GuiNpcButton(4, guiLeft + 110, y , 60, 20, "selectServer.edit"));
@@ -111,8 +106,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		
 		addLabel(new GuiNpcLabel(25, "model.rleg", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 5){
-			drawSlider(y, job.rleg);
-			y += 90;
+			y += drawSlider(y, job.rleg);;
 		}
 		else{
 			addButton(new GuiNpcButton(5, guiLeft + 110, y , 60, 20, "selectServer.edit"));
@@ -121,7 +115,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 
     }
     
-    private void drawSlider(int y, PartConfig config){
+    private float drawSlider(int y, PartConfig config){
     	part = config;
 		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, config.disabled?1:0));
 		y += 22;
@@ -139,6 +133,23 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		rotateZ = new GuiNpcSlider(this, 12, guiLeft + 50, y, config.rotationZ + 0.5f);
 		addSlider(rotateZ);
 		addButton(new GuiNpcButton(172, guiLeft + 8, y, 40, 20, "Reset"));
+
+		addTextField(new GuiNpcTextField(15, this, guiLeft + 60, y += 22, 40, 20, "" + config.pivotX));
+		addLabel(new GuiNpcLabel(15, "puppet.pivotX", guiLeft, y + 5, 0xFFFFFF));
+		getTextField(15).floatsOnly = true;
+		getTextField(15).setMinMaxDefaultFloat(-Float.MAX_VALUE,Float.MAX_VALUE,0);
+
+		addTextField(new GuiNpcTextField(16, this, guiLeft + 60, y += 22, 40, 20, "" + config.pivotY));
+		addLabel(new GuiNpcLabel(16, "puppet.pivotY", guiLeft, y + 5, 0xFFFFFF));
+		getTextField(16).floatsOnly = true;
+		getTextField(16).setMinMaxDefaultFloat(-Float.MAX_VALUE,Float.MAX_VALUE,0);
+
+		addTextField(new GuiNpcTextField(17, this, guiLeft + 60, y += 22, 40, 20, "" + config.pivotZ));
+		addLabel(new GuiNpcLabel(17, "puppet.pivotZ", guiLeft, y + 5, 0xFFFFFF));
+		getTextField(17).floatsOnly = true;
+		getTextField(17).setMinMaxDefaultFloat(-Float.MAX_VALUE,Float.MAX_VALUE,0);
+
+		return 160;
 	}
 
 
@@ -196,6 +207,16 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 	public void unFocused(GuiNpcTextField textfield) {
 		if(textfield.id == 34) {
 			job.animRate = textfield.getFloat();
+		}
+
+		if(textfield.id == 15) {
+			part.pivotX = textfield.getFloat();
+		}
+		if(textfield.id == 16) {
+			part.pivotY = textfield.getFloat();
+		}
+		if(textfield.id == 17) {
+			part.pivotZ = textfield.getFloat();
 		}
 	}
 

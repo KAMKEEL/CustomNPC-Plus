@@ -1013,6 +1013,9 @@ puppet.walking=While walking
 puppet.attacking=While attacking
 puppet.animate=Animate
 puppet.animSpeed=Animation Speed
+puppet.pivotX=Pivot X
+puppet.pivotY=Pivot Y
+puppet.pivotZ=Pivot Z
 
 guard.creepers=Attack Creepers
 guard.animals=Attack Animals

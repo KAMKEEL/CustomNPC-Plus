@@ -19,6 +19,7 @@ public class JobPuppet extends JobInterface{
 	public boolean animate = false;
 	public float animRate = 1.0F;
 
+	//Client-sided use
 	public float[] bipedRotsHead = {0,0,0};
 	public float[] bipedRotsBody = {0,0,0};
 	public float[] bipedRotsLeftArm = {0,0,0};
@@ -85,10 +86,18 @@ public class JobPuppet extends JobInterface{
 		return false;
 	}
 	
-	public static class PartConfig{
+	public static class PartConfig {
 		public float rotationX = 0f;
 		public float rotationY = 0f;
 		public float rotationZ = 0f;
+		public float pivotX = 0f;
+		public float pivotY = 0f;
+		public float pivotZ = 0f;
+
+		//Client-sided use
+		public float prevPivotX = 0f;
+		public float prevPivotY = 0f;
+		public float prevPivotZ = 0f;
 		
 		public boolean disabled = false;
 		
@@ -96,8 +105,11 @@ public class JobPuppet extends JobInterface{
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setFloat("RotationX", rotationX);
 			compound.setFloat("RotationY", rotationY);
-			compound.setFloat("RotationZ", rotationZ);	
-			
+			compound.setFloat("RotationZ", rotationZ);
+			compound.setFloat("PivotX", pivotX);
+			compound.setFloat("PivotY", pivotY);
+			compound.setFloat("PivotZ", pivotZ);
+
 			compound.setBoolean("Disabled", disabled);
 			return compound;
 		}
@@ -106,7 +118,10 @@ public class JobPuppet extends JobInterface{
 			rotationX = ValueUtil.correctFloat(compound.getFloat("RotationX"), -0.5f, 0.5f);
 			rotationY = ValueUtil.correctFloat(compound.getFloat("RotationY"), -0.5f, 0.5f);
 			rotationZ = ValueUtil.correctFloat(compound.getFloat("RotationZ"), -0.5f, 0.5f);
-			
+			pivotX = compound.getFloat("PivotX");
+			pivotY = compound.getFloat("PivotY");
+			pivotZ = compound.getFloat("PivotZ");
+
 			disabled = compound.getBoolean("Disabled");
 		}
 	}
