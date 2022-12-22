@@ -1,15 +1,6 @@
 package noppes.npcs.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.MathHelper;
-import net.minecraft.world.ChunkCoordIntPair;
-import net.minecraftforge.common.ForgeChunkManager;
-import net.minecraftforge.common.ForgeChunkManager.Ticket;
-import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
@@ -24,6 +15,16 @@ public class JobPuppet extends JobInterface{
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
 	public boolean whileMoving = false;
+
+	public boolean animate = false;
+	public float animRate = 1.0F;
+
+	public float[] bipedRotsHead = {0,0,0};
+	public float[] bipedRotsBody = {0,0,0};
+	public float[] bipedRotsLeftArm = {0,0,0};
+	public float[] bipedRotsRightArm = {0,0,0};
+	public float[] bipedRotsLeftLeg = {0,0,0};
+	public float[] bipedRotsRightLeg = {0,0,0};
 
 	public JobPuppet(EntityNPCInterface npc) {
 		super(npc);
@@ -41,6 +42,9 @@ public class JobPuppet extends JobInterface{
 		compound.setBoolean("PuppetStanding", whileStanding);
 		compound.setBoolean("PuppetAttacking", whileAttacking);
 		compound.setBoolean("PuppetMoving", whileMoving);
+
+		compound.setBoolean("PuppetAnimate", animate);
+		compound.setFloat("PuppetAnimSpeed", animRate);
 		return compound;
 	}
 
@@ -56,6 +60,9 @@ public class JobPuppet extends JobInterface{
 		whileStanding = compound.getBoolean("PuppetStanding");
 		whileAttacking = compound.getBoolean("PuppetAttacking");
 		whileMoving = compound.getBoolean("PuppetMoving");
+
+		animate = compound.getBoolean("PuppetAnimate");
+		animRate = compound.getFloat("PuppetAnimSpeed");
 	}
 	
 	@Override

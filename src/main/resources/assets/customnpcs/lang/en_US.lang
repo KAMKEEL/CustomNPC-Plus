@@ -1011,6 +1011,8 @@ model.save=Model Save
 puppet.standing=While standing
 puppet.walking=While walking
 puppet.attacking=While attacking
+puppet.animate=Animate
+puppet.animSpeed=Animation Speed
 
 guard.creepers=Attack Creepers
 guard.animals=Attack Animals

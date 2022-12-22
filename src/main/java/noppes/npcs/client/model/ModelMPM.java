@@ -426,59 +426,7 @@ public class ModelMPM extends ModelNPCMale{
 
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
-			setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
-			if(npc.advanced.job == EnumJobType.Puppet){
-				JobPuppet job = (JobPuppet) npc.jobInterface;
-				if(job.isActive()){
-					float pi = (float) Math.PI;
-
-					if(!job.head.disabled){
-						bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = job.head.rotationX * pi;
-						bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY = job.head.rotationY * pi;
-						bipedHeadwear.rotateAngleZ = bipedHead.rotateAngleZ = job.head.rotationZ * pi;
-					}
-
-					if(!job.body.disabled){
-						bipedBody.rotateAngleX = job.body.rotationX * pi;
-						bipedBody.rotateAngleY = job.body.rotationY * pi;
-						bipedBody.rotateAngleZ = job.body.rotationZ * pi;
-					}
-
-					if(!job.larm.disabled){
-						bipedLeftArm.rotateAngleX = job.larm.rotationX * pi;
-						bipedLeftArm.rotateAngleY = job.larm.rotationY * pi;
-						bipedLeftArm.rotateAngleZ = job.larm.rotationZ * pi;
-
-						if(!npc.display.disableLivingAnimation){
-							this.bipedLeftArm.rotateAngleZ -= MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
-							this.bipedLeftArm.rotateAngleX -= MathHelper.sin(par3 * 0.067F) * 0.05F;
-						}
-					}
-
-					if(!job.rarm.disabled){
-						bipedRightArm.rotateAngleX = job.rarm.rotationX * pi;
-						bipedRightArm.rotateAngleY = job.rarm.rotationY * pi;
-						bipedRightArm.rotateAngleZ = job.rarm.rotationZ * pi;
-
-						if(!npc.display.disableLivingAnimation){
-							this.bipedRightArm.rotateAngleZ += MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
-							this.bipedRightArm.rotateAngleX += MathHelper.sin(par3 * 0.067F) * 0.05F;
-						}
-					}
-
-					if(!job.rleg.disabled){
-						bipedRightLeg.rotateAngleX = job.rleg.rotationX * pi;
-						bipedRightLeg.rotateAngleY = job.rleg.rotationY * pi;
-						bipedRightLeg.rotateAngleZ = job.rleg.rotationZ * pi;
-					}
-
-					if(!job.lleg.disabled){
-						bipedLeftLeg.rotateAngleX = job.lleg.rotationX * pi;
-						bipedLeftLeg.rotateAngleY = job.lleg.rotationY * pi;
-						bipedLeftLeg.rotateAngleZ = job.lleg.rotationZ * pi;
-					}
-				}
-			}
+			this.setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
 			renderHead(npc, par7);
 			renderArms(npc, par7,false);
 			renderBody(npc, par7);
@@ -566,7 +514,81 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.body.scaleY;
 		}
 
+		if(npc.advanced.job == EnumJobType.Puppet){
+			JobPuppet job = (JobPuppet) npc.jobInterface;
+
+			if(job.isActive()){
+				if(!job.head.disabled){
+					bipedHead.rotateAngleX = job.bipedRotsHead[0];
+					bipedHead.rotateAngleY = job.bipedRotsHead[1];
+					bipedHead.rotateAngleZ = job.bipedRotsHead[2];
+					this.setInterpolatedAngles(job,bipedHead,job.head);
+					this.setInterpolatedAngles(job,bipedHeadwear,job.head);
+				}
+
+				if(!job.body.disabled){
+					bipedBody.rotateAngleX = job.bipedRotsBody[0];
+					bipedBody.rotateAngleY = job.bipedRotsBody[1];
+					bipedBody.rotateAngleZ = job.bipedRotsBody[2];
+					this.setInterpolatedAngles(job,bipedBody,job.body);
+					this.setInterpolatedAngles(job,bipedBodywear,job.body);
+				}
+
+				if(!job.larm.disabled){
+					bipedLeftArm.rotateAngleX = job.bipedRotsLeftArm[0];
+					bipedLeftArm.rotateAngleY = job.bipedRotsLeftArm[1];
+					bipedLeftArm.rotateAngleZ = job.bipedRotsLeftArm[2];
+					this.setInterpolatedAngles(job,bipedLeftArm,job.larm);
+					this.setInterpolatedAngles(job,bipedLeftArmwear,job.larm);
+				}
+
+				if(!job.rarm.disabled){
+					bipedRightArm.rotateAngleX = job.bipedRotsRightArm[0];
+					bipedRightArm.rotateAngleY = job.bipedRotsRightArm[1];
+					bipedRightArm.rotateAngleZ = job.bipedRotsRightArm[2];
+					this.setInterpolatedAngles(job,bipedRightArm,job.rarm);
+					this.setInterpolatedAngles(job,bipedRightArmWear,job.rarm);
+				}
+
+				if(!job.lleg.disabled){
+					bipedLeftLeg.rotateAngleX = job.bipedRotsLeftLeg[0];
+					bipedLeftLeg.rotateAngleY = job.bipedRotsLeftLeg[1];
+					bipedLeftLeg.rotateAngleZ = job.bipedRotsLeftLeg[2];
+					this.setInterpolatedAngles(job,bipedLeftLeg,job.lleg);
+					this.setInterpolatedAngles(job,bipedLeftLegWear,job.lleg);
+				}
+
+				if(!job.rleg.disabled){
+					bipedRightLeg.rotateAngleX = job.bipedRotsRightLeg[0];
+					bipedRightLeg.rotateAngleY = job.bipedRotsRightLeg[1];
+					bipedRightLeg.rotateAngleZ = job.bipedRotsRightLeg[2];
+					this.setInterpolatedAngles(job,bipedRightLeg,job.rleg);
+					this.setInterpolatedAngles(job,bipedRightLegWear,job.rleg);
+				}
+
+				job.bipedRotsHead = new float[]{bipedHead.rotateAngleX,bipedHead.rotateAngleY,bipedHead.rotateAngleZ};
+				job.bipedRotsBody = new float[]{bipedBody.rotateAngleX,bipedBody.rotateAngleY,bipedBody.rotateAngleZ};
+				job.bipedRotsLeftArm = new float[]{bipedLeftArm.rotateAngleX,bipedLeftArm.rotateAngleY,bipedLeftArm.rotateAngleZ};
+				job.bipedRotsRightArm = new float[]{bipedRightArm.rotateAngleX,bipedRightArm.rotateAngleY,bipedRightArm.rotateAngleZ};
+				job.bipedRotsLeftLeg = new float[]{bipedLeftLeg.rotateAngleX,bipedLeftLeg.rotateAngleY,bipedLeftLeg.rotateAngleZ};
+				job.bipedRotsRightLeg = new float[]{bipedRightLeg.rotateAngleX, bipedRightLeg.rotateAngleY, bipedRightLeg.rotateAngleZ};
+			}
+		}
 	}
+
+	public void setInterpolatedAngles(JobPuppet job, ModelRenderer modelPart, JobPuppet.PartConfig puppetPart) {
+		float pi = (float) Math.PI;
+		if (!job.animate) {
+			modelPart.rotateAngleX = puppetPart.rotationX * pi;
+			modelPart.rotateAngleY = puppetPart.rotationY * pi;
+			modelPart.rotateAngleZ = puppetPart.rotationZ * pi;
+		} else {
+			modelPart.rotateAngleX = (puppetPart.rotationX * pi - modelPart.rotateAngleX) * job.animRate /10f + modelPart.rotateAngleX;
+			modelPart.rotateAngleY = (puppetPart.rotationY * pi - modelPart.rotateAngleY) * job.animRate /10f + modelPart.rotateAngleY;
+			modelPart.rotateAngleZ = (puppetPart.rotationZ * pi - modelPart.rotateAngleZ) * job.animRate /10f + modelPart.rotateAngleZ;
+		}
+	}
+
 
 	public void setLivingAnimations(EntityLivingBase par1EntityLivingBase, float par2, float par3, float par4)
 	{

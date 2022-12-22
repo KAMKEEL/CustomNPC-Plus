@@ -12,6 +12,46 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		this.job = (JobPuppet) npc.jobInterface;
 	}
 
+	public void setAnimated(boolean animated) {
+		this.job.animate = animated;
+	}
+
+	public boolean isAnimated() {
+		return this.job.animate;
+	}
+
+	public void setAnimRate(float animRate) {
+		this.job.animRate = animRate;
+	}
+
+	public float getAnimRate() {
+		return this.job.animRate;
+	}
+
+	public void doWhileStanding(boolean whileStanding) {
+		this.job.whileStanding = whileStanding;
+	}
+
+	public boolean doWhileStanding() {
+		return this.job.whileStanding;
+	}
+
+	public void doWhileAttacking(boolean whileAttacking) {
+		this.job.whileAttacking = whileAttacking;
+	}
+
+	public boolean doWhileAttacking() {
+		return this.job.whileAttacking;
+	}
+
+	public void doWhileMoving(boolean whileMoving) {
+		this.job.whileMoving = whileMoving;
+	}
+
+	public boolean doWhileMoving() {
+		return this.job.whileMoving;
+	}
+
 	/**
 	 * @since 1.7.10c
 	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)

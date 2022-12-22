@@ -3,20 +3,14 @@ package noppes.npcs.client.gui.roles;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartConfig;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.util.GuiModelInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.ISliderListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.roles.JobPuppet.PartConfig;
 
-public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
+public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, ITextfieldListener {
 
 	private GuiScreen parent;
 	private int type = 6;
@@ -48,6 +42,16 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
 			addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
 			addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.whileAttacking?0:1));
 			addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
+
+			addButton(new GuiNpcButton(33, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.animate ? 0 : 1));
+			addLabel(new GuiNpcLabel(33, "puppet.animate", guiLeft + 30, y + 5, 0xFFFFFF));
+
+			if (job.animate) {
+				addTextField(new GuiNpcTextField(34, this, guiLeft + 120, y += 22, 40, 20, "" + job.animRate));
+				addLabel(new GuiNpcLabel(34, "puppet.animSpeed", guiLeft + 30, y + 5, 0xFFFFFF));
+				getTextField(34).floatsOnly = true;
+			}
+
 			y += 24;
 		}
 		else{
@@ -161,6 +165,10 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
     	if(btn.id == 32){
     		job.whileAttacking = button.getValue() == 0;
     	}
+		if(btn.id == 33){
+			job.animate = button.getValue() == 0;
+			initGui();
+		}
     	if(btn.id == 170 || btn.id == 171 || btn.id == 172){
 			if(btn.id == 170){
 				part.rotationX = 0.0f;
@@ -183,6 +191,13 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener{
 			npc.updateHitbox();
 		}
     }
+
+	@Override
+	public void unFocused(GuiNpcTextField textfield) {
+		if(textfield.id == 34) {
+			job.animRate = textfield.getFloat();
+		}
+	}
 
     @Override
     public void close(){
