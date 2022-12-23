@@ -459,24 +459,77 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBodywear.rotateAngleZ = 0;
 
 		// Head Rotations
+		this.bipedHead.rotationPointX = 0;
+		this.bipedHead.rotationPointY = 0;
+		this.bipedHead.rotationPointZ = 0;
+		this.bipedHead.rotateAngleX = 0;
+		this.bipedHead.rotateAngleY = 0;
 		this.bipedHead.rotateAngleZ = 0;
+
+		this.bipedHeadwear.rotationPointX = 0;
+		this.bipedHeadwear.rotationPointY = 0;
+		this.bipedHeadwear.rotationPointZ = 0;
+		this.bipedHeadwear.rotateAngleX = 0;
+		this.bipedHeadwear.rotateAngleY = 0;
 		this.bipedHeadwear.rotateAngleZ = 0;
 
 		// Leg Rotations
+		this.bipedLeftLeg.rotationPointX = 1.9F;
+		this.bipedLeftLeg.rotationPointY = 12;
+		this.bipedLeftLeg.rotationPointZ = 0;
 		this.bipedLeftLeg.rotateAngleX = 0;
 		this.bipedLeftLeg.rotateAngleY = 0;
 		this.bipedLeftLeg.rotateAngleZ = 0;
 
+		this.bipedLeftLegWear.rotationPointX = 1.9F;
+		this.bipedLeftLegWear.rotationPointY = 12;
+		this.bipedLeftLegWear.rotationPointZ = 0;
+		this.bipedLeftLegWear.rotateAngleX = 0;
+		this.bipedLeftLegWear.rotateAngleY = 0;
+		this.bipedLeftLegWear.rotateAngleZ = 0;
+
+		this.bipedRightLeg.rotationPointX = -1.9F;
+		this.bipedRightLeg.rotationPointY = 12;
+		this.bipedRightLeg.rotationPointZ = 0;
 		this.bipedRightLeg.rotateAngleX = 0;
 		this.bipedRightLeg.rotateAngleY = 0;
 		this.bipedRightLeg.rotateAngleZ = 0;
 
+		this.bipedRightLegWear.rotationPointX = -1.9F;
+		this.bipedRightLegWear.rotationPointY = 12;
+		this.bipedRightLegWear.rotationPointZ = 0;
+		this.bipedRightLegWear.rotateAngleX = 0;
+		this.bipedRightLegWear.rotateAngleY = 0;
+		this.bipedRightLegWear.rotateAngleZ = 0;
+
 		// Arm Rotations
+		this.bipedLeftArm.rotationPointX = 5;
 		this.bipedLeftArm.rotationPointY = 2;
 		this.bipedLeftArm.rotationPointZ = 0;
+		this.bipedLeftArm.rotateAngleX = 0;
+		this.bipedLeftArm.rotateAngleY = 0;
+		this.bipedLeftArm.rotateAngleZ = 0;
 
+		this.bipedLeftArmwear.rotationPointX = 5;
+		this.bipedLeftArmwear.rotationPointY = 2;
+		this.bipedLeftArmwear.rotationPointZ = 0;
+		this.bipedLeftArmwear.rotateAngleX = 0;
+		this.bipedLeftArmwear.rotateAngleY = 0;
+		this.bipedLeftArmwear.rotateAngleZ = 0;
+
+		this.bipedRightArm.rotationPointX = -5;
 		this.bipedRightArm.rotationPointY = 2;
 		this.bipedRightArm.rotationPointZ = 0;
+		this.bipedRightArm.rotateAngleX = 0;
+		this.bipedRightArm.rotateAngleY = 0;
+		this.bipedRightArm.rotateAngleZ = 0;
+
+		this.bipedRightArmWear.rotationPointX = -5;
+		this.bipedRightArmWear.rotationPointY = 2;
+		this.bipedRightArmWear.rotationPointZ = 0;
+		this.bipedRightArmWear.rotateAngleX = 0;
+		this.bipedRightArmWear.rotateAngleY = 0;
+		this.bipedRightArmWear.rotateAngleZ = 0;
 
 		super.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 
