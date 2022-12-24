@@ -61,21 +61,16 @@ public class ForgeDataScript implements IScriptHandler {
 
     public void callScript(String type, Event event) {
         if(this.isEnabled()) {
-            //Minecraft.getMinecraft().func_152344_a(() -> {
-                if (ScriptController.Instance.lastLoaded > this.lastInited) {
-                    this.lastInited = ScriptController.Instance.lastLoaded;
-                    if (!type.equals("init")) {
-                        EventHooks.onForgeInit(this);
-                    }
+            if (ScriptController.Instance.lastLoaded > this.lastInited) {
+                this.lastInited = ScriptController.Instance.lastLoaded;
+                if (!type.equals("init")) {
+                    EventHooks.onForgeInit(this);
                 }
+            }
 
-                Iterator var3 = this.scripts.iterator();
-
-                while(var3.hasNext()) {
-                    ScriptContainer script = (ScriptContainer)var3.next();
-                    script.run(type, event);
-                }
-            //});
+            for (ScriptContainer script : this.scripts) {
+                script.run(type, event);
+            }
         }
     }
 

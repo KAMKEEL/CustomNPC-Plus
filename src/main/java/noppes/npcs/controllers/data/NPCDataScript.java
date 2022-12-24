@@ -60,37 +60,13 @@ public class NPCDataScript implements IScriptHandler {
 
     public void callScript(EnumScriptType type, Event event) {
         if (this.isEnabled()) {
-            ScriptContainer script;
             if (ScriptController.Instance.lastLoaded > this.lastInited) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
-                errored.clear();
             }
 
-            for(int i = 0; i < ScriptController.Instance.npcScripts.scripts.size(); ++i) {
-                script = (ScriptContainer)ScriptController.Instance.npcScripts.scripts.get(i);
-                if (!errored.contains(i)) {
-                    if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.npcScripts.errored.contains(i))
-                        return;
-
-                    script.run(type, event);
-
-                    if (script.errored) {
-                        ScriptController.Instance.npcScripts.errored.add(i);
-                    }
-
-                    Iterator var8 = script.console.entrySet().iterator();
-
-                    while(var8.hasNext()) {
-                        Map.Entry<Long, String> entry = (Map.Entry)var8.next();
-                        if (!ScriptController.Instance.npcScripts.console.containsKey(entry.getKey())) {
-                            ScriptController.Instance.npcScripts.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
-                        }
-                    }
-
-                    script.console.clear();
-                }
+            for (ScriptContainer script : this.scripts) {
+                script.run(type, event);
             }
-
         }
     }
 
@@ -130,11 +106,35 @@ public class NPCDataScript implements IScriptHandler {
         }
         return this.npcAPI;
     }
+
+
     public Map<Long, String> getConsoleText() {
-        return this.console;
+        TreeMap map = new TreeMap();
+        int tab = 0;
+        Iterator var3 = this.getScripts().iterator();
+
+        while(var3.hasNext()) {
+            ScriptContainer script = (ScriptContainer)var3.next();
+            ++tab;
+            Iterator var5 = script.console.entrySet().iterator();
+
+            while(var5.hasNext()) {
+                Map.Entry entry = (Map.Entry)var5.next();
+                map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
+            }
+        }
+
+        return map;
     }
+
     public void clearConsole() {
-        this.console.clear();
+        Iterator var1 = this.getScripts().iterator();
+
+        while(var1.hasNext()) {
+            ScriptContainer script = (ScriptContainer)var1.next();
+            script.console.clear();
+        }
+
     }
     public static final class ToStringHelper {
         private final String className;
