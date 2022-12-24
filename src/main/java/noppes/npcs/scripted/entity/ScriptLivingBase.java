@@ -53,13 +53,47 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void hurt(float damage, IDamageSource damageSource) {
 		entity.attackEntityFrom(damageSource.getMCDamageSource(),damage);
 	}
-	
-	/**
-	 * @return Entity's max health
-	 */
+
 	public double getMaxHealth(){
 		return entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).getAttributeValue();
 	}
+
+	public double getFollowRange() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.followRange).getAttributeValue();
+	}
+
+	public double getKnockbackResistance() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.knockbackResistance).getAttributeValue();
+	}
+
+	public double getSpeed() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
+	}
+
+	public double getMeleeStrength() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
+	}
+
+	public void setMaxHealth(double health){
+		entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(health);
+	}
+
+	public void setFollowRange(double range) {
+		entity.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(range);
+	}
+
+	public void setKnockbackResistance(double knockbackResistance) {
+		entity.getEntityAttribute(SharedMonsterAttributes.knockbackResistance).setBaseValue(knockbackResistance);
+	}
+
+	public void setSpeed(double speed) {
+		entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(speed);
+	}
+
+	public void setMeleeStrength(double attackDamage) {
+		entity.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(attackDamage);
+	}
+
 	/**
 	 * @return Whether or not this entity is attacking something
 	 */

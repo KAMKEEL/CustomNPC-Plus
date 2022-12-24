@@ -779,14 +779,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The melee strength
 	 */
-	public float getMeleeStrength(){
+	public double getMeleeStrength(){
 		return npc.stats.getAttackStrength();
 	}
 	
 	/**
 	 * @param strength The melee strength
 	 */
-	public void setMeleeStrength(float strength){
+	public void setMeleeStrength(double strength){
 		npc.stats.setAttackStrength(strength);
 	}
 	
@@ -1007,14 +1007,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     /**
      * @param resistance Knockback resistance (0-2) default is 1
      */
-	public void setKnockbackResistance(float resistance){
-		npc.stats.resistances.knockback = ValueUtil.correctFloat(resistance, 0, 2);
+	public void setKnockbackResistance(double resistance){
+		npc.stats.resistances.knockback = ValueUtil.correctFloat((float) resistance, 0, 2);
 	}
 
     /**
      * @return Returns Knockback Resistance
      */
-	public float getKnockbackResistance(){
+	public double getKnockbackResistance(){
 		return npc.stats.resistances.knockback;
 	}
 	
@@ -1141,11 +1141,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return this.npc.ai.hasFlyLimit;
 	}
 
-	public void setSpeed(int speed) {
+	public void setSpeed(double speed) {
 		npc.ai.setWalkingSpeed(speed);
 	}
 
-	public int getSpeed() {
+	public double getSpeed() {
 		return npc.ai.getWalkingSpeed();
 	}
 

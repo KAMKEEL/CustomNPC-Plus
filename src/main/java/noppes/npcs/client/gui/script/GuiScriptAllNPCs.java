@@ -26,6 +26,5 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
 
     public void close() {
         super.close();
-        ScriptController.Instance.npcScripts.errored.clear();
     }
 }

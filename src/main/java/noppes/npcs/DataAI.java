@@ -256,8 +256,8 @@ public class DataAI {
 		return npc.getDistanceSq(pos[0] + 0.5, pos[1], pos[2] + 0.5);
 	}
 	
-	public void setWalkingSpeed(int speed){
-		this.moveSpeed = speed;
+	public void setWalkingSpeed(double speed){
+		this.moveSpeed = (int)speed;
 		npc.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(npc.getSpeed());
 	}
 	

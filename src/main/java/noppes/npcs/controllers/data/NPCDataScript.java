@@ -25,7 +25,6 @@ public class NPCDataScript implements IScriptHandler {
     public long lastInited = -1L;
     public boolean enabled = false;
     private Map<Long, String> console = new TreeMap();
-    public List<Integer> errored = new ArrayList();
 
     public NPCDataScript(EntityNPCInterface npc) {
         if(npc != null) {
@@ -34,7 +33,6 @@ public class NPCDataScript implements IScriptHandler {
     }
     public void clear() {
         this.console = new TreeMap();
-        this.errored = new ArrayList();
         this.scripts = new ArrayList();
     }
     public void readFromNBT(NBTTagCompound compound) {
@@ -71,20 +69,19 @@ public class NPCDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return CustomNpcs.GlobalNPCScripts && ScriptController.Instance.npcScripts.enabled && ScriptController.HasStart && (this.npc == null || !this.npc.worldObj.isRemote);
+        return CustomNpcs.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
     }
     public boolean isClient() {
         return this.npc.isClientWorld();
     }
     public boolean getEnabled() {
-        return ScriptController.Instance.npcScripts.enabled;
+        return this.enabled;
     }
     public void setEnabled(boolean bo) {
-        ScriptController.Instance.npcScripts.enabled = bo;
         this.enabled = bo;
     }
     public String getLanguage() {
-        return ScriptController.Instance.npcScripts.scriptLanguage;
+        return this.scriptLanguage;
     }
     public void setLanguage(String lang) {
         this.scriptLanguage = lang;
