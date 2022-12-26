@@ -780,4 +780,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
 	}
+
+	public void setConqueredEnd(boolean conqueredEnd) {
+		this.player.playerConqueredTheEnd = conqueredEnd;
+	}
+
+	public boolean conqueredEnd() {
+		return this.player.playerConqueredTheEnd;
+	}
 }

@@ -147,4 +147,8 @@ public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> im
 	public void setLeashedTo(IEntity entity, boolean sendPacket) {
 		this.entity.setLeashedToEntity(entity.getMCEntity(), sendPacket);
 	}
+
+	public boolean canBeSteered() {
+		return this.entity.canBeSteered();
+	}
 }

@@ -9,7 +9,6 @@ import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Vec3;
 import noppes.npcs.api.IDamageSource;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptDamageSource;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.IPos;
@@ -117,7 +116,28 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public IEntityLivingBase getAttackTarget(){
 		return (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity.getAITarget());
 	}
-	
+
+	public int getAttackTargetTime() {
+		return this.entity.func_142015_aE();
+	}
+
+	public void setLastAttacker(IEntity p_130011_1_) {
+		this.entity.setLastAttacker(p_130011_1_.getMCEntity());
+	}
+
+	public IEntity getLastAttacker() {
+		return NpcAPI.Instance().getIEntity(this.entity.getLastAttacker());
+	}
+
+	public int getLastAttackerTime()
+	{
+		return this.entity.getLastAttackerTime();
+	}
+
+	public boolean canBreatheUnderwater() {
+		return this.entity.canBreatheUnderwater();
+	}
+
 	@Override
 	public int getType(){
 		return EntityType.LIVING;
