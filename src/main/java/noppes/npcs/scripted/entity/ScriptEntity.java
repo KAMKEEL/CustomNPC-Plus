@@ -1,9 +1,6 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
@@ -578,7 +575,12 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public String[] getStoredDataKeys() {
 		NBTTagCompound compound = getStoredCompound();
-		return (String[]) compound.func_150296_c().toArray();
+		Set strings = compound.func_150296_c();
+		ArrayList<String> stringList = new ArrayList<>();
+		for (Object o : strings) {
+			stringList.add((String)o);
+		}
+		return stringList.toArray(new String[0]);
 	}
 
 	private NBTTagCompound getStoredCompound(){
