@@ -511,6 +511,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		tempData.clear();
 	}
 
+	public String[] getTempDataKeys() {
+		return tempData.keySet().toArray(new String[0]);
+	}
+
 	/**
 	 * @param key The key of the data to be returned
 	 * @return Returns the stored data
@@ -570,6 +574,11 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 */
 	public void clearStoredData(){
 		entity.getEntityData().removeTag("CNPCStoredData");
+	}
+
+	public String[] getStoredDataKeys() {
+		NBTTagCompound compound = getStoredCompound();
+		return (String[]) compound.func_150296_c().toArray();
 	}
 
 	private NBTTagCompound getStoredCompound(){

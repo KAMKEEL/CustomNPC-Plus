@@ -744,6 +744,10 @@ public class ScriptWorld implements IWorld {
 		tempData.clear();
 	}
 
+	public String[] getTempDataKeys() {
+		return tempData.keySet().toArray(new String[0]);
+	}
+
 	/**
 	 * @param key The key of the data to be returned
 	 * @return Returns the stored data
@@ -794,6 +798,14 @@ public class ScriptWorld implements IWorld {
 	public void clearStoredData(){
 		ScriptController.Instance.compound = new NBTTagCompound();
 		ScriptController.Instance.shouldSave = true;
+	}
+
+	public String[] getStoredDataKeys() {
+		NBTTagCompound compound = ScriptController.Instance.compound;
+		if (compound != null) {
+			return (String[]) compound.func_150296_c().toArray();
+		}
+		return new String[0];
 	}
 
 	/**
