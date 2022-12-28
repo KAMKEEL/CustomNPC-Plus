@@ -135,6 +135,13 @@ public class ScriptBlockPos implements IPos {
         return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
     }
 
+    public double distanceTo(double x, double y, double z) {
+        double d0 = (double)(this.getX() - x);
+        double d1 = (double)(this.getY() - y);
+        double d2 = (double)(this.getZ() - z);
+        return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
+    }
+
     public BlockPos getMCPos() {
         return this.blockPos;
     }
