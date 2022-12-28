@@ -6,6 +6,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -777,6 +778,39 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public boolean hasCollided() {
 		return entity.isCollided;
+	}
+
+	public boolean hasCollidedVertically() {
+		return entity.isCollidedVertically;
+	}
+
+	public boolean hasCollidedHorizontally() {
+		return entity.isCollidedHorizontally;
+	}
+
+	public boolean capturesDrops() {
+		return entity.captureDrops;
+	}
+
+	public void setCapturesDrops(boolean capture) {
+		entity.captureDrops = capture;
+	}
+
+	public void setCapturedDrops(IEntity[] capturedDrops) {
+		entity.capturedDrops.clear();
+		for (IEntity<?> iEntity : capturedDrops) {
+			if (iEntity.getMCEntity() instanceof EntityItem) {
+				entity.capturedDrops.add((EntityItem) iEntity.getMCEntity());
+			}
+		}
+	}
+
+	public IEntity<?>[] getCapturedDrops() {
+		ArrayList<IEntity<?>> iEntityList = new ArrayList<>();
+		for (EntityItem entityItem : entity.capturedDrops) {
+			iEntityList.add(NpcAPI.Instance().getIEntity(entityItem));
+		}
+		return iEntityList.toArray(new IEntity[0]);
 	}
 
 	/**
