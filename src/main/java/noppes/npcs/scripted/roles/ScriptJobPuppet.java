@@ -256,7 +256,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	}
 
 	public void setOffsetX(int part, int offset) {
-		if(getRotationZ(part) != offset)
+		if(getOffsetX(part) != offset)
 			npc.script.clientNeedsUpdate = true;
 
 		if(part == 0)
@@ -274,7 +274,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	}
 
 	public void setOffsetY(int part, int offset) {
-		if(getRotationZ(part) != offset)
+		if(getOffsetY(part) != offset)
 			npc.script.clientNeedsUpdate = true;
 
 		if(part == 0)
@@ -292,7 +292,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	}
 
 	public void setOffsetZ(int part, int offset) {
-		if(getRotationZ(part) != offset)
+		if(getOffsetZ(part) != offset)
 			npc.script.clientNeedsUpdate = true;
 
 		if(part == 0)

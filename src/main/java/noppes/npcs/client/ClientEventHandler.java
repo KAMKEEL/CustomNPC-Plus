@@ -2,12 +2,12 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderHandEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 
@@ -19,6 +19,10 @@ public class ClientEventHandler {
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
+
+    public static float partialRenderTick;
+    public static EntityPlayer renderingPlayer;
+    public static RenderPlayer renderer;
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
@@ -56,7 +60,16 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
+    public void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        ClientEventHandler.renderingPlayer = event.entityPlayer;
+        ClientEventHandler.renderer = event.renderer;
+        ClientEventHandler.partialRenderTick = event.partialRenderTick;
+    }
+
+    @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
+        ClientEventHandler.renderingPlayer = null;
+
         if (hasOverlays(event.entityPlayer)) {
             try {
                 Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");

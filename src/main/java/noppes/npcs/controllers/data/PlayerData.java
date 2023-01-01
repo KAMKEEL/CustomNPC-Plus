@@ -31,6 +31,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerFactionData factionData = new PlayerFactionData(this);
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
+	public PlayerModelData modelData = new PlayerModelData(this);
 
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
@@ -80,6 +81,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		mailData.loadNBTData(data);
 		timers.readFromNBT(data);
 		skinOverlays.readFromNBT(data);
+		modelData.readFromNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -117,6 +119,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		mailData.saveNBTData(compound);
 		timers.writeToNBT(compound);
 		skinOverlays.writeToNBT(compound);
+		modelData.writeToNBT(compound);
 
 		compound.setString("PlayerName", playername);
 		compound.setString("UUID", uuid);
@@ -296,6 +299,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public IPlayerMailData getMailData() {
 		return mailData;
+	}
+
+	public IPlayerModelData getModelData() {
+		return modelData;
 	}
 
 	public void save() {

@@ -35,6 +35,7 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -83,6 +84,17 @@ public class NoppesUtil {
 			skinOverlays.put(tagID, (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i)));
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
+	}
+
+	public static void updatePlayerModelData(EntityPlayer player, NBTTagCompound compound) {
+		PlayerModelData modelData;
+		if (!Client.playerModelData.containsKey(player.getUniqueID())) {
+			modelData = new PlayerModelData(player);
+		} else {
+			modelData = Client.playerModelData.get(player.getUniqueID());
+		}
+		modelData.readFromNBT(compound);
+		Client.playerModelData.put(player.getUniqueID(), modelData);
 	}
 
 	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){

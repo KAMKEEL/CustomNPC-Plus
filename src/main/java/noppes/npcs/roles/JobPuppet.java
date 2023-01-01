@@ -101,7 +101,17 @@ public class JobPuppet extends JobInterface{
 		public float prevPivotX = 0f;
 		public float prevPivotY = 0f;
 		public float prevPivotZ = 0f;
-		
+
+		public float partialRotationTick = 0f;
+		public float partialPivotTick = 0f;
+		public float destPivotX = 0f;
+		public float destPivotY = 0f;
+		public float destPivotZ = 0f;
+		public boolean setOriginalPivot = false;
+		public float originalPivotX = 0f;
+		public float originalPivotY = 0f;
+		public float originalPivotZ = 0f;
+
 		public boolean disabled = false;
 		
 		public NBTTagCompound writeNBT(){
