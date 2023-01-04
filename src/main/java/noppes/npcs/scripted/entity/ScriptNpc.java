@@ -99,10 +99,16 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.display.name;
 	}
 
+	public void setRotation(float rotationYaw, float rotationPitch) {
+		this.setRotation(rotationYaw);
+		npc.rotationPitch = rotationPitch;
+	}
+
 	public void setRotation(float rotation){
 		npc.ai.orientation = (int)rotation;
 		super.setRotation(rotation);
 	}
+
 	public void setRotationType(int rotationType){
 		for (EnumStandingType e : EnumStandingType.values()) {
 			if (e.ordinal() == rotationType) {
@@ -111,9 +117,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			}
 		}
 	}
+
 	public int getRotationType(){
 		return npc.ai.standingType.ordinal();
 	}
+
 	/**
 	 * @param name The name of the npc
 	 */
