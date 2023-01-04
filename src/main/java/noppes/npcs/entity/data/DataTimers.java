@@ -25,6 +25,15 @@ public class DataTimers implements ITimers {
         this.parent = parent;
     }
 
+    public int[] timerIds() {
+        Integer[] ids = timers.keySet().toArray(new Integer[0]);
+        int[] intIds = new int[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            intIds[i] = ids[i];
+        }
+        return intIds;
+    }
+
     public void start(int id, int ticks, boolean repeat) {
         if(this.timers.containsKey(id)) {
             throw new CustomNPCsException("There is already a timer with id: " + id);
