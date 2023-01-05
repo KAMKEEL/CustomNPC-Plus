@@ -24,6 +24,9 @@ public class PlayerModelData implements IPlayerModelData {
     public boolean whileMoving = false;
     public boolean fullAngles = false;
 
+    public int rotationX, rotationY, rotationZ;
+    public boolean rotationEnabledX, rotationEnabledY, rotationEnabledZ;
+
     public boolean animate = false;
     public float animRate = 1.0F;
 
@@ -62,6 +65,13 @@ public class PlayerModelData implements IPlayerModelData {
         compound.setBoolean("PuppetMoving", whileMoving);
         compound.setBoolean("PuppetFullAngles", fullAngles);
 
+        compound.setInteger("PuppetRotationX",rotationX);
+        compound.setInteger("PuppetRotationY",rotationY);
+        compound.setInteger("PuppetRotationZ",rotationZ);
+        compound.setBoolean("PuppetRotationEnabledX",rotationEnabledX);
+        compound.setBoolean("PuppetRotationEnabledY",rotationEnabledY);
+        compound.setBoolean("PuppetRotationEnabledZ",rotationEnabledZ);
+
         compound.setBoolean("PuppetAnimate", animate);
         compound.setFloat("PuppetAnimSpeed", animRate);
         return compound;
@@ -80,6 +90,13 @@ public class PlayerModelData implements IPlayerModelData {
         whileAttacking = compound.getBoolean("PuppetAttacking");
         whileMoving = compound.getBoolean("PuppetMoving");
         fullAngles = compound.getBoolean("PuppetFullAngles");
+
+        rotationX = compound.getInteger("PuppetRotationX");
+        rotationY = compound.getInteger("PuppetRotationY");
+        rotationZ = compound.getInteger("PuppetRotationZ");
+        rotationEnabledX = compound.getBoolean("PuppetRotationEnabledX");
+        rotationEnabledY = compound.getBoolean("PuppetRotationEnabledY");
+        rotationEnabledZ = compound.getBoolean("PuppetRotationEnabledZ");
 
         animate = compound.getBoolean("PuppetAnimate");
         animRate = compound.getFloat("PuppetAnimSpeed");
@@ -139,6 +156,66 @@ public class PlayerModelData implements IPlayerModelData {
 
     public boolean doWhileMoving() {
         return this.whileMoving;
+    }
+
+    public void setRotation(int rotationX, int rotationY, int rotationZ) {
+        this.setRotationX(rotationX);
+        this.setRotationY(rotationY);
+        this.setRotationZ(rotationZ);
+    }
+
+    public void setEnabledRotation(boolean enabledX, boolean enabledY, boolean enabledZ) {
+        this.setRotationEnabledX(enabledX);
+        this.setRotationEnabledY(enabledY);
+        this.setRotationEnabledZ(enabledZ);
+    }
+
+    public void setRotationX(int rotationX) {
+        this.rotationX = rotationX;
+    }
+
+    public void setRotationY(int rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    public void setRotationZ(int rotationZ) {
+        this.rotationZ = rotationZ;
+    }
+
+    public void setRotationEnabledX(boolean enabled) {
+        this.rotationEnabledX = enabled;
+    }
+
+    public void setRotationEnabledY(boolean enabled) {
+        this.rotationEnabledY = enabled;
+    }
+
+    public void setRotationEnabledZ(boolean enabled) {
+        this.rotationEnabledZ = enabled;
+    }
+
+    public int getRotationX() {
+        return rotationX;
+    }
+
+    public int getRotationY() {
+        return rotationY;
+    }
+
+    public int getRotationZ() {
+        return rotationZ;
+    }
+
+    public boolean rotationEnabledX() {
+        return rotationEnabledX;
+    }
+
+    public boolean rotationEnabledY() {
+        return rotationEnabledY;
+    }
+
+    public boolean rotationEnabledZ() {
+        return rotationEnabledZ;
     }
 
     /**
