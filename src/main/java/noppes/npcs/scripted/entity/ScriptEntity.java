@@ -728,6 +728,11 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.rotationYaw = rotation;
 	}
 
+	public void setRotation(float rotationYaw, float rotationPitch) {
+		entity.rotationYaw = rotationYaw;
+		entity.rotationPitch = rotationPitch;
+	}
+
 	/**
 	 * @return Current rotation of the entity
 	 */
