@@ -84,7 +84,10 @@ public class ClientEventHandler {
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
         EntityPlayer player = event.entityPlayer;
         if (Client.playerModelData.containsKey(player.getUniqueID())) {
-            GL11.glPopMatrix();
+            PlayerModelData data = Client.playerModelData.get(player.getUniqueID());
+            if (data.enabled()) {
+                GL11.glPopMatrix();
+            }
         }
         ClientEventHandler.renderingPlayer = null;
 
