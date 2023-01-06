@@ -87,14 +87,16 @@ public class NoppesUtil {
 	}
 
 	public static void updatePlayerModelData(EntityPlayer player, NBTTagCompound compound) {
-		PlayerModelData modelData;
+		PlayerModelData data;
 		if (!Client.playerModelData.containsKey(player.getUniqueID())) {
-			modelData = new PlayerModelData(player);
+			data = new PlayerModelData(player);
+			data.readFromNBT(compound);
+			data.modelRotations = new float[]{data.rotationX, data.rotationY, data.rotationZ};
 		} else {
-			modelData = Client.playerModelData.get(player.getUniqueID());
+			data = Client.playerModelData.get(player.getUniqueID());
+			data.readFromNBT(compound);
 		}
-		modelData.readFromNBT(compound);
-		Client.playerModelData.put(player.getUniqueID(), modelData);
+		Client.playerModelData.put(player.getUniqueID(), data);
 	}
 
 	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){

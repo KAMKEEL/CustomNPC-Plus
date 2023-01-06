@@ -31,6 +31,9 @@ public class PlayerModelData implements IPlayerModelData {
     public float animRate = 1.0F;
 
     //Client-sided use
+    public float modelRotPartialTicks;
+    public float[] modelRotations = {0,0,0};
+
     public float[] bipedRotsHead = {0,0,0};
     public float[] bipedRotsBody = {0,0,0};
     public float[] bipedRotsLeftArm = {0,0,0};

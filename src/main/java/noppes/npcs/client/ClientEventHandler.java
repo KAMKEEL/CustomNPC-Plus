@@ -9,6 +9,7 @@ import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.controllers.data.PlayerModelData;
+import noppes.npcs.roles.JobPuppet;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -59,6 +60,34 @@ public class ClientEventHandler {
         }
     }
 
+    public void setInterpolatedAngles(PlayerModelData modelData) {
+        float pi = (float) Math.PI * (modelData.fullAngles ? 2 : 1);
+        if (!modelData.animate) {
+            modelData.modelRotations[0] = modelData.rotationX * pi;
+            modelData.modelRotations[1] = modelData.rotationY * pi;
+            modelData.modelRotations[2] = modelData.rotationZ * pi;
+        } else if (modelData.modelRotPartialTicks != ClientEventHandler.partialRenderTick) {
+            modelData.modelRotPartialTicks = ClientEventHandler.partialRenderTick;
+            if (modelData.rotationX - modelData.modelRotations[0] != 0 && modelData.rotationEnabledX) {
+                modelData.modelRotations[0] = (modelData.rotationX - modelData.modelRotations[0]) * modelData.animRate / 10f + modelData.modelRotations[0];
+            } else {
+                modelData.modelRotations[0] = modelData.rotationX;
+            }
+
+            if (modelData.rotationY - modelData.modelRotations[1] != 0 && modelData.rotationEnabledY) {
+                modelData.modelRotations[1] = (modelData.rotationY - modelData.modelRotations[1]) * modelData.animRate / 10f + modelData.modelRotations[1];
+            } else {
+                modelData.modelRotations[1] = modelData.rotationY;
+            }
+
+            if (modelData.rotationZ - modelData.modelRotations[2] != 0 && modelData.rotationEnabledZ) {
+                modelData.modelRotations[2] = (modelData.rotationZ - modelData.modelRotations[2]) * modelData.animRate /10f + modelData.modelRotations[2];
+            } else {
+                modelData.modelRotations[2] = modelData.rotationZ;
+            }
+        }
+    }
+
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
         EntityPlayer player = event.entityPlayer;
@@ -70,12 +99,16 @@ public class ClientEventHandler {
             PlayerModelData data = Client.playerModelData.get(player.getUniqueID());
             if (data.enabled()) {
                 GL11.glPushMatrix();
-                if (data.rotationEnabledX)
-                    GL11.glRotatef(data.rotationX, 1, 0, 0);
-                if (data.rotationEnabledY)
-                    GL11.glRotatef(data.rotationY, 0, 1, 0);
-                if (data.rotationEnabledZ)
-                    GL11.glRotatef(data.rotationZ, 0, 0, 1);
+                this.setInterpolatedAngles(data);
+                if (data.rotationEnabledX) {
+                    GL11.glRotatef(data.modelRotations[0], 1, 0, 0);
+                }
+                if (data.rotationEnabledY) {
+                    GL11.glRotatef(data.modelRotations[1], 0, 1, 0);
+                }
+                if (data.rotationEnabledZ) {
+                    GL11.glRotatef(data.modelRotations[2], 0, 0, 1);
+                }
             }
         }
     }
