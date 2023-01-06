@@ -60,70 +60,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		return this.job.whileMoving;
 	}
 
-	/**
-	 * @since 1.7.10c
-	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
-	 * @return Returns X rotation in degrees (0-360)
-	 */
-	public int getRotationX(int part){
-		if(part == 0)
-			return floatToInt(job.head.rotationX);
-		if(part == 1)
-			return floatToInt(job.body.rotationX);
-		if(part == 2)
-			return floatToInt(job.larm.rotationX);
-		if(part == 3)
-			return floatToInt(job.rarm.rotationX);
-		if(part == 4)
-			return floatToInt(job.lleg.rotationX);
-		if(part == 5)
-			return floatToInt(job.rleg.rotationX);
-		return 0;
-	}
-
-	/**
-	 * @since 1.7.10c
-	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
-	 * @return Returns Y rotation in degrees (0-360)
-	 */
-	public int getRotationY(int part){
-		if(part == 0)
-			return floatToInt(job.head.rotationY);
-		if(part == 1)
-			return floatToInt(job.body.rotationY);
-		if(part == 2)
-			return floatToInt(job.larm.rotationY);
-		if(part == 3)
-			return floatToInt(job.rarm.rotationY);
-		if(part == 4)
-			return floatToInt(job.lleg.rotationY);
-		if(part == 5)
-			return floatToInt(job.rleg.rotationY);
-		return 0;
-	}
-	
-	/**
-	 * @since 1.7.10c
-	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
-	 * @return Returns Z rotation in degrees (0-360)
-	 */
-	public int getRotationZ(int part){
-		if(part == 0)
-			return floatToInt(job.head.rotationZ);
-		if(part == 1)
-			return floatToInt(job.body.rotationZ);
-		if(part == 2)
-			return floatToInt(job.larm.rotationZ);
-		if(part == 3)
-			return floatToInt(job.rarm.rotationZ);
-		if(part == 4)
-			return floatToInt(job.lleg.rotationZ);
-		if(part == 5)
-			return floatToInt(job.rleg.rotationZ);
-		return 0;
-	}
-
-	public void setRotation(int part, int rotationX, int rotationY, int rotationZ) {
+	public void setRotation(int part, float rotationX, float rotationY, float rotationZ) {
 		this.setRotationX(part,rotationX);
 		this.setRotationY(part,rotationY);
 		this.setRotationZ(part,rotationZ);
@@ -134,7 +71,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
 	 * @param rotation Rotation the of the body part
 	 */
-	public void setRotationX(int part, int rotation){
+	public void setRotationX(int part, float rotation){
 		float f = rotation / 360f - 0.5f;
 		if(getRotationX(part) != f)
 			npc.script.clientNeedsUpdate = true;
@@ -158,7 +95,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
 	 * @param rotation Rotation the of the body part
 	 */
-	public void setRotationY(int part, int rotation){
+	public void setRotationY(int part, float rotation){
 		float f = rotation / 360f - 0.5f;
 		if(getRotationY(part) != f)
 			npc.script.clientNeedsUpdate = true;
@@ -182,7 +119,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
 	 * @param rotation Rotation the of the body part
 	 */
-	public void setRotationZ(int part, int rotation){
+	public void setRotationZ(int part, float rotation){
 		float f = rotation / 360f - 0.5f;
 		if(getRotationZ(part) != f)
 			npc.script.clientNeedsUpdate = true;
@@ -201,61 +138,76 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 			job.rleg.rotationZ = f;
 	}
 
-	public int getOffsetX(int part) {
+	/**
+	 * @since 1.7.10c
+	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+	 * @return Returns X rotation in degrees (0-360)
+	 */
+	public float getRotationX(int part){
 		if(part == 0)
-			return floatToInt(job.head.pivotX);
+			return job.head.rotationX;
 		if(part == 1)
-			return floatToInt(job.body.pivotX);
+			return job.body.rotationX;
 		if(part == 2)
-			return floatToInt(job.larm.pivotX);
+			return job.larm.rotationX;
 		if(part == 3)
-			return floatToInt(job.rarm.pivotX);
+			return job.rarm.rotationX;
 		if(part == 4)
-			return floatToInt(job.lleg.pivotX);
+			return job.lleg.rotationX;
 		if(part == 5)
-			return floatToInt(job.rleg.pivotX);
+			return job.rleg.rotationX;
 		return 0;
 	}
 
-	public int getOffsetY(int part) {
+	/**
+	 * @since 1.7.10c
+	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+	 * @return Returns Y rotation in degrees (0-360)
+	 */
+	public float getRotationY(int part){
 		if(part == 0)
-			return floatToInt(job.head.pivotY);
+			return job.head.rotationY;
 		if(part == 1)
-			return floatToInt(job.body.pivotY);
+			return job.body.rotationY;
 		if(part == 2)
-			return floatToInt(job.larm.pivotY);
+			return job.larm.rotationY;
 		if(part == 3)
-			return floatToInt(job.rarm.pivotY);
+			return job.rarm.rotationY;
 		if(part == 4)
-			return floatToInt(job.lleg.pivotY);
+			return job.lleg.rotationY;
 		if(part == 5)
-			return floatToInt(job.rleg.pivotY);
+			return job.rleg.rotationY;
 		return 0;
 	}
 
-	public int getOffsetZ(int part) {
+	/**
+	 * @since 1.7.10c
+	 * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+	 * @return Returns Z rotation in degrees (0-360)
+	 */
+	public float getRotationZ(int part){
 		if(part == 0)
-			return floatToInt(job.head.pivotZ);
+			return job.head.rotationZ;
 		if(part == 1)
-			return floatToInt(job.body.pivotZ);
+			return job.body.rotationZ;
 		if(part == 2)
-			return floatToInt(job.larm.pivotZ);
+			return job.larm.rotationZ;
 		if(part == 3)
-			return floatToInt(job.rarm.pivotZ);
+			return job.rarm.rotationZ;
 		if(part == 4)
-			return floatToInt(job.lleg.pivotZ);
+			return job.lleg.rotationZ;
 		if(part == 5)
-			return floatToInt(job.rleg.pivotZ);
+			return job.rleg.rotationZ;
 		return 0;
 	}
 
-	public void setOffset(int part, int offsetX, int offsetY, int offsetZ) {
+	public void setOffset(int part, float offsetX, float offsetY, float offsetZ) {
 		this.setOffsetX(part,offsetX);
 		this.setOffsetY(part,offsetY);
 		this.setOffsetZ(part,offsetZ);
 	}
 
-	public void setOffsetX(int part, int offset) {
+	public void setOffsetX(int part, float offset) {
 		if(getOffsetX(part) != offset)
 			npc.script.clientNeedsUpdate = true;
 
@@ -273,7 +225,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 			job.rleg.pivotX = offset;
 	}
 
-	public void setOffsetY(int part, int offset) {
+	public void setOffsetY(int part, float offset) {
 		if(getOffsetY(part) != offset)
 			npc.script.clientNeedsUpdate = true;
 
@@ -291,7 +243,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 			job.rleg.pivotY = offset;
 	}
 
-	public void setOffsetZ(int part, int offset) {
+	public void setOffsetZ(int part, float offset) {
 		if(getOffsetZ(part) != offset)
 			npc.script.clientNeedsUpdate = true;
 
@@ -307,6 +259,54 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 			job.lleg.pivotZ = offset;
 		if(part == 5)
 			job.rleg.pivotZ = offset;
+	}
+
+	public float getOffsetX(int part) {
+		if(part == 0)
+			return job.head.pivotX;
+		if(part == 1)
+			return job.body.pivotX;
+		if(part == 2)
+			return job.larm.pivotX;
+		if(part == 3)
+			return job.rarm.pivotX;
+		if(part == 4)
+			return job.lleg.pivotX;
+		if(part == 5)
+			return job.rleg.pivotX;
+		return 0;
+	}
+
+	public float getOffsetY(int part) {
+		if(part == 0)
+			return job.head.pivotY;
+		if(part == 1)
+			return job.body.pivotY;
+		if(part == 2)
+			return job.larm.pivotY;
+		if(part == 3)
+			return job.rarm.pivotY;
+		if(part == 4)
+			return job.lleg.pivotY;
+		if(part == 5)
+			return job.rleg.pivotY;
+		return 0;
+	}
+
+	public float getOffsetZ(int part) {
+		if(part == 0)
+			return job.head.pivotZ;
+		if(part == 1)
+			return job.body.pivotZ;
+		if(part == 2)
+			return job.larm.pivotZ;
+		if(part == 3)
+			return job.rarm.pivotZ;
+		if(part == 4)
+			return job.lleg.pivotZ;
+		if(part == 5)
+			return job.rleg.pivotZ;
+		return 0;
 	}
 
 	/**
@@ -353,11 +353,6 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		if(part == 5)
 			job.rleg.disabled = !bo;
 	}
-	
-	private int floatToInt(float f){
-		return (int)((f + 0.5) * 360);
-	}
-	
 	@Override
 	public int getType(){
 		return JobType.PUPPET;
