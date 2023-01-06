@@ -106,7 +106,7 @@ public class PlayerModelData implements IPlayerModelData {
         this.enabled = enabled;
     }
 
-    public boolean getEnabled() {
+    public boolean enabled() {
         return this.enabled;
     }
 
@@ -114,16 +114,16 @@ public class PlayerModelData implements IPlayerModelData {
         this.animate = animated;
     }
 
-    public boolean fullAngles() {
-        return fullAngles;
+    public boolean isAnimated() {
+        return this.animate;
     }
 
     public void setFullAngles(boolean limit) {
         fullAngles = limit;
     }
 
-    public boolean isAnimated() {
-        return this.animate;
+    public boolean fullAngles() {
+        return fullAngles;
     }
 
     public void setAnimRate(float animRate) {
@@ -164,7 +164,7 @@ public class PlayerModelData implements IPlayerModelData {
         this.setRotationZ(rotationZ);
     }
 
-    public void setEnabledRotation(boolean enabledX, boolean enabledY, boolean enabledZ) {
+    public void setRotationEnabled(boolean enabledX, boolean enabledY, boolean enabledZ) {
         this.setRotationEnabledX(enabledX);
         this.setRotationEnabledY(enabledY);
         this.setRotationEnabledZ(enabledZ);

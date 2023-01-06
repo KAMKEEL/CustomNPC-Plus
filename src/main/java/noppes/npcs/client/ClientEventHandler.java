@@ -2,14 +2,14 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
+import noppes.npcs.controllers.data.PlayerModelData;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,16 +61,34 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
-        ClientEventHandler.renderingPlayer = event.entityPlayer;
+        EntityPlayer player = event.entityPlayer;
+        ClientEventHandler.renderingPlayer = player;
         ClientEventHandler.renderer = event.renderer;
         ClientEventHandler.partialRenderTick = event.partialRenderTick;
+
+        if (Client.playerModelData.containsKey(player.getUniqueID())) {
+            PlayerModelData data = Client.playerModelData.get(player.getUniqueID());
+            if (data.enabled()) {
+                GL11.glPushMatrix();
+                if (data.rotationEnabledX)
+                    GL11.glRotatef(data.rotationX, 1, 0, 0);
+                if (data.rotationEnabledY)
+                    GL11.glRotatef(data.rotationY, 0, 1, 0);
+                if (data.rotationEnabledZ)
+                    GL11.glRotatef(data.rotationZ, 0, 0, 1);
+            }
+        }
     }
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
+        EntityPlayer player = event.entityPlayer;
+        if (Client.playerModelData.containsKey(player.getUniqueID())) {
+            GL11.glPopMatrix();
+        }
         ClientEventHandler.renderingPlayer = null;
 
-        if (hasOverlays(event.entityPlayer)) {
+        if (hasOverlays(player)) {
             try {
                 Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
                 if (renderPlayerJBRA.isInstance(event.renderer))
@@ -79,18 +97,18 @@ public class ClientEventHandler {
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
                 renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
-                double d0 = event.entityPlayer.lastTickPosX + (event.entityPlayer.posX - event.entityPlayer.lastTickPosX) * (double) event.partialRenderTick - RenderManager.renderPosX;
-                double d1 = event.entityPlayer.lastTickPosY + (event.entityPlayer.posY - event.entityPlayer.lastTickPosY) * (double) event.partialRenderTick - RenderManager.renderPosY;
-                double d2 = event.entityPlayer.lastTickPosZ + (event.entityPlayer.posZ - event.entityPlayer.lastTickPosZ) * (double) event.partialRenderTick - RenderManager.renderPosZ;
-                float f1 = event.entityPlayer.prevRotationYaw + (event.entityPlayer.rotationYaw - event.entityPlayer.prevRotationYaw) * event.partialRenderTick;
+                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double) event.partialRenderTick - RenderManager.renderPosX;
+                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double) event.partialRenderTick - RenderManager.renderPosY;
+                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double) event.partialRenderTick - RenderManager.renderPosZ;
+                float f1 = player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * event.partialRenderTick;
 
-                if (Minecraft.getMinecraft().thePlayer.equals(event.entityPlayer)) {
+                if (Minecraft.getMinecraft().thePlayer.equals(player)) {
                     d0 = 0;
                     d1 = 0;
                     d2 = 0;
                 }
 
-                renderCNPCPlayer.doRender(event.entityPlayer, d0, d1, d2, f1, event.partialRenderTick);
+                renderCNPCPlayer.doRender(player, d0, d1, d2, f1, event.partialRenderTick);
             }
         }
     }
