@@ -24,7 +24,7 @@ public class PlayerModelData implements IPlayerModelData {
     public boolean whileMoving = false;
     public boolean fullAngles = false;
 
-    public int rotationX, rotationY, rotationZ;
+    public float rotationX, rotationY, rotationZ;
     public boolean rotationEnabledX, rotationEnabledY, rotationEnabledZ;
 
     public boolean animate = false;
@@ -68,9 +68,9 @@ public class PlayerModelData implements IPlayerModelData {
         compound.setBoolean("PuppetMoving", whileMoving);
         compound.setBoolean("PuppetFullAngles", fullAngles);
 
-        compound.setInteger("PuppetRotationX",rotationX);
-        compound.setInteger("PuppetRotationY",rotationY);
-        compound.setInteger("PuppetRotationZ",rotationZ);
+        compound.setFloat("PuppetRotationX",rotationX);
+        compound.setFloat("PuppetRotationY",rotationY);
+        compound.setFloat("PuppetRotationZ",rotationZ);
         compound.setBoolean("PuppetRotationEnabledX",rotationEnabledX);
         compound.setBoolean("PuppetRotationEnabledY",rotationEnabledY);
         compound.setBoolean("PuppetRotationEnabledZ",rotationEnabledZ);
@@ -94,9 +94,9 @@ public class PlayerModelData implements IPlayerModelData {
         whileMoving = compound.getBoolean("PuppetMoving");
         fullAngles = compound.getBoolean("PuppetFullAngles");
 
-        rotationX = compound.getInteger("PuppetRotationX");
-        rotationY = compound.getInteger("PuppetRotationY");
-        rotationZ = compound.getInteger("PuppetRotationZ");
+        rotationX = compound.getFloat("PuppetRotationX");
+        rotationY = compound.getFloat("PuppetRotationY");
+        rotationZ = compound.getFloat("PuppetRotationZ");
         rotationEnabledX = compound.getBoolean("PuppetRotationEnabledX");
         rotationEnabledY = compound.getBoolean("PuppetRotationEnabledY");
         rotationEnabledZ = compound.getBoolean("PuppetRotationEnabledZ");
@@ -161,28 +161,40 @@ public class PlayerModelData implements IPlayerModelData {
         return this.whileMoving;
     }
 
-    public void setRotation(int rotationX, int rotationY, int rotationZ) {
+    public void setRotation(float rotationX, float rotationY, float rotationZ) {
         this.setRotationX(rotationX);
         this.setRotationY(rotationY);
         this.setRotationZ(rotationZ);
+    }
+
+    public void setRotationX(float rotationX) {
+        this.rotationX = rotationX;
+    }
+
+    public void setRotationY(float rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    public void setRotationZ(float rotationZ) {
+        this.rotationZ = rotationZ;
+    }
+
+    public float getRotationX() {
+        return rotationX;
+    }
+
+    public float getRotationY() {
+        return rotationY;
+    }
+
+    public float getRotationZ() {
+        return rotationZ;
     }
 
     public void setRotationEnabled(boolean enabledX, boolean enabledY, boolean enabledZ) {
         this.setRotationEnabledX(enabledX);
         this.setRotationEnabledY(enabledY);
         this.setRotationEnabledZ(enabledZ);
-    }
-
-    public void setRotationX(int rotationX) {
-        this.rotationX = rotationX;
-    }
-
-    public void setRotationY(int rotationY) {
-        this.rotationY = rotationY;
-    }
-
-    public void setRotationZ(int rotationZ) {
-        this.rotationZ = rotationZ;
     }
 
     public void setRotationEnabledX(boolean enabled) {
@@ -197,18 +209,6 @@ public class PlayerModelData implements IPlayerModelData {
         this.rotationEnabledZ = enabled;
     }
 
-    public int getRotationX() {
-        return rotationX;
-    }
-
-    public int getRotationY() {
-        return rotationY;
-    }
-
-    public int getRotationZ() {
-        return rotationZ;
-    }
-
     public boolean rotationEnabledX() {
         return rotationEnabledX;
     }
@@ -221,70 +221,7 @@ public class PlayerModelData implements IPlayerModelData {
         return rotationEnabledZ;
     }
 
-    /**
-     * @since 1.7.10c
-     * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
-     * @return Returns X rotation in degrees (0-360)
-     */
-    public int getRotationX(int part){
-        if(part == 0)
-            return floatToInt(head.rotationX);
-        if(part == 1)
-            return floatToInt(body.rotationX);
-        if(part == 2)
-            return floatToInt(larm.rotationX);
-        if(part == 3)
-            return floatToInt(rarm.rotationX);
-        if(part == 4)
-            return floatToInt(lleg.rotationX);
-        if(part == 5)
-            return floatToInt(rleg.rotationX);
-        return 0;
-    }
-
-    /**
-     * @since 1.7.10c
-     * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
-     * @return Returns Y rotation in degrees (0-360)
-     */
-    public int getRotationY(int part){
-        if(part == 0)
-            return floatToInt(head.rotationY);
-        if(part == 1)
-            return floatToInt(body.rotationY);
-        if(part == 2)
-            return floatToInt(larm.rotationY);
-        if(part == 3)
-            return floatToInt(rarm.rotationY);
-        if(part == 4)
-            return floatToInt(lleg.rotationY);
-        if(part == 5)
-            return floatToInt(rleg.rotationY);
-        return 0;
-    }
-
-    /**
-     * @since 1.7.10c
-     * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
-     * @return Returns Z rotation in degrees (0-360)
-     */
-    public int getRotationZ(int part){
-        if(part == 0)
-            return floatToInt(head.rotationZ);
-        if(part == 1)
-            return floatToInt(body.rotationZ);
-        if(part == 2)
-            return floatToInt(larm.rotationZ);
-        if(part == 3)
-            return floatToInt(rarm.rotationZ);
-        if(part == 4)
-            return floatToInt(lleg.rotationZ);
-        if(part == 5)
-            return floatToInt(rleg.rotationZ);
-        return 0;
-    }
-
-    public void setRotation(int part, int rotationX, int rotationY, int rotationZ) {
+    public void setRotation(int part, float rotationX, float rotationY, float rotationZ) {
         this.setRotationX(part,rotationX);
         this.setRotationY(part,rotationY);
         this.setRotationZ(part,rotationZ);
@@ -295,7 +232,7 @@ public class PlayerModelData implements IPlayerModelData {
      * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
      * @param rotation Rotation the of the body part
      */
-    public void setRotationX(int part, int rotation){
+    public void setRotationX(int part, float rotation){
         float f = rotation / 360f - 0.5f;
 
         if(part == 0)
@@ -317,7 +254,7 @@ public class PlayerModelData implements IPlayerModelData {
      * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
      * @param rotation Rotation the of the body part
      */
-    public void setRotationY(int part, int rotation){
+    public void setRotationY(int part, float rotation){
         float f = rotation / 360f - 0.5f;
 
         if(part == 0)
@@ -339,7 +276,7 @@ public class PlayerModelData implements IPlayerModelData {
      * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
      * @param rotation Rotation the of the body part
      */
-    public void setRotationZ(int part, int rotation){
+    public void setRotationZ(int part, float rotation){
         float f = rotation / 360f - 0.5f;
 
         if(part == 0)
@@ -356,61 +293,76 @@ public class PlayerModelData implements IPlayerModelData {
             rleg.rotationZ = f;
     }
 
-    public int getOffsetX(int part) {
+    /**
+     * @since 1.7.10c
+     * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+     * @return Returns X rotation in degrees (0-360)
+     */
+    public float getRotationX(int part){
         if(part == 0)
-            return floatToInt(head.pivotX);
+            return head.rotationX;
         if(part == 1)
-            return floatToInt(body.pivotX);
+            return body.rotationX;
         if(part == 2)
-            return floatToInt(larm.pivotX);
+            return larm.rotationX;
         if(part == 3)
-            return floatToInt(rarm.pivotX);
+            return rarm.rotationX;
         if(part == 4)
-            return floatToInt(lleg.pivotX);
+            return lleg.rotationX;
         if(part == 5)
-            return floatToInt(rleg.pivotX);
+            return rleg.rotationX;
         return 0;
     }
 
-    public int getOffsetY(int part) {
+    /**
+     * @since 1.7.10c
+     * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+     * @return Returns Y rotation in degrees (0-360)
+     */
+    public float getRotationY(int part){
         if(part == 0)
-            return floatToInt(head.pivotY);
+            return head.rotationY;
         if(part == 1)
-            return floatToInt(body.pivotY);
+            return body.rotationY;
         if(part == 2)
-            return floatToInt(larm.pivotY);
+            return larm.rotationY;
         if(part == 3)
-            return floatToInt(rarm.pivotY);
+            return rarm.rotationY;
         if(part == 4)
-            return floatToInt(lleg.pivotY);
+            return lleg.rotationY;
         if(part == 5)
-            return floatToInt(rleg.pivotY);
+            return rleg.rotationY;
         return 0;
     }
 
-    public int getOffsetZ(int part) {
+    /**
+     * @since 1.7.10c
+     * @param part Body part (0:head, 1:body, 2:leftarm, 3:rightarm, 4:leftleg, 5:rightleg)
+     * @return Returns Z rotation in degrees (0-360)
+     */
+    public float getRotationZ(int part){
         if(part == 0)
-            return floatToInt(head.pivotZ);
+            return head.rotationZ;
         if(part == 1)
-            return floatToInt(body.pivotZ);
+            return body.rotationZ;
         if(part == 2)
-            return floatToInt(larm.pivotZ);
+            return larm.rotationZ;
         if(part == 3)
-            return floatToInt(rarm.pivotZ);
+            return rarm.rotationZ;
         if(part == 4)
-            return floatToInt(lleg.pivotZ);
+            return lleg.rotationZ;
         if(part == 5)
-            return floatToInt(rleg.pivotZ);
+            return rleg.rotationZ;
         return 0;
     }
 
-    public void setOffset(int part, int offsetX, int offsetY, int offsetZ) {
+    public void setOffset(int part, float offsetX, float offsetY, float offsetZ) {
         this.setOffsetX(part,offsetX);
         this.setOffsetY(part,offsetY);
         this.setOffsetZ(part,offsetZ);
     }
 
-    public void setOffsetX(int part, int offset) {
+    public void setOffsetX(int part, float offset) {
         if(part == 0)
             head.pivotX = offset;
         if(part == 1)
@@ -425,7 +377,7 @@ public class PlayerModelData implements IPlayerModelData {
             rleg.pivotX = offset;
     }
 
-    public void setOffsetY(int part, int offset) {
+    public void setOffsetY(int part, float offset) {
         if(part == 0)
             head.pivotY = offset;
         if(part == 1)
@@ -440,7 +392,7 @@ public class PlayerModelData implements IPlayerModelData {
             rleg.pivotY = offset;
     }
 
-    public void setOffsetZ(int part, int offset) {
+    public void setOffsetZ(int part, float offset) {
         if(part == 0)
             head.pivotZ = offset;
         if(part == 1)
@@ -453,6 +405,54 @@ public class PlayerModelData implements IPlayerModelData {
             lleg.pivotZ = offset;
         if(part == 5)
             rleg.pivotZ = offset;
+    }
+
+    public float getOffsetX(int part) {
+        if(part == 0)
+            return head.pivotX;
+        if(part == 1)
+            return body.pivotX;
+        if(part == 2)
+            return larm.pivotX;
+        if(part == 3)
+            return rarm.pivotX;
+        if(part == 4)
+            return lleg.pivotX;
+        if(part == 5)
+            return rleg.pivotX;
+        return 0;
+    }
+
+    public float getOffsetY(int part) {
+        if(part == 0)
+            return head.pivotY;
+        if(part == 1)
+            return body.pivotY;
+        if(part == 2)
+            return larm.pivotY;
+        if(part == 3)
+            return rarm.pivotY;
+        if(part == 4)
+            return lleg.pivotY;
+        if(part == 5)
+            return rleg.pivotY;
+        return 0;
+    }
+
+    public float getOffsetZ(int part) {
+        if(part == 0)
+            return head.pivotZ;
+        if(part == 1)
+            return body.pivotZ;
+        if(part == 2)
+            return larm.pivotZ;
+        if(part == 3)
+            return rarm.pivotZ;
+        if(part == 4)
+            return lleg.pivotZ;
+        if(part == 5)
+            return rleg.pivotZ;
+        return 0;
     }
 
     /**
@@ -495,9 +495,5 @@ public class PlayerModelData implements IPlayerModelData {
             lleg.disabled = !bo;
         if(part == 5)
             rleg.disabled = !bo;
-    }
-
-    private int floatToInt(float f){
-        return (int)((f + 0.5) * 360);
     }
 }
