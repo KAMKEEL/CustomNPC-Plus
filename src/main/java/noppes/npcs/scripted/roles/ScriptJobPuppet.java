@@ -16,19 +16,29 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		this.job.animate = animated;
 	}
 
-	public boolean fullAngles() {
-		return job.fullAngles;
+	public boolean isAnimated() {
+		return this.job.animate;
+	}
+
+	public void setInterpolated(boolean interpolate) {
+		this.job.interpolate = interpolate;
+	}
+
+	public boolean isInterpolated() {
+		return this.job.interpolate;
 	}
 
 	public void setFullAngles(boolean limit) {
 		job.fullAngles = limit;
 	}
 
-	public boolean isAnimated() {
-		return this.job.animate;
+	public boolean fullAngles() {
+		return job.fullAngles;
 	}
 
 	public void setAnimRate(float animRate) {
+		if (animRate < 0)
+			animRate = 0;
 		this.job.animRate = animRate;
 	}
 

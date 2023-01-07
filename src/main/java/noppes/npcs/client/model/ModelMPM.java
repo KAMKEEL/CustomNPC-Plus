@@ -687,9 +687,24 @@ public class ModelMPM extends ModelNPCMale{
 			modelPart.rotateAngleY = puppetPart.rotationY * pi;
 			modelPart.rotateAngleZ = puppetPart.rotationZ * pi;
 		} else {
-			modelPart.rotateAngleX = (puppetPart.rotationX * pi - modelPart.rotateAngleX) * job.animRate /10f + modelPart.rotateAngleX;
-			modelPart.rotateAngleY = (puppetPart.rotationY * pi - modelPart.rotateAngleY) * job.animRate /10f + modelPart.rotateAngleY;
-			modelPart.rotateAngleZ = (puppetPart.rotationZ * pi - modelPart.rotateAngleZ) * job.animRate /10f + modelPart.rotateAngleZ;
+			if (job.interpolate) {
+				modelPart.rotateAngleX = (puppetPart.rotationX * pi - modelPart.rotateAngleX) * job.animRate / 10f + modelPart.rotateAngleX;
+				modelPart.rotateAngleY = (puppetPart.rotationY * pi - modelPart.rotateAngleY) * job.animRate / 10f + modelPart.rotateAngleY;
+				modelPart.rotateAngleZ = (puppetPart.rotationZ * pi - modelPart.rotateAngleZ) * job.animRate / 10f + modelPart.rotateAngleZ;
+			} else {
+				int directionX = Float.compare(puppetPart.rotationX * pi, modelPart.rotateAngleX);
+				modelPart.rotateAngleX += directionX * job.animRate / 10f;
+				modelPart.rotateAngleX = directionX == 1 ?
+						Math.min(puppetPart.rotationX * pi,modelPart.rotateAngleX) : Math.max(puppetPart.rotationX * pi,modelPart.rotateAngleX);
+				int directionY = Float.compare(puppetPart.rotationY * pi, modelPart.rotateAngleY);
+				modelPart.rotateAngleY += directionY * job.animRate / 10f;
+				modelPart.rotateAngleY = directionY == 1 ?
+						Math.min(puppetPart.rotationY * pi,modelPart.rotateAngleY) : Math.max(puppetPart.rotationY * pi,modelPart.rotateAngleY);
+				int directionZ = Float.compare(puppetPart.rotationZ * pi, modelPart.rotateAngleZ);
+				modelPart.rotateAngleZ += directionZ * job.animRate / 10f;
+				modelPart.rotateAngleZ = directionZ == 1 ?
+						Math.min(puppetPart.rotationZ * pi,modelPart.rotateAngleZ) : Math.max(puppetPart.rotationZ * pi,modelPart.rotateAngleZ);
+			}
 		}
 	}
 
@@ -699,12 +714,27 @@ public class ModelMPM extends ModelNPCMale{
 			modelPart.rotationPointY += puppetPart.pivotY;
 			modelPart.rotationPointZ += puppetPart.pivotZ;
 		} else {
-			modelPart.rotationPointX += puppetPart.prevPivotX;
-			modelPart.rotationPointY += puppetPart.prevPivotY;
-			modelPart.rotationPointZ += puppetPart.prevPivotZ;
-			puppetPart.prevPivotX = (puppetPart.pivotX - puppetPart.prevPivotX) * job.animRate /10f + puppetPart.prevPivotX;
-			puppetPart.prevPivotY = (puppetPart.pivotY - puppetPart.prevPivotY) * job.animRate /10f + puppetPart.prevPivotY;
-			puppetPart.prevPivotZ = (puppetPart.pivotZ - puppetPart.prevPivotZ) * job.animRate /10f + puppetPart.prevPivotZ;
+			if (job.interpolate) {
+				modelPart.rotationPointX += puppetPart.prevPivotX;
+				modelPart.rotationPointY += puppetPart.prevPivotY;
+				modelPart.rotationPointZ += puppetPart.prevPivotZ;
+				puppetPart.prevPivotX = (puppetPart.pivotX - puppetPart.prevPivotX) * job.animRate / 10f + puppetPart.prevPivotX;
+				puppetPart.prevPivotY = (puppetPart.pivotY - puppetPart.prevPivotY) * job.animRate / 10f + puppetPart.prevPivotY;
+				puppetPart.prevPivotZ = (puppetPart.pivotZ - puppetPart.prevPivotZ) * job.animRate / 10f + puppetPart.prevPivotZ;
+			} else {
+				int directionX = Float.compare(puppetPart.pivotX, modelPart.rotationPointX);
+				modelPart.rotationPointX += directionX * job.animRate / 10f;
+				modelPart.rotationPointX = directionX == 1 ?
+						Math.min(puppetPart.pivotX,modelPart.rotationPointX) : Math.max(puppetPart.pivotX,modelPart.rotationPointX);
+				int directionY = Float.compare(puppetPart.pivotY, modelPart.rotationPointY);
+				modelPart.rotationPointY += directionY * job.animRate / 10f;
+				modelPart.rotationPointY = directionY == 1 ?
+						Math.min(puppetPart.pivotY,modelPart.rotationPointY) : Math.max(puppetPart.pivotY,modelPart.rotationPointY);
+				int directionZ = Float.compare(puppetPart.pivotZ, modelPart.rotationPointZ);
+				modelPart.rotationPointZ += directionZ * job.animRate / 10f;
+				modelPart.rotationPointZ = directionZ == 1 ?
+						Math.min(puppetPart.pivotZ,modelPart.rotationPointZ) : Math.max(puppetPart.pivotZ,modelPart.rotationPointZ);
+			}
 		}
 	}
 
