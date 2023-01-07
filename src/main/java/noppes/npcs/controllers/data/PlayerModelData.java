@@ -29,6 +29,7 @@ public class PlayerModelData implements IPlayerModelData {
 
     public boolean animate = false;
     public float animRate = 1.0F;
+    public boolean interpolate;
 
     //Client-sided use
     public float modelRotPartialTicks;
@@ -75,6 +76,7 @@ public class PlayerModelData implements IPlayerModelData {
         compound.setBoolean("PuppetRotationEnabledY",rotationEnabledY);
         compound.setBoolean("PuppetRotationEnabledZ",rotationEnabledZ);
 
+        compound.setBoolean("PuppetInterpolate", interpolate);
         compound.setBoolean("PuppetAnimate", animate);
         compound.setFloat("PuppetAnimSpeed", animRate);
         return compound;
@@ -101,6 +103,11 @@ public class PlayerModelData implements IPlayerModelData {
         rotationEnabledY = compound.getBoolean("PuppetRotationEnabledY");
         rotationEnabledZ = compound.getBoolean("PuppetRotationEnabledZ");
 
+        if (!compound.hasKey("PuppetInterpolate")) {
+            interpolate = true;
+        } else {
+            interpolate = compound.getBoolean("PuppetInterpolate");
+        }
         animate = compound.getBoolean("PuppetAnimate");
         animRate = compound.getFloat("PuppetAnimSpeed");
     }
@@ -121,6 +128,14 @@ public class PlayerModelData implements IPlayerModelData {
         return this.animate;
     }
 
+    public void setInterpolated(boolean interpolate) {
+        this.interpolate = interpolate;
+    }
+
+    public boolean isInterpolated() {
+        return this.interpolate;
+    }
+
     public void setFullAngles(boolean limit) {
         fullAngles = limit;
     }
@@ -130,6 +145,8 @@ public class PlayerModelData implements IPlayerModelData {
     }
 
     public void setAnimRate(float animRate) {
+        if (animRate < 0)
+            animRate = 0;
         this.animRate = animRate;
     }
 

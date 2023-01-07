@@ -193,12 +193,27 @@ public class MixinModelRenderer {
             this.rotateAngleZ = puppetPart.rotationZ * pi;
         } else if (puppetPart.partialRotationTick != ClientEventHandler.partialRenderTick) {
             puppetPart.partialRotationTick = ClientEventHandler.partialRenderTick;
-            if (puppetPart.rotationX * pi - this.rotateAngleX != 0)
-                this.rotateAngleX = (puppetPart.rotationX * pi - this.rotateAngleX) * modelData.animRate /10f + this.rotateAngleX;
-            if (puppetPart.rotationY * pi - this.rotateAngleY != 0)
-                this.rotateAngleY = (puppetPart.rotationY * pi - this.rotateAngleY) * modelData.animRate /10f + this.rotateAngleY;
-            if (puppetPart.rotationZ * pi - this.rotateAngleZ != 0)
-                this.rotateAngleZ = (puppetPart.rotationZ * pi - this.rotateAngleZ) * modelData.animRate /10f + this.rotateAngleZ;
+            if (modelData.interpolate) {
+                if (puppetPart.rotationX * pi - this.rotateAngleX != 0)
+                    this.rotateAngleX = (puppetPart.rotationX * pi - this.rotateAngleX) * modelData.animRate / 10f + this.rotateAngleX;
+                if (puppetPart.rotationY * pi - this.rotateAngleY != 0)
+                    this.rotateAngleY = (puppetPart.rotationY * pi - this.rotateAngleY) * modelData.animRate / 10f + this.rotateAngleY;
+                if (puppetPart.rotationZ * pi - this.rotateAngleZ != 0)
+                    this.rotateAngleZ = (puppetPart.rotationZ * pi - this.rotateAngleZ) * modelData.animRate / 10f + this.rotateAngleZ;
+            } else {
+                int directionX = Float.compare(puppetPart.rotationX * pi, this.rotateAngleX);
+                this.rotateAngleX += directionX * modelData.animRate / 10f;
+                this.rotateAngleX = directionX == 1 ?
+                        Math.min(puppetPart.rotationX * pi,this.rotateAngleX) : Math.max(puppetPart.rotationX * pi,this.rotateAngleX);
+                int directionY = Float.compare(puppetPart.rotationY * pi, this.rotateAngleY);
+                this.rotateAngleY += directionY * modelData.animRate / 10f;
+                this.rotateAngleY = directionY == 1 ?
+                        Math.min(puppetPart.rotationY * pi,this.rotateAngleY) : Math.max(puppetPart.rotationY * pi,this.rotateAngleY);
+                int directionZ = Float.compare(puppetPart.rotationZ * pi, this.rotateAngleZ);
+                this.rotateAngleZ += directionZ * modelData.animRate / 10f;
+                this.rotateAngleZ = directionZ == 1 ?
+                        Math.min(puppetPart.rotationZ * pi,this.rotateAngleZ) : Math.max(puppetPart.rotationZ * pi,this.rotateAngleZ);
+            }
         }
     }
 
@@ -216,12 +231,27 @@ public class MixinModelRenderer {
             this.rotationPointZ = puppetPart.originalPivotZ + puppetPart.pivotZ;
         } else if (puppetPart.partialPivotTick != ClientEventHandler.partialRenderTick)  {
             puppetPart.partialPivotTick = ClientEventHandler.partialRenderTick;
-            puppetPart.destPivotX = (puppetPart.pivotX - puppetPart.destPivotX) * modelData.animRate /10f + puppetPart.destPivotX;
-            this.rotationPointX = puppetPart.originalPivotX + puppetPart.destPivotX;
-            puppetPart.destPivotY = (puppetPart.pivotY - puppetPart.destPivotY) * modelData.animRate /10f + puppetPart.destPivotY;
-            this.rotationPointY = puppetPart.originalPivotY + puppetPart.destPivotY;
-            puppetPart.destPivotZ = (puppetPart.pivotZ - puppetPart.destPivotZ) * modelData.animRate /10f + puppetPart.destPivotZ;
-            this.rotationPointZ = puppetPart.originalPivotZ + puppetPart.destPivotZ;
+            if (modelData.interpolate) {
+                puppetPart.destPivotX = (puppetPart.pivotX - puppetPart.destPivotX) * modelData.animRate / 10f + puppetPart.destPivotX;
+                this.rotationPointX = puppetPart.originalPivotX + puppetPart.destPivotX;
+                puppetPart.destPivotY = (puppetPart.pivotY - puppetPart.destPivotY) * modelData.animRate / 10f + puppetPart.destPivotY;
+                this.rotationPointY = puppetPart.originalPivotY + puppetPart.destPivotY;
+                puppetPart.destPivotZ = (puppetPart.pivotZ - puppetPart.destPivotZ) * modelData.animRate / 10f + puppetPart.destPivotZ;
+                this.rotationPointZ = puppetPart.originalPivotZ + puppetPart.destPivotZ;
+            } else {
+                int directionX = Float.compare(puppetPart.pivotX, this.rotationPointX);
+                this.rotationPointX = puppetPart.originalPivotX + directionX * modelData.animRate / 10f;
+                this.rotationPointX = directionX == 1 ?
+                        Math.min(puppetPart.originalPivotX + puppetPart.pivotX,this.rotationPointX) : Math.max(puppetPart.originalPivotX + puppetPart.pivotX,this.rotationPointX);
+                int directionY = Float.compare(puppetPart.pivotY, this.rotationPointY);
+                this.rotationPointY = puppetPart.originalPivotY + directionY * modelData.animRate / 10f;
+                this.rotationPointY = directionY == 1 ?
+                        Math.min(puppetPart.originalPivotY + puppetPart.pivotY,this.rotationPointY) : Math.max(puppetPart.originalPivotY + puppetPart.pivotY,this.rotationPointY);
+                int directionZ = Float.compare(puppetPart.pivotZ, this.rotationPointZ);
+                this.rotationPointZ = puppetPart.originalPivotZ + directionZ * modelData.animRate / 10f;
+                this.rotationPointZ = directionZ == 1 ?
+                        Math.min(puppetPart.originalPivotZ + puppetPart.pivotZ,this.rotationPointZ) : Math.max(puppetPart.originalPivotZ + puppetPart.pivotZ,this.rotationPointZ);
+            }
         }
     }
 
