@@ -45,84 +45,17 @@ public class MixinModelRenderer {
         PlayerModelData modelData = Client.playerModelData.get(ClientEventHandler.renderingPlayer.getUniqueID());
         this.setModelParts(modelData);
         if (modelData.enabled) {
-            if(isPart(modelData.head)){
-                this.rotateAngleX = modelData.bipedRotsHead[0];
-                this.rotateAngleY = modelData.bipedRotsHead[1];
-                this.rotateAngleZ = modelData.bipedRotsHead[2];
-                this.setInterpolatedAngles(modelData,modelData.head);
-            }
+            JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head,modelData.body,modelData.larm,modelData.rarm,modelData.lleg,modelData.rleg};
 
-            if(isPart(modelData.body)){
-                this.rotateAngleX = modelData.bipedRotsBody[0];
-                this.rotateAngleY = modelData.bipedRotsBody[1];
-                this.rotateAngleZ = modelData.bipedRotsBody[2];
-                this.setInterpolatedAngles(modelData,modelData.body);
-            }
-
-            if(isPart(modelData.larm)){
-                this.rotateAngleX = modelData.bipedRotsLeftArm[0];
-                this.rotateAngleY = modelData.bipedRotsLeftArm[1];
-                this.rotateAngleZ = modelData.bipedRotsLeftArm[2];
-                this.setInterpolatedAngles(modelData,modelData.larm);
-            }
-
-            if(isPart(modelData.rarm)){
-                this.rotateAngleX = modelData.bipedRotsRightArm[0];
-                this.rotateAngleY = modelData.bipedRotsRightArm[1];
-                this.rotateAngleZ = modelData.bipedRotsRightArm[2];
-                this.setInterpolatedAngles(modelData,modelData.rarm);
-            }
-
-            if(isPart(modelData.lleg)){
-                this.rotateAngleX = modelData.bipedRotsLeftLeg[0];
-                this.rotateAngleY = modelData.bipedRotsLeftLeg[1];
-                this.rotateAngleZ = modelData.bipedRotsLeftLeg[2];
-                this.setInterpolatedAngles(modelData,modelData.lleg);
-            }
-
-            if(isPart(modelData.rleg)){
-                this.rotateAngleX = modelData.bipedRotsRightLeg[0];
-                this.rotateAngleY = modelData.bipedRotsRightLeg[1];
-                this.rotateAngleZ = modelData.bipedRotsRightLeg[2];
-                this.setInterpolatedAngles(modelData,modelData.rleg);
-            }
-
-            if(isPart(modelData.head)){
-                this.addInterpolatedOffset(modelData, modelData.head);
-            }
-            if(isPart(modelData.body)){
-                this.addInterpolatedOffset(modelData, modelData.body);
-            }
-            if(isPart(modelData.larm)){
-                this.addInterpolatedOffset(modelData, modelData.larm);
-            }
-            if(isPart(modelData.rarm)){
-                this.addInterpolatedOffset(modelData, modelData.rarm);
-            }
-            if(isPart(modelData.lleg)){
-                this.addInterpolatedOffset(modelData, modelData.lleg);
-            }
-            if(isPart(modelData.rleg)){
-                this.addInterpolatedOffset(modelData, modelData.rleg);
-            }
-
-            if(isPart(modelData.head)) {
-                modelData.bipedRotsHead = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-            }
-            if(isPart(modelData.body)) {
-                modelData.bipedRotsBody = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-            }
-            if(isPart(modelData.larm)) {
-                modelData.bipedRotsLeftArm = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-            }
-            if(isPart(modelData.rarm)) {
-                modelData.bipedRotsRightArm = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-            }
-            if(isPart(modelData.lleg)) {
-                modelData.bipedRotsLeftLeg = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-            }
-            if(isPart(modelData.rleg)) {
-                modelData.bipedRotsRightLeg = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+            for (int i = 0; i < partConfigs.length; i++) {
+                if (isPart(partConfigs[i])) {
+                    this.rotateAngleX = partConfigs[i].prevRotations[0];
+                    this.rotateAngleY = partConfigs[i].prevRotations[1];
+                    this.rotateAngleZ = partConfigs[i].prevRotations[2];
+                    this.setInterpolatedAngles(modelData,partConfigs[i]);
+                    this.addInterpolatedOffset(modelData,partConfigs[i]);
+                    partConfigs[i].prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+                }
             }
         }
     }
