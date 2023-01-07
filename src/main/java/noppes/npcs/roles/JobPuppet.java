@@ -96,7 +96,9 @@ public class JobPuppet extends JobInterface{
 		public float pivotY = 0f;
 		public float pivotZ = 0f;
 
-		//Client-sided use
+		public boolean disabled = false;
+
+		// vvv Client-sided use vvv
 		public float[] prevRotations = new float[]{0,0,0};
 		public float[] prevPivots = new float[]{0,0,0};
 
@@ -109,8 +111,7 @@ public class JobPuppet extends JobInterface{
 		public float originalPivotX = 0f;
 		public float originalPivotY = 0f;
 		public float originalPivotZ = 0f;
-
-		public boolean disabled = false;
+		// ^^^ Client-sided use ^^^
 		
 		public NBTTagCompound writeNBT(){
 			NBTTagCompound compound = new NBTTagCompound();
