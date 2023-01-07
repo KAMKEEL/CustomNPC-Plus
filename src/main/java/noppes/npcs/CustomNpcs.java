@@ -22,6 +22,7 @@ import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.legacy.LegacyConfig;
 import noppes.npcs.controllers.*;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.*;
@@ -29,6 +30,7 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -68,6 +70,10 @@ public class CustomNpcs {
     public static boolean TimerIgnore = false;
 
     public static String configPath;
+    public static String legacyPath;
+    public static boolean legacyExist;
+
+    public static LegacyConfig legacyConfig;
 
     public CustomNpcs() {
         instance = this;
@@ -88,7 +94,21 @@ public class CustomNpcs {
         Dir = new File(dir, "customnpcs");
         Dir.mkdir();
 
-        configPath = ev.getModConfigurationDirectory() + "/CustomNPCPlus/";
+        configPath = ev.getModConfigurationDirectory() + File.separator + "CustomNpcPlus";
+        legacyPath = ev.getModConfigurationDirectory() + "/CustomNpcs.cfg";
+
+        File configDir = new File(configPath);
+        if(!configDir.exists()){
+            // Convert Legacy Config to New Config if NO Config Folder Exists
+            File legacyFile = new File(legacyPath);
+            if(legacyFile.exists()){
+                System.out.println("Loading Legacy Client");
+                legacyExist = true;
+                legacyConfig = new LegacyConfig();
+                legacyConfig.init();
+            }
+        }
+        configPath += File.separator;
         LoadConfiguration.init(configPath);
 
         EnchantInterface.load();

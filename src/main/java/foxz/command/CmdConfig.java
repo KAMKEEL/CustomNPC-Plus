@@ -3,6 +3,7 @@ package foxz.command;
 import java.util.Arrays;
 import java.util.Set;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -42,7 +43,10 @@ public class CmdConfig extends ChMcLogger {
     	}
     	else{
 			ConfigMain.LeavesDecayEnabled = Boolean.parseBoolean(args[0]);
-			// CustomNpcs.Config.updateConfig();
+			ConfigMain.LeavesDecayEnabledProperty.set(ConfigMain.LeavesDecayEnabled);
+			if(ConfigMain.config.hasChanged()){
+				ConfigMain.config.save();
+			}
             Set<String> names = Block.blockRegistry.getKeys();
             for(String name : names){
             	Block block = (Block) Block.blockRegistry.getObject(name);
@@ -67,7 +71,10 @@ public class CmdConfig extends ChMcLogger {
     	}
     	else{
 			ConfigMain.VineGrowthEnabled = Boolean.parseBoolean(args[0]);
-			// CustomNpcs.Config.updateConfig();
+			ConfigMain.VineGrowthEnabledProperty.set(ConfigMain.VineGrowthEnabled);
+			if(ConfigMain.config.hasChanged()){
+				ConfigMain.config.save();
+			}
             Set<String> names = Block.blockRegistry.getKeys();
             for(String name : names){
             	Block block = (Block) Block.blockRegistry.getObject(name);
@@ -92,7 +99,10 @@ public class CmdConfig extends ChMcLogger {
     	}
     	else{
 			ConfigMain.IceMeltsEnabled = Boolean.parseBoolean(args[0]);
-			// CustomNpcs.Config.updateConfig();
+			ConfigMain.IceMeltsEnabledProperty.set(ConfigMain.IceMeltsEnabled);
+			if(ConfigMain.config.hasChanged()){
+				ConfigMain.config.save();
+			}
             Set<String> names = Block.blockRegistry.getKeys();
             for(String name : names){
             	Block block = (Block) Block.blockRegistry.getObject(name);
@@ -117,7 +127,10 @@ public class CmdConfig extends ChMcLogger {
     	}
     	else{
 			ConfigMain.GunsEnabled = Boolean.parseBoolean(args[0]);
-			// CustomNpcs.Config.updateConfig();
+			ConfigMain.GunsEnabledProperty.set(ConfigMain.GunsEnabled);
+			if(ConfigMain.config.hasChanged()){
+				ConfigMain.config.save();
+			}
             sendmessage("GunsEnabled is now " + ConfigMain.GunsEnabled);
     	}
         return true;
@@ -158,8 +171,11 @@ public class CmdConfig extends ChMcLogger {
     			sendmessage("Didnt get a number");
     			return false;
     		}
-			// CustomNpcs.Config.updateConfig();
-			
+
+			ConfigMain.ChunkLoadersProperty.set(ConfigMain.ChunkLoaders);
+			if(ConfigMain.config.hasChanged()){
+				ConfigMain.config.save();
+			}
     		int size = ChunkController.instance.size();
 			if(size > ConfigMain.ChunkLoaders){
 				ChunkController.instance.unload(size - ConfigMain.ChunkLoaders);
