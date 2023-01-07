@@ -1,6 +1,8 @@
 package noppes.npcs.config;
 
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.legacy.ConfigProp;
+import noppes.npcs.config.legacy.LegacyConfig;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,13 +19,6 @@ public class LoadConfiguration {
 
     public static void init(String configpath)
     {
-        if(!dir.exists())
-            dir.mkdir();
-        this.dir = dir;
-        configClass = clss;
-        configFields = new LinkedList<Field>();
-        this.fileName = fileName+".cfg";
-
         mainConfigFile = new File(configpath + "main.cfg");
         clientConfigFile = new File(configpath + "client.cfg");
         scriptConfigFile = new File(configpath + "script.cfg");

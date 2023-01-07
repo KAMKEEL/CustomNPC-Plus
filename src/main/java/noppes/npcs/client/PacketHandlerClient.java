@@ -38,6 +38,7 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IGuiError;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.RecipeCarpentry;
@@ -252,7 +253,13 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					ConfigClient.FontType = font;
 					ConfigClient.FontSize = size;
 					ClientProxy.Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
-					// CustomNpcs.Config.updateConfig();
+
+					ConfigClient.FontTypeProperty.set(ConfigClient.FontType);
+					ConfigClient.FontSizeProperty.set(ConfigClient.FontSize);
+					if(ConfigClient.config.hasChanged()){
+						ConfigClient.config.save();
+					}
+					
 					player.addChatMessage(new ChatComponentTranslation("Font set to %s", ClientProxy.Font.getName()));
 				}
 				else
