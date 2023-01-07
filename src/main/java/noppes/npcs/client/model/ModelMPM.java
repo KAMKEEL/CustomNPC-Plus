@@ -571,52 +571,15 @@ public class ModelMPM extends ModelNPCMale{
 			JobPuppet job = (JobPuppet) npc.jobInterface;
 
 			if(job.isActive()){
-				if(!job.head.disabled){
-					bipedHead.rotateAngleX = job.bipedRotsHead[0];
-					bipedHead.rotateAngleY = job.bipedRotsHead[1];
-					bipedHead.rotateAngleZ = job.bipedRotsHead[2];
-					this.setInterpolatedAngles(job,bipedHead,job.head);
-					this.setInterpolatedAngles(job,bipedHeadwear,job.head);
-				}
+				JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
+				ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
+				ModelRenderer[] armorModelParts = new ModelRenderer[]{bipedHeadwear,bipedBodywear,bipedLeftArmwear,bipedRightArmWear,bipedLeftLegWear,bipedRightLegWear};
 
-				if(!job.body.disabled){
-					bipedBody.rotateAngleX = job.bipedRotsBody[0];
-					bipedBody.rotateAngleY = job.bipedRotsBody[1];
-					bipedBody.rotateAngleZ = job.bipedRotsBody[2];
-					this.setInterpolatedAngles(job,bipedBody,job.body);
-					this.setInterpolatedAngles(job,bipedBodywear,job.body);
-				}
-
-				if(!job.larm.disabled){
-					bipedLeftArm.rotateAngleX = job.bipedRotsLeftArm[0];
-					bipedLeftArm.rotateAngleY = job.bipedRotsLeftArm[1];
-					bipedLeftArm.rotateAngleZ = job.bipedRotsLeftArm[2];
-					this.setInterpolatedAngles(job,bipedLeftArm,job.larm);
-					this.setInterpolatedAngles(job,bipedLeftArmwear,job.larm);
-				}
-
-				if(!job.rarm.disabled){
-					bipedRightArm.rotateAngleX = job.bipedRotsRightArm[0];
-					bipedRightArm.rotateAngleY = job.bipedRotsRightArm[1];
-					bipedRightArm.rotateAngleZ = job.bipedRotsRightArm[2];
-					this.setInterpolatedAngles(job,bipedRightArm,job.rarm);
-					this.setInterpolatedAngles(job,bipedRightArmWear,job.rarm);
-				}
-
-				if(!job.lleg.disabled){
-					bipedLeftLeg.rotateAngleX = job.bipedRotsLeftLeg[0];
-					bipedLeftLeg.rotateAngleY = job.bipedRotsLeftLeg[1];
-					bipedLeftLeg.rotateAngleZ = job.bipedRotsLeftLeg[2];
-					this.setInterpolatedAngles(job,bipedLeftLeg,job.lleg);
-					this.setInterpolatedAngles(job,bipedLeftLegWear,job.lleg);
-				}
-
-				if(!job.rleg.disabled){
-					bipedRightLeg.rotateAngleX = job.bipedRotsRightLeg[0];
-					bipedRightLeg.rotateAngleY = job.bipedRotsRightLeg[1];
-					bipedRightLeg.rotateAngleZ = job.bipedRotsRightLeg[2];
-					this.setInterpolatedAngles(job,bipedRightLeg,job.rleg);
-					this.setInterpolatedAngles(job,bipedRightLegWear,job.rleg);
+				for (int i = 0; i < partConfigs.length; i++) {
+					if (!partConfigs[i].disabled) {
+						this.setInterpolatedAngles(job,mainModelParts[i],partConfigs[i]);
+						this.setInterpolatedAngles(job,armorModelParts[i],partConfigs[i]);
+					}
 				}
 
 				this.bipedRightArm.rotationPointX =
@@ -657,30 +620,21 @@ public class ModelMPM extends ModelNPCMale{
 						-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
 						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
 
-				this.addInterpolatedOffset(job,bipedHead,job.head);
-				this.addInterpolatedOffset(job,bipedHeadwear,job.head);
-				this.addInterpolatedOffset(job,bipedBody,job.body);
-				this.addInterpolatedOffset(job,bipedBodywear,job.body);
-				this.addInterpolatedOffset(job,bipedLeftArm,job.larm);
-				this.addInterpolatedOffset(job,bipedLeftArmwear,job.larm);
-				this.addInterpolatedOffset(job,bipedRightArm,job.rarm);
-				this.addInterpolatedOffset(job,bipedRightArmWear,job.rarm);
-				this.addInterpolatedOffset(job,bipedLeftLeg,job.lleg);
-				this.addInterpolatedOffset(job,bipedLeftLegWear,job.lleg);
-				this.addInterpolatedOffset(job,bipedRightLeg,job.rleg);
-				this.addInterpolatedOffset(job,bipedRightLegWear,job.rleg);
-
-				job.bipedRotsHead = new float[]{bipedHead.rotateAngleX,bipedHead.rotateAngleY,bipedHead.rotateAngleZ};
-				job.bipedRotsBody = new float[]{bipedBody.rotateAngleX,bipedBody.rotateAngleY,bipedBody.rotateAngleZ};
-				job.bipedRotsLeftArm = new float[]{bipedLeftArm.rotateAngleX,bipedLeftArm.rotateAngleY,bipedLeftArm.rotateAngleZ};
-				job.bipedRotsRightArm = new float[]{bipedRightArm.rotateAngleX,bipedRightArm.rotateAngleY,bipedRightArm.rotateAngleZ};
-				job.bipedRotsLeftLeg = new float[]{bipedLeftLeg.rotateAngleX,bipedLeftLeg.rotateAngleY,bipedLeftLeg.rotateAngleZ};
-				job.bipedRotsRightLeg = new float[]{bipedRightLeg.rotateAngleX, bipedRightLeg.rotateAngleY, bipedRightLeg.rotateAngleZ};
+				for (int i = 0; i < partConfigs.length; i++) {
+					if (!partConfigs[i].disabled) {
+						this.addInterpolatedOffset(job,mainModelParts[i],partConfigs[i]);
+						this.addInterpolatedOffset(job,armorModelParts[i],partConfigs[i]);
+					}
+				}
 			}
 		}
 	}
 
 	public void setInterpolatedAngles(JobPuppet job, ModelRenderer modelPart, JobPuppet.PartConfig puppetPart) {
+		modelPart.rotateAngleX = puppetPart.prevRotations[0];
+		modelPart.rotateAngleY = puppetPart.prevRotations[1];
+		modelPart.rotateAngleZ = puppetPart.prevRotations[2];
+
 		float pi = (float) Math.PI * (job.fullAngles ? 2 : 1);
 		if (!job.animate) {
 			modelPart.rotateAngleX = puppetPart.rotationX * pi;
@@ -706,6 +660,7 @@ public class ModelMPM extends ModelNPCMale{
 						Math.min(puppetPart.rotationZ * pi,modelPart.rotateAngleZ) : Math.max(puppetPart.rotationZ * pi,modelPart.rotateAngleZ);
 			}
 		}
+		puppetPart.prevRotations = new float[]{modelPart.rotateAngleX,modelPart.rotateAngleY,modelPart.rotateAngleZ};
 	}
 
 	public void addInterpolatedOffset(JobPuppet job, ModelRenderer modelPart, JobPuppet.PartConfig puppetPart) {
@@ -715,12 +670,12 @@ public class ModelMPM extends ModelNPCMale{
 			modelPart.rotationPointZ += puppetPart.pivotZ;
 		} else {
 			if (job.interpolate) {
-				modelPart.rotationPointX += puppetPart.prevPivotX;
-				modelPart.rotationPointY += puppetPart.prevPivotY;
-				modelPart.rotationPointZ += puppetPart.prevPivotZ;
-				puppetPart.prevPivotX = (puppetPart.pivotX - puppetPart.prevPivotX) * job.animRate / 10f + puppetPart.prevPivotX;
-				puppetPart.prevPivotY = (puppetPart.pivotY - puppetPart.prevPivotY) * job.animRate / 10f + puppetPart.prevPivotY;
-				puppetPart.prevPivotZ = (puppetPart.pivotZ - puppetPart.prevPivotZ) * job.animRate / 10f + puppetPart.prevPivotZ;
+				modelPart.rotationPointX += puppetPart.prevPivots[0];
+				modelPart.rotationPointY += puppetPart.prevPivots[1];
+				modelPart.rotationPointZ += puppetPart.prevPivots[2];
+				puppetPart.prevPivots[0] = (puppetPart.pivotX - puppetPart.prevPivots[0]) * job.animRate / 10f + puppetPart.prevPivots[0];
+				puppetPart.prevPivots[1] = (puppetPart.pivotY - puppetPart.prevPivots[1]) * job.animRate / 10f + puppetPart.prevPivots[1];
+				puppetPart.prevPivots[2] = (puppetPart.pivotZ - puppetPart.prevPivots[2]) * job.animRate / 10f + puppetPart.prevPivots[2];
 			} else {
 				int directionX = Float.compare(puppetPart.pivotX, modelPart.rotationPointX);
 				modelPart.rotationPointX += directionX * job.animRate / 10f;
