@@ -10,6 +10,7 @@ import net.minecraft.block.BlockVine;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
 import foxz.commandhelper.ChMcLogger;
@@ -37,19 +38,19 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean leavesdecay(String[] args){
     	if(args.length == 0){
-    		sendmessage("LeavesDecay: " + CustomNpcs.LeavesDecayEnabled);
+    		sendmessage("LeavesDecay: " + ConfigMain.LeavesDecayEnabled);
     	}
     	else{
-			CustomNpcs.LeavesDecayEnabled = Boolean.parseBoolean(args[0]);
-			CustomNpcs.Config.updateConfig();
+			ConfigMain.LeavesDecayEnabled = Boolean.parseBoolean(args[0]);
+			// CustomNpcs.Config.updateConfig();
             Set<String> names = Block.blockRegistry.getKeys();
             for(String name : names){
             	Block block = (Block) Block.blockRegistry.getObject(name);
             	if(block instanceof BlockLeavesBase){
-            		block.setTickRandomly(CustomNpcs.LeavesDecayEnabled);
+            		block.setTickRandomly(ConfigMain.LeavesDecayEnabled);
             	}
             }
-            sendmessage("LeavesDecay is now " + CustomNpcs.LeavesDecayEnabled);
+            sendmessage("LeavesDecay is now " + ConfigMain.LeavesDecayEnabled);
     	}
         return true;
     }
@@ -62,19 +63,19 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean vinegrowth(String[] args){
     	if(args.length == 0){
-    		sendmessage("VineGrowth: " + CustomNpcs.VineGrowthEnabled);
+    		sendmessage("VineGrowth: " + ConfigMain.VineGrowthEnabled);
     	}
     	else{
-			CustomNpcs.VineGrowthEnabled = Boolean.parseBoolean(args[0]);
-			CustomNpcs.Config.updateConfig();
+			ConfigMain.VineGrowthEnabled = Boolean.parseBoolean(args[0]);
+			// CustomNpcs.Config.updateConfig();
             Set<String> names = Block.blockRegistry.getKeys();
             for(String name : names){
             	Block block = (Block) Block.blockRegistry.getObject(name);
             	if(block instanceof BlockVine){
-            		block.setTickRandomly(CustomNpcs.VineGrowthEnabled);
+            		block.setTickRandomly(ConfigMain.VineGrowthEnabled);
             	}
             }
-            sendmessage("VineGrowth is now " + CustomNpcs.VineGrowthEnabled);
+            sendmessage("VineGrowth is now " + ConfigMain.VineGrowthEnabled);
     	}
         return true;
     }
@@ -87,19 +88,19 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean icemelts(String[] args){
     	if(args.length == 0){
-    		sendmessage("IceMelts: " + CustomNpcs.IceMeltsEnabled);
+    		sendmessage("IceMelts: " + ConfigMain.IceMeltsEnabled);
     	}
     	else{
-			CustomNpcs.IceMeltsEnabled = Boolean.parseBoolean(args[0]);
-			CustomNpcs.Config.updateConfig();
+			ConfigMain.IceMeltsEnabled = Boolean.parseBoolean(args[0]);
+			// CustomNpcs.Config.updateConfig();
             Set<String> names = Block.blockRegistry.getKeys();
             for(String name : names){
             	Block block = (Block) Block.blockRegistry.getObject(name);
             	if(block instanceof BlockIce){
-            		block.setTickRandomly(CustomNpcs.IceMeltsEnabled);
+            		block.setTickRandomly(ConfigMain.IceMeltsEnabled);
             	}
             }
-            sendmessage("IceMelts is now " + CustomNpcs.IceMeltsEnabled);
+            sendmessage("IceMelts is now " + ConfigMain.IceMeltsEnabled);
     	}
         return true;
     }
@@ -112,12 +113,12 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean guns(String[] args){
     	if(args.length == 0){
-    		sendmessage("GunsEnabled: " + CustomNpcs.GunsEnabled);
+    		sendmessage("GunsEnabled: " + ConfigMain.GunsEnabled);
     	}
     	else{
-			CustomNpcs.GunsEnabled = Boolean.parseBoolean(args[0]);
-			CustomNpcs.Config.updateConfig();
-            sendmessage("GunsEnabled is now " + CustomNpcs.GunsEnabled);
+			ConfigMain.GunsEnabled = Boolean.parseBoolean(args[0]);
+			// CustomNpcs.Config.updateConfig();
+            sendmessage("GunsEnabled is now " + ConfigMain.GunsEnabled);
     	}
         return true;
     }
@@ -147,24 +148,24 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean chunkloaders(String[] args){
     	if(args.length == 0){
-    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + CustomNpcs.ChunkLoaders);
+    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + ConfigMain.ChunkLoaders);
     	}
     	else{
     		try{
-    			CustomNpcs.ChunkLoaders = Integer.parseInt(args[0]);
+				ConfigMain.ChunkLoaders = Integer.parseInt(args[0]);
     		}
     		catch(NumberFormatException ex){
     			sendmessage("Didnt get a number");
     			return false;
     		}
-			CustomNpcs.Config.updateConfig();
+			// CustomNpcs.Config.updateConfig();
 			
     		int size = ChunkController.instance.size();
-			if(size > CustomNpcs.ChunkLoaders){
-				ChunkController.instance.unload(size - CustomNpcs.ChunkLoaders);
-				sendmessage(size - CustomNpcs.ChunkLoaders + " chunksloaders unloaded");
+			if(size > ConfigMain.ChunkLoaders){
+				ChunkController.instance.unload(size - ConfigMain.ChunkLoaders);
+				sendmessage(size - ConfigMain.ChunkLoaders + " chunksloaders unloaded");
 			}
-    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + CustomNpcs.ChunkLoaders);
+    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + ConfigMain.ChunkLoaders);
     	}
         return true;
     }

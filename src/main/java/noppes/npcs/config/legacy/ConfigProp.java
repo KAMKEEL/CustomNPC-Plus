@@ -1,4 +1,4 @@
-package noppes.npcs.config;
+package noppes.npcs.config.legacy;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

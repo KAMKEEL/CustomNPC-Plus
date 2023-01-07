@@ -8,6 +8,7 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
@@ -155,8 +156,8 @@ public class DataDisplay {
 		skinOverlayData.readFromNBT(nbttagcompound);
 
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
-		if(modelSize > CustomNpcs.NpcSizeLimit)
-			modelSize = CustomNpcs.NpcSizeLimit;
+		if(modelSize > ConfigMain.NpcSizeLimit)
+			modelSize = ConfigMain.NpcSizeLimit;
 
 		modelType = nbttagcompound.getInteger("modelType");
 		

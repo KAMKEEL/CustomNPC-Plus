@@ -14,6 +14,8 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
@@ -76,7 +78,7 @@ public class ItemSoulstoneFilled extends Item {
     	if(entity == null)
     		return false;
     	entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
-		if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+		if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 			LogWriter.script(String.format("[%s] %s PLACED ENTITY %s", "SOULSTONE", player.getCommandSenderName(), entity));
 		}
     	if(entity instanceof EntityNPCInterface){

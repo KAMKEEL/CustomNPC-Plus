@@ -8,6 +8,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.roles.IRole;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumNavType;
@@ -66,8 +67,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setSize(int size){
 		if(size < 1)
 			size = 1;
-		if(size > CustomNpcs.NpcSizeLimit)
-			size = CustomNpcs.NpcSizeLimit;
+		if(size > ConfigMain.NpcSizeLimit)
+			size = ConfigMain.NpcSizeLimit;
 
 		npc.display.modelSize = size;
 		npc.script.clientNeedsUpdate = true;
@@ -1189,7 +1190,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setOverlayTexture(String overlayTexture) {
-		if (this.getOverlays().size() >= CustomNpcs.SkinOverlayLimit) {
+		if (this.getOverlays().size() >= ConfigMain.SkinOverlayLimit) {
 			return;
 		}
 

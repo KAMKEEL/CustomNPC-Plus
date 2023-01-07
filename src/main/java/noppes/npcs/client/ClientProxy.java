@@ -128,6 +128,9 @@ import noppes.npcs.client.renderer.blocks.BlockTallLampRenderer;
 import noppes.npcs.client.renderer.blocks.BlockTombstoneRenderer;
 import noppes.npcs.client.renderer.blocks.BlockWallBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockWeaponRackRenderer;
+import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
@@ -154,7 +157,7 @@ public class ClientProxy extends CommonProxy {
 	public static FontContainer Font;
 
 	public void load() {
-		Font = new FontContainer(CustomNpcs.FontType, CustomNpcs.FontSize);
+		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
 		CustomNpcs.Channel.register(new PacketHandlerClient());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
@@ -177,7 +180,7 @@ public class ClientProxy extends CommonProxy {
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
 		RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
 
-		if(!CustomNpcs.DisableExtraBlock){
+		if(!ConfigMain.DisableExtraBlock){
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileWallBanner.class, new BlockWallBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileTallLamp.class, new BlockTallLampRenderer());
@@ -210,7 +213,7 @@ public class ClientProxy extends CommonProxy {
 
 		new PresetController(CustomNpcs.Dir);
 
-		if(CustomNpcs.EnableUpdateChecker){
+		if(ConfigMain.EnableUpdateChecker){
 			VersionChecker checker = new VersionChecker();
 			checker.start();
 		}
@@ -219,7 +222,7 @@ public class ClientProxy extends CommonProxy {
 
 		MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 
-		if(CustomNpcs.InventoryGuiEnabled){
+		if(ConfigClient.InventoryGuiEnabled){
 			MinecraftForge.EVENT_BUS.register(new TabRegistry());
 
 			if (TabRegistry.getTabList().size() < 2){
@@ -358,7 +361,7 @@ public class ClientProxy extends CommonProxy {
 		else if(gui == EnumGuiType.PlayerTransporter)
 			return new GuiTransportSelection(npc);
 
-		else if(gui == EnumGuiType.Script && CustomNpcs.ScriptingEnabled)
+		else if(gui == EnumGuiType.Script && ConfigScript.ScriptingEnabled)
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)

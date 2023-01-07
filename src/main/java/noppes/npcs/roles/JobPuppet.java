@@ -19,6 +19,7 @@ public class JobPuppet extends JobInterface{
 
 	public boolean animate = false;
 	public float animRate = 1.0F;
+	public boolean interpolate = true;
 
 	//Client-sided use
 	public float[] bipedRotsHead = {0,0,0};
@@ -46,6 +47,7 @@ public class JobPuppet extends JobInterface{
 		compound.setBoolean("PuppetMoving", whileMoving);
 		compound.setBoolean("PuppetFullAngles", fullAngles);
 
+		compound.setBoolean("PuppetInterpolate", interpolate);
 		compound.setBoolean("PuppetAnimate", animate);
 		compound.setFloat("PuppetAnimSpeed", animRate);
 		return compound;
@@ -65,6 +67,11 @@ public class JobPuppet extends JobInterface{
 		whileMoving = compound.getBoolean("PuppetMoving");
 		fullAngles = compound.getBoolean("PuppetFullAngles");
 
+		if (!compound.hasKey("PuppetInterpolate")) {
+			interpolate = true;
+		} else {
+			interpolate = compound.getBoolean("PuppetInterpolate");
+		}
 		animate = compound.getBoolean("PuppetAnimate");
 		animRate = compound.getFloat("PuppetAnimSpeed");
 	}
@@ -128,9 +135,9 @@ public class JobPuppet extends JobInterface{
 		}
 		
 		public void readNBT(NBTTagCompound compound){
-			rotationX = ValueUtil.correctFloat(compound.getFloat("RotationX"), -0.5f, 0.5f);
-			rotationY = ValueUtil.correctFloat(compound.getFloat("RotationY"), -0.5f, 0.5f);
-			rotationZ = ValueUtil.correctFloat(compound.getFloat("RotationZ"), -0.5f, 0.5f);
+			rotationX = compound.getFloat("RotationX");
+			rotationY = compound.getFloat("RotationY");
+			rotationZ = compound.getFloat("RotationZ");
 			pivotX = compound.getFloat("PivotX");
 			pivotY = compound.getFloat("PivotY");
 			pivotZ = compound.getFloat("PivotZ");

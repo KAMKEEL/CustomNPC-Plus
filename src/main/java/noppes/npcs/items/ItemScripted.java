@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityItemScripted;
 import noppes.npcs.scripted.event.ItemEvent;
@@ -63,7 +64,7 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player)
     {
         if(player.isSneaking() && player.capabilities.isCreativeMode) {
-            if(!CustomNpcs.isScriptDev(player)){
+            if(!ConfigScript.isScriptDev(player)){
                 player.addChatMessage(new ChatComponentTranslation("availability.permission"));
             } else {
                 CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, player);

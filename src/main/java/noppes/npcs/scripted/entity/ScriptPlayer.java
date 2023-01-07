@@ -17,6 +17,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldSettings;
 import noppes.npcs.*;
 import noppes.npcs.api.*;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -717,7 +718,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public boolean isScriptingDev() {
-		return CustomNpcs.isScriptDev(player);
+		return ConfigScript.isScriptDev(player);
 	}
 
 	public IQuest[] getActiveQuests() {
