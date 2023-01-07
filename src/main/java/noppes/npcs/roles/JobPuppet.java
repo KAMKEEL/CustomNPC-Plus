@@ -21,14 +21,6 @@ public class JobPuppet extends JobInterface{
 	public float animRate = 1.0F;
 	public boolean interpolate = true;
 
-	//Client-sided use
-	public float[] bipedRotsHead = {0,0,0};
-	public float[] bipedRotsBody = {0,0,0};
-	public float[] bipedRotsLeftArm = {0,0,0};
-	public float[] bipedRotsRightArm = {0,0,0};
-	public float[] bipedRotsLeftLeg = {0,0,0};
-	public float[] bipedRotsRightLeg = {0,0,0};
-
 	public JobPuppet(EntityNPCInterface npc) {
 		super(npc);
 	}
@@ -105,10 +97,9 @@ public class JobPuppet extends JobInterface{
 		public float pivotZ = 0f;
 
 		//Client-sided use
-		public float prevPivotX = 0f;
-		public float prevPivotY = 0f;
-		public float prevPivotZ = 0f;
-		
+		public float[] prevRotations = new float[]{0,0,0};
+		public float[] prevPivots = new float[]{0,0,0};
+
 		public boolean disabled = false;
 		
 		public NBTTagCompound writeNBT(){
