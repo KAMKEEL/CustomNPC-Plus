@@ -37,6 +37,7 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
             mixins.add("MixinEntityRenderer");
         }
         mixins.add("MixinModelRenderer");
+        mixins.add("MixinRenderPlayer");
         return mixins;
     }
 
