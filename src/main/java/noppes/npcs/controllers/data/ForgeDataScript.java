@@ -16,6 +16,8 @@ import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
@@ -75,7 +77,7 @@ public class ForgeDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return this.enabled && CustomNpcs.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
+        return this.enabled && ConfigScript.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
     }
 
     public boolean isClient() {

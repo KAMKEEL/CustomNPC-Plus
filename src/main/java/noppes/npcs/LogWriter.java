@@ -1,5 +1,7 @@
 package noppes.npcs;
 
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumScriptType;
 
 import java.io.File;
@@ -170,7 +172,7 @@ public class LogWriter {
 			long secondsSinceFirst = TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - stamp.makeDate.getTime());
 			long millisecSinceLast = TimeUnit.MILLISECONDS.toMillis(stamp.recentDate.getTime() - stamp.makeDate.getTime());
 
-			double frequency = (float)CustomNpcs.ScriptFrequency / 60;
+			double frequency = (float) ConfigDebug.ScriptFrequency / 60;
 			// Reset Log if 2 Minutes Pass
 			if (secondsSinceFirst > 120) {
 				LogWriter.script(message);
@@ -184,7 +186,7 @@ public class LogWriter {
 				stamp.recentDate = new Date();
 			}
 			// IF event occurs to QUICKLY Ignore.
-			else if (millisecSinceLast < CustomNpcs.ScriptIgnoreTime){
+			else if (millisecSinceLast < ConfigDebug.ScriptIgnoreTime){
 				stamp.recentDate = new Date();
 			}
 			else if(secondsSinceFirst > 10 && (double)stamp.counter / secondsSinceFirst > frequency){

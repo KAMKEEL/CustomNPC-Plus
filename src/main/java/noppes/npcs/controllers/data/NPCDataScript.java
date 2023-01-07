@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -69,7 +70,7 @@ public class NPCDataScript implements IScriptHandler {
     }
 
     public boolean isEnabled() {
-        return CustomNpcs.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
+        return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
     }
     public boolean isClient() {
         return this.npc.isClientWorld();

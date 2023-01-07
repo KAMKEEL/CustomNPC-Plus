@@ -33,6 +33,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -516,27 +517,27 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public boolean arePlayerScriptsEnabled() {
-        return CustomNpcs.GlobalPlayerScripts;
+        return ConfigScript.GlobalPlayerScripts;
     }
 
     public boolean areForgeScriptsEnabled() {
-        return CustomNpcs.GlobalForgeScripts;
+        return ConfigScript.GlobalForgeScripts;
     }
 
     public boolean areGlobalNPCScriptsEnabled() {
-        return CustomNpcs.GlobalNPCScripts;
+        return ConfigScript.GlobalNPCScripts;
     }
 
     public void enablePlayerScripts(boolean enable) {
-        CustomNpcs.GlobalPlayerScripts = enable;
+        ConfigScript.GlobalPlayerScripts = enable;
     }
 
     public void enableForgeScripts(boolean enable) {
-        CustomNpcs.GlobalForgeScripts = enable;
+        ConfigScript.GlobalForgeScripts = enable;
     }
 
     public void enableGlobalNPCScripts(boolean enable) {
-        CustomNpcs.GlobalNPCScripts = enable;
+        ConfigScript.GlobalNPCScripts = enable;
     }
 
     public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {

@@ -16,6 +16,7 @@ import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
@@ -46,7 +47,7 @@ public class ScriptContainer {
 
     public void readFromNBT(NBTTagCompound compound) {
         this.script = compound.getString("Script");
-        for (int i = 0; i < CustomNpcs.ExpandedScriptLimit; i++) {
+        for (int i = 0; i < ConfigScript.ExpandedScriptLimit; i++) {
             if (compound.hasKey("ExpandedScript"+i)) {
                 this.script += compound.getString("ExpandedScript"+i);
             } else {
@@ -63,10 +64,10 @@ public class ScriptContainer {
         if (this.script.length() < 65535) {
             compound.setString("Script", this.script);
         } else {
-            if (CustomNpcs.ExpandedScriptLimit > 0) {
+            if (ConfigScript.ExpandedScriptLimit > 0) {
                 int i = 0;
                 int length = this.script.length();
-                while (length > 0 && i <= CustomNpcs.ExpandedScriptLimit) {
+                while (length > 0 && i <= ConfigScript.ExpandedScriptLimit) {
                     String str = "";
                     if (i == 0) {
                         compound.setString("Script", this.script.substring(0, 65535));
@@ -136,14 +137,14 @@ public class ScriptContainer {
     }
 
     public void run(EnumScriptType type, Event event) {
-        if(!CustomNpcs.ScriptingEnabled)
+        if(!ConfigScript.ScriptingEnabled)
             return;
 
         this.run((String)type.function, (Object)event);
     }
 
     public void run(String type, Object event) {
-        if(!CustomNpcs.ScriptingEnabled)
+        if(!ConfigScript.ScriptingEnabled)
             return;
 
         if (!this.errored && this.hasCode() && !this.unknownFunctions.contains(type)) {
@@ -210,7 +211,7 @@ public class ScriptContainer {
     public void setEngine(String scriptLanguage) {
         if(currentScriptLanguage != null && currentScriptLanguage.equals(scriptLanguage))
             return;
-        if (CustomNpcs.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
+        if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
             System.setProperty("nashorn.args", "--language=es6");
         }
         ScriptEngine engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());

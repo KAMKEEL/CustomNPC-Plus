@@ -10,6 +10,8 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
@@ -530,7 +532,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public void addImage(int id, IDialogImage image) {
-		if (dialogImages.size() >= CustomNpcs.DialogImageLimit) {
+		if (dialogImages.size() >= ConfigMain.DialogImageLimit) {
 			return;
 		}
 

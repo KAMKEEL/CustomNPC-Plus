@@ -12,6 +12,7 @@ import net.minecraft.entity.ai.EntityAITarget;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIClosestTarget extends EntityAITarget
@@ -59,7 +60,7 @@ public class EntityAIClosestTarget extends EntityAITarget
             double d0 = this.getTargetDistance();
             List list = this.taskOwner.worldObj.selectEntitiesWithinAABB(this.targetClass, this.taskOwner.boundingBox.expand(d0,  MathHelper.ceiling_double_int(d0 / 2.0D), d0), this.field_82643_g);
             Collections.sort(list, this.theNearestAttackableTargetSorter);
-            taskOwner.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
+            taskOwner.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
             if (list.isEmpty())
             {
                 return false;
