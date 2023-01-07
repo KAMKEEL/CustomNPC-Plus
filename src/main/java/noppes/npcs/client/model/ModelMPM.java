@@ -677,18 +677,21 @@ public class ModelMPM extends ModelNPCMale{
 				puppetPart.prevPivots[1] = (puppetPart.pivotY - puppetPart.prevPivots[1]) * job.animRate / 10f + puppetPart.prevPivots[1];
 				puppetPart.prevPivots[2] = (puppetPart.pivotZ - puppetPart.prevPivots[2]) * job.animRate / 10f + puppetPart.prevPivots[2];
 			} else {
-				int directionX = Float.compare(puppetPart.pivotX, modelPart.rotationPointX);
-				modelPart.rotationPointX += directionX * job.animRate / 10f;
-				modelPart.rotationPointX = directionX == 1 ?
-						Math.min(puppetPart.pivotX,modelPart.rotationPointX) : Math.max(puppetPart.pivotX,modelPart.rotationPointX);
-				int directionY = Float.compare(puppetPart.pivotY, modelPart.rotationPointY);
-				modelPart.rotationPointY += directionY * job.animRate / 10f;
-				modelPart.rotationPointY = directionY == 1 ?
-						Math.min(puppetPart.pivotY,modelPart.rotationPointY) : Math.max(puppetPart.pivotY,modelPart.rotationPointY);
-				int directionZ = Float.compare(puppetPart.pivotZ, modelPart.rotationPointZ);
-				modelPart.rotationPointZ += directionZ * job.animRate / 10f;
-				modelPart.rotationPointZ = directionZ == 1 ?
-						Math.min(puppetPart.pivotZ,modelPart.rotationPointZ) : Math.max(puppetPart.pivotZ,modelPart.rotationPointZ);
+				modelPart.rotationPointX += puppetPart.prevPivots[0];
+				modelPart.rotationPointY += puppetPart.prevPivots[1];
+				modelPart.rotationPointZ += puppetPart.prevPivots[2];
+				int directionX = Float.compare(puppetPart.pivotX, puppetPart.prevPivots[0]);
+				puppetPart.prevPivots[0] += directionX * job.animRate / 10f;
+				puppetPart.prevPivots[0] = directionX == 1 ?
+						Math.min(puppetPart.pivotX,puppetPart.prevPivots[0]) : Math.max(puppetPart.pivotX,puppetPart.prevPivots[0]);
+				int directionY = Float.compare(puppetPart.pivotY, puppetPart.prevPivots[1]);
+				puppetPart.prevPivots[1] += directionY * job.animRate / 10f;
+				puppetPart.prevPivots[1] = directionY == 1 ?
+						Math.min(puppetPart.pivotY,puppetPart.prevPivots[1]) : Math.max(puppetPart.pivotY,puppetPart.prevPivots[1]);
+				int directionZ = Float.compare(puppetPart.pivotZ, puppetPart.prevPivots[2]);
+				puppetPart.prevPivots[2] += directionZ * job.animRate / 10f;
+				puppetPart.prevPivots[2] = directionZ == 1 ?
+						Math.min(puppetPart.pivotZ,puppetPart.prevPivots[2]) : Math.max(puppetPart.pivotZ,puppetPart.prevPivots[2]);
 			}
 		}
 	}
