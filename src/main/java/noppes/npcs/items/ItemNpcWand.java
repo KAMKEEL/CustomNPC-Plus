@@ -12,6 +12,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -39,7 +40,7 @@ public class ItemNpcWand extends Item{
     {
 		if(par3World.isRemote)
 			return true;
-		if(CustomNpcs.OpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile())){
+		if(ConfigMain.OpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile())){
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));
 		}
 		else if(CustomNpcsPermissions.Instance.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){

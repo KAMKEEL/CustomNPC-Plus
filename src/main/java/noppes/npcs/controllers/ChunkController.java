@@ -13,6 +13,7 @@ import net.minecraftforge.common.ForgeChunkManager.LoadingCallback;
 import net.minecraftforge.common.ForgeChunkManager.Ticket;
 import net.minecraftforge.common.ForgeChunkManager.Type;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -33,7 +34,7 @@ public class ChunkController implements LoadingCallback{
 		Ticket ticket = tickets.get(npc);
 		if(ticket != null)
 			return ticket;
-		if(size() >= CustomNpcs.ChunkLoaders)
+		if(size() >= ConfigMain.ChunkLoaders)
 			return null;
 		ticket = ForgeChunkManager.requestTicket(CustomNpcs.instance, npc.worldObj, Type.ENTITY);
 		if(ticket == null)

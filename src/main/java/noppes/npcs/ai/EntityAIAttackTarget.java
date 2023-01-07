@@ -7,6 +7,7 @@ import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.AiMutex;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -59,7 +60,7 @@ public class EntityAIAttackTarget extends EntityAIBase
         	this.entityTarget = entitylivingbase;
             this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(((EntityNPCInterface) this.attacker).stats.aggroRange);
             this.entityPathEntity = this.attacker.getNavigator().getPathToEntityLiving(entitylivingbase);
-            this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
+            this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
             return this.entityPathEntity != null;
         }
     }

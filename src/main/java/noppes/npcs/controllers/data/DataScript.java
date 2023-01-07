@@ -15,6 +15,8 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -134,7 +136,7 @@ public class DataScript implements IScriptHandler {
 				ob = NpcAPI.Instance().getIEntity((Entity)ob);
 			script.engine.put(obs[i].toString(), ob);
 		}
-		if(CustomNpcs.ScriptLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+		if(ConfigDebug.ScriptLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 			if(obs.length > 1 && obs[1] == null){
 				LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s)", ((String)type.function).toUpperCase(), npc.display.name, (int)npc.posX, (int)npc.posY, (int)npc.posZ));
 			} else {
@@ -170,7 +172,7 @@ public class DataScript implements IScriptHandler {
 	}
 
 	public boolean isEnabled(){
-		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && CustomNpcs.ScriptingEnabled;
+		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
 	}
 
 	public Map<Long, String> getConsoleText() {

@@ -56,6 +56,7 @@ import noppes.npcs.ai.target.EntityAIClosestTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtByTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtTarget;
 import noppes.npcs.client.EntityUtil;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumMovingType;
@@ -142,8 +143,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 
 			dialogs = new HashMap<Integer, DialogOption>();
-			if(!CustomNpcs.DefaultInteractLine.isEmpty())
-				advanced.interactLines.lines.put(0, new Line(CustomNpcs.DefaultInteractLine));
+			if(!ConfigMain.DefaultInteractLine.isEmpty())
+				advanced.interactLines.lines.put(0, new Line(ConfigMain.DefaultInteractLine));
 
 			experienceValue = 0;
 			scaleX = scaleY = scaleZ = 0.9375f;
@@ -177,7 +178,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
-		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
+		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
 		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(this.getSpeed());
 		this.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(stats.getAttackStrength());
 	}
@@ -978,7 +979,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(!isRemote())
 			LinkedNpcController.Instance.loadNpcData(this);
 
-		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(CustomNpcs.NpcNavRange);
+		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
 
 		this.updateTasks();
 	}
@@ -1619,7 +1620,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public boolean canCommandSenderUseCommand(int var1, String var2) {
-		if(CustomNpcs.NpcUseOpCommands)
+		if(ConfigMain.NpcUseOpCommands)
 			return true;
 		return var1 <= 2;
 	}

@@ -3,6 +3,7 @@ package noppes.npcs.ai;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.Vec3;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -56,7 +57,7 @@ public class EntityAIReturn extends EntityAIBase
     		return false;
     	}
 
-    	if(npc.ai.movingType == EnumMovingType.MovingPath && npc.ai.getDistanceSqToPathPoint() < CustomNpcs.NpcNavRange * CustomNpcs.NpcNavRange)
+    	if(npc.ai.movingType == EnumMovingType.MovingPath && npc.ai.getDistanceSqToPathPoint() < ConfigMain.NpcNavRange * ConfigMain.NpcNavRange)
     		return false;
 
 		if (npc.getNavigator().noPath() || (!npc.isAttacking() && wasAttacked)) {
@@ -129,10 +130,10 @@ public class EntityAIReturn extends EntityAIBase
     	double posY = endPosY;
     	double posZ = endPosZ;
     	double range = npc.getDistance(posX, posY, posZ);
-    	if(range > CustomNpcs.NpcNavRange || towards){
+    	if(range > ConfigMain.NpcNavRange || towards){
     		int distance = (int) range;
-    		if(distance > CustomNpcs.NpcNavRange)
-    			distance = CustomNpcs.NpcNavRange / 2;
+    		if(distance > ConfigMain.NpcNavRange)
+    			distance = ConfigMain.NpcNavRange / 2;
     		else 
     			distance /= 2;
     		if(distance > 2){

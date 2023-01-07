@@ -14,6 +14,7 @@ import noppes.npcs.client.gui.GuiNpcTextureOverlays;
 import noppes.npcs.client.gui.SubGuiNpcName;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -53,7 +54,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(2,"display.size", guiLeft + 175, y + 5));
         addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 203, y, 40, 20, display.modelSize + ""));
         getTextField(2).integersOnly = true;
-        getTextField(2).setMinMaxDefault(1, CustomNpcs.NpcSizeLimit, 5);
+        getTextField(2).setMinMaxDefault(1, ConfigMain.NpcSizeLimit, 5);
         //addLabel(new GuiNpcLabel(3,"(1-30)", guiLeft + 246 , y + 5));
 
     	y+=23;

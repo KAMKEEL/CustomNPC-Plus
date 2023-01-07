@@ -20,6 +20,7 @@ import net.minecraftforge.client.GuiIngameForge;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.gui.util.TextContainer.LineData;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.TrueTypeFont;
 import org.lwjgl.input.Mouse;
 
@@ -458,7 +459,7 @@ public class GuiTextArea extends Gui implements IGui, IKeyListener, IMouseListen
     }
 
     static {
-        font = new TrueTypeFont(new Font("Arial Unicode MS", 0, CustomNpcs.FontSize), 1.0F);
+        font = new TrueTypeFont(new Font("Arial Unicode MS", 0, ConfigClient.FontSize), 1.0F);
     }
 
     class UndoData {

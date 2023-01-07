@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.util.EnumHelper;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.items.ItemStaff;
 
 public abstract class EnchantInterface extends Enchantment{
@@ -21,7 +22,7 @@ public abstract class EnchantInterface extends Enchantment{
 	private Class[] classes;
 
 	protected EnchantInterface(int par2, Class... obs) {
-		super(CustomNpcs.EnchantStartId++, par2, CustomNpcsType);
+		super(ConfigMain.EnchantStartId++, par2, CustomNpcsType);
 		classes = obs;
 	}
 	
@@ -37,7 +38,7 @@ public abstract class EnchantInterface extends Enchantment{
     }
 	
 	public static void load(){
-		if(!CustomNpcs.DisableEnchants){
+		if(!ConfigMain.DisableEnchants){
 			CustomNpcsType = EnumHelper.addEnchantmentType("customnpcs_enchants");
 			try{
 		        Damage = new EnchantDamage();
@@ -52,7 +53,7 @@ public abstract class EnchantInterface extends Enchantment{
 	}
 
 	public static int getLevel(EnchantInterface enchant, ItemStack stack) {
-		if(CustomNpcs.DisableEnchants || enchant == null)
+		if(ConfigMain.DisableEnchants || enchant == null)
 			return 0;
 		return EnchantmentHelper.getEnchantmentLevel(enchant.effectId, stack);
 	}
