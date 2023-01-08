@@ -9,11 +9,7 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.roles.IRole;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -121,6 +117,25 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public int getRotationType(){
 		return npc.ai.standingType.ordinal();
+	}
+
+	/**
+	 * @param movingType The moving type of the npc. 0 = standing, 1 = wandering, 2 = moving path
+	 */
+	public void setMovingType(int movingType){
+		for(EnumMovingType e : EnumMovingType.values()) {
+			if (e.ordinal() == movingType) {
+				npc.ai.movingType = e;
+				break;
+			}
+		}
+	}
+
+	/**
+	 * @return The moving type of the npc. 0 = standing, 1 = wandering, 2 = moving path
+	 */
+	public int getMovingType(){
+		return npc.ai.movingType.ordinal();
 	}
 
 	/**
