@@ -200,14 +200,14 @@ public class JobPuppet extends JobInterface{
 			float f = rotation / 360f - 0.5f;
 			if(this.getRotationY() != f && parent instanceof JobPuppet)
 				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
-			this.rotationY = rotation;
+			this.rotationY = f;
 		}
 
 		public void setRotationZ(float rotation) {
 			float f = rotation / 360f - 0.5f;
 			if(this.getRotationZ() != f && parent instanceof JobPuppet)
 				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
-			this.rotationZ = rotation;
+			this.rotationZ = f;
 		}
 
 		public float getRotationX() {
