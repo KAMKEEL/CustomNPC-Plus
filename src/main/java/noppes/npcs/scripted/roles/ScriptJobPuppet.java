@@ -31,25 +31,25 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 		return null;
 	}
 
-	public void setAnimated(boolean animated) {
+	public void allAnimated(boolean animated) {
 		for (int i = 0; i < 6; i++) {
 			this.getPart(i).setAnimated(animated);
 		}
 	}
 
-	public void setInterpolated(boolean interpolate) {
+	public void allInterpolated(boolean interpolate) {
 		for (int i = 0; i < 6; i++) {
 			this.getPart(i).setAnimated(interpolate);
 		}
 	}
 
-	public void setFullAngles(boolean fullAngles) {
+	public void allFullAngles(boolean fullAngles) {
 		for (int i = 0; i < 6; i++) {
 			this.getPart(i).setFullAngles(fullAngles);
 		}
 	}
 
-	public void setAnimRate(float animRate) {
+	public void allAnimRate(float animRate) {
 		if (animRate < 0)
 			animRate = 0;
 		for (int i = 0; i < 6; i++) {
