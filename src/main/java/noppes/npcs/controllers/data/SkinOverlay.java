@@ -24,6 +24,9 @@ public class SkinOverlay implements ISkinOverlay {
     public float offsetY = 0.0F;
     public float offsetZ = 0.0F;
 
+    //Client-sided
+    public long ticks = 0;
+
     public SkinOverlay() {
     }
 

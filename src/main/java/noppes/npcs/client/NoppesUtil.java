@@ -77,11 +77,19 @@ public class NoppesUtil {
 
 	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
 		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
+		HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
 		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
-		
+		if (Client.skinOverlays.containsKey(player.getUniqueID())) {
+			oldOverlays = Client.skinOverlays.get(player.getUniqueID());
+		}
+
 		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
 			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
-			skinOverlays.put(tagID, (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i)));
+			SkinOverlay overlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
+			if (oldOverlays.containsKey(tagID)) {
+				overlay.ticks = oldOverlays.get(tagID).ticks;
+			}
+			skinOverlays.put(tagID,overlay);
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}
