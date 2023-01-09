@@ -114,20 +114,106 @@ public class PlayerModelData implements IPlayerModelData {
         animRate = compound.getFloat("PuppetAnimSpeed");
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean enabled() {
+        return this.enabled;
+    }
+
     public void setAnimated(boolean animated) {
         this.animate = animated;
+    }
+
+    public boolean isAnimated() {
+        return this.animate;
     }
 
     public void setInterpolated(boolean interpolate) {
         this.interpolate = interpolate;
     }
 
-    public void setFullAngles(boolean fullAngles) {
-        this.fullAngles = fullAngles;
+    public boolean isInterpolated() {
+        return this.interpolate;
+    }
+
+    public void setFullAngles(boolean limit) {
+        fullAngles = limit;
+    }
+
+    public boolean fullAngles() {
+        return fullAngles;
     }
 
     public void setAnimRate(float animRate) {
+        if (animRate < 0)
+            animRate = 0;
         this.animRate = animRate;
+    }
+
+    public float getAnimRate() {
+        return this.animRate;
+    }
+
+    public void setRotation(float rotationX, float rotationY, float rotationZ) {
+        this.setRotationX(rotationX);
+        this.setRotationY(rotationY);
+        this.setRotationZ(rotationZ);
+    }
+
+    public void setRotationX(float rotationX) {
+        this.rotationX = rotationX;
+    }
+
+    public void setRotationY(float rotationY) {
+        this.rotationY = rotationY;
+    }
+
+    public void setRotationZ(float rotationZ) {
+        this.rotationZ = rotationZ;
+    }
+
+    public float getRotationX() {
+        return rotationX;
+    }
+
+    public float getRotationY() {
+        return rotationY;
+    }
+
+    public float getRotationZ() {
+        return rotationZ;
+    }
+
+    public void setRotationEnabled(boolean enabledX, boolean enabledY, boolean enabledZ) {
+        this.setRotationEnabledX(enabledX);
+        this.setRotationEnabledY(enabledY);
+        this.setRotationEnabledZ(enabledZ);
+    }
+
+    public void setRotationEnabledX(boolean enabled) {
+        this.rotationEnabledX = enabled;
+    }
+
+    public void setRotationEnabledY(boolean enabled) {
+        this.rotationEnabledY = enabled;
+    }
+
+    public void setRotationEnabledZ(boolean enabled) {
+        this.rotationEnabledZ = enabled;
+    }
+
+    public boolean rotationEnabledX() {
+        return rotationEnabledX;
+    }
+
+    public boolean rotationEnabledY() {
+        return rotationEnabledY;
+    }
+
+    public boolean rotationEnabledZ() {
+        return rotationEnabledZ;
     }
 
     public void allEnabled(boolean enabled) {
