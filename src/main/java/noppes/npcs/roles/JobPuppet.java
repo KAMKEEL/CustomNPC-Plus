@@ -79,14 +79,12 @@ public class JobPuppet extends JobInterface{
 		public float pivotZ = 0f;
 
 		public boolean disabled = false;
-
-		// vvv Client-sided use vvv
 		public boolean fullAngles = false;
 		public boolean animate = false;
 		public float animRate = 1.0F;
 		public boolean interpolate = true;
 
-		//Client-sided use
+		// vvv Client-sided use vvv
 		public float[] prevRotations = new float[]{0,0,0};
 		public float[] prevPivots = new float[]{0,0,0};
 

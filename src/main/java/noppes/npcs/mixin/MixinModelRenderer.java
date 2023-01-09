@@ -52,8 +52,8 @@ public class MixinModelRenderer {
                     this.rotateAngleX = partConfigs[i].prevRotations[0];
                     this.rotateAngleY = partConfigs[i].prevRotations[1];
                     this.rotateAngleZ = partConfigs[i].prevRotations[2];
-                    this.setInterpolatedAngles(modelData,partConfigs[i]);
-                    this.addInterpolatedOffset(modelData,partConfigs[i]);
+                    this.setInterpolatedAngles(partConfigs[i]);
+                    this.addInterpolatedOffset(partConfigs[i]);
                     partConfigs[i].prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
                 }
             }
@@ -118,72 +118,72 @@ public class MixinModelRenderer {
         return !puppetPart.disabled && this.partName.equals(partNames.get(puppetPart));
     }
 
-    public void setInterpolatedAngles(PlayerModelData modelData, JobPuppet.PartConfig puppetPart) {
-        float pi = (float) Math.PI * (modelData.fullAngles ? 2 : 1);
-        if (!modelData.animate) {
-            this.rotateAngleX = puppetPart.rotationX * pi;
-            this.rotateAngleY = puppetPart.rotationY * pi;
-            this.rotateAngleZ = puppetPart.rotationZ * pi;
-        } else if (puppetPart.partialRotationTick != ClientEventHandler.partialRenderTick) {
-            puppetPart.partialRotationTick = ClientEventHandler.partialRenderTick;
-            if (modelData.interpolate) {
-                if (puppetPart.rotationX * pi - this.rotateAngleX != 0)
-                    this.rotateAngleX = (puppetPart.rotationX * pi - this.rotateAngleX) * modelData.animRate / 10f + this.rotateAngleX;
-                if (puppetPart.rotationY * pi - this.rotateAngleY != 0)
-                    this.rotateAngleY = (puppetPart.rotationY * pi - this.rotateAngleY) * modelData.animRate / 10f + this.rotateAngleY;
-                if (puppetPart.rotationZ * pi - this.rotateAngleZ != 0)
-                    this.rotateAngleZ = (puppetPart.rotationZ * pi - this.rotateAngleZ) * modelData.animRate / 10f + this.rotateAngleZ;
+    public void setInterpolatedAngles(JobPuppet.PartConfig modelPart) {
+        float pi = (float) Math.PI * (modelPart.fullAngles ? 2 : 1);
+        if (!modelPart.animate) {
+            this.rotateAngleX = modelPart.rotationX * pi;
+            this.rotateAngleY = modelPart.rotationY * pi;
+            this.rotateAngleZ = modelPart.rotationZ * pi;
+        } else if (modelPart.partialRotationTick != ClientEventHandler.partialRenderTick) {
+            modelPart.partialRotationTick = ClientEventHandler.partialRenderTick;
+            if (modelPart.interpolate) {
+                if (modelPart.rotationX * pi - this.rotateAngleX != 0)
+                    this.rotateAngleX = (modelPart.rotationX * pi - this.rotateAngleX) * modelPart.animRate / 10f + this.rotateAngleX;
+                if (modelPart.rotationY * pi - this.rotateAngleY != 0)
+                    this.rotateAngleY = (modelPart.rotationY * pi - this.rotateAngleY) * modelPart.animRate / 10f + this.rotateAngleY;
+                if (modelPart.rotationZ * pi - this.rotateAngleZ != 0)
+                    this.rotateAngleZ = (modelPart.rotationZ * pi - this.rotateAngleZ) * modelPart.animRate / 10f + this.rotateAngleZ;
             } else {
-                int directionX = Float.compare(puppetPart.rotationX * pi, this.rotateAngleX);
-                this.rotateAngleX += directionX * modelData.animRate / 10f;
+                int directionX = Float.compare(modelPart.rotationX * pi, this.rotateAngleX);
+                this.rotateAngleX += directionX * modelPart.animRate / 10f;
                 this.rotateAngleX = directionX == 1 ?
-                        Math.min(puppetPart.rotationX * pi,this.rotateAngleX) : Math.max(puppetPart.rotationX * pi,this.rotateAngleX);
-                int directionY = Float.compare(puppetPart.rotationY * pi, this.rotateAngleY);
-                this.rotateAngleY += directionY * modelData.animRate / 10f;
+                        Math.min(modelPart.rotationX * pi,this.rotateAngleX) : Math.max(modelPart.rotationX * pi,this.rotateAngleX);
+                int directionY = Float.compare(modelPart.rotationY * pi, this.rotateAngleY);
+                this.rotateAngleY += directionY * modelPart.animRate / 10f;
                 this.rotateAngleY = directionY == 1 ?
-                        Math.min(puppetPart.rotationY * pi,this.rotateAngleY) : Math.max(puppetPart.rotationY * pi,this.rotateAngleY);
-                int directionZ = Float.compare(puppetPart.rotationZ * pi, this.rotateAngleZ);
-                this.rotateAngleZ += directionZ * modelData.animRate / 10f;
+                        Math.min(modelPart.rotationY * pi,this.rotateAngleY) : Math.max(modelPart.rotationY * pi,this.rotateAngleY);
+                int directionZ = Float.compare(modelPart.rotationZ * pi, this.rotateAngleZ);
+                this.rotateAngleZ += directionZ * modelPart.animRate / 10f;
                 this.rotateAngleZ = directionZ == 1 ?
-                        Math.min(puppetPart.rotationZ * pi,this.rotateAngleZ) : Math.max(puppetPart.rotationZ * pi,this.rotateAngleZ);
+                        Math.min(modelPart.rotationZ * pi,this.rotateAngleZ) : Math.max(modelPart.rotationZ * pi,this.rotateAngleZ);
             }
         }
     }
 
-    public void addInterpolatedOffset(PlayerModelData modelData, JobPuppet.PartConfig puppetPart) {
-        if (!puppetPart.setOriginalPivot) {
-            puppetPart.setOriginalPivot = true;
-            puppetPart.originalPivotX = this.rotationPointX;
-            puppetPart.originalPivotY = this.rotationPointY;
-            puppetPart.originalPivotZ = this.rotationPointZ;
+    public void addInterpolatedOffset(JobPuppet.PartConfig modelPart) {
+        if (!modelPart.setOriginalPivot) {
+            modelPart.setOriginalPivot = true;
+            modelPart.originalPivotX = this.rotationPointX;
+            modelPart.originalPivotY = this.rotationPointY;
+            modelPart.originalPivotZ = this.rotationPointZ;
         }
 
-        if (!modelData.animate) {
-            this.rotationPointX = puppetPart.originalPivotX + puppetPart.pivotX;
-            this.rotationPointY = puppetPart.originalPivotY + puppetPart.pivotY;
-            this.rotationPointZ = puppetPart.originalPivotZ + puppetPart.pivotZ;
-        } else if (puppetPart.partialPivotTick != ClientEventHandler.partialRenderTick)  {
-            puppetPart.partialPivotTick = ClientEventHandler.partialRenderTick;
-            if (modelData.interpolate) {
-                puppetPart.destPivotX = (puppetPart.pivotX - puppetPart.destPivotX) * modelData.animRate / 10f + puppetPart.destPivotX;
-                this.rotationPointX = puppetPart.originalPivotX + puppetPart.destPivotX;
-                puppetPart.destPivotY = (puppetPart.pivotY - puppetPart.destPivotY) * modelData.animRate / 10f + puppetPart.destPivotY;
-                this.rotationPointY = puppetPart.originalPivotY + puppetPart.destPivotY;
-                puppetPart.destPivotZ = (puppetPart.pivotZ - puppetPart.destPivotZ) * modelData.animRate / 10f + puppetPart.destPivotZ;
-                this.rotationPointZ = puppetPart.originalPivotZ + puppetPart.destPivotZ;
+        if (!modelPart.animate) {
+            this.rotationPointX = modelPart.originalPivotX + modelPart.pivotX;
+            this.rotationPointY = modelPart.originalPivotY + modelPart.pivotY;
+            this.rotationPointZ = modelPart.originalPivotZ + modelPart.pivotZ;
+        } else if (modelPart.partialPivotTick != ClientEventHandler.partialRenderTick)  {
+            modelPart.partialPivotTick = ClientEventHandler.partialRenderTick;
+            if (modelPart.interpolate) {
+                modelPart.destPivotX = (modelPart.pivotX - modelPart.destPivotX) * modelPart.animRate / 10f + modelPart.destPivotX;
+                this.rotationPointX = modelPart.originalPivotX + modelPart.destPivotX;
+                modelPart.destPivotY = (modelPart.pivotY - modelPart.destPivotY) * modelPart.animRate / 10f + modelPart.destPivotY;
+                this.rotationPointY = modelPart.originalPivotY + modelPart.destPivotY;
+                modelPart.destPivotZ = (modelPart.pivotZ - modelPart.destPivotZ) * modelPart.animRate / 10f + modelPart.destPivotZ;
+                this.rotationPointZ = modelPart.originalPivotZ + modelPart.destPivotZ;
             } else {
-                int directionX = Float.compare(puppetPart.pivotX, this.rotationPointX);
-                this.rotationPointX = puppetPart.originalPivotX + directionX * modelData.animRate / 10f;
+                int directionX = Float.compare(modelPart.pivotX, this.rotationPointX);
+                this.rotationPointX = modelPart.originalPivotX + directionX * modelPart.animRate / 10f;
                 this.rotationPointX = directionX == 1 ?
-                        Math.min(puppetPart.originalPivotX + puppetPart.pivotX,this.rotationPointX) : Math.max(puppetPart.originalPivotX + puppetPart.pivotX,this.rotationPointX);
-                int directionY = Float.compare(puppetPart.pivotY, this.rotationPointY);
-                this.rotationPointY = puppetPart.originalPivotY + directionY * modelData.animRate / 10f;
+                        Math.min(modelPart.originalPivotX + modelPart.pivotX,this.rotationPointX) : Math.max(modelPart.originalPivotX + modelPart.pivotX,this.rotationPointX);
+                int directionY = Float.compare(modelPart.pivotY, this.rotationPointY);
+                this.rotationPointY = modelPart.originalPivotY + directionY * modelPart.animRate / 10f;
                 this.rotationPointY = directionY == 1 ?
-                        Math.min(puppetPart.originalPivotY + puppetPart.pivotY,this.rotationPointY) : Math.max(puppetPart.originalPivotY + puppetPart.pivotY,this.rotationPointY);
-                int directionZ = Float.compare(puppetPart.pivotZ, this.rotationPointZ);
-                this.rotationPointZ = puppetPart.originalPivotZ + directionZ * modelData.animRate / 10f;
+                        Math.min(modelPart.originalPivotY + modelPart.pivotY,this.rotationPointY) : Math.max(modelPart.originalPivotY + modelPart.pivotY,this.rotationPointY);
+                int directionZ = Float.compare(modelPart.pivotZ, this.rotationPointZ);
+                this.rotationPointZ = modelPart.originalPivotZ + directionZ * modelPart.animRate / 10f;
                 this.rotationPointZ = directionZ == 1 ?
-                        Math.min(puppetPart.originalPivotZ + puppetPart.pivotZ,this.rotationPointZ) : Math.max(puppetPart.originalPivotZ + puppetPart.pivotZ,this.rotationPointZ);
+                        Math.min(modelPart.originalPivotZ + modelPart.pivotZ,this.rotationPointZ) : Math.max(modelPart.originalPivotZ + modelPart.pivotZ,this.rotationPointZ);
             }
         }
     }

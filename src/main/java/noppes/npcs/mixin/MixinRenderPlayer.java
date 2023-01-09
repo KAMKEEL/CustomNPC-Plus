@@ -22,7 +22,7 @@ public class MixinRenderPlayer {
     {
         if (Client.playerModelData.containsKey(p_77039_1_.getUniqueID())) {
             PlayerModelData data = Client.playerModelData.get(p_77039_1_.getUniqueID());
-            if (data.enabled()) {
+            if (data.enabled) {
                 this.setInterpolatedAngles(data);
                 if (data.rotationEnabledX) {
                     GL11.glRotatef(data.modelRotations[0], 1, 0, 0);
