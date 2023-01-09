@@ -27,7 +27,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class RenderCNPCPlayer extends RenderPlayer {
-    public RenderCNPCHand itemRenderer = new RenderCNPCHand(Minecraft.getMinecraft());
+    public Minecraft mc = Minecraft.getMinecraft();
+    public RenderCNPCHand itemRenderer = new RenderCNPCHand(mc);
     public float tempRenderPartialTicks;
     private float debugCamFOV;
     private float prevDebugCamFOV;
@@ -43,48 +44,45 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.setRenderManager(RenderManager.instance);
     }
 
-    private boolean preRenderOverlay(EntityPlayer player, ResourceLocation overlayLocation, boolean glow, boolean blend,
-                                     float alpha, float size, float speedX, float speedY, float scaleX, float scaleY,
-                                     float offsetX, float offsetY, float offsetZ) {
-        if (overlayLocation.getResourcePath().isEmpty())
+    private boolean preRenderOverlay(SkinOverlay overlayData, EntityPlayer player) {
+        if (overlayData.location.getResourcePath().isEmpty())
             return false;
 
         try {
-            this.bindTexture(overlayLocation);
+            this.bindTexture(overlayData.location);
         } catch (Exception exception) {
             return false;
         }
 
-        float partialTickTime = ClientEventHandler.partialHandTicks;
-
         // Overlay & Glow
         GL11.glEnable(GL11.GL_BLEND);
-        if (blend) {
+        if (overlayData.blend) {
             GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
         } else {
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         }
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
 
-        if (glow) {
+        if (overlayData.glow) {
             GL11.glDisable(GL11.GL_LIGHTING);
             Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
             RenderHelper.disableStandardItemLighting();
         }
 
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, alpha);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.alpha);
 
         GL11.glDepthMask(!player.isInvisible());
 
         GL11.glPushMatrix();
         GL11.glMatrixMode(GL11.GL_TEXTURE);
         GL11.glLoadIdentity();
-        GL11.glTranslatef(partialTickTime * 0.001F * speedX, partialTickTime * 0.001F * speedY, 0.0F);
-        GL11.glScalef(scaleX, scaleY, 1.0F);
+        GL11.glTranslatef(overlayData.ticks * 0.001F * overlayData.speedX, overlayData.ticks * 0.001F * overlayData.speedY, 0.0F);
+        GL11.glScalef(overlayData.scaleX, overlayData.scaleY, 1.0F);
+        overlayData.ticks++;
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW);
-        GL11.glTranslatef(offsetX, offsetY, offsetZ);
-        GL11.glScalef(size, size, size);
+        GL11.glTranslatef(overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ);
+        GL11.glScalef(overlayData.size, overlayData.size, overlayData.size);
 
         return true;
     }
@@ -123,11 +121,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
 
-                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
-                            overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
-                            overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
-                            ))
-                        continue;;
+                    if (!this.preRenderOverlay(overlayData, player))
+                        continue;
+
                     this.modelBipedMain.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
                     postRenderOverlay();
                 }
@@ -290,10 +286,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     }
                 }
 
-                if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
-                        overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
-                        overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
-                ))
+                if (!this.preRenderOverlay(overlayData, player))
                     continue;
 
                 if (gender >= 2.0F) {
@@ -420,11 +413,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
 
-                    if (!preRenderOverlay(player, overlayData.location, overlayData.glow, overlayData.blend, overlayData.alpha, overlayData.size,
-                            overlayData.speedX, overlayData.speedY, overlayData.scaleX, overlayData.scaleY,
-                            overlayData.offsetX, overlayData.offsetY, overlayData.offsetZ
-                    ))
+                    if (!this.preRenderOverlay(overlayData, player))
                         continue;
+
                     bipedHead.isHidden = true;
                     renderDBC.invoke(m, player,
                             (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
