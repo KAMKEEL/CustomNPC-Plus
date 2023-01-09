@@ -34,6 +34,9 @@ public class ConfigClient
     public static Property EntityRendererMixinProperty;
     public static boolean EntityRendererMixin = true;
 
+    public static Property AnimationMixinProperty;
+    public static boolean AnimationMixin = true;
+
     /**
      *  Questing Properties
      **/
@@ -69,6 +72,9 @@ public class ConfigClient
 
             EntityRendererMixinProperty = config.get(VISUAL, "Entity Render Mixin", true, "Enables Overlay Mixins for Conflicts relating to Optifine or other Skin Renderers. If crashes occur, please disable.");
             EntityRendererMixin = EntityRendererMixinProperty.getBoolean(true);
+
+            AnimationMixinProperty = config.get(VISUAL, "Animation Mixin", true, "Enables mixins for the ModelRenderer and RenderPlayer classes, allowing for additional animation functionality in the API. If crashes or visual errors occur, please disable.");
+            AnimationMixin = AnimationMixinProperty.getBoolean(true);
 
             // Questing
             TrackingInfoAlignmentProperty = config.get(QUESTING, "Tracking Info Alignment", 3, "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8. Default: 3");
