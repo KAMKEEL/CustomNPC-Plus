@@ -137,7 +137,7 @@ public class NBTJsonUtil {
 			s += json.cut(1);
 		}
 		s = s.trim().toLowerCase();
-		if(s.isEmpty())
+		if(s.isEmpty() || s.contains("bytes]"))
 			return null;
 		try{
 			if(s.endsWith("d")){
