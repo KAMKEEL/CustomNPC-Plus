@@ -6,12 +6,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
 public class JobPuppet extends JobInterface{
-	public PartConfig head = new PartConfig();
-	public PartConfig larm = new PartConfig();
-	public PartConfig rarm = new PartConfig();
-	public PartConfig body = new PartConfig();
-	public PartConfig lleg = new PartConfig();
-	public PartConfig rleg = new PartConfig();
+	public PartConfig head = new PartConfig(this);
+	public PartConfig larm = new PartConfig(this);
+	public PartConfig rarm = new PartConfig(this);
+	public PartConfig body = new PartConfig(this);
+	public PartConfig lleg = new PartConfig(this);
+	public PartConfig rleg = new PartConfig(this);
 	
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
@@ -71,6 +71,8 @@ public class JobPuppet extends JobInterface{
 	}
 	
 	public static class PartConfig implements IModelPart {
+		public Object parent;
+
 		public float rotationX = 0f;
 		public float rotationY = 0f;
 		public float rotationZ = 0f;
@@ -78,7 +80,6 @@ public class JobPuppet extends JobInterface{
 		public float pivotY = 0f;
 		public float pivotZ = 0f;
 
-		public boolean disabled = false;
 		public boolean fullAngles = false;
 		public boolean animate = false;
 		public float animRate = 1.0F;
@@ -98,7 +99,12 @@ public class JobPuppet extends JobInterface{
 		public float originalPivotY = 0f;
 		public float originalPivotZ = 0f;
 		// ^^^ Client-sided use ^^^
-		
+		public boolean disabled = false;
+
+		public PartConfig(Object parent) {
+			this.parent = parent;
+		}
+
 		public NBTTagCompound writeNBT(){
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setFloat("RotationX", rotationX);
@@ -184,14 +190,23 @@ public class JobPuppet extends JobInterface{
 		}
 
 		public void setRotationX(float rotation) {
-			this.rotationX = rotation;
+			float f = rotation / 360f - 0.5f;
+			if(this.getRotationX() != f && parent instanceof JobPuppet)
+				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
+			this.rotationX = f;
 		}
 
 		public void setRotationY(float rotation) {
+			float f = rotation / 360f - 0.5f;
+			if(this.getRotationY() != f && parent instanceof JobPuppet)
+				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
 			this.rotationY = rotation;
 		}
 
 		public void setRotationZ(float rotation) {
+			float f = rotation / 360f - 0.5f;
+			if(this.getRotationZ() != f && parent instanceof JobPuppet)
+				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
 			this.rotationZ = rotation;
 		}
 
@@ -214,14 +229,20 @@ public class JobPuppet extends JobInterface{
 		}
 
 		public void setOffsetX(float offset) {
+			if(this.getOffsetX() != offset && parent instanceof JobPuppet)
+				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
 			this.pivotX = offset;
 		}
 
 		public void setOffsetY(float offset) {
+			if(this.getOffsetY() != offset && parent instanceof JobPuppet)
+				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
 			this.pivotY = offset;
 		}
 
 		public void setOffsetZ(float offset) {
+			if(this.getOffsetZ() != offset && parent instanceof JobPuppet)
+				((JobPuppet)parent).npc.script.clientNeedsUpdate = true;
 			this.pivotZ = offset;
 		}
 
