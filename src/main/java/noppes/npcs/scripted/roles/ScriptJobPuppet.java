@@ -45,7 +45,7 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 
 	public void allInterpolated(boolean interpolate) {
 		for (int i = 0; i < 6; i++) {
-			this.getPart(i).setAnimated(interpolate);
+			this.getPart(i).setInterpolated(interpolate);
 		}
 	}
 
