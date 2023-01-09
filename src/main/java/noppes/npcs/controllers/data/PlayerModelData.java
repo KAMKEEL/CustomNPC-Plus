@@ -12,12 +12,12 @@ public class PlayerModelData implements IPlayerModelData {
     public PlayerData parent;
     public final EntityPlayer player;
 
-    public JobPuppet.PartConfig head = new JobPuppet.PartConfig();
-    public JobPuppet.PartConfig larm = new JobPuppet.PartConfig();
-    public JobPuppet.PartConfig rarm = new JobPuppet.PartConfig();
-    public JobPuppet.PartConfig body = new JobPuppet.PartConfig();
-    public JobPuppet.PartConfig lleg = new JobPuppet.PartConfig();
-    public JobPuppet.PartConfig rleg = new JobPuppet.PartConfig();
+    public JobPuppet.PartConfig head = new JobPuppet.PartConfig(this);
+    public JobPuppet.PartConfig larm = new JobPuppet.PartConfig(this);
+    public JobPuppet.PartConfig rarm = new JobPuppet.PartConfig(this);
+    public JobPuppet.PartConfig body = new JobPuppet.PartConfig(this);
+    public JobPuppet.PartConfig lleg = new JobPuppet.PartConfig(this);
+    public JobPuppet.PartConfig rleg = new JobPuppet.PartConfig(this);
 
     public boolean enabled = false;
     public float rotationX, rotationY, rotationZ;
