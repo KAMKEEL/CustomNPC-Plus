@@ -4,7 +4,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.util.MathHelper;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.controllers.data.PlayerModelData;
@@ -47,37 +46,37 @@ public class MixinModelRenderer {
         if (modelData.enabled) {
             JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head,modelData.body,modelData.larm,modelData.rarm,modelData.lleg,modelData.rleg};
 
-            for (int i = 0; i < partConfigs.length; i++) {
-                if (isPart(partConfigs[i])) {
-                    this.rotateAngleX = partConfigs[i].prevRotations[0];
-                    this.rotateAngleY = partConfigs[i].prevRotations[1];
-                    this.rotateAngleZ = partConfigs[i].prevRotations[2];
-                    this.setInterpolatedAngles(partConfigs[i]);
-                    this.addInterpolatedOffset(partConfigs[i]);
-                    partConfigs[i].prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+            for (JobPuppet.PartConfig partConfig : partConfigs) {
+                if (isPart(partConfig)) {
+                    this.rotateAngleX = partConfig.prevRotations[0];
+                    this.rotateAngleY = partConfig.prevRotations[1];
+                    this.rotateAngleZ = partConfig.prevRotations[2];
+                    this.setInterpolatedAngles(partConfig);
+                    this.addInterpolatedOffset(partConfig);
+                    partConfig.prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
                 }
             }
         }
     }
 
     public String getPartName(ModelRenderer renderer) {
-        if (renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedHead
-                || renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedHeadwear) {
+        if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
+                || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
             return "head";
         }
-        if (renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedBody) {
+        if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
             return "body";
         }
-        if (renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedRightArm) {
+        if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
             return "rarm";
         }
-        if (renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedLeftArm) {
+        if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
             return "larm";
         }
-        if (renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedRightLeg) {
+        if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
             return "rleg";
         }
-        if (renderer == ((ModelBiped) ((ModelRenderer)renderer).baseModel).bipedLeftLeg) {
+        if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
             return "lleg";
         }
 
@@ -85,28 +84,28 @@ public class MixinModelRenderer {
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
             Object m = renderer.baseModel;
 
-            if (renderer == (ModelRenderer) ModelBipedBody.getField("bipedHeadwear").get(m)
-                    || renderer == (ModelRenderer) ModelBipedBody.getField("bipedHead").get(m)) {
+            if (renderer == ModelBipedBody.getField("bipedHeadwear").get(m)
+                    || renderer == ModelBipedBody.getField("bipedHead").get(m)) {
                 return "head";
             }
-            if (renderer == (ModelRenderer) ModelBipedBody.getField("B1").get(m)
-                    || renderer == (ModelRenderer) ModelBipedBody.getField("bipedBody").get(m)) {
+            if (renderer == ModelBipedBody.getField("B1").get(m)
+                    || renderer == ModelBipedBody.getField("bipedBody").get(m)) {
                 return "body";
             }
-            if (renderer == (ModelRenderer) ModelBipedBody.getField("RA").get(m)
-                    || renderer == (ModelRenderer) ModelBipedBody.getField("bipedRightArm").get(m)) {
+            if (renderer == ModelBipedBody.getField("RA").get(m)
+                    || renderer == ModelBipedBody.getField("bipedRightArm").get(m)) {
                 return "rarm";
             }
-            if (renderer == (ModelRenderer) ModelBipedBody.getField("LA").get(m)
-                    || renderer == (ModelRenderer) ModelBipedBody.getField("bipedLeftArm").get(m)) {
+            if (renderer == ModelBipedBody.getField("LA").get(m)
+                    || renderer == ModelBipedBody.getField("bipedLeftArm").get(m)) {
                 return "larm";
             }
-            if (renderer == (ModelRenderer) ModelBipedBody.getField("RL").get(m)
-                    || renderer == (ModelRenderer) ModelBipedBody.getField("bipedRightLeg").get(m)) {
+            if (renderer == ModelBipedBody.getField("RL").get(m)
+                    || renderer == ModelBipedBody.getField("bipedRightLeg").get(m)) {
                 return "rleg";
             }
-            if (renderer == (ModelRenderer) ModelBipedBody.getField("LL").get(m)
-                    || renderer == (ModelRenderer) ModelBipedBody.getField("bipedLeftLeg").get(m)) {
+            if (renderer == ModelBipedBody.getField("LL").get(m)
+                    || renderer == ModelBipedBody.getField("bipedLeftLeg").get(m)) {
                 return "lleg";
             }
         } catch (Exception ignored) {}
@@ -128,22 +127,22 @@ public class MixinModelRenderer {
             modelPart.partialRotationTick = ClientEventHandler.partialRenderTick;
             if (modelPart.interpolate) {
                 if (modelPart.rotationX * pi - this.rotateAngleX != 0)
-                    this.rotateAngleX = (modelPart.rotationX * pi - this.rotateAngleX) * modelPart.animRate / 10f + this.rotateAngleX;
+                    this.rotateAngleX = (modelPart.rotationX * pi - this.rotateAngleX) * Math.abs(modelPart.animRate) / 10f + this.rotateAngleX;
                 if (modelPart.rotationY * pi - this.rotateAngleY != 0)
-                    this.rotateAngleY = (modelPart.rotationY * pi - this.rotateAngleY) * modelPart.animRate / 10f + this.rotateAngleY;
+                    this.rotateAngleY = (modelPart.rotationY * pi - this.rotateAngleY) * Math.abs(modelPart.animRate) / 10f + this.rotateAngleY;
                 if (modelPart.rotationZ * pi - this.rotateAngleZ != 0)
-                    this.rotateAngleZ = (modelPart.rotationZ * pi - this.rotateAngleZ) * modelPart.animRate / 10f + this.rotateAngleZ;
+                    this.rotateAngleZ = (modelPart.rotationZ * pi - this.rotateAngleZ) * Math.abs(modelPart.animRate) / 10f + this.rotateAngleZ;
             } else {
                 int directionX = Float.compare(modelPart.rotationX * pi, this.rotateAngleX);
-                this.rotateAngleX += directionX * modelPart.animRate / 10f;
+                this.rotateAngleX += directionX * Math.abs(modelPart.animRate) / 10f;
                 this.rotateAngleX = directionX == 1 ?
                         Math.min(modelPart.rotationX * pi,this.rotateAngleX) : Math.max(modelPart.rotationX * pi,this.rotateAngleX);
                 int directionY = Float.compare(modelPart.rotationY * pi, this.rotateAngleY);
-                this.rotateAngleY += directionY * modelPart.animRate / 10f;
+                this.rotateAngleY += directionY * Math.abs(modelPart.animRate) / 10f;
                 this.rotateAngleY = directionY == 1 ?
                         Math.min(modelPart.rotationY * pi,this.rotateAngleY) : Math.max(modelPart.rotationY * pi,this.rotateAngleY);
                 int directionZ = Float.compare(modelPart.rotationZ * pi, this.rotateAngleZ);
-                this.rotateAngleZ += directionZ * modelPart.animRate / 10f;
+                this.rotateAngleZ += directionZ * Math.abs(modelPart.animRate) / 10f;
                 this.rotateAngleZ = directionZ == 1 ?
                         Math.min(modelPart.rotationZ * pi,this.rotateAngleZ) : Math.max(modelPart.rotationZ * pi,this.rotateAngleZ);
             }
@@ -165,23 +164,23 @@ public class MixinModelRenderer {
         } else if (modelPart.partialPivotTick != ClientEventHandler.partialRenderTick)  {
             modelPart.partialPivotTick = ClientEventHandler.partialRenderTick;
             if (modelPart.interpolate) {
-                modelPart.destPivotX = (modelPart.pivotX - modelPart.destPivotX) * modelPart.animRate / 10f + modelPart.destPivotX;
+                modelPart.destPivotX = (modelPart.pivotX - modelPart.destPivotX) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotX;
                 this.rotationPointX = modelPart.originalPivotX + modelPart.destPivotX;
-                modelPart.destPivotY = (modelPart.pivotY - modelPart.destPivotY) * modelPart.animRate / 10f + modelPart.destPivotY;
+                modelPart.destPivotY = (modelPart.pivotY - modelPart.destPivotY) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotY;
                 this.rotationPointY = modelPart.originalPivotY + modelPart.destPivotY;
-                modelPart.destPivotZ = (modelPart.pivotZ - modelPart.destPivotZ) * modelPart.animRate / 10f + modelPart.destPivotZ;
+                modelPart.destPivotZ = (modelPart.pivotZ - modelPart.destPivotZ) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotZ;
                 this.rotationPointZ = modelPart.originalPivotZ + modelPart.destPivotZ;
             } else {
                 int directionX = Float.compare(modelPart.pivotX, this.rotationPointX);
-                this.rotationPointX = modelPart.originalPivotX + directionX * modelPart.animRate / 10f;
+                this.rotationPointX = modelPart.originalPivotX + directionX * Math.abs(modelPart.animRate) / 10f;
                 this.rotationPointX = directionX == 1 ?
                         Math.min(modelPart.originalPivotX + modelPart.pivotX,this.rotationPointX) : Math.max(modelPart.originalPivotX + modelPart.pivotX,this.rotationPointX);
                 int directionY = Float.compare(modelPart.pivotY, this.rotationPointY);
-                this.rotationPointY = modelPart.originalPivotY + directionY * modelPart.animRate / 10f;
+                this.rotationPointY = modelPart.originalPivotY + directionY * Math.abs(modelPart.animRate) / 10f;
                 this.rotationPointY = directionY == 1 ?
                         Math.min(modelPart.originalPivotY + modelPart.pivotY,this.rotationPointY) : Math.max(modelPart.originalPivotY + modelPart.pivotY,this.rotationPointY);
                 int directionZ = Float.compare(modelPart.pivotZ, this.rotationPointZ);
-                this.rotationPointZ = modelPart.originalPivotZ + directionZ * modelPart.animRate / 10f;
+                this.rotationPointZ = modelPart.originalPivotZ + directionZ * Math.abs(modelPart.animRate) / 10f;
                 this.rotationPointZ = directionZ == 1 ?
                         Math.min(modelPart.originalPivotZ + modelPart.pivotZ,this.rotationPointZ) : Math.max(modelPart.originalPivotZ + modelPart.pivotZ,this.rotationPointZ);
             }
