@@ -130,6 +130,12 @@ public class PlayerModelData implements IPlayerModelData {
         this.animRate = animRate;
     }
 
+    public void allEnabled(boolean enabled) {
+        for (int i = 0; i < 6; i++) {
+            this.getPart(i).setEnabled(enabled);
+        }
+    }
+
     public void allAnimated(boolean animated) {
         for (int i = 0; i < 6; i++) {
             this.getPart(i).setAnimated(animated);
