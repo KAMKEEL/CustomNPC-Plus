@@ -1,6 +1,7 @@
 package noppes.npcs.roles;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IModelPart;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
@@ -15,11 +16,6 @@ public class JobPuppet extends JobInterface{
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
 	public boolean whileMoving = false;
-	public boolean fullAngles = false;
-
-	public boolean animate = false;
-	public float animRate = 1.0F;
-	public boolean interpolate = true;
 
 	public JobPuppet(EntityNPCInterface npc) {
 		super(npc);
@@ -37,11 +33,6 @@ public class JobPuppet extends JobInterface{
 		compound.setBoolean("PuppetStanding", whileStanding);
 		compound.setBoolean("PuppetAttacking", whileAttacking);
 		compound.setBoolean("PuppetMoving", whileMoving);
-		compound.setBoolean("PuppetFullAngles", fullAngles);
-
-		compound.setBoolean("PuppetInterpolate", interpolate);
-		compound.setBoolean("PuppetAnimate", animate);
-		compound.setFloat("PuppetAnimSpeed", animRate);
 		return compound;
 	}
 
@@ -57,15 +48,6 @@ public class JobPuppet extends JobInterface{
 		whileStanding = compound.getBoolean("PuppetStanding");
 		whileAttacking = compound.getBoolean("PuppetAttacking");
 		whileMoving = compound.getBoolean("PuppetMoving");
-		fullAngles = compound.getBoolean("PuppetFullAngles");
-
-		if (!compound.hasKey("PuppetInterpolate")) {
-			interpolate = true;
-		} else {
-			interpolate = compound.getBoolean("PuppetInterpolate");
-		}
-		animate = compound.getBoolean("PuppetAnimate");
-		animRate = compound.getFloat("PuppetAnimSpeed");
 	}
 	
 	@Override
@@ -88,13 +70,18 @@ public class JobPuppet extends JobInterface{
 		return false;
 	}
 	
-	public static class PartConfig {
+	public static class PartConfig implements IModelPart {
 		public float rotationX = 0f;
 		public float rotationY = 0f;
 		public float rotationZ = 0f;
 		public float pivotX = 0f;
 		public float pivotY = 0f;
 		public float pivotZ = 0f;
+
+		public boolean fullAngles = false;
+		public boolean animate = false;
+		public float animRate = 1.0F;
+		public boolean interpolate = true;
 
 		//Client-sided use
 		public float[] prevRotations = new float[]{0,0,0};
@@ -112,6 +99,11 @@ public class JobPuppet extends JobInterface{
 			compound.setFloat("PivotZ", pivotZ);
 
 			compound.setBoolean("Disabled", disabled);
+			compound.setBoolean("PuppetFullAngles", fullAngles);
+
+			compound.setBoolean("PuppetInterpolate", interpolate);
+			compound.setBoolean("PuppetAnimate", animate);
+			compound.setFloat("PuppetAnimSpeed", animRate);
 			return compound;
 		}
 		
@@ -124,6 +116,115 @@ public class JobPuppet extends JobInterface{
 			pivotZ = compound.getFloat("PivotZ");
 
 			disabled = compound.getBoolean("Disabled");
+			fullAngles = compound.getBoolean("PuppetFullAngles");
+
+			if (!compound.hasKey("PuppetInterpolate")) {
+				interpolate = true;
+			} else {
+				interpolate = compound.getBoolean("PuppetInterpolate");
+			}
+			animate = compound.getBoolean("PuppetAnimate");
+			animRate = compound.getFloat("PuppetAnimSpeed");
+		}
+
+		public void setEnabled(boolean bo) {
+			this.disabled = !bo;
+		}
+
+		public boolean isEnabled() {
+			return !this.disabled;
+		}
+
+		public void setAnimated(boolean animated) {
+			this.animate = animated;
+		}
+
+		public boolean isAnimated() {
+			return this.animate;
+		}
+
+		public void setInterpolated(boolean interpolate) {
+			this.interpolate = interpolate;
+		}
+
+		public boolean isInterpolated() {
+			return this.interpolate;
+		}
+
+		public void setFullAngles(boolean fullAngles) {
+			this.fullAngles = fullAngles;
+		}
+
+		public boolean fullAngles() {
+			return this.fullAngles;
+		}
+
+		public void setAnimRate(float animRate) {
+			this.animRate = animRate;
+		}
+
+		public float getAnimRate() {
+			return this.animRate;
+		}
+
+		public void setRotation(float rotationX, float rotationY, float rotationZ) {
+			this.setRotationX(rotationX);
+			this.setRotationY(rotationY);
+			this.setRotationZ(rotationZ);
+		}
+
+		public void setRotationX(float rotation) {
+			this.rotationX = rotation;
+		}
+
+		public void setRotationY(float rotation) {
+			this.rotationY = rotation;
+		}
+
+		public void setRotationZ(float rotation) {
+			this.rotationZ = rotation;
+		}
+
+		public float getRotationX() {
+			return this.rotationX;
+		}
+
+		public float getRotationY() {
+			return this.rotationY;
+		}
+
+		public float getRotationZ() {
+			return this.rotationZ;
+		}
+
+		public void setOffset(float offsetX, float offsetY, float offsetZ) {
+			this.setOffsetX(offsetX);
+			this.setOffsetY(offsetY);
+			this.setOffsetZ(offsetZ);
+		}
+
+		public void setOffsetX(float offset) {
+			this.pivotX = offset;
+		}
+
+		public void setOffsetY(float offset) {
+			this.pivotY = offset;
+		}
+
+		public void setOffsetZ(float offset) {
+			this.pivotZ = offset;
+		}
+
+		public float getOffsetX() {
+			return this.pivotX;
+		}
+
+		public float getOffsetY() {
+			return this.pivotY;
+		}
+
+		public float getOffsetZ() {
+			return this.pivotZ;
 		}
 	}
 }

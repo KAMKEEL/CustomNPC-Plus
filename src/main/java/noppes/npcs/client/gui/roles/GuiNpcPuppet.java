@@ -42,17 +42,6 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 			addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
 			addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.whileAttacking?0:1));
 			addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
-			addButton(new GuiNpcButton(33, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.fullAngles ?0:1));
-			addLabel(new GuiNpcLabel(33, "puppet.fullAngles", guiLeft + 30, y + 5, 0xFFFFFF));
-
-			addButton(new GuiNpcButton(35, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, job.animate ? 0 : 1));
-			addLabel(new GuiNpcLabel(35, "puppet.animate", guiLeft + 30, y + 5, 0xFFFFFF));
-
-			if (job.animate) {
-				addTextField(new GuiNpcTextField(36, this, guiLeft + 120, y += 22, 40, 20, "" + job.animRate));
-				addLabel(new GuiNpcLabel(36, "puppet.animSpeed", guiLeft + 30, y + 5, 0xFFFFFF));
-				getTextField(36).floatsOnly = true;
-			}
 
 			y += 24;
 		}
@@ -178,13 +167,6 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
     	if(btn.id == 32){
     		job.whileAttacking = button.getValue() == 0;
     	}
-		if(btn.id == 33){
-			job.fullAngles = button.getValue() == 0;
-		}
-		if(btn.id == 35){
-			job.animate = button.getValue() == 0;
-			initGui();
-		}
     	if(btn.id == 170 || btn.id == 171 || btn.id == 172){
 			if(btn.id == 170){
 				part.rotationX = 0.0f;
@@ -210,10 +192,6 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 
 	@Override
 	public void unFocused(GuiNpcTextField textfield) {
-		if(textfield.id == 36) {
-			job.animRate = textfield.getFloat();
-		}
-
 		if(textfield.id == 15) {
 			part.pivotX = textfield.getFloat();
 		}
