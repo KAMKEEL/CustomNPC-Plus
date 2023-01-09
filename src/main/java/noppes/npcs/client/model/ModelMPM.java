@@ -49,7 +49,7 @@ public class ModelMPM extends ModelNPCMale{
 	// New
 	public ModelRenderer bipedBodywear;
 	public ModelRenderer bipedRightArmWear;
-	public ModelRenderer bipedLeftArmwear;
+	public ModelRenderer bipedLeftArmWear;
 	public ModelRenderer bipedRightLegWear;
 	public ModelRenderer bipedLeftLegWear;
 
@@ -120,9 +120,9 @@ public class ModelMPM extends ModelNPCMale{
 			this.solidRightArmWear = new ModelLimbWear(this,"arm","right","Alex");
 			this.bipedRightArm.addChild(this.solidRightArmWear);
 
-			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
-			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
-			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+			this.bipedLeftArmWear = new ModelScaleRenderer(this, 48, 48);
+			this.bipedLeftArmWear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
+			this.bipedLeftArm.addChild(this.bipedLeftArmWear);
 			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left","Alex");
 			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
@@ -142,9 +142,9 @@ public class ModelMPM extends ModelNPCMale{
 			this.solidRightArmWear = new ModelLimbWear(this,"arm","right","Steve");
 			this.bipedRightArm.addChild(this.solidRightArmWear);
 
-			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
-			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+			this.bipedLeftArmWear = new ModelScaleRenderer(this, 48, 48);
+			this.bipedLeftArmWear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+			this.bipedLeftArm.addChild(this.bipedLeftArmWear);
 			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left","Steve");
 			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
@@ -271,8 +271,8 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightArm.addChild(this.bipedRightArmWear);
 		this.solidRightArmWear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedRightArm.addChild(this.solidRightArmWear);
-		this.bipedLeftArmwear = new ModelScaleRenderer(this, 0, 0);
-		this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+		this.bipedLeftArmWear = new ModelScaleRenderer(this, 0, 0);
+		this.bipedLeftArm.addChild(this.bipedLeftArmWear);
 		this.solidLeftArmWear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedLeftArm.addChild(this.solidLeftArmWear);
 
@@ -481,8 +481,8 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedLeftLeg.rotateAngleY = 0;
 		this.bipedLeftLeg.rotateAngleZ = 0;
 
-		this.bipedLeftLegWear.rotationPointX = 1.9F;
-		this.bipedLeftLegWear.rotationPointY = 12;
+		this.bipedLeftLegWear.rotationPointX = 0;
+		this.bipedLeftLegWear.rotationPointY = 0;
 		this.bipedLeftLegWear.rotationPointZ = 0;
 		this.bipedLeftLegWear.rotateAngleX = 0;
 		this.bipedLeftLegWear.rotateAngleY = 0;
@@ -495,8 +495,8 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightLeg.rotateAngleY = 0;
 		this.bipedRightLeg.rotateAngleZ = 0;
 
-		this.bipedRightLegWear.rotationPointX = -1.9F;
-		this.bipedRightLegWear.rotationPointY = 12;
+		this.bipedRightLegWear.rotationPointX = 0;
+		this.bipedRightLegWear.rotationPointY = 0;
 		this.bipedRightLegWear.rotationPointZ = 0;
 		this.bipedRightLegWear.rotateAngleX = 0;
 		this.bipedRightLegWear.rotateAngleY = 0;
@@ -510,12 +510,12 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedLeftArm.rotateAngleY = 0;
 		this.bipedLeftArm.rotateAngleZ = 0;
 
-		this.bipedLeftArmwear.rotationPointX = 5;
-		this.bipedLeftArmwear.rotationPointY = 2;
-		this.bipedLeftArmwear.rotationPointZ = 0;
-		this.bipedLeftArmwear.rotateAngleX = 0;
-		this.bipedLeftArmwear.rotateAngleY = 0;
-		this.bipedLeftArmwear.rotateAngleZ = 0;
+		this.bipedLeftArmWear.rotationPointX = 0;
+		this.bipedLeftArmWear.rotationPointY = 0;
+		this.bipedLeftArmWear.rotationPointZ = 0;
+		this.bipedLeftArmWear.rotateAngleX = 0;
+		this.bipedLeftArmWear.rotateAngleY = 0;
+		this.bipedLeftArmWear.rotateAngleZ = 0;
 
 		this.bipedRightArm.rotationPointX = -5;
 		this.bipedRightArm.rotationPointY = 2;
@@ -524,8 +524,8 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightArm.rotateAngleY = 0;
 		this.bipedRightArm.rotateAngleZ = 0;
 
-		this.bipedRightArmWear.rotationPointX = -5;
-		this.bipedRightArmWear.rotationPointY = 2;
+		this.bipedRightArmWear.rotationPointX = 0;
+		this.bipedRightArmWear.rotationPointY = 0;
 		this.bipedRightArmWear.rotationPointZ = 0;
 		this.bipedRightArmWear.rotateAngleX = 0;
 		this.bipedRightArmWear.rotateAngleY = 0;
@@ -573,12 +573,10 @@ public class ModelMPM extends ModelNPCMale{
 			if(job.isActive()){
 				JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
 				ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
-				ModelRenderer[] armorModelParts = new ModelRenderer[]{bipedHeadwear,bipedBodywear,bipedLeftArmwear,bipedRightArmWear,bipedLeftLegWear,bipedRightLegWear};
 
 				for (int i = 0; i < partConfigs.length; i++) {
 					if (!partConfigs[i].disabled) {
 						this.setInterpolatedAngles(mainModelParts[i],partConfigs[i]);
-						this.setInterpolatedAngles(armorModelParts[i],partConfigs[i]);
 					}
 				}
 
@@ -623,7 +621,6 @@ public class ModelMPM extends ModelNPCMale{
 				for (int i = 0; i < partConfigs.length; i++) {
 					if (!partConfigs[i].disabled) {
 						this.addInterpolatedOffset(mainModelParts[i],partConfigs[i]);
-						this.addInterpolatedOffset(armorModelParts[i],partConfigs[i]);
 					}
 				}
 			}
@@ -669,17 +666,14 @@ public class ModelMPM extends ModelNPCMale{
 			renderer.rotationPointY += modelPart.pivotY;
 			renderer.rotationPointZ += modelPart.pivotZ;
 		} else {
+			renderer.rotationPointX += modelPart.prevPivots[0];
+			renderer.rotationPointY += modelPart.prevPivots[1];
+			renderer.rotationPointZ += modelPart.prevPivots[2];
 			if (modelPart.interpolate) {
-				renderer.rotationPointX += modelPart.prevPivots[0];
-				renderer.rotationPointY += modelPart.prevPivots[1];
-				renderer.rotationPointZ += modelPart.prevPivots[2];
 				modelPart.prevPivots[0] = (modelPart.pivotX - modelPart.prevPivots[0]) * modelPart.animRate / 10f + modelPart.prevPivots[0];
 				modelPart.prevPivots[1] = (modelPart.pivotY - modelPart.prevPivots[1]) * modelPart.animRate / 10f + modelPart.prevPivots[1];
 				modelPart.prevPivots[2] = (modelPart.pivotZ - modelPart.prevPivots[2]) * modelPart.animRate / 10f + modelPart.prevPivots[2];
 			} else {
-				renderer.rotationPointX += modelPart.prevPivots[0];
-				renderer.rotationPointY += modelPart.prevPivots[1];
-				renderer.rotationPointZ += modelPart.prevPivots[2];
 				int directionX = Float.compare(modelPart.pivotX, modelPart.prevPivots[0]);
 				modelPart.prevPivots[0] += directionX * modelPart.animRate / 10f;
 				modelPart.prevPivots[0] = directionX == 1 ?
@@ -719,6 +713,18 @@ public class ModelMPM extends ModelNPCMale{
 		}
 	}
 
+	public void copyAnglesPivots(ModelRenderer to, ModelRenderer from) {
+		if (to == null || from == null)
+			return;
+
+		to.rotateAngleX = from.rotateAngleX;
+		to.rotateAngleY = from.rotateAngleY;
+		to.rotateAngleZ = from.rotateAngleZ;
+		to.rotationPointX = from.rotationPointX;
+		to.rotationPointY = from.rotationPointY;
+		to.rotationPointZ = from.rotationPointZ;
+	}
+
 	private void renderHead(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
 		float x = 0;
@@ -732,6 +738,9 @@ public class ModelMPM extends ModelNPCMale{
 		}
 		ModelPartConfig head = entity.modelData.head;
 
+		this.copyAnglesPivots(headwear,bipedHead);
+		this.copyAnglesPivots(bipedHeadwear,bipedHead);
+
 		// Hide Head
 		((ModelScaleRenderer)this.bipedHead).isHidden = entity.modelData.hideHead == 1;
 
@@ -741,12 +750,6 @@ public class ModelMPM extends ModelNPCMale{
 				((ModelScaleRenderer)this.bipedHeadwear).render(f);
 			}
 			else if(entity.modelData.headwear == 2){
-				this.headwear.rotateAngleX = bipedHeadwear.rotateAngleX;
-				this.headwear.rotateAngleY = bipedHeadwear.rotateAngleY;
-				this.headwear.rotateAngleZ = bipedHeadwear.rotateAngleZ;
-				this.headwear.rotationPointX = bipedHeadwear.rotationPointX;
-				this.headwear.rotationPointY = bipedHeadwear.rotationPointY;
-				this.headwear.rotationPointZ = bipedHeadwear.rotationPointZ;
 				this.headwear.setConfig(head,x,y,z);
 				this.headwear.render(f);
 			}
@@ -839,28 +842,28 @@ public class ModelMPM extends ModelNPCMale{
 		// Hide Armwear
 		if(entity.modelData.armwear == 1){
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
 
 			this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
 			this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
 		}
 		else if(entity.modelData.armwear == 2){
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = true;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
 
 			this.solidRightArmWear.isHidden = true;
 			this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
 		}
 		else if(entity.modelData.armwear == 3){
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = true;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = true;
 
 			this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
 			this.solidLeftArmWear.isHidden = true;
 		}
 		else{
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = true;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = true;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = true;
 			this.solidRightArmWear.isHidden = true;
 			this.solidLeftArmWear.isHidden = true;
 		}
