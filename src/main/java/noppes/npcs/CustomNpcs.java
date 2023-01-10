@@ -30,7 +30,6 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -194,6 +193,7 @@ public class CustomNpcs {
         new QuestController();
         new PlayerDataController();
         new FactionController();
+        new TagController();
         new TransportController();
         new GlobalDataController();
         new SpawnController();
