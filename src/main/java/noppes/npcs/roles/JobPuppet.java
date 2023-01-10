@@ -85,6 +85,7 @@ public class JobPuppet extends JobInterface{
 		public boolean animate = false;
 		public float animRate = 1.0F;
 		public boolean interpolate = true;
+		public boolean disabled = false;
 
 		// vvv Client-sided use vvv
 		public float[] prevRotations = new float[]{0,0,0};
@@ -95,8 +96,12 @@ public class JobPuppet extends JobInterface{
 		public float destPivotX = 0f;
 		public float destPivotY = 0f;
 		public float destPivotZ = 0f;
+		public boolean setOriginalPivot;
+		public float originalPivotX;
+		public float originalPivotY;
+		public float originalPivotZ;
+		public EntityLivingBase npcModel;
 		// ^^^ Client-sided use ^^^
-		public boolean disabled = false;
 
 		public PartConfig(Object parent) {
 			this.parent = parent;
