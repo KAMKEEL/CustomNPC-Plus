@@ -23,7 +23,7 @@ import org.lwjgl.opengl.GL11;
 public class RenderCustomNpc extends RenderNPCHumanMale{
 
 	private RendererLivingEntity renderEntity;
-	private EntityLivingBase entity;
+	public static EntityLivingBase entity;
 
 	private ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
 

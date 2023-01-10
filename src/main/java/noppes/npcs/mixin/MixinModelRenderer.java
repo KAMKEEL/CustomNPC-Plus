@@ -6,6 +6,7 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
+import noppes.npcs.client.renderer.RenderCustomNpc;
 import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -73,7 +74,7 @@ public class MixinModelRenderer {
                 }
             }
         }
-        if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.jobInterface instanceof JobPuppet) {
+        if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.jobInterface instanceof JobPuppet && RenderCustomNpc.entity != null) {
             ClientEventHandler.undoRotations = new float[]{this.rotateAngleX,this.rotateAngleY,this.rotateAngleZ};
             ClientEventHandler.undoPivots = new float[]{this.rotationPointX,this.rotationPointY,this.rotationPointZ};
 
@@ -82,16 +83,12 @@ public class MixinModelRenderer {
             this.setModelParts(modelData);
             if (modelData.isActive()) {
                 JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
-                EntityLivingBase entityModel = ((EntityCustomNpc) ClientEventHandler.renderingNpc).modelData.getEntity(ClientEventHandler.renderingNpc);
-                if (entityModel == null || entityModel instanceof EntityNPCInterface) {
-                    return;
-                }
 
                 for (JobPuppet.PartConfig partConfig : partConfigs) {
                     if (isPart(partConfig)) {
-                        if (partConfig.npcModel == null || !partConfig.npcModel.getClass().equals(entityModel.getClass())) {
+                        if (partConfig.npcModel == null || !partConfig.npcModel.getClass().equals(RenderCustomNpc.entity.getClass())) {
                             partConfig.setOriginalPivot = false;
-                            partConfig.npcModel = entityModel;
+                            partConfig.npcModel = RenderCustomNpc.entity;
                         }
                         this.rotateAngleX = partConfig.prevRotations[0];
                         this.rotateAngleY = partConfig.prevRotations[1];
