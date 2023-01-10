@@ -188,19 +188,19 @@ public class MixinModelRenderer {
             this.rotationPointX = modelPart.originalPivotX + modelPart.pivotX;
             this.rotationPointY = modelPart.originalPivotY + modelPart.pivotY;
             this.rotationPointZ = modelPart.originalPivotZ + modelPart.pivotZ;
+            modelPart.prevPivots[0] = modelPart.pivotX;
+            modelPart.prevPivots[1] = modelPart.pivotY;
+            modelPart.prevPivots[2] = modelPart.pivotZ;
         } else if (modelPart.partialPivotTick != ClientEventHandler.partialRenderTick)  {
             modelPart.partialPivotTick = ClientEventHandler.partialRenderTick;
+            this.rotationPointX = modelPart.originalPivotX + modelPart.prevPivots[0];
+            this.rotationPointY = modelPart.originalPivotY + modelPart.prevPivots[1];
+            this.rotationPointZ = modelPart.originalPivotZ + modelPart.prevPivots[2];
             if (modelPart.interpolate) {
-                modelPart.destPivotX = (modelPart.pivotX - modelPart.destPivotX) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotX;
-                this.rotationPointX = modelPart.originalPivotX + modelPart.destPivotX;
-                modelPart.destPivotY = (modelPart.pivotY - modelPart.destPivotY) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotY;
-                this.rotationPointY = modelPart.originalPivotY + modelPart.destPivotY;
-                modelPart.destPivotZ = (modelPart.pivotZ - modelPart.destPivotZ) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotZ;
-                this.rotationPointZ = modelPart.originalPivotZ + modelPart.destPivotZ;
+                modelPart.prevPivots[0] = (modelPart.pivotX - modelPart.prevPivots[0]) * Math.abs(modelPart.animRate) / 10f + modelPart.prevPivots[0];
+                modelPart.prevPivots[1] = (modelPart.pivotY - modelPart.prevPivots[1]) * Math.abs(modelPart.animRate) / 10f + modelPart.prevPivots[1];
+                modelPart.prevPivots[2] = (modelPart.pivotZ - modelPart.prevPivots[2]) * Math.abs(modelPart.animRate) / 10f + modelPart.prevPivots[2];
             } else {
-                this.rotationPointX = modelPart.originalPivotX + modelPart.prevPivots[0];
-                this.rotationPointY = modelPart.originalPivotY + modelPart.prevPivots[1];
-                this.rotationPointZ = modelPart.originalPivotZ + modelPart.prevPivots[2];
                 int directionX = Float.compare(modelPart.pivotX, modelPart.prevPivots[0]);
                 modelPart.prevPivots[0] += directionX * modelPart.animRate / 10f;
                 modelPart.prevPivots[0] = directionX == 1 ?

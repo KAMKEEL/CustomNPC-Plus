@@ -93,9 +93,6 @@ public class JobPuppet extends JobInterface{
 
 		public float partialRotationTick = 0f;
 		public float partialPivotTick = 0f;
-		public float destPivotX = 0f;
-		public float destPivotY = 0f;
-		public float destPivotZ = 0f;
 		public boolean setOriginalPivot;
 		public float originalPivotX;
 		public float originalPivotY;
