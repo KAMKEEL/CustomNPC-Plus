@@ -6,6 +6,7 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
+import noppes.npcs.client.renderer.RenderCustomNpc;
 import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -73,26 +74,17 @@ public class MixinModelRenderer {
                 }
             }
         }
-        if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.jobInterface instanceof JobPuppet) {
-            ClientEventHandler.undoRotations = new float[]{this.rotateAngleX,this.rotateAngleY,this.rotateAngleZ};
-            ClientEventHandler.undoPivots = new float[]{this.rotationPointX,this.rotationPointY,this.rotationPointZ};
-
+        if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.jobInterface instanceof JobPuppet && RenderCustomNpc.renderEntity != null) {
             this.partName = this.getPartName((ModelRenderer) (Object) this, this.partNames);
             JobPuppet modelData = (JobPuppet) ClientEventHandler.renderingNpc.jobInterface;
             this.setModelParts(modelData);
             if (modelData.isActive()) {
                 JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
-                EntityLivingBase entityModel = ((EntityCustomNpc) ClientEventHandler.renderingNpc).modelData.getEntity(ClientEventHandler.renderingNpc);
-                if (entityModel == null || entityModel instanceof EntityNPCInterface) {
-                    return;
-                }
+                ClientEventHandler.undoRotations = new float[]{this.rotateAngleX,this.rotateAngleY,this.rotateAngleZ};
+                ClientEventHandler.undoPivots = new float[]{this.rotationPointX,this.rotationPointY,this.rotationPointZ};
 
                 for (JobPuppet.PartConfig partConfig : partConfigs) {
                     if (isPart(partConfig)) {
-                        if (partConfig.npcModel == null || !partConfig.npcModel.getClass().equals(entityModel.getClass())) {
-                            partConfig.setOriginalPivot = false;
-                            partConfig.npcModel = entityModel;
-                        }
                         this.rotateAngleX = partConfig.prevRotations[0];
                         this.rotateAngleY = partConfig.prevRotations[1];
                         this.rotateAngleZ = partConfig.prevRotations[2];
@@ -180,30 +172,23 @@ public class MixinModelRenderer {
     }
 
     public void addInterpolatedOffset(JobPuppet.PartConfig modelPart) {
-        if (!modelPart.setOriginalPivot) {
-            modelPart.setOriginalPivot = true;
-            modelPart.originalPivotX = this.rotationPointX;
-            modelPart.originalPivotY = this.rotationPointY;
-            modelPart.originalPivotZ = this.rotationPointZ;
-        }
-
         if (!modelPart.animate) {
-            this.rotationPointX = modelPart.originalPivotX + modelPart.pivotX;
-            this.rotationPointY = modelPart.originalPivotY + modelPart.pivotY;
-            this.rotationPointZ = modelPart.originalPivotZ + modelPart.pivotZ;
+            this.rotationPointX = ClientEventHandler.undoPivots[0] + modelPart.pivotX;
+            this.rotationPointY = ClientEventHandler.undoPivots[1] + modelPart.pivotY;
+            this.rotationPointZ = ClientEventHandler.undoPivots[2] + modelPart.pivotZ;
         } else if (modelPart.partialPivotTick != ClientEventHandler.partialRenderTick)  {
             modelPart.partialPivotTick = ClientEventHandler.partialRenderTick;
             if (modelPart.interpolate) {
                 modelPart.destPivotX = (modelPart.pivotX - modelPart.destPivotX) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotX;
-                this.rotationPointX = modelPart.originalPivotX + modelPart.destPivotX;
+                this.rotationPointX = ClientEventHandler.undoPivots[0] + modelPart.destPivotX;
                 modelPart.destPivotY = (modelPart.pivotY - modelPart.destPivotY) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotY;
-                this.rotationPointY = modelPart.originalPivotY + modelPart.destPivotY;
+                this.rotationPointY = ClientEventHandler.undoPivots[1] + modelPart.destPivotY;
                 modelPart.destPivotZ = (modelPart.pivotZ - modelPart.destPivotZ) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotZ;
-                this.rotationPointZ = modelPart.originalPivotZ + modelPart.destPivotZ;
+                this.rotationPointZ = ClientEventHandler.undoPivots[2] + modelPart.destPivotZ;
             } else {
-                this.rotationPointX = modelPart.originalPivotX + modelPart.prevPivots[0];
-                this.rotationPointY = modelPart.originalPivotY + modelPart.prevPivots[1];
-                this.rotationPointZ = modelPart.originalPivotZ + modelPart.prevPivots[2];
+                this.rotationPointX = ClientEventHandler.undoPivots[0] + modelPart.prevPivots[0];
+                this.rotationPointY = ClientEventHandler.undoPivots[1] + modelPart.prevPivots[1];
+                this.rotationPointZ = ClientEventHandler.undoPivots[2] + modelPart.prevPivots[2];
                 int directionX = Float.compare(modelPart.pivotX, modelPart.prevPivots[0]);
                 modelPart.prevPivots[0] += directionX * modelPart.animRate / 10f;
                 modelPart.prevPivots[0] = directionX == 1 ?
