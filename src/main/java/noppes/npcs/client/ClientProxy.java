@@ -66,14 +66,7 @@ import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.custom.GuiCustom;
-import noppes.npcs.client.gui.global.GuiNPCManageBanks;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
-import noppes.npcs.client.gui.global.GuiNPCManageFactions;
-import noppes.npcs.client.gui.global.GuiNPCManageLinkedNpc;
-import noppes.npcs.client.gui.global.GuiNPCManageQuest;
-import noppes.npcs.client.gui.global.GuiNPCManageTransporters;
-import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
-import noppes.npcs.client.gui.global.GuiNpcQuestReward;
+import noppes.npcs.client.gui.global.*;
 import noppes.npcs.client.gui.mainmenu.GuiNPCGlobalMainMenu;
 import noppes.npcs.client.gui.mainmenu.GuiNPCInv;
 import noppes.npcs.client.gui.mainmenu.GuiNpcAI;
@@ -321,6 +314,9 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.ManageFactions)
 			return new GuiNPCManageFactions(npc);
+
+		else if (gui == EnumGuiType.ManageTags)
+			return new GuiNPCManageTags(npc);
 
 		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);

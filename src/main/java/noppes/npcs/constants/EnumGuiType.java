@@ -5,6 +5,7 @@ public enum EnumGuiType {
 	MainMenuInv,
 	MainMenuStats,
 	ManageFactions,
+	ManageTags,
 	MainMenuAdvanced,
 	MainMenuGlobal,
 	PlayerBankSmall,
