@@ -2,7 +2,6 @@ package noppes.npcs.mixin;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.Client;
@@ -75,6 +74,9 @@ public class MixinModelRenderer {
             }
         }
         if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.jobInterface instanceof JobPuppet) {
+            ClientEventHandler.undoRotations = new float[]{this.rotateAngleX,this.rotateAngleY,this.rotateAngleZ};
+            ClientEventHandler.undoPivots = new float[]{this.rotationPointX,this.rotationPointY,this.rotationPointZ};
+
             this.partName = this.getPartName((ModelRenderer) (Object) this, this.partNames);
             JobPuppet modelData = (JobPuppet) ClientEventHandler.renderingNpc.jobInterface;
             this.setModelParts(modelData);
@@ -100,6 +102,24 @@ public class MixinModelRenderer {
                     }
                 }
             }
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Inject(method = "render", at = @At(value = "TAIL"))
+    private void originalRotations(float p_78785_1_, CallbackInfo callbackInfo)
+    {
+        if (ClientEventHandler.undoRotations != null) {
+            this.rotateAngleX = ClientEventHandler.undoRotations[0];
+            this.rotateAngleY = ClientEventHandler.undoRotations[1];
+            this.rotateAngleZ = ClientEventHandler.undoRotations[2];
+            ClientEventHandler.undoRotations = null;
+        }
+        if (ClientEventHandler.undoPivots != null) {
+            this.rotationPointX = ClientEventHandler.undoPivots[0];
+            this.rotationPointY = ClientEventHandler.undoPivots[1];
+            this.rotationPointZ = ClientEventHandler.undoPivots[2];
+            ClientEventHandler.undoPivots = null;
         }
     }
 

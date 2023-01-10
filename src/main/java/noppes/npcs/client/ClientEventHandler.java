@@ -31,6 +31,9 @@ public class ClientEventHandler {
     public static EntityPlayer renderingPlayer;
     public static RendererLivingEntity renderer;
 
+    public static float[] undoRotations = new float[]{0,0,0};
+    public static float[] undoPivots = new float[]{0,0,0};
+
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
         if (Minecraft.getMinecraft().currentScreen != null)
