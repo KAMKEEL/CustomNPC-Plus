@@ -1,5 +1,6 @@
 package noppes.npcs.roles;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IModelPart;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -72,6 +73,7 @@ public class JobPuppet extends JobInterface{
 	
 	public static class PartConfig implements IModelPart {
 		public Object parent;
+		public EntityLivingBase npcModel;
 
 		public float rotationX = 0f;
 		public float rotationY = 0f;

@@ -4,9 +4,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.controllers.data.PlayerModelData;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,7 +16,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.Map;
 
 @Mixin(value = ModelRenderer.class)
 public class MixinModelRenderer {
@@ -25,96 +29,98 @@ public class MixinModelRenderer {
     @Shadow public float rotateAngleY;
     @Shadow public float rotateAngleZ;
 
-    HashMap<JobPuppet.PartConfig,String> partNames = new HashMap<>();
+    HashMap<JobPuppet.PartConfig,String> modelNameMap = new HashMap<>();
     String partName = "";
+    HashMap<String,String[]> partNames = new HashMap<>();
 
     @SideOnly(Side.CLIENT)
     @Inject(method = "render", at = @At(value = "HEAD"))
     private void puppetRotations(float p_78785_1_, CallbackInfo callbackInfo)
     {
-        if (ClientEventHandler.renderingPlayer == null) {
-            return;
+        if (partNames.isEmpty()) {
+            String[] headNames = new String[]{"bipedHead","bipedHeadwear","head","Head","bipedHeadAll",
+                    "bipedHeadg","bipedHeadt","bipedHeadgh","bipedHeadv","bipedHeadb","bipedHeadt2"};
+            String[] bodyNames = new String[]{"bipedBody","B1","body","UpperBody","Body1","BodyBase"};
+            String[] larmNames = new String[]{"bipedLeftArm","LA","leftarm","ArmL","Arm1L","ArmL1"};
+            String[] rarmNames = new String[]{"bipedRightArm","RA","rightarm","ArmR","Arm1R","ArmR1"};
+            String[] llegNames = new String[]{"bipedLeftLeg","LL","leftleg","LegL","Leg1L","LegL1"};
+            String[] rlegNames = new String[]{"bipedRightLeg","RL","rightleg","LegR","Leg1R","LegR1"};
+
+            partNames.put("head", headNames);
+            partNames.put("body", bodyNames);
+            partNames.put("larm", larmNames);
+            partNames.put("rarm", rarmNames);
+            partNames.put("lleg", llegNames);
+            partNames.put("rleg", rlegNames);
         }
 
-        if (!Client.playerModelData.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
-            return;
+        if (ClientEventHandler.renderingPlayer != null && Client.playerModelData.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
+            this.partName = this.getPartName((ModelRenderer) (Object) this, this.partNames);
+            PlayerModelData modelData = Client.playerModelData.get(ClientEventHandler.renderingPlayer.getUniqueID());
+            this.setModelParts(modelData);
+            if (modelData.enabled) {
+                JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
+
+                for (JobPuppet.PartConfig partConfig : partConfigs) {
+                    if (isPart(partConfig)) {
+                        this.rotateAngleX = partConfig.prevRotations[0];
+                        this.rotateAngleY = partConfig.prevRotations[1];
+                        this.rotateAngleZ = partConfig.prevRotations[2];
+                        this.setInterpolatedAngles(partConfig);
+                        this.addInterpolatedOffset(partConfig);
+                        partConfig.prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+                    }
+                }
+            }
         }
+        if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.jobInterface instanceof JobPuppet) {
+            this.partName = this.getPartName((ModelRenderer) (Object) this, this.partNames);
+            JobPuppet modelData = (JobPuppet) ClientEventHandler.renderingNpc.jobInterface;
+            this.setModelParts(modelData);
+            if (modelData.isActive()) {
+                JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
 
-        this.partName = this.getPartName((ModelRenderer)(Object)this);
-        PlayerModelData modelData = Client.playerModelData.get(ClientEventHandler.renderingPlayer.getUniqueID());
-        this.setModelParts(modelData);
-        if (modelData.enabled) {
-            JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head,modelData.body,modelData.larm,modelData.rarm,modelData.lleg,modelData.rleg};
-
-            for (JobPuppet.PartConfig partConfig : partConfigs) {
-                if (isPart(partConfig)) {
-                    this.rotateAngleX = partConfig.prevRotations[0];
-                    this.rotateAngleY = partConfig.prevRotations[1];
-                    this.rotateAngleZ = partConfig.prevRotations[2];
-                    this.setInterpolatedAngles(partConfig);
-                    this.addInterpolatedOffset(partConfig);
-                    partConfig.prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+                for (JobPuppet.PartConfig partConfig : partConfigs) {
+                    if (isPart(partConfig)) {
+                        EntityLivingBase entityModel = ((EntityCustomNpc) ClientEventHandler.renderingNpc).modelData.getEntity(ClientEventHandler.renderingNpc);
+                        if (partConfig.npcModel != entityModel) {
+                            partConfig.setOriginalPivot = false;
+                        }
+                        this.rotateAngleX = partConfig.prevRotations[0];
+                        this.rotateAngleY = partConfig.prevRotations[1];
+                        this.rotateAngleZ = partConfig.prevRotations[2];
+                        this.setInterpolatedAngles(partConfig);
+                        this.addInterpolatedOffset(partConfig);
+                        partConfig.prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+                        partConfig.npcModel = entityModel;
+                    }
                 }
             }
         }
     }
 
-    public String getPartName(ModelRenderer renderer) {
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
-                || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
-            return "head";
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
-            return "body";
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
-            return "rarm";
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
-            return "larm";
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
-            return "rleg";
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
-            return "lleg";
-        }
+    public String getPartName(ModelRenderer renderer, HashMap<String,String[]> partNames) {
+        Class<?> RenderClass = renderer.baseModel.getClass();
+        Object model = renderer.baseModel;
 
-        try {
-            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
-            Object m = renderer.baseModel;
-
-            if (renderer == ModelBipedBody.getField("bipedHeadwear").get(m)
-                    || renderer == ModelBipedBody.getField("bipedHead").get(m)) {
-                return "head";
+        for (Map.Entry<String,String[]> entry : partNames.entrySet()) {
+            String[] names = entry.getValue();
+            for (String partName : names) {
+                try {
+                    Field field = RenderClass.getDeclaredField(partName);
+                    field.setAccessible(true);
+                    if (renderer == field.get(model)) {
+                        return entry.getKey();
+                    }
+                } catch (Exception ignored) {}
             }
-            if (renderer == ModelBipedBody.getField("B1").get(m)
-                    || renderer == ModelBipedBody.getField("bipedBody").get(m)) {
-                return "body";
-            }
-            if (renderer == ModelBipedBody.getField("RA").get(m)
-                    || renderer == ModelBipedBody.getField("bipedRightArm").get(m)) {
-                return "rarm";
-            }
-            if (renderer == ModelBipedBody.getField("LA").get(m)
-                    || renderer == ModelBipedBody.getField("bipedLeftArm").get(m)) {
-                return "larm";
-            }
-            if (renderer == ModelBipedBody.getField("RL").get(m)
-                    || renderer == ModelBipedBody.getField("bipedRightLeg").get(m)) {
-                return "rleg";
-            }
-            if (renderer == ModelBipedBody.getField("LL").get(m)
-                    || renderer == ModelBipedBody.getField("bipedLeftLeg").get(m)) {
-                return "lleg";
-            }
-        } catch (Exception ignored) {}
+        }
 
         return "";
     }
 
     public boolean isPart(JobPuppet.PartConfig puppetPart) {
-        return !puppetPart.disabled && this.partName.equals(partNames.get(puppetPart));
+        return !puppetPart.disabled && this.partName.equals(modelNameMap.get(puppetPart));
     }
 
     public void setInterpolatedAngles(JobPuppet.PartConfig modelPart) {
@@ -187,12 +193,22 @@ public class MixinModelRenderer {
         }
     }
 
-    public void setModelParts(PlayerModelData modelData) {
-        partNames.put(modelData.head,"head");
-        partNames.put(modelData.body,"body");
-        partNames.put(modelData.rarm,"rarm");
-        partNames.put(modelData.larm,"larm");
-        partNames.put(modelData.rleg,"rleg");
-        partNames.put(modelData.lleg,"lleg");
+    public void setModelParts(Object modelData) {
+        if (modelData instanceof PlayerModelData) {
+            modelNameMap.put(((PlayerModelData) modelData).head, "head");
+            modelNameMap.put(((PlayerModelData) modelData).body, "body");
+            modelNameMap.put(((PlayerModelData) modelData).rarm, "rarm");
+            modelNameMap.put(((PlayerModelData) modelData).larm, "larm");
+            modelNameMap.put(((PlayerModelData) modelData).rleg, "rleg");
+            modelNameMap.put(((PlayerModelData) modelData).lleg, "lleg");
+        }
+        if (modelData instanceof JobPuppet) {
+            modelNameMap.put(((JobPuppet) modelData).head, "head");
+            modelNameMap.put(((JobPuppet) modelData).body, "body");
+            modelNameMap.put(((JobPuppet) modelData).rarm, "rarm");
+            modelNameMap.put(((JobPuppet) modelData).larm, "larm");
+            modelNameMap.put(((JobPuppet) modelData).rleg, "rleg");
+            modelNameMap.put(((JobPuppet) modelData).lleg, "lleg");
+        }
     }
 }

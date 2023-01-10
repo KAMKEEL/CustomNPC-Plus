@@ -2,16 +2,21 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.controllers.data.PlayerModelData;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobPuppet;
 import org.lwjgl.opengl.GL11;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +27,9 @@ public class ClientEventHandler {
     public static float partialHandTicks;
 
     public static float partialRenderTick;
+    public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
-    public static RenderPlayer renderer;
+    public static RendererLivingEntity renderer;
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
@@ -61,10 +67,24 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
+    public void onRenderEntity(RenderLivingEvent.Pre event) {
+        if (event.entity instanceof EntityNPCInterface) {
+            ClientEventHandler.renderingNpc = (EntityNPCInterface) event.entity;
+        }
+        ClientEventHandler.renderer = event.renderer;
+        ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+    }
+
+    @SubscribeEvent
+    public void onRenderEntity(RenderLivingEvent.Post event) {
+        if (event.entity instanceof EntityNPCInterface) {
+            ClientEventHandler.renderingNpc = null;
+        }
+    }
+
+    @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
         ClientEventHandler.renderingPlayer = event.entityPlayer;
-        ClientEventHandler.renderer = event.renderer;
-        ClientEventHandler.partialRenderTick = event.partialRenderTick;
     }
 
     @SubscribeEvent
