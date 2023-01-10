@@ -9,6 +9,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobPuppet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -79,12 +80,16 @@ public class MixinModelRenderer {
             this.setModelParts(modelData);
             if (modelData.isActive()) {
                 JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
+                EntityLivingBase entityModel = ((EntityCustomNpc) ClientEventHandler.renderingNpc).modelData.getEntity(ClientEventHandler.renderingNpc);
+                if (entityModel == null || entityModel instanceof EntityNPCInterface) {
+                    return;
+                }
 
                 for (JobPuppet.PartConfig partConfig : partConfigs) {
                     if (isPart(partConfig)) {
-                        EntityLivingBase entityModel = ((EntityCustomNpc) ClientEventHandler.renderingNpc).modelData.getEntity(ClientEventHandler.renderingNpc);
-                        if (partConfig.npcModel != entityModel) {
+                        if (partConfig.npcModel == null || !partConfig.npcModel.getClass().equals(entityModel.getClass())) {
                             partConfig.setOriginalPivot = false;
+                            partConfig.npcModel = entityModel;
                         }
                         this.rotateAngleX = partConfig.prevRotations[0];
                         this.rotateAngleY = partConfig.prevRotations[1];
@@ -92,7 +97,6 @@ public class MixinModelRenderer {
                         this.setInterpolatedAngles(partConfig);
                         this.addInterpolatedOffset(partConfig);
                         partConfig.prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-                        partConfig.npcModel = entityModel;
                     }
                 }
             }
@@ -177,18 +181,21 @@ public class MixinModelRenderer {
                 modelPart.destPivotZ = (modelPart.pivotZ - modelPart.destPivotZ) * Math.abs(modelPart.animRate) / 10f + modelPart.destPivotZ;
                 this.rotationPointZ = modelPart.originalPivotZ + modelPart.destPivotZ;
             } else {
-                int directionX = Float.compare(modelPart.pivotX, this.rotationPointX);
-                this.rotationPointX = modelPart.originalPivotX + directionX * Math.abs(modelPart.animRate) / 10f;
-                this.rotationPointX = directionX == 1 ?
-                        Math.min(modelPart.originalPivotX + modelPart.pivotX,this.rotationPointX) : Math.max(modelPart.originalPivotX + modelPart.pivotX,this.rotationPointX);
-                int directionY = Float.compare(modelPart.pivotY, this.rotationPointY);
-                this.rotationPointY = modelPart.originalPivotY + directionY * Math.abs(modelPart.animRate) / 10f;
-                this.rotationPointY = directionY == 1 ?
-                        Math.min(modelPart.originalPivotY + modelPart.pivotY,this.rotationPointY) : Math.max(modelPart.originalPivotY + modelPart.pivotY,this.rotationPointY);
-                int directionZ = Float.compare(modelPart.pivotZ, this.rotationPointZ);
-                this.rotationPointZ = modelPart.originalPivotZ + directionZ * Math.abs(modelPart.animRate) / 10f;
-                this.rotationPointZ = directionZ == 1 ?
-                        Math.min(modelPart.originalPivotZ + modelPart.pivotZ,this.rotationPointZ) : Math.max(modelPart.originalPivotZ + modelPart.pivotZ,this.rotationPointZ);
+                this.rotationPointX = modelPart.originalPivotX + modelPart.prevPivots[0];
+                this.rotationPointY = modelPart.originalPivotY + modelPart.prevPivots[1];
+                this.rotationPointZ = modelPart.originalPivotZ + modelPart.prevPivots[2];
+                int directionX = Float.compare(modelPart.pivotX, modelPart.prevPivots[0]);
+                modelPart.prevPivots[0] += directionX * modelPart.animRate / 10f;
+                modelPart.prevPivots[0] = directionX == 1 ?
+                        Math.min(modelPart.pivotX,modelPart.prevPivots[0]) : Math.max(modelPart.pivotX,modelPart.prevPivots[0]);
+                int directionY = Float.compare(modelPart.pivotY, modelPart.prevPivots[1]);
+                modelPart.prevPivots[1] += directionY * modelPart.animRate / 10f;
+                modelPart.prevPivots[1] = directionY == 1 ?
+                        Math.min(modelPart.pivotY,modelPart.prevPivots[1]) : Math.max(modelPart.pivotY,modelPart.prevPivots[1]);
+                int directionZ = Float.compare(modelPart.pivotZ, modelPart.prevPivots[2]);
+                modelPart.prevPivots[2] += directionZ * modelPart.animRate / 10f;
+                modelPart.prevPivots[2] = directionZ == 1 ?
+                        Math.min(modelPart.pivotZ,modelPart.prevPivots[2]) : Math.max(modelPart.pivotZ,modelPart.prevPivots[2]);
             }
         }
     }
