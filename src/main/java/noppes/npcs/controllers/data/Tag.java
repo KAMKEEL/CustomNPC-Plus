@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.ITag;
+import noppes.npcs.controllers.TagController;
 
 import java.util.UUID;
 
