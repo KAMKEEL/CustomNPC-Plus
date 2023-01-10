@@ -45,31 +45,8 @@ import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.containers.ContainerManageRecipes;
-import noppes.npcs.controllers.data.Bank;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.data.DialogCategory;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.DialogOption;
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.data.PlayerBankData;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.PlayerDialogData;
-import noppes.npcs.controllers.data.PlayerFactionData;
-import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.PlayerTransportData;
-import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.data.QuestCategory;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.data.RecipeCarpentry;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.data.TransportCategory;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.data.TransportLocation;
+import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
@@ -113,6 +90,14 @@ public class NoppesUtilServer {
 		Map<String,Integer> map = new HashMap<String,Integer>();
 		for(Faction faction : FactionController.getInstance().factions.values()){
 			map.put(faction.name, faction.id);
+		}
+		sendScrollData(player, map);
+	}
+
+	public static void sendTagDataAll(EntityPlayerMP player) {
+		Map<String,Integer> map = new HashMap<String,Integer>();
+		for(Tag tag : TagController.getInstance().tags.values()){
+			map.put(tag.name, tag.id);
 		}
 		sendScrollData(player, map);
 	}

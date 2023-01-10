@@ -347,6 +347,9 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
 		}
+		else if(type == EnumPacketServer.TagsGet){
+			NoppesUtilServer.sendTagDataAll(player);
+		}
 		else if(type == EnumPacketServer.DialogGet){
 			Dialog dialog = DialogController.instance.dialogs.get(buffer.readInt());
 			if(dialog != null){
@@ -370,6 +373,12 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = new NBTTagCompound();
 			Faction faction = FactionController.getInstance().get(buffer.readInt());
 			faction.writeNBT(compound);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if(type == EnumPacketServer.TagGet){
+			NBTTagCompound compound = new NBTTagCompound();
+			Tag tag = TagController.getInstance().get(buffer.readInt());
+			tag.writeNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 	}
@@ -682,6 +691,25 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			(new Faction()).writeNBT(compound);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if(type == EnumPacketServer.TagSet){
+			// npc.setFaction(buffer.readInt());
+		}
+		else if(type == EnumPacketServer.TagSave){
+			Tag tag = new Tag();
+			tag.readNBT(Server.readNBT(buffer));
+			TagController.getInstance().saveTag(tag);
+			NoppesUtilServer.sendTagDataAll(player);
+			NBTTagCompound compound = new NBTTagCompound();
+			tag.writeNBT(compound);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if(type == EnumPacketServer.TagRemove){
+			TagController.getInstance().delete(buffer.readInt());
+			NoppesUtilServer.sendTagDataAll(player);
+			NBTTagCompound compound = new NBTTagCompound();
+			(new Tag()).writeNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.PlayerDataGet){
