@@ -73,7 +73,6 @@ public class JobPuppet extends JobInterface{
 	
 	public static class PartConfig implements IModelPart {
 		public Object parent;
-		public EntityLivingBase npcModel;
 
 		public float rotationX = 0f;
 		public float rotationY = 0f;
@@ -96,10 +95,6 @@ public class JobPuppet extends JobInterface{
 		public float destPivotX = 0f;
 		public float destPivotY = 0f;
 		public float destPivotZ = 0f;
-		public boolean setOriginalPivot = false;
-		public float originalPivotX = 0f;
-		public float originalPivotY = 0f;
-		public float originalPivotZ = 0f;
 		// ^^^ Client-sided use ^^^
 		public boolean disabled = false;
 
