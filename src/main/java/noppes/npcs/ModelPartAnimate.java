@@ -22,6 +22,7 @@ public class ModelPartAnimate {
 
 	public NBTTagCompound writeNBT() {
 		NBTTagCompound compound = new NBTTagCompound();
+		compound.setBoolean("Enabled", enabled);
 		compound.setFloat("RotationX", rotationX);
 		compound.setFloat("RotationY", rotationY);
 		compound.setFloat("RotationZ", rotationZ);
@@ -38,6 +39,8 @@ public class ModelPartAnimate {
 	}
 
 	public void readNBT(NBTTagCompound compound) {
+		enabled = compound.getBoolean("Enabled");
+
 		rotationX = compound.getFloat("RotationX");
 		rotationY = compound.getFloat("RotationY");
 		rotationZ = compound.getFloat("RotationZ");
