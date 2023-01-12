@@ -27,6 +27,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
 
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.roles.PartConfig;
 import org.lwjgl.opengl.GL11;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;
@@ -569,7 +570,7 @@ public class ModelMPM extends ModelNPCMale{
 
 		JobPuppet job = npc.display.modelData;
 		if (job.isActive()) {
-			JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
+			PartConfig[] partConfigs = new PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
 			ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
 
 			for (int i = 0; i < partConfigs.length; i++) {
@@ -624,7 +625,7 @@ public class ModelMPM extends ModelNPCMale{
 		}
 	}
 
-	public void setInterpolatedAngles(ModelRenderer renderer, JobPuppet.PartConfig modelPart) {
+	public void setInterpolatedAngles(ModelRenderer renderer, PartConfig modelPart) {
 		renderer.rotateAngleX = modelPart.prevRotations[0];
 		renderer.rotateAngleY = modelPart.prevRotations[1];
 		renderer.rotateAngleZ = modelPart.prevRotations[2];
@@ -657,7 +658,7 @@ public class ModelMPM extends ModelNPCMale{
 		modelPart.prevRotations = new float[]{renderer.rotateAngleX,renderer.rotateAngleY,renderer.rotateAngleZ};
 	}
 
-	public void addInterpolatedOffset(ModelRenderer renderer, JobPuppet.PartConfig modelPart) {
+	public void addInterpolatedOffset(ModelRenderer renderer, PartConfig modelPart) {
 		if (!modelPart.animate) {
 			renderer.rotationPointX += modelPart.pivotX;
 			renderer.rotationPointY += modelPart.pivotY;

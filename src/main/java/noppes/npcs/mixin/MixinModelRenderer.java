@@ -11,6 +11,7 @@ import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobPuppet;
+import noppes.npcs.roles.PartConfig;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -42,15 +43,19 @@ public abstract class MixinModelRenderer {
     @Shadow public List childModels;
     @Shadow abstract void compileDisplayList(float p_78788_1_);
 
-    HashMap<JobPuppet.PartConfig,String> modelNameMap = new HashMap<>();
+    HashMap<PartConfig, String> modelNameMap = new HashMap<>();
     String partName = "";
     HashMap<String,String[]> partNames = new HashMap<>();
 
+    /**
+     * @author Someone
+     * @reason Because we need it
+     */
     @Overwrite
     @SideOnly(Side.CLIENT)
     public void render(float p_78785_1_)
     {
-        JobPuppet.PartConfig currentPart = null;
+        PartConfig currentPart = null;
 
         if (partNames.isEmpty()) {
             String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head","bipedHeadAll",
@@ -70,12 +75,12 @@ public abstract class MixinModelRenderer {
         }
         if (ClientEventHandler.renderingPlayer != null && Client.playerModelData.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
             PlayerModelData modelData = Client.playerModelData.get(ClientEventHandler.renderingPlayer.getUniqueID());
-            JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
+            PartConfig[] partConfigs = new PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
             this.partName = ClientEventHandler.getPartName((ModelRenderer) (Object) this, this.partNames);
             this.setModelParts(modelData);
             if (modelData.enabled) {
-                for (JobPuppet.PartConfig modelPart : partConfigs) {
-                    if (ClientEventHandler.isPart(modelNameMap,modelPart,this.partName)) {
+                for (PartConfig modelPart : partConfigs) {
+                    if (ClientEventHandler.isPart(modelNameMap, modelPart, this.partName)) {
                         this.rotateAngleX = modelPart.prevRotations[0];
                         this.rotateAngleY = modelPart.prevRotations[1];
                         this.rotateAngleZ = modelPart.prevRotations[2];
@@ -88,12 +93,12 @@ public abstract class MixinModelRenderer {
             }
         } else if (ClientEventHandler.renderingNpc != null) {
             JobPuppet modelData = ClientEventHandler.renderingNpc.display.modelData;
-            JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
+            PartConfig[] partConfigs = new PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
             this.partName = ClientEventHandler.getPartName((ModelRenderer) (Object) this, this.partNames);
             this.setModelParts(modelData);
             if (RenderCustomNpc.entity != null) {
                 if (modelData.isActive()) {
-                    for (JobPuppet.PartConfig modelPart : partConfigs) {
+                    for (PartConfig modelPart : partConfigs) {
                         if (ClientEventHandler.isPart(modelNameMap,modelPart,this.partName)) {
                             currentPart = modelPart;
                             this.addInterpolatedOffset(modelPart);
@@ -204,7 +209,7 @@ public abstract class MixinModelRenderer {
 
 
 
-    public void addInterpolatedAngles(JobPuppet.PartConfig modelPart) {
+    public void addInterpolatedAngles(PartConfig modelPart) {
         if (modelPart == null) {
             return;
         }
@@ -268,7 +273,7 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    public void addInterpolatedOffset(JobPuppet.PartConfig modelPart) {
+    public void addInterpolatedOffset(PartConfig modelPart) {
         if (modelPart == null) {
             return;
         }

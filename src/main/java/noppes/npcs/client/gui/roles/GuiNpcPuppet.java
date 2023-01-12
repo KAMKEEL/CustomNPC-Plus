@@ -8,7 +8,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.roles.JobPuppet;
-import noppes.npcs.roles.JobPuppet.PartConfig;
+import noppes.npcs.roles.PartConfig;
 
 public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, ITextfieldListener {
 

@@ -6,18 +6,18 @@ import noppes.npcs.Server;
 import noppes.npcs.api.handler.IPlayerModelData;
 import noppes.npcs.api.handler.data.IModelPart;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.roles.JobPuppet;
+import noppes.npcs.roles.PartConfig;
 
 public class PlayerModelData implements IPlayerModelData {
     public PlayerData parent;
     public final EntityPlayer player;
 
-    public JobPuppet.PartConfig head = new JobPuppet.PartConfig(this);
-    public JobPuppet.PartConfig larm = new JobPuppet.PartConfig(this);
-    public JobPuppet.PartConfig rarm = new JobPuppet.PartConfig(this);
-    public JobPuppet.PartConfig body = new JobPuppet.PartConfig(this);
-    public JobPuppet.PartConfig lleg = new JobPuppet.PartConfig(this);
-    public JobPuppet.PartConfig rleg = new JobPuppet.PartConfig(this);
+    public PartConfig head = new PartConfig(this);
+    public PartConfig larm = new PartConfig(this);
+    public PartConfig rarm = new PartConfig(this);
+    public PartConfig body = new PartConfig(this);
+    public PartConfig lleg = new PartConfig(this);
+    public PartConfig rleg = new PartConfig(this);
 
     public boolean enabled = false;
     public float rotationX, rotationY, rotationZ;

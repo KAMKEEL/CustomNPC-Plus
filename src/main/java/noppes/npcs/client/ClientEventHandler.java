@@ -15,6 +15,7 @@ import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobPuppet;
+import noppes.npcs.roles.PartConfig;
 import org.lwjgl.opengl.GL11;
 
 import java.lang.reflect.Field;
@@ -32,7 +33,7 @@ public class ClientEventHandler {
     public static EntityPlayer renderingPlayer;
     public static RendererLivingEntity renderer;
 
-    public static boolean isPart(HashMap<JobPuppet.PartConfig,String> modelNameMap, JobPuppet.PartConfig puppetPart, String partName) {
+    public static boolean isPart(HashMap<PartConfig, String> modelNameMap, PartConfig puppetPart, String partName) {
         return !puppetPart.disabled && partName.equals(modelNameMap.get(puppetPart));
     }
 
