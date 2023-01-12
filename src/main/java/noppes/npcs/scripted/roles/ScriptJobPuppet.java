@@ -10,7 +10,15 @@ public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	private JobPuppet job;
 	public ScriptJobPuppet(EntityNPCInterface npc){
 		super(npc);
-		this.job = (JobPuppet) npc.jobInterface;
+		this.job = npc.display.modelData;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.job.enabled = enabled;
+	}
+
+	public boolean enabled() {
+		return this.job.enabled;
 	}
 
 	public IModelPart getPart(int part) {

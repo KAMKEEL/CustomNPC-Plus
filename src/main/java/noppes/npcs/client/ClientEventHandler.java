@@ -2,6 +2,7 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -31,8 +32,50 @@ public class ClientEventHandler {
     public static EntityPlayer renderingPlayer;
     public static RendererLivingEntity renderer;
 
-    public static float[] undoRotations = new float[]{0,0,0};
-    public static float[] undoPivots = new float[]{0,0,0};
+    public static boolean isPart(HashMap<JobPuppet.PartConfig,String> modelNameMap, JobPuppet.PartConfig puppetPart, String partName) {
+        return !puppetPart.disabled && partName.equals(modelNameMap.get(puppetPart));
+    }
+
+    public static String getPartName(ModelRenderer renderer, HashMap<String,String[]> partNames) {
+        Class<?> RenderClass = renderer.baseModel.getClass();
+        Object model = renderer.baseModel;
+        String returnName = "";
+
+        while (returnName.isEmpty()) {
+            for (Field f : RenderClass.getDeclaredFields()) {
+                f.setAccessible(true);
+                try {
+                    if (renderer == f.get(model)) {
+                        int i = 0;
+                        break;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            for (Map.Entry<String, String[]> entry : partNames.entrySet()) {
+                String[] names = entry.getValue();
+                for (String partName : names) {
+                    try {
+                        Field field = RenderClass.getDeclaredField(partName);
+                        field.setAccessible(true);
+                        if (renderer == field.get(model)) {
+                            returnName = entry.getKey();
+                            break;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+
+            if (RenderClass == ModelBase.class || RenderClass.getSuperclass() == null) {
+                break;
+            }
+            RenderClass = RenderClass.getSuperclass();
+        }
+
+        return returnName;
+    }
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {

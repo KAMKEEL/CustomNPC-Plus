@@ -26,7 +26,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		this.parent = parent;
 		this.xOffset = 100;
 		ySize = 230;
-		job = (JobPuppet) npc.jobInterface;
+		job = npc.display.modelData;
 	}
 
     @Override

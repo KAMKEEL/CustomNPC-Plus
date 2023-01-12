@@ -1548,11 +1548,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			jobInterface.writeToNBT(bard);
 			compound.setTag("Bard", bard);
 		}
-		if(advanced.job == EnumJobType.Puppet){
-			NBTTagCompound bard = new NBTTagCompound();
-			jobInterface.writeToNBT(bard);
-			compound.setTag("Puppet", bard);
-		}
 		if(advanced.role == EnumRoleType.Companion){
 			NBTTagCompound bard = new NBTTagCompound();
 			roleInterface.writeToNBT(bard);
@@ -1587,10 +1582,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(advanced.job == EnumJobType.Bard){
 			NBTTagCompound bard = compound.getCompoundTag("Bard");
 			jobInterface.readFromNBT(bard);
-		}
-		if(advanced.job == EnumJobType.Puppet){
-			NBTTagCompound puppet = compound.getCompoundTag("Puppet");
-			jobInterface.readFromNBT(puppet);
 		}
 		if(advanced.role == EnumRoleType.Companion){
 			NBTTagCompound puppet = compound.getCompoundTag("Companion");

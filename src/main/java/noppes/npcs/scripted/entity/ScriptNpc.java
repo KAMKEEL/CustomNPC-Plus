@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.jobs.IJob;
+import noppes.npcs.api.jobs.IJobPuppet;
 import noppes.npcs.api.roles.IRole;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
@@ -354,6 +355,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.reset();
 	}
 
+	public IJobPuppet getModelData() {
+		return new ScriptJobPuppet(npc);
+	}
+
 	/**
 	 * @return Returns the npcs current role
 	 */
@@ -395,8 +400,6 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptJobGuard(npc);
 		else if(npc.advanced.job == EnumJobType.Healer)
 			return new ScriptJobHealer(npc);
-		else if(npc.advanced.job == EnumJobType.Puppet)
-			return new ScriptJobPuppet(npc);
 		else if(npc.advanced.job == EnumJobType.ItemGiver)
 			return new ScriptJobItemGiver(npc);
 		else if(npc.advanced.job == EnumJobType.Spawner)

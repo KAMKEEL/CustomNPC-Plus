@@ -567,61 +567,58 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.body.scaleY;
 		}
 
-		if(npc.advanced.job == EnumJobType.Puppet){
-			JobPuppet job = (JobPuppet) npc.jobInterface;
+		JobPuppet job = npc.display.modelData;
+		if (job.isActive()) {
+			JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
+			ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
 
-			if(job.isActive()){
-				JobPuppet.PartConfig[] partConfigs = new JobPuppet.PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
-				ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
-
-				for (int i = 0; i < partConfigs.length; i++) {
-					if (!partConfigs[i].disabled) {
-						this.setInterpolatedAngles(mainModelParts[i],partConfigs[i]);
-					}
+			for (int i = 0; i < partConfigs.length; i++) {
+				if (!partConfigs[i].disabled) {
+					this.setInterpolatedAngles(mainModelParts[i],partConfigs[i]);
 				}
+			}
 
-				this.bipedRightArm.rotationPointX =
-						-MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
-				this.bipedRightArm.rotationPointY =
-						MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
-						-MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
-				this.bipedRightArm.rotationPointZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleY);
+			this.bipedRightArm.rotationPointX =
+					-MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
+			this.bipedRightArm.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
+					-MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
+			this.bipedRightArm.rotationPointZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleY);
 
-				this.bipedLeftArm.rotationPointX =
-						MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
-				this.bipedLeftArm.rotationPointY =
-						MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
-						MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
-				this.bipedLeftArm.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
-						-MathHelper.sin(this.bipedBody.rotateAngleY);
+			this.bipedLeftArm.rotationPointX =
+					MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
+			this.bipedLeftArm.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
+					MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
+			this.bipedLeftArm.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
+					-MathHelper.sin(this.bipedBody.rotateAngleY);
 
-				this.bipedRightLeg.rotationPointX =
-						-MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-						-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-				this.bipedRightLeg.rotationPointY =
-						MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-				this.bipedRightLeg.rotationPointZ =
-						MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
+			this.bipedRightLeg.rotationPointX =
+					-MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedRightLeg.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedRightLeg.rotationPointZ =
+					MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
 
-				this.bipedLeftLeg.rotationPointX =
-						MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-						-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-				this.bipedLeftLeg.rotationPointY =
-						MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-				this.bipedLeftLeg.rotationPointZ =
-						-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
-						MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
+			this.bipedLeftLeg.rotationPointX =
+					MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedLeftLeg.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedLeftLeg.rotationPointZ =
+					-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
 
-				for (int i = 0; i < partConfigs.length; i++) {
-					if (!partConfigs[i].disabled) {
-						this.addInterpolatedOffset(mainModelParts[i],partConfigs[i]);
-					}
+			for (int i = 0; i < partConfigs.length; i++) {
+				if (!partConfigs[i].disabled) {
+					this.addInterpolatedOffset(mainModelParts[i],partConfigs[i]);
 				}
 			}
 		}

@@ -13,7 +13,8 @@ public class JobPuppet extends JobInterface{
 	public PartConfig body = new PartConfig(this);
 	public PartConfig lleg = new PartConfig(this);
 	public PartConfig rleg = new PartConfig(this);
-	
+
+	public boolean enabled = false;
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
 	public boolean whileMoving = false;
@@ -31,6 +32,7 @@ public class JobPuppet extends JobInterface{
 		compound.setTag("PuppetLLeg", lleg.writeNBT());
 		compound.setTag("PuppetRLeg", rleg.writeNBT());
 
+		compound.setBoolean("PuppetEnabled", enabled);
 		compound.setBoolean("PuppetStanding", whileStanding);
 		compound.setBoolean("PuppetAttacking", whileAttacking);
 		compound.setBoolean("PuppetMoving", whileMoving);
@@ -46,6 +48,7 @@ public class JobPuppet extends JobInterface{
 		lleg.readNBT(compound.getCompoundTag("PuppetLLeg"));
 		rleg.readNBT(compound.getCompoundTag("PuppetRLeg"));
 
+		enabled = compound.getBoolean("PuppetEnabled");
 		whileStanding = compound.getBoolean("PuppetStanding");
 		whileAttacking = compound.getBoolean("PuppetAttacking");
 		whileMoving = compound.getBoolean("PuppetMoving");
@@ -63,6 +66,9 @@ public class JobPuppet extends JobInterface{
 	}
 
 	public boolean isActive() {
+		if (!this.enabled)
+			return false;
+
 		if(!npc.isEntityAlive())
 			return false;
 		
@@ -90,14 +96,8 @@ public class JobPuppet extends JobInterface{
 		// vvv Client-sided use vvv
 		public float[] prevRotations = new float[]{0,0,0};
 		public float[] prevPivots = new float[]{0,0,0};
-
 		public float partialRotationTick = 0f;
 		public float partialPivotTick = 0f;
-		public boolean setOriginalPivot;
-		public float originalPivotX;
-		public float originalPivotY;
-		public float originalPivotZ;
-		public EntityLivingBase npcModel;
 		// ^^^ Client-sided use ^^^
 
 		public PartConfig(Object parent) {

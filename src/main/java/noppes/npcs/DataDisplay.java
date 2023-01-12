@@ -12,6 +12,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
+import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.util.ValueUtil;
 
 import com.google.common.collect.Iterables;
@@ -38,6 +39,8 @@ public class DataDisplay {
 	public DataSkinOverlays skinOverlayData;
 	public long overlayRenderTicks = 0;
 
+	public JobPuppet modelData;
+
 	public String glowTexture = "";
 
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
@@ -62,6 +65,7 @@ public class DataDisplay {
 		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
+		modelData = new JobPuppet(npc);
 	}
 
 	public String getRandomName() {
@@ -80,6 +84,8 @@ public class DataDisplay {
 		nbttagcompound.setString("GlowTexture", glowTexture);
 
 		nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
+
+		nbttagcompound = modelData.writeToNBT(nbttagcompound);
 
 		if (this.playerProfile != null)
         {
@@ -154,6 +160,8 @@ public class DataDisplay {
 		}
 
 		skinOverlayData.readFromNBT(nbttagcompound);
+
+		modelData.readFromNBT(nbttagcompound);
 
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		if(modelSize > ConfigMain.NpcSizeLimit)

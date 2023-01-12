@@ -236,8 +236,6 @@ public class DataAdvanced {
             npc.jobInterface = new JobConversation(npc);
         else if (job == EnumJobType.ChunkLoader && !(npc.jobInterface instanceof JobChunkLoader))
             npc.jobInterface = new JobChunkLoader(npc);
-        else if (job == EnumJobType.Puppet && !(npc.jobInterface instanceof JobPuppet))
-            npc.jobInterface = new JobPuppet(npc);
     }
 
     public boolean hasWorldLines() {
