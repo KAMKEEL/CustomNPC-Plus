@@ -94,7 +94,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	private void showPlayerButtons() {
 		int y = guiTop ;
 
-		addButton(new GuiNpcButton(9, guiLeft + 4, y += 22, 96, 20, "model.rotate"));
+		addButton(new GuiNpcButton(9, guiLeft + 4, y += 22, 96, 20, "model.animate"));
 
 		addButton(new GuiNpcButton(8, guiLeft + 4, y += 22, 96, 20, "model.scale"));
 
