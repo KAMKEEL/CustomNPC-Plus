@@ -20,9 +20,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
+import noppes.npcs.AnimationDataShared;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
@@ -32,17 +31,14 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
-import org.lwjgl.opengl.NVProgram;
 
 public class NoppesUtil {
 
@@ -95,9 +91,9 @@ public class NoppesUtil {
 	}
 
 	public static void updatePlayerModelData(EntityPlayer player, NBTTagCompound compound) {
-		PlayerModelData data;
+		AnimationDataShared data;
 		if (!Client.playerModelData.containsKey(player.getUniqueID())) {
-			data = new PlayerModelData(player);
+			data = new AnimationDataShared(null);
 			data.readFromNBT(compound);
 			data.modelRotations = new float[]{data.rotationX, data.rotationY, data.rotationZ};
 		} else {

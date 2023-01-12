@@ -19,7 +19,6 @@ import noppes.npcs.roles.JobFollower;
 import noppes.npcs.roles.JobGuard;
 import noppes.npcs.roles.JobHealer;
 import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.roles.RoleBank;
 import noppes.npcs.roles.RoleCompanion;

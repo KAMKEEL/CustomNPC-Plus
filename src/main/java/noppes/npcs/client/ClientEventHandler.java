@@ -2,23 +2,14 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
-import noppes.npcs.controllers.data.PlayerModelData;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobPuppet;
-import noppes.npcs.roles.PartConfig;
-import org.lwjgl.opengl.GL11;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,51 +23,6 @@ public class ClientEventHandler {
     public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
     public static RendererLivingEntity renderer;
-
-    public static boolean isPart(HashMap<PartConfig, String> modelNameMap, PartConfig puppetPart, String partName) {
-        return !puppetPart.disabled && partName.equals(modelNameMap.get(puppetPart));
-    }
-
-    public static String getPartName(ModelRenderer renderer, HashMap<String,String[]> partNames) {
-        Class<?> RenderClass = renderer.baseModel.getClass();
-        Object model = renderer.baseModel;
-        String returnName = "";
-
-        while (returnName.isEmpty()) {
-            for (Field f : RenderClass.getDeclaredFields()) {
-                f.setAccessible(true);
-                try {
-                    if (renderer == f.get(model)) {
-                        int i = 0;
-                        break;
-                    }
-                } catch (Exception ignored) {
-                }
-            }
-
-            for (Map.Entry<String, String[]> entry : partNames.entrySet()) {
-                String[] names = entry.getValue();
-                for (String partName : names) {
-                    try {
-                        Field field = RenderClass.getDeclaredField(partName);
-                        field.setAccessible(true);
-                        if (renderer == field.get(model)) {
-                            returnName = entry.getKey();
-                            break;
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
-            }
-
-            if (RenderClass == ModelBase.class || RenderClass.getSuperclass() == null) {
-                break;
-            }
-            RenderClass = RenderClass.getSuperclass();
-        }
-
-        return returnName;
-    }
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {

@@ -11,9 +11,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.CustomItems;
-import noppes.npcs.ModelPartConfig;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.*;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
@@ -21,13 +19,10 @@ import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.roles.JobPuppet;
 
 import noppes.npcs.api.ISkinOverlay;
-import noppes.npcs.roles.PartConfig;
 import org.lwjgl.opengl.GL11;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;
@@ -568,13 +563,13 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.body.scaleY;
 		}
 
-		JobPuppet job = npc.display.modelData;
+		AnimationData job = npc.display.animationData;
 		if (job.isActive()) {
-			PartConfig[] partConfigs = new PartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
+			AnimationPartConfig[] partConfigs = new AnimationPartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
 			ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
 
 			for (int i = 0; i < partConfigs.length; i++) {
-				if (!partConfigs[i].disabled) {
+				if (partConfigs[i].enablePart) {
 					this.setInterpolatedAngles(mainModelParts[i],partConfigs[i]);
 				}
 			}
@@ -618,14 +613,14 @@ public class ModelMPM extends ModelNPCMale{
 					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
 
 			for (int i = 0; i < partConfigs.length; i++) {
-				if (!partConfigs[i].disabled) {
+				if (partConfigs[i].enablePart) {
 					this.addInterpolatedOffset(mainModelParts[i],partConfigs[i]);
 				}
 			}
 		}
 	}
 
-	public void setInterpolatedAngles(ModelRenderer renderer, PartConfig modelPart) {
+	public void setInterpolatedAngles(ModelRenderer renderer, AnimationPartConfig modelPart) {
 		renderer.rotateAngleX = modelPart.prevRotations[0];
 		renderer.rotateAngleY = modelPart.prevRotations[1];
 		renderer.rotateAngleZ = modelPart.prevRotations[2];
@@ -658,7 +653,7 @@ public class ModelMPM extends ModelNPCMale{
 		modelPart.prevRotations = new float[]{renderer.rotateAngleX,renderer.rotateAngleY,renderer.rotateAngleZ};
 	}
 
-	public void addInterpolatedOffset(ModelRenderer renderer, PartConfig modelPart) {
+	public void addInterpolatedOffset(ModelRenderer renderer, AnimationPartConfig modelPart) {
 		if (!modelPart.animate) {
 			renderer.rotationPointX += modelPart.pivotX;
 			renderer.rotationPointY += modelPart.pivotY;

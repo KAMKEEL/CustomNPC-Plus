@@ -1,8 +1,9 @@
 package noppes.npcs;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IModelPart;
 
-public class AnimationPartConfig {
+public class AnimationPartConfig implements IModelPart {
 	public float rotationX = 0f, rotationY = 0f, rotationZ = 0f;
 	public float pivotX = 0f, pivotY = 0f, pivotZ = 0f;
 

@@ -3,19 +3,19 @@ package noppes.npcs.client.gui.roles;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.AnimationData;
+import noppes.npcs.AnimationPartConfig;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.roles.JobPuppet;
-import noppes.npcs.roles.PartConfig;
 
 public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, ITextfieldListener {
 
 	private GuiScreen parent;
 	private int type = 6;
-	private JobPuppet job;
-	private PartConfig part;
+	private AnimationData job;
+	private AnimationPartConfig part;
 
 	private GuiNpcSlider rotateX;
 	private GuiNpcSlider rotateY;
@@ -26,7 +26,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 		this.parent = parent;
 		this.xOffset = 100;
 		ySize = 230;
-		job = npc.display.modelData;
+		job = npc.display.animationData;
 	}
 
     @Override
@@ -106,9 +106,9 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
 
     }
     
-    private float drawSlider(int y, PartConfig config){
+    private float drawSlider(int y, AnimationPartConfig config){
     	part = config;
-		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, config.disabled?1:0));
+		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, !config.enablePart?1:0));
 		y += 22;
 		addLabel(new GuiNpcLabel(10, "X", guiLeft, y + 5, 0xFFFFFF));
 		rotateX = new GuiNpcSlider(this, 10, guiLeft + 50, y, config.rotationX + 0.5f);
@@ -156,7 +156,7 @@ public class GuiNpcPuppet extends GuiModelInterface implements ISliderListener, 
     	
     	GuiNpcButton button = (GuiNpcButton) btn;
     	if(btn.id == 29){
-    		part.disabled = button.getValue() == 1;
+    		part.enablePart = button.getValue() == 0;
     	}
     	if(btn.id == 30){
     		job.whileStanding = button.getValue() == 0;

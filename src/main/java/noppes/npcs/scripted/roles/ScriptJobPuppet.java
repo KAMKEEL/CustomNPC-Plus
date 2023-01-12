@@ -1,24 +1,24 @@
 package noppes.npcs.scripted.roles;
 
+import noppes.npcs.AnimationData;
 import noppes.npcs.api.handler.data.IModelPart;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.api.jobs.IJobPuppet;
 
 public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
-	private JobPuppet job;
+	private AnimationData job;
 	public ScriptJobPuppet(EntityNPCInterface npc){
 		super(npc);
-		this.job = npc.display.modelData;
+		this.job = npc.display.animationData;
 	}
 
 	public void setEnabled(boolean enabled) {
-		this.job.enabled = enabled;
+		this.job.allowAnimation = enabled;
 	}
 
 	public boolean enabled() {
-		return this.job.enabled;
+		return this.job.allowAnimation;
 	}
 
 	public IModelPart getPart(int part) {

@@ -2,10 +2,11 @@ package noppes.npcs;
 
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.IPlayerModelData;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.PlayerData;
 
-public class AnimationDataShared {
+public class AnimationDataShared implements IPlayerModelData {
     public Object parent;
 
     public AnimationPartConfig head = new AnimationPartConfig();

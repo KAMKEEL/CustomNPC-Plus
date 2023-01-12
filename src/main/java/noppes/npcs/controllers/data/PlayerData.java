@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
+import noppes.npcs.AnimationDataShared;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumRoleType;
@@ -31,7 +32,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerFactionData factionData = new PlayerFactionData(this);
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
-	public PlayerModelData modelData = new PlayerModelData(this);
+	public AnimationDataShared modelData = new AnimationDataShared(this);
 
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);

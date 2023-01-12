@@ -2,23 +2,18 @@ package noppes.npcs.mixin;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.EntityLivingBase;
+import noppes.npcs.AnimationData;
+import noppes.npcs.AnimationDataShared;
+import noppes.npcs.AnimationPartConfig;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.renderer.RenderCustomNpc;
-import noppes.npcs.controllers.data.PlayerModelData;
-import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobPuppet;
-import noppes.npcs.roles.PartConfig;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -43,7 +38,7 @@ public abstract class MixinModelRenderer {
     @Shadow public List childModels;
     @Shadow abstract void compileDisplayList(float p_78788_1_);
 
-    HashMap<PartConfig, String> modelNameMap = new HashMap<>();
+    HashMap<AnimationPartConfig, String> modelNameMap = new HashMap<>();
     String partName = "";
     HashMap<String,String[]> partNames = new HashMap<>();
 
@@ -55,7 +50,7 @@ public abstract class MixinModelRenderer {
     @SideOnly(Side.CLIENT)
     public void render(float p_78785_1_)
     {
-        PartConfig currentPart = null;
+        AnimationPartConfig currentPart = null;
 
         if (partNames.isEmpty()) {
             String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head","bipedHeadAll",
@@ -74,13 +69,13 @@ public abstract class MixinModelRenderer {
             partNames.put("rleg", rlegNames);
         }
         if (ClientEventHandler.renderingPlayer != null && Client.playerModelData.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
-            PlayerModelData modelData = Client.playerModelData.get(ClientEventHandler.renderingPlayer.getUniqueID());
-            PartConfig[] partConfigs = new PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
-            this.partName = ClientEventHandler.getPartName((ModelRenderer) (Object) this, this.partNames);
+            AnimationDataShared modelData = Client.playerModelData.get(ClientEventHandler.renderingPlayer.getUniqueID());
+            AnimationPartConfig[] partConfigs = new AnimationPartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
+            this.partName = this.getPartName((ModelRenderer) (Object) this, this.partNames);
             this.setModelParts(modelData);
-            if (modelData.enabled) {
-                for (PartConfig modelPart : partConfigs) {
-                    if (ClientEventHandler.isPart(modelNameMap, modelPart, this.partName)) {
+            if (modelData.enabled()) {
+                for (AnimationPartConfig modelPart : partConfigs) {
+                    if (this.isPart(modelNameMap, modelPart, this.partName)) {
                         this.rotateAngleX = modelPart.prevRotations[0];
                         this.rotateAngleY = modelPart.prevRotations[1];
                         this.rotateAngleZ = modelPart.prevRotations[2];
@@ -92,14 +87,14 @@ public abstract class MixinModelRenderer {
                 }
             }
         } else if (ClientEventHandler.renderingNpc != null) {
-            JobPuppet modelData = ClientEventHandler.renderingNpc.display.modelData;
-            PartConfig[] partConfigs = new PartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
-            this.partName = ClientEventHandler.getPartName((ModelRenderer) (Object) this, this.partNames);
+            AnimationData modelData = ClientEventHandler.renderingNpc.display.animationData;
+            AnimationPartConfig[] partConfigs = new AnimationPartConfig[]{modelData.head, modelData.body, modelData.larm, modelData.rarm, modelData.lleg, modelData.rleg};
+            this.partName = this.getPartName((ModelRenderer) (Object) this, this.partNames);
             this.setModelParts(modelData);
             if (RenderCustomNpc.entity != null) {
                 if (modelData.isActive()) {
-                    for (PartConfig modelPart : partConfigs) {
-                        if (ClientEventHandler.isPart(modelNameMap,modelPart,this.partName)) {
+                    for (AnimationPartConfig modelPart : partConfigs) {
+                        if (this.isPart(modelNameMap,modelPart,this.partName)) {
                             currentPart = modelPart;
                             this.addInterpolatedOffset(modelPart);
                             this.addInterpolatedAngles(modelPart);
@@ -209,7 +204,7 @@ public abstract class MixinModelRenderer {
 
 
 
-    public void addInterpolatedAngles(PartConfig modelPart) {
+    public void addInterpolatedAngles(AnimationPartConfig modelPart) {
         if (modelPart == null) {
             return;
         }
@@ -273,7 +268,7 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    public void addInterpolatedOffset(PartConfig modelPart) {
+    public void addInterpolatedOffset(AnimationPartConfig modelPart) {
         if (modelPart == null) {
             return;
         }
@@ -306,21 +301,66 @@ public abstract class MixinModelRenderer {
     }
 
     public void setModelParts(Object modelData) {
-        if (modelData instanceof PlayerModelData) {
-            modelNameMap.put(((PlayerModelData) modelData).head, "head");
-            modelNameMap.put(((PlayerModelData) modelData).body, "body");
-            modelNameMap.put(((PlayerModelData) modelData).rarm, "rarm");
-            modelNameMap.put(((PlayerModelData) modelData).larm, "larm");
-            modelNameMap.put(((PlayerModelData) modelData).rleg, "rleg");
-            modelNameMap.put(((PlayerModelData) modelData).lleg, "lleg");
+        if (modelData instanceof AnimationDataShared) {
+            modelNameMap.put(((AnimationDataShared) modelData).head, "head");
+            modelNameMap.put(((AnimationDataShared) modelData).body, "body");
+            modelNameMap.put(((AnimationDataShared) modelData).rarm, "rarm");
+            modelNameMap.put(((AnimationDataShared) modelData).larm, "larm");
+            modelNameMap.put(((AnimationDataShared) modelData).rleg, "rleg");
+            modelNameMap.put(((AnimationDataShared) modelData).lleg, "lleg");
         }
-        if (modelData instanceof JobPuppet) {
-            modelNameMap.put(((JobPuppet) modelData).head, "head");
-            modelNameMap.put(((JobPuppet) modelData).body, "body");
-            modelNameMap.put(((JobPuppet) modelData).rarm, "rarm");
-            modelNameMap.put(((JobPuppet) modelData).larm, "larm");
-            modelNameMap.put(((JobPuppet) modelData).rleg, "rleg");
-            modelNameMap.put(((JobPuppet) modelData).lleg, "lleg");
+        if (modelData instanceof AnimationData) {
+            modelNameMap.put(((AnimationData) modelData).head, "head");
+            modelNameMap.put(((AnimationData) modelData).body, "body");
+            modelNameMap.put(((AnimationData) modelData).rarm, "rarm");
+            modelNameMap.put(((AnimationData) modelData).larm, "larm");
+            modelNameMap.put(((AnimationData) modelData).rleg, "rleg");
+            modelNameMap.put(((AnimationData) modelData).lleg, "lleg");
         }
+    }
+
+    public boolean isPart(HashMap<AnimationPartConfig, String> modelNameMap, AnimationPartConfig puppetPart, String partName) {
+        return puppetPart.enablePart && partName.equals(modelNameMap.get(puppetPart));
+    }
+
+    public String getPartName(ModelRenderer renderer, HashMap<String,String[]> partNames) {
+        Class<?> RenderClass = renderer.baseModel.getClass();
+        Object model = renderer.baseModel;
+        String returnName = "";
+
+        while (returnName.isEmpty()) {
+            for (Field f : RenderClass.getDeclaredFields()) {
+                f.setAccessible(true);
+                try {
+                    if (renderer == f.get(model)) {
+                        int i = 0;
+                        break;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
+            for (Map.Entry<String, String[]> entry : partNames.entrySet()) {
+                String[] names = entry.getValue();
+                for (String partName : names) {
+                    try {
+                        Field field = RenderClass.getDeclaredField(partName);
+                        field.setAccessible(true);
+                        if (renderer == field.get(model)) {
+                            returnName = entry.getKey();
+                            break;
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+
+            if (RenderClass == ModelBase.class || RenderClass.getSuperclass() == null) {
+                break;
+            }
+            RenderClass = RenderClass.getSuperclass();
+        }
+
+        return returnName;
     }
 }

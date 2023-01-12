@@ -4,9 +4,9 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
+import noppes.npcs.AnimationDataShared;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
-import noppes.npcs.controllers.data.PlayerModelData;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,8 +21,8 @@ public class MixinRenderPlayer {
     protected void modelDataRotations(AbstractClientPlayer p_77039_1_, double p_77039_2_, double p_77039_4_, double p_77039_6_, CallbackInfo callbackInfo)
     {
         if (Client.playerModelData.containsKey(p_77039_1_.getUniqueID())) {
-            PlayerModelData data = Client.playerModelData.get(p_77039_1_.getUniqueID());
-            if (data.enabled) {
+            AnimationDataShared data = Client.playerModelData.get(p_77039_1_.getUniqueID());
+            if (data.allowAnimation) {
                 this.setInterpolatedAngles(data);
                 if (data.rotationEnabledX) {
                     GL11.glRotatef(data.modelRotations[0], 1, 0, 0);
@@ -37,9 +37,9 @@ public class MixinRenderPlayer {
         }
     }
 
-    public void setInterpolatedAngles(PlayerModelData modelData) {
+    public void setInterpolatedAngles(AnimationDataShared modelData) {
         float pi = (float) Math.PI * (modelData.fullAngles ? 2 : 1);
-        if (!modelData.animate) {
+        if (!modelData.fullAnimate) {
             modelData.modelRotations[0] = modelData.rotationX * pi;
             modelData.modelRotations[1] = modelData.rotationY * pi;
             modelData.modelRotations[2] = modelData.rotationZ * pi;

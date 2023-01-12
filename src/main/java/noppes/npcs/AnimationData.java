@@ -13,7 +13,7 @@ public class AnimationData extends AnimationDataShared {
     public boolean whileMoving = false;
 
     public AnimationData(EntityNPCInterface npc, Object parent){
-        super(null);
+        super(parent);
         this.npc = npc;
     }
 
