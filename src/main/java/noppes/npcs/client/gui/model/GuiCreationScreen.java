@@ -94,6 +94,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	private void showPlayerButtons() {
 		int y = guiTop ;
 
+		addButton(new GuiNpcButton(9, guiLeft + 4, y += 22, 96, 20, "model.rotate"));
+
 		addButton(new GuiNpcButton(8, guiLeft + 4, y += 22, 96, 20, "model.scale"));
 
 		addButton(new GuiNpcButton(4, guiLeft + 50, y += 22, 50, 20, "selectServer.edit"));
@@ -288,6 +290,10 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
 		if(button.id == 8){
 			this.mc.displayGuiScreen(new GuiModelScale(this, playerdata, npc));
+		}
+		if(button.id == 9){
+			// LOUIS ADD HERE
+			// this.mc.displayGuiScreen(new GuiModelScale(this, playerdata, npc));
 		}
 		if(button.id == 30){
 			playerdata.extra.setInteger("Age",button.getValue() == 1?-24000:0);

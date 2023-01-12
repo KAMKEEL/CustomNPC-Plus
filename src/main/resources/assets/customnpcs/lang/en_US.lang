@@ -1006,6 +1006,7 @@ model.rleg=R. Leg
 model.legs=Legs
 model.scale=Scale
 model.animation=Animation
+model.rotate=Rotate
 model.load=Model Load
 model.save=Model Save
 
