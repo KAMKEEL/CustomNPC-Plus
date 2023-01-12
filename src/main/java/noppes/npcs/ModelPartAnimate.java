@@ -5,6 +5,7 @@ import noppes.npcs.roles.JobPuppet;
 import noppes.npcs.util.ValueUtil;
 
 public class ModelPartAnimate {
+	public boolean enabled = false;
 	public boolean fullAngles = false;
 	public boolean animate = false;
 	public float animRate = 1.0F;
@@ -55,12 +56,12 @@ public class ModelPartAnimate {
 		animRate = compound.getFloat("PuppetAnimSpeed");
 	}
 
-	public void setEnabled(boolean bo) {
-		this.disabled = !bo;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public boolean isEnabled() {
-		return !this.disabled;
+		return this.enabled;
 	}
 
 	public void setAnimated(boolean animated) {
@@ -103,22 +104,16 @@ public class ModelPartAnimate {
 
 	public void setRotationX(float rotation) {
 		float f = rotation / 360f - 0.5f;
-		if (this.getRotationX() != f && parent instanceof JobPuppet)
-			((JobPuppet) parent).npc.script.clientNeedsUpdate = true;
 		this.rotationX = f;
 	}
 
 	public void setRotationY(float rotation) {
 		float f = rotation / 360f - 0.5f;
-		if (this.getRotationY() != f && parent instanceof JobPuppet)
-			((JobPuppet) parent).npc.script.clientNeedsUpdate = true;
 		this.rotationY = f;
 	}
 
 	public void setRotationZ(float rotation) {
 		float f = rotation / 360f - 0.5f;
-		if (this.getRotationZ() != f && parent instanceof JobPuppet)
-			((JobPuppet) parent).npc.script.clientNeedsUpdate = true;
 		this.rotationZ = f;
 	}
 
@@ -141,20 +136,14 @@ public class ModelPartAnimate {
 	}
 
 	public void setOffsetX(float offset) {
-		if (this.getOffsetX() != offset && parent instanceof JobPuppet)
-			((JobPuppet) parent).npc.script.clientNeedsUpdate = true;
 		this.pivotX = offset;
 	}
 
 	public void setOffsetY(float offset) {
-		if (this.getOffsetY() != offset && parent instanceof JobPuppet)
-			((JobPuppet) parent).npc.script.clientNeedsUpdate = true;
 		this.pivotY = offset;
 	}
 
 	public void setOffsetZ(float offset) {
-		if (this.getOffsetZ() != offset && parent instanceof JobPuppet)
-			((JobPuppet) parent).npc.script.clientNeedsUpdate = true;
 		this.pivotZ = offset;
 	}
 

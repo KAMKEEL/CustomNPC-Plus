@@ -7,7 +7,6 @@ public class ModelPartConfigNEW {
 	public float scaleX = 1, scaleY = 1, scaleZ = 1;
 	public float transX = 0, transY = 0, transZ = 0;
 
-	public boolean enableAnimate = false;
 	public ModelPartAnimate animate = new ModelPartAnimate();
 
 	public NBTTagCompound writeToNBT(){
@@ -15,19 +14,11 @@ public class ModelPartConfigNEW {
 		compound.setFloat("ScaleX", scaleX);
 		compound.setFloat("ScaleY", scaleY);
 		compound.setFloat("ScaleZ", scaleZ);
-		
-		compound.setFloat("TransX", transX);
-		compound.setFloat("TransY", transY);
-		compound.setFloat("TransZ", transZ);
 
 		// SAVE ANIMATE
-
-		if(enableAnimate){
-			// LOUIS
-			// SAVE ANIMATE VARIABLE
-			// which contains the PartConfig
+		if (animate.enabled) {
+			compound.setTag("Animate",animate.writeNBT());
 		}
-
 
 		return compound;
 	}
@@ -37,11 +28,7 @@ public class ModelPartConfigNEW {
 		scaleY = ValueUtil.correctFloat(compound.getFloat("ScaleY"), 0.5f, 1.5f);
 		scaleZ = ValueUtil.correctFloat(compound.getFloat("ScaleZ"), 0.5f, 1.5f);
 
-		transX = compound.getFloat("TransX");
-		transY = compound.getFloat("TransY");
-		transZ = compound.getFloat("TransZ");
-
-		// LOAD enableAnimate
+		animate.readNBT(compound.getCompoundTag("Animate"));
 	}
 	
 	public String toString(){
