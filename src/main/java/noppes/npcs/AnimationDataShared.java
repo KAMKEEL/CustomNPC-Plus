@@ -18,9 +18,10 @@ public class AnimationDataShared {
     public boolean allowAnimation = false;
 
     // Full Model Animation
+    public boolean enableFullModel = true;
+
     public float rotationX, rotationY, rotationZ;
     public boolean rotationEnabledX, rotationEnabledY, rotationEnabledZ;
-
     public boolean fullAnimate = false;
     public float animRate = 1.0F;
     public boolean fullAngles;
@@ -58,54 +59,73 @@ public class AnimationDataShared {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setTag("PuppetHead", head.writeNBT());
-        compound.setTag("PuppetLArm", larm.writeNBT());
-        compound.setTag("PuppetRArm", rarm.writeNBT());
-        compound.setTag("PuppetBody", body.writeNBT());
-        compound.setTag("PuppetLLeg", lleg.writeNBT());
-        compound.setTag("PuppetRLeg", rleg.writeNBT());
 
         compound.setBoolean("PuppetEnabled", allowAnimation);
 
-        compound.setFloat("PuppetRotationX",rotationX);
-        compound.setFloat("PuppetRotationY",rotationY);
-        compound.setFloat("PuppetRotationZ",rotationZ);
-        compound.setBoolean("PuppetRotationEnabledX",rotationEnabledX);
-        compound.setBoolean("PuppetRotationEnabledY",rotationEnabledY);
-        compound.setBoolean("PuppetRotationEnabledZ",rotationEnabledZ);
+        // ALWAYS SAVE allowAnimation
+        if(allowAnimation){
+            // GROUP INTO ANIMATION TAG
 
-        compound.setBoolean("PuppetFullAngles", fullAngles);
-        compound.setBoolean("PuppetInterpolate", interpolate);
-        compound.setBoolean("PuppetAnimate", fullAnimate);
-        compound.setFloat("PuppetAnimSpeed", animRate);
+            compound.setTag("PuppetHead", head.writeNBT());
+            compound.setTag("PuppetLArm", larm.writeNBT());
+            compound.setTag("PuppetRArm", rarm.writeNBT());
+            compound.setTag("PuppetBody", body.writeNBT());
+            compound.setTag("PuppetLLeg", lleg.writeNBT());
+            compound.setTag("PuppetRLeg", rleg.writeNBT());
+
+            // GROUP THIS INTO "PuppetFullModel"
+            compound.setBoolean("PuppetFullModelEnabled", enableFullModel);
+            if(enableFullModel){
+                compound.setFloat("PuppetRotationX",rotationX);
+                compound.setFloat("PuppetRotationY",rotationY);
+                compound.setFloat("PuppetRotationZ",rotationZ);
+                compound.setBoolean("PuppetRotationEnabledX",rotationEnabledX);
+                compound.setBoolean("PuppetRotationEnabledY",rotationEnabledY);
+                compound.setBoolean("PuppetRotationEnabledZ",rotationEnabledZ);
+
+                compound.setBoolean("PuppetFullAngles", fullAngles);
+                compound.setBoolean("PuppetInterpolate", interpolate);
+                compound.setBoolean("PuppetAnimate", fullAnimate);
+                compound.setFloat("PuppetAnimSpeed", animRate);
+            }
+        }
+
         return compound;
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        head.readNBT(compound.getCompoundTag("PuppetHead"));
-        larm.readNBT(compound.getCompoundTag("PuppetLArm"));
-        rarm.readNBT(compound.getCompoundTag("PuppetRArm"));
-        body.readNBT(compound.getCompoundTag("PuppetBody"));
-        lleg.readNBT(compound.getCompoundTag("PuppetLLeg"));
-        rleg.readNBT(compound.getCompoundTag("PuppetRLeg"));
-
         allowAnimation = compound.getBoolean("PuppetEnabled");
+        if(allowAnimation) {
+            head.readNBT(compound.getCompoundTag("PuppetHead"));
+            larm.readNBT(compound.getCompoundTag("PuppetLArm"));
+            rarm.readNBT(compound.getCompoundTag("PuppetRArm"));
+            body.readNBT(compound.getCompoundTag("PuppetBody"));
+            lleg.readNBT(compound.getCompoundTag("PuppetLLeg"));
+            rleg.readNBT(compound.getCompoundTag("PuppetRLeg"));
 
-        rotationX = compound.getFloat("PuppetRotationX");
-        rotationY = compound.getFloat("PuppetRotationY");
-        rotationZ = compound.getFloat("PuppetRotationZ");
-        rotationEnabledX = compound.getBoolean("PuppetRotationEnabledX");
-        rotationEnabledY = compound.getBoolean("PuppetRotationEnabledY");
-        rotationEnabledZ = compound.getBoolean("PuppetRotationEnabledZ");
+            enableFullModel = compound.getBoolean("PuppetFullModelEnabled");
+            if (enableFullModel) {
+                rotationX = compound.getFloat("PuppetRotationX");
+                rotationY = compound.getFloat("PuppetRotationY");
+                rotationZ = compound.getFloat("PuppetRotationZ");
+                rotationEnabledX = compound.getBoolean("PuppetRotationEnabledX");
+                rotationEnabledY = compound.getBoolean("PuppetRotationEnabledY");
+                rotationEnabledZ = compound.getBoolean("PuppetRotationEnabledZ");
 
-        fullAngles = compound.getBoolean("PuppetFullAngles");
-        if (!compound.hasKey("PuppetInterpolate")) {
-            interpolate = true;
-        } else {
-            interpolate = compound.getBoolean("PuppetInterpolate");
+                fullAngles = compound.getBoolean("PuppetFullAngles");
+                if (!compound.hasKey("PuppetInterpolate")) {
+                    interpolate = true;
+                } else {
+                    interpolate = compound.getBoolean("PuppetInterpolate");
+                }
+                fullAnimate = compound.getBoolean("PuppetAnimate");
+                animRate = compound.getFloat("PuppetAnimSpeed");
+            }
         }
-        fullAnimate = compound.getBoolean("PuppetAnimate");
-        animRate = compound.getFloat("PuppetAnimSpeed");
+        else {
+            // IF HAS ANIMATION TAG
+            // REMOVE IT!
+        }
     }
 
     public void setEnabled(boolean enabled) {

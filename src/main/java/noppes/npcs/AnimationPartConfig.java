@@ -22,40 +22,43 @@ public class AnimationPartConfig {
 	public NBTTagCompound writeNBT() {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setBoolean("EnablePart", enablePart);
-		compound.setFloat("RotationX", rotationX);
-		compound.setFloat("RotationY", rotationY);
-		compound.setFloat("RotationZ", rotationZ);
-		compound.setFloat("PivotX", pivotX);
-		compound.setFloat("PivotY", pivotY);
-		compound.setFloat("PivotZ", pivotZ);
+		if(enablePart){
+			compound.setFloat("RotationX", rotationX);
+			compound.setFloat("RotationY", rotationY);
+			compound.setFloat("RotationZ", rotationZ);
+			compound.setFloat("PivotX", pivotX);
+			compound.setFloat("PivotY", pivotY);
+			compound.setFloat("PivotZ", pivotZ);
 
-		compound.setBoolean("PuppetFullAngles", fullAngles);
+			compound.setBoolean("PuppetFullAngles", fullAngles);
 
-		compound.setBoolean("PuppetInterpolate", interpolate);
-		compound.setBoolean("PuppetAnimate", animate);
-		compound.setFloat("PuppetAnimSpeed", animRate);
+			compound.setBoolean("PuppetInterpolate", interpolate);
+			compound.setBoolean("PuppetAnimate", animate);
+			compound.setFloat("PuppetAnimSpeed", animRate);
+		}
 		return compound;
 	}
 
 	public void readNBT(NBTTagCompound compound) {
 		enablePart = compound.getBoolean("EnablePart");
+		if(enablePart){
+			rotationX = compound.getFloat("RotationX");
+			rotationY = compound.getFloat("RotationY");
+			rotationZ = compound.getFloat("RotationZ");
+			pivotX = compound.getFloat("PivotX");
+			pivotY = compound.getFloat("PivotY");
+			pivotZ = compound.getFloat("PivotZ");
 
-		rotationX = compound.getFloat("RotationX");
-		rotationY = compound.getFloat("RotationY");
-		rotationZ = compound.getFloat("RotationZ");
-		pivotX = compound.getFloat("PivotX");
-		pivotY = compound.getFloat("PivotY");
-		pivotZ = compound.getFloat("PivotZ");
+			fullAngles = compound.getBoolean("PuppetFullAngles");
 
-		fullAngles = compound.getBoolean("PuppetFullAngles");
-
-		if (!compound.hasKey("PuppetInterpolate")) {
-			interpolate = true;
-		} else {
-			interpolate = compound.getBoolean("PuppetInterpolate");
+			if (!compound.hasKey("PuppetInterpolate")) {
+				interpolate = true;
+			} else {
+				interpolate = compound.getBoolean("PuppetInterpolate");
+			}
+			animate = compound.getBoolean("PuppetAnimate");
+			animRate = compound.getFloat("PuppetAnimSpeed");
 		}
-		animate = compound.getBoolean("PuppetAnimate");
-		animRate = compound.getFloat("PuppetAnimSpeed");
 	}
 
 	public void setEnabled(boolean enabled) {
