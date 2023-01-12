@@ -20,7 +20,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 public class DataDisplay {
-	EntityNPCInterface npc;
+	public EntityNPCInterface npc;
 
 	public String name;
 	public String title = "";
