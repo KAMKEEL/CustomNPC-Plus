@@ -1,17 +1,16 @@
 package noppes.npcs;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.roles.JobPuppet;
-import noppes.npcs.util.ValueUtil;
 
-public class ModelPartAnimate {
-	public boolean enabled = false;
+public class AnimationPartConfig {
+	public float rotationX = 0f, rotationY = 0f, rotationZ = 0f;
+	public float pivotX = 0f, pivotY = 0f, pivotZ = 0f;
+
+	public boolean enablePart = false;
 	public boolean fullAngles = false;
 	public boolean animate = false;
 	public float animRate = 1.0F;
 	public boolean interpolate = true;
-	public float rotationX = 0f, rotationY = 0f, rotationZ = 0f;
-	public float pivotX = 0f, pivotY = 0f, pivotZ = 0f;
 
 	// vvv Client-sided use vvv
 	public float[] prevRotations = new float[]{0, 0, 0};
@@ -22,7 +21,7 @@ public class ModelPartAnimate {
 
 	public NBTTagCompound writeNBT() {
 		NBTTagCompound compound = new NBTTagCompound();
-		compound.setBoolean("Enabled", enabled);
+		compound.setBoolean("EnablePart", enablePart);
 		compound.setFloat("RotationX", rotationX);
 		compound.setFloat("RotationY", rotationY);
 		compound.setFloat("RotationZ", rotationZ);
@@ -39,7 +38,7 @@ public class ModelPartAnimate {
 	}
 
 	public void readNBT(NBTTagCompound compound) {
-		enabled = compound.getBoolean("Enabled");
+		enablePart = compound.getBoolean("EnablePart");
 
 		rotationX = compound.getFloat("RotationX");
 		rotationY = compound.getFloat("RotationY");
@@ -60,11 +59,11 @@ public class ModelPartAnimate {
 	}
 
 	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+		this.enablePart = enabled;
 	}
 
 	public boolean isEnabled() {
-		return this.enabled;
+		return this.enablePart;
 	}
 
 	public void setAnimated(boolean animated) {

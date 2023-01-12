@@ -1,32 +1,27 @@
-package noppes.npcs.controllers.data;
+package noppes.npcs;
 
-import net.minecraft.entity.player.EntityPlayer;
+
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.Server;
-import noppes.npcs.api.handler.IPlayerModelData;
-import noppes.npcs.api.handler.data.IModelPart;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.roles.PartConfig;
+import noppes.npcs.controllers.data.PlayerData;
 
-public class PlayerModelData implements IPlayerModelData {
+public class AnimationDataShared {
+    public Object parent;
 
-    // REMOVE THIS CLASS - LOUIS :D
+    public AnimationPartConfig head = new AnimationPartConfig();
+    public AnimationPartConfig larm = new AnimationPartConfig();
+    public AnimationPartConfig rarm = new AnimationPartConfig();
+    public AnimationPartConfig body = new AnimationPartConfig();
+    public AnimationPartConfig lleg = new AnimationPartConfig();
+    public AnimationPartConfig rleg = new AnimationPartConfig();
 
-    public PlayerData parent;
-    public final EntityPlayer player;
+    public boolean allowAnimation = false;
 
-    public PartConfig head = new PartConfig(this);
-    public PartConfig larm = new PartConfig(this);
-    public PartConfig rarm = new PartConfig(this);
-    public PartConfig body = new PartConfig(this);
-    public PartConfig lleg = new PartConfig(this);
-    public PartConfig rleg = new PartConfig(this);
-
-    public boolean enabled = false;
+    // Full Model Animation
     public float rotationX, rotationY, rotationZ;
     public boolean rotationEnabledX, rotationEnabledY, rotationEnabledZ;
 
-    public boolean animate = false;
+    public boolean fullAnimate = false;
     public float animRate = 1.0F;
     public boolean fullAngles;
     public boolean interpolate;
@@ -35,15 +30,32 @@ public class PlayerModelData implements IPlayerModelData {
     public float modelRotPartialTicks;
     public float[] modelRotations = {0,0,0};
 
-    public PlayerModelData(PlayerData parent) {
+    public AnimationDataShared(Object parent){
         this.parent = parent;
-        this.player = parent.player;
     }
 
-    public PlayerModelData(EntityPlayer player) {
-        this.player = player;
+    public void updateClient() {
+        Server.sendToAll(EnumPacketClient.PLAYER_UPDATE_MODEL_DATA, ((PlayerData) parent).player.getCommandSenderName(), this.writeToNBT(new NBTTagCompound()));
     }
 
+    // SWITCH TO IAnimatePart
+    public AnimationPartConfig getPart(int part) {
+        switch (part) {
+            case 0:
+                return this.head;
+            case 1:
+                return this.body;
+            case 2:
+                return this.larm;
+            case 3:
+                return this.rarm;
+            case 4:
+                return this.lleg;
+            case 5:
+                return this.rleg;
+        }
+        return null;
+    }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setTag("PuppetHead", head.writeNBT());
@@ -53,7 +65,7 @@ public class PlayerModelData implements IPlayerModelData {
         compound.setTag("PuppetLLeg", lleg.writeNBT());
         compound.setTag("PuppetRLeg", rleg.writeNBT());
 
-        compound.setBoolean("PuppetEnabled", enabled);
+        compound.setBoolean("PuppetEnabled", allowAnimation);
 
         compound.setFloat("PuppetRotationX",rotationX);
         compound.setFloat("PuppetRotationY",rotationY);
@@ -64,7 +76,7 @@ public class PlayerModelData implements IPlayerModelData {
 
         compound.setBoolean("PuppetFullAngles", fullAngles);
         compound.setBoolean("PuppetInterpolate", interpolate);
-        compound.setBoolean("PuppetAnimate", animate);
+        compound.setBoolean("PuppetAnimate", fullAnimate);
         compound.setFloat("PuppetAnimSpeed", animRate);
         return compound;
     }
@@ -77,7 +89,7 @@ public class PlayerModelData implements IPlayerModelData {
         lleg.readNBT(compound.getCompoundTag("PuppetLLeg"));
         rleg.readNBT(compound.getCompoundTag("PuppetRLeg"));
 
-        enabled = compound.getBoolean("PuppetEnabled");
+        allowAnimation = compound.getBoolean("PuppetEnabled");
 
         rotationX = compound.getFloat("PuppetRotationX");
         rotationY = compound.getFloat("PuppetRotationY");
@@ -92,24 +104,24 @@ public class PlayerModelData implements IPlayerModelData {
         } else {
             interpolate = compound.getBoolean("PuppetInterpolate");
         }
-        animate = compound.getBoolean("PuppetAnimate");
+        fullAnimate = compound.getBoolean("PuppetAnimate");
         animRate = compound.getFloat("PuppetAnimSpeed");
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        this.allowAnimation = enabled;
     }
 
     public boolean enabled() {
-        return this.enabled;
+        return this.allowAnimation;
     }
 
     public void setAnimated(boolean animated) {
-        this.animate = animated;
+        this.fullAnimate = animated;
     }
 
     public boolean isAnimated() {
-        return this.animate;
+        return this.fullAnimate;
     }
 
     public void setInterpolated(boolean interpolate) {

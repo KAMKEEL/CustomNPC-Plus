@@ -40,6 +40,7 @@ public class DataDisplay {
 	public long overlayRenderTicks = 0;
 
 	public JobPuppet modelData;
+	public AnimationData animationData;
 
 	public String glowTexture = "";
 
