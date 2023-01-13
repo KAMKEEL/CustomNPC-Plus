@@ -1,5 +1,7 @@
 package noppes.npcs.controllers.data;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.constants.EnumAnimationPart;
 
 import java.util.ArrayList;
@@ -68,6 +70,44 @@ public class Frame {
 		this.smooth = smooth;
 	}
 
-	// MAKE WRITE NBT
-	// MAKE READ NBT
+	public void readFromNBT(NBTTagCompound compound){
+		duration = compound.getInteger("Duration");
+
+		// Customized = TRUE if Speed or Smooth Exist
+		if(compound.hasKey("Speed")){
+			customized = true;
+			speed = compound.getFloat("Speed");
+		}
+		if(compound.hasKey("Smooth")){
+			customized = true;
+			smooth = compound.getBoolean("Smooth");
+		}
+
+		ArrayList<FramePart> frameParts = new ArrayList<FramePart>();
+		NBTTagList list = compound.getTagList("FrameParts", 10);
+		for (int i = 0; i < list.tagCount(); i++) {
+			NBTTagCompound item = list.getCompoundTagAt(i);
+			FramePart framePart = new FramePart();
+			framePart.readFromNBT(item);
+			frameParts.add(framePart);
+		}
+		this.frameParts = frameParts;
+	}
+
+	public NBTTagCompound writeToNBT(){
+		NBTTagCompound compound = new NBTTagCompound();
+		compound.setInteger("Duration", duration);
+		if(customized){
+			compound.setFloat("Speed", speed);
+			compound.setBoolean("Smooth", smooth);
+		}
+
+		NBTTagList list = new NBTTagList();
+		for(FramePart framePart : frameParts){
+			NBTTagCompound item = framePart.writeToNBT();
+			list.appendTag(item);
+		}
+		compound.setTag("FrameParts", list);
+		return compound;
+	}
 }

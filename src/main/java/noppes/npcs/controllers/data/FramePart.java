@@ -2,10 +2,13 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.Vec3;
 import noppes.npcs.constants.EnumAnimationPart;
 
 import javax.vecmath.Vector3f;
+import java.util.ArrayList;
 import java.util.Vector;
 
 
@@ -19,7 +22,7 @@ public class FramePart {
 
 	public float speed = 1.0F;
 	public boolean smooth = false;
-	
+
 	public FramePart(){}
 
 	public FramePart(EnumAnimationPart part){
@@ -89,6 +92,33 @@ public class FramePart {
 		this.smooth = smooth;
 	}
 
-	// MAKE WRITE NBT
-	// MAKE READ NBT
+	public void readFromNBT(NBTTagCompound compound){
+		part = EnumAnimationPart.valueOf(compound.getString("Part"));
+		rotation = compound.getIntArray("Rotation");
+		pivot = compound.getIntArray("Pivot");
+
+		// Customized = TRUE if Speed or Smooth Exist
+		if(compound.hasKey("Speed")){
+			customized = true;
+			speed = compound.getFloat("Speed");
+		}
+		if(compound.hasKey("Smooth")){
+			customized = true;
+			smooth = compound.getBoolean("Smooth");
+		}
+	}
+
+	public NBTTagCompound writeToNBT(){
+		NBTTagCompound compound = new NBTTagCompound();
+		compound.setString("Part", part.toString());
+		compound.setIntArray("Rotation", rotation);
+		compound.setIntArray("Pivot", pivot);
+		
+		if(customized){
+			compound.setFloat("Speed", speed);
+			compound.setBoolean("Smooth", smooth);
+		}
+
+		return compound;
+	}
 }

@@ -1,6 +1,11 @@
 package noppes.npcs.controllers.data;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.ModelPartData;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class Animation {
@@ -45,6 +50,37 @@ public class Animation {
 		return smooth;
 	}
 
-	// MAKE WRITE NBT
-	// MAKE READ NBT
+	public void readFromNBT(NBTTagCompound compound){
+		name = compound.getString("Name");
+		id = compound.getInteger("ID");
+		speed = compound.getFloat("Speed");
+		smooth = compound.getBoolean("Smooth");
+
+		ArrayList<Frame> frames = new ArrayList<Frame>();
+		NBTTagList list = compound.getTagList("Frames", 10);
+		for (int i = 0; i < list.tagCount(); i++) {
+			NBTTagCompound item = list.getCompoundTagAt(i);
+			Frame frame = new Frame();
+			frame.readFromNBT(item);
+			frames.add(frame);
+		}
+		this.frames = frames;
+	}
+
+	public NBTTagCompound writeToNBT(){
+		NBTTagCompound compound = new NBTTagCompound();
+		compound.setString("Name", name);
+		compound.setInteger("ID", id);
+		compound.setFloat("Speed", speed);
+		compound.setBoolean("Smooth", smooth);
+
+		NBTTagList list = new NBTTagList();
+		for(Frame frame : frames){
+			NBTTagCompound item = frame.writeToNBT();
+			list.appendTag(item);
+		}
+		compound.setTag("Frames", list);
+		return compound;
+	}
+
 }
