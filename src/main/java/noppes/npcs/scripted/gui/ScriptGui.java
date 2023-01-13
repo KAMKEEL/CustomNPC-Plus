@@ -5,18 +5,19 @@
 
 package noppes.npcs.scripted.gui;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.gui.*;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.api.gui.*;
-import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.item.IItemStack;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class ScriptGui implements ICustomGui {
     int id;

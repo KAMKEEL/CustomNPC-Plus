@@ -1,17 +1,17 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.entity.IPlayer;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Faction implements IFaction {
 	public String name = "";

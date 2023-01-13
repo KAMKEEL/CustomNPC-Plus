@@ -1,10 +1,8 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import com.mojang.authlib.GameProfile;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;

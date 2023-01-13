@@ -7,14 +7,14 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Vec3;
-import noppes.npcs.api.IDamageSource;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.api.IBlock;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;

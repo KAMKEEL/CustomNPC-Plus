@@ -11,13 +11,13 @@ import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
-import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.items.ItemScripted;
-import noppes.npcs.scripted.event.ItemEvent;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.ItemEvent;
 
 import java.util.HashMap;
 

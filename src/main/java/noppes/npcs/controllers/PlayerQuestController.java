@@ -1,7 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
@@ -17,6 +15,8 @@ import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.quests.QuestDialog;
+
+import java.util.Vector;
 
 public class PlayerQuestController {
 

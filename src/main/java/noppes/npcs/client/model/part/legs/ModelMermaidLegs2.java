@@ -4,8 +4,6 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.ModelData;
-import noppes.npcs.constants.EnumAnimation;
 
 public class ModelMermaidLegs2 extends ModelRenderer {
 

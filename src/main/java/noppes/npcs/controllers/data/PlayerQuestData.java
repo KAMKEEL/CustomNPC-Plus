@@ -1,9 +1,5 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,7 +7,8 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
-import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
@@ -20,8 +17,10 @@ import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
 import noppes.npcs.quests.QuestItem;
-import noppes.npcs.api.handler.IPlayerQuestData;
-import noppes.npcs.api.handler.data.IQuest;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class PlayerQuestData implements IPlayerQuestData {
 	private final PlayerData parent;

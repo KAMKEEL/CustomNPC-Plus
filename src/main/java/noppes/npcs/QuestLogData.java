@@ -1,15 +1,15 @@
 package noppes.npcs;
 
-import java.util.HashMap;
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
+
+import java.util.HashMap;
+import java.util.Vector;
 
 public class QuestLogData {
 	public String trackedQuestKey = "";

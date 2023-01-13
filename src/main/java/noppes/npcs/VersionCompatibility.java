@@ -1,17 +1,15 @@
 package noppes.npcs;
 
-import java.util.Collection;
-import java.util.List;
-
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
-import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.Sys;
+
+import java.util.Collection;
+import java.util.List;
 
 public class VersionCompatibility {
 	public static int ModRev = 19;

@@ -1,9 +1,5 @@
 package noppes.npcs.client.gui.util;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -12,9 +8,12 @@ import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class GuiMenuTopIconButton extends GuiMenuTopButton{
     private static final ResourceLocation resource = new ResourceLocation("textures/gui/container/creative_inventory/tabs.png");

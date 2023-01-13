@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.constants.EnumAnimationPart;
 
 import java.util.ArrayList;
 

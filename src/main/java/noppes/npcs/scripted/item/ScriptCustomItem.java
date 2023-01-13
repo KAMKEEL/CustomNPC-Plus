@@ -5,12 +5,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.api.item.IItemCustom;
 
 import java.util.*;
 

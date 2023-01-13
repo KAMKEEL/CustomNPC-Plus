@@ -6,16 +6,16 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.NpcAPI;
 
 import java.io.IOException;
 

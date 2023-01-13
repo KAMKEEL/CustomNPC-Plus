@@ -1,15 +1,6 @@
 package noppes.npcs.config;
 
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.config.legacy.ConfigProp;
-import noppes.npcs.config.legacy.LegacyConfig;
-
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.LinkedList;
 
 public class LoadConfiguration {
     public static File mainConfigFile;

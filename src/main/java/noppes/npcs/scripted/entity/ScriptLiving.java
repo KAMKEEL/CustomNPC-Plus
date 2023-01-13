@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.EntityLiving;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLiving;
 import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> implements IEntityLiving {
 

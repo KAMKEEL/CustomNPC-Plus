@@ -1,12 +1,10 @@
 package noppes.npcs.roles;
 
-import java.util.List;
-
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
 
 public class JobFollower extends JobInterface{
 	public EntityNPCInterface following = null;

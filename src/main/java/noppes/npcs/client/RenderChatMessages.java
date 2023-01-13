@@ -1,8 +1,5 @@
 package noppes.npcs.client;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -13,8 +10,10 @@ import net.minecraft.util.IChatComponent;
 import noppes.npcs.IChatMessages;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.opengl.GL11;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 public class RenderChatMessages implements IChatMessages{
 	private Map<Long,TextBlockClient> messages = new TreeMap<Long,TextBlockClient>();

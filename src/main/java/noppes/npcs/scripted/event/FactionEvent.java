@@ -1,9 +1,9 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumScriptType;
 
 public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {

@@ -1,18 +1,18 @@
 package noppes.npcs.quests;
 
-import java.util.*;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.api.handler.data.IQuestItem;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.*;
 
 public class QuestItem extends QuestInterface implements IQuestItem {
 	public NpcMiscInventory items = new NpcMiscInventory(3);

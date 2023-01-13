@@ -1,14 +1,11 @@
 package noppes.npcs.ai.selector;
 
-import java.util.List;
-
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.Potion;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumCompanionJobs;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumMovingType;

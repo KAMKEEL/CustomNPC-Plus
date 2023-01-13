@@ -1,13 +1,11 @@
 package noppes.npcs.items;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemSword;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
-
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public class ItemNpcWeaponInterface extends ItemSword implements ItemRenderInterface{
 

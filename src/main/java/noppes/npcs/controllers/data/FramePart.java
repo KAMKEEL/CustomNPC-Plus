@@ -1,16 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.Vec3;
 import noppes.npcs.constants.EnumAnimationPart;
-
-import javax.vecmath.Vector3f;
-import java.util.ArrayList;
-import java.util.Vector;
-
 
 public class FramePart {
 
@@ -113,7 +104,7 @@ public class FramePart {
 		compound.setString("Part", part.toString());
 		compound.setIntArray("Rotation", rotation);
 		compound.setIntArray("Pivot", pivot);
-		
+
 		if(customized){
 			compound.setFloat("Speed", speed);
 			compound.setBoolean("Smooth", smooth);

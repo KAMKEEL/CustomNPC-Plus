@@ -4,11 +4,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartConfig;
-import noppes.npcs.client.gui.util.GuiModelInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.ISliderListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityCustomNpc;
 
 public class GuiModelScale extends GuiModelInterface implements ISliderListener{

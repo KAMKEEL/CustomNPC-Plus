@@ -3,26 +3,25 @@
 // (powered by Fernflower decompiler)
 //
 package noppes.npcs.controllers.data;
-import java.lang.reflect.Array;
-import java.util.*;
-import java.util.Map.Entry;
+
 import com.google.common.base.Preconditions;
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
-import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
-import noppes.npcs.config.ConfigClient;
-import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.entity.IPlayer;
 
 import javax.annotation.CheckForNull;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class PlayerDataScript implements IScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();

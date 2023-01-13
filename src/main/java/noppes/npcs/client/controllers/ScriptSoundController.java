@@ -2,6 +2,7 @@ package noppes.npcs.client.controllers;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

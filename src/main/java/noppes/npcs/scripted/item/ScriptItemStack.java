@@ -1,12 +1,6 @@
 package noppes.npcs.scripted.item;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Multimap;
-
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -22,11 +16,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraftforge.common.IPlantable;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.ScriptNbt;
-import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.INbt;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptNbt;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class ScriptItemStack implements IItemStack {
 	public ItemStack item;

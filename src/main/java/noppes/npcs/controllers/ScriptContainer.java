@@ -5,21 +5,20 @@
 
 package noppes.npcs.controllers;
 
+import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.scripted.NpcAPI;
+
+import javax.script.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Predicate;
-import javax.script.*;
-
-import cpw.mods.fml.common.eventhandler.Event;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NBTTags;
-import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.data.IScriptHandler;
-import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptContainer {
     private static final String lock = "lock";

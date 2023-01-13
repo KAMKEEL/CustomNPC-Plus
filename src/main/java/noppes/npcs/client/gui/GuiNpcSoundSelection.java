@@ -1,11 +1,6 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundRegistry;
@@ -14,13 +9,10 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.controllers.MusicController;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNPCStringSlot;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityNPCInterface;
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
+
+import java.util.*;
 
 public class GuiNpcSoundSelection extends GuiNPCInterface{
 

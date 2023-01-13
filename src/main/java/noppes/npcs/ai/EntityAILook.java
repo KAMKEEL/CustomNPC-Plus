@@ -1,13 +1,13 @@
 package noppes.npcs.ai;
 
-import java.util.Iterator;
-
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.constants.AiMutex;
 import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Iterator;
 
 public class EntityAILook extends EntityAIBase{
     private final EntityNPCInterface npc;

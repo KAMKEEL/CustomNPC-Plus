@@ -1,7 +1,6 @@
 package noppes.npcs.items;
 
 import noppes.npcs.constants.EnumNpcToolMaterial;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemRotatedShield extends ItemShield{

@@ -2,7 +2,6 @@ package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityMoveHelper;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCFlying;
 import noppes.npcs.entity.EntityNPCInterface;

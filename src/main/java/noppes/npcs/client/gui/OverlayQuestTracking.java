@@ -12,9 +12,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
 

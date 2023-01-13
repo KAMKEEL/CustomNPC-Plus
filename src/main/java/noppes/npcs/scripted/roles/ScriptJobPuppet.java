@@ -2,9 +2,9 @@ package noppes.npcs.scripted.roles;
 
 import noppes.npcs.AnimationData;
 import noppes.npcs.api.handler.data.IModelPart;
+import noppes.npcs.api.jobs.IJobPuppet;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.api.jobs.IJobPuppet;
 
 public class ScriptJobPuppet extends ScriptJobInterface implements IJobPuppet {
 	private AnimationData job;

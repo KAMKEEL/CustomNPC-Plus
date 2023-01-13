@@ -5,17 +5,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
-import noppes.npcs.constants.EnumAvailabilityDialog;
-import noppes.npcs.constants.EnumAvailabilityFaction;
-import noppes.npcs.constants.EnumAvailabilityFactionType;
-import noppes.npcs.constants.EnumAvailabilityQuest;
-import noppes.npcs.constants.EnumDayTime;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IAvailability;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.api.handler.data.IAvailability;
-import noppes.npcs.api.entity.IPlayer;
 
 public class Availability implements ICompatibilty, IAvailability {
 	public int version = VersionCompatibility.ModRev;

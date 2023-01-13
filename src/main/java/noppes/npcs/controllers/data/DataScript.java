@@ -1,9 +1,5 @@
 package noppes.npcs.controllers.data;
 
-import java.util.*;
-
-import javax.script.ScriptEngine;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
@@ -12,23 +8,25 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.entity.ScriptNpc;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.IWorld;
-import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.entity.ScriptNpc;
+
+import javax.script.ScriptEngine;
+import java.util.*;
 
 public class DataScript implements IScriptHandler {
 	public List<ScriptContainer> scripts = new ArrayList();

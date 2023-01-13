@@ -7,7 +7,6 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
-import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.Tag;
 
 import java.io.*;

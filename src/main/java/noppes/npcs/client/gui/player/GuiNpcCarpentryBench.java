@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.player;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
@@ -9,7 +8,6 @@ import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.controllers.RecipeController;
-
 import org.lwjgl.opengl.GL11;
 
 public class GuiNpcCarpentryBench extends GuiContainerNPCInterface

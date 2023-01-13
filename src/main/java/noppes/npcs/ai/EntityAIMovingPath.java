@@ -1,11 +1,10 @@
 package noppes.npcs.ai;
 
-import java.util.List;
-
 import net.minecraft.entity.ai.EntityAIBase;
 import noppes.npcs.constants.AiMutex;
-import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
 
 public class EntityAIMovingPath extends EntityAIBase
 {

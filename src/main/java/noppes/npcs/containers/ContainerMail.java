@@ -1,13 +1,13 @@
 package noppes.npcs.containers;
 
-import java.util.Iterator;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.controllers.data.PlayerMailData;
+
+import java.util.Iterator;
 
 public class ContainerMail extends ContainerNpcInterface{
     private static final String __OBFID = "CL_00001742";

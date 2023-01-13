@@ -1,16 +1,16 @@
 package noppes.npcs.scripted.roles;
 
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IAvailability;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.jobs.IJobItemGiver;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.PlayerItemGiverData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobItemGiver;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.data.IAvailability;
-import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.api.jobs.IJobItemGiver;
 
 import java.util.ArrayList;
 import java.util.Arrays;

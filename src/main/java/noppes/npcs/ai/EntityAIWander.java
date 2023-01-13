@@ -1,18 +1,17 @@
 package noppes.npcs.ai;
 
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.ai.selector.NPCInteractSelector;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.AiMutex;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Iterator;
+import java.util.List;
 
 public class EntityAIWander extends EntityAIBase
 {

@@ -7,10 +7,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.api.handler.data.IPlayerMail;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 

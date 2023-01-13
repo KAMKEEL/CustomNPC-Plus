@@ -1,11 +1,11 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.IPlayerMailData;
 import noppes.npcs.api.handler.data.IPlayerMail;
+
+import java.util.ArrayList;
 
 public class PlayerMailData implements IPlayerMailData {
 	private final PlayerData parent;

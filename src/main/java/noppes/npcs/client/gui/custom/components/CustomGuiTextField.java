@@ -8,12 +8,12 @@ package noppes.npcs.client.gui.custom.components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.gui.custom.interfaces.IDataHolder;
 import noppes.npcs.client.gui.custom.interfaces.IKeyListener;
 import noppes.npcs.scripted.gui.ScriptGuiTextField;
-import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 public class CustomGuiTextField extends GuiTextField implements IKeyListener, IDataHolder, IClickListener {

@@ -2,8 +2,8 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.entity.data.DataSkinOverlays;
 
 public class SkinOverlay implements ISkinOverlay {
     public DataSkinOverlays parent;

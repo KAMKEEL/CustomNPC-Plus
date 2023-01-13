@@ -1,7 +1,5 @@
 package noppes.npcs.client.model;
 
-import java.util.Random;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
@@ -12,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.*;
+import noppes.npcs.api.ISkinOverlay;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
@@ -21,9 +20,9 @@ import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
-
-import noppes.npcs.api.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
+
+import java.util.Random;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;
 

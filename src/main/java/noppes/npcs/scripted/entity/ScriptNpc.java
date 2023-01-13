@@ -1,11 +1,15 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.ITimers;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.jobs.IJobPuppet;
 import noppes.npcs.api.roles.IRole;
@@ -18,30 +22,11 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.api.IPos;
-import noppes.npcs.api.ITimers;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.entity.IEntityLivingBase;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.IOverlayHandler;
-import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.scripted.roles.ScriptJobBard;
-import noppes.npcs.scripted.roles.ScriptJobConversation;
-import noppes.npcs.scripted.roles.ScriptJobFollower;
-import noppes.npcs.scripted.roles.ScriptJobGuard;
-import noppes.npcs.scripted.roles.ScriptJobHealer;
-import noppes.npcs.scripted.roles.ScriptJobInterface;
-import noppes.npcs.scripted.roles.ScriptJobItemGiver;
-import noppes.npcs.scripted.roles.ScriptJobPuppet;
-import noppes.npcs.scripted.roles.ScriptJobSpawner;
-import noppes.npcs.scripted.roles.ScriptRoleBank;
-import noppes.npcs.scripted.roles.ScriptRoleFollower;
-import noppes.npcs.scripted.roles.ScriptRoleInterface;
-import noppes.npcs.scripted.roles.ScriptRoleMailman;
-import noppes.npcs.scripted.roles.ScriptRoleTrader;
-import noppes.npcs.scripted.roles.ScriptRoleTransporter;
+import noppes.npcs.scripted.roles.*;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.ArrayList;
+import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
 	public EntityNPCInterface npc;

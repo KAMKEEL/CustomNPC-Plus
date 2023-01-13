@@ -1,8 +1,6 @@
 package noppes.npcs.mixin;
 
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.config.ConfigMain;
 import org.spongepowered.asm.lib.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;

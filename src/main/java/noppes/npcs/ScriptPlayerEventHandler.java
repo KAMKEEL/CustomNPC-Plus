@@ -22,15 +22,16 @@ import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
-import net.minecraftforge.event.world.*;
+import net.minecraftforge.event.world.BlockEvent;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.entity.IPlayer;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {

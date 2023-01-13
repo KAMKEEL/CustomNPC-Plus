@@ -3,8 +3,6 @@ package noppes.npcs.client.gui.mainmenu;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.advanced.GuiNPCLinesMenu;
-import noppes.npcs.client.gui.global.GuiNPCManageLinkedNpc;
 import noppes.npcs.client.gui.global.GuiNpcManagePlayerData;
 import noppes.npcs.client.gui.global.GuiNpcNaturalSpawns;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;

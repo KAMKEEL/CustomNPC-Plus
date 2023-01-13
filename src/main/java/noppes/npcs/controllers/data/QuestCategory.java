@@ -1,13 +1,13 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class QuestCategory implements IQuestCategory {
 	public HashMap<Integer,Quest> quests;

@@ -1,13 +1,11 @@
 package noppes.npcs.containers;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.constants.EnumCompanionTalent;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
-import noppes.npcs.roles.RoleFollower;
 
 public class ContainerNPCCompanion extends ContainerNpcInterface{
     public InventoryNPC currencyMatrix;

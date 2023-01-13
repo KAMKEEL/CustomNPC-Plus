@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import noppes.npcs.api.event.IItemEvent;
-import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.event.IItemEvent;
+import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
 
 public class ItemEvent extends CustomNPCsEvent implements IItemEvent {

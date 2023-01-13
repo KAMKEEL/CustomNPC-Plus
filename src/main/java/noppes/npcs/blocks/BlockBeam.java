@@ -1,7 +1,5 @@
 package noppes.npcs.blocks;
 
-import java.util.List;
-
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
@@ -12,6 +10,8 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileBeam;
 import noppes.npcs.blocks.tiles.TileColorable;
+
+import java.util.List;
 
 public class BlockBeam extends BlockRotated{
 	

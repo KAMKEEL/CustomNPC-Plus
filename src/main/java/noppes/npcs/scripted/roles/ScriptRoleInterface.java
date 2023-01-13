@@ -1,11 +1,11 @@
 package noppes.npcs.scripted.roles;
 
 import net.minecraft.entity.INpc;
+import noppes.npcs.api.roles.IRole;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.api.roles.IRole;
 
 public class ScriptRoleInterface implements IRole {
 	public final EntityNPCInterface npc;

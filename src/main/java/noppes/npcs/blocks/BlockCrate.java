@@ -1,7 +1,5 @@
 package noppes.npcs.blocks;
 
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
@@ -15,6 +13,8 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.blocks.tiles.TileCrate;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
+
+import java.util.List;
 
 public class BlockCrate extends BlockRotated{
 

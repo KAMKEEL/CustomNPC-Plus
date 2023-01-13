@@ -2,7 +2,6 @@ package noppes.npcs.ai;
 
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.Vec3;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.entity.EntityNPCInterface;

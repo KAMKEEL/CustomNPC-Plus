@@ -1,21 +1,21 @@
 package noppes.npcs.quests;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.data.IQuestDialog;
+import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.scripted.CustomNPCsException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NBTTags;
-import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.api.handler.data.IQuestDialog;
-import noppes.npcs.api.handler.data.IQuestObjective;
 
 public class QuestDialog extends QuestInterface implements IQuestDialog {
 

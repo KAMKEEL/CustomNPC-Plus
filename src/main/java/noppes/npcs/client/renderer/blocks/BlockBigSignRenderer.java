@@ -1,5 +1,6 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -13,11 +14,8 @@ import noppes.npcs.blocks.BlockBigSign;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.model.blocks.ModelBigSign;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockBigSignRenderer extends BlockRendererInterface{
 

@@ -2,8 +2,8 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.api.entity.IPixelmon;
+import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> implements IPixelmon {

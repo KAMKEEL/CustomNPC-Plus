@@ -1,8 +1,5 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
@@ -10,6 +7,9 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.SpawnData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SubGuiNpcBiomes extends SubGuiInterface
 {

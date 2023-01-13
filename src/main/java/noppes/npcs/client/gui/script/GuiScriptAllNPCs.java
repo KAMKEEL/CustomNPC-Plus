@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.script;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.NPCDataScript;
 
 public class GuiScriptAllNPCs extends GuiScriptInterface {

@@ -1,7 +1,5 @@
 package noppes.npcs;
 
-import java.util.HashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.constants.EnumJobType;
@@ -12,20 +10,9 @@ import noppes.npcs.controllers.data.FactionOptions;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobBard;
-import noppes.npcs.roles.JobChunkLoader;
-import noppes.npcs.roles.JobConversation;
-import noppes.npcs.roles.JobFollower;
-import noppes.npcs.roles.JobGuard;
-import noppes.npcs.roles.JobHealer;
-import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.roles.JobSpawner;
-import noppes.npcs.roles.RoleBank;
-import noppes.npcs.roles.RoleCompanion;
-import noppes.npcs.roles.RoleFollower;
-import noppes.npcs.roles.RolePostman;
-import noppes.npcs.roles.RoleTrader;
-import noppes.npcs.roles.RoleTransporter;
+import noppes.npcs.roles.*;
+
+import java.util.HashMap;
 
 public class DataAdvanced {
 

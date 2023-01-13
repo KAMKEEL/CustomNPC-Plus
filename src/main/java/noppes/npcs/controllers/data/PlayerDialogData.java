@@ -1,10 +1,10 @@
 package noppes.npcs.controllers.data;
 
-import java.util.HashSet;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.IPlayerDialogData;
+
+import java.util.HashSet;
 
 public class PlayerDialogData implements IPlayerDialogData {
 	private final PlayerData parent;

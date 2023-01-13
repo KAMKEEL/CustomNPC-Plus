@@ -1,7 +1,5 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.*;
-
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -17,16 +15,20 @@ import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.*;
-import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
+import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.IPos;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptParticle;
+import noppes.npcs.scripted.constants.EntityType;
+
+import java.util.*;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;

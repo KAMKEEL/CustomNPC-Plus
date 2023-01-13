@@ -1,14 +1,8 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -21,7 +15,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.oredict.OreDictionary;
-import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerPacket;
@@ -33,14 +29,16 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.data.IQuestObjective;
-import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.scripted.NpcAPI;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class NoppesUtilPlayer {
 

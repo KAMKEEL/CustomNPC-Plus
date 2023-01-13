@@ -1,20 +1,19 @@
 package noppes.npcs.client;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.UUID;
-
 import noppes.npcs.AnimationDataShared;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.constants.EnumPacketServer;
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import noppes.npcs.controllers.data.SkinOverlay;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class Client {
 	public static OverlayQuestTracking questTrackingOverlay = null;

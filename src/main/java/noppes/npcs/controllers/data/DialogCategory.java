@@ -1,13 +1,13 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IDialogCategory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class DialogCategory implements IDialogCategory {
 

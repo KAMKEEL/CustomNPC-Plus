@@ -1,5 +1,6 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBook;
@@ -8,16 +9,11 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
-import noppes.npcs.blocks.BlockCrate;
 import noppes.npcs.blocks.BlockRotated;
 import noppes.npcs.blocks.tiles.TileColorable;
-import noppes.npcs.client.model.blocks.ModelCrate;
 import noppes.npcs.client.model.blocks.ModelInk;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockBookRenderer extends BlockRendererInterface{
 

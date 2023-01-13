@@ -1,8 +1,5 @@
 package noppes.npcs.controllers.data;
 
-import java.io.IOException;
-import java.util.HashMap;
-
 import net.minecraft.block.Block;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
@@ -13,8 +10,11 @@ import net.minecraft.world.World;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.api.handler.data.IRecipe;
+import noppes.npcs.controllers.RecipeController;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 	public int id = -1;

@@ -9,6 +9,8 @@ import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.AnimationDataShared;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.handler.*;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -17,8 +19,6 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.handler.*;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;

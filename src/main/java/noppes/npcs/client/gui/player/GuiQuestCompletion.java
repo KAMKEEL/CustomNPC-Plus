@@ -3,16 +3,13 @@ package noppes.npcs.client.gui.player;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.ITopButtonListener;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Quest;
-
 import org.lwjgl.opengl.GL11;
 
 public class GuiQuestCompletion extends GuiNPCInterface implements ITopButtonListener{

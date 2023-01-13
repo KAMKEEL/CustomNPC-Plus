@@ -5,7 +5,6 @@
 
 package noppes.npcs.containers;
 
-import java.util.Iterator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -13,11 +12,13 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.EventHooks;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.IItemSlot;
-import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.gui.ScriptGui;
+
+import java.util.Iterator;
 
 public class ContainerCustomGui extends Container {
     public ScriptGui customGui;

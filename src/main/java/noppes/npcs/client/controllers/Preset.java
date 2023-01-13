@@ -1,10 +1,10 @@
 package noppes.npcs.client.controllers;
 
-import java.util.HashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartData;
+
+import java.util.HashMap;
 
 public class Preset {
 	

@@ -1,15 +1,10 @@
 package noppes.npcs.client.model;
 
-import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartData;
 import noppes.npcs.client.model.util.ModelPlaneRenderer;
-
 import org.lwjgl.opengl.GL11;
 
 public class ModelSkirtArmor extends ModelBiped {
