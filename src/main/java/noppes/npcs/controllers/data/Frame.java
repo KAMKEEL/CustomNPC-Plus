@@ -13,6 +13,8 @@ public class Frame {
 	public float speed = 1.0F;
 	public boolean smooth = false;
 
+	public Frame(){}
+
 	public Frame(ArrayList<FramePart> parts, int duration){
 		this.frameParts = parts;
 		this.duration = duration;

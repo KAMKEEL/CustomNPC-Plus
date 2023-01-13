@@ -11,6 +11,8 @@ public class Animation {
 	public float speed = 1.0F;
 	public boolean smooth = false;
 
+	public Animation(){}
+
 	public Animation(ArrayList<Frame> parts, String name){
 		this.frames = parts;
 		this.name = name;

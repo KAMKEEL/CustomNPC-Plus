@@ -19,6 +19,8 @@ public class FramePart {
 
 	public float speed = 1.0F;
 	public boolean smooth = false;
+	
+	public FramePart(){}
 
 	public FramePart(EnumAnimationPart part){
 		this.part = part;
