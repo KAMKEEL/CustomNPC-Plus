@@ -6,8 +6,11 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import noppes.npcs.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -70,8 +73,36 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderEntity(RenderLivingEvent.Post event) {
+        AnimationData data = null;
         if (event.entity instanceof EntityNPCInterface) {
-            ClientEventHandler.renderingNpc = null;
+            data = ClientEventHandler.renderingNpc.display.animationData;
+        } else if (event.entity instanceof EntityPlayer && Client.playerAnimations.containsKey(event.entity.getUniqueID())) {
+            data = Client.playerAnimations.get(event.entity.getUniqueID());
+        }
+
+        if (data != null && data.isActive()) {
+            Animation animation = data.animation;
+            if (animation.renderTicks && data.isActive()) {
+                animation.increaseTime();
+            }
+        }
+        ClientEventHandler.renderingNpc = null;
+    }
+
+    @SubscribeEvent
+    public void onUpdateEntity(LivingEvent.LivingUpdateEvent event) {
+        AnimationData data = null;
+        if (event.entity instanceof EntityNPCInterface) {
+            data = ((EntityNPCInterface)event.entity).display.animationData;
+        } else if (event.entity instanceof EntityPlayer && Client.playerAnimations.containsKey(event.entity.getUniqueID())) {
+            data = Client.playerAnimations.get(event.entity.getUniqueID());
+        }
+
+        if (data != null && data.isActive()) {
+            Animation animation = data.animation;
+            if (!animation.renderTicks && data.isActive()) {
+                animation.increaseTime();
+            }
         }
     }
 

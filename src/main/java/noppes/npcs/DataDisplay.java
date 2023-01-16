@@ -65,7 +65,7 @@ public class DataDisplay {
 		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
-		animationData = new AnimationData(npc,this);
+		animationData = new AnimationData(this);
 	}
 
 	public String getRandomName() {

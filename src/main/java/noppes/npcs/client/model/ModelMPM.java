@@ -11,6 +11,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.*;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.api.handler.data.IFramePart;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
@@ -18,10 +20,15 @@ import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import org.lwjgl.opengl.GL11;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;
@@ -562,14 +569,31 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.body.scaleY;
 		}
 
-		AnimationData job = npc.display.animationData;
-		if (job.isActive()) {
-			AnimationPartConfig[] partConfigs = new AnimationPartConfig[]{job.head,job.body,job.larm,job.rarm,job.lleg,job.rleg};
-			ModelRenderer[] mainModelParts = new ModelRenderer[]{bipedHead,bipedBody,bipedLeftArm,bipedRightArm,bipedLeftLeg,bipedRightLeg};
+		AnimationData animationData = npc.display.animationData;
+		if (animationData.isActive()) {
+			Animation animation = animationData.animation;
+			Frame frame = animation.frames.get(animation.currentFrame);
 
-			for (int i = 0; i < partConfigs.length; i++) {
-				if (partConfigs[i].enablePart) {
-					this.setInterpolatedAngles(mainModelParts[i],partConfigs[i]);
+			HashMap<EnumAnimationPart,ModelRenderer> animPartToModel = new HashMap<>();
+			animPartToModel.put(EnumAnimationPart.HEAD,bipedHead);
+			animPartToModel.put(EnumAnimationPart.BODY,bipedBody);
+			animPartToModel.put(EnumAnimationPart.LEFT_ARM,bipedLeftArm);
+			animPartToModel.put(EnumAnimationPart.RIGHT_ARM,bipedRightArm);
+			animPartToModel.put(EnumAnimationPart.LEFT_LEG,bipedLeftLeg);
+			animPartToModel.put(EnumAnimationPart.RIGHT_LEG,bipedRightLeg);
+
+			FramePart[] frameParts = frame.frameParts.values().toArray(new FramePart[0]);
+			for (FramePart part : frameParts) {
+				if (part != null) {
+					if (part.part != EnumAnimationPart.FULL_MODEL) {
+						ModelRenderer modelRenderer = animPartToModel.get(part.part);
+						part.interpolateAngles();
+						modelRenderer.rotateAngleX = part.prevRotations[0];
+						modelRenderer.rotateAngleY = part.prevRotations[1];
+						modelRenderer.rotateAngleZ = part.prevRotations[2];
+					} else {
+						part.interpolateAngles();
+					}
 				}
 			}
 
@@ -611,77 +635,30 @@ public class ModelMPM extends ModelNPCMale{
 					-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
 					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
 
-			for (int i = 0; i < partConfigs.length; i++) {
-				if (partConfigs[i].enablePart) {
-					this.addInterpolatedOffset(mainModelParts[i],partConfigs[i]);
+			frameParts = frame.frameParts.values().toArray(new FramePart[0]);
+			for (FramePart part : frameParts) {
+				if (part != null) {
+					if (part.part != EnumAnimationPart.FULL_MODEL) {
+						ModelRenderer modelRenderer = animPartToModel.get(part.part);
+						part.interpolateOffset();
+						modelRenderer.rotationPointX += part.prevPivots[0];
+						modelRenderer.rotationPointY += part.prevPivots[1];
+						modelRenderer.rotationPointZ += part.prevPivots[2];
+					} else {
+						part.interpolateOffset();
+					}
 				}
 			}
-		}
-	}
 
-	public void setInterpolatedAngles(ModelRenderer renderer, AnimationPartConfig modelPart) {
-		renderer.rotateAngleX = modelPart.prevRotations[0];
-		renderer.rotateAngleY = modelPart.prevRotations[1];
-		renderer.rotateAngleZ = modelPart.prevRotations[2];
-
-		float pi = (float) Math.PI * (modelPart.fullAngles ? 2 : 1);
-		if (!modelPart.animate) {
-			renderer.rotateAngleX = modelPart.rotationX * pi;
-			renderer.rotateAngleY = modelPart.rotationY * pi;
-			renderer.rotateAngleZ = modelPart.rotationZ * pi;
-		} else {
-			if (modelPart.interpolate) {
-				renderer.rotateAngleX = (modelPart.rotationX * pi - renderer.rotateAngleX) * modelPart.animRate / 10f + renderer.rotateAngleX;
-				renderer.rotateAngleY = (modelPart.rotationY * pi - renderer.rotateAngleY) * modelPart.animRate / 10f + renderer.rotateAngleY;
-				renderer.rotateAngleZ = (modelPart.rotationZ * pi - renderer.rotateAngleZ) * modelPart.animRate / 10f + renderer.rotateAngleZ;
-			} else {
-				int directionX = Float.compare(modelPart.rotationX * pi, renderer.rotateAngleX);
-				renderer.rotateAngleX += directionX * modelPart.animRate / 10f;
-				renderer.rotateAngleX = directionX == 1 ?
-						Math.min(modelPart.rotationX * pi,renderer.rotateAngleX) : Math.max(modelPart.rotationX * pi,renderer.rotateAngleX);
-				int directionY = Float.compare(modelPart.rotationY * pi, renderer.rotateAngleY);
-				renderer.rotateAngleY += directionY * modelPart.animRate / 10f;
-				renderer.rotateAngleY = directionY == 1 ?
-						Math.min(modelPart.rotationY * pi,renderer.rotateAngleY) : Math.max(modelPart.rotationY * pi,renderer.rotateAngleY);
-				int directionZ = Float.compare(modelPart.rotationZ * pi, renderer.rotateAngleZ);
-				renderer.rotateAngleZ += directionZ * modelPart.animRate / 10f;
-				renderer.rotateAngleZ = directionZ == 1 ?
-						Math.min(modelPart.rotationZ * pi,renderer.rotateAngleZ) : Math.max(modelPart.rotationZ * pi,renderer.rotateAngleZ);
-			}
-		}
-		modelPart.prevRotations = new float[]{renderer.rotateAngleX,renderer.rotateAngleY,renderer.rotateAngleZ};
-	}
-
-	public void addInterpolatedOffset(ModelRenderer renderer, AnimationPartConfig modelPart) {
-		if (!modelPart.animate) {
-			renderer.rotationPointX += modelPart.pivotX;
-			renderer.rotationPointY += modelPart.pivotY;
-			renderer.rotationPointZ += modelPart.pivotZ;
-		} else {
-			renderer.rotationPointX += modelPart.prevPivots[0];
-			renderer.rotationPointY += modelPart.prevPivots[1];
-			renderer.rotationPointZ += modelPart.prevPivots[2];
-			if (modelPart.interpolate) {
-				modelPart.prevPivots[0] = (modelPart.pivotX - modelPart.prevPivots[0]) * modelPart.animRate / 10f + modelPart.prevPivots[0];
-				modelPart.prevPivots[1] = (modelPart.pivotY - modelPart.prevPivots[1]) * modelPart.animRate / 10f + modelPart.prevPivots[1];
-				modelPart.prevPivots[2] = (modelPart.pivotZ - modelPart.prevPivots[2]) * modelPart.animRate / 10f + modelPart.prevPivots[2];
-			} else {
-				int directionX = Float.compare(modelPart.pivotX, modelPart.prevPivots[0]);
-				modelPart.prevPivots[0] += directionX * modelPart.animRate / 10f;
-				modelPart.prevPivots[0] = directionX == 1 ?
-						Math.min(modelPart.pivotX,modelPart.prevPivots[0]) : Math.max(modelPart.pivotX,modelPart.prevPivots[0]);
-				int directionY = Float.compare(modelPart.pivotY, modelPart.prevPivots[1]);
-				modelPart.prevPivots[1] += directionY * modelPart.animRate / 10f;
-				modelPart.prevPivots[1] = directionY == 1 ?
-						Math.min(modelPart.pivotY,modelPart.prevPivots[1]) : Math.max(modelPart.pivotY,modelPart.prevPivots[1]);
-				int directionZ = Float.compare(modelPart.pivotZ, modelPart.prevPivots[2]);
-				modelPart.prevPivots[2] += directionZ * modelPart.animRate / 10f;
-				modelPart.prevPivots[2] = directionZ == 1 ?
-						Math.min(modelPart.pivotZ,modelPart.prevPivots[2]) : Math.max(modelPart.pivotZ,modelPart.prevPivots[2]);
+			if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+				FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+				GL11.glTranslatef(part.prevPivots[0],part.prevPivots[1],part.prevPivots[2]);
+				GL11.glRotatef(part.prevRotations[0],1,0,0);
+				GL11.glRotatef(part.prevRotations[1],0,1,0);
+				GL11.glRotatef(part.prevRotations[2],0,0,1);
 			}
 		}
 	}
-
 
 	public void setLivingAnimations(EntityLivingBase par1EntityLivingBase, float par2, float par3, float par4)
 	{

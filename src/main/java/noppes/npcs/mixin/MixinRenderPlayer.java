@@ -4,9 +4,12 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
-import noppes.npcs.AnimationDataShared;
+import noppes.npcs.AnimationData;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientEventHandler;
+import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,47 +23,19 @@ public class MixinRenderPlayer {
     @Inject(method = "renderLivingAt", at = @At(value = "TAIL"))
     protected void modelDataRotations(AbstractClientPlayer p_77039_1_, double p_77039_2_, double p_77039_4_, double p_77039_6_, CallbackInfo callbackInfo)
     {
-        if (Client.playerModelData.containsKey(p_77039_1_.getUniqueID())) {
-            AnimationDataShared data = Client.playerModelData.get(p_77039_1_.getUniqueID());
-            if (data.allowAnimation) {
-                this.setInterpolatedAngles(data);
-                if (data.rotationEnabledX) {
-                    GL11.glRotatef(data.modelRotations[0], 1, 0, 0);
+        if (Client.playerAnimations.containsKey(p_77039_1_.getUniqueID())) {
+            AnimationData animData = Client.playerAnimations.get(p_77039_1_.getUniqueID());
+            if (animData != null && animData.isActive()) {
+                Frame frame = (Frame) animData.animation.currentFrame();
+                if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                    FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                    part.interpolateOffset();
+                    part.interpolateAngles();
+                    GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
+                    GL11.glRotatef(part.prevRotations[0], 1, 0, 0);
+                    GL11.glRotatef(part.prevRotations[1], 0, 1, 0);
+                    GL11.glRotatef(part.prevRotations[2], 0, 0, 1);
                 }
-                if (data.rotationEnabledY) {
-                    GL11.glRotatef(data.modelRotations[1], 0, 1, 0);
-                }
-                if (data.rotationEnabledZ) {
-                    GL11.glRotatef(data.modelRotations[2], 0, 0, 1);
-                }
-            }
-        }
-    }
-
-    public void setInterpolatedAngles(AnimationDataShared modelData) {
-        float pi = (float) Math.PI * (modelData.fullAngles ? 2 : 1);
-        if (!modelData.fullAnimate) {
-            modelData.modelRotations[0] = modelData.rotationX * pi;
-            modelData.modelRotations[1] = modelData.rotationY * pi;
-            modelData.modelRotations[2] = modelData.rotationZ * pi;
-        } else if (modelData.modelRotPartialTicks != ClientEventHandler.partialRenderTick) {
-            modelData.modelRotPartialTicks = ClientEventHandler.partialRenderTick;
-            if (modelData.rotationX - modelData.modelRotations[0] != 0 && modelData.rotationEnabledX) {
-                modelData.modelRotations[0] = (modelData.rotationX - modelData.modelRotations[0]) * modelData.animRate / 10f + modelData.modelRotations[0];
-            } else {
-                modelData.modelRotations[0] = modelData.rotationX;
-            }
-
-            if (modelData.rotationY - modelData.modelRotations[1] != 0 && modelData.rotationEnabledY) {
-                modelData.modelRotations[1] = (modelData.rotationY - modelData.modelRotations[1]) * modelData.animRate / 10f + modelData.modelRotations[1];
-            } else {
-                modelData.modelRotations[1] = modelData.rotationY;
-            }
-
-            if (modelData.rotationZ - modelData.modelRotations[2] != 0 && modelData.rotationEnabledZ) {
-                modelData.modelRotations[2] = (modelData.rotationZ - modelData.modelRotations[2]) * modelData.animRate /10f + modelData.modelRotations[2];
-            } else {
-                modelData.modelRotations[2] = modelData.rotationZ;
             }
         }
     }

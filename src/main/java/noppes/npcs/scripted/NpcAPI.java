@@ -38,12 +38,19 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.*;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IFrame;
+import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -558,5 +565,70 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public String ticksToTime(long ticks) {
         return this.millisToTime(ticks * 50);
+    }
+
+    public IAnimation createAnimation(String name) {
+        return new Animation(name);
+    }
+
+    public IFrame createFrame(int duration) {
+        return new Frame(duration);
+    }
+
+    public IFrame createFrame(int duration, float speed, byte smooth) {
+        return new Frame(duration,speed,smooth);
+    }
+
+    public IFramePart createPart(String name) {
+        try {
+            return new FramePart(EnumAnimationPart.valueOf(name));
+        } catch (IllegalArgumentException ignored) {
+            throw new CustomNPCsException("Invalid frame part name: " + name);
+        }
+    }
+
+    public IFramePart createPart(String name, int[] rotation, int[] pivot) {
+        if (rotation.length != 3 || pivot.length != 3) {
+            throw new CustomNPCsException("Rotation and pivot arrays for frame parts must have a length of 3.");
+        }
+
+        FramePart part = (FramePart) this.createPart(name);
+        part.setRotations(rotation);
+        part.setPivots(pivot);
+        return part;
+    }
+
+    public IFramePart createPart(String name, int[] rotation, int[] pivot, float speed, byte smooth) {
+        FramePart part = (FramePart) this.createPart(name,rotation,pivot);
+        part.setSpeed(speed);
+        part.setSmooth(smooth);
+        return part;
+    }
+
+    public IFramePart createPart(int partId) {
+        for (EnumAnimationPart part : EnumAnimationPart.values()) {
+            if (part.id == partId) {
+                return new FramePart(part);
+            }
+        }
+        throw new CustomNPCsException("Invalid frame part ID: " + partId);
+    }
+
+    public IFramePart createPart(int partId, int[] rotation, int[] pivot) {
+        if (rotation.length != 3 || pivot.length != 3) {
+            throw new CustomNPCsException("Rotation and pivot arrays for frame parts must have a length of 3.");
+        }
+
+        FramePart part = (FramePart) this.createPart(partId);
+        part.setRotations(rotation);
+        part.setPivots(pivot);
+        return part;
+    }
+
+    public IFramePart createPart(int partId, int[] rotation, int[] pivot, float speed, byte smooth) {
+        FramePart part = (FramePart) this.createPart(partId,rotation,pivot);
+        part.setSpeed(speed);
+        part.setSmooth(smooth);
+        return part;
     }
 }

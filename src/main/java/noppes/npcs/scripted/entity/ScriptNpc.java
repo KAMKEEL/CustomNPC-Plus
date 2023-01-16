@@ -8,10 +8,10 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
-import noppes.npcs.api.jobs.IJobPuppet;
 import noppes.npcs.api.roles.IRole;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
@@ -340,8 +340,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.reset();
 	}
 
-	public IJobPuppet getModelData() {
-		return new ScriptJobPuppet(npc);
+	public IAnimationData getAnimationData() {
+		return this.npc.display.animationData;
 	}
 
 	/**

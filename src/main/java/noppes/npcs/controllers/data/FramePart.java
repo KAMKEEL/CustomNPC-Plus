@@ -1,9 +1,13 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IFramePart;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 
-public class FramePart {
+public class FramePart implements IFramePart {
 
 	public EnumAnimationPart part;
 	public int[] rotation = {0, 0, 0};
@@ -12,7 +16,14 @@ public class FramePart {
 	boolean customized = false;
 
 	public float speed = 1.0F;
-	public boolean smooth = false;
+	//0 - Interpolated, 1 - Linear, 2 - None
+	public byte smooth = 0;
+
+	//Client-sided fields (unsaved)
+	public float[] prevRotations = {0,0,0};
+	public float[] prevPivots = {0,0,0};
+	public float partialRotationTick;
+	public float partialPivotTick;
 
 	public FramePart(){}
 
@@ -20,67 +31,82 @@ public class FramePart {
 		this.part = part;
 	}
 
-	public FramePart(EnumAnimationPart part, int[] rotation, int[] pivot){
-		this.part = part;
-		this.rotation = rotation;
-		this.pivot = pivot;
-	}
-
-	public FramePart(EnumAnimationPart part, int[] rotation, int[] pivot, float speed, boolean smooth){
-		this.part = part;
-		this.rotation = rotation;
-		this.pivot = pivot;
-		this.speed = speed;
-		this.smooth = smooth;
-		this.customized = true;
-	}
-
 	public EnumAnimationPart getPart() {
 		return part;
+	}
+
+	public String getName() {
+		return part.name();
+	}
+
+	public int getPartId() {
+		return part.id;
 	}
 
 	public void setPart(EnumAnimationPart part) {
 		this.part = part;
 	}
 
-	public int[] getRotation() {
+	public IFramePart setPart(String name) {
+		try {
+			this.setPart(EnumAnimationPart.valueOf(name));
+		} catch (IllegalArgumentException ignored) {}
+		return this;
+	}
+
+	public IFramePart setPart(int partId) {
+		for (EnumAnimationPart enumPart : EnumAnimationPart.values()) {
+			if (enumPart.id == partId) {
+				this.setPart(enumPart);
+				break;
+			}
+		}
+		return this;
+	}
+
+	public int[] getRotations() {
 		return rotation;
 	}
 
-	public void setRotation(int[] rotation) {
+	public IFramePart setRotations(int[] rotation) {
 		this.rotation = rotation;
+		return this;
 	}
 
-	public int[] getPivot() {
+	public int[] getPivots() {
 		return pivot;
 	}
 
-	public void setPivot(int[] pivot) {
+	public IFramePart setPivots(int[] pivot) {
 		this.pivot = pivot;
+		return this;
 	}
 
 	public boolean isCustomized() {
 		return customized;
 	}
 
-	public void setCustomized(boolean customized) {
+	public IFramePart setCustomized(boolean customized) {
 		this.customized = customized;
+		return this;
 	}
 
 	public float getSpeed() {
 		return speed;
 	}
 
-	public void setSpeed(float speed) {
+	public IFramePart setSpeed(float speed) {
 		this.speed = speed;
+		return this;
 	}
 
-	public boolean isSmooth() {
+	public byte isSmooth() {
 		return smooth;
 	}
 
-	public void setSmooth(boolean smooth) {
+	public IFramePart setSmooth(byte smooth) {
 		this.smooth = smooth;
+		return this;
 	}
 
 	public void readFromNBT(NBTTagCompound compound){
@@ -95,7 +121,7 @@ public class FramePart {
 		}
 		if(compound.hasKey("Smooth")){
 			customized = true;
-			smooth = compound.getBoolean("Smooth");
+			smooth = compound.getByte("Smooth");
 		}
 	}
 
@@ -107,9 +133,68 @@ public class FramePart {
 
 		if(customized){
 			compound.setFloat("Speed", speed);
-			compound.setBoolean("Smooth", smooth);
+			compound.setByte("Smooth", smooth);
 		}
 
 		return compound;
+	}
+
+	@SideOnly(Side.CLIENT)
+	public void interpolateAngles() {
+		float pi = (float) Math.PI / 180;
+		if (this.smooth == 2) {
+			this.prevRotations[0] = this.rotation[0] * pi;
+			this.prevRotations[1] = this.rotation[1] * pi;
+			this.prevRotations[2] = this.rotation[2] * pi;
+		} else if (this.partialRotationTick != ClientEventHandler.partialRenderTick) {
+			this.partialRotationTick = ClientEventHandler.partialRenderTick;
+			if (this.smooth == 0) {
+				this.prevRotations[0] = (this.rotation[0] * pi - this.prevRotations[0]) * Math.abs(this.speed) / 10f + this.prevRotations[0];
+				this.prevRotations[1] = (this.rotation[1] * pi - this.prevRotations[1]) * Math.abs(this.speed) / 10f + this.prevRotations[1];
+				this.prevRotations[2] = (this.rotation[2] * pi - this.prevRotations[2]) * Math.abs(this.speed) / 10f + this.prevRotations[2];
+			} else {
+				int directionX = Float.compare(this.rotation[0] * pi, this.prevRotations[0]);
+				this.prevRotations[0] += directionX * this.speed / 10f;
+				this.prevRotations[0] = directionX == 1 ?
+						Math.min(this.rotation[0] * pi, this.prevRotations[0]) : Math.max(this.rotation[0] * pi, this.prevRotations[0]);
+				int directionY = Float.compare(this.rotation[1] * pi, this.prevRotations[1]);
+				this.prevRotations[1] += directionY * this.speed / 10f;
+				this.prevRotations[1] = directionY == 1 ?
+						Math.min(this.rotation[1] * pi, this.prevRotations[1]) : Math.max(this.rotation[1] * pi, this.prevRotations[1]);
+				int directionZ = Float.compare(this.rotation[2] * pi, this.prevRotations[2]);
+				this.prevRotations[2] += directionZ * this.speed / 10f;
+				this.prevRotations[2] = directionZ == 1 ?
+						Math.min(this.rotation[2] * pi, this.prevRotations[2]) : Math.max(this.rotation[2] * pi, this.prevRotations[2]);
+			}
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	public void interpolateOffset() {
+		if (this.smooth == 2) {
+			this.prevPivots[0] = this.pivot[0];
+			this.prevPivots[1] = this.pivot[1];
+			this.prevPivots[2] = this.pivot[2];
+		} else if (this.partialPivotTick != ClientEventHandler.partialRenderTick)  {
+			this.partialPivotTick = ClientEventHandler.partialRenderTick;
+			if (this.smooth == 0) {
+				this.prevPivots[0] = (this.pivot[0] - this.prevPivots[0]) * Math.abs(this.speed) / 10f + this.prevPivots[0];
+				this.prevPivots[1] = (this.pivot[1] - this.prevPivots[1]) * Math.abs(this.speed) / 10f + this.prevPivots[1];
+				this.prevPivots[2] = (this.pivot[2] - this.prevPivots[2]) * Math.abs(this.speed) / 10f + this.prevPivots[2];
+			} else {
+				int directionX = Float.compare(this.pivot[0], this.prevPivots[0]);
+				this.prevPivots[0] += directionX * this.speed / 10f;
+				this.prevPivots[0] = directionX == 1 ?
+						Math.min(this.pivot[0],this.prevPivots[0]) : Math.max(this.pivot[0],this.prevPivots[0]);
+				int directionY = Float.compare(this.pivot[1], this.prevPivots[1]);
+				this.prevPivots[1] += directionY * this.speed / 10f;
+				this.prevPivots[1] = directionY == 1 ?
+						Math.min(this.pivot[1],this.prevPivots[1]) : Math.max(this.pivot[1],this.prevPivots[1]);
+				int directionZ = Float.compare(this.pivot[2], this.prevPivots[2]);
+				this.prevPivots[2] += directionZ * this.speed / 10f;
+				this.prevPivots[2] = directionZ == 1 ?
+						Math.min(this.pivot[2],this.prevPivots[2]) : Math.max(this.pivot[2],this.prevPivots[2]);
+			}
+		}
 	}
 }

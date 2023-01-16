@@ -31,6 +31,7 @@ import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -289,11 +290,31 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				NoppesUtil.updateSkinOverlayData(sendingPlayer, compound);
 			}
 		}
-		else if(type == EnumPacketClient.PLAYER_UPDATE_MODEL_DATA) {
-			EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
+		else if(type == EnumPacketClient.UPDATE_ANIMATIONS) {
 			NBTTagCompound compound = Server.readNBT(buffer);
-			if (sendingPlayer != null) {
-				NoppesUtil.updatePlayerModelData(sendingPlayer, compound);
+			if (compound.hasKey("EntityId")) {
+				Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
+				if (entity instanceof EntityNPCInterface) {
+					AnimationData data = ((EntityNPCInterface) entity).display.animationData;
+					data.readFromNBT(compound);
+					if (data.animation == null) {
+						data.animation = new Animation();
+					}
+					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
+				}
+			} else {
+				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
+				if (sendingPlayer != null) {
+					AnimationData data;
+					if (!Client.playerAnimations.containsKey(player.getUniqueID())) {
+						data = new AnimationData(player);
+						data.readFromNBT(compound.getCompoundTag("Animation"));
+					} else {
+						data = Client.playerAnimations.get(player.getUniqueID());
+						data.readFromNBT(compound.getCompoundTag("Animation"));
+					}
+					Client.playerAnimations.put(player.getUniqueID(), data);
+				}
 			}
 		}
 		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {

@@ -12,7 +12,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
-import noppes.npcs.AnimationDataShared;
+import noppes.npcs.AnimationData;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.fx.CustomFX;
@@ -86,19 +86,6 @@ public class NoppesUtil {
 			skinOverlays.put(tagID,overlay);
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
-	}
-
-	public static void updatePlayerModelData(EntityPlayer player, NBTTagCompound compound) {
-		AnimationDataShared data;
-		if (!Client.playerModelData.containsKey(player.getUniqueID())) {
-			data = new AnimationDataShared(null);
-			data.readFromNBT(compound);
-			data.modelRotations = new float[]{data.rotationX, data.rotationY, data.rotationZ};
-		} else {
-			data = Client.playerModelData.get(player.getUniqueID());
-			data.readFromNBT(compound);
-		}
-		Client.playerModelData.put(player.getUniqueID(), data);
 	}
 
 	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){

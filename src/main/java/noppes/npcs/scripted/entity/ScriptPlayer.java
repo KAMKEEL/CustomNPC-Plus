@@ -19,6 +19,7 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.ISound;
@@ -758,6 +759,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public IOverlayHandler getOverlays() {
 		return this.getData().skinOverlays;
+	}
+
+	public IAnimationData getAnimationData() {
+		return this.getData().animationData;
 	}
 
 	public IQuest[] getFinishedQuests() {
