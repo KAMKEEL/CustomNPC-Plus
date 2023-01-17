@@ -57,47 +57,6 @@ public abstract class MixinModelRenderer {
                     this.compileDisplayList(p_78785_1_);
                 }
 
-                if (ClientEventHandler.renderingPlayer != null && Client.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
-                    AnimationData animData = Client.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
-                    EnumAnimationPart partType = this.getPlayerPartType((ModelRenderer) (Object) this);
-                    if (partType != null && animData != null) {
-                        if (animData.isActive()) {
-                            Frame frame = (Frame) animData.animation.currentFrame();
-                            if (frame.frameParts.containsKey(partType)) {
-                                FramePart part = frame.frameParts.get(partType);
-                                if (!animData.originalPivots.containsKey(part.part)) {
-                                    FramePart originalPart = new FramePart(part.part);
-                                    originalPart.originalRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-                                    originalPart.originalPivots = new float[]{this.rotationPointX, this.rotationPointY, this.rotationPointZ};
-                                    animData.originalPivots.put(part.part, originalPart);
-                                } else {
-                                    this.rotateAngleX = animData.originalPivots.get(part.part).prevRotations[0];
-                                    this.rotateAngleY = animData.originalPivots.get(part.part).prevRotations[1];
-                                    this.rotateAngleZ = animData.originalPivots.get(part.part).prevRotations[2];
-                                }
-                                FramePart originalPart = animData.originalPivots.get(part.part);
-                                part.interpolateAngles();
-                                part.interpolateOffset();
-                                this.rotationPointX = originalPart.originalPivots[0] + part.prevPivots[0];
-                                this.rotationPointY = originalPart.originalPivots[1] + part.prevPivots[1];
-                                this.rotationPointZ = originalPart.originalPivots[2] + part.prevPivots[2];
-                                this.rotateAngleX = part.prevRotations[0];
-                                this.rotateAngleY = part.prevRotations[1];
-                                this.rotateAngleZ = part.prevRotations[2];
-                                animData.originalPivots.get(part.part).prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-                            }
-                        } else if (animData.originalPivots.containsKey(partType)) {
-                            this.rotateAngleX = animData.originalPivots.get(partType).originalRotations[0];
-                            this.rotateAngleY = animData.originalPivots.get(partType).originalRotations[1];
-                            this.rotateAngleZ = animData.originalPivots.get(partType).originalRotations[2];
-                            this.rotationPointX = animData.originalPivots.get(partType).originalPivots[0];
-                            this.rotationPointY = animData.originalPivots.get(partType).originalPivots[1];
-                            this.rotationPointZ = animData.originalPivots.get(partType).originalPivots[2];
-                            animData.originalPivots.remove(partType);
-                        }
-                    }
-                }
-
                 float prevPointX = this.rotationPointX;
                 float prevPointY = this.rotationPointY;
                 float prevPointZ = this.rotationPointZ;
@@ -129,6 +88,60 @@ public abstract class MixinModelRenderer {
                     this.rotateAngleY = currentPart.prevRotations[1];
                     this.rotateAngleZ = currentPart.prevRotations[2];
                 }
+
+                if (ClientEventHandler.renderingPlayer != null && Client.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
+                    animData = Client.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
+                    EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
+                    EnumAnimationPart pivotEqualPart = null;
+                    if (mainPartType == null) {
+                        pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
+                    }
+                    partType = mainPartType != null ? mainPartType : pivotEqualPart;
+                    if (partType != null && animData != null) {
+                        if (animData.isActive()) {
+                            Frame frame = (Frame) animData.animation.currentFrame();
+                            if (frame.frameParts.containsKey(partType)) {
+                                FramePart part = frame.frameParts.get(partType);
+                                if (partType == mainPartType) {
+                                    if (!animData.originalPivots.containsKey(part.part)) {
+                                        FramePart originalPart = new FramePart(part.part);
+                                        originalPart.originalRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+                                        originalPart.originalPivots = new float[]{this.rotationPointX, this.rotationPointY, this.rotationPointZ};
+                                        animData.originalPivots.put(part.part, originalPart);
+                                    } else {
+                                        this.rotateAngleX = animData.originalPivots.get(part.part).prevRotations[0];
+                                        this.rotateAngleY = animData.originalPivots.get(part.part).prevRotations[1];
+                                        this.rotateAngleZ = animData.originalPivots.get(part.part).prevRotations[2];
+                                    }
+                                }
+                                FramePart originalPart = animData.originalPivots.get(part.part);
+                                if (partType == mainPartType) {
+                                    part.interpolateAngles();
+                                    part.interpolateOffset();
+                                    this.rotationPointX = originalPart.originalPivots[0] + part.prevPivots[0];
+                                    this.rotationPointY = originalPart.originalPivots[1] + part.prevPivots[1];
+                                    this.rotationPointZ = originalPart.originalPivots[2] + part.prevPivots[2];
+                                    this.rotateAngleX = part.prevRotations[0];
+                                    this.rotateAngleY = part.prevRotations[1];
+                                    this.rotateAngleZ = part.prevRotations[2];
+                                } else {
+                                    currentPart = part;
+                                    this.rotateAngleZ += part.prevRotations[2];
+                                }
+                                animData.originalPivots.get(part.part).prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
+                            }
+                        } else if (animData.originalPivots.containsKey(partType) && partType == mainPartType) {
+                            this.rotateAngleX = animData.originalPivots.get(partType).originalRotations[0];
+                            this.rotateAngleY = animData.originalPivots.get(partType).originalRotations[1];
+                            this.rotateAngleZ = animData.originalPivots.get(partType).originalRotations[2];
+                            this.rotationPointX = animData.originalPivots.get(partType).originalPivots[0];
+                            this.rotationPointY = animData.originalPivots.get(partType).originalPivots[1];
+                            this.rotationPointZ = animData.originalPivots.get(partType).originalPivots[2];
+                            animData.originalPivots.remove(partType);
+                        }
+                    }
+                }
+
                 GL11.glTranslatef(this.offsetX, this.offsetY, this.offsetZ);
                 int i;
 
@@ -195,12 +208,14 @@ public abstract class MixinModelRenderer {
                     GL11.glPopMatrix();
                 }
 
-                this.rotationPointX = prevPointX;
-                this.rotationPointY = prevPointY;
-                this.rotationPointZ = prevPointZ;
-                this.rotateAngleX = prevAngleX;
-                this.rotateAngleY = prevAngleY;
-                this.rotateAngleZ = prevAngleZ;
+                if (currentPart != null) {
+                    this.rotationPointX = prevPointX;
+                    this.rotationPointY = prevPointY;
+                    this.rotationPointZ = prevPointZ;
+                    this.rotateAngleX = prevAngleX;
+                    this.rotateAngleY = prevAngleY;
+                    this.rotateAngleZ = prevAngleZ;
+                }
             }
         }
     }
@@ -242,6 +257,40 @@ public abstract class MixinModelRenderer {
         } catch (ClassNotFoundException ignored) {}
 
         return null;
+    }
+
+    public EnumAnimationPart pivotEqualPart(ModelRenderer renderer) {
+        ModelRenderer head = ((ModelBiped) renderer.baseModel).bipedHead;
+        ModelRenderer body = ((ModelBiped) renderer.baseModel).bipedBody;
+        ModelRenderer larm = ((ModelBiped) renderer.baseModel).bipedLeftArm;
+        ModelRenderer rarm = ((ModelBiped) renderer.baseModel).bipedRightArm;
+        ModelRenderer lleg = ((ModelBiped) renderer.baseModel).bipedLeftLeg;
+        ModelRenderer rleg = ((ModelBiped) renderer.baseModel).bipedRightLeg;
+
+        if (this.pivotsEqual(renderer,head)) {
+            return EnumAnimationPart.HEAD;
+        }
+        if (this.pivotsEqual(renderer,body)) {
+            return EnumAnimationPart.BODY;
+        }
+        if (this.pivotsEqual(renderer,rarm)) {
+            return EnumAnimationPart.RIGHT_ARM;
+        }
+        if (this.pivotsEqual(renderer,larm)) {
+            return EnumAnimationPart.LEFT_ARM;
+        }
+        if (this.pivotsEqual(renderer,rleg)) {
+            return EnumAnimationPart.RIGHT_LEG;
+        }
+        if (this.pivotsEqual(renderer,lleg)) {
+            return EnumAnimationPart.LEFT_LEG;
+        }
+
+        return null;
+    }
+
+    public boolean pivotsEqual(ModelRenderer m1, ModelRenderer m2) {
+        return m1.rotationPointX == m2.rotationPointX && m1.rotationPointY == m2.rotationPointY && m1.rotationPointZ == m2.rotationPointZ;
     }
 
     public EnumAnimationPart getPartType(ModelRenderer renderer, HashMap<EnumAnimationPart,String[]> partNames) {

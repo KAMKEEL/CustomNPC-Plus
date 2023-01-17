@@ -114,10 +114,10 @@ public class FramePart implements IFramePart {
 	public void readFromNBT(NBTTagCompound compound){
 		part = EnumAnimationPart.valueOf(compound.getString("Part"));
 		for (int i = 0; i < 3; i++) {
-			rotation[0] = compound.getFloat("Rotation" + i);
+			rotation[i] = compound.getFloat("Rotation" + i);
 		}
 		for (int i = 0; i < 3; i++) {
-			pivot[0] = compound.getFloat("Pivot" + i);
+			pivot[i] = compound.getFloat("Pivot" + i);
 		}
 
 		// Customized = TRUE if Speed or Smooth Exist
@@ -138,7 +138,7 @@ public class FramePart implements IFramePart {
 			compound.setFloat("Rotation" + i, rotation[i]);
 		}
 		for (int i = 0; i < 3; i++) {
-			compound.setFloat("Pivot" + i, rotation[i]);
+			compound.setFloat("Pivot" + i, pivot[i]);
 		}
 
 		if(customized){
