@@ -308,11 +308,15 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					AnimationData data;
 					if (!Client.playerAnimations.containsKey(player.getUniqueID())) {
 						data = new AnimationData(player);
-						data.readFromNBT(compound.getCompoundTag("Animation"));
+						data.readFromNBT(compound);
 					} else {
 						data = Client.playerAnimations.get(player.getUniqueID());
-						data.readFromNBT(compound.getCompoundTag("Animation"));
+						data.readFromNBT(compound);
 					}
+					if (data.animation == null) {
+						data.animation = new Animation();
+					}
+					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
 					Client.playerAnimations.put(player.getUniqueID(), data);
 				}
 			}

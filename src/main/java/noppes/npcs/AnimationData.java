@@ -23,15 +23,12 @@ public class AnimationData implements IAnimationData {
     }
 
     public void updateClient() {
+        NBTTagCompound compound = new NBTTagCompound();
+        compound = this.writeToNBT(compound);
+        compound.setTag("Animation",this.animation.writeToNBT());
         if (parent instanceof PlayerData) {
-            NBTTagCompound compound = new NBTTagCompound();
-            this.writeToNBT(compound);
-            compound.setTag("Animation",this.animation.writeToNBT());
             Server.sendToAll(EnumPacketClient.UPDATE_ANIMATIONS, compound, ((PlayerData) parent).player.getCommandSenderName());
         } else if (parent instanceof DataDisplay) {
-            NBTTagCompound compound = new NBTTagCompound();
-            this.writeToNBT(compound);
-            compound.setTag("Animation",this.animation.writeToNBT());
             compound.setInteger("EntityId",((DataDisplay) parent).npc.getEntityId());
             Server.sendAssociatedData(((DataDisplay) parent).npc, EnumPacketClient.UPDATE_ANIMATIONS, compound);
         }
