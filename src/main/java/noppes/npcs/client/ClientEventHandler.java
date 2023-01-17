@@ -10,6 +10,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import noppes.npcs.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
+import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -25,6 +26,7 @@ public class ClientEventHandler {
     public static float partialRenderTick;
     public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
+    public static HashMap<EnumAnimationPart,String[]> partNames = new HashMap<>();
     public static RendererLivingEntity renderer;
 
     @SubscribeEvent

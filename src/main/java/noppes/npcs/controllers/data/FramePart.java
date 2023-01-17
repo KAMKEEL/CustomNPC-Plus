@@ -10,8 +10,8 @@ import noppes.npcs.constants.EnumAnimationPart;
 public class FramePart implements IFramePart {
 
 	public EnumAnimationPart part;
-	public int[] rotation = {0, 0, 0};
-	public int[] pivot = {0, 0, 0};
+	public float[] rotation = {0, 0, 0};
+	public float[] pivot = {0, 0, 0};
 
 	boolean customized = false;
 
@@ -24,6 +24,8 @@ public class FramePart implements IFramePart {
 	public float[] prevPivots = {0,0,0};
 	public float partialRotationTick;
 	public float partialPivotTick;
+	public float[] originalRotations = {0,0,0};
+	public float[] originalPivots = {0,0,0};
 
 	public FramePart(){}
 
@@ -64,20 +66,20 @@ public class FramePart implements IFramePart {
 		return this;
 	}
 
-	public int[] getRotations() {
+	public float[] getRotations() {
 		return rotation;
 	}
 
-	public IFramePart setRotations(int[] rotation) {
+	public IFramePart setRotations(float[] rotation) {
 		this.rotation = rotation;
 		return this;
 	}
 
-	public int[] getPivots() {
+	public float[] getPivots() {
 		return pivot;
 	}
 
-	public IFramePart setPivots(int[] pivot) {
+	public IFramePart setPivots(float[] pivot) {
 		this.pivot = pivot;
 		return this;
 	}
@@ -111,8 +113,12 @@ public class FramePart implements IFramePart {
 
 	public void readFromNBT(NBTTagCompound compound){
 		part = EnumAnimationPart.valueOf(compound.getString("Part"));
-		rotation = compound.getIntArray("Rotation");
-		pivot = compound.getIntArray("Pivot");
+		for (int i = 0; i < 3; i++) {
+			rotation[0] = compound.getFloat("Rotation" + i);
+		}
+		for (int i = 0; i < 3; i++) {
+			pivot[0] = compound.getFloat("Pivot" + i);
+		}
 
 		// Customized = TRUE if Speed or Smooth Exist
 		if(compound.hasKey("Speed")){
@@ -128,8 +134,12 @@ public class FramePart implements IFramePart {
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setString("Part", part.toString());
-		compound.setIntArray("Rotation", rotation);
-		compound.setIntArray("Pivot", pivot);
+		for (int i = 0; i < 3; i++) {
+			compound.setFloat("Rotation" + i, rotation[i]);
+		}
+		for (int i = 0; i < 3; i++) {
+			compound.setFloat("Pivot" + i, rotation[i]);
+		}
 
 		if(customized){
 			compound.setFloat("Speed", speed);

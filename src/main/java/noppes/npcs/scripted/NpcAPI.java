@@ -587,7 +587,7 @@ public class NpcAPI extends AbstractNpcAPI {
         }
     }
 
-    public IFramePart createPart(String name, int[] rotation, int[] pivot) {
+    public IFramePart createPart(String name, float[] rotation, float[] pivot) {
         if (rotation.length != 3 || pivot.length != 3) {
             throw new CustomNPCsException("Rotation and pivot arrays for frame parts must have a length of 3.");
         }
@@ -598,7 +598,7 @@ public class NpcAPI extends AbstractNpcAPI {
         return part;
     }
 
-    public IFramePart createPart(String name, int[] rotation, int[] pivot, float speed, byte smooth) {
+    public IFramePart createPart(String name, float[] rotation, float[] pivot, float speed, byte smooth) {
         FramePart part = (FramePart) this.createPart(name,rotation,pivot);
         part.setSpeed(speed);
         part.setSmooth(smooth);
@@ -614,7 +614,7 @@ public class NpcAPI extends AbstractNpcAPI {
         throw new CustomNPCsException("Invalid frame part ID: " + partId);
     }
 
-    public IFramePart createPart(int partId, int[] rotation, int[] pivot) {
+    public IFramePart createPart(int partId, float[] rotation, float[] pivot) {
         if (rotation.length != 3 || pivot.length != 3) {
             throw new CustomNPCsException("Rotation and pivot arrays for frame parts must have a length of 3.");
         }
@@ -625,7 +625,7 @@ public class NpcAPI extends AbstractNpcAPI {
         return part;
     }
 
-    public IFramePart createPart(int partId, int[] rotation, int[] pivot, float speed, byte smooth) {
+    public IFramePart createPart(int partId, float[] rotation, float[] pivot, float speed, byte smooth) {
         FramePart part = (FramePart) this.createPart(partId,rotation,pivot);
         part.setSpeed(speed);
         part.setSmooth(smooth);
