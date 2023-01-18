@@ -343,6 +343,22 @@ public class ModelMPM extends ModelNPCMale{
 			return;
 
 		if(entityModel != null){
+			GL11.glPushMatrix();
+			AnimationData animationData = npc.display.animationData;
+			if (animationData.isActive()) {
+				Animation animation = animationData.animation;
+				Frame frame = animation.frames.get(animation.currentFrame);
+				if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+					FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+					part.interpolateOffset();
+					part.interpolateAngles();
+					float pi = 180 / (float) Math.PI;
+					GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
+					GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
+					GL11.glRotatef(part.prevRotations[1] * pi, 0, 1, 0);
+					GL11.glRotatef(part.prevRotations[2] * pi, 0, 0, 1);
+				}
+			}
 			if(!isArmor){
 				entityModel.isChild = entity.isChild();
 				entityModel.onGround = onGround;
@@ -423,6 +439,7 @@ public class ModelMPM extends ModelNPCMale{
 					npc.display.overlayRenderTicks++;
 				}
 			}
+			GL11.glPopMatrix();
 		} else {
 			alpha = npc.isInvisible() && !npc.isInvisibleToPlayer(player) ? 0.15f : 1;
 
@@ -614,10 +631,13 @@ public class ModelMPM extends ModelNPCMale{
 
 			if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
 				FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+				part.interpolateOffset();
+				part.interpolateAngles();
+				float pi = 180 / (float) Math.PI;
 				GL11.glTranslatef(part.prevPivots[0],part.prevPivots[1],part.prevPivots[2]);
-				GL11.glRotatef(part.prevRotations[0],1,0,0);
-				GL11.glRotatef(part.prevRotations[1],0,1,0);
-				GL11.glRotatef(part.prevRotations[2],0,0,1);
+				GL11.glRotatef(part.prevRotations[0] * pi,1,0,0);
+				GL11.glRotatef(part.prevRotations[1] * pi,0,1,0);
+				GL11.glRotatef(part.prevRotations[2] * pi,0,0,1);
 			}
 		}
 	}
