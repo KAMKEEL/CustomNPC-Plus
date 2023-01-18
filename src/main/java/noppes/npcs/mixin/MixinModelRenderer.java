@@ -49,7 +49,7 @@ public abstract class MixinModelRenderer {
     public void render(float p_78785_1_)
     {
         if (ClientEventHandler.partNames.isEmpty()) {
-            String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head","bipedHeadAll",
+            String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head",
                     "bipedHeadg","bipedHeadt","bipedHeadgh","bipedHeadv","bipedHeadb","bipedHeadt2"};
             String[] bodyNames = new String[]{"field_78115_e","bipedBody","B1","body","Body","UpperBody","Body1","BodyBase"};
             String[] larmNames = new String[]{"field_78113_g","bipedLeftArm","LA","leftarm","ArmL","Arm1L","ArmL1"};
