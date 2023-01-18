@@ -51,7 +51,7 @@ public abstract class MixinModelRenderer {
         if (ClientEventHandler.partNames.isEmpty()) {
             String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head","bipedHeadAll",
                     "bipedHeadg","bipedHeadt","bipedHeadgh","bipedHeadv","bipedHeadb","bipedHeadt2"};
-            String[] bodyNames = new String[]{"field_78115_e","bipedBody","B1","body","UpperBody","Body1","BodyBase"};
+            String[] bodyNames = new String[]{"field_78115_e","bipedBody","B1","body","Body","UpperBody","Body1","BodyBase"};
             String[] larmNames = new String[]{"field_78113_g","bipedLeftArm","LA","leftarm","ArmL","Arm1L","ArmL1"};
             String[] rarmNames = new String[]{"field_78112_f","bipedRightArm","RA","rightarm","ArmR","Arm1R","ArmR1"};
             String[] llegNames = new String[]{"field_78124_i","bipedLeftLeg","LL","leftleg","LegL","Leg1L","LegL1"};
@@ -83,11 +83,11 @@ public abstract class MixinModelRenderer {
                 FramePart currentPart = null;
                 AnimationData animData = null;
                 EnumAnimationPart partType = null;
-                if (ClientEventHandler.renderingNpc != null) {
+                if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.display.animationData.isActive()) {
                     animData = ClientEventHandler.renderingNpc.display.animationData;
                     partType = this.getPartType((ModelRenderer) (Object) this, ClientEventHandler.partNames);
                 }
-                if (partType != null && animData != null && animData.isActive()) {
+                if (partType != null && animData != null) {
                     Frame frame = (Frame) animData.animation.currentFrame();
                     if (frame.frameParts.containsKey(partType)) {
                         currentPart = frame.frameParts.get(partType);
