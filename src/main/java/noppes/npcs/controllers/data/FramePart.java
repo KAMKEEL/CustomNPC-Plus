@@ -20,11 +20,11 @@ public class FramePart implements IFramePart {
 	public byte smooth = 0;
 
 	//Client-sided fields (unsaved)
-	public float[] prevRotations = {180,180,180};
+	public float[] prevRotations = {(float) Math.PI,(float) Math.PI,(float) Math.PI};
 	public float[] prevPivots = {0,0,0};
 	public float partialRotationTick;
 	public float partialPivotTick;
-	public float[] originalRotations = {180,180,180};
+	public float[] originalRotations = {(float) Math.PI,(float) Math.PI,(float) Math.PI};
 	public float[] originalPivots = {0,0,0};
 
 	public FramePart(){}
