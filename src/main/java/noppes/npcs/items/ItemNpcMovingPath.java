@@ -1,7 +1,8 @@
 package noppes.npcs.items;
 
-import java.util.List;
-
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,14 +13,13 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityNPCInterface;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 
 
@@ -56,8 +56,8 @@ public class ItemNpcMovingPath extends Item{
         double distance = (double)MathHelper.sqrt_double(d3 * d3 + d4 * d4 + d5 * d5);
 		
 		player.addChatMessage(new ChatComponentText("Added point x:" + x + " y:"+ y + " z:" + z + " to npc " + npc.getCommandSenderName()));
-        if(distance > CustomNpcs.NpcNavRange)
-        	player.addChatMessage(new ChatComponentText("Warning: point is too far away from previous point. Max block walk distance = " + CustomNpcs.NpcNavRange));
+        if(distance > ConfigMain.NpcNavRange)
+        	player.addChatMessage(new ChatComponentText("Warning: point is too far away from previous point. Max block walk distance = " + ConfigMain.NpcNavRange));
 		
 		return true;
     }

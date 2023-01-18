@@ -1,9 +1,10 @@
 package noppes.npcs.ai;
 
-import java.util.Random;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
+
+import java.util.Random;
 
 public class RandomPositionGeneratorAlt
 {

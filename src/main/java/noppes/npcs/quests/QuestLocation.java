@@ -1,20 +1,20 @@
 package noppes.npcs.quests;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.api.handler.data.IQuestLocation;
+import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.api.handler.data.IQuestLocation;
-import noppes.npcs.api.handler.data.IQuestObjective;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 public class QuestLocation extends QuestInterface implements IQuestLocation {
 	public String location = "";

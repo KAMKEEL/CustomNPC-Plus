@@ -11,12 +11,12 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
-import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;

@@ -11,10 +11,10 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.containers.ContainerCustomGui;
 
 public class ScriptContainer implements IContainer {
     private IInventory inventory;

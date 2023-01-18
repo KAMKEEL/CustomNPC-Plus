@@ -1,12 +1,10 @@
 package noppes.npcs.client;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Random;
-
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -29,124 +27,51 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
-import noppes.npcs.CommonProxy;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.LogWriter;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartData;
-import noppes.npcs.PacketHandlerPlayer;
-import noppes.npcs.blocks.tiles.TileBanner;
-import noppes.npcs.blocks.tiles.TileBarrel;
-import noppes.npcs.blocks.tiles.TileBeam;
-import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileBlockAnvil;
-import noppes.npcs.blocks.tiles.TileBook;
-import noppes.npcs.blocks.tiles.TileCampfire;
-import noppes.npcs.blocks.tiles.TileCandle;
-import noppes.npcs.blocks.tiles.TileChair;
-import noppes.npcs.blocks.tiles.TileCouchWood;
-import noppes.npcs.blocks.tiles.TileCouchWool;
-import noppes.npcs.blocks.tiles.TileCrate;
-import noppes.npcs.blocks.tiles.TileLamp;
-import noppes.npcs.blocks.tiles.TileMailbox;
-import noppes.npcs.blocks.tiles.TilePedestal;
-import noppes.npcs.blocks.tiles.TileShelf;
-import noppes.npcs.blocks.tiles.TileSign;
-import noppes.npcs.blocks.tiles.TileStool;
-import noppes.npcs.blocks.tiles.TileTable;
-import noppes.npcs.blocks.tiles.TileTallLamp;
-import noppes.npcs.blocks.tiles.TileTombstone;
-import noppes.npcs.blocks.tiles.TileWallBanner;
-import noppes.npcs.blocks.tiles.TileWeaponRack;
+import noppes.npcs.*;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.PresetController;
+import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.client.fx.EntityElementalStaffFX;
 import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.custom.GuiCustom;
-import noppes.npcs.client.gui.global.GuiNPCManageBanks;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
-import noppes.npcs.client.gui.global.GuiNPCManageFactions;
-import noppes.npcs.client.gui.global.GuiNPCManageLinkedNpc;
-import noppes.npcs.client.gui.global.GuiNPCManageQuest;
-import noppes.npcs.client.gui.global.GuiNPCManageTransporters;
-import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
-import noppes.npcs.client.gui.global.GuiNpcQuestReward;
-import noppes.npcs.client.gui.mainmenu.GuiNPCGlobalMainMenu;
-import noppes.npcs.client.gui.mainmenu.GuiNPCInv;
-import noppes.npcs.client.gui.mainmenu.GuiNpcAI;
-import noppes.npcs.client.gui.mainmenu.GuiNpcAdvanced;
-import noppes.npcs.client.gui.mainmenu.GuiNpcDisplay;
-import noppes.npcs.client.gui.mainmenu.GuiNpcStats;
-import noppes.npcs.client.gui.player.GuiBigSign;
-import noppes.npcs.client.gui.player.GuiCrate;
-import noppes.npcs.client.gui.player.GuiMailbox;
-import noppes.npcs.client.gui.player.GuiMailmanWrite;
-import noppes.npcs.client.gui.player.GuiNPCBankChest;
-import noppes.npcs.client.gui.player.GuiNPCTrader;
-import noppes.npcs.client.gui.player.GuiNpcCarpentryBench;
-import noppes.npcs.client.gui.player.GuiNpcFollower;
-import noppes.npcs.client.gui.player.GuiNpcFollowerHire;
-import noppes.npcs.client.gui.player.GuiTransportSelection;
+import noppes.npcs.client.gui.global.*;
+import noppes.npcs.client.gui.mainmenu.*;
+import noppes.npcs.client.gui.player.*;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionStats;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
-import noppes.npcs.client.gui.roles.GuiNpcBankSetup;
-import noppes.npcs.client.gui.roles.GuiNpcFollowerSetup;
-import noppes.npcs.client.gui.roles.GuiNpcItemGiver;
-import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
-import noppes.npcs.client.gui.roles.GuiNpcTransporter;
+import noppes.npcs.client.gui.roles.*;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
-import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
-import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
-import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
-import noppes.npcs.client.renderer.blocks.BlockBigSignRenderer;
-import noppes.npcs.client.renderer.blocks.BlockBloodRenderer;
-import noppes.npcs.client.renderer.blocks.BlockBookRenderer;
-import noppes.npcs.client.renderer.blocks.BlockBorderRenderer;
-import noppes.npcs.client.renderer.blocks.BlockCampfireRenderer;
-import noppes.npcs.client.renderer.blocks.BlockCandleRenderer;
-import noppes.npcs.client.renderer.blocks.BlockCarpentryBenchRenderer;
-import noppes.npcs.client.renderer.blocks.BlockChairRenderer;
-import noppes.npcs.client.renderer.blocks.BlockCouchWoodRenderer;
-import noppes.npcs.client.renderer.blocks.BlockCouchWoolRenderer;
-import noppes.npcs.client.renderer.blocks.BlockCrateRenderer;
-import noppes.npcs.client.renderer.blocks.BlockLampRenderer;
-import noppes.npcs.client.renderer.blocks.BlockMailboxRenderer;
-import noppes.npcs.client.renderer.blocks.BlockPedestalRenderer;
-import noppes.npcs.client.renderer.blocks.BlockShelfRenderer;
-import noppes.npcs.client.renderer.blocks.BlockSignRenderer;
-import noppes.npcs.client.renderer.blocks.BlockStoolRenderer;
-import noppes.npcs.client.renderer.blocks.BlockTableRenderer;
-import noppes.npcs.client.renderer.blocks.BlockTallLampRenderer;
-import noppes.npcs.client.renderer.blocks.BlockTombstoneRenderer;
-import noppes.npcs.client.renderer.blocks.BlockWallBannerRenderer;
-import noppes.npcs.client.renderer.blocks.BlockWeaponRackRenderer;
+import noppes.npcs.client.renderer.blocks.*;
+import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
-import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
-
 import noppes.npcs.items.ItemScripted;
-import noppes.npcs.api.IWorld;
 import org.lwjgl.input.Keyboard;
-
 import tconstruct.client.tabs.InventoryTabFactions;
 import tconstruct.client.tabs.InventoryTabQuests;
 import tconstruct.client.tabs.InventoryTabVanilla;
 import tconstruct.client.tabs.TabRegistry;
-import cpw.mods.fml.client.registry.ClientRegistry;
-import cpw.mods.fml.client.registry.RenderingRegistry;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
 	public static KeyBinding QuestLog;
@@ -154,7 +79,7 @@ public class ClientProxy extends CommonProxy {
 	public static FontContainer Font;
 
 	public void load() {
-		Font = new FontContainer(CustomNpcs.FontType, CustomNpcs.FontSize);
+		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
 		CustomNpcs.Channel.register(new PacketHandlerClient());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
@@ -177,7 +102,7 @@ public class ClientProxy extends CommonProxy {
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
 		RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
 
-		if(!CustomNpcs.DisableExtraBlock){
+		if(!ConfigMain.DisableExtraBlock){
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileWallBanner.class, new BlockWallBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileTallLamp.class, new BlockTallLampRenderer());
@@ -210,7 +135,7 @@ public class ClientProxy extends CommonProxy {
 
 		new PresetController(CustomNpcs.Dir);
 
-		if(CustomNpcs.EnableUpdateChecker){
+		if(ConfigMain.EnableUpdateChecker){
 			VersionChecker checker = new VersionChecker();
 			checker.start();
 		}
@@ -219,7 +144,7 @@ public class ClientProxy extends CommonProxy {
 
 		MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 
-		if(CustomNpcs.InventoryGuiEnabled){
+		if(ConfigClient.InventoryGuiEnabled){
 			MinecraftForge.EVENT_BUS.register(new TabRegistry());
 
 			if (TabRegistry.getTabList().size() < 2){
@@ -319,6 +244,9 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ManageFactions)
 			return new GuiNPCManageFactions(npc);
 
+		else if (gui == EnumGuiType.ManageTags)
+			return new GuiNPCManageTags(npc);
+
 		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);
 
@@ -358,7 +286,7 @@ public class ClientProxy extends CommonProxy {
 		else if(gui == EnumGuiType.PlayerTransporter)
 			return new GuiTransportSelection(npc);
 
-		else if(gui == EnumGuiType.Script && CustomNpcs.ScriptingEnabled)
+		else if(gui == EnumGuiType.Script && ConfigScript.ScriptingEnabled)
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)

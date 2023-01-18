@@ -1,6 +1,5 @@
 package noppes.npcs.items;
 
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumAction;
@@ -10,12 +9,11 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.util.IProjectileCallback;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemGun extends ItemNpcInterface implements IProjectileCallback{
@@ -33,7 +31,7 @@ public class ItemGun extends ItemNpcInterface implements IProjectileCallback{
     	if(worldObj.isRemote)
     		return;
 
-        if (!hasBullet(player, stack) || !CustomNpcs.GunsEnabled){
+        if (!hasBullet(player, stack) || !ConfigMain.GunsEnabled){
     		worldObj.playSoundAtEntity(player, "customnpcs:gun.empty", 1.0F,1);
         	return;
         }

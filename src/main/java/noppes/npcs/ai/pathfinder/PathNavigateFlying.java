@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.World;
 import noppes.npcs.entity.EntityNPCInterface;
+
 import javax.annotation.Nullable;
 
 public class PathNavigateFlying extends PathNavigate {

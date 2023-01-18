@@ -1,16 +1,14 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockBorder;
 import noppes.npcs.blocks.tiles.TileBorder;
-
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockBorderRenderer implements ISimpleBlockRenderingHandler{
     public BlockBorderRenderer(){

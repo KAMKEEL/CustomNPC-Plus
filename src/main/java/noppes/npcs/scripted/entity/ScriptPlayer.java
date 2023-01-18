@@ -1,7 +1,5 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.*;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -17,37 +15,35 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldSettings;
 import noppes.npcs.*;
 import noppes.npcs.api.*;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.gui.ICustomGui;
+import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.IAnimationData;
+import noppes.npcs.api.handler.data.IDialog;
+import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.handler.data.ISound;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.overlay.ICustomOverlay;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.PixelmonHelper;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.PlayerDialogData;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptPixelmonPlayerData;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.api.handler.data.IDialog;
-import noppes.npcs.api.handler.data.IQuest;
-import noppes.npcs.api.gui.ICustomGui;
-import noppes.npcs.api.handler.data.ISound;
-import noppes.npcs.api.overlay.ICustomOverlay;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.handler.IOverlayHandler;
-import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -590,6 +586,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		NoppesUtilPlayer.playSoundTo(player, id, (ScriptSound) sound);
 	}
 
+	public void playSound(ISound sound) {
+		NoppesUtilPlayer.playSoundTo(player, (ScriptSound) sound);
+	}
+
 	public void stopSound(int id) {
 		NoppesUtilPlayer.stopSoundFor(player, id);
 	}
@@ -713,7 +713,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public boolean isScriptingDev() {
-		return CustomNpcs.isScriptDev(player);
+		return ConfigScript.isScriptDev(player);
 	}
 
 	public IQuest[] getActiveQuests() {
@@ -761,6 +761,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return this.getData().skinOverlays;
 	}
 
+	public IAnimationData getAnimationData() {
+		return this.getData().animationData;
+	}
+
 	public IQuest[] getFinishedQuests() {
 		PlayerQuestData data = this.getData().questData;
 		List<IQuest> quests = new ArrayList();
@@ -775,5 +779,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		}
 
 		return (IQuest[])quests.toArray(new IQuest[quests.size()]);
+	}
+
+	public void setConqueredEnd(boolean conqueredEnd) {
+		this.player.playerConqueredTheEnd = conqueredEnd;
+	}
+
+	public boolean conqueredEnd() {
+		return this.player.playerConqueredTheEnd;
 	}
 }

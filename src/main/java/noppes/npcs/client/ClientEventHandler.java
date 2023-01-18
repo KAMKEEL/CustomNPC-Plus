@@ -3,13 +3,16 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderHandEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.event.*;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import noppes.npcs.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
+import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +22,12 @@ public class ClientEventHandler {
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
+
+    public static float partialRenderTick;
+    public static EntityNPCInterface renderingNpc;
+    public static EntityPlayer renderingPlayer;
+    public static HashMap<EnumAnimationPart,String[]> partNames = new HashMap<>();
+    public static RendererLivingEntity renderer;
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
@@ -56,8 +65,60 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
+    public void onRenderEntity(RenderLivingEvent.Pre event) {
+        if (event.entity instanceof EntityNPCInterface) {
+            ClientEventHandler.renderingNpc = (EntityNPCInterface) event.entity;
+        }
+        ClientEventHandler.renderer = event.renderer;
+        ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+    }
+
+    @SubscribeEvent
+    public void onRenderEntity(RenderLivingEvent.Post event) {
+        AnimationData data = null;
+        if (event.entity instanceof EntityNPCInterface) {
+            data = ClientEventHandler.renderingNpc.display.animationData;
+        } else if (event.entity instanceof EntityPlayer && Client.playerAnimations.containsKey(event.entity.getUniqueID())) {
+            data = Client.playerAnimations.get(event.entity.getUniqueID());
+        }
+
+        if (data != null && data.isActive()) {
+            Animation animation = data.animation;
+            if (animation.renderTicks && data.isActive()) {
+                animation.increaseTime();
+            }
+        }
+        ClientEventHandler.renderingNpc = null;
+    }
+
+    @SubscribeEvent
+    public void onUpdateEntity(LivingEvent.LivingUpdateEvent event) {
+        AnimationData data = null;
+        if (event.entity instanceof EntityNPCInterface) {
+            data = ((EntityNPCInterface)event.entity).display.animationData;
+        } else if (event.entity instanceof EntityPlayer && Client.playerAnimations.containsKey(event.entity.getUniqueID())) {
+            data = Client.playerAnimations.get(event.entity.getUniqueID());
+        }
+
+        if (data != null && data.isActive()) {
+            Animation animation = data.animation;
+            if (!animation.renderTicks && data.isActive()) {
+                animation.increaseTime();
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        ClientEventHandler.renderingPlayer = event.entityPlayer;
+    }
+
+    @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Post event) {
-        if (hasOverlays(event.entityPlayer)) {
+        EntityPlayer player = event.entityPlayer;
+        ClientEventHandler.renderingPlayer = null;
+
+        if (hasOverlays(player)) {
             try {
                 Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
                 if (renderPlayerJBRA.isInstance(event.renderer))
@@ -66,18 +127,18 @@ public class ClientEventHandler {
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
                 renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
-                double d0 = event.entityPlayer.lastTickPosX + (event.entityPlayer.posX - event.entityPlayer.lastTickPosX) * (double) event.partialRenderTick - RenderManager.renderPosX;
-                double d1 = event.entityPlayer.lastTickPosY + (event.entityPlayer.posY - event.entityPlayer.lastTickPosY) * (double) event.partialRenderTick - RenderManager.renderPosY;
-                double d2 = event.entityPlayer.lastTickPosZ + (event.entityPlayer.posZ - event.entityPlayer.lastTickPosZ) * (double) event.partialRenderTick - RenderManager.renderPosZ;
-                float f1 = event.entityPlayer.prevRotationYaw + (event.entityPlayer.rotationYaw - event.entityPlayer.prevRotationYaw) * event.partialRenderTick;
+                double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double) event.partialRenderTick - RenderManager.renderPosX;
+                double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double) event.partialRenderTick - RenderManager.renderPosY;
+                double d2 = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double) event.partialRenderTick - RenderManager.renderPosZ;
+                float f1 = player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * event.partialRenderTick;
 
-                if (Minecraft.getMinecraft().thePlayer.equals(event.entityPlayer)) {
+                if (Minecraft.getMinecraft().thePlayer.equals(player)) {
                     d0 = 0;
                     d1 = 0;
                     d2 = 0;
                 }
 
-                renderCNPCPlayer.doRender(event.entityPlayer, d0, d1, d2, f1, event.partialRenderTick);
+                renderCNPCPlayer.doRender(player, d0, d1, d2, f1, event.partialRenderTick);
             }
         }
     }

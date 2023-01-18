@@ -1,9 +1,5 @@
 package noppes.npcs;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -34,11 +30,15 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import noppes.npcs.blocks.tiles.TileBanner;
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
@@ -47,6 +47,10 @@ import noppes.npcs.items.ItemSoulstoneEmpty;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.roles.RoleFollower;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class ServerEventsHandler {
 
@@ -61,13 +65,13 @@ public class ServerEventsHandler {
 		boolean isRemote = event.entityPlayer.worldObj.isRemote;
 		boolean npcInteracted = event.target instanceof EntityNPCInterface;
 
-		if(!isRemote && CustomNpcs.OpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(event.entityPlayer.getGameProfile())){
+		if(!isRemote && ConfigMain.OpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(event.entityPlayer.getGameProfile())){
 			return;
 		}
 
 		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && event.target instanceof EntityLivingBase) {
 			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
 			}
 		}
@@ -78,7 +82,7 @@ public class ServerEventsHandler {
 			}
 			event.setCanceled(true);
 			NoppesUtilServer.sendOpenGui(event.entityPlayer, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) event.target);
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
 		}
@@ -99,7 +103,7 @@ public class ServerEventsHandler {
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
 			Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.GUI, EnumGuiType.Script.ordinal());
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
 		}

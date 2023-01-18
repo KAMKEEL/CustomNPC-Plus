@@ -1,18 +1,13 @@
 package noppes.npcs;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
-import java.util.Arrays;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.io.IOException;
+import java.util.Arrays;
 
 public class NoppesStringUtils {
 

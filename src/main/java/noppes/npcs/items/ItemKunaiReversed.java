@@ -2,7 +2,6 @@ package noppes.npcs.items;
 
 import net.minecraft.client.renderer.texture.IIconRegister;
 import noppes.npcs.CustomItems;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemKunaiReversed extends ItemKunai{

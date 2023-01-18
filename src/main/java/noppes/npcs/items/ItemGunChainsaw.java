@@ -1,9 +1,8 @@
 package noppes.npcs.items;
 
-import org.lwjgl.opengl.GL11;
-
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
+import org.lwjgl.opengl.GL11;
 
 public class ItemGunChainsaw extends ItemNpcWeaponInterface{
 

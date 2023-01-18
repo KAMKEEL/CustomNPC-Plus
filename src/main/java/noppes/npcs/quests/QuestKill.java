@@ -1,18 +1,18 @@
 package noppes.npcs.quests;
 
-import java.util.*;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.data.IQuestKill;
+import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.api.handler.data.IQuestKill;
-import noppes.npcs.api.handler.data.IQuestObjective;
+
+import java.util.*;
 
 public class QuestKill extends QuestInterface implements IQuestKill {
 	public HashMap<String,Integer> targets = new HashMap<String,Integer>();

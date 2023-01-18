@@ -5,7 +5,6 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.client.model.util.ModelPlaneRenderer;
-
 import org.lwjgl.opengl.GL11;
 
 public class ModelNagaLegs extends ModelRenderer{

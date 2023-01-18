@@ -1,12 +1,12 @@
 package noppes.npcs.client;
 
+import net.minecraft.entity.player.EntityPlayer;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.UUID;
-
-import net.minecraft.entity.player.EntityPlayer;
 
 public class AnalyticsTracking{
 

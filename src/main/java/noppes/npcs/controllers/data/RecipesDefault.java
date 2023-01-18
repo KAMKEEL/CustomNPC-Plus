@@ -6,7 +6,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.RecipeController;
 
 public class RecipesDefault {
@@ -30,7 +30,7 @@ public class RecipesDefault {
 			addRecipe("Mob Cloner", CustomItems.cloner, true, "XX","XY"," Y",'X', Items.bread,'Y', Items.stick);
 			addRecipe("Carpentry Bench", CustomItems.carpentyBench, true, "XYX","Z Z","Z Z", 'X', Blocks.planks, 'Z', Items.stick, 'Y', Blocks.crafting_table);
 			
-			if(!CustomNpcs.DisableExtraItems){
+			if(!ConfigMain.DisableExtraItems){
 				addRecipe("Mana", CustomItems.mana, true, "XY",'X',Items.redstone,'Y',Items.glowstone_dust);
 				addRecipe("Gun Wooden", CustomItems.gunWood, false, "XXXY"," ZM ","  M ",'Y', Blocks.lever, 'M', Items.stick, 'Z', Blocks.stone_button,'X', Blocks.planks);
 				addRecipe("Gun Stone", CustomItems.gunStone, false, "XXXY"," ZM ","  M ",'Y', Blocks.lever, 'M', Items.stick, 'Z', Blocks.stone_button,'X', Blocks.cobblestone);
@@ -50,7 +50,7 @@ public class RecipesDefault {
 			}
 		}
 		if(i < 1){
-			if(!CustomNpcs.DisableExtraBlock){
+			if(!ConfigMain.DisableExtraBlock){
 				addRecipe("WallBanner Wooden", new ItemStack(CustomItems.wallBanner, 1, 0), false, "XXX","ZZZ","ZZZ","Z Z",'Z', Blocks.wool, 'X', Blocks.planks);
 				addRecipe("WallBanner Stone", new ItemStack(CustomItems.wallBanner, 1, 1), false, "XXX","ZZZ","ZZZ","Z Z",'Z', Blocks.wool, 'X', Blocks.cobblestone);
 				addRecipe("WallBanner Iron", new ItemStack(CustomItems.wallBanner, 1, 2), false, "XXX","ZZZ","ZZZ","Z Z",'Z', Blocks.wool, 'X', Items.iron_ingot);
@@ -151,7 +151,7 @@ public class RecipesDefault {
 				addRecipe("BigSign", new ItemStack(CustomItems.bigsign, 2), false, "XXX","XXX","XXX", 'X', Blocks.planks);
 
 			}
-			if(!CustomNpcs.DisableExtraItems){
+			if(!ConfigMain.DisableExtraItems){
 				addRecipe("Battle Axe1", CustomItems.battleAxeWood, false, "XX","XY"," Y", " Y", 'Y', Items.stick, 'X', Blocks.planks);
 				addRecipe("Battle Axe2", CustomItems.battleAxeStone, false, "XX","XY"," Y", " Y", 'Y', Items.stick, 'X', Blocks.cobblestone);
 				addRecipe("Battle Axe3", CustomItems.battleAxeIron, false, "XX","XY"," Y", " Y", 'Y', Items.stick, 'X', Items.iron_ingot);

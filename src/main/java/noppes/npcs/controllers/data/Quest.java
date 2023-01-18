@@ -4,23 +4,20 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.*;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.constants.EnumQuestRepeat;
-import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.quests.QuestDialog;
-import noppes.npcs.quests.QuestInterface;
-import noppes.npcs.quests.QuestItem;
-import noppes.npcs.quests.QuestKill;
-import noppes.npcs.quests.QuestLocation;
-import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.api.IContainer;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
 import noppes.npcs.api.handler.data.IQuestInterface;
 import noppes.npcs.api.handler.data.IQuestObjective;
-import noppes.npcs.api.IContainer;
-import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestRepeat;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.quests.*;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 
 public class Quest implements ICompatibilty, IQuest {
@@ -146,6 +143,22 @@ public class Quest implements ICompatibilty, IQuest {
 		quest.readNBT(this.writeToNBT(new NBTTagCompound()));
 		return quest;
 	}
+
+	public long getTimeUntilRepeat(EntityPlayer player) {
+		long questTime = PlayerDataController.instance.getPlayerData(player).getQuestData().getLastCompletedTime(this.id);
+
+		switch (repeat) {
+			case MCDAILY:
+				return Math.max(0, questTime + 24000 - player.worldObj.getTotalWorldTime());
+			case MCWEEKLY:
+				return Math.max(0, questTime + 168000 - player.worldObj.getTotalWorldTime());
+			case RLDAILY:
+				return Math.max(0, questTime + 86400000 - System.currentTimeMillis());
+			case RLWEEKLY:
+				return Math.max(0, questTime + 604800000 - System.currentTimeMillis());
+		}
+		return 0L;
+	}
 	
 	@Override
 	public int getVersion() {
@@ -237,6 +250,21 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public boolean getIsRepeatable() {
 		return this.repeat != EnumQuestRepeat.NONE;
+	}
+
+	public long getTimeUntilRepeat(IPlayer player) {
+		return this.getTimeUntilRepeat((EntityPlayer) player.getMCEntity());
+	}
+
+	public void setRepeatType(int type) {
+		if (type < 0 || type >= EnumQuestRepeat.values().length) {
+			return;
+		}
+		this.repeat = EnumQuestRepeat.values()[type];
+	}
+
+	public int getRepeatType() {
+		return this.repeat.ordinal();
 	}
 
 	public IContainer getRewards() {

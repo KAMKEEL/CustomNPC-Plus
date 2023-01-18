@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.roles;
 
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.jobs.IJobFollower;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobFollower;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.jobs.IJobFollower;
 
 public class ScriptJobFollower extends ScriptJobInterface implements IJobFollower {
 	private JobFollower job;

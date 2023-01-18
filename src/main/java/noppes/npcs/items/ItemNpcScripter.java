@@ -1,18 +1,18 @@
 package noppes.npcs.items;
 
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 
 public class ItemNpcScripter extends Item{
@@ -36,7 +36,7 @@ public class ItemNpcScripter extends Item{
     public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player){
         if(!world.isRemote)
             return itemStack;
-        if(!CustomNpcs.isScriptDev(player)){
+        if(!ConfigScript.isScriptDev(player)){
             player.addChatMessage(new ChatComponentTranslation("availability.permission"));
         } else {
             CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);

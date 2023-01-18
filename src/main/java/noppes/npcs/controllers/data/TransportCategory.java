@@ -1,14 +1,14 @@
 package noppes.npcs.controllers.data;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.api.handler.data.ITransportCategory;
+import noppes.npcs.api.handler.data.ITransportLocation;
+import noppes.npcs.controllers.TransportController;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.api.handler.data.ITransportCategory;
-import noppes.npcs.api.handler.data.ITransportLocation;
 
 public class TransportCategory implements ITransportCategory {
 	public int id = -1;

@@ -1,25 +1,19 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCouchWood;
 import noppes.npcs.blocks.tiles.TileCouchWood;
-import noppes.npcs.blocks.tiles.TileCouchWool;
 import noppes.npcs.client.model.blocks.ModelCouchWoodLeft;
 import noppes.npcs.client.model.blocks.ModelCouchWoodMiddle;
 import noppes.npcs.client.model.blocks.ModelCouchWoodRight;
 import noppes.npcs.client.model.blocks.ModelCouchWoodSingle;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockCouchWoodRenderer extends BlockRendererInterface{
 

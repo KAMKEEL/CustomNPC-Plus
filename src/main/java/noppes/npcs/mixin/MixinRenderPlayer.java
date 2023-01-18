@@ -1,0 +1,42 @@
+package noppes.npcs.mixin;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.renderer.entity.RenderPlayer;
+import noppes.npcs.AnimationData;
+import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientEventHandler;
+import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
+import org.lwjgl.opengl.GL11;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(value = RenderPlayer.class)
+public class MixinRenderPlayer {
+
+    @SideOnly(Side.CLIENT)
+    @Inject(method = "renderLivingAt", at = @At(value = "TAIL"))
+    protected void modelDataRotations(AbstractClientPlayer p_77039_1_, double p_77039_2_, double p_77039_4_, double p_77039_6_, CallbackInfo callbackInfo)
+    {
+        if (Client.playerAnimations.containsKey(p_77039_1_.getUniqueID())) {
+            AnimationData animData = Client.playerAnimations.get(p_77039_1_.getUniqueID());
+            if (animData != null && animData.isActive()) {
+                Frame frame = (Frame) animData.animation.currentFrame();
+                if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                    FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                    part.interpolateOffset();
+                    part.interpolateAngles();
+                    GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
+                    GL11.glRotatef(part.prevRotations[0], 1, 0, 0);
+                    GL11.glRotatef(part.prevRotations[1], 0, 1, 0);
+                    GL11.glRotatef(part.prevRotations[2], 0, 0, 1);
+                }
+            }
+        }
+    }
+}

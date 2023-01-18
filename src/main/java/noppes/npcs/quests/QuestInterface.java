@@ -1,17 +1,17 @@
 package noppes.npcs.quests;
 
-import java.util.Vector;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.Server;
+import noppes.npcs.api.handler.data.IQuestInterface;
+import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.api.handler.data.IQuestInterface;
-import noppes.npcs.api.handler.data.IQuestObjective;
+
+import java.util.Vector;
 
 public abstract class QuestInterface implements IQuestInterface {
 	public int questId;

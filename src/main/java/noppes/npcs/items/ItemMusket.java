@@ -6,10 +6,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.entity.EntityProjectile;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemMusket extends ItemNpcInterface{
@@ -23,7 +22,7 @@ public class ItemMusket extends ItemNpcInterface{
     	if(player.worldObj.isRemote)
     		return;
     	
-    	if(!stack.stackTagCompound.getBoolean("IsLoaded2") && !player.capabilities.isCreativeMode || !CustomNpcs.GunsEnabled) {
+    	if(!stack.stackTagCompound.getBoolean("IsLoaded2") && !player.capabilities.isCreativeMode || !ConfigMain.GunsEnabled) {
     		player.worldObj.playSoundAtEntity(player, "customnpcs:gun.empty", 1.0F,1);
     		return;
     	}

@@ -178,7 +178,7 @@ public class DataStats {
 	public float getAttackStrength(){
 		return attackStrength;
 	}
-	public void setAttackStrength(float strength){
+	public void setAttackStrength(double strength){
 		attackStrength = (float)(Math.floor(strength));
 		npc.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(attackStrength);
 	}

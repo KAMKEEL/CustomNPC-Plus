@@ -11,9 +11,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ServerCloneController;
@@ -79,7 +79,7 @@ public class ItemSoulstoneEmpty extends Item {
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
 			if (npc.advanced.refuseSoulStone) return false;
-			if (CustomNpcs.SoulStoneFriendlyNPCs && npc.getFaction() != null) {
+			if (ConfigMain.SoulStoneFriendlyNPCs && npc.getFaction() != null) {
 				int p = npc.advanced.minFactionPointsToSoulStone;
 				if (p == -1 && npc.getFaction().isFriendlyToPlayer(player)) return true;
 				else if (p != -1) {
@@ -97,10 +97,10 @@ public class ItemSoulstoneEmpty extends Item {
 				if(role.getOwner() == player)
 					return !role.refuseSoulStone;
 			}
-			return CustomNpcs.SoulStoneNPCs;
+			return ConfigMain.SoulStoneNPCs;
 		}
-		if (entity instanceof EntityAnimal) return CustomNpcs.SoulStoneAnimals;
-		if (entity instanceof EntityVillager) return CustomNpcs.SoulStoneVillagers;
+		if (entity instanceof EntityAnimal) return ConfigMain.SoulStoneAnimals;
+		if (entity instanceof EntityVillager) return ConfigMain.SoulStoneVillagers;
 		return false;
 	}
 }

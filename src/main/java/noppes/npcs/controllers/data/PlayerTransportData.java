@@ -1,13 +1,13 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.TransportController;
 import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.api.handler.data.ITransportLocation;
+import noppes.npcs.controllers.TransportController;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 public class PlayerTransportData implements IPlayerTransportData {
 	private final PlayerData parent;

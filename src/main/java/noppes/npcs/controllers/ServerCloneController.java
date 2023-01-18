@@ -1,12 +1,5 @@
 package noppes.npcs.controllers;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -17,13 +10,20 @@ import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.handler.ICloneHandler;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.IPos;
-import noppes.npcs.api.handler.ICloneHandler;
-import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.IWorld;
 import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ServerCloneController implements ICloneHandler {
 	public static ServerCloneController Instance;
@@ -170,6 +170,8 @@ public class ServerCloneController implements ICloneHandler {
 		nbttagcompound.removeTag("MovingPathNew");
 		nbttagcompound.removeTag("Pos");
 		nbttagcompound.removeTag("Riding");
+		nbttagcompound.removeTag("UUIDMost");
+		nbttagcompound.removeTag("UUIDLeast");
 
 		if(!nbttagcompound.hasKey("ModRev"))
 			nbttagcompound.setInteger("ModRev", 1);

@@ -1,17 +1,16 @@
 package noppes.npcs.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RolePostman extends RoleInterface{
 

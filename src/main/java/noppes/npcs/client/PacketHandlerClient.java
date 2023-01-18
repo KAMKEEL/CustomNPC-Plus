@@ -1,10 +1,9 @@
 package noppes.npcs.client;
 
+import cpw.mods.fml.common.ObfuscationReflectionHelper;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
-
-import java.io.IOException;
-import java.util.HashMap;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.achievement.GuiAchievement;
@@ -18,11 +17,7 @@ import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.PacketHandlerServer;
-import noppes.npcs.Server;
-import noppes.npcs.ServerEventsHandler;
+import noppes.npcs.*;
 import noppes.npcs.client.ClientProxy.FontContainer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptClientSound;
@@ -31,21 +26,18 @@ import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
-import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.IGuiClose;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IGuiError;
-import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 
@@ -248,10 +240,16 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				String font = Server.readString(buffer);
 				int size = buffer.readInt();
 				if(!font.isEmpty()){
-					CustomNpcs.FontType = font; 
-					CustomNpcs.FontSize = size;
-					ClientProxy.Font = new FontContainer(CustomNpcs.FontType, CustomNpcs.FontSize);
-					CustomNpcs.Config.updateConfig();
+					ConfigClient.FontType = font;
+					ConfigClient.FontSize = size;
+					ClientProxy.Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
+
+					ConfigClient.FontTypeProperty.set(ConfigClient.FontType);
+					ConfigClient.FontSizeProperty.set(ConfigClient.FontSize);
+					if(ConfigClient.config.hasChanged()){
+						ConfigClient.config.save();
+					}
+					
 					player.addChatMessage(new ChatComponentTranslation("Font set to %s", ClientProxy.Font.getName()));
 				}
 				else
@@ -292,6 +290,37 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				NoppesUtil.updateSkinOverlayData(sendingPlayer, compound);
 			}
 		}
+		else if(type == EnumPacketClient.UPDATE_ANIMATIONS) {
+			NBTTagCompound compound = Server.readNBT(buffer);
+			if (compound.hasKey("EntityId")) {
+				Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
+				if (entity instanceof EntityNPCInterface) {
+					AnimationData data = ((EntityNPCInterface) entity).display.animationData;
+					data.readFromNBT(compound);
+					if (data.animation == null) {
+						data.animation = new Animation();
+					}
+					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
+				}
+			} else {
+				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
+				if (sendingPlayer != null) {
+					AnimationData data;
+					if (!Client.playerAnimations.containsKey(player.getUniqueID())) {
+						data = new AnimationData(player);
+						data.readFromNBT(compound);
+					} else {
+						data = Client.playerAnimations.get(player.getUniqueID());
+						data.readFromNBT(compound);
+					}
+					if (data.animation == null) {
+						data.animation = new Animation();
+					}
+					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
+					Client.playerAnimations.put(player.getUniqueID(), data);
+				}
+			}
+		}
 		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {
 			long length = buffer.readLong();
 			try {
@@ -313,6 +342,11 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			ScriptClientSound sound = ScriptClientSound.fromScriptSound(compound, player.worldObj);
 
 			ScriptSoundController.Instance.playSound(id,sound);
+		}
+		else if(type == EnumPacketClient.PLAY_SOUND_TO_NO_ID) {
+			NBTTagCompound compound = Server.readNBT(buffer);
+			ScriptClientSound sound = ScriptClientSound.fromScriptSound(compound, player.worldObj);
+			ScriptSoundController.Instance.playSound(sound);
 		}
 		else if(type == EnumPacketClient.STOP_SOUND_FOR) {
 			int id = buffer.readInt();

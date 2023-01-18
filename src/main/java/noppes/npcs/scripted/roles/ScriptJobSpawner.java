@@ -1,23 +1,23 @@
 package noppes.npcs.scripted.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.JobSpawner;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.constants.JobType;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.jobs.IJobSpawner;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.roles.JobSpawner;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.constants.JobType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScriptJobSpawner extends ScriptJobInterface implements IJobSpawner {
 	private final JobSpawner job;

@@ -1,11 +1,5 @@
 package noppes.npcs.client.model;
 
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
@@ -20,8 +14,12 @@ import noppes.npcs.client.model.util.ModelPlaneRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityNpcPony;
-
 import org.lwjgl.opengl.GL11;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 public class ModelPony extends ModelBase
 {

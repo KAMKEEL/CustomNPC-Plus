@@ -1,16 +1,8 @@
 package noppes.npcs.ai.target;
 
-import java.util.Collections;
-import java.util.List;
-
-import net.minecraft.command.IEntitySelector;
-import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAITarget;
-import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIClearTarget extends EntityAITarget

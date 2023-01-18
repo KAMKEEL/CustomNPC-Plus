@@ -1,12 +1,8 @@
 package noppes.npcs.client.model.part;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
@@ -17,7 +13,6 @@ import noppes.npcs.client.model.part.legs.ModelNagaLegs;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityCustomNpc;
-
 import org.lwjgl.opengl.GL11;
 
 public class ModelLegs extends ModelScaleRenderer{

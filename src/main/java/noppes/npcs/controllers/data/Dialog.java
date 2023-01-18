@@ -1,20 +1,20 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
+import noppes.npcs.api.handler.data.*;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.api.handler.data.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Dialog implements ICompatibilty, IDialog {
 	public int version = VersionCompatibility.ModRev;
@@ -530,7 +530,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public void addImage(int id, IDialogImage image) {
-		if (dialogImages.size() >= CustomNpcs.DialogImageLimit) {
+		if (dialogImages.size() >= ConfigMain.DialogImageLimit) {
 			return;
 		}
 

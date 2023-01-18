@@ -1,5 +1,18 @@
 package noppes.npcs.controllers;
 
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.ITransportHandler;
+import noppes.npcs.api.handler.data.ITransportCategory;
+import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.data.TransportCategory;
+import noppes.npcs.controllers.data.TransportLocation;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.roles.RoleTransporter;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -7,19 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.LogWriter;
-import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.data.TransportCategory;
-import noppes.npcs.controllers.data.TransportLocation;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.roles.RoleTransporter;
-import noppes.npcs.api.handler.ITransportHandler;
-import noppes.npcs.api.handler.data.ITransportCategory;
 
 public class TransportController implements ITransportHandler {
 	private HashMap<Integer,TransportLocation> locations = new HashMap<Integer, TransportLocation>();

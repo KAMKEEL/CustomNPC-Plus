@@ -1,16 +1,11 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -31,13 +26,11 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
-import noppes.npcs.constants.EnumCompanionStage;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumPlayerData;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
@@ -49,19 +42,22 @@ import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.scripted.item.ScriptCustomItem;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 public class PacketHandlerServer{
 
 	@SubscribeEvent
 	public void onServerPacket(ServerCustomPacketEvent event) {
 		EntityPlayerMP player = ((NetHandlerPlayServer)event.handler).playerEntity;
-		if(CustomNpcs.OpsOnly && !NoppesUtilServer.isOp(player)){
+		if(ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)){
 			warn(player, "tried to use custom npcs without being an op");
 			return;
 		}
@@ -123,7 +119,7 @@ public class PacketHandlerServer{
 						featherPackets(type, buffer, player);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
 						blockPackets(type, buffer, player);
-					else if (CustomNpcs.isScriptDev(player)) {
+					else if (ConfigScript.isScriptDev(player)) {
 						if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
 							playerScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave)
@@ -178,18 +174,18 @@ public class PacketHandlerServer{
 	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		if (type == EnumPacketServer.ScriptGlobalGuiDataGet) {
 			NBTTagCompound compound = new NBTTagCompound();
-			compound.setBoolean("ScriptsEnabled", CustomNpcs.ScriptingEnabled);
-			compound.setBoolean("PlayerScriptsEnabled", CustomNpcs.GlobalPlayerScripts);
-			compound.setBoolean("GlobalNPCScriptsEnabled", CustomNpcs.GlobalNPCScripts);
-			compound.setBoolean("ForgeScriptsEnabled", CustomNpcs.GlobalForgeScripts);
+			compound.setBoolean("ScriptsEnabled", ConfigScript.ScriptingEnabled);
+			compound.setBoolean("PlayerScriptsEnabled", ConfigScript.GlobalPlayerScripts);
+			compound.setBoolean("GlobalNPCScriptsEnabled", ConfigScript.GlobalNPCScripts);
+			compound.setBoolean("ForgeScriptsEnabled", ConfigScript.GlobalForgeScripts);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if (type == EnumPacketServer.ScriptGlobalGuiDataSave) {
 			NBTTagCompound compound = Server.readNBT(buffer);
-			CustomNpcs.ScriptingEnabled = compound.getBoolean("ScriptsEnabled");
-			CustomNpcs.GlobalPlayerScripts = compound.getBoolean("PlayerScriptsEnabled");
-			CustomNpcs.GlobalNPCScripts = compound.getBoolean("GlobalNPCScriptsEnabled");
-			CustomNpcs.GlobalForgeScripts = compound.getBoolean("ForgeScriptsEnabled");
+			ConfigScript.ScriptingEnabled = compound.getBoolean("ScriptsEnabled");
+			ConfigScript.GlobalPlayerScripts = compound.getBoolean("PlayerScriptsEnabled");
+			ConfigScript.GlobalNPCScripts = compound.getBoolean("GlobalNPCScriptsEnabled");
+			ConfigScript.GlobalForgeScripts = compound.getBoolean("ForgeScriptsEnabled");
 		}
 	}
 
@@ -198,7 +194,7 @@ public class PacketHandlerServer{
 			npc.script.readFromNBT(Server.readNBT(buffer));
 			npc.updateAI = true;
 			npc.script.hasInited = false;
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
 			}
 		}
@@ -344,6 +340,9 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
 		}
+		else if(type == EnumPacketServer.TagsGet){
+			NoppesUtilServer.sendTagDataAll(player);
+		}
 		else if(type == EnumPacketServer.DialogGet){
 			Dialog dialog = DialogController.instance.dialogs.get(buffer.readInt());
 			if(dialog != null){
@@ -369,11 +368,17 @@ public class PacketHandlerServer{
 			faction.writeNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
+		else if(type == EnumPacketServer.TagGet){
+			NBTTagCompound compound = new NBTTagCompound();
+			Tag tag = TagController.getInstance().get(buffer.readInt());
+			tag.writeNBT(compound);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
 	}
 
 	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
 		if(type == EnumPacketServer.Delete){
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
 			}
 			npc.delete();
@@ -411,7 +416,7 @@ public class PacketHandlerServer{
 			npc.reset();
 			if(npc.linkedData != null)
 				LinkedNpcController.Instance.saveNpcData(npc);
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s CLOSE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
 			}
 			NoppesUtilServer.setEditingNpc(player, null);
@@ -440,7 +445,7 @@ public class PacketHandlerServer{
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) entity);
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
 			}
 		}
@@ -449,7 +454,7 @@ public class PacketHandlerServer{
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			npc = (EntityNPCInterface) entity;
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
 			}
 			npc.delete();
@@ -681,6 +686,25 @@ public class PacketHandlerServer{
 			(new Faction()).writeNBT(compound);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
+		else if(type == EnumPacketServer.TagSet){
+			// npc.setFaction(buffer.readInt());
+		}
+		else if(type == EnumPacketServer.TagSave){
+			Tag tag = new Tag();
+			tag.readNBT(Server.readNBT(buffer));
+			TagController.getInstance().saveTag(tag);
+			NoppesUtilServer.sendTagDataAll(player);
+			NBTTagCompound compound = new NBTTagCompound();
+			tag.writeNBT(compound);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if(type == EnumPacketServer.TagRemove){
+			TagController.getInstance().delete(buffer.readInt());
+			NoppesUtilServer.sendTagDataAll(player);
+			NBTTagCompound compound = new NBTTagCompound();
+			(new Tag()).writeNBT(compound);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
 		else if(type == EnumPacketServer.PlayerDataGet){
 			int id = buffer.readInt();
 			if(EnumPlayerData.values().length <= id)
@@ -879,7 +903,7 @@ public class PacketHandlerServer{
 				player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
 				return;
 			}
-			if(CustomNpcs.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
 			}
 		}

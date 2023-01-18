@@ -1,20 +1,14 @@
 package noppes.npcs.controllers.data;
 
-import java.util.Set;
-
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.DataAI;
-import noppes.npcs.DataAdvanced;
-import noppes.npcs.DataDisplay;
-import noppes.npcs.DataInventory;
-import noppes.npcs.DataStats;
 import noppes.npcs.NBTTags;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Set;
 
 public class DataTransform {
 	public NBTTagCompound display;

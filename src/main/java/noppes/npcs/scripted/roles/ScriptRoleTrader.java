@@ -1,13 +1,13 @@
 package noppes.npcs.scripted.roles;
 
 import foxz.utils.Market;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.roles.IRoleTrader;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.constants.RoleType;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.roles.IRoleTrader;
 
 public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader {
 	private RoleTrader role;

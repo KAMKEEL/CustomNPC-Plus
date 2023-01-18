@@ -1,7 +1,5 @@
 package noppes.npcs.scripted;
 
-import java.util.*;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.Entity;
@@ -21,20 +19,18 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.api.scoreboard.IScoreboard;
-import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.api.IBlock;
-import noppes.npcs.api.IPos;
-import noppes.npcs.api.IParticle;
-import noppes.npcs.api.ITileEntity;
+import noppes.npcs.api.*;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.api.IWorld;
+import noppes.npcs.api.scoreboard.IScoreboard;
+import noppes.npcs.blocks.tiles.TileBigSign;
+import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.scoreboard.ScriptScoreboard;
+
+import java.util.*;
 
 public class ScriptWorld implements IWorld {
 	private static final Map<String,Object> tempData = new HashMap<>();
@@ -744,6 +740,10 @@ public class ScriptWorld implements IWorld {
 		tempData.clear();
 	}
 
+	public String[] getTempDataKeys() {
+		return tempData.keySet().toArray(new String[0]);
+	}
+
 	/**
 	 * @param key The key of the data to be returned
 	 * @return Returns the stored data
@@ -794,6 +794,14 @@ public class ScriptWorld implements IWorld {
 	public void clearStoredData(){
 		ScriptController.Instance.compound = new NBTTagCompound();
 		ScriptController.Instance.shouldSave = true;
+	}
+
+	public String[] getStoredDataKeys() {
+		NBTTagCompound compound = ScriptController.Instance.compound;
+		if (compound != null) {
+			return (String[]) compound.func_150296_c().toArray();
+		}
+		return new String[0];
 	}
 
 	/**

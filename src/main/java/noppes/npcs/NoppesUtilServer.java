@@ -1,19 +1,6 @@
 package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
-
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.zip.GZIPOutputStream;
-
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -36,44 +23,29 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.containers.ContainerManageRecipes;
-import noppes.npcs.controllers.data.Bank;
-import noppes.npcs.controllers.BankController;
-import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.data.DialogCategory;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.DialogOption;
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.data.PlayerBankData;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.PlayerDialogData;
-import noppes.npcs.controllers.data.PlayerFactionData;
-import noppes.npcs.controllers.PlayerQuestController;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.PlayerTransportData;
-import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.data.QuestCategory;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.data.RecipeCarpentry;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.data.TransportCategory;
-import noppes.npcs.controllers.TransportController;
-import noppes.npcs.controllers.data.TransportLocation;
+import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
-import noppes.npcs.api.entity.IPlayer;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -110,6 +82,14 @@ public class NoppesUtilServer {
 		Map<String,Integer> map = new HashMap<String,Integer>();
 		for(Faction faction : FactionController.getInstance().factions.values()){
 			map.put(faction.name, faction.id);
+		}
+		sendScrollData(player, map);
+	}
+
+	public static void sendTagDataAll(EntityPlayerMP player) {
+		Map<String,Integer> map = new HashMap<String,Integer>();
+		for(Tag tag : TagController.getInstance().tags.values()){
+			map.put(tag.name, tag.id);
 		}
 		sendScrollData(player, map);
 	}
@@ -330,6 +310,13 @@ public class NoppesUtilServer {
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
 		for (EntityPlayer player : list) {
 			NoppesUtilPlayer.playSoundTo((EntityPlayerMP) player, id, sound);
+		}
+	}
+
+	public static void playSound(ScriptSound sound) {
+		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (EntityPlayer player : list) {
+			NoppesUtilPlayer.playSoundTo((EntityPlayerMP) player, sound);
 		}
 	}
 
@@ -672,7 +659,7 @@ public class NoppesUtilServer {
 		}
 		Server.sendData(player, EnumPacketClient.GUI_CLOSE, i, comp);
 	}
-	
+
 	public static Entity spawnCloneWithProtection(NBTTagCompound compound, int x, int y,
 			int z, World worldObj) {
 		ServerCloneController.Instance.cleanTags(compound);
@@ -716,8 +703,19 @@ public class NoppesUtilServer {
 		if(entity == null){
 			return null;
 		}
-		worldObj.spawnEntityInWorld(entity);
-		return entity;
+		int i = MathHelper.floor_double(entity.posX / 16.0D);
+		int j = MathHelper.floor_double(entity.posZ / 16.0D);
+		if (!entity.forceSpawn && !worldObj.checkChunksExist(
+				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ
+			))
+		{
+			return null;
+		} else {
+			worldObj.getChunkFromChunkCoords(i, j).addEntity(entity);
+			worldObj.loadedEntityList.add(entity);
+			worldObj.onEntityAdded(entity);
+			return entity;
+		}
 	}
 
 	public static boolean isOp(EntityPlayer player) {
@@ -783,5 +781,42 @@ public class NoppesUtilServer {
 
 	public static boolean IsItemStackNull(ItemStack is) {
 		return is == null || is.stackSize == 0 || is.getItem() == null;
+	}
+
+	public static String millisToTime(long millis) {
+		long seconds = millis / 1000;
+		long minutes = seconds / 60;
+		long hours = minutes / 60;
+		long days = hours / 24;
+		long months = days / 30;
+		long years = months / 12;
+
+		months = months % 12;
+		days = days % 30;
+		hours = hours % 24;
+		minutes = minutes % 60;
+		seconds = seconds % 60;
+
+		StringBuilder sb = new StringBuilder();
+		if (years > 0) {
+			sb.append(years + " year(s) ");
+		}
+		if (months > 0) {
+			sb.append(months + " month(s) ");
+		}
+		if (days > 0) {
+			sb.append(days + " day(s) ");
+		}
+		if (hours > 0) {
+			sb.append(hours + " hour(s) ");
+		}
+		if (minutes > 0) {
+			sb.append(minutes + " minute(s) ");
+		}
+		if (seconds > 0) {
+			sb.append(seconds + " second(s)");
+		}
+
+		return sb.toString();
 	}
 }

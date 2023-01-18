@@ -1,5 +1,7 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -10,11 +12,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockMailbox;
 import noppes.npcs.client.model.blocks.ModelMailboxUS;
 import noppes.npcs.client.model.blocks.ModelMailboxWow;
-
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
-import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 

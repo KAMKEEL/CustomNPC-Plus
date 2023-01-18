@@ -4,17 +4,14 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.ModelData;
 import noppes.npcs.ModelPartConfig;
-import noppes.npcs.client.gui.util.GuiModelInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.ISliderListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityCustomNpc;
 
 public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 
 	private GuiScreen parent;
 	private int type = 0;
+	private int offset = 10;
 
 	private GuiNpcSlider scaleWidth;
 	private GuiNpcSlider scaleHeight;
@@ -58,7 +55,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 			drawSlider(y, playerdata.arms);
 			y += 88;
 		}
-		else{
+		else {
 			addButton(new GuiNpcButton(2, guiLeft + 110, y , 60, 20, "Edit"));
 			y += 24;
 		}
@@ -75,21 +72,21 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
     }
     
     private void drawSlider(int y, ModelPartConfig config){
-		y += 15;
-		addLabel(new GuiNpcLabel(10, "Width", guiLeft - 25, y + 5, 0xFFFFFF));
-		scaleWidth = new GuiNpcSlider(this, 10, guiLeft + 50, y, config.scaleX - 0.5f);
+		y += 20;
+		addLabel(new GuiNpcLabel(10, "Width", guiLeft - 25 + offset, y + 5, 0xFFFFFF));
+		scaleWidth = new GuiNpcSlider(this, 10, guiLeft + 50 + offset, y, config.scaleX - 0.5f);
 		addSlider(scaleWidth);
-		addButton(new GuiNpcButton(170, guiLeft + 8, y, 40, 20, "Reset"));
+		addButton(new GuiNpcButton(170, guiLeft + 8 + offset, y, 40, 20, "Reset"));
 		y += 22;
-		addLabel(new GuiNpcLabel(11, "Height", guiLeft - 25, y + 5, 0xFFFFFF));
-		scaleHeight = new GuiNpcSlider(this, 11, guiLeft + 50, y, config.scaleY - 0.5f);
+		addLabel(new GuiNpcLabel(11, "Height", guiLeft - 25 + offset, y + 5, 0xFFFFFF));
+		scaleHeight = new GuiNpcSlider(this, 11, guiLeft + 50 + offset, y, config.scaleY - 0.5f);
 		addSlider(scaleHeight);
-		addButton(new GuiNpcButton(171, guiLeft + 8, y, 40, 20, "Reset"));
+		addButton(new GuiNpcButton(171, guiLeft + 8 + offset, y, 40, 20, "Reset"));
 		y += 22;
-		addLabel(new GuiNpcLabel(12, "Depth", guiLeft - 25, y + 5, 0xFFFFFF));
-		scaleDepth = new GuiNpcSlider(this, 12, guiLeft + 50, y, config.scaleZ - 0.5f);
+		addLabel(new GuiNpcLabel(12, "Depth", guiLeft - 25 + offset, y + 5, 0xFFFFFF));
+		scaleDepth = new GuiNpcSlider(this, 12, guiLeft + 50 + offset, y, config.scaleZ - 0.5f);
 		addSlider(scaleDepth);
-		addButton(new GuiNpcButton(172, guiLeft + 8, y, 40, 20, "Reset"));
+		addButton(new GuiNpcButton(172, guiLeft + 8 + offset, y, 40, 20, "Reset"));
     }
 
 

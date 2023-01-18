@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
 
@@ -179,17 +179,17 @@ public class OverlayQuestTracking extends Gui {
         GL11.glDisable(GL11.GL_ALPHA_TEST);
 
         GL11.glPushMatrix();
-            GL11.glTranslatef(CustomNpcs.TrackingInfoAlignment%3*((float)(scaledWidth)/2), (float) (Math.floor((float)(CustomNpcs.TrackingInfoAlignment/3))*((float)(scaledHeight)/2)),0.0F);
+            GL11.glTranslatef(ConfigClient.TrackingInfoAlignment%3*((float)(scaledWidth)/2), (float) (Math.floor((float)(ConfigClient.TrackingInfoAlignment/3))*((float)(scaledHeight)/2)),0.0F);
 
-            float offsetX = CustomNpcs.TrackingInfoAlignment%3 == 0 ? 5 : -5;
-            GL11.glTranslatef(CustomNpcs.TrackingInfoX + offsetX, CustomNpcs.TrackingInfoY, 0.0F);
+            float offsetX = ConfigClient.TrackingInfoAlignment%3 == 0 ? 5 : -5;
+            GL11.glTranslatef(ConfigClient.TrackingInfoX + offsetX, ConfigClient.TrackingInfoY, 0.0F);
 
             red = (color >> 16 & 255) / 255f;
             green = (color >> 8  & 255) / 255f;
             blue = (color & 255) / 255f;
 
             float centerX = -60;
-            centerX *= CustomNpcs.TrackingInfoAlignment%3 == 0 ? -1 : 1;
+            centerX *= ConfigClient.TrackingInfoAlignment%3 == 0 ? -1 : 1;
 
             float questTitleTop;
             this.renderOffsetY = -40;
@@ -206,12 +206,12 @@ public class OverlayQuestTracking extends Gui {
 
             this.renderOffsetY = -10;
             GL11.glPushMatrix();
-                this.renderStringLines(objectiveLines,1F, true, false, CustomNpcs.TrackingInfoAlignment%3 == 0 ? 1 : 2);
+                this.renderStringLines(objectiveLines,1F, true, false, ConfigClient.TrackingInfoAlignment%3 == 0 ? 1 : 2);
             GL11.glPopMatrix();
 
             this.renderOffsetY += 10;
             GL11.glPushMatrix();
-                this.renderStringLines(turnInText,1F, false, false, CustomNpcs.TrackingInfoAlignment%3 == 0 ? 1 : 2);
+                this.renderStringLines(turnInText,1F, false, false, ConfigClient.TrackingInfoAlignment%3 == 0 ? 1 : 2);
             GL11.glPopMatrix();
 
             this.renderOffsetY = -20;

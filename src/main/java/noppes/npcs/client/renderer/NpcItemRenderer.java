@@ -1,19 +1,15 @@
 package noppes.npcs.client.renderer;
 
-import javax.swing.Icon;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
 import noppes.npcs.items.ItemRenderInterface;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 

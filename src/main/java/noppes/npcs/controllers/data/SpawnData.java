@@ -1,20 +1,20 @@
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.WeightedRandom;
 import noppes.npcs.NBTTags;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.data.INaturalSpawn;
+import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 	public List<String> biomes = new ArrayList<String>();

@@ -1,20 +1,16 @@
 package noppes.npcs.client.gui;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Vector;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.AssetsBrowser;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNPCStringSlot;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Vector;
 
 public abstract class GuiNpcSelectionInterface extends GuiNPCInterface{
 	public GuiNPCStringSlot slot;

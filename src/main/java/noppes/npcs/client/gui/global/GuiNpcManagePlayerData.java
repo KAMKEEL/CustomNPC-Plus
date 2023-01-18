@@ -1,22 +1,16 @@
 package noppes.npcs.client.gui.global;
 
+import net.minecraft.client.gui.GuiButton;
+import noppes.npcs.client.Client;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.constants.EnumPlayerData;
+import noppes.npcs.entity.EntityNPCInterface;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-
-import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.client.gui.util.IScrollData;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumPlayerData;
-import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener
 {

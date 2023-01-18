@@ -6,8 +6,11 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
+import noppes.npcs.AnimationData;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.handler.*;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -16,8 +19,6 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.handler.*;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
@@ -31,6 +32,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerFactionData factionData = new PlayerFactionData(this);
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
+	public AnimationData animationData = new AnimationData(this);
 
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
@@ -80,6 +82,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		mailData.loadNBTData(data);
 		timers.readFromNBT(data);
 		skinOverlays.readFromNBT(data);
+		animationData.readFromNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -117,6 +120,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		mailData.saveNBTData(compound);
 		timers.writeToNBT(compound);
 		skinOverlays.writeToNBT(compound);
+		animationData.writeToNBT(compound);
 
 		compound.setString("PlayerName", playername);
 		compound.setString("UUID", uuid);

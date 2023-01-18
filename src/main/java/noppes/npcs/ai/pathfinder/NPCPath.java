@@ -2,7 +2,6 @@ package noppes.npcs.ai.pathfinder;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.pathfinding.PathEntity;
-import net.minecraft.pathfinding.PathPoint;
 import net.minecraft.util.Vec3;
 
 public class NPCPath extends PathEntity{

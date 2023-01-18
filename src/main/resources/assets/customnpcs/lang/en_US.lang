@@ -1005,12 +1005,20 @@ model.lleg=L. Leg
 model.rleg=R. Leg
 model.legs=Legs
 model.scale=Scale
+model.animation=Animation
+model.rotate=Rotate
 model.load=Model Load
 model.save=Model Save
 
 puppet.standing=While standing
 puppet.walking=While walking
 puppet.attacking=While attacking
+puppet.animate=Animate
+puppet.animSpeed=Animation Speed
+puppet.pivotX=Pivot X
+puppet.pivotY=Pivot Y
+puppet.pivotZ=Pivot Z
+puppet.fullAngles=Full Angles
 
 guard.creepers=Attack Creepers
 guard.animals=Attack Animals

@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
@@ -8,7 +10,6 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.IMerchant;
-import net.minecraft.inventory.ContainerMerchant;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.util.ResourceLocation;
@@ -20,12 +21,8 @@ import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.containers.ContainerMerchantAdd;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class GuiMerchantAdd extends GuiContainer

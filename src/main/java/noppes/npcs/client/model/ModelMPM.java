@@ -1,7 +1,5 @@
 package noppes.npcs.client.model;
 
-import java.util.Random;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
@@ -11,9 +9,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.CustomItems;
-import noppes.npcs.ModelPartConfig;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.*;
+import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.api.handler.data.IFramePart;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
@@ -21,13 +20,16 @@ import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.roles.JobPuppet;
-
-import noppes.npcs.api.ISkinOverlay;
 import org.lwjgl.opengl.GL11;
+
+import java.util.HashMap;
+import java.util.Random;
 
 import static noppes.npcs.client.ClientProxy.bindTexture;
 
@@ -49,7 +51,7 @@ public class ModelMPM extends ModelNPCMale{
 	// New
 	public ModelRenderer bipedBodywear;
 	public ModelRenderer bipedRightArmWear;
-	public ModelRenderer bipedLeftArmwear;
+	public ModelRenderer bipedLeftArmWear;
 	public ModelRenderer bipedRightLegWear;
 	public ModelRenderer bipedLeftLegWear;
 
@@ -120,9 +122,9 @@ public class ModelMPM extends ModelNPCMale{
 			this.solidRightArmWear = new ModelLimbWear(this,"arm","right","Alex");
 			this.bipedRightArm.addChild(this.solidRightArmWear);
 
-			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
-			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
-			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+			this.bipedLeftArmWear = new ModelScaleRenderer(this, 48, 48);
+			this.bipedLeftArmWear.addBox(-1.0F, -2.0F, -2.0F, 3, 12, 4, par1 + 0.25F);
+			this.bipedLeftArm.addChild(this.bipedLeftArmWear);
 			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left","Alex");
 			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
@@ -142,9 +144,9 @@ public class ModelMPM extends ModelNPCMale{
 			this.solidRightArmWear = new ModelLimbWear(this,"arm","right","Steve");
 			this.bipedRightArm.addChild(this.solidRightArmWear);
 
-			this.bipedLeftArmwear = new ModelScaleRenderer(this, 48, 48);
-			this.bipedLeftArmwear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
-			this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+			this.bipedLeftArmWear = new ModelScaleRenderer(this, 48, 48);
+			this.bipedLeftArmWear.addBox(-1.0F, -2.0F, -2.0F, 4, 12, 4, par1 + 0.25F);
+			this.bipedLeftArm.addChild(this.bipedLeftArmWear);
 			this.solidLeftArmWear = new ModelLimbWear(this,"arm","left","Steve");
 			this.bipedLeftArm.addChild(this.solidLeftArmWear);
 		}
@@ -271,8 +273,8 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedRightArm.addChild(this.bipedRightArmWear);
 		this.solidRightArmWear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedRightArm.addChild(this.solidRightArmWear);
-		this.bipedLeftArmwear = new ModelScaleRenderer(this, 0, 0);
-		this.bipedLeftArm.addChild(this.bipedLeftArmwear);
+		this.bipedLeftArmWear = new ModelScaleRenderer(this, 0, 0);
+		this.bipedLeftArm.addChild(this.bipedLeftArmWear);
 		this.solidLeftArmWear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedLeftArm.addChild(this.solidLeftArmWear);
 
@@ -426,59 +428,7 @@ public class ModelMPM extends ModelNPCMale{
 
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
-			setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
-			if(npc.advanced.job == EnumJobType.Puppet){
-				JobPuppet job = (JobPuppet) npc.jobInterface;
-				if(job.isActive()){
-					float pi = (float) Math.PI;
-
-					if(!job.head.disabled){
-						bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = job.head.rotationX * pi;
-						bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY = job.head.rotationY * pi;
-						bipedHeadwear.rotateAngleZ = bipedHead.rotateAngleZ = job.head.rotationZ * pi;
-					}
-
-					if(!job.body.disabled){
-						bipedBody.rotateAngleX = job.body.rotationX * pi;
-						bipedBody.rotateAngleY = job.body.rotationY * pi;
-						bipedBody.rotateAngleZ = job.body.rotationZ * pi;
-					}
-
-					if(!job.larm.disabled){
-						bipedLeftArm.rotateAngleX = job.larm.rotationX * pi;
-						bipedLeftArm.rotateAngleY = job.larm.rotationY * pi;
-						bipedLeftArm.rotateAngleZ = job.larm.rotationZ * pi;
-
-						if(!npc.display.disableLivingAnimation){
-							this.bipedLeftArm.rotateAngleZ -= MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
-							this.bipedLeftArm.rotateAngleX -= MathHelper.sin(par3 * 0.067F) * 0.05F;
-						}
-					}
-
-					if(!job.rarm.disabled){
-						bipedRightArm.rotateAngleX = job.rarm.rotationX * pi;
-						bipedRightArm.rotateAngleY = job.rarm.rotationY * pi;
-						bipedRightArm.rotateAngleZ = job.rarm.rotationZ * pi;
-
-						if(!npc.display.disableLivingAnimation){
-							this.bipedRightArm.rotateAngleZ += MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
-							this.bipedRightArm.rotateAngleX += MathHelper.sin(par3 * 0.067F) * 0.05F;
-						}
-					}
-
-					if(!job.rleg.disabled){
-						bipedRightLeg.rotateAngleX = job.rleg.rotationX * pi;
-						bipedRightLeg.rotateAngleY = job.rleg.rotationY * pi;
-						bipedRightLeg.rotateAngleZ = job.rleg.rotationZ * pi;
-					}
-
-					if(!job.lleg.disabled){
-						bipedLeftLeg.rotateAngleX = job.lleg.rotationX * pi;
-						bipedLeftLeg.rotateAngleY = job.lleg.rotationY * pi;
-						bipedLeftLeg.rotateAngleZ = job.lleg.rotationZ * pi;
-					}
-				}
-			}
+			this.setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
 			renderHead(npc, par7);
 			renderArms(npc, par7,false);
 			renderBody(npc, par7);
@@ -511,24 +461,77 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBodywear.rotateAngleZ = 0;
 
 		// Head Rotations
+		this.bipedHead.rotationPointX = 0;
+		this.bipedHead.rotationPointY = 0;
+		this.bipedHead.rotationPointZ = 0;
+		this.bipedHead.rotateAngleX = 0;
+		this.bipedHead.rotateAngleY = 0;
 		this.bipedHead.rotateAngleZ = 0;
+
+		this.bipedHeadwear.rotationPointX = 0;
+		this.bipedHeadwear.rotationPointY = 0;
+		this.bipedHeadwear.rotationPointZ = 0;
+		this.bipedHeadwear.rotateAngleX = 0;
+		this.bipedHeadwear.rotateAngleY = 0;
 		this.bipedHeadwear.rotateAngleZ = 0;
 
 		// Leg Rotations
+		this.bipedLeftLeg.rotationPointX = 1.9F;
+		this.bipedLeftLeg.rotationPointY = 12;
+		this.bipedLeftLeg.rotationPointZ = 0;
 		this.bipedLeftLeg.rotateAngleX = 0;
 		this.bipedLeftLeg.rotateAngleY = 0;
 		this.bipedLeftLeg.rotateAngleZ = 0;
 
+		this.bipedLeftLegWear.rotationPointX = 0;
+		this.bipedLeftLegWear.rotationPointY = 0;
+		this.bipedLeftLegWear.rotationPointZ = 0;
+		this.bipedLeftLegWear.rotateAngleX = 0;
+		this.bipedLeftLegWear.rotateAngleY = 0;
+		this.bipedLeftLegWear.rotateAngleZ = 0;
+
+		this.bipedRightLeg.rotationPointX = -1.9F;
+		this.bipedRightLeg.rotationPointY = 12;
+		this.bipedRightLeg.rotationPointZ = 0;
 		this.bipedRightLeg.rotateAngleX = 0;
 		this.bipedRightLeg.rotateAngleY = 0;
 		this.bipedRightLeg.rotateAngleZ = 0;
 
+		this.bipedRightLegWear.rotationPointX = 0;
+		this.bipedRightLegWear.rotationPointY = 0;
+		this.bipedRightLegWear.rotationPointZ = 0;
+		this.bipedRightLegWear.rotateAngleX = 0;
+		this.bipedRightLegWear.rotateAngleY = 0;
+		this.bipedRightLegWear.rotateAngleZ = 0;
+
 		// Arm Rotations
+		this.bipedLeftArm.rotationPointX = 5;
 		this.bipedLeftArm.rotationPointY = 2;
 		this.bipedLeftArm.rotationPointZ = 0;
+		this.bipedLeftArm.rotateAngleX = 0;
+		this.bipedLeftArm.rotateAngleY = 0;
+		this.bipedLeftArm.rotateAngleZ = 0;
 
+		this.bipedLeftArmWear.rotationPointX = 0;
+		this.bipedLeftArmWear.rotationPointY = 0;
+		this.bipedLeftArmWear.rotationPointZ = 0;
+		this.bipedLeftArmWear.rotateAngleX = 0;
+		this.bipedLeftArmWear.rotateAngleY = 0;
+		this.bipedLeftArmWear.rotateAngleZ = 0;
+
+		this.bipedRightArm.rotationPointX = -5;
 		this.bipedRightArm.rotationPointY = 2;
 		this.bipedRightArm.rotationPointZ = 0;
+		this.bipedRightArm.rotateAngleX = 0;
+		this.bipedRightArm.rotateAngleY = 0;
+		this.bipedRightArm.rotateAngleZ = 0;
+
+		this.bipedRightArmWear.rotationPointX = 0;
+		this.bipedRightArmWear.rotationPointY = 0;
+		this.bipedRightArmWear.rotationPointZ = 0;
+		this.bipedRightArmWear.rotateAngleX = 0;
+		this.bipedRightArmWear.rotateAngleY = 0;
+		this.bipedRightArmWear.rotateAngleZ = 0;
 
 		super.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
 
@@ -566,6 +569,95 @@ public class ModelMPM extends ModelNPCMale{
 			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.body.scaleY;
 		}
 
+		AnimationData animationData = npc.display.animationData;
+		if (animationData.isActive()) {
+			Animation animation = animationData.animation;
+			Frame frame = animation.frames.get(animation.currentFrame);
+
+			HashMap<EnumAnimationPart,ModelRenderer> animPartToModel = new HashMap<>();
+			animPartToModel.put(EnumAnimationPart.HEAD,bipedHead);
+			animPartToModel.put(EnumAnimationPart.BODY,bipedBody);
+			animPartToModel.put(EnumAnimationPart.LEFT_ARM,bipedLeftArm);
+			animPartToModel.put(EnumAnimationPart.RIGHT_ARM,bipedRightArm);
+			animPartToModel.put(EnumAnimationPart.LEFT_LEG,bipedLeftLeg);
+			animPartToModel.put(EnumAnimationPart.RIGHT_LEG,bipedRightLeg);
+
+			FramePart[] frameParts = frame.frameParts.values().toArray(new FramePart[0]);
+			for (FramePart part : frameParts) {
+				if (part != null) {
+					if (part.part != EnumAnimationPart.FULL_MODEL) {
+						ModelRenderer modelRenderer = animPartToModel.get(part.part);
+						part.interpolateAngles();
+						modelRenderer.rotateAngleX = part.prevRotations[0];
+						modelRenderer.rotateAngleY = part.prevRotations[1];
+						modelRenderer.rotateAngleZ = part.prevRotations[2];
+					} else {
+						part.interpolateAngles();
+					}
+				}
+			}
+
+			this.bipedRightArm.rotationPointX =
+					-MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
+			this.bipedRightArm.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
+					-MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
+			this.bipedRightArm.rotationPointZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleY);
+
+			this.bipedLeftArm.rotationPointX =
+					MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
+			this.bipedLeftArm.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
+					MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
+			this.bipedLeftArm.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
+					-MathHelper.sin(this.bipedBody.rotateAngleY);
+
+			this.bipedRightLeg.rotationPointX =
+					-MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedRightLeg.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedRightLeg.rotationPointZ =
+					MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
+
+			this.bipedLeftLeg.rotationPointX =
+					MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedLeftLeg.rotationPointY =
+					MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
+			this.bipedLeftLeg.rotationPointZ =
+					-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
+					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
+
+			frameParts = frame.frameParts.values().toArray(new FramePart[0]);
+			for (FramePart part : frameParts) {
+				if (part != null) {
+					if (part.part != EnumAnimationPart.FULL_MODEL) {
+						ModelRenderer modelRenderer = animPartToModel.get(part.part);
+						part.interpolateOffset();
+						modelRenderer.rotationPointX += part.prevPivots[0];
+						modelRenderer.rotationPointY += part.prevPivots[1];
+						modelRenderer.rotationPointZ += part.prevPivots[2];
+					} else {
+						part.interpolateOffset();
+					}
+				}
+			}
+
+			if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+				FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+				GL11.glTranslatef(part.prevPivots[0],part.prevPivots[1],part.prevPivots[2]);
+				GL11.glRotatef(part.prevRotations[0],1,0,0);
+				GL11.glRotatef(part.prevRotations[1],0,1,0);
+				GL11.glRotatef(part.prevRotations[2],0,0,1);
+			}
+		}
 	}
 
 	public void setLivingAnimations(EntityLivingBase par1EntityLivingBase, float par2, float par3, float par4)
@@ -590,6 +682,18 @@ public class ModelMPM extends ModelNPCMale{
 		}
 	}
 
+	public void copyAnglesPivots(ModelRenderer to, ModelRenderer from) {
+		if (to == null || from == null)
+			return;
+
+		to.rotateAngleX = from.rotateAngleX;
+		to.rotateAngleY = from.rotateAngleY;
+		to.rotateAngleZ = from.rotateAngleZ;
+		to.rotationPointX = from.rotationPointX;
+		to.rotationPointY = from.rotationPointY;
+		to.rotationPointZ = from.rotationPointZ;
+	}
+
 	private void renderHead(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
 		float x = 0;
@@ -603,6 +707,9 @@ public class ModelMPM extends ModelNPCMale{
 		}
 		ModelPartConfig head = entity.modelData.head;
 
+		this.copyAnglesPivots(headwear,bipedHead);
+		this.copyAnglesPivots(bipedHeadwear,bipedHead);
+
 		// Hide Head
 		((ModelScaleRenderer)this.bipedHead).isHidden = entity.modelData.hideHead == 1;
 
@@ -612,12 +719,6 @@ public class ModelMPM extends ModelNPCMale{
 				((ModelScaleRenderer)this.bipedHeadwear).render(f);
 			}
 			else if(entity.modelData.headwear == 2){
-				this.headwear.rotateAngleX = bipedHeadwear.rotateAngleX;
-				this.headwear.rotateAngleY = bipedHeadwear.rotateAngleY;
-				this.headwear.rotateAngleZ = bipedHeadwear.rotateAngleZ;
-				this.headwear.rotationPointX = bipedHeadwear.rotationPointX;
-				this.headwear.rotationPointY = bipedHeadwear.rotationPointY;
-				this.headwear.rotationPointZ = bipedHeadwear.rotationPointZ;
 				this.headwear.setConfig(head,x,y,z);
 				this.headwear.render(f);
 			}
@@ -710,28 +811,28 @@ public class ModelMPM extends ModelNPCMale{
 		// Hide Armwear
 		if(entity.modelData.armwear == 1){
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
 
 			this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
 			this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
 		}
 		else if(entity.modelData.armwear == 2){
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = true;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
 
 			this.solidRightArmWear.isHidden = true;
 			this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
 		}
 		else if(entity.modelData.armwear == 3){
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = true;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = true;
 
 			this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
 			this.solidLeftArmWear.isHidden = true;
 		}
 		else{
 			((ModelScaleRenderer)this.bipedRightArmWear).isHidden = true;
-			((ModelScaleRenderer)this.bipedLeftArmwear).isHidden = true;
+			((ModelScaleRenderer)this.bipedLeftArmWear).isHidden = true;
 			this.solidRightArmWear.isHidden = true;
 			this.solidLeftArmWear.isHidden = true;
 		}

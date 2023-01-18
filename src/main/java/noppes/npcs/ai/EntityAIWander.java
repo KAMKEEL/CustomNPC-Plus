@@ -1,17 +1,17 @@
 package noppes.npcs.ai;
 
-import java.util.Iterator;
-import java.util.List;
-
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.ai.selector.NPCInteractSelector;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.AiMutex;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Iterator;
+import java.util.List;
 
 public class EntityAIWander extends EntityAIBase
 {
@@ -84,12 +84,12 @@ public class EntityAIWander extends EntityAIBase
     	if(entity.ai.walkingRange > 0){
             double distance = this.entity.getDistanceSq(this.entity.getStartXPos(), this.entity.getStartYPos(), this.entity.getStartZPos());
             int range = (int) MathHelper.sqrt_double(this.entity.ai.walkingRange * this.entity.ai.walkingRange - distance);
-            if(range > CustomNpcs.NpcNavRange)
-            	range = CustomNpcs.NpcNavRange;
+            if(range > ConfigMain.NpcNavRange)
+            	range = ConfigMain.NpcNavRange;
             if(range < 3){
                 range = this.entity.ai.walkingRange;
-                if(range > CustomNpcs.NpcNavRange)
-                	range = CustomNpcs.NpcNavRange;
+                if(range > ConfigMain.NpcNavRange)
+                	range = ConfigMain.NpcNavRange;
                 Vec3 start = Vec3.createVectorHelper(this.entity.getStartXPos(), this.entity.getStartYPos(), this.entity.getStartZPos());
                 return RandomPositionGeneratorAlt.findRandomTargetBlockTowards(this.entity, range / 2, range / 2 > 7?7:range / 2, start);
             }
@@ -97,7 +97,7 @@ public class EntityAIWander extends EntityAIBase
                 return RandomPositionGeneratorAlt.findRandomTarget(this.entity, range, range / 2 > 7?7:range / 2);
             }
     	}
-    	return RandomPositionGeneratorAlt.findRandomTarget(this.entity, CustomNpcs.NpcNavRange, 7);
+    	return RandomPositionGeneratorAlt.findRandomTarget(this.entity, ConfigMain.NpcNavRange, 7);
     }
 
     @Override

@@ -8,7 +8,6 @@ package noppes.npcs.client.model.blocks;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.Entity;
 
 public class ModelCampfire extends ModelBase {
 	ModelRenderer Rock1;

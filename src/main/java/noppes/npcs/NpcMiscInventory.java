@@ -1,11 +1,11 @@
 package noppes.npcs;
 
-import java.util.HashMap;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.HashMap;
 
 public class NpcMiscInventory implements IInventory {
 	public HashMap<Integer,ItemStack> items = new HashMap<Integer,ItemStack>();

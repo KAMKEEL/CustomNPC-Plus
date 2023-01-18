@@ -1,79 +1,23 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.dispenser.BehaviorDefaultDispenseItem;
 import net.minecraft.dispenser.IBlockSource;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
+import net.minecraft.item.*;
 import net.minecraft.item.Item.ToolMaterial;
-import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemArmor.ArmorMaterial;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemFlintAndSteel;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.oredict.OreDictionary;
-import noppes.npcs.blocks.BlockBanner;
-import noppes.npcs.blocks.BlockBarrel;
-import noppes.npcs.blocks.BlockBeam;
-import noppes.npcs.blocks.BlockBigSign;
-import noppes.npcs.blocks.BlockBlood;
-import noppes.npcs.blocks.BlockBook;
-import noppes.npcs.blocks.BlockBorder;
-import noppes.npcs.blocks.BlockCampfire;
-import noppes.npcs.blocks.BlockCandle;
-import noppes.npcs.blocks.BlockCarpentryBench;
-import noppes.npcs.blocks.BlockChair;
-import noppes.npcs.blocks.BlockCouchWood;
-import noppes.npcs.blocks.BlockCouchWool;
-import noppes.npcs.blocks.BlockCrate;
-import noppes.npcs.blocks.BlockCrystal;
-import noppes.npcs.blocks.BlockLamp;
-import noppes.npcs.blocks.BlockMailbox;
-import noppes.npcs.blocks.BlockNpcRedstone;
-import noppes.npcs.blocks.BlockPedestal;
-import noppes.npcs.blocks.BlockPlaceholder;
-import noppes.npcs.blocks.BlockShelf;
-import noppes.npcs.blocks.BlockSign;
-import noppes.npcs.blocks.BlockStool;
-import noppes.npcs.blocks.BlockTable;
-import noppes.npcs.blocks.BlockTallLamp;
-import noppes.npcs.blocks.BlockTombstone;
-import noppes.npcs.blocks.BlockWallBanner;
-import noppes.npcs.blocks.BlockWaypoint;
-import noppes.npcs.blocks.BlockWeaponRack;
-import noppes.npcs.blocks.tiles.TileBanner;
-import noppes.npcs.blocks.tiles.TileBarrel;
-import noppes.npcs.blocks.tiles.TileBeam;
-import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileBlockAnvil;
-import noppes.npcs.blocks.tiles.TileBook;
-import noppes.npcs.blocks.tiles.TileBorder;
-import noppes.npcs.blocks.tiles.TileCampfire;
-import noppes.npcs.blocks.tiles.TileCandle;
-import noppes.npcs.blocks.tiles.TileChair;
-import noppes.npcs.blocks.tiles.TileCouchWood;
-import noppes.npcs.blocks.tiles.TileCouchWool;
-import noppes.npcs.blocks.tiles.TileCrate;
-import noppes.npcs.blocks.tiles.TileLamp;
-import noppes.npcs.blocks.tiles.TileMailbox;
-import noppes.npcs.blocks.tiles.TilePedestal;
-import noppes.npcs.blocks.tiles.TileRedstoneBlock;
-import noppes.npcs.blocks.tiles.TileShelf;
-import noppes.npcs.blocks.tiles.TileSign;
-import noppes.npcs.blocks.tiles.TileStool;
-import noppes.npcs.blocks.tiles.TileTable;
-import noppes.npcs.blocks.tiles.TileTallLamp;
-import noppes.npcs.blocks.tiles.TileTombstone;
-import noppes.npcs.blocks.tiles.TileWallBanner;
-import noppes.npcs.blocks.tiles.TileWaypoint;
-import noppes.npcs.blocks.tiles.TileWeaponRack;
+import noppes.npcs.blocks.*;
+import noppes.npcs.blocks.tiles.*;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 import noppes.npcs.items.*;
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public class CustomItems {
 
@@ -261,7 +205,7 @@ public class CustomItems {
 		GameRegistry.registerTileEntity(TileWaypoint.class, "TileWaypoint");
 		GameRegistry.registerTileEntity(TileBanner.class, "TileNPCBanner");
 		
-		if(!CustomNpcs.DisableExtraBlock){
+		if(!ConfigMain.DisableExtraBlock){
 			GameRegistry.registerTileEntity(TileWallBanner.class, "TileNPCWallBanner");
 			GameRegistry.registerTileEntity(TileTallLamp.class, "TileNPCTallLamp");
 			GameRegistry.registerTileEntity(TileChair.class, "TileNPCChair");
@@ -324,7 +268,7 @@ public class CustomItems {
 		
 		((ItemNpcBlock)Item.getItemFromBlock(carpentyBench)).names = new String[]{"tile.npcCarpentyBench", "tile.anvil"};
 		
-		if(!CustomNpcs.DisableExtraBlock){
+		if(!ConfigMain.DisableExtraBlock){
 			blood = new BlockBlood().setBlockName("npcBloodBlock").setBlockTextureName("customnpcs:npcBloodBlock").setCreativeTab(tabBlocks);
 			banner = new BlockBanner().setBlockName("npcBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
 			wallBanner = new BlockWallBanner().setBlockName("npcWallBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
@@ -413,7 +357,7 @@ public class CustomItems {
 		clarinet = new ItemMusicClarinet().setUnlocalizedName("npcClarinet").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcClarinet");
 		
 		
-		if(!CustomNpcs.DisableExtraItems){
+		if(!ConfigMain.DisableExtraItems){
 			tabArmor = new CreativeTabNpcs("cnpcsa");
 			tabWeapon = new CreativeTabNpcs("cnpcsw");
 			

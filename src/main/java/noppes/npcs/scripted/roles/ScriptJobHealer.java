@@ -1,10 +1,10 @@
 package noppes.npcs.scripted.roles;
 
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.jobs.IJobHealer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobHealer;
 import noppes.npcs.scripted.constants.JobType;
-import noppes.npcs.api.entity.IEntityLivingBase;
-import noppes.npcs.api.jobs.IJobHealer;
 
 public class ScriptJobHealer extends ScriptJobInterface implements IJobHealer {
 	private JobHealer job;

@@ -1,14 +1,6 @@
 package noppes.npcs.client;
 
 import io.netty.buffer.ByteBuf;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Vector;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
@@ -20,9 +12,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
+import noppes.npcs.AnimationData;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
@@ -32,16 +23,20 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
-import org.lwjgl.opengl.NVProgram;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.Vector;
 
 public class NoppesUtil {
 
@@ -76,11 +71,19 @@ public class NoppesUtil {
 
 	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
 		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
+		HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
 		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
-		
+		if (Client.skinOverlays.containsKey(player.getUniqueID())) {
+			oldOverlays = Client.skinOverlays.get(player.getUniqueID());
+		}
+
 		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
 			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
-			skinOverlays.put(tagID, (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i)));
+			SkinOverlay overlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
+			if (oldOverlays.containsKey(tagID)) {
+				overlay.ticks = oldOverlays.get(tagID).ticks;
+			}
+			skinOverlays.put(tagID,overlay);
 		}
 		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}

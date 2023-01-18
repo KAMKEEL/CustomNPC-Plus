@@ -5,21 +5,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.advanced.GuiNPCAdvancedLinkedNpc;
-import noppes.npcs.client.gui.advanced.GuiNPCDialogNpcOptions;
-import noppes.npcs.client.gui.advanced.GuiNPCFactionSetup;
-import noppes.npcs.client.gui.advanced.GuiNPCLinesMenu;
-import noppes.npcs.client.gui.advanced.GuiNPCNightSetup;
-import noppes.npcs.client.gui.advanced.GuiNPCSoundsMenu;
-import noppes.npcs.client.gui.roles.GuiNpcBard;
-import noppes.npcs.client.gui.roles.GuiNpcCompanion;
-import noppes.npcs.client.gui.roles.GuiNpcConversation;
-import noppes.npcs.client.gui.roles.GuiNpcFollowerJob;
-import noppes.npcs.client.gui.roles.GuiNpcGuard;
-import noppes.npcs.client.gui.roles.GuiNpcHealer;
-import noppes.npcs.client.gui.roles.GuiNpcPuppet;
-import noppes.npcs.client.gui.roles.GuiNpcSpawner;
-import noppes.npcs.client.gui.roles.GuiNpcTransporter;
+import noppes.npcs.client.gui.advanced.*;
+import noppes.npcs.client.gui.roles.*;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
@@ -27,7 +14,6 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
@@ -46,7 +32,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
     	getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman);
 
     	this.addButton(new GuiNpcButton(4, guiLeft + 85 + 160, guiTop + 43, 52, 20, "selectServer.edit"));
-    	this.addButton(new GuiNpcButton(5, guiLeft + 85, guiTop + 43,155,20, new String[]{"job.none","job.bard","job.healer","job.guard","job.itemgiver","role.follower", "job.spawner", "job.conversation", "job.chunkloader", "job.puppet"},npc.advanced.job.ordinal()));
+    	this.addButton(new GuiNpcButton(5, guiLeft + 85, guiTop + 43,155,20, new String[]{"job.none","job.bard","job.healer","job.guard","job.itemgiver","role.follower", "job.spawner", "job.conversation", "job.chunkloader"},npc.advanced.job.ordinal()));
 
    		getButton(4).setEnabled(npc.advanced.job != EnumJobType.None && npc.advanced.job != EnumJobType.ChunkLoader);
 
@@ -143,8 +129,6 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
 				NoppesUtil.openGUI(player, new GuiNpcSpawner(npc));
 			else if(npc.advanced.job == EnumJobType.Conversation)
 				NoppesUtil.openGUI(player, new GuiNpcConversation(npc));
-			else if(npc.advanced.job == EnumJobType.Puppet)
-				NoppesUtil.openGUI(player, new GuiNpcPuppet(this,(EntityCustomNpc) npc));
 		}
 		else{
 			npc.advanced.readToNBT(compound);

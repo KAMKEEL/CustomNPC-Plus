@@ -2,7 +2,6 @@ package noppes.npcs.items;
 
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemWand extends ItemNpcInterface{

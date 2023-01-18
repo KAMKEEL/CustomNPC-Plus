@@ -1,17 +1,17 @@
 package noppes.npcs.controllers.data;
 
-import java.util.HashMap;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.FactionEvent;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.IPlayerFactionData;
+
+import java.util.HashMap;
 
 public class PlayerFactionData implements IPlayerFactionData {
 	private final PlayerData parent;

@@ -5,21 +5,17 @@
 
 package noppes.npcs.controllers.data;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.Map.Entry;
-
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class ForgeDataScript implements IScriptHandler {
     private List<ScriptContainer> scripts = new ArrayList();
@@ -61,26 +57,21 @@ public class ForgeDataScript implements IScriptHandler {
 
     public void callScript(String type, Event event) {
         if(this.isEnabled()) {
-            //Minecraft.getMinecraft().func_152344_a(() -> {
-                if (ScriptController.Instance.lastLoaded > this.lastInited) {
-                    this.lastInited = ScriptController.Instance.lastLoaded;
-                    if (!type.equals("init")) {
-                        EventHooks.onForgeInit(this);
-                    }
+            if (ScriptController.Instance.lastLoaded > this.lastInited) {
+                this.lastInited = ScriptController.Instance.lastLoaded;
+                if (!type.equals("init")) {
+                    EventHooks.onForgeInit(this);
                 }
+            }
 
-                Iterator var3 = this.scripts.iterator();
-
-                while(var3.hasNext()) {
-                    ScriptContainer script = (ScriptContainer)var3.next();
-                    script.run(type, event);
-                }
-            //});
+            for (ScriptContainer script : this.scripts) {
+                script.run(type, event);
+            }
         }
     }
 
     public boolean isEnabled() {
-        return this.enabled && CustomNpcs.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
+        return this.enabled && ConfigScript.GlobalForgeScripts && ScriptController.HasStart && this.scripts.size() > 0;
     }
 
     public boolean isClient() {

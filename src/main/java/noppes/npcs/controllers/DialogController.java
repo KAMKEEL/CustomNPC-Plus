@@ -1,23 +1,23 @@
 package noppes.npcs.controllers;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.*;
-
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.api.handler.IDialogHandler;
+import noppes.npcs.api.handler.data.IDialog;
+import noppes.npcs.api.handler.data.IDialogCategory;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.controllers.data.DialogOption;
-import noppes.npcs.api.handler.IDialogHandler;
-import noppes.npcs.api.handler.data.IDialog;
-import noppes.npcs.api.handler.data.IDialogCategory;
 import noppes.npcs.util.NBTJsonUtil;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.*;
 
 public class DialogController implements IDialogHandler {
 	public HashMap<Integer,DialogCategory> categories = new HashMap<Integer, DialogCategory>();

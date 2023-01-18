@@ -2,10 +2,11 @@ package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.api.entity.IAnimal;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptAnimal<T extends EntityAnimal> extends ScriptLiving<T> implements IAnimal {
 	protected T entity;
@@ -35,6 +36,14 @@ public class ScriptAnimal<T extends EntityAnimal> extends ScriptLiving<T> implem
 		return this.entity.interact((EntityPlayer) player.getMCEntity());
 	}
 
+	public void setFollowPlayer(IPlayer player) {
+		this.entity.func_146082_f((EntityPlayer) player.getMCEntity());
+	}
+
+	public IPlayer followingPlayer() {
+		return (IPlayer) NpcAPI.Instance().getIEntity(this.entity.func_146083_cb());
+	}
+
 	public boolean isInLove() {
 		return this.entity.isInLove();
 	}
@@ -47,7 +56,6 @@ public class ScriptAnimal<T extends EntityAnimal> extends ScriptLiving<T> implem
 		return this.entity.canMateWith((EntityAnimal) animal.getMCEntity());
 	}
 
-	@Override
 	public boolean typeOf(int type){
 		return type == EntityType.ANIMAL || super.typeOf(type);
 	}

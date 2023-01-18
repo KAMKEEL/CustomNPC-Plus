@@ -3,7 +3,6 @@ package noppes.npcs.client.renderer;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.entity.EntityNPCInterface;
-
 import org.lwjgl.opengl.GL11;
 
 public class RenderNpcSlime extends RenderNPCInterface

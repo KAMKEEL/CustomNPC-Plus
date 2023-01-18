@@ -1,11 +1,11 @@
 package noppes.npcs.controllers.data;
 
-import java.util.HashMap;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.BankController;
 import noppes.npcs.api.handler.IPlayerBankData;
+import noppes.npcs.controllers.BankController;
+
+import java.util.HashMap;
 
 public class PlayerBankData implements IPlayerBankData {
 	private final PlayerData parent;

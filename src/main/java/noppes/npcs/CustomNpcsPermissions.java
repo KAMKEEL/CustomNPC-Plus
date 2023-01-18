@@ -1,19 +1,14 @@
 package noppes.npcs;
 
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import org.apache.logging.log4j.LogManager;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Logger;
-
-import org.apache.logging.log4j.LogManager;
-
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.CustomNpcsPermissions.Permission;
-import noppes.npcs.constants.EnumPacketServer;
 
 
 public class CustomNpcsPermissions{
@@ -38,6 +33,7 @@ public class CustomNpcsPermissions{
 	public static final Permission GLOBAL_TRANSPORT = new Permission("customnpcs.global.transport");
 	public static final Permission GLOBAL_RECIPE = new Permission("customnpcs.global.recipe");
 	public static final Permission GLOBAL_NATURALSPAWN = new Permission("customnpcs.global.naturalspawn");
+	public static final Permission GLOBAL_TAG = new Permission("customnpcs.global.tag");
 
 	public static final Permission SPAWNER_MOB = new Permission("customnpcs.spawner.mob");
 	public static final Permission SPAWNER_CREATE = new Permission("customnpcs.spawner.create");

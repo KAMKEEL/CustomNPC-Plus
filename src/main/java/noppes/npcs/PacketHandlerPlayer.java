@@ -1,10 +1,8 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
-
-import java.io.IOException;
-import java.util.Iterator;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemEditableBook;
@@ -18,12 +16,15 @@ import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
 import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 public class PacketHandlerPlayer{
 	
@@ -188,9 +189,6 @@ public class PacketHandlerPlayer{
 		}
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);
-		}
-		else if(type == EnumPlayerPacket.QuestCompletion){
-			NoppesUtilPlayer.questCompletion(player, buffer.readInt());
 		}
 		else if(type == EnumPlayerPacket.FactionsGet){
 			PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;	

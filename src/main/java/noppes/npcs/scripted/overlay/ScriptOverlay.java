@@ -3,9 +3,9 @@ package noppes.npcs.scripted.overlay;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.overlay.*;
+import noppes.npcs.controllers.CustomGuiController;
 
 import java.util.ArrayList;
 import java.util.Iterator;

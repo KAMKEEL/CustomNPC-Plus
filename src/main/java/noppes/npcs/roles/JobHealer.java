@@ -1,14 +1,13 @@
 package noppes.npcs.roles;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class JobHealer extends JobInterface{
 	private long healTicks = 0;

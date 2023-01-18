@@ -5,8 +5,8 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.controllers.data.PlayerBankData;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerBankData;
 
 public class ContainerNPCBankInterface extends ContainerNpcInterface
 {

@@ -5,22 +5,20 @@
 
 package noppes.npcs.controllers;
 
+import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.scripted.NpcAPI;
+
+import javax.script.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.*;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-
-import cpw.mods.fml.common.eventhandler.Event;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NBTTags;
-import noppes.npcs.controllers.data.IScriptHandler;
-import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.scripted.NpcAPI;
+import java.util.function.Predicate;
 
 public class ScriptContainer {
     private static final String lock = "lock";
@@ -48,7 +46,7 @@ public class ScriptContainer {
 
     public void readFromNBT(NBTTagCompound compound) {
         this.script = compound.getString("Script");
-        for (int i = 0; i < CustomNpcs.ExpandedScriptLimit; i++) {
+        for (int i = 0; i < ConfigScript.ExpandedScriptLimit; i++) {
             if (compound.hasKey("ExpandedScript"+i)) {
                 this.script += compound.getString("ExpandedScript"+i);
             } else {
@@ -65,10 +63,10 @@ public class ScriptContainer {
         if (this.script.length() < 65535) {
             compound.setString("Script", this.script);
         } else {
-            if (CustomNpcs.ExpandedScriptLimit > 0) {
+            if (ConfigScript.ExpandedScriptLimit > 0) {
                 int i = 0;
                 int length = this.script.length();
-                while (length > 0 && i <= CustomNpcs.ExpandedScriptLimit) {
+                while (length > 0 && i <= ConfigScript.ExpandedScriptLimit) {
                     String str = "";
                     if (i == 0) {
                         compound.setString("Script", this.script.substring(0, 65535));
@@ -138,14 +136,14 @@ public class ScriptContainer {
     }
 
     public void run(EnumScriptType type, Event event) {
-        if(!CustomNpcs.ScriptingEnabled)
+        if(!ConfigScript.ScriptingEnabled)
             return;
 
         this.run((String)type.function, (Object)event);
     }
 
     public void run(String type, Object event) {
-        if(!CustomNpcs.ScriptingEnabled)
+        if(!ConfigScript.ScriptingEnabled)
             return;
 
         if (!this.errored && this.hasCode() && !this.unknownFunctions.contains(type)) {
@@ -157,6 +155,9 @@ public class ScriptContainer {
                 }
 
                 engine.put("API", NpcAPI.Instance());
+                for (Map.Entry<String,Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
+                    engine.put(engineObjects.getKey(),engineObjects.getValue());
+                }
 
                 Current = this;
                 CurrentType = type;
@@ -209,10 +210,21 @@ public class ScriptContainer {
     public void setEngine(String scriptLanguage) {
         if(currentScriptLanguage != null && currentScriptLanguage.equals(scriptLanguage))
             return;
-        if (CustomNpcs.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
+        if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
             System.setProperty("nashorn.args", "--language=es6");
         }
-        engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowAllAccess", true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostAccess", true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLoading", true);
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowNativeAccess", true);
+        System.setProperty("polyglot.js.nashorn-compat", "true");
+        System.setProperty("polyglot.js.scripting", "true");
+        System.setProperty("polyglot.js.scripting", "true");
+        System.setProperty("polyglot.js.syntax-extensions", "true");
+        this.engine = engine;
+
         currentScriptLanguage = scriptLanguage;
     }
 }

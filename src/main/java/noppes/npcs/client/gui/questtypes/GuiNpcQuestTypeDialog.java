@@ -1,7 +1,5 @@
 package noppes.npcs.client.gui.questtypes;
 
-import java.util.HashMap;
-
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,6 +14,8 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestDialog;
+
+import java.util.HashMap;
 
 public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData
 {

@@ -1,24 +1,15 @@
 package noppes.npcs;
 
+import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.constants.EnumScriptType;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.StreamHandler;
+import java.util.logging.*;
 
 public class LogWriter {
 	private final static String name = "CustomNPCs";
@@ -170,7 +161,7 @@ public class LogWriter {
 			long secondsSinceFirst = TimeUnit.MILLISECONDS.toSeconds(new Date().getTime() - stamp.makeDate.getTime());
 			long millisecSinceLast = TimeUnit.MILLISECONDS.toMillis(stamp.recentDate.getTime() - stamp.makeDate.getTime());
 
-			double frequency = (float)CustomNpcs.ScriptFrequency / 60;
+			double frequency = (float) ConfigDebug.ScriptFrequency / 60;
 			// Reset Log if 2 Minutes Pass
 			if (secondsSinceFirst > 120) {
 				LogWriter.script(message);
@@ -184,7 +175,7 @@ public class LogWriter {
 				stamp.recentDate = new Date();
 			}
 			// IF event occurs to QUICKLY Ignore.
-			else if (millisecSinceLast < CustomNpcs.ScriptIgnoreTime){
+			else if (millisecSinceLast < ConfigDebug.ScriptIgnoreTime){
 				stamp.recentDate = new Date();
 			}
 			else if(secondsSinceFirst > 10 && (double)stamp.counter / secondsSinceFirst > frequency){

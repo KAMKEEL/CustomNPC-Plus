@@ -3,8 +3,6 @@ package noppes.npcs.client.gui.mainmenu;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.advanced.GuiNPCLinesMenu;
-import noppes.npcs.client.gui.global.GuiNPCManageLinkedNpc;
 import noppes.npcs.client.gui.global.GuiNpcManagePlayerData;
 import noppes.npcs.client.gui.global.GuiNpcNaturalSpawns;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
@@ -30,6 +28,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
     	this.addButton(new GuiNpcButton(14, guiLeft + 85, y += 22, "global.recipes"));
     	this.addButton(new GuiNpcButton(15, guiLeft + 85, y += 22, NoppesStringUtils.translate("global.naturalspawn")));
     	this.addButton(new GuiNpcButton(16, guiLeft + 85, y += 22, "global.linked"));
+		this.addButton(new GuiNpcButton(17, guiLeft + 85, y += 22, "menu.tags"));
     	
     }
     
@@ -44,6 +43,9 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		}
 		if (id == 3) {
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageFactions);
+		}
+		if (id == 17) {
+			NoppesUtil.requestOpenGUI(EnumGuiType.ManageTags);
 		}
 		if (id == 4) {
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageDialogs);

@@ -1,18 +1,14 @@
 package noppes.npcs.scripted.scoreboard;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.minecraft.scoreboard.IScoreObjectiveCriteria;
-import net.minecraft.scoreboard.Score;
-import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.scoreboard.ScorePlayerTeam;
-import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.scoreboard.*;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.api.scoreboard.IScoreboardObjective;
 import noppes.npcs.api.scoreboard.IScoreboardTeam;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Karel

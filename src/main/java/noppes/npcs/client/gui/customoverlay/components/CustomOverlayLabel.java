@@ -7,9 +7,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.api.overlay.ICustomOverlayComponent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
-import noppes.npcs.api.overlay.ICustomOverlayComponent;
 import noppes.npcs.scripted.overlay.ScriptOverlayLabel;
 import org.lwjgl.opengl.GL11;
 

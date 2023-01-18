@@ -1,11 +1,10 @@
 package noppes.npcs.roles;
 
-import java.util.List;
-
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
 
 public class JobFollower extends JobInterface{
 	public EntityNPCInterface following = null;
@@ -53,8 +52,8 @@ public class JobFollower extends JobInterface{
 	}
 	
 	private int getRange(){
-		if(range > CustomNpcs.NpcNavRange)
-			return CustomNpcs.NpcNavRange;
+		if(range > ConfigMain.NpcNavRange)
+			return ConfigMain.NpcNavRange;
 		return range;
 	}
 	

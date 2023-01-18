@@ -1,13 +1,6 @@
 package noppes.npcs.controllers;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
+import cpw.mods.fml.common.Loader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -22,11 +15,14 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
-import noppes.npcs.scripted.constants.JobType;
-
 import org.apache.logging.log4j.LogManager;
 
-import cpw.mods.fml.common.Loader;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PixelmonHelper {
     public static boolean Enabled = false;

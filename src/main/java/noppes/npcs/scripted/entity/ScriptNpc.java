@@ -1,18 +1,20 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.ArrayList;
-import java.util.UUID;
-
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.ITimers;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IOverlayHandler;
+import noppes.npcs.api.handler.data.IAnimationData;
+import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.roles.IRole;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -20,30 +22,11 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
-import noppes.npcs.api.IPos;
-import noppes.npcs.api.ITimers;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.entity.IEntityLivingBase;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.IOverlayHandler;
-import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.scripted.roles.ScriptJobBard;
-import noppes.npcs.scripted.roles.ScriptJobConversation;
-import noppes.npcs.scripted.roles.ScriptJobFollower;
-import noppes.npcs.scripted.roles.ScriptJobGuard;
-import noppes.npcs.scripted.roles.ScriptJobHealer;
-import noppes.npcs.scripted.roles.ScriptJobInterface;
-import noppes.npcs.scripted.roles.ScriptJobItemGiver;
-import noppes.npcs.scripted.roles.ScriptJobPuppet;
-import noppes.npcs.scripted.roles.ScriptJobSpawner;
-import noppes.npcs.scripted.roles.ScriptRoleBank;
-import noppes.npcs.scripted.roles.ScriptRoleFollower;
-import noppes.npcs.scripted.roles.ScriptRoleInterface;
-import noppes.npcs.scripted.roles.ScriptRoleMailman;
-import noppes.npcs.scripted.roles.ScriptRoleTrader;
-import noppes.npcs.scripted.roles.ScriptRoleTransporter;
+import noppes.npcs.scripted.roles.*;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.ArrayList;
+import java.util.UUID;
 
 public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> implements ICustomNpc {
 	public EntityNPCInterface npc;
@@ -66,8 +49,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setSize(int size){
 		if(size < 1)
 			size = 1;
-		if(size > CustomNpcs.NpcSizeLimit)
-			size = CustomNpcs.NpcSizeLimit;
+		if(size > ConfigMain.NpcSizeLimit)
+			size = ConfigMain.NpcSizeLimit;
 
 		npc.display.modelSize = size;
 		npc.script.clientNeedsUpdate = true;
@@ -99,10 +82,16 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.display.name;
 	}
 
+	public void setRotation(float rotationYaw, float rotationPitch) {
+		this.setRotation(rotationYaw);
+		npc.rotationPitch = rotationPitch;
+	}
+
 	public void setRotation(float rotation){
 		npc.ai.orientation = (int)rotation;
 		super.setRotation(rotation);
 	}
+
 	public void setRotationType(int rotationType){
 		for (EnumStandingType e : EnumStandingType.values()) {
 			if (e.ordinal() == rotationType) {
@@ -111,9 +100,30 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			}
 		}
 	}
+
 	public int getRotationType(){
 		return npc.ai.standingType.ordinal();
 	}
+
+	/**
+	 * @param movingType The moving type of the npc. 0 = standing, 1 = wandering, 2 = moving path
+	 */
+	public void setMovingType(int movingType){
+		for(EnumMovingType e : EnumMovingType.values()) {
+			if (e.ordinal() == movingType) {
+				npc.ai.movingType = e;
+				break;
+			}
+		}
+	}
+
+	/**
+	 * @return The moving type of the npc. 0 = standing, 1 = wandering, 2 = moving path
+	 */
+	public int getMovingType(){
+		return npc.ai.movingType.ordinal();
+	}
+
 	/**
 	 * @param name The name of the npc
 	 */
@@ -330,6 +340,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.reset();
 	}
 
+	public IAnimationData getAnimationData() {
+		return this.npc.display.animationData;
+	}
+
 	/**
 	 * @return Returns the npcs current role
 	 */
@@ -351,6 +365,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		for (EnumRoleType e : EnumRoleType.values()) {
 			if (e.ordinal() == role) {
 				npc.advanced.role = e;
+				npc.advanced.setRole(role);
 				break;
 			}
 		}
@@ -370,8 +385,6 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptJobGuard(npc);
 		else if(npc.advanced.job == EnumJobType.Healer)
 			return new ScriptJobHealer(npc);
-		else if(npc.advanced.job == EnumJobType.Puppet)
-			return new ScriptJobPuppet(npc);
 		else if(npc.advanced.job == EnumJobType.ItemGiver)
 			return new ScriptJobItemGiver(npc);
 		else if(npc.advanced.job == EnumJobType.Spawner)
@@ -383,6 +396,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		for (EnumJobType e : EnumJobType.values()) {
 			if (e.ordinal() == job) {
 				npc.advanced.job = e;
+				npc.advanced.setJob(job);
 				break;
 			}
 		}
@@ -777,14 +791,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	/**
 	 * @return The melee strength
 	 */
-	public float getMeleeStrength(){
+	public double getMeleeStrength(){
 		return npc.stats.getAttackStrength();
 	}
 	
 	/**
 	 * @param strength The melee strength
 	 */
-	public void setMeleeStrength(float strength){
+	public void setMeleeStrength(double strength){
 		npc.stats.setAttackStrength(strength);
 	}
 	
@@ -1005,14 +1019,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     /**
      * @param resistance Knockback resistance (0-2) default is 1
      */
-	public void setKnockbackResistance(float resistance){
-		npc.stats.resistances.knockback = ValueUtil.correctFloat(resistance, 0, 2);
+	public void setKnockbackResistance(double resistance){
+		npc.stats.resistances.knockback = ValueUtil.correctFloat((float) resistance, 0, 2);
 	}
 
     /**
      * @return Returns Knockback Resistance
      */
-	public float getKnockbackResistance(){
+	public double getKnockbackResistance(){
 		return npc.stats.resistances.knockback;
 	}
 	
@@ -1139,11 +1153,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return this.npc.ai.hasFlyLimit;
 	}
 
-	public void setSpeed(int speed) {
+	public void setSpeed(double speed) {
 		npc.ai.setWalkingSpeed(speed);
 	}
 
-	public int getSpeed() {
+	public double getSpeed() {
 		return npc.ai.getWalkingSpeed();
 	}
 
@@ -1179,7 +1193,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setOverlayTexture(String overlayTexture) {
-		if (this.getOverlays().size() >= CustomNpcs.SkinOverlayLimit) {
+		if (this.getOverlays().size() >= ConfigMain.SkinOverlayLimit) {
 			return;
 		}
 

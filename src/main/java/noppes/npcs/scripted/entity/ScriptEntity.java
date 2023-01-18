@@ -1,14 +1,10 @@
 package noppes.npcs.scripted.entity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,16 +15,20 @@ import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.*;
-import noppes.npcs.scripted.constants.EntityType;
+import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
+import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.INbt;
-import noppes.npcs.api.IPos;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.CustomNPCsException;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptParticle;
+import noppes.npcs.scripted.constants.EntityType;
+
+import java.util.*;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
@@ -511,6 +511,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		tempData.clear();
 	}
 
+	public String[] getTempDataKeys() {
+		return tempData.keySet().toArray(new String[0]);
+	}
+
 	/**
 	 * @param key The key of the data to be returned
 	 * @return Returns the stored data
@@ -570,6 +574,16 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	 */
 	public void clearStoredData(){
 		entity.getEntityData().removeTag("CNPCStoredData");
+	}
+
+	public String[] getStoredDataKeys() {
+		NBTTagCompound compound = getStoredCompound();
+		Set strings = compound.func_150296_c();
+		ArrayList<String> stringList = new ArrayList<>();
+		for (Object o : strings) {
+			stringList.add((String)o);
+		}
+		return stringList.toArray(new String[0]);
 	}
 
 	private NBTTagCompound getStoredCompound(){
@@ -716,6 +730,11 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.rotationYaw = rotation;
 	}
 
+	public void setRotation(float rotationYaw, float rotationPitch) {
+		entity.rotationYaw = rotationYaw;
+		entity.rotationPitch = rotationPitch;
+	}
+
 	/**
 	 * @return Current rotation of the entity
 	 */
@@ -766,6 +785,39 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public boolean hasCollided() {
 		return entity.isCollided;
+	}
+
+	public boolean hasCollidedVertically() {
+		return entity.isCollidedVertically;
+	}
+
+	public boolean hasCollidedHorizontally() {
+		return entity.isCollidedHorizontally;
+	}
+
+	public boolean capturesDrops() {
+		return entity.captureDrops;
+	}
+
+	public void setCapturesDrops(boolean capture) {
+		entity.captureDrops = capture;
+	}
+
+	public void setCapturedDrops(IEntity[] capturedDrops) {
+		entity.capturedDrops.clear();
+		for (IEntity<?> iEntity : capturedDrops) {
+			if (iEntity.getMCEntity() instanceof EntityItem) {
+				entity.capturedDrops.add((EntityItem) iEntity.getMCEntity());
+			}
+		}
+	}
+
+	public IEntity<?>[] getCapturedDrops() {
+		ArrayList<IEntity<?>> iEntityList = new ArrayList<>();
+		for (EntityItem entityItem : entity.capturedDrops) {
+			iEntityList.add(NpcAPI.Instance().getIEntity(entityItem));
+		}
+		return iEntityList.toArray(new IEntity[0]);
 	}
 
 	/**

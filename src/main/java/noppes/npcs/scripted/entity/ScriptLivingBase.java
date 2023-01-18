@@ -7,15 +7,14 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.Vec3;
-import noppes.npcs.api.IDamageSource;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptDamageSource;
-import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.api.IBlock;
+import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
@@ -53,13 +52,47 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void hurt(float damage, IDamageSource damageSource) {
 		entity.attackEntityFrom(damageSource.getMCDamageSource(),damage);
 	}
-	
-	/**
-	 * @return Entity's max health
-	 */
+
 	public double getMaxHealth(){
 		return entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).getAttributeValue();
 	}
+
+	public double getFollowRange() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.followRange).getAttributeValue();
+	}
+
+	public double getKnockbackResistance() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.knockbackResistance).getAttributeValue();
+	}
+
+	public double getSpeed() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
+	}
+
+	public double getMeleeStrength() {
+		return entity.getEntityAttribute(SharedMonsterAttributes.attackDamage).getAttributeValue();
+	}
+
+	public void setMaxHealth(double health){
+		entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(health);
+	}
+
+	public void setFollowRange(double range) {
+		entity.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(range);
+	}
+
+	public void setKnockbackResistance(double knockbackResistance) {
+		entity.getEntityAttribute(SharedMonsterAttributes.knockbackResistance).setBaseValue(knockbackResistance);
+	}
+
+	public void setSpeed(double speed) {
+		entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(speed);
+	}
+
+	public void setMeleeStrength(double attackDamage) {
+		entity.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(attackDamage);
+	}
+
 	/**
 	 * @return Whether or not this entity is attacking something
 	 */
@@ -83,7 +116,28 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public IEntityLivingBase getAttackTarget(){
 		return (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity.getAITarget());
 	}
-	
+
+	public int getAttackTargetTime() {
+		return this.entity.func_142015_aE();
+	}
+
+	public void setLastAttacker(IEntity p_130011_1_) {
+		this.entity.setLastAttacker(p_130011_1_.getMCEntity());
+	}
+
+	public IEntity getLastAttacker() {
+		return NpcAPI.Instance().getIEntity(this.entity.getLastAttacker());
+	}
+
+	public int getLastAttackerTime()
+	{
+		return this.entity.getLastAttackerTime();
+	}
+
+	public boolean canBreatheUnderwater() {
+		return this.entity.canBreatheUnderwater();
+	}
+
 	@Override
 	public int getType(){
 		return EntityType.LIVING;

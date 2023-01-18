@@ -4,14 +4,14 @@ import com.google.common.base.Preconditions;
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.BlockPos;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.api.entity.ICustomNpc;
 
 import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
@@ -25,7 +25,6 @@ public class NPCDataScript implements IScriptHandler {
     public long lastInited = -1L;
     public boolean enabled = false;
     private Map<Long, String> console = new TreeMap();
-    public List<Integer> errored = new ArrayList();
 
     public NPCDataScript(EntityNPCInterface npc) {
         if(npc != null) {
@@ -34,7 +33,6 @@ public class NPCDataScript implements IScriptHandler {
     }
     public void clear() {
         this.console = new TreeMap();
-        this.errored = new ArrayList();
         this.scripts = new ArrayList();
     }
     public void readFromNBT(NBTTagCompound compound) {
@@ -60,55 +58,30 @@ public class NPCDataScript implements IScriptHandler {
 
     public void callScript(EnumScriptType type, Event event) {
         if (this.isEnabled()) {
-            ScriptContainer script;
             if (ScriptController.Instance.lastLoaded > this.lastInited) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
-                errored.clear();
             }
 
-            for(int i = 0; i < ScriptController.Instance.npcScripts.scripts.size(); ++i) {
-                script = (ScriptContainer)ScriptController.Instance.npcScripts.scripts.get(i);
-                if (!errored.contains(i)) {
-                    if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.npcScripts.errored.contains(i))
-                        return;
-
-                    script.run(type, event);
-
-                    if (script.errored) {
-                        ScriptController.Instance.npcScripts.errored.add(i);
-                    }
-
-                    Iterator var8 = script.console.entrySet().iterator();
-
-                    while(var8.hasNext()) {
-                        Map.Entry<Long, String> entry = (Map.Entry)var8.next();
-                        if (!ScriptController.Instance.npcScripts.console.containsKey(entry.getKey())) {
-                            ScriptController.Instance.npcScripts.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
-                        }
-                    }
-
-                    script.console.clear();
-                }
+            for (ScriptContainer script : this.scripts) {
+                script.run(type, event);
             }
-
         }
     }
 
     public boolean isEnabled() {
-        return CustomNpcs.GlobalNPCScripts && ScriptController.Instance.npcScripts.enabled && ScriptController.HasStart && (this.npc == null || !this.npc.worldObj.isRemote);
+        return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
     }
     public boolean isClient() {
         return this.npc.isClientWorld();
     }
     public boolean getEnabled() {
-        return ScriptController.Instance.npcScripts.enabled;
+        return this.enabled;
     }
     public void setEnabled(boolean bo) {
-        ScriptController.Instance.npcScripts.enabled = bo;
         this.enabled = bo;
     }
     public String getLanguage() {
-        return ScriptController.Instance.npcScripts.scriptLanguage;
+        return this.scriptLanguage;
     }
     public void setLanguage(String lang) {
         this.scriptLanguage = lang;
@@ -130,11 +103,35 @@ public class NPCDataScript implements IScriptHandler {
         }
         return this.npcAPI;
     }
+
+
     public Map<Long, String> getConsoleText() {
-        return this.console;
+        TreeMap map = new TreeMap();
+        int tab = 0;
+        Iterator var3 = this.getScripts().iterator();
+
+        while(var3.hasNext()) {
+            ScriptContainer script = (ScriptContainer)var3.next();
+            ++tab;
+            Iterator var5 = script.console.entrySet().iterator();
+
+            while(var5.hasNext()) {
+                Map.Entry entry = (Map.Entry)var5.next();
+                map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
+            }
+        }
+
+        return map;
     }
+
     public void clearConsole() {
-        this.console.clear();
+        Iterator var1 = this.getScripts().iterator();
+
+        while(var1.hasNext()) {
+            ScriptContainer script = (ScriptContainer)var1.next();
+            script.console.clear();
+        }
+
     }
     public static final class ToStringHelper {
         private final String className;

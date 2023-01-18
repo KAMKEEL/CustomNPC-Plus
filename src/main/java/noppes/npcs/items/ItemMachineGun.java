@@ -6,9 +6,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityProjectile;
-
 import org.lwjgl.opengl.GL11;
 
 public class ItemMachineGun extends ItemNpcInterface{
@@ -54,14 +53,14 @@ public class ItemMachineGun extends ItemNpcInterface{
 	    }
     	 
     	int shotsleft = stack.stackTagCompound.getInteger("ShotsLeft") - ticks/6;
-    	if(!player.capabilities.isCreativeMode || !CustomNpcs.GunsEnabled){
+    	if(!player.capabilities.isCreativeMode || !ConfigMain.GunsEnabled){
 	    	if(stack.stackTagCompound.getBoolean("Reloading2") && hasItem(player, CustomItems.bulletBlack)){
 	    		if(ticks > 0 && ticks <= 24){
 	    			player.worldObj.playSoundAtEntity(player, "customnpcs:gun.ak47.load", 1.0F,1);
 	    		}
 	    		return;
 	    	}
-	    	else if((shotsleft <= 0 || !hasItem(player, CustomItems.bulletBlack)) || !CustomNpcs.GunsEnabled)
+	    	else if((shotsleft <= 0 || !hasItem(player, CustomItems.bulletBlack)) || !ConfigMain.GunsEnabled)
 	        {
 	    		player.worldObj.playSoundAtEntity(player, "customnpcs:gun.empty", 1.0F,1);
 	        	return;

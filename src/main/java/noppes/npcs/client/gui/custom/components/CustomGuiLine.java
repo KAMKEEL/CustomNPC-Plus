@@ -3,10 +3,10 @@ package noppes.npcs.client.gui.custom.components;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.scripted.gui.ScriptGuiLine;
-import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
 
 public class CustomGuiLine extends Gui implements IGuiComponent {

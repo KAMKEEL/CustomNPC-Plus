@@ -1,5 +1,6 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.network.IGuiHandler;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -9,13 +10,12 @@ import net.minecraft.item.Item;
 import net.minecraft.stats.Achievement;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
-import cpw.mods.fml.common.network.IGuiHandler;
-import noppes.npcs.api.IWorld;
 
 public class CommonProxy implements IGuiHandler {
 

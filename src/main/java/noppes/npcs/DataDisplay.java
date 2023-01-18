@@ -1,24 +1,26 @@
 package noppes.npcs;
 
-import java.util.*;
-
+import com.google.common.collect.Iterables;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
 
-import com.google.common.collect.Iterables;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.UUID;
 
 public class DataDisplay {
-	EntityNPCInterface npc;
+	public EntityNPCInterface npc;
 
 	public String name;
 	public String title = "";
@@ -36,6 +38,8 @@ public class DataDisplay {
 
 	public DataSkinOverlays skinOverlayData;
 	public long overlayRenderTicks = 0;
+
+	public AnimationData animationData;
 
 	public String glowTexture = "";
 
@@ -61,6 +65,7 @@ public class DataDisplay {
 		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
+		animationData = new AnimationData(this);
 	}
 
 	public String getRandomName() {
@@ -79,6 +84,8 @@ public class DataDisplay {
 		nbttagcompound.setString("GlowTexture", glowTexture);
 
 		nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
+
+		nbttagcompound = animationData.writeToNBT(nbttagcompound);
 
 		if (this.playerProfile != null)
         {
@@ -154,9 +161,11 @@ public class DataDisplay {
 
 		skinOverlayData.readFromNBT(nbttagcompound);
 
+		animationData.readFromNBT(nbttagcompound);
+
 		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
-		if(modelSize > CustomNpcs.NpcSizeLimit)
-			modelSize = CustomNpcs.NpcSizeLimit;
+		if(modelSize > ConfigMain.NpcSizeLimit)
+			modelSize = ConfigMain.NpcSizeLimit;
 
 		modelType = nbttagcompound.getInteger("modelType");
 		

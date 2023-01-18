@@ -1,9 +1,8 @@
 package noppes.npcs.client.renderer;
 
-import org.lwjgl.opengl.GL11;
-
 import net.minecraft.client.model.ModelBase;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.opengl.GL11;
 
 public class RenderNpcDragon extends RenderNPCInterface{
 

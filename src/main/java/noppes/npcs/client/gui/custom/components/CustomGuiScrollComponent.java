@@ -5,20 +5,21 @@
 
 package noppes.npcs.client.gui.custom.components;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.gui.custom.interfaces.IDataHolder;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.scripted.gui.ScriptGuiScroll;
-import noppes.npcs.api.gui.ICustomGuiComponent;
 import org.lwjgl.opengl.GL11;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHolder, IClickListener {
     GuiCustom parent;

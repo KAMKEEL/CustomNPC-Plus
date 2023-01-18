@@ -6,8 +6,10 @@
 package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
+import foxz.command.ScriptedCommand;
 import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import net.minecraft.block.Block;
+import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -31,22 +33,30 @@ import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.gui.ICustomGui;
+import noppes.npcs.api.handler.*;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IFrame;
+import noppes.npcs.api.handler.data.IFramePart;
+import noppes.npcs.api.handler.data.ISound;
+import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.api.overlay.ICustomOverlay;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.gui.ICustomGui;
-import noppes.npcs.api.handler.*;
-import noppes.npcs.api.handler.data.ISound;
-import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.api.overlay.ICustomOverlay;
 import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.JsonException;
@@ -58,6 +68,7 @@ import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
+    public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
@@ -66,6 +77,30 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+    }
+
+    public void registerICommand(ICommand command) {
+        ((CommandHandler)CustomNpcs.getServer().getCommandManager()).registerCommand((ScriptedCommand) command);
+    }
+
+    public ICommand getICommand(String commandName, int priorityLevel) {
+        return new ScriptedCommand(commandName,priorityLevel);
+    }
+
+    public void addGlobalObject(String key, Object obj) {
+        NpcAPI.engineObjects.put(key,obj);
+    }
+
+    public void removeGlobalObject(String key) {
+        NpcAPI.engineObjects.remove(key);
+    }
+
+    public boolean hasGlobalObject(String key) {
+        return NpcAPI.engineObjects.containsKey(key);
+    }
+
+    public HashMap<String,Object> getEngineObjects() {
+        return NpcAPI.engineObjects;
     }
 
     public long sizeOfObject(Object obj) {
@@ -319,6 +354,10 @@ public class NpcAPI extends AbstractNpcAPI {
         }
     }
 
+    public IItemStack createItemFromNBT(INbt nbt) {
+        return getIItemStack(ItemStack.loadItemStackFromNBT(nbt.getMCNBT()));
+    }
+
     public IItemStack createItem(String id, int damage, int size) {
         Item item = (Item) Item.itemRegistry.getObject(id);
         if (item == null)
@@ -460,6 +499,10 @@ public class NpcAPI extends AbstractNpcAPI {
         NoppesUtilServer.playSound(id, (ScriptSound) sound);
     }
 
+    public void playSound(ISound sound) {
+        NoppesUtilServer.playSound((ScriptSound) sound);
+    }
+
     public void stopSound(int id) {
         NoppesUtilServer.stopSound(id);
     }
@@ -481,27 +524,27 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public boolean arePlayerScriptsEnabled() {
-        return CustomNpcs.GlobalPlayerScripts;
+        return ConfigScript.GlobalPlayerScripts;
     }
 
     public boolean areForgeScriptsEnabled() {
-        return CustomNpcs.GlobalForgeScripts;
+        return ConfigScript.GlobalForgeScripts;
     }
 
     public boolean areGlobalNPCScriptsEnabled() {
-        return CustomNpcs.GlobalNPCScripts;
+        return ConfigScript.GlobalNPCScripts;
     }
 
     public void enablePlayerScripts(boolean enable) {
-        CustomNpcs.GlobalPlayerScripts = enable;
+        ConfigScript.GlobalPlayerScripts = enable;
     }
 
     public void enableForgeScripts(boolean enable) {
-        CustomNpcs.GlobalForgeScripts = enable;
+        ConfigScript.GlobalForgeScripts = enable;
     }
 
     public void enableGlobalNPCScripts(boolean enable) {
-        CustomNpcs.GlobalNPCScripts = enable;
+        ConfigScript.GlobalNPCScripts = enable;
     }
 
     public ICustomGui createCustomGui(int id, int width, int height, boolean pauseGame) {
@@ -514,5 +557,78 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public ISkinOverlay createSkinOverlay(String texture) {
         return new SkinOverlay(texture);
+    }
+
+    public String millisToTime(long millis) {
+        return NoppesUtilServer.millisToTime(millis);
+    }
+
+    public String ticksToTime(long ticks) {
+        return this.millisToTime(ticks * 50);
+    }
+
+    public IAnimation createAnimation(String name) {
+        return new Animation(name);
+    }
+
+    public IFrame createFrame(int duration) {
+        return new Frame(duration);
+    }
+
+    public IFrame createFrame(int duration, float speed, byte smooth) {
+        return new Frame(duration,speed,smooth);
+    }
+
+    public IFramePart createPart(String name) {
+        try {
+            return new FramePart(EnumAnimationPart.valueOf(name));
+        } catch (IllegalArgumentException ignored) {
+            throw new CustomNPCsException("Invalid frame part name: " + name);
+        }
+    }
+
+    public IFramePart createPart(String name, float[] rotation, float[] pivot) {
+        if (rotation.length != 3 || pivot.length != 3) {
+            throw new CustomNPCsException("Rotation and pivot arrays for frame parts must have a length of 3.");
+        }
+
+        FramePart part = (FramePart) this.createPart(name);
+        part.setRotations(rotation);
+        part.setPivots(pivot);
+        return part;
+    }
+
+    public IFramePart createPart(String name, float[] rotation, float[] pivot, float speed, byte smooth) {
+        FramePart part = (FramePart) this.createPart(name,rotation,pivot);
+        part.setSpeed(speed);
+        part.setSmooth(smooth);
+        return part;
+    }
+
+    public IFramePart createPart(int partId) {
+        for (EnumAnimationPart part : EnumAnimationPart.values()) {
+            if (part.id == partId) {
+                return new FramePart(part);
+            }
+        }
+        throw new CustomNPCsException("Invalid frame part ID: " + partId);
+    }
+
+    public IFramePart createPart(int partId, float[] rotation, float[] pivot) {
+        if (rotation.length != 3 || pivot.length != 3) {
+            throw new CustomNPCsException("Rotation and pivot arrays for frame parts must have a length of 3.");
+        }
+
+        FramePart part = (FramePart) this.createPart(partId);
+        part.setRotations(rotation);
+        part.setPivots(pivot);
+        return part;
+    }
+
+    public IFramePart createPart(int partId, float[] rotation, float[] pivot, float speed, byte smooth) {
+        FramePart part = (FramePart) this.createPart(partId,rotation,pivot);
+        part.setSpeed(speed);
+        part.setSmooth(smooth);
+        return part;
     }
 }

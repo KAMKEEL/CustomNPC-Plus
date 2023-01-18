@@ -5,17 +5,17 @@
 
 package noppes.npcs.entity.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
-import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.api.ITimers;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class DataTimers implements ITimers {
     private final Object parent;
@@ -23,6 +23,15 @@ public class DataTimers implements ITimers {
 
     public DataTimers(Object parent) {
         this.parent = parent;
+    }
+
+    public int[] timerIds() {
+        Integer[] ids = timers.keySet().toArray(new Integer[0]);
+        int[] intIds = new int[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            intIds[i] = ids[i];
+        }
+        return intIds;
     }
 
     public void start(int id, int ticks, boolean repeat) {

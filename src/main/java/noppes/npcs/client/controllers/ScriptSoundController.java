@@ -2,6 +2,7 @@ package noppes.npcs.client.controllers;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,11 @@ public class ScriptSoundController {
             sounds.get(id).stopSound();
         }
         sounds.put(id,sound);
+        soundHandler.playSound(sound);
+    }
+
+    public void playSound(ScriptClientSound sound) {
+        SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.playSound(sound);
     }
 

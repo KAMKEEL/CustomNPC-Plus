@@ -5,23 +5,19 @@
 
 package noppes.npcs.client.gui.util;
 
-import java.awt.Font;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.util.ChatAllowedCharacters;
+import noppes.npcs.client.gui.util.TextContainer.LineData;
+import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.TrueTypeFont;
+import org.lwjgl.input.Mouse;
+
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraftforge.client.GuiIngameForge;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.gui.util.TextContainer.LineData;
-import noppes.npcs.config.TrueTypeFont;
-import org.lwjgl.input.Mouse;
 
 public class GuiTextArea extends Gui implements IGui, IKeyListener, IMouseListener {
     public int id;
@@ -458,7 +454,7 @@ public class GuiTextArea extends Gui implements IGui, IKeyListener, IMouseListen
     }
 
     static {
-        font = new TrueTypeFont(new Font("Arial Unicode MS", 0, CustomNpcs.FontSize), 1.0F);
+        font = new TrueTypeFont(new Font("Arial Unicode MS", 0, ConfigClient.FontSize), 1.0F);
     }
 
     class UndoData {

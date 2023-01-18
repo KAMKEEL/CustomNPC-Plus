@@ -1,11 +1,8 @@
 package noppes.npcs.client.gui.util;
 
-import org.lwjgl.opengl.GL11;
-
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreenBook;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 
 public class GuiButtonNextPage extends GuiNpcButton{
     private final boolean field_146151_o;
