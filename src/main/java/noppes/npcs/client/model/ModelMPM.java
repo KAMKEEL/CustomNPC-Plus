@@ -597,44 +597,6 @@ public class ModelMPM extends ModelNPCMale{
 				}
 			}
 
-			this.bipedRightArm.rotationPointX =
-					-MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
-			this.bipedRightArm.rotationPointY =
-					MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
-					-MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
-			this.bipedRightArm.rotationPointZ = MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleY);
-
-			this.bipedLeftArm.rotationPointX =
-					MathHelper.cos(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 5.0F;
-			this.bipedLeftArm.rotationPointY =
-					MathHelper.cos(this.bipedBody.rotateAngleZ) * 2 +
-					MathHelper.sin(this.bipedBody.rotateAngleZ) * MathHelper.cos(this.bipedBody.rotateAngleY) * 5;
-			this.bipedLeftArm.rotationPointZ = -MathHelper.sin(this.bipedBody.rotateAngleY) * 5.0F +
-					-MathHelper.sin(this.bipedBody.rotateAngleY);
-
-			this.bipedRightLeg.rotationPointX =
-					-MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-					-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-			this.bipedRightLeg.rotationPointY =
-					MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-			this.bipedRightLeg.rotationPointZ =
-					MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
-
-			this.bipedLeftLeg.rotationPointX =
-					MathHelper.cos(this.bipedBody.rotateAngleY) * 2.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-					-MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-			this.bipedLeftLeg.rotationPointY =
-					MathHelper.cos(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleZ) * 12.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.sin(this.bipedBody.rotateAngleY) * MathHelper.sin(this.bipedBody.rotateAngleZ) * 12.0F;
-			this.bipedLeftLeg.rotationPointZ =
-					-MathHelper.sin(this.bipedBody.rotateAngleY) * 2.0F +
-					MathHelper.sin(this.bipedBody.rotateAngleX) * MathHelper.cos(this.bipedBody.rotateAngleY) * 12.0F;
-
 			frameParts = frame.frameParts.values().toArray(new FramePart[0]);
 			for (FramePart part : frameParts) {
 				if (part != null) {
