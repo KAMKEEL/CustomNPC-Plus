@@ -297,9 +297,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				if (entity instanceof EntityNPCInterface) {
 					AnimationData data = ((EntityNPCInterface) entity).display.animationData;
 					data.readFromNBT(compound);
-					if (data.animation == null) {
-						data.animation = new Animation();
-					}
+					data.animation = new Animation();
 					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
 				}
 			} else {
@@ -313,9 +311,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 						data = Client.playerAnimations.get(player.getUniqueID());
 						data.readFromNBT(compound);
 					}
-					if (data.animation == null) {
-						data.animation = new Animation();
-					}
+					data.animation = new Animation();
 					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
 					Client.playerAnimations.put(player.getUniqueID(), data);
 				}
