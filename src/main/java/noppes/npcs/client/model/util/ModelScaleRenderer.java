@@ -40,46 +40,7 @@ public class ModelScaleRenderer extends ModelRenderer {
 		model.rotateAngleY = y;
 		model.rotateAngleZ = z;
 	}
-	
-    public void renderChilderen(float par1)
-    {
-		if(!showModel || isHidden)
-			return;
-    	if(!compiled)
-    		compileDisplayList(par1);
-        GL11.glPushMatrix();
-        GL11.glTranslatef(x, y, z);
-    	if(config != null)
-    		GL11.glTranslatef(config.transX, config.transY, config.transZ);
-        this.postRender(par1);
-    	if(config != null)
-    		GL11.glScalef(config.scaleX, config.scaleY, config.scaleZ);
-        GL11.glCallList(this.displayList);
-        if (this.childModels != null)
-        {
-            for (int i = 0; i < this.childModels.size(); ++i)
-            {
-                ((ModelRenderer)this.childModels.get(i)).render(par1);
-            }
-        }
-        GL11.glPopMatrix();
-    }   
-    public void renderChild(float par1, ModelRenderer model)
-    {
-		if(!showModel || isHidden)
-			return;
-        GL11.glPushMatrix();
-        GL11.glTranslatef(x, y, z);
-    	if(config != null)
-    		GL11.glTranslatef(config.transX, config.transY, config.transZ);
-        this.postRender(par1);
-    	if(config != null)
-    		GL11.glScalef(config.scaleX, config.scaleY, config.scaleZ);
-    	model.render(par1);
-        GL11.glPopMatrix();
-    	
-    }
-	
+
     public void render(float par1)
     {
 		if(!showModel || isHidden)
@@ -102,7 +63,7 @@ public class ModelScaleRenderer extends ModelRenderer {
             }
         }
         GL11.glPopMatrix();
-    }    
+    }
     public void parentRender(float par1){
     	super.render(par1);
     }
