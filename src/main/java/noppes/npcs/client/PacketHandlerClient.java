@@ -304,16 +304,16 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
 				if (sendingPlayer != null) {
 					AnimationData data;
-					if (!Client.playerAnimations.containsKey(player.getUniqueID())) {
-						data = new AnimationData(player);
+					if (!Client.playerAnimations.containsKey(sendingPlayer.getUniqueID())) {
+						data = new AnimationData(sendingPlayer);
 						data.readFromNBT(compound);
 					} else {
-						data = Client.playerAnimations.get(player.getUniqueID());
+						data = Client.playerAnimations.get(sendingPlayer.getUniqueID());
 						data.readFromNBT(compound);
 					}
 					data.animation = new Animation();
 					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
-					Client.playerAnimations.put(player.getUniqueID(), data);
+					Client.playerAnimations.put(sendingPlayer.getUniqueID(), data);
 				}
 			}
 		}
