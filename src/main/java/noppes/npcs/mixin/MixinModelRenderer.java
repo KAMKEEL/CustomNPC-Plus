@@ -49,7 +49,7 @@ public abstract class MixinModelRenderer {
     public void render(float p_78785_1_)
     {
         if (ClientEventHandler.partNames.isEmpty()) {
-            String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head",
+            String[] headNames = new String[]{"field_78116_c","bipedHead","bipedHeadwear","head","Head","headwear",
                     "bipedHeadg","bipedHeadt","bipedHeadgh","bipedHeadv","bipedHeadb","bipedHeadt2"};
             String[] bodyNames = new String[]{"field_78115_e","bipedBody","B1","body","Body","UpperBody","Body1","BodyBase"};
             String[] larmNames = new String[]{"field_78113_g","bipedLeftArm","LA","leftarm","ArmL","Arm1L","ArmL1"};
@@ -85,7 +85,7 @@ public abstract class MixinModelRenderer {
                 EnumAnimationPart partType = null;
                 if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.display.animationData.isActive()) {
                     animData = ClientEventHandler.renderingNpc.display.animationData;
-                    partType = this.getPartType((ModelRenderer) (Object) this, ClientEventHandler.partNames);
+                    partType = this.getPartType((ModelRenderer) (Object) this);
                 }
                 if (partType != null && animData != null) {
                     Frame frame = (Frame) animData.animation.currentFrame();
@@ -129,9 +129,7 @@ public abstract class MixinModelRenderer {
                                         this.rotateAngleY = animData.originalPivots.get(part.part).prevRotations[1];
                                         this.rotateAngleZ = animData.originalPivots.get(part.part).prevRotations[2];
                                     }
-                                }
-                                FramePart originalPart = animData.originalPivots.get(part.part);
-                                if (partType == mainPartType) {
+                                    FramePart originalPart = animData.originalPivots.get(part.part);
                                     part.interpolateAngles();
                                     part.interpolateOffset();
                                     this.rotationPointX = originalPart.originalPivots[0] + part.prevPivots[0];
@@ -140,11 +138,11 @@ public abstract class MixinModelRenderer {
                                     this.rotateAngleX = part.prevRotations[0];
                                     this.rotateAngleY = part.prevRotations[1];
                                     this.rotateAngleZ = part.prevRotations[2];
+                                    animData.originalPivots.get(part.part).prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
                                 } else {
                                     currentPart = part;
                                     this.rotateAngleZ += part.prevRotations[2];
                                 }
-                                animData.originalPivots.get(part.part).prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
                             }
                         } else if (animData.originalPivots.containsKey(partType) && partType == mainPartType) {
                             this.rotateAngleX = animData.originalPivots.get(partType).originalRotations[0];
@@ -235,26 +233,27 @@ public abstract class MixinModelRenderer {
             }
         }
     }
-
     public EnumAnimationPart getPlayerPartType(ModelRenderer renderer) {
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
-                || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
-            return EnumAnimationPart.HEAD;
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
-            return EnumAnimationPart.BODY;
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
-            return EnumAnimationPart.RIGHT_ARM;
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
-            return EnumAnimationPart.LEFT_ARM;
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
-            return EnumAnimationPart.RIGHT_LEG;
-        }
-        if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
-            return EnumAnimationPart.LEFT_LEG;
+        if (renderer.baseModel instanceof ModelBiped) {
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
+                    || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
+                return EnumAnimationPart.HEAD;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
+                return EnumAnimationPart.BODY;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
+                return EnumAnimationPart.RIGHT_ARM;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
+                return EnumAnimationPart.LEFT_ARM;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
+                return EnumAnimationPart.RIGHT_LEG;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
+                return EnumAnimationPart.LEFT_LEG;
+            }
         }
 
         try {
@@ -283,22 +282,22 @@ public abstract class MixinModelRenderer {
         ModelRenderer lleg = ((ModelBiped) renderer.baseModel).bipedLeftLeg;
         ModelRenderer rleg = ((ModelBiped) renderer.baseModel).bipedRightLeg;
 
-        if (this.pivotsEqual(renderer,head)) {
+        if (pivotsEqual(renderer,head)) {
             return EnumAnimationPart.HEAD;
         }
-        if (this.pivotsEqual(renderer,body)) {
+        if (pivotsEqual(renderer,body)) {
             return EnumAnimationPart.BODY;
         }
-        if (this.pivotsEqual(renderer,rarm)) {
+        if (pivotsEqual(renderer,rarm)) {
             return EnumAnimationPart.RIGHT_ARM;
         }
-        if (this.pivotsEqual(renderer,larm)) {
+        if (pivotsEqual(renderer,larm)) {
             return EnumAnimationPart.LEFT_ARM;
         }
-        if (this.pivotsEqual(renderer,rleg)) {
+        if (pivotsEqual(renderer,rleg)) {
             return EnumAnimationPart.RIGHT_LEG;
         }
-        if (this.pivotsEqual(renderer,lleg)) {
+        if (pivotsEqual(renderer,lleg)) {
             return EnumAnimationPart.LEFT_LEG;
         }
 
@@ -309,21 +308,23 @@ public abstract class MixinModelRenderer {
         return m1.rotationPointX == m2.rotationPointX && m1.rotationPointY == m2.rotationPointY && m1.rotationPointZ == m2.rotationPointZ;
     }
 
-    public EnumAnimationPart getPartType(ModelRenderer renderer, HashMap<EnumAnimationPart,String[]> partNames) {
+    public EnumAnimationPart getPartType(ModelRenderer renderer) {
         Class<?> RenderClass = renderer.baseModel.getClass();
         Object model = renderer.baseModel;
 
+        Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
         while (RenderClass != Object.class) {
-            for (Map.Entry<EnumAnimationPart, String[]> entry : partNames.entrySet()) {
-                String[] names = entry.getValue();
-                for (String partName : names) {
-                    try {
-                        Field field = RenderClass.getDeclaredField(partName);
-                        field.setAccessible(true);
-                        if (renderer == field.get(model)) {
-                            return entry.getKey();
-                        }
-                    } catch (Exception ignored) {
+            Field[] declared = RenderClass.getDeclaredFields();
+            for (Field f : declared) {
+                f.setAccessible(true);
+                for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {
+                    String[] names = entry.getValue();
+                    for (String partName : names) {
+                        try {
+                            if (partName.equals(f.getName()) && renderer == f.get(model)) {
+                                return entry.getKey();
+                            }
+                        } catch (IllegalAccessException ignored) {}
                     }
                 }
             }

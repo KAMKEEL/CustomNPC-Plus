@@ -64,9 +64,6 @@ public class ModelScaleRenderer extends ModelRenderer {
         }
         GL11.glPopMatrix();
     }
-    public void parentRender(float par1){
-    	super.render(par1);
-    }
 
     public void compileDisplayList(float par1)
     {
