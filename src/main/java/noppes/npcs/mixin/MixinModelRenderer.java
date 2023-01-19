@@ -258,15 +258,26 @@ public abstract class MixinModelRenderer {
 
         try {
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
-            Object m = renderer.baseModel;
-            Set<Map.Entry<EnumAnimationPart,String[]>> entrySet = ClientEventHandler.partNames.entrySet();
-            for (Map.Entry<EnumAnimationPart,String[]> entry : entrySet) {
-                for (String s : entry.getValue()) {
-                    try {
-                        if (renderer == ModelBipedBody.getField(s).get(m)) {
-                            return entry.getKey();
-                        }
-                    } catch (NoSuchFieldException | SecurityException | IllegalAccessException ignored) {}
+            Object model = renderer.baseModel;
+            Field[] declared;
+            if (ClientEventHandler.declaredFieldCache.containsKey(ModelBipedBody)) {
+                declared = ClientEventHandler.declaredFieldCache.get(ModelBipedBody);
+            } else {
+                declared = ModelBipedBody.getDeclaredFields();
+                ClientEventHandler.declaredFieldCache.put(ModelBipedBody,declared);
+            }
+            Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
+            for (Field f : declared) {
+                f.setAccessible(true);
+                for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {
+                    String[] names = entry.getValue();
+                    for (String partName : names) {
+                        try {
+                            if (partName.equals(f.getName()) && renderer == f.get(model)) {
+                                return entry.getKey();
+                            }
+                        } catch (IllegalAccessException ignored) {}
+                    }
                 }
             }
         } catch (ClassNotFoundException ignored) {}
@@ -314,7 +325,13 @@ public abstract class MixinModelRenderer {
 
         Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
         while (RenderClass != Object.class) {
-            Field[] declared = RenderClass.getDeclaredFields();
+            Field[] declared;
+            if (ClientEventHandler.declaredFieldCache.containsKey(RenderClass)) {
+                declared = ClientEventHandler.declaredFieldCache.get(RenderClass);
+            } else {
+                declared = RenderClass.getDeclaredFields();
+                ClientEventHandler.declaredFieldCache.put(RenderClass,declared);
+            }
             for (Field f : declared) {
                 f.setAccessible(true);
                 for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {

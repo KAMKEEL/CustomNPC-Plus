@@ -14,6 +14,7 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,10 +25,12 @@ public class ClientEventHandler {
     public static float partialHandTicks;
 
     public static float partialRenderTick;
+    public static RendererLivingEntity renderer;
+
     public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
     public static HashMap<EnumAnimationPart,String[]> partNames = new HashMap<>();
-    public static RendererLivingEntity renderer;
+    public static HashMap<Class<?>,Field[]> declaredFieldCache = new HashMap<>();
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
