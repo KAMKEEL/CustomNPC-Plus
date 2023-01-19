@@ -87,7 +87,7 @@ public class ClientEventHandler {
 
         if (data != null && data.isActive()) {
             Animation animation = data.animation;
-            if (animation.renderTicks && data.isActive()) {
+            if (data.isActive() && animation.currentFrame().useRenderTicks()) {
                 animation.increaseTime();
             }
         }
@@ -105,7 +105,7 @@ public class ClientEventHandler {
 
         if (data != null && data.isActive()) {
             Animation animation = data.animation;
-            if (!animation.renderTicks && data.isActive()) {
+            if (data.isActive() && !animation.currentFrame().useRenderTicks()) {
                 animation.increaseTime();
             }
         }

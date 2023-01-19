@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -17,6 +18,7 @@ public class Frame implements IFrame {
 	boolean customized = false;
 	public float speed = 1.0F;
 	public byte smooth = 0;
+	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
 
 	public Frame(){}
 
@@ -99,6 +101,15 @@ public class Frame implements IFrame {
 		return this;
 	}
 
+	public IFrame useRenderTicks(boolean renderTicks) {
+		this.renderTicks = renderTicks;
+		return this;
+	}
+
+	public boolean useRenderTicks() {
+		return this.renderTicks;
+	}
+
 	public void readFromNBT(NBTTagCompound compound){
 		duration = compound.getInteger("Duration");
 
@@ -111,10 +122,15 @@ public class Frame implements IFrame {
 			customized = true;
 			smooth = compound.getByte("Smooth");
 		}
+		if(compound.hasKey("RenderTicks")){
+			customized = true;
+			renderTicks = compound.getBoolean("RenderTicks");
+		}
 
 		if (!customized) {
 			this.speed = parent.speed;
 			this.smooth = parent.smooth;
+			this.renderTicks = parent.renderTicks;
 		}
 
 		HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
@@ -138,6 +154,7 @@ public class Frame implements IFrame {
 		if(customized){
 			compound.setFloat("Speed", speed);
 			compound.setByte("Smooth", smooth);
+			compound.setBoolean("RenderTicks", renderTicks);
 		}
 
 		NBTTagList list = new NBTTagList();
