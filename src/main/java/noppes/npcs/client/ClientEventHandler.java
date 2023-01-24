@@ -39,7 +39,7 @@ public class ClientEventHandler {
     public static HashMap<EnumAnimationPart,String[]> partNames = new HashMap<>();
     public static HashMap<Class<?>,Field[]> declaredFieldCache = new HashMap<>();
 
-    public static HashMap<EnumAnimationPart,FramePart> originalValues = new HashMap<>();
+    public static HashMap<ModelRenderer,FramePart> originalValues = new HashMap<>();
     public static ModelBase playerModel;
 
     @SubscribeEvent
@@ -96,37 +96,17 @@ public class ClientEventHandler {
                 data = Client.playerAnimations.get(event.entity.getUniqueID());
             }
 
-            Class<?> RenderClass = playerModel.getClass();
-            Object model = playerModel;
-
-            while (RenderClass != Object.class) {
-                Field[] declared;
-                if (ClientEventHandler.declaredFieldCache.containsKey(RenderClass)) {
-                    declared = ClientEventHandler.declaredFieldCache.get(RenderClass);
-                } else {
-                    declared = RenderClass.getDeclaredFields();
-                    ClientEventHandler.declaredFieldCache.put(RenderClass,declared);
-                }
-                for (Field f : declared) {
-                    f.setAccessible(true);
-                    try {
-                        ModelRenderer fieldValue = (ModelRenderer) f.get(model);
-                        EnumAnimationPart enumPart = this.getPlayerPartType(fieldValue);
-                        if (originalValues.containsKey(enumPart)) {
-                            FramePart part = originalValues.get(enumPart);
-                            fieldValue.rotationPointX = part.pivot[0];
-                            fieldValue.rotationPointY = part.pivot[1];
-                            fieldValue.rotationPointZ = part.pivot[2];
-                            fieldValue.rotateAngleX = part.rotation[0];
-                            fieldValue.rotateAngleY = part.rotation[1];
-                            fieldValue.rotateAngleZ = part.rotation[2];
-                        }
-                    } catch (Exception ignored) {}
-                }
-                RenderClass = RenderClass.getSuperclass();
+            for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
+                ModelRenderer renderer = entry.getKey();
+                FramePart part = entry.getValue();
+                renderer.rotateAngleX = part.rotation[0];
+                renderer.rotateAngleY = part.rotation[1];
+                renderer.rotateAngleZ = part.rotation[2];
+                renderer.rotationPointX = part.pivot[0];
+                renderer.rotationPointY = part.pivot[1];
+                renderer.rotationPointZ = part.pivot[2];
             }
 
-            originalValues.clear();
             ClientEventHandler.playerModel = null;
         }
 

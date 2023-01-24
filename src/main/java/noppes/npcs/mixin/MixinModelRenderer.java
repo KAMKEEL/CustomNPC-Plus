@@ -116,13 +116,13 @@ public abstract class MixinModelRenderer {
                         pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
                     }
                     partType = mainPartType != null ? mainPartType : pivotEqualPart;
-                    if (partType != null && !ClientEventHandler.originalValues.containsKey(partType)) {
-                        FramePart part = new FramePart(partType);
-                        part.pivot = new float[]{prevPointX,prevPointY,prevPointZ};
-                        part.rotation = new float[]{prevAngleX,prevAngleY,prevAngleZ};
-                        ClientEventHandler.originalValues.put(partType,part);
-                    }
                     if (partType != null && animData != null) {
+                        if (!ClientEventHandler.originalValues.containsKey((ModelRenderer) (Object) this)) {
+                            FramePart part = new FramePart();
+                            part.pivot = new float[]{prevPointX, prevPointY, prevPointZ};
+                            part.rotation = new float[]{prevAngleX, prevAngleY, prevAngleZ};
+                            ClientEventHandler.originalValues.put((ModelRenderer) (Object) this, part);
+                        }
                         if (animData.isActive()) {
                             Frame frame = (Frame) animData.animation.currentFrame();
                             if (frame.frameParts.containsKey(partType)) {
