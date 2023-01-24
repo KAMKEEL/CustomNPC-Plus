@@ -5,7 +5,6 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
@@ -24,7 +23,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class ClientEventHandler {
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
@@ -117,58 +115,6 @@ public class ClientEventHandler {
             }
         }
         ClientEventHandler.renderingNpc = null;
-    }
-
-    public EnumAnimationPart getPlayerPartType(ModelRenderer renderer) {
-        if (renderer.baseModel instanceof ModelBiped) {
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
-                    || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
-                return EnumAnimationPart.HEAD;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
-                return EnumAnimationPart.BODY;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
-                return EnumAnimationPart.RIGHT_ARM;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
-                return EnumAnimationPart.LEFT_ARM;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
-                return EnumAnimationPart.RIGHT_LEG;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
-                return EnumAnimationPart.LEFT_LEG;
-            }
-        }
-
-        try {
-            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
-            Object model = renderer.baseModel;
-            Field[] declared;
-            if (ClientEventHandler.declaredFieldCache.containsKey(ModelBipedBody)) {
-                declared = ClientEventHandler.declaredFieldCache.get(ModelBipedBody);
-            } else {
-                declared = ModelBipedBody.getDeclaredFields();
-                ClientEventHandler.declaredFieldCache.put(ModelBipedBody,declared);
-            }
-            Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
-            for (Field f : declared) {
-                f.setAccessible(true);
-                for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {
-                    String[] names = entry.getValue();
-                    for (String partName : names) {
-                        try {
-                            if (partName.equals(f.getName()) && renderer == f.get(model)) {
-                                return entry.getKey();
-                            }
-                        } catch (IllegalAccessException ignored) {}
-                    }
-                }
-            }
-        } catch (ClassNotFoundException ignored) {}
-
-        return null;
     }
 
     @SubscribeEvent

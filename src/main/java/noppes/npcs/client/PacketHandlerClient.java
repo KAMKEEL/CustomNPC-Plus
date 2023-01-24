@@ -303,14 +303,8 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			} else {
 				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
 				if (sendingPlayer != null) {
-					AnimationData data;
-					if (!Client.playerAnimations.containsKey(sendingPlayer.getUniqueID())) {
-						data = new AnimationData(sendingPlayer);
-						data.readFromNBT(compound);
-					} else {
-						data = Client.playerAnimations.get(sendingPlayer.getUniqueID());
-						data.readFromNBT(compound);
-					}
+					AnimationData data = new AnimationData(sendingPlayer);
+					data.readFromNBT(compound);
 					data.animation = new Animation();
 					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
 					Client.playerAnimations.put(sendingPlayer.getUniqueID(), data);
