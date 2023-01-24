@@ -24,10 +24,6 @@ public class FramePart implements IFramePart {
 	public float[] prevPivots = {0,0,0};
 	public float partialRotationTick;
 	public float partialPivotTick;
-	public float[] originalRotations = {(float) Math.PI,(float) Math.PI,(float) Math.PI};
-	public float[] originalPivots = {0,0,0};
-	public float[] renderRotations = {(float) Math.PI,(float) Math.PI,(float) Math.PI};
-	public float[] renderPivots = {0,0,0};
 
 	public FramePart(){}
 

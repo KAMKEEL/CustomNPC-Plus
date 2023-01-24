@@ -5,14 +5,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IAnimation;
-import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
-
-import java.util.HashMap;
 
 public class AnimationData implements IAnimationData {
     //Server-side: DataDisplay, PlayerData
@@ -21,9 +17,6 @@ public class AnimationData implements IAnimationData {
 
     public Animation animation;
     public boolean allowAnimation = false;
-
-    //client-sided use only
-    public HashMap<EnumAnimationPart, FramePart> originalPivots = new HashMap<>();
 
     public AnimationData(Object parent){
         this.parent = parent;

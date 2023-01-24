@@ -2,7 +2,6 @@ package noppes.npcs.mixin;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import noppes.npcs.AnimationData;
@@ -17,7 +16,6 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -123,44 +121,25 @@ public abstract class MixinModelRenderer {
                             part.rotation = new float[]{prevAngleX, prevAngleY, prevAngleZ};
                             ClientEventHandler.originalValues.put((ModelRenderer) (Object) this, part);
                         }
+                        FramePart originalPart = ClientEventHandler.originalValues.get((ModelRenderer) (Object) this);
                         if (animData.isActive()) {
                             Frame frame = (Frame) animData.animation.currentFrame();
                             if (frame.frameParts.containsKey(partType)) {
                                 FramePart part = frame.frameParts.get(partType);
                                 if (partType == mainPartType) {
-                                    if (!animData.originalPivots.containsKey(part.part)) {
-                                        FramePart originalPart = new FramePart(part.part);
-                                        originalPart.originalRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
-                                        originalPart.originalPivots = new float[]{this.rotationPointX, this.rotationPointY, this.rotationPointZ};
-                                        animData.originalPivots.put(part.part, originalPart);
-                                    } else {
-                                        this.rotateAngleX = animData.originalPivots.get(part.part).prevRotations[0];
-                                        this.rotateAngleY = animData.originalPivots.get(part.part).prevRotations[1];
-                                        this.rotateAngleZ = animData.originalPivots.get(part.part).prevRotations[2];
-                                    }
-                                    FramePart originalPart = animData.originalPivots.get(part.part);
                                     part.interpolateAngles();
                                     part.interpolateOffset();
-                                    this.rotationPointX = originalPart.originalPivots[0] + part.prevPivots[0];
-                                    this.rotationPointY = originalPart.originalPivots[1] + part.prevPivots[1];
-                                    this.rotationPointZ = originalPart.originalPivots[2] + part.prevPivots[2];
+                                    this.rotationPointX = originalPart.pivot[0] + part.prevPivots[0];
+                                    this.rotationPointY = originalPart.pivot[1] + part.prevPivots[1];
+                                    this.rotationPointZ = originalPart.pivot[2] + part.prevPivots[2];
                                     this.rotateAngleX = part.prevRotations[0];
                                     this.rotateAngleY = part.prevRotations[1];
                                     this.rotateAngleZ = part.prevRotations[2];
-                                    animData.originalPivots.get(part.part).prevRotations = new float[]{this.rotateAngleX, this.rotateAngleY, this.rotateAngleZ};
                                 } else {
                                     currentPart = part;
                                     this.rotateAngleZ += part.prevRotations[2];
                                 }
                             }
-                        } else if (animData.originalPivots.containsKey(partType) && partType == mainPartType) {
-                            this.rotateAngleX = animData.originalPivots.get(partType).originalRotations[0];
-                            this.rotateAngleY = animData.originalPivots.get(partType).originalRotations[1];
-                            this.rotateAngleZ = animData.originalPivots.get(partType).originalRotations[2];
-                            this.rotationPointX = animData.originalPivots.get(partType).originalPivots[0];
-                            this.rotationPointY = animData.originalPivots.get(partType).originalPivots[1];
-                            this.rotationPointZ = animData.originalPivots.get(partType).originalPivots[2];
-                            animData.originalPivots.remove(partType);
                         }
                     }
                 }
