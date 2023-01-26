@@ -665,6 +665,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         }
     }
 
+    @Cancelable
     public static class StartUsingItem extends PlayerEvent implements IPlayerEvent.StartUsingItem {
         public final IItemStack item;
         public final int duration;
@@ -688,6 +689,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             return duration;
         }
     }
+
+    @Cancelable
     public static class UsingItem extends PlayerEvent implements IPlayerEvent.UsingItem {
         public final IItemStack item;
         public final int duration;
@@ -711,6 +714,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             return duration;
         }
     }
+
+    @Cancelable
     public static class StopUsingItem extends PlayerEvent implements IPlayerEvent.StopUsingItem {
         public final IItemStack item;
         public final int duration;
@@ -734,6 +739,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             return duration;
         }
     }
+
     public static class FinishUsingItem extends PlayerEvent implements IPlayerEvent.FinishUsingItem {
         public final IItemStack item;
         public final int duration;
@@ -938,6 +944,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         }
     }
 
+    @Cancelable
     public static class RangedChargeEvent extends PlayerEvent implements IPlayerEvent.RangedChargeEvent {
         public RangedChargeEvent(IPlayer player) {
             super(player);

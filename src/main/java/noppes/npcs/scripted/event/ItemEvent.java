@@ -168,6 +168,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         }
     }
 
+    @Cancelable
     public static class StartUsingItem extends ItemEvent implements IItemEvent.StartUsingItem {
         public final IPlayer player;
         public final int duration;
@@ -190,6 +191,8 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             return duration;
         }
     }
+
+    @Cancelable
     public static class UsingItem extends ItemEvent implements IItemEvent.UsingItem {
         public final IPlayer player;
         public final int duration;
@@ -212,6 +215,8 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             return duration;
         }
     }
+
+    @Cancelable
     public static class StopUsingItem extends ItemEvent implements IItemEvent.StopUsingItem {
         public final IPlayer player;
         public final int duration;
@@ -234,6 +239,8 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
             return duration;
         }
     }
+
+    @Cancelable
     public static class FinishUsingItem extends ItemEvent implements IItemEvent.FinishUsingItem {
         public final IPlayer player;
         public final int duration;
