@@ -7,8 +7,6 @@ import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.constants.EnumAnimationPart;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
 
 
 public class Animation implements IAnimation {
@@ -21,6 +19,7 @@ public class Animation implements IAnimation {
 	public String name;
 	public float speed = 1.0F;
 	public byte smooth = 0;
+	public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
 	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
 
 	public boolean whileStanding = true;
@@ -142,11 +141,21 @@ public class Animation implements IAnimation {
 		return this.whileAttacking;
 	}
 
+	public IAnimation setLoop(int loopAtFrame) {
+		this.loop = loopAtFrame;
+		return this;
+	}
+
+	public int loop() {
+		return this.loop;
+	}
+
 	public void readFromNBT(NBTTagCompound compound){
 		name = compound.getString("Name");
 		id = compound.getInteger("ID");
 		speed = compound.getFloat("Speed");
 		smooth = compound.getByte("Smooth");
+		loop = compound.getInteger("Loop");
 
 		renderTicks = compound.getBoolean("RenderTicks");
 		currentFrame = compound.getInteger("CurrentFrame");
@@ -173,6 +182,7 @@ public class Animation implements IAnimation {
 		compound.setInteger("ID", id);
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
+		compound.setInteger("Loop",loop);
 
 		compound.setBoolean("RenderTicks", renderTicks);
 		compound.setInteger("CurrentFrame", currentFrame);
@@ -194,10 +204,15 @@ public class Animation implements IAnimation {
 		this.currentFrameTime++;
 		if (this.currentFrameTime == this.currentFrame().getDuration()) {
 			Frame prevFrame = (Frame) this.currentFrame();
+			Frame nextFrame = null;
 			this.currentFrameTime = 0;
 			this.currentFrame++;
 			if (this.currentFrame < this.frames.size()) {
-				Frame nextFrame = this.frames.get(this.currentFrame);
+				nextFrame = this.frames.get(this.currentFrame);
+			} else if (this.loop >= 0 && this.loop < this.frames.size()) {
+				this.currentFrame = this.loop;
+			}
+			if (nextFrame != null) {
 				for (EnumAnimationPart part : EnumAnimationPart.values()) {
 					if (prevFrame.frameParts.containsKey(part) && nextFrame.frameParts.containsKey(part)) {
 						nextFrame.frameParts.get(part).prevRotations = prevFrame.frameParts.get(part).prevRotations;
