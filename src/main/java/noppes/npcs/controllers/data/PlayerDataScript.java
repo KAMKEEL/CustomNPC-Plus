@@ -84,7 +84,7 @@ public class PlayerDataScript implements IScriptHandler {
                 script = (ScriptContainer)ScriptController.Instance.playerScripts.scripts.get(i);
                 if (!errored.contains(i)) {
                     if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.playerScripts.errored.contains(i))
-                        return;
+                        continue;
 
                     script.run(type, event);
 
@@ -92,12 +92,9 @@ public class PlayerDataScript implements IScriptHandler {
                         ScriptController.Instance.playerScripts.errored.add(i);
                     }
 
-                    Iterator var8 = script.console.entrySet().iterator();
-
-                    while(var8.hasNext()) {
-                        Entry<Long, String> entry = (Entry)var8.next();
-                        if (!ScriptController.Instance.playerScripts.console.containsKey(entry.getKey())) {
-                            ScriptController.Instance.playerScripts.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
+                    for (Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                        if (!ScriptController.Instance.playerScripts.console.containsKey(longStringEntry.getKey())) {
+                            ScriptController.Instance.playerScripts.console.put(longStringEntry.getKey(), " tab " + (i + 1) + ":\n" + longStringEntry.getValue());
                         }
                     }
 
