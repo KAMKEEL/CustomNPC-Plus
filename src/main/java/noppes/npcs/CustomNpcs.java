@@ -198,6 +198,7 @@ public class CustomNpcs {
         new GlobalDataController();
         new SpawnController();
         new LinkedNpcController();
+        new AnimationController();
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();
         ScriptController.Instance.loadNPCScripts();

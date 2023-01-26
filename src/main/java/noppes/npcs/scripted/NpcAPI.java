@@ -164,6 +164,11 @@ public class NpcAPI extends AbstractNpcAPI {
         return TransportController.getInstance();
     }
 
+    public IAnimationHandler getAnimations() {
+        this.checkWorld();
+        return AnimationController.instance;
+    }
+
     @Override
     public String[] getAllBiomeNames() {
         List<String> biomes = new ArrayList<>();
@@ -567,12 +572,12 @@ public class NpcAPI extends AbstractNpcAPI {
         return this.millisToTime(ticks * 50);
     }
 
-    public IAnimation createAnimation(int id, String name) {
-        return new Animation(id, name);
+    public IAnimation createAnimation(String name) {
+        return new Animation(name);
     }
 
-    public IAnimation createAnimation(int id, String name, float speed, byte smooth) {
-        return new Animation(id, name, speed, smooth);
+    public IAnimation createAnimation(String name, float speed, byte smooth) {
+        return new Animation(name, speed, smooth);
     }
 
     public IFrame createFrame(int duration) {

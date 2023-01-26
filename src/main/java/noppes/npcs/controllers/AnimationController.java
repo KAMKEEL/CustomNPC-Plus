@@ -2,6 +2,7 @@ package noppes.npcs.controllers;
 
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.util.NBTJsonUtil;
@@ -9,12 +10,13 @@ import noppes.npcs.util.NBTJsonUtil;
 import java.io.File;
 import java.util.*;
 
-public class AnimationController {
-    public HashMap<Integer, Animation> animations = new HashMap<>();
+public class AnimationController implements IAnimationHandler {
+    public HashMap<String, Animation> animations;
     public static AnimationController instance;
 
     public AnimationController() {
         instance = this;
+        animations = new HashMap<>();
         load();
     }
 
@@ -36,9 +38,9 @@ public class AnimationController {
                     continue;
                 try {
                     Animation animation = new Animation();
-                    animation.id = Integer.parseInt(file.getName().split("_")[0]);
+                    animation.name = file.getName().substring(0, file.getName().length() - 5);
                     animation.readFromNBT(NBTJsonUtil.LoadFile(file));
-                    animations.put(animation.id,animation);
+                    animations.put(animation.name,animation);
                 } catch(Exception e) {
                     LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
                 }
@@ -46,56 +48,52 @@ public class AnimationController {
         }
     }
 
-    public void saveAnimations() {
-        Collection<Animation> animationLists = animations.values();
-        for (Animation animation : animationLists) {
-            this.saveAnimation(animation);
-        }
+    private File getDir() {
+        return new File(CustomNpcs.getWorldSaveDirectory(), "animations");
     }
 
-    public IAnimation saveAnimation(Animation animation){
-        animations.put(animation.id, animation);
+    public IAnimation saveAnimation(IAnimation animation){
+        animations.put(animation.getName(), (Animation) animation);
 
         File dir = this.getDir();
         if(!dir.exists())
             dir.mkdirs();
 
-        File file = new File(dir, animation.id + "_" + animation.name + ".json_new");
-        File file2 = new File(dir, animation.id + "_" + animation.name +  ".json");
+        File file = new File(dir, animation.getName() + ".json_new");
+        File file2 = new File(dir, animation.getName() +  ".json");
 
         try {
-            NBTJsonUtil.SaveFile(file, animation.writeToNBT());
+            NBTJsonUtil.SaveFile(file, ((Animation)animation).writeToNBT());
             if(file2.exists())
                 file2.delete();
             file.renameTo(file2);
         } catch (Exception e) {
             LogWriter.except(e);
         }
-        return animation;
+        return animations.get(animation.getName());
     }
 
-    private File getDir(){
-        return new File(CustomNpcs.getWorldSaveDirectory(), "animations");
-    }
-
-    public void delete(int id) {
-        Animation animation = this.animations.get(id);
-        if(animation == null)
+    public void delete(String name) {
+        if(!this.animations.containsKey(name))
             return;
         File dir = this.getDir();
         for (File file : dir.listFiles()) {
             if (!file.isFile() || !file.getName().endsWith(".json"))
                 continue;
-            if (file.getName().startsWith(id + "_")) {
-                if (!file.delete())
-                    return;
-                else break;
+            if (file.getName().equals(name+".json")) {
+                file.delete();
+                break;
             }
         }
-        this.animations.remove(id);
+        this.animations.remove(name);
     }
 
-    public IAnimation get(int id) {
-        return this.animations.get(id);
+    public IAnimation get(String name) {
+        return this.animations.get(name);
+    }
+
+    public IAnimation[] getAnimations() {
+        ArrayList<IAnimation> animations = new ArrayList<>(this.animations.values());
+        return animations.toArray(new IAnimation[0]);
     }
 }

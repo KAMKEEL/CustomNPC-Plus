@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
 
@@ -15,7 +16,6 @@ public class Animation implements IAnimation {
 	public int currentFrame = 0;
 	public int currentFrameTime = 0;
 
-	public int id = 0;
 	public String name;
 	public float speed = 1.0F;
 	public byte smooth = 0;
@@ -28,13 +28,11 @@ public class Animation implements IAnimation {
 
 	public Animation(){}
 
-	public Animation(int id, String name){
-		this.id = id;
+	public Animation(String name){
 		this.name = name;
 	}
 
-	public Animation(int id, String name, float speed, byte smooth){
-		this.id = id;
+	public Animation(String name, float speed, byte smooth){
 		this.name = name;
 		this.speed = speed;
 		this.smooth = smooth;
@@ -74,10 +72,6 @@ public class Animation implements IAnimation {
 	public IAnimation removeFrame(IFrame frame) {
 		this.frames.remove((Frame) frame);
 		return this;
-	}
-
-	public int getId() {
-		return id;
 	}
 
 	public IAnimation setName(String name) {
@@ -152,15 +146,17 @@ public class Animation implements IAnimation {
 		return this.loop;
 	}
 
+	public IAnimation save() {
+		return AnimationController.instance.saveAnimation(this);
+	}
+
 	public void readFromNBT(NBTTagCompound compound){
 		name = compound.getString("Name");
-		id = compound.getInteger("ID");
 		speed = compound.getFloat("Speed");
 		smooth = compound.getByte("Smooth");
 		loop = compound.getInteger("Loop");
 
 		renderTicks = compound.getBoolean("RenderTicks");
-		currentFrame = compound.getInteger("CurrentFrame");
 
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		NBTTagList list = compound.getTagList("Frames", 10);
@@ -181,13 +177,11 @@ public class Animation implements IAnimation {
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setString("Name", name);
-		compound.setInteger("ID", id);
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
 		compound.setInteger("Loop",loop);
 
 		compound.setBoolean("RenderTicks", renderTicks);
-		compound.setInteger("CurrentFrame", currentFrame);
 
 		NBTTagList list = new NBTTagList();
 		for(Frame frame : frames){
