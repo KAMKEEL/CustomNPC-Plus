@@ -28,11 +28,13 @@ public class Animation implements IAnimation {
 
 	public Animation(){}
 
-	public Animation(String name){
+	public Animation(int id, String name){
+		this.id = id;
 		this.name = name;
 	}
 
-	public Animation(String name, float speed, byte smooth){
+	public Animation(int id, String name, float speed, byte smooth){
+		this.id = id;
 		this.name = name;
 		this.speed = speed;
 		this.smooth = smooth;
