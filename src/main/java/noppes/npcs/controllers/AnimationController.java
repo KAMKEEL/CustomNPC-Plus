@@ -88,6 +88,10 @@ public class AnimationController implements IAnimationHandler {
         this.animations.remove(name);
     }
 
+    public boolean has(String name) {
+        return this.animations.containsKey(name);
+    }
+
     public IAnimation get(String name) {
         return this.animations.get(name);
     }
