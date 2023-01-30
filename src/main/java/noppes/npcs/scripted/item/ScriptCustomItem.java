@@ -90,7 +90,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
                 ScriptContainer script = this.scripts.get(i);
                 if (!this.errored.contains(i)) {
                     if(script == null || script.errored || !script.hasCode())
-                        return;
+                        continue;
 
                     script.run(type, event);
 
