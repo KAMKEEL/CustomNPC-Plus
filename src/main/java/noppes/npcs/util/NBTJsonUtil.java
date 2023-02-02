@@ -36,7 +36,7 @@ public class NBTJsonUtil {
 			json.cut(1);
 		if(json.startsWith("}"))
 			return;
-		int index = json.indexOf(":");
+		int index = json.findObjectColonIndex();
 		if(index < 1)
 			throw new JsonException("Expected key after ," ,json);
 		
