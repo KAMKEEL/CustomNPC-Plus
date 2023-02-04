@@ -11,15 +11,19 @@ public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
     String texture;
     int textureX;
     int textureY;
+    float scale;
+    boolean enabled;
 
     public ScriptGuiButton() {
         this.height = -1;
         this.textureY = -1;
+        this.scale = 1.0F;
     }
 
     public ScriptGuiButton(int id, String label, int x, int y) {
         this.height = -1;
         this.textureY = -1;
+        this.scale = 1.0F;
         this.setID(id);
         this.setLabel(label);
         this.setPos(x, y);
@@ -107,6 +111,22 @@ public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
         return this.posY;
     }
 
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+
+    public float getScale() {
+        return this.scale;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
     public int getType() {
         return 0;
     }
@@ -116,6 +136,9 @@ public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
         if (this.width > 0 && this.height > 0) {
             nbt.setIntArray("size", new int[]{this.width, this.height});
         }
+
+        nbt.setFloat("scale",this.scale);
+        nbt.setBoolean("enabled",this.enabled);
 
         nbt.setString("label", this.label);
         if (this.hasTexture()) {
@@ -134,6 +157,9 @@ public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
         if (nbt.hasKey("size")) {
             this.setSize(nbt.getIntArray("size")[0], nbt.getIntArray("size")[1]);
         }
+
+        this.setScale(nbt.getFloat("scale"));
+        this.setEnabled(nbt.getBoolean("enabled"));
 
         this.setLabel(nbt.getString("label"));
         if (nbt.hasKey("texture")) {
