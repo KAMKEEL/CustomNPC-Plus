@@ -247,6 +247,14 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ManageTags)
 			return new GuiNPCManageTags(npc);
 
+		else if (gui == EnumGuiType.ManageAnimations) {
+			EntityCustomNpc animNpc = new EntityCustomNpc(npc.worldObj);
+			animNpc.copyDataFrom(npc,true);
+			animNpc.display.showName = 1;
+			animNpc.display.showBossBar = 0;
+			return new GuiNPCManageAnimations(animNpc);
+		}
+
 		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);
 

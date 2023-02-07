@@ -8,7 +8,7 @@ import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 
 public class FramePart implements IFramePart {
-
+	public Animation parent;
 	public EnumAnimationPart part;
 	public float[] rotation = {0, 0, 0};
 	public float[] pivot = {0, 0, 0};
@@ -149,6 +149,9 @@ public class FramePart implements IFramePart {
 
 	@SideOnly(Side.CLIENT)
 	public void interpolateAngles() {
+		if (parent != null && parent.paused)
+			return;
+
 		float pi = (float) Math.PI / 180;
 		if (this.smooth == 2) {
 			this.prevRotations[0] = this.rotation[0] * pi;
@@ -179,6 +182,9 @@ public class FramePart implements IFramePart {
 
 	@SideOnly(Side.CLIENT)
 	public void interpolateOffset() {
+		if (parent != null && parent.paused)
+			return;
+
 		if (this.smooth == 2) {
 			this.prevPivots[0] = this.pivot[0];
 			this.prevPivots[1] = this.pivot[1];

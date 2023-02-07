@@ -27,7 +27,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public EntityClientPlayerMP player;
 	public boolean drawDefaultBackground = true;
 	public EntityNPCInterface npc;
-	private HashMap<Integer,GuiNpcButton> buttons = new HashMap<Integer,GuiNpcButton>();
+	protected HashMap<Integer,GuiNpcButton> buttons = new HashMap<Integer,GuiNpcButton>();
 	private HashMap<Integer,GuiMenuTopButton> topbuttons = new HashMap<Integer,GuiMenuTopButton>();
 	private HashMap<Integer,GuiMenuSideButton> sidebuttons = new HashMap<Integer,GuiMenuSideButton>();
 	private HashMap<Integer,GuiNpcTextField> textfields = new HashMap<Integer,GuiNpcTextField>();

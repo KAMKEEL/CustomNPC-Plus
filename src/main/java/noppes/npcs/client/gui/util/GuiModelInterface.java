@@ -23,6 +23,7 @@ public class GuiModelInterface extends GuiNPCInterface{
 	private static float zoomed = 60;
 	
 	public int xOffset = 0;
+    public int yOffset = 0;
 	
 	public EntityCustomNpc npc;
 	
@@ -37,17 +38,17 @@ public class GuiModelInterface extends GuiNPCInterface{
     public void initGui() {
     	super.initGui();
 
-    	addButton(unzoom = new GuiNpcButton(666, guiLeft + 148 + xOffset, guiTop + 200, 20, 20, "-"));
-    	addButton(zoom = new GuiNpcButton(667, guiLeft + 214 + xOffset, guiTop + 200, 20, 20, "+"));
-    	addButton(left = new GuiNpcButton(668, guiLeft + 170 + xOffset, guiTop + 200, 20, 20, "<"));
-    	addButton(right = new GuiNpcButton(669, guiLeft + 192 + xOffset, guiTop + 200, 20, 20, ">"));
+    	addButton(unzoom = new GuiNpcButton(666, guiLeft + 148 + xOffset, guiTop + 200 + yOffset, 20, 20, "-"));
+    	addButton(zoom = new GuiNpcButton(667, guiLeft + 214 + xOffset, guiTop + 200 + yOffset, 20, 20, "+"));
+    	addButton(left = new GuiNpcButton(668, guiLeft + 170 + xOffset, guiTop + 200 + yOffset, 20, 20, "<"));
+    	addButton(right = new GuiNpcButton(669, guiLeft + 192 + xOffset, guiTop + 200 + yOffset, 20, 20, ">"));
 
-    	addButton(new GuiNpcButton(66, width - 22, 2, 20, 20, "X"));
+    	addButton(new GuiNpcButton(670, width - 22, 2, 20, 20, "X"));
     }
 
     @Override
     protected void actionPerformed(GuiButton btn) {
-    	if(btn.id == 66){
+    	if(btn.id == 670){
     		close();
     	}
     }
@@ -81,7 +82,7 @@ public class GuiModelInterface extends GuiNPCInterface{
 		EntityUtil.Copy(npc, entity);
     	
     	int l = guiLeft + 190 + xOffset;
-    	int i1 =  guiTop + 180;
+    	int i1 =  guiTop + 180 + yOffset;
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glPushMatrix();
         GL11.glTranslatef(l, i1, 60F);

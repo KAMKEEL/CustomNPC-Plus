@@ -80,7 +80,9 @@ public enum EnumPacketServer {
 	PlayerRider(CustomNpcsPermissions.TOOL_MOUNTER), 
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),  
-	DialogNpcGet, 
+	DialogNpcGet,
+
+	AnimationListGet, AnimationGet, AnimationAdd, AnimationDelete, AnimationSave,
 
 	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, UpdateTrackedQuest,
 

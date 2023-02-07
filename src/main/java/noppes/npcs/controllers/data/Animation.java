@@ -1,5 +1,7 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IAnimation;
@@ -12,7 +14,7 @@ import java.util.ArrayList;
 
 public class Animation implements IAnimation {
 
-	public ArrayList<Frame> frames = new ArrayList<Frame>();
+	public ArrayList<Frame> frames = new ArrayList<>();
 	public int currentFrame = 0;
 	public int currentFrameTime = 0;
 
@@ -25,6 +27,9 @@ public class Animation implements IAnimation {
 	public boolean whileStanding = true;
 	public boolean whileAttacking = true;
 	public boolean whileMoving = true;
+
+	//Client-sided
+	public boolean paused;
 
 	public Animation(){}
 
@@ -196,7 +201,11 @@ public class Animation implements IAnimation {
 		return compound;
 	}
 
+	@SideOnly(Side.CLIENT)
 	public void increaseTime() {
+		if (paused)
+			return;
+
 		this.currentFrameTime++;
 		if (this.currentFrameTime == this.currentFrame().getDuration()) {
 			Frame prevFrame = (Frame) this.currentFrame();

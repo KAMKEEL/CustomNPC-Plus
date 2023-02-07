@@ -19,17 +19,18 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
     public void initGui(){
     	super.initGui();
     	int y = guiTop + 10;
-    	this.addButton(new GuiNpcButton(2, guiLeft + 85, y, "global.banks"));
-    	this.addButton(new GuiNpcButton(3, guiLeft + 85, y += 22, "menu.factions"));
-    	this.addButton(new GuiNpcButton(4, guiLeft + 85, y += 22, "dialog.dialogs"));
-    	this.addButton(new GuiNpcButton(11, guiLeft + 85, y += 22, "quest.quests"));
-    	this.addButton(new GuiNpcButton(12, guiLeft + 85, y += 22, "global.transport"));
-    	this.addButton(new GuiNpcButton(13, guiLeft + 85, y += 22, "global.playerdata"));
-    	this.addButton(new GuiNpcButton(14, guiLeft + 85, y += 22, "global.recipes"));
-    	this.addButton(new GuiNpcButton(15, guiLeft + 85, y += 22, NoppesStringUtils.translate("global.naturalspawn")));
-    	this.addButton(new GuiNpcButton(16, guiLeft + 85, y += 22, "global.linked"));
-		this.addButton(new GuiNpcButton(17, guiLeft + 85, y += 22, "menu.tags"));
-    	
+    	this.addButton(new GuiNpcButton(2, guiLeft + 5, y, "global.banks"));
+    	this.addButton(new GuiNpcButton(3, guiLeft + 5, y += 22, "menu.factions"));
+    	this.addButton(new GuiNpcButton(4, guiLeft + 5, y += 22, "dialog.dialogs"));
+    	this.addButton(new GuiNpcButton(11, guiLeft + 5, y += 22, "quest.quests"));
+    	this.addButton(new GuiNpcButton(12, guiLeft + 5, y += 22, "global.transport"));
+    	this.addButton(new GuiNpcButton(13, guiLeft + 5, y += 22, "global.playerdata"));
+    	this.addButton(new GuiNpcButton(14, guiLeft + 5, y += 22, "global.recipes"));
+    	this.addButton(new GuiNpcButton(15, guiLeft + 5, y += 22, NoppesStringUtils.translate("global.naturalspawn")));
+    	this.addButton(new GuiNpcButton(16, guiLeft + 5, y += 22, "global.linked"));
+		y = guiTop + 10;
+		this.addButton(new GuiNpcButton(18, guiLeft + 210, y, "menu.animations"));
+		this.addButton(new GuiNpcButton(17, guiLeft + 210, y += 22, "menu.tags"));
     }
     
     @Override
@@ -46,6 +47,9 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		}
 		if (id == 17) {
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageTags);
+		}
+		if (id == 18) {
+			NoppesUtil.requestOpenGUI(EnumGuiType.ManageAnimations);
 		}
 		if (id == 4) {
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageDialogs);

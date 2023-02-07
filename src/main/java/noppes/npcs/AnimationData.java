@@ -35,7 +35,7 @@ public class AnimationData implements IAnimationData {
     }
 
     public boolean isActive() {
-        if (!this.allowAnimation || this.animation == null || this.animation.currentFrame == this.animation.frames.size())
+        if (!this.allowAnimation || this.animation == null || this.animation.currentFrame == this.animation.frames.size() || animation.currentFrame() == null)
             return false;
 
         if (this.parent instanceof DataDisplay) {

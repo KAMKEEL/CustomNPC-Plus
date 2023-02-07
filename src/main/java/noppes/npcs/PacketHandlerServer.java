@@ -857,6 +857,45 @@ public class PacketHandlerServer{
 				//NoppesUtilServer.sendRoleData(player, npc);
 			}
 		}
+		else if(type == EnumPacketServer.AnimationListGet) {
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+		}
+		else if(type == EnumPacketServer.AnimationGet) {
+			String animationName = Server.readString(buffer);
+			Animation animation = (Animation) AnimationController.instance.get(animationName);
+			if (animation != null) {
+				Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
+			}
+		}
+		else if (type == EnumPacketServer.AnimationAdd) {
+			String name = "Animation";
+			if (AnimationController.instance.has(name)) {
+				name += "_";
+				int i = 1;
+				while (AnimationController.instance.has(name + i)) {
+					i++;
+				}
+				name += i;
+			}
+			Animation animation = new Animation(name);
+			animation.save();
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+		}
+		else if (type == EnumPacketServer.AnimationDelete) {
+			String animationName = Server.readString(buffer);
+			AnimationController.instance.delete(animationName);
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+		}
+		else if (type == EnumPacketServer.AnimationSave) {
+			String prevName = Server.readString(buffer);
+			Animation animation = new Animation();
+			animation.readFromNBT(Server.readNBT(buffer));
+			if (prevName != null && !prevName.equals(animation.getName()) && AnimationController.instance.has(animation.getName())) {
+				animation.name = prevName;
+			}
+			animation.save();
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+		}
 		else
 			blockPackets(type, buffer, player);
 
