@@ -888,9 +888,10 @@ public class PacketHandlerServer{
 		}
 		else if (type == EnumPacketServer.AnimationSave) {
 			String prevName = Server.readString(buffer);
+			AnimationController.instance.animations.remove(prevName);
 			Animation animation = new Animation();
 			animation.readFromNBT(Server.readNBT(buffer));
-			if (prevName != null && !prevName.equals(animation.getName()) && AnimationController.instance.has(animation.getName())) {
+			if (AnimationController.instance.has(animation.getName())) {
 				animation.name = prevName;
 			}
 			animation.save();

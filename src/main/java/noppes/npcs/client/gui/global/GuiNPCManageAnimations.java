@@ -450,7 +450,13 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
         FramePart part = this.editingPart();
 
         if (textfield.id == 30 && !text.isEmpty()) {
-            animation.name = text.replaceAll("[^a-zA-Z0-9_-]", "_");
+            String nameText = text.replaceAll("[^a-zA-Z0-9_-]", "_");
+            if (!scroll.getList().contains(nameText)) {
+                animation.name = nameText;
+                Client.sendData(EnumPacketServer.AnimationSave, prevSelected, animation.writeToNBT());
+            } else {
+                textfield.setText(animation.name);
+            }
         } else if (textfield.id == 32) {
             if (editingMode == 0) {
                 animation.speed = textfield.getFloat();
