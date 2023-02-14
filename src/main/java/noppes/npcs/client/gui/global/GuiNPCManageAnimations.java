@@ -56,6 +56,8 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
         this.addButton(new GuiNpcButton(2,guiLeft + 30, guiTop - 5, 45, 20, "gui.remove"));
 
         if (animation != null) {
+            frameIndex = animation.frames.size() > 0 ? frameIndex % animation.frames.size() : 0;
+
             Frame editingFrame = this.editingFrame();
             if (editingFrame != null) {
                 if (editingFrame != prevFrame && prevFrame != null) {
@@ -109,6 +111,18 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
                 animation.loop = -1;
             }
 
+
+            this.addLabel(new GuiNpcLabel(10, "animation.frames", guiLeft + 9 + 145, guiTop + 180, 0xFFFFFF));
+            this.addButton(new GuiNpcButton(11, guiLeft - 20 + 145, guiTop + 191, 45, 20, "gui.add"));
+            if (animation.frames.size() > 0) {
+                this.addButton(new GuiNpcButton(12, guiLeft + 30 + 145, guiTop + 191, 45, 20, "gui.remove"));
+                this.addButton(new GuiNpcButton(13, guiLeft - 3 + 145, guiTop + 210, 20, 20, "<"));
+                this.addButton(new GuiNpcButton(14, guiLeft + 17 + 145, guiTop + 210, 20, 20, "" + frameIndex));
+                this.addButton(new GuiNpcButton(15, guiLeft + 37 + 145, guiTop + 210, 20, 20, ">"));
+            }
+
+            this.addButton(new GuiNpcButton(20, guiLeft + 290, guiTop - 5, 75, 20, new String[]{"animation.animation", "animation.frame", "animation.framePart"}, editingMode));
+
             String animTexture = "customnpcs:textures/gui/animation.png";
             if (data.animation != null && data.animation.frames.size() > 0) {
                 if (!this.playingAnimation || data.animation.paused) {//Play
@@ -126,19 +140,6 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
                     this.addButton(new GuiTexturedButton(93, "", guiLeft + 55, guiTop + 200, 14, 20, animTexture, 33, 71));
                 }
             }
-
-
-            this.addLabel(new GuiNpcLabel(10, "animation.frames", guiLeft + 9 + 145, guiTop + 180, 0xFFFFFF));
-            this.addButton(new GuiNpcButton(11, guiLeft - 20 + 145, guiTop + 191, 45, 20, "gui.add"));
-            if (animation.frames.size() > 0) {
-                frameIndex %= animation.frames.size();
-                this.addButton(new GuiNpcButton(12, guiLeft + 30 + 145, guiTop + 191, 45, 20, "gui.remove"));
-                this.addButton(new GuiNpcButton(13, guiLeft - 3 + 145, guiTop + 210, 20, 20, "<"));
-                this.addButton(new GuiNpcButton(14, guiLeft + 17 + 145, guiTop + 210, 20, 20, "" + frameIndex));
-                this.addButton(new GuiNpcButton(15, guiLeft + 37 + 145, guiTop + 210, 20, 20, ">"));
-            }
-
-            this.addButton(new GuiNpcButton(20, guiLeft + 290, guiTop - 5, 75, 20, new String[]{"animation.animation", "animation.frame", "animation.framePart"}, editingMode));
 
             if (editingMode == 0) {
                 //name - textfield
@@ -330,8 +331,11 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
             }
         } else if (guibutton.id == 12) {
             animation.frames.remove(frameIndex);
-        } else if (guibutton.id == 13 && frameIndex > 0) {
+        } else if (guibutton.id == 13) {
             frameIndex--;
+            if (frameIndex == -1) {
+                frameIndex = animation.frames.size() - 1;
+            }
         } else if (guibutton.id == 14 || guibutton.id == 15) {
             frameIndex++;
         } else if (guibutton.id == 20) {
@@ -403,10 +407,10 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
     {
         super.drawScreen(par1,par2,par3);
         AnimationData data = npc.display.animationData;
-        if (!data.isActive()) {
+        if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
             initGui();
-        } else {
+        } else if (data.isActive()) {
             Frame currentFrame = (Frame) data.animation.currentFrame();
             long time = mc.theWorld.getWorldTime();
             if (time != prevTick) {
@@ -479,6 +483,9 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
     public void setGuiData(NBTTagCompound compound) {
         this.animation = new Animation();
         animation.readFromNBT(compound);
+        npc.display.animationData.animation = animation;
+        this.playingAnimation = false;
+        npc.display.animationData.animation.paused = false;
         initGui();
     }
 
