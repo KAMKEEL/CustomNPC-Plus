@@ -179,7 +179,7 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
                     j = 16777120;
                 }
                 GL11.glTranslated(0.0D, 0.0D, 0.1D);
-                this.drawCenteredString(fontRenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);
+                this.drawCenteredString(fontRenderer, this.displayString, this.width / 2, (this.height-8)/2, j);
             }
         GL11.glPopMatrix();
 

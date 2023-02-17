@@ -11,19 +11,17 @@ public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
     String texture;
     int textureX;
     int textureY;
-    float scale;
-    boolean enabled;
+    float scale = 1.0F;
+    boolean enabled = true;
 
     public ScriptGuiButton() {
         this.height = -1;
         this.textureY = -1;
-        this.scale = 1.0F;
     }
 
     public ScriptGuiButton(int id, String label, int x, int y) {
         this.height = -1;
         this.textureY = -1;
-        this.scale = 1.0F;
         this.setID(id);
         this.setLabel(label);
         this.setPos(x, y);
