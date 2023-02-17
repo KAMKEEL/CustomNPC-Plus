@@ -68,10 +68,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		particle.motionZ = motionZ;
 		particle.gravity = gravity;
 
-		particle.scale1 = scale1;
-		particle.scale2 = scale2;
-		particle.scaleRate = scaleRate;
-		particle.scaleRateStart = scaleRateStart;
+		particle.scaleX1 = particle.scaleY1 = scale1;
+		particle.scaleX2 = particle.scaleY2 = scale2;
+		particle.scaleXRate = particle.scaleYRate = scaleRate;
+		particle.scaleXRateStart = particle.scaleYRateStart = scaleRateStart;
 
 		particle.alpha1 = alpha1;
 		particle.alpha2 = alpha2;
@@ -124,10 +124,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		particle.motionZ = motionZ;
 		particle.gravity = gravity;
 
-		particle.scale1 = scale1;
-		particle.scale2 = scale2;
-		particle.scaleRate = scaleRate;
-		particle.scaleRateStart = scaleRateStart;
+		particle.scaleX1 = particle.scaleY1 = scale1;
+		particle.scaleX2 = particle.scaleY2 = scale2;
+		particle.scaleXRate = particle.scaleYRate = scaleRate;
+		particle.scaleXRateStart = particle.scaleYRateStart = scaleRateStart;
 
 		particle.alpha1 = alpha1;
 		particle.alpha2 = alpha2;
@@ -164,10 +164,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		particle.motionZ = motionZ;
 		particle.gravity = gravity;
 
-		particle.scale1 = scale1;
-		particle.scale2 = scale2;
-		particle.scaleRate = scaleRate;
-		particle.scaleRateStart = scaleRateStart;
+		particle.scaleX1 = particle.scaleY1 = scale1;
+		particle.scaleX2 = particle.scaleY2 = scale2;
+		particle.scaleXRate = particle.scaleYRate = scaleRate;
+		particle.scaleXRateStart = particle.scaleYRateStart = scaleRateStart;
 
 		NBTTagCompound compound = particle.writeToNBT();
 		compound.setInteger("EntityID", entityID);

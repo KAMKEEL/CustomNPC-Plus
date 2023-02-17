@@ -22,9 +22,10 @@ public class ScriptParticle implements IParticle {
     public double x = 0,y = 0,z = 0;
     public double motionX = 0,motionY = 0,motionZ = 0;
     public float gravity = 0;
-    public float scale1 = 20.0f,scale2 = 20.0f,scaleRate = 0.0f;
+    public float scaleX1 = 20.0f,scaleX2 = 20.0f,scaleXRate = 0.0f;
+    public float scaleY1 = 20.0f,scaleY2 = 20.0f,scaleYRate = 0.0f;
     public float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
-    public int scaleRateStart = 0, alphaRateStart = 0;
+    public int scaleXRateStart = 0, scaleYRateStart, alphaRateStart = 0;
 
     public float rotationX1 = 0;
     public float rotationX2 = 0;
@@ -295,23 +296,49 @@ public class ScriptParticle implements IParticle {
         return alphaRateStart;
     }
 
-    public void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart){
-        this.scale1 = scale1;
-        this.scale2 = scale2;
-        this.scaleRate = scaleRate;
-        this.scaleRateStart = scaleRateStart;
+    public void setScale(float scale1, float scale2, float scaleRate, int scaleRateStart) {
+        this.scaleX1 = this.scaleY1 = scale1;
+        this.scaleX2 = this.scaleY2 = scale2;
+        this.scaleXRate = this.scaleYRate = scaleRate;
+        this.scaleXRateStart = this.scaleYRateStart = scaleRateStart;
     }
-    public float getScale1() {
-        return scale1;
+
+    public void setScaleX(float scale1, float scale2, float scaleRate, int scaleRateStart){
+        this.scaleX1 = scale1;
+        this.scaleX2 = scale2;
+        this.scaleXRate = scaleRate;
+        this.scaleXRateStart = scaleRateStart;
     }
-    public float getScale2() {
-        return scale2;
+    public float getScaleX1() {
+        return scaleX1;
     }
-    public float getScaleRate() {
-        return scaleRate;
+    public float getScaleX2() {
+        return scaleX2;
     }
-    public int getScaleRateStart() {
-        return scaleRateStart;
+    public float getScaleXRate() {
+        return scaleXRate;
+    }
+    public int getScaleXRateStart() {
+        return scaleXRateStart;
+    }
+
+    public void setScaleY(float scale1, float scale2, float scaleRate, int scaleRateStart){
+        this.scaleY1 = scale1;
+        this.scaleY2 = scale2;
+        this.scaleYRate = scaleRate;
+        this.scaleYRateStart = scaleRateStart;
+    }
+    public float getScaleY1() {
+        return scaleY1;
+    }
+    public float getScaleY2() {
+        return scaleY2;
+    }
+    public float getScaleYRate() {
+        return scaleYRate;
+    }
+    public int getScaleYRateStart() {
+        return scaleYRateStart;
     }
 
     public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart){

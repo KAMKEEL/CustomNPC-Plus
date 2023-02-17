@@ -29,10 +29,15 @@ public class CustomFX extends EntityFX {
     private static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
     private float startX = 0, startY = 0, startZ = 0;
 
-    public float scale1 = 1.0F;
-    public float scale2 = 1.0F;
-    public float scaleRate = 1.0F;
-    public int scaleRateStart = 0;
+    public float scaleX1 = 1.0F;
+    public float scaleX2 = 1.0F;
+    public float scaleXRate = 1.0F;
+    public int scaleXRateStart = 0;
+
+    public float scaleY1 = 1.0F;
+    public float scaleY2 = 1.0F;
+    public float scaleYRate = 1.0F;
+    public int scaleYRateStart = 0;
 
     public float alpha1 = 1.0F;
     public float alpha2 = 0;
@@ -99,13 +104,19 @@ public class CustomFX extends EntityFX {
         customFX.particleGreen = (customFX.HEXColor >> 8  & 255) / 255f;
         customFX.particleBlue = (customFX.HEXColor & 255) / 255f;
 
-        customFX.scale1 = particle.scale1;
-        customFX.scale2 = particle.scale2;
-        customFX.scaleRate = Math.abs(particle.scaleRate);
-        customFX.scaleRateStart = particle.scaleRateStart;
-        customFX.particleScale = customFX.scale1;
-        if(customFX.scale1 > customFX.scale2)
-            customFX.scaleRate *= -1;
+        customFX.scaleX1 = particle.scaleX1;
+        customFX.scaleX2 = particle.scaleX2;
+        customFX.scaleXRate = Math.abs(particle.scaleXRate);
+        customFX.scaleXRateStart = particle.scaleXRateStart;
+        if(customFX.scaleX1 > customFX.scaleX2)
+            customFX.scaleXRate *= -1;
+
+        customFX.scaleY1 = particle.scaleY1;
+        customFX.scaleY2 = particle.scaleY2;
+        customFX.scaleYRate = Math.abs(particle.scaleYRate);
+        customFX.scaleYRateStart = particle.scaleYRateStart;
+        if(customFX.scaleY1 > customFX.scaleY2)
+            customFX.scaleYRate *= -1;
 
         customFX.alpha1 = particle.alpha1;
         customFX.alpha2 = particle.alpha2;
@@ -230,11 +241,17 @@ public class CustomFX extends EntityFX {
             startZ = (float)(entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTick);
         }
 
-        float scaleChange = this.scaleRate / (float)particleMaxAge;
-        if((this.scaleRate < 0 && particleScale+scaleChange < this.scale2) || (this.scaleRate > 0 && particleScale+scaleChange > this.scale2))
-            particleScale = this.scale2;
-        else if(timeSinceStart >= this.scaleRateStart)
-            particleScale += scaleChange;
+        float scaleXChange = this.scaleXRate / (float)particleMaxAge;
+        if((this.scaleXRate < 0 && this.scaleX1+scaleXChange < this.scaleX2) || (this.scaleXRate > 0 && this.scaleX1+scaleXChange > this.scaleX2))
+            this.scaleX1 = this.scaleX2;
+        else if(timeSinceStart >= this.scaleXRateStart)
+            this.scaleX1 += scaleXChange;
+
+        float scaleYChange = this.scaleYRate / (float)particleMaxAge;
+        if((this.scaleYRate < 0 && this.scaleY1+scaleYChange < this.scaleY2) || (this.scaleYRate > 0 && this.scaleY1+scaleYChange > this.scaleY2))
+            this.scaleY1 = this.scaleY2;
+        else if(timeSinceStart >= this.scaleYRateStart)
+            this.scaleY1 += scaleYChange;
 
         float alphaChange = this.alphaRate / (float)particleMaxAge;
         if((this.alphaRate < 0 && particleAlpha+alphaChange < this.alpha2) || (this.alphaRate > 0 && particleAlpha+alphaChange > this.alpha2))
@@ -275,7 +292,6 @@ public class CustomFX extends EntityFX {
         float v2 = v1 + (float)height/(float)totalHeight;
 
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        float renderScale = 0.1F * particleScale;
         float posX = (float)((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX;
         float posY = (float)((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY;
         float posZ = (float)((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ;
@@ -286,7 +302,6 @@ public class CustomFX extends EntityFX {
             renderPosZ = startZ + posZ + this.posZ;
 
             GL11.glTranslated(posX,posY,posZ);
-            GL11.glScalef(renderScale, renderScale, renderScale);
             if(facePlayer) {
                 GL11.glRotated(180 - player.rotationYaw, 0.0, 1.0, 0.0);
                 GL11.glRotated(-player.rotationPitch + 90, 1.0, 0.0, 0.0);
@@ -315,6 +330,8 @@ public class CustomFX extends EntityFX {
                 textureXScale = (float) totalWidth/totalHeight;
                 GL11.glScalef(1/textureXScale/2,1/textureXScale/2,1/textureXScale/2);
             }
+            textureXScale *= scaleX1/10.0F;
+            textureYScale *= scaleY1/10.0F;
 
             tessellator.setColorOpaque_F(1, 1, 1);
             tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
