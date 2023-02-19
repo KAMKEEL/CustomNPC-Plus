@@ -210,6 +210,7 @@ public class PacketHandlerServer{
 		compound.setBoolean("ScriptEnabled", data.getEnabled());
 		compound.setString("ScriptLanguage", data.getLanguage());
 		compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+		compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(data.getConsoleText()));
 		Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		List<ScriptContainer> containers = data.getScripts();
 		for (int i = 0; i < containers.size(); i++) {
@@ -238,6 +239,7 @@ public class PacketHandlerServer{
 				}
 			}
 			data.setEnabled(compound.getBoolean("ScriptEnabled"));
+			data.setConsoleText(NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10)));
 		}
 	}
 

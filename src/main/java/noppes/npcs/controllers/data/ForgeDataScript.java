@@ -22,12 +22,14 @@ public class ForgeDataScript implements IScriptHandler {
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
     private boolean enabled = false;
+    private Map<Long, String> console = new TreeMap();
 
     public ForgeDataScript() {
     }
 
     public void clear() {
         this.scripts = new ArrayList();
+        this.console = new TreeMap();
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -45,6 +47,7 @@ public class ForgeDataScript implements IScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
+        this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -54,6 +57,7 @@ public class ForgeDataScript implements IScriptHandler {
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
+        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
         return compound;
     }
 
@@ -71,8 +75,16 @@ public class ForgeDataScript implements IScriptHandler {
                 }
             }
 
+            int i = 0;
             for (ScriptContainer script : this.scripts) {
                 script.run(type, event);
+
+                for (Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                    if (!ScriptController.Instance.forgeScripts.console.containsKey(longStringEntry.getKey())) {
+                        ScriptController.Instance.forgeScripts.console.put(longStringEntry.getKey(), " tab " + (i + 1) + ":\n" + longStringEntry.getValue());
+                    }
+                }
+                i++;
             }
         }
     }
@@ -109,32 +121,14 @@ public class ForgeDataScript implements IScriptHandler {
         return "ForgeScript";
     }
 
-    public Map<Long, String> getConsoleText() {
-        TreeMap map = new TreeMap();
-        int tab = 0;
-        Iterator var3 = this.getScripts().iterator();
-
-        while(var3.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var3.next();
-            ++tab;
-            Iterator var5 = script.console.entrySet().iterator();
-
-            while(var5.hasNext()) {
-                Entry entry = (Entry)var5.next();
-                map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
-            }
-        }
-
-        return map;
+    public void setConsoleText(Map<Long, String> map) {
+        this.console = map;
     }
 
+    public Map<Long, String> getConsoleText() {
+        return this.console;
+    }
     public void clearConsole() {
-        Iterator var1 = this.getScripts().iterator();
-
-        while(var1.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var1.next();
-            script.console.clear();
-        }
-
+        this.console.clear();
     }
 }

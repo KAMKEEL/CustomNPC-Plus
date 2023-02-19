@@ -69,8 +69,16 @@ public class NPCDataScript implements IScriptHandler {
                 this.lastInited = ScriptController.Instance.lastLoaded;
             }
 
+            int i = 0;
             for (ScriptContainer script : this.scripts) {
                 script.run(type, event);
+
+                for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                    if (!ScriptController.Instance.npcScripts.console.containsKey(longStringEntry.getKey())) {
+                        ScriptController.Instance.npcScripts.console.put(longStringEntry.getKey(), " tab " + (i + 1) + ":\n" + longStringEntry.getValue());
+                    }
+                }
+                i++;
             }
         }
     }
@@ -111,35 +119,18 @@ public class NPCDataScript implements IScriptHandler {
         return this.npcAPI;
     }
 
+    public void setConsoleText(Map<Long, String> map) {
+        this.console = map;
+    }
 
     public Map<Long, String> getConsoleText() {
-        TreeMap map = new TreeMap();
-        int tab = 0;
-        Iterator var3 = this.getScripts().iterator();
-
-        while(var3.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var3.next();
-            ++tab;
-            Iterator var5 = script.console.entrySet().iterator();
-
-            while(var5.hasNext()) {
-                Map.Entry entry = (Map.Entry)var5.next();
-                map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
-            }
-        }
-
-        return map;
+        return this.console;
     }
 
     public void clearConsole() {
-        Iterator var1 = this.getScripts().iterator();
-
-        while(var1.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var1.next();
-            script.console.clear();
-        }
-
+        this.console.clear();
     }
+
     public static final class ToStringHelper {
         private final String className;
         private final NPCDataScript.ToStringHelper.ValueHolder holderHead;

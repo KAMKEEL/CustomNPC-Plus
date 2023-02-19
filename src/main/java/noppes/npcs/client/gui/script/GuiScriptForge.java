@@ -6,6 +6,7 @@
 package noppes.npcs.client.gui.script;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NBTTags;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptContainer;
@@ -25,6 +26,7 @@ public class GuiScriptForge extends GuiScriptInterface {
         if (!compound.hasKey("Tab")) {
             script.setLanguage(compound.getString("ScriptLanguage"));
             script.setEnabled(compound.getBoolean("ScriptEnabled"));
+            script.setConsoleText(NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10)));
             super.setGuiData(compound);
         } else {
             int tab = compound.getInteger("Tab");
@@ -50,6 +52,7 @@ public class GuiScriptForge extends GuiScriptInterface {
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", this.script.getLanguage());
         scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
+        scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
         Client.sendData(EnumPacketServer.ScriptForgeSave, -1, scriptData);
     }
 }

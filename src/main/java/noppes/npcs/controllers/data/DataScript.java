@@ -173,6 +173,8 @@ public class DataScript implements IScriptHandler {
 		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
 	}
 
+	public void setConsoleText(Map<Long, String> map) {}
+
 	public Map<Long, String> getConsoleText() {
 		Map<Long, String> map = new TreeMap();
 		int tab = 0;

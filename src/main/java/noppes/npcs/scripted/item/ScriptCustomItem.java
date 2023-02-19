@@ -151,6 +151,10 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         return "ScriptedItem";
     }
 
+    public void setConsoleText(Map<Long, String> map) {
+        this.console = map;
+    }
+
     public Map<Long, String> getConsoleText() {
         return this.console;
     }

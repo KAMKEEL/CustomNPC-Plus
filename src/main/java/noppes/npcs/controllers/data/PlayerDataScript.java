@@ -148,12 +148,19 @@ public class PlayerDataScript implements IScriptHandler {
         }
         return this.playerAPI;
     }
+
+    public void setConsoleText(Map<Long, String> map) {
+        this.console = map;
+    }
+
     public Map<Long, String> getConsoleText() {
         return this.console;
     }
+
     public void clearConsole() {
         this.console.clear();
     }
+
     public static final class ToStringHelper {
         private final String className;
         private final PlayerDataScript.ToStringHelper.ValueHolder holderHead;
