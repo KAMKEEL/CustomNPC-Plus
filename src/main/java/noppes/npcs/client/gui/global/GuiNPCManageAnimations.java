@@ -113,12 +113,15 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
 
 
             this.addLabel(new GuiNpcLabel(10, "animation.frames", guiLeft + 9 + 145, guiTop + 180, 0xFFFFFF));
-            this.addButton(new GuiNpcButton(11, guiLeft - 20 + 145, guiTop + 191, 45, 20, "gui.add"));
+            this.addButton(new GuiNpcButton(11, guiLeft - 45 + 150, guiTop + 189, 45, 20, "gui.add"));
             if (animation.frames.size() > 0) {
-                this.addButton(new GuiNpcButton(12, guiLeft + 30 + 145, guiTop + 191, 45, 20, "gui.remove"));
-                this.addButton(new GuiNpcButton(13, guiLeft - 3 + 145, guiTop + 210, 20, 20, "<"));
-                this.addButton(new GuiNpcButton(14, guiLeft + 17 + 145, guiTop + 210, 20, 20, "" + frameIndex));
-                this.addButton(new GuiNpcButton(15, guiLeft + 37 + 145, guiTop + 210, 20, 20, ">"));
+                this.addButton(new GuiNpcButton(12, guiLeft + 150, guiTop + 189, 45, 20, "gui.remove"));
+                this.addButton(new GuiNpcButton(13, guiLeft + 45 + 150, guiTop + 189, 45, 20, "gui.copy"));
+                this.addButton(new GuiNpcButton(14, guiLeft - 8 + 145, guiTop + 210, 20, 20, "<"));
+                this.addTextField(new GuiNpcTextField(15, this, guiLeft + 17 + 145, guiTop + 212, 20, 17, frameIndex + ""));
+                this.getTextField(15).integersOnly = true;
+                this.getTextField(15).setMinMaxDefault(0, animation.frames.size() - 1, frameIndex);
+                this.addButton(new GuiNpcButton(16, guiLeft + 42 + 145, guiTop + 210, 20, 20, ">"));
             }
 
             this.addButton(new GuiNpcButton(20, guiLeft + 290, guiTop - 5, 75, 20, new String[]{"animation.animation", "animation.frame", "animation.framePart"}, editingMode));
@@ -331,12 +334,18 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
             }
         } else if (guibutton.id == 12) {
             animation.frames.remove(frameIndex);
-        } else if (guibutton.id == 13) {
+        } else if (guibutton.id == 13 && editingFrame != null) {
+            if (frameIndex < animation.frames.size() - 1) {
+                animation.frames.add(frameIndex + 1, editingFrame.copy());
+            } else {
+                animation.frames.add(editingFrame.copy());
+            }
+        } else if (guibutton.id == 14) {
             frameIndex--;
             if (frameIndex == -1) {
                 frameIndex = animation.frames.size() - 1;
             }
-        } else if (guibutton.id == 14 || guibutton.id == 15) {
+        } else if (guibutton.id == 16) {
             frameIndex++;
         } else if (guibutton.id == 20) {
             editingMode++;
@@ -457,6 +466,10 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
             } else {
                 textfield.setText(animation.name);
             }
+        } else if (textfield.id == 15 && animation != null && animation.frames.size() > 0) {
+            animation.frames.remove(frameIndex);
+            animation.frames.add(textfield.getInteger(),frame);
+            frameIndex = textfield.getInteger();
         } else if (textfield.id == 32) {
             if (editingMode == 0) {
                 animation.speed = textfield.getFloat();

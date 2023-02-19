@@ -20,7 +20,7 @@ public class FramePart implements IFramePart {
 	public byte smooth = 0;
 
 	//Client-sided fields (unsaved)
-	public float[] prevRotations = {(float) Math.PI,(float) Math.PI,(float) Math.PI};
+	public float[] prevRotations = {0,0,0};
 	public float[] prevPivots = {0,0,0};
 	public float partialRotationTick;
 	public float partialPivotTick;
@@ -145,6 +145,16 @@ public class FramePart implements IFramePart {
 		}
 
 		return compound;
+	}
+
+	public FramePart copy() {
+		FramePart part = new FramePart(this.part);
+		part.rotation = new float[]{this.rotation[0],this.rotation[1],this.rotation[2]};
+		part.pivot = new float[]{this.pivot[0],this.pivot[1],this.pivot[2]};
+		part.customized = this.customized;
+		part.speed = this.speed;
+		part.smooth = this.smooth;
+		return part;
 	}
 
 	@SideOnly(Side.CLIENT)

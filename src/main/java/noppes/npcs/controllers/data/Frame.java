@@ -165,4 +165,19 @@ public class Frame implements IFrame {
 		compound.setTag("FrameParts", list);
 		return compound;
 	}
+
+	public Frame copy() {
+		Frame frame = new Frame(this.duration);
+		HashMap<EnumAnimationPart,FramePart> frameParts = this.frameParts;
+		for (Map.Entry<EnumAnimationPart,FramePart> entry : frameParts.entrySet()) {
+			frame.frameParts.put(entry.getKey(),entry.getValue().copy());
+		}
+		frame.parent = this.parent;
+		frame.duration = this.duration;
+		frame.customized = this.customized;
+		frame.speed = this.speed;
+		frame.smooth = this.smooth;
+		frame.renderTicks = this.renderTicks;
+		return frame;
+	}
 }

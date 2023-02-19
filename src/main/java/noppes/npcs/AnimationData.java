@@ -25,7 +25,7 @@ public class AnimationData implements IAnimationData {
     public void updateClient() {
         NBTTagCompound compound = new NBTTagCompound();
         compound = this.writeToNBT(compound);
-        compound.setTag("Animation",this.animation.writeToNBT());
+        compound.setTag("Animation",this.animation == null ? new NBTTagCompound() : this.animation.writeToNBT());
         if (parent instanceof PlayerData) {
             Server.sendToAll(EnumPacketClient.UPDATE_ANIMATIONS, compound, ((PlayerData) parent).player.getCommandSenderName());
         } else if (parent instanceof DataDisplay) {
