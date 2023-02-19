@@ -226,6 +226,12 @@ public class PacketHandlerServer{
 	private void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		int tab = buffer.readInt();
 		if (tab >= 0) {
+			int totalScripts = buffer.readInt();
+			if (data.getScripts().size() > totalScripts) {
+				data.setScripts(data.getScripts().subList(0,totalScripts));
+			} else while (data.getScripts().size() < totalScripts) {
+				data.getScripts().add(new ScriptContainer(data));
+			}
 			NBTTagCompound tabCompound = Server.readNBT(buffer);
 			data.getScripts().get(tab).readFromNBT(tabCompound);
 		} else {
@@ -249,6 +255,8 @@ public class PacketHandlerServer{
 			this.getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
 			this.saveScripts(data,buffer,player);
+			ScriptController.Instance.lastLoaded = System.currentTimeMillis();
+			ScriptController.Instance.playerScripts.lastInited = System.currentTimeMillis();
 		}
 	}
 
@@ -258,6 +266,8 @@ public class PacketHandlerServer{
 			this.getScripts(data,buffer,player);
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
 			this.saveScripts(data,buffer,player);
+			ScriptController.Instance.lastLoaded = System.currentTimeMillis();
+			ScriptController.Instance.forgeScripts.lastInited = System.currentTimeMillis();
 		}
 	}
 
@@ -267,6 +277,8 @@ public class PacketHandlerServer{
 			this.getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptNPCSave) {
 			this.saveScripts(data,buffer,player);
+			ScriptController.Instance.lastLoaded = System.currentTimeMillis();
+			ScriptController.Instance.npcScripts.lastInited = System.currentTimeMillis();
 		}
 	}
 

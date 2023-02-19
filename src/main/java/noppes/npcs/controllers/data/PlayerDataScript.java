@@ -131,6 +131,9 @@ public class PlayerDataScript implements IScriptHandler {
     public void setLanguage(String lang) {
         this.scriptLanguage = lang;
     }
+    public void setScripts(List<ScriptContainer> list) {
+        this.scripts = list;
+    }
     public List<ScriptContainer> getScripts() {
         return this.scripts;
     }

@@ -47,7 +47,7 @@ public class GuiScriptForge extends GuiScriptInterface {
         List<ScriptContainer> containers = this.script.getScripts();
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
-            Client.sendData(EnumPacketServer.ScriptForgeSave, i, container.writeToNBT(new NBTTagCompound()));
+            Client.sendData(EnumPacketServer.ScriptForgeSave, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
         }
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", this.script.getLanguage());

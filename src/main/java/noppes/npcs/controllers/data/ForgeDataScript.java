@@ -113,6 +113,10 @@ public class ForgeDataScript implements IScriptHandler {
         this.scriptLanguage = lang;
     }
 
+    public void setScripts(List<ScriptContainer> list) {
+        this.scripts = list;
+    }
+
     public List<ScriptContainer> getScripts() {
         return this.scripts;
     }

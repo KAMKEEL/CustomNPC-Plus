@@ -49,7 +49,7 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         List<ScriptContainer> containers = this.script.getScripts();
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
-            Client.sendData(EnumPacketServer.ScriptPlayerSave, i, container.writeToNBT(new NBTTagCompound()));
+            Client.sendData(EnumPacketServer.ScriptPlayerSave, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
         }
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", this.script.getLanguage());

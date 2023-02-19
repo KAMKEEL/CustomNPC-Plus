@@ -25,6 +25,8 @@ public interface IScriptHandler {
 
     void setLanguage(String var1);
 
+    void setScripts(List<ScriptContainer> list);
+
     List<ScriptContainer> getScripts();
 
     String noticeString();
