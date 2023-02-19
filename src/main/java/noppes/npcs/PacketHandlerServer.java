@@ -205,42 +205,66 @@ public class PacketHandlerServer{
 		}
 	}
 
+	private void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		NBTTagCompound compound = new NBTTagCompound();
+		compound.setBoolean("ScriptEnabled", data.getEnabled());
+		compound.setString("ScriptLanguage", data.getLanguage());
+		compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+		Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		List<ScriptContainer> containers = data.getScripts();
+		for (int i = 0; i < containers.size(); i++) {
+			ScriptContainer container = containers.get(i);
+			NBTTagCompound tabCompound = new NBTTagCompound();
+			tabCompound.setInteger("Tab",i);
+			tabCompound.setTag("Script",container.writeToNBT(new NBTTagCompound()));
+			tabCompound.setInteger("TotalScripts",containers.size());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, tabCompound);
+		}
+	}
+
+	private void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		int tab = buffer.readInt();
+		if (tab >= 0) {
+			NBTTagCompound tabCompound = Server.readNBT(buffer);
+			data.getScripts().get(tab).readFromNBT(tabCompound);
+		} else {
+			NBTTagCompound compound = Server.readNBT(buffer);
+			data.setLanguage(compound.getString("ScriptLanguage"));
+			if (!ScriptController.Instance.languages.containsKey(data.getLanguage())) {
+				if (!ScriptController.Instance.languages.isEmpty()) {
+					data.setLanguage((String) ScriptController.Instance.languages.keySet().toArray()[0]);
+				} else {
+					data.setLanguage("ECMAScript");
+				}
+			}
+			data.setEnabled(compound.getBoolean("ScriptEnabled"));
+		}
+	}
+
 	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
-		NBTTagCompound compound;
+		PlayerDataScript data = ScriptController.Instance.playerScripts;
 		if(type == EnumPacketServer.ScriptPlayerGet) {
-			PlayerDataScript data = ScriptController.Instance.playerScripts;
-			compound = data.writeToNBT(new NBTTagCompound());
-			compound.setBoolean("ScriptEnabled", ScriptController.Instance.playerScripts.getEnabled());
-			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			this.getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
-			ScriptController.Instance.setPlayerScripts(Server.readNBT(buffer));
+			this.saveScripts(data,buffer,player);
 		}
 	}
 
 	private void forgeScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
-		NBTTagCompound compound;
+		ForgeDataScript data = ScriptController.Instance.forgeScripts;
 		if (type == EnumPacketServer.ScriptForgeGet) {
-			ForgeDataScript data = ScriptController.Instance.forgeScripts;
-			compound = data.writeToNBT(new NBTTagCompound());
-			compound.setBoolean("ScriptEnabled", ScriptController.Instance.forgeScripts.getEnabled());
-			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
+			this.getScripts(data,buffer,player);
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
-			ScriptController.Instance.setForgeScripts(Server.readNBT(buffer));
+			this.saveScripts(data,buffer,player);
 		}
 	}
 
 	private void npcScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
-		NBTTagCompound compound;
+		NPCDataScript data = ScriptController.Instance.npcScripts;
 		if(type == EnumPacketServer.ScriptNPCGet) {
-			NPCDataScript data = ScriptController.Instance.npcScripts;
-			compound = data.writeToNBT(new NBTTagCompound());
-			compound.setBoolean("ScriptEnabled", ScriptController.Instance.npcScripts.getEnabled());
-			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			this.getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptNPCSave) {
-			ScriptController.Instance.setNPCScripts(Server.readNBT(buffer));
+			this.saveScripts(data,buffer,player);
 		}
 	}
 
@@ -888,12 +912,9 @@ public class PacketHandlerServer{
 		}
 		else if (type == EnumPacketServer.AnimationSave) {
 			String prevName = Server.readString(buffer);
-			AnimationController.instance.animations.remove(prevName);
+			AnimationController.instance.delete(prevName);
 			Animation animation = new Animation();
 			animation.readFromNBT(Server.readNBT(buffer));
-			if (AnimationController.instance.has(animation.getName())) {
-				animation.name = prevName;
-			}
 			animation.save();
 			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
 		}

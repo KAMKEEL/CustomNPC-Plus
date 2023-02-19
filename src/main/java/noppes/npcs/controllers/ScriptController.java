@@ -89,19 +89,14 @@ public class ScriptController {
 		}
 	}
 
-	public void setForgeScripts(NBTTagCompound compound) {
-		this.forgeScripts.readFromNBT(compound);
+	public void saveForgeScripts() {
 		File file = this.forgeScriptsFile();
-
 		try {
-			NBTJsonUtil.SaveFile(file, compound);
+			NBTJsonUtil.SaveFile(file, this.forgeScripts.writeToNBT(new NBTTagCompound()));
 			this.forgeScripts.lastInited = -1L;
-		} catch (IOException var4) {
+		} catch (IOException | JsonException var4) {
 			var4.printStackTrace();
-		} catch (JsonException var5) {
-			var5.printStackTrace();
 		}
-
 	}
 
 	private File playerScriptsFile() {
@@ -130,17 +125,13 @@ public class ScriptController {
 		}
 	}
 
-	public void setPlayerScripts(NBTTagCompound compound) {
-		this.playerScripts.readFromNBT(compound);
+	public void savePlayerScripts() {
 		File file = this.playerScriptsFile();
-
 		try {
-			NBTJsonUtil.SaveFile(file, compound);
-			this.lastPlayerUpdate = System.currentTimeMillis();
-		} catch (IOException var4) {
+			NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new NBTTagCompound()));
+			this.playerScripts.lastInited = -1L;
+		} catch (IOException | JsonException var4) {
 			var4.printStackTrace();
-		} catch (JsonException var5) {
-			var5.printStackTrace();
 		}
 	}
 
@@ -162,16 +153,13 @@ public class ScriptController {
 		}
 	}
 
-	public void setNPCScripts(NBTTagCompound compound) {
-		this.npcScripts.readFromNBT(compound);
+	public void saveNpcScripts() {
 		File file = this.npcScriptsFile();
-
 		try {
-			NBTJsonUtil.SaveFile(file, compound);
-		} catch (IOException var4) {
+			NBTJsonUtil.SaveFile(file, this.npcScripts.writeToNBT(new NBTTagCompound()));
+			this.npcScripts.lastInited = -1L;
+		} catch (IOException | JsonException var4) {
 			var4.printStackTrace();
-		} catch (JsonException var5) {
-			var5.printStackTrace();
 		}
 	}
 

@@ -144,7 +144,7 @@ public class NBTTags {
 	
 	/**
 	 * @param tagList
-	 * @param arraySize if an int array is not this length a new int array with this length is made
+	 * @param arrayLength if an int array is not this length a new int array with this length is made
 	 * @return
 	 */
 	public static HashMap<String, int[]> getStringIntegerArrayMap(NBTTagList tagList, int arrayLength) {
@@ -476,13 +476,26 @@ public class NBTTags {
 		}
 	}
 
-	public static List<ScriptContainer> GetScript(NBTTagList list, IScriptHandler handler) {
+	public static List<ScriptContainer> GetScriptOld(NBTTagList list, IScriptHandler handler) {
 		ArrayList scripts = new ArrayList();
 
 		for(int i = 0; i < list.tagCount(); ++i) {
 			NBTTagCompound compoundd = list.getCompoundTagAt(i);
 			ScriptContainer script = new ScriptContainer(handler);
 			script.readFromNBT(compoundd);
+			scripts.add(script);
+		}
+
+		return scripts;
+	}
+
+	public static List<ScriptContainer> GetScript(NBTTagCompound compound, IScriptHandler handler) {
+		ArrayList<ScriptContainer> scripts = new ArrayList<>();
+
+		for(int i = 0; i < compound.getInteger("TotalScripts"); ++i) {
+			NBTTagCompound containerCompound = compound.getCompoundTag("Tab"+i);
+			ScriptContainer script = new ScriptContainer(handler);
+			script.readFromNBT(containerCompound);
 			scripts.add(script);
 		}
 

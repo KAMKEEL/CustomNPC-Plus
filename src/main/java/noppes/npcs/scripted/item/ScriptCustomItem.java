@@ -61,7 +61,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
 
     public void setScriptNBT(NBTTagCompound compound) {
         if (compound.hasKey("Scripts")) {
-            this.scripts = NBTTags.GetScript(compound.getTagList("Scripts", 10), this);
+            this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
             this.scriptLanguage = compound.getString("ScriptLanguage");
             this.enabled = compound.getBoolean("ScriptEnabled");
             this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));

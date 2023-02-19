@@ -45,7 +45,11 @@ public class PlayerDataScript implements IScriptHandler {
         this.scripts = new ArrayList();
     }
     public void readFromNBT(NBTTagCompound compound) {
-        this.scripts = NBTTags.GetScript(compound.getTagList("Scripts", 10), this);
+        if (compound.hasKey("Scripts")) {
+            this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
+        } else {
+            this.scripts = NBTTags.GetScript(compound,this);
+        }
         this.scriptLanguage = compound.getString("ScriptLanguage");
         if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
             if (!ScriptController.Instance.languages.isEmpty()) {
@@ -58,7 +62,10 @@ public class PlayerDataScript implements IScriptHandler {
         this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setTag("Scripts", NBTTags.NBTScript(this.scripts));
+        compound.setInteger("TotalScripts",this.scripts.size());
+        for (int i = 0; i < this.scripts.size(); i++) {
+            compound.setTag("Tab"+i,this.scripts.get(i).writeToNBT(new NBTTagCompound()));
+        }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
         compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
