@@ -155,8 +155,9 @@ public class ScriptContainer {
                 }
 
                 engine.put("API", NpcAPI.Instance());
-                for (Map.Entry<String,Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
-                    engine.put(engineObjects.getKey(),engineObjects.getValue());
+                Set<Map.Entry<String, Object>> engineEntries = NpcAPI.engineObjects.entrySet();
+                for (Map.Entry<String,Object> objectEntry : engineEntries) {
+                    engine.put(objectEntry.getKey(),objectEntry.getValue());
                 }
 
                 Current = this;
