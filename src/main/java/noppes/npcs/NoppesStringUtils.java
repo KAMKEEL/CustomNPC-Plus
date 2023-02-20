@@ -38,6 +38,7 @@ public class NoppesStringUtils {
 				
 		}
 		text = text.replace("&", Character.toChars(167)[0] + "");
+		text = text.replace("%","%%");
 		return text;
 	}
 
