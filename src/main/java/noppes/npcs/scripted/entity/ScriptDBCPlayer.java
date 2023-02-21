@@ -1,5 +1,8 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.IProjectile;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -8,6 +11,9 @@ import noppes.npcs.api.entity.IDBCPlayer;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> implements IDBCPlayer {
     public T player;
@@ -613,5 +619,68 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         }
 
         throw new CustomNPCsException("Invalid kill type: " + type + "\nValid kill types are: evil, good, neutral, all", new Object[0]);
+    }
+
+    public String getFusionString() {
+        if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFuzion")) {
+            return player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcFuzion").trim();
+        }
+        return "";
+    }
+
+    public double getMaxMeleeDamage() {
+        EntityPlayer player = this.getMCEntity();
+
+        try {
+            Class<?> JRMCoreH = Class.forName("JinRyuu.JRMCore.JRMCoreH");
+
+            Method getString = JRMCoreH.getDeclaredMethod("getString",EntityPlayer.class,String.class);
+            Method getInt = JRMCoreH.getDeclaredMethod("getInt",EntityPlayer.class,String.class);
+            Method PlyrAttrbts = JRMCoreH.getDeclaredMethod("PlyrAttrbts",EntityPlayer.class,boolean.class);
+            Method StusEfcts = JRMCoreH.getDeclaredMethod("StusEfcts",int.class,String.class);
+            Method getPlayerAttribute = JRMCoreH.getDeclaredMethod("getPlayerAttribute",EntityPlayer.class, int[].class, int.class, int.class, int.class, int.class, String.class, int.class, int.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class, String[].class, boolean.class, String.class);
+            Method stat = JRMCoreH.getDeclaredMethod("stat", Entity.class, int.class, int.class, int.class, int.class, int.class, int.class, float.class);
+            Method weightPerc = JRMCoreH.getDeclaredMethod("weightPerc",int.class,EntityPlayer.class);
+
+            int powerType = this.getPowerType();
+            int race = this.getRace();
+            int state = this.getForm();
+            int state2 = this.getForm2();
+            int classID = this.getDBCClass();
+            double release = this.getRelease();
+            String sklx = (String) getString.invoke(null,player, "jrmcSSltX");
+            int resrv = (int) getInt.invoke(null,player, "jrmcArcRsrv");
+            String absorption = (String) getString.invoke(null,player, "jrmcMajinAbsorptionData");
+            int[] plyrAttrbts = (int[]) PlyrAttrbts.invoke(null,player,!this.getFusionString().isEmpty());
+            String[] PlyrSkills = ((String) getString.invoke(null,player, "jrmcSSlts")).split(",");
+            String statusEffects = (String) getString.invoke(null,player, "jrmcStatusEff");
+            boolean mj = (boolean) StusEfcts.invoke(null,12, statusEffects);
+            boolean lg = (boolean) StusEfcts.invoke(null,14, statusEffects);
+            boolean kk = (boolean) StusEfcts.invoke(null,5, statusEffects);
+            boolean mc = (boolean) StusEfcts.invoke(null,13, statusEffects);
+            boolean mn = (boolean) StusEfcts.invoke(null,19, statusEffects);
+            boolean gd = (boolean) StusEfcts.invoke(null,20, statusEffects);
+            int STR;
+            boolean c;
+
+            c = (boolean) StusEfcts.invoke(null,10, statusEffects) || (boolean) StusEfcts.invoke(null,11, statusEffects);
+
+            STR = (int) getPlayerAttribute.invoke(null,player, plyrAttrbts, 0, state, state2, race, sklx, (int)release, resrv, lg, mj, kk, mc, mn, gd, powerType, PlyrSkills, c, absorption);
+            return (int) stat.invoke(null,player, 0, powerType, 0, STR, race, classID, 0.0F);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            return 0.0F;
+        }
+    }
+
+    public double getMeleeDamage() {
+        EntityPlayer player = this.getMCEntity();
+
+        try {
+            Class<?> JRMCoreH = Class.forName("JinRyuu.JRMCore.JRMCoreH");
+            Method weightPerc = JRMCoreH.getDeclaredMethod("weightPerc",int.class,EntityPlayer.class);
+            return this.getMaxMeleeDamage() * this.getRelease() * 0.01D * (float) weightPerc.invoke(null,0, player);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            return 0.0F;
+        }
     }
 }
