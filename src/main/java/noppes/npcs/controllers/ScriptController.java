@@ -47,8 +47,10 @@ public class ScriptController {
 	public long lastPlayerUpdate = 0L;
 
 	public ForgeDataScript forgeScripts = new ForgeDataScript();
+	public long lastForgeUpdate = 0L;
 
 	public NPCDataScript npcScripts = new NPCDataScript((EntityNPCInterface) null);
+	public long lastNpcUpdate = 0L;
 
 	public ScriptController(){
 		loaded = false;

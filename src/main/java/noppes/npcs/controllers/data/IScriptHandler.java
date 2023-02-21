@@ -31,8 +31,6 @@ public interface IScriptHandler {
 
     String noticeString();
 
-    void setConsoleText(Map<Long, String> map);
-
     Map<Long, String> getConsoleText();
 
     void clearConsole();

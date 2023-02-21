@@ -28,7 +28,6 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         if (!compound.hasKey("Tab")) {
             script.setLanguage(compound.getString("ScriptLanguage"));
             script.setEnabled(compound.getBoolean("ScriptEnabled"));
-            script.setConsoleText(NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10)));
             super.setGuiData(compound);
         } else {
             int tab = compound.getInteger("Tab");

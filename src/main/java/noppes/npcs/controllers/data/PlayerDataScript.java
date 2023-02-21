@@ -31,8 +31,6 @@ public class PlayerDataScript implements IScriptHandler {
     private long lastPlayerUpdate = 0L;
     public long lastInited = -1L;
     public boolean enabled = false;
-    private Map<Long, String> console = new TreeMap();
-    public List<Integer> errored = new ArrayList();
 
     public PlayerDataScript(EntityPlayer player) {
         if(player != null) {
@@ -40,8 +38,6 @@ public class PlayerDataScript implements IScriptHandler {
         }
     }
     public void clear() {
-        this.console = new TreeMap();
-        this.errored = new ArrayList();
         this.scripts = new ArrayList();
     }
     public void readFromNBT(NBTTagCompound compound) {
@@ -59,7 +55,6 @@ public class PlayerDataScript implements IScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
-        this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setInteger("TotalScripts",this.scripts.size());
@@ -68,18 +63,18 @@ public class PlayerDataScript implements IScriptHandler {
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
-        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
         return compound;
     }
 
     public void callScript(EnumScriptType type, Event event) {
         if (this.isEnabled()) {
-            ScriptContainer script;
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
-                errored.clear();
-
                 this.lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
+
+                for (ScriptContainer scriptContainer : this.scripts) {
+                    scriptContainer.errored = false;
+                }
 
                 if (type != EnumScriptType.INIT) {
                     noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent)event;
@@ -87,28 +82,12 @@ public class PlayerDataScript implements IScriptHandler {
                 }
             }
 
-            for(int i = 0; i < ScriptController.Instance.playerScripts.scripts.size(); ++i) {
-                script = (ScriptContainer)ScriptController.Instance.playerScripts.scripts.get(i);
-                if (!errored.contains(i)) {
-                    if(script == null || script.errored || !script.hasCode() || ScriptController.Instance.playerScripts.errored.contains(i))
-                        continue;
+            for (ScriptContainer script : this.scripts) {
+                if(script == null || script.errored || !script.hasCode() )
+                    continue;
 
-                    script.run(type, event);
-
-                    if (script.errored) {
-                        ScriptController.Instance.playerScripts.errored.add(i);
-                    }
-
-                    for (Entry<Long, String> longStringEntry : script.console.entrySet()) {
-                        if (!ScriptController.Instance.playerScripts.console.containsKey(longStringEntry.getKey())) {
-                            ScriptController.Instance.playerScripts.console.put(longStringEntry.getKey(), " tab " + (i + 1) + ":\n" + longStringEntry.getValue());
-                        }
-                    }
-
-                    script.console.clear();
-                }
+                script.run(type, event);
             }
-
         }
     }
 
@@ -152,16 +131,23 @@ public class PlayerDataScript implements IScriptHandler {
         return this.playerAPI;
     }
 
-    public void setConsoleText(Map<Long, String> map) {
-        this.console = map;
-    }
-
     public Map<Long, String> getConsoleText() {
-        return this.console;
+        TreeMap<Long, String> map = new TreeMap<>();
+        int tab = 0;
+        for (ScriptContainer script : this.getScripts()) {
+            ++tab;
+
+            for (Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+            }
+        }
+        return map;
     }
 
     public void clearConsole() {
-        this.console.clear();
+        for (ScriptContainer script : this.getScripts()) {
+            script.console.clear();
+        }
     }
 
     public static final class ToStringHelper {

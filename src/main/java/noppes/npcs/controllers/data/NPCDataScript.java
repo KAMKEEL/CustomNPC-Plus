@@ -23,8 +23,8 @@ public class NPCDataScript implements IScriptHandler {
     private EntityNPCInterface npc;
     private ICustomNpc npcAPI;
     public long lastInited = -1L;
+    private long lastNpcUpdate = -1L;
     public boolean enabled = false;
-    private Map<Long, String> console = new TreeMap();
 
     public NPCDataScript(EntityNPCInterface npc) {
         if(npc != null) {
@@ -32,7 +32,6 @@ public class NPCDataScript implements IScriptHandler {
         }
     }
     public void clear() {
-        this.console = new TreeMap();
         this.scripts = new ArrayList();
     }
     public void readFromNBT(NBTTagCompound compound) {
@@ -50,7 +49,6 @@ public class NPCDataScript implements IScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
-        this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setInteger("TotalScripts",this.scripts.size());
@@ -59,26 +57,25 @@ public class NPCDataScript implements IScriptHandler {
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
-        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
         return compound;
     }
 
     public void callScript(EnumScriptType type, Event event) {
         if (this.isEnabled()) {
-            if (ScriptController.Instance.lastLoaded > this.lastInited) {
+            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastNpcUpdate > this.lastNpcUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
+                this.lastNpcUpdate = ScriptController.Instance.lastNpcUpdate;
+
+                for (ScriptContainer script : this.scripts) {
+                    script.errored = false;
+                }
             }
 
-            int i = 0;
             for (ScriptContainer script : this.scripts) {
-                script.run(type, event);
+                if(script == null || script.errored || !script.hasCode() )
+                    continue;
 
-                for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
-                    if (!ScriptController.Instance.npcScripts.console.containsKey(longStringEntry.getKey())) {
-                        ScriptController.Instance.npcScripts.console.put(longStringEntry.getKey(), " tab " + (i + 1) + ":\n" + longStringEntry.getValue());
-                    }
-                }
-                i++;
+                script.run(type, event);
             }
         }
     }
@@ -122,16 +119,23 @@ public class NPCDataScript implements IScriptHandler {
         return this.npcAPI;
     }
 
-    public void setConsoleText(Map<Long, String> map) {
-        this.console = map;
-    }
-
     public Map<Long, String> getConsoleText() {
-        return this.console;
+        TreeMap<Long, String> map = new TreeMap<>();
+        int tab = 0;
+        for (ScriptContainer script : this.getScripts()) {
+            ++tab;
+
+            for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+            }
+        }
+        return map;
     }
 
     public void clearConsole() {
-        this.console.clear();
+        for (ScriptContainer script : this.getScripts()) {
+            script.console.clear();
+        }
     }
 
     public static final class ToStringHelper {

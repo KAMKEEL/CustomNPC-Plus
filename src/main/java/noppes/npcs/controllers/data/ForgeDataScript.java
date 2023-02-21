@@ -21,15 +21,14 @@ public class ForgeDataScript implements IScriptHandler {
     private List<ScriptContainer> scripts = new ArrayList();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
+    private long lastForgeUpdate = -1L;
     private boolean enabled = false;
-    private Map<Long, String> console = new TreeMap();
 
     public ForgeDataScript() {
     }
 
     public void clear() {
         this.scripts = new ArrayList();
-        this.console = new TreeMap();
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -47,7 +46,6 @@ public class ForgeDataScript implements IScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
-        this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -57,7 +55,6 @@ public class ForgeDataScript implements IScriptHandler {
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
-        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
         return compound;
     }
 
@@ -68,23 +65,24 @@ public class ForgeDataScript implements IScriptHandler {
 
     public void callScript(String type, Event event) {
         if(this.isEnabled()) {
-            if (ScriptController.Instance.lastLoaded > this.lastInited) {
+            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastForgeUpdate > this.lastForgeUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
+                this.lastForgeUpdate = ScriptController.Instance.lastForgeUpdate;
+
+                for (ScriptContainer script : this.scripts) {
+                    script.errored = false;
+                }
+
                 if (!type.equals("init")) {
                     EventHooks.onForgeInit(this);
                 }
             }
 
-            int i = 0;
             for (ScriptContainer script : this.scripts) {
-                script.run(type, event);
+                if(script == null || script.errored || !script.hasCode() )
+                    continue;
 
-                for (Entry<Long, String> longStringEntry : script.console.entrySet()) {
-                    if (!ScriptController.Instance.forgeScripts.console.containsKey(longStringEntry.getKey())) {
-                        ScriptController.Instance.forgeScripts.console.put(longStringEntry.getKey(), " tab " + (i + 1) + ":\n" + longStringEntry.getValue());
-                    }
-                }
-                i++;
+                script.run(type, event);
             }
         }
     }
@@ -125,14 +123,22 @@ public class ForgeDataScript implements IScriptHandler {
         return "ForgeScript";
     }
 
-    public void setConsoleText(Map<Long, String> map) {
-        this.console = map;
+    public Map<Long, String> getConsoleText() {
+        TreeMap<Long, String> map = new TreeMap<>();
+        int tab = 0;
+        for (ScriptContainer script : this.getScripts()) {
+            ++tab;
+
+            for (Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+            }
+        }
+        return map;
     }
 
-    public Map<Long, String> getConsoleText() {
-        return this.console;
-    }
     public void clearConsole() {
-        this.console.clear();
+        for (ScriptContainer script : this.getScripts()) {
+            script.console.clear();
+        }
     }
 }

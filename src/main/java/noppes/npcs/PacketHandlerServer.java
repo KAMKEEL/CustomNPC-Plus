@@ -245,7 +245,6 @@ public class PacketHandlerServer{
 				}
 			}
 			data.setEnabled(compound.getBoolean("ScriptEnabled"));
-			data.setConsoleText(NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10)));
 		}
 	}
 
@@ -255,8 +254,7 @@ public class PacketHandlerServer{
 			this.getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
 			this.saveScripts(data,buffer,player);
-			ScriptController.Instance.lastLoaded = System.currentTimeMillis();
-			ScriptController.Instance.playerScripts.lastInited = System.currentTimeMillis();
+			ScriptController.Instance.lastPlayerUpdate = System.currentTimeMillis();
 		}
 	}
 
@@ -266,8 +264,7 @@ public class PacketHandlerServer{
 			this.getScripts(data,buffer,player);
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
 			this.saveScripts(data,buffer,player);
-			ScriptController.Instance.lastLoaded = System.currentTimeMillis();
-			ScriptController.Instance.forgeScripts.lastInited = System.currentTimeMillis();
+			ScriptController.Instance.lastForgeUpdate = System.currentTimeMillis();
 		}
 	}
 
@@ -277,8 +274,7 @@ public class PacketHandlerServer{
 			this.getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptNPCSave) {
 			this.saveScripts(data,buffer,player);
-			ScriptController.Instance.lastLoaded = System.currentTimeMillis();
-			ScriptController.Instance.npcScripts.lastInited = System.currentTimeMillis();
+			ScriptController.Instance.lastNpcUpdate = System.currentTimeMillis();
 		}
 	}
 
