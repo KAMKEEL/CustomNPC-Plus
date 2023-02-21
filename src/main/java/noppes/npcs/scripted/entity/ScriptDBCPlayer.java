@@ -628,7 +628,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return "";
     }
 
-    public double getMaxMeleeDamage() {
+    public double getMaxMeleeStrength() {
         EntityPlayer player = this.getMCEntity();
 
         try {
@@ -668,19 +668,17 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             STR = (int) getPlayerAttribute.invoke(null,player, plyrAttrbts, 0, state, state2, race, sklx, (int)release, resrv, lg, mj, kk, mc, mn, gd, powerType, PlyrSkills, c, absorption);
             return (int) stat.invoke(null,player, 0, powerType, 0, STR, race, classID, 0.0F);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            return 0.0F;
+            return super.getMeleeStrength();
         }
     }
 
-    public double getMeleeDamage() {
-        EntityPlayer player = this.getMCEntity();
-
+    public double getMeleeStrength() {
         try {
             Class<?> JRMCoreH = Class.forName("JinRyuu.JRMCore.JRMCoreH");
             Method weightPerc = JRMCoreH.getDeclaredMethod("weightPerc",int.class,EntityPlayer.class);
-            return this.getMaxMeleeDamage() * this.getRelease() * 0.01D * (float) weightPerc.invoke(null,0, player);
+            return this.getMaxMeleeStrength() * this.getRelease() * 0.01D * (float) weightPerc.invoke(null,0, this.getMCEntity());
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            return 0.0F;
+            return super.getMeleeStrength();
         }
     }
 }
