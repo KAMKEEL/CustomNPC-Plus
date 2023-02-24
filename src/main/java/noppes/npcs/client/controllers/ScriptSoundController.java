@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,11 +18,12 @@ public class ScriptSoundController {
     
     public void onUpdate() {
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-        final Set<Map.Entry<Integer, ScriptClientSound>> entrySet = sounds.entrySet();
-        for (Map.Entry<Integer, ScriptClientSound> entry : entrySet) {
+        final Iterator<Map.Entry<Integer, ScriptClientSound>> iterator = sounds.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, ScriptClientSound> entry = iterator.next();
             ScriptClientSound sound = entry.getValue();
             if (!soundHandler.isSoundPlaying(sound) && !sound.canRepeat() && !sound.paused) {
-                sounds.remove(entry.getKey());
+                iterator.remove();
             }
         }
     }
