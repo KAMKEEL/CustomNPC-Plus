@@ -29,9 +29,9 @@ public class CmdHelp extends CommandKamkeelBase{
 	@Override
 	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
 		if(args.length == 0){
-			sendMessage(sender, "------Kamkeel Commands------");
+			sendMessage(sender, "\u00A78------ \u00A7cKamkeel Commands \u00A78------");
 			for(Entry<String, CommandKamkeelBase> entry : parent.map.entrySet()){
-				sendMessage(sender, entry.getKey() + ": " + entry.getValue().getCommandUsage(sender));
+				sendMessage(sender, "\u00A77> " + "\u00A7e" + entry.getKey() + "\u00A78: \u00A77" + entry.getValue().getCommandUsage(sender));
 			}
 			return;
 		}
@@ -50,17 +50,17 @@ public class CmdHelp extends CommandKamkeelBase{
 			m = command.subcommands.get(args[1].toLowerCase());
 		}
 		if(m == null){
-			sendMessage(sender, "------" + command.getCommandName() + " SubCommands------");
+			sendMessage(sender, "\u00A78------ \u00A7a" + command.getCommandName().toUpperCase() + " SubCommands \u00A78------");
 			for(Entry<String, Method> entry : command.subcommands.entrySet()){
-				sender.addChatMessage(new ChatComponentTranslation(entry.getKey() + ": " + entry.getValue().getAnnotation(SubCommand.class).desc()));
+				sender.addChatMessage(new ChatComponentTranslation("\u00A77> " + "\u00A7e" + entry.getKey() + "\u00A78: \u00A77" + entry.getValue().getAnnotation(SubCommand.class).desc()));
 			}
 		}
 		else{
-			sendMessage(sender, "------" + command.getCommandName() + "." + args[1].toLowerCase() + " Command------");
+			sendMessage(sender, "\u00A78------ \u00A7b" + command.getCommandName().toUpperCase() + "." + args[1].toUpperCase() + " Command \u00A78------");
 			SubCommand sc = m.getAnnotation(SubCommand.class);
-			sender.addChatMessage(new ChatComponentTranslation(sc.desc()));
+			sender.addChatMessage(new ChatComponentTranslation("\u00A77" + sc.desc()));
 			if(!sc.usage().isEmpty())
-				sender.addChatMessage(new ChatComponentTranslation("Usage: " + sc.usage()));
+				sender.addChatMessage(new ChatComponentTranslation("\u00A77Usage: \u00A76" + sc.usage()));
 		}
 	}
 }

@@ -21,6 +21,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class CmdNPC extends CommandKamkeelBase {
     
@@ -51,9 +52,10 @@ public class CmdNPC extends CommandKamkeelBase {
 	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         String npcname = args[0].replace("%", " ");
         String command = args[1];
-        args = Arrays.copyOfRange(args, 2, args.length);
-    	if(command.equalsIgnoreCase("create")){
-            processSubCommand(sender, command, new String[]{args[0], npcname});
+		args = Arrays.copyOfRange(args, 2, args.length);
+		if(command.equalsIgnoreCase("create")){
+			args = ArrayUtils.add(args, 0, npcname);
+            processSubCommand(sender, command, args);
     		return;
     	}
 
