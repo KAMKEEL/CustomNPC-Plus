@@ -165,7 +165,7 @@ public class ScriptController {
 		}
 	}
 
-	private void loadCategories(){
+	public void loadCategories(){
 		dir = new File(CustomNpcs.getWorldSaveDirectory(), "scripts");
 		if(!dir.exists())
 			dir.mkdir();
