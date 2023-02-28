@@ -1,6 +1,9 @@
 package noppes.npcs.controllers;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.command.PlayerSelector;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
@@ -14,7 +17,9 @@ import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -179,6 +184,23 @@ public class PlayerDataController {
 			}
 		}
 		return map;
+	}
+
+	public List<PlayerData> getPlayersData(ICommandSender sender, String username){
+		ArrayList<PlayerData> list = new ArrayList<PlayerData>();
+		EntityPlayerMP[] players = PlayerSelector.matchPlayers(sender, username);
+		if(players == null || players.length == 0){
+			PlayerData data = PlayerDataController.instance.getDataFromUsername(username);
+			if(data != null)
+				list.add(data);
+		}
+		else{
+			for(EntityPlayer player : players){
+				list.add(PlayerDataController.instance.getPlayerData(player));
+			}
+		}
+
+		return list;
 	}
 
 	public boolean hasMail(EntityPlayer player) {
