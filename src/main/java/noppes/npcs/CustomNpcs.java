@@ -9,6 +9,7 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
+import kamkeel.CommandKamkeel;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -244,6 +245,7 @@ public class CustomNpcs {
     @EventHandler
     public void serverstart(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandNoppes());
+        event.registerServerCommand(new CommandKamkeel());
     }
 
     private void registerNpc(Class<? extends Entity> cl, String name) {
