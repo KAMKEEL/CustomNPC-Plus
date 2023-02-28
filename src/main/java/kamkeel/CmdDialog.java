@@ -46,7 +46,7 @@ public class CmdDialog extends CommandKamkeelBase {
         }
         for(PlayerData playerdata : data){     
 	        playerdata.dialogData.dialogsRead.add(diagid);
-	        playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
     }
     
@@ -68,7 +68,7 @@ public class CmdDialog extends CommandKamkeelBase {
         }
         for(PlayerData playerdata : data){  
 	        playerdata.dialogData.dialogsRead.remove(diagid);
-	        playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
     }
     @SubCommand(

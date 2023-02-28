@@ -62,7 +62,7 @@ public class CmdFaction extends CommandKamkeelBase {
         processSubCommand(sender, args[2], Arrays.copyOfRange(args, 3, args.length));
         
         for(PlayerData playerdata : data){
-        	playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
         }
 	}
 

@@ -53,7 +53,7 @@ public class CmdQuest extends CommandKamkeelBase {
         for(PlayerData playerdata : data){  
 	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
-	        playerdata.saveNBTData(null);
+            playerdata.savePlayerDataOnFile();
 			Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 			Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
         }
@@ -83,8 +83,8 @@ public class CmdQuest extends CommandKamkeelBase {
         	throw new CommandException("Unknown QuestID: " + questid);
         }             
         for(PlayerData playerdata : data){  
-	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());    
-	        playerdata.saveNBTData(null); 
+	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());
+            playerdata.savePlayerDataOnFile();
         }
     }
 
@@ -110,7 +110,7 @@ public class CmdQuest extends CommandKamkeelBase {
         }       
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
-	        playerdata.saveNBTData(null); 
+            playerdata.savePlayerDataOnFile();
         }
     }
     
@@ -140,7 +140,7 @@ public class CmdQuest extends CommandKamkeelBase {
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
-	        playerdata.saveNBTData(null); 
+            playerdata.savePlayerDataOnFile();
         }
     }
     
