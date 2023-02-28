@@ -39,6 +39,10 @@ public class FactionController implements IFactionHandler {
 		return instance;
 	}
 
+	public Faction getFaction(int faction) {
+		return factions.get(faction);
+	}
+
 	private void loadFactions(){
 
 		File saveDir = CustomNpcs.getWorldSaveDirectory();
