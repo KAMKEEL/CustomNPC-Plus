@@ -101,7 +101,7 @@ public class CustomNpcs {
             // Convert Legacy Config to New Config if NO Config Folder Exists
             File legacyFile = new File(legacyPath);
             if(legacyFile.exists()){
-                System.out.println("Loading Legacy Client");
+                System.out.println("Loading Legacy Config");
                 legacyExist = true;
                 legacyConfig = new LegacyConfig();
                 legacyConfig.init();

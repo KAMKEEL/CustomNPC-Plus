@@ -91,7 +91,7 @@ public class NoppesUtilPlayer {
 			MinecraftServer server = MinecraftServer.getServer();
             WorldServer wor = server.worldServerForDimension(dimension);
             if(wor == null){
-            	player.addChatMessage(new ChatComponentText("Broken transporter. Dimenion does not exist"));
+            	player.addChatMessage(new ChatComponentText("Broken transporter. Dimension does not exist"));
             	return;
             }
             player.setLocationAndAngles(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
