@@ -13,7 +13,7 @@ public class ConfigMain
 {
     public static Configuration config;
 
-    public final static String GENERAL = "NPC";
+    public final static String GENERAL = "General";
     public final static String NPC = "NPC";
 
     /**
