@@ -143,7 +143,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	@Override
 	public void confirmClicked(boolean flag, int i){
 		if(flag)
-			openLink("http://www.kodevelopment.nl/minecraft/customnpcs/scripting");
+			openLink("https://kamkeel.github.io/CustomNPC-Plus/");
 		displayGuiScreen(this);
 	}
 
@@ -159,7 +159,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			initGui();
 		}
 		if(guibutton.id == 15){
-			GuiConfirmOpenLink guiyesno = new GuiConfirmOpenLink(this, "http://www.kodevelopment.nl/minecraft/customnpcs/scripting", 0, true);
+			GuiConfirmOpenLink guiyesno = new GuiConfirmOpenLink(this, "https://kamkeel.github.io/CustomNPC-Plus/", 0, true);
 			mc.displayGuiScreen(guiyesno);
 		}
 		if (guibutton.id == 100) {

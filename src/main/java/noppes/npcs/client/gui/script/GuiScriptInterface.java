@@ -328,7 +328,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
 
             if(i == 2) {
-                this.openLink("http://www.kodevelopment.nl/minecraft/customnpcs/scripting");
+                this.openLink("https://kamkeel.github.io/CustomNPC-Plus/");
             }
 
             if(i == 3) {
@@ -359,11 +359,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if(guibutton.id == 109) {
-            this.displayGuiScreen(new GuiConfirmOpenLink(this, "http://www.kodevelopment.nl/minecraft/customnpcs/scripting", 0, true));
+            this.displayGuiScreen(new GuiConfirmOpenLink(this, "https://kamkeel.github.io/CustomNPC-Plus/", 0, true));
         }
 
         if(guibutton.id == 110) {
-            this.displayGuiScreen(new GuiConfirmOpenLink(this, "http://www.kodevelopment.nl/customnpcs/api/", 1, true));
+            this.displayGuiScreen(new GuiConfirmOpenLink(this, "https://github.com/KAMKEEL/CustomNPC-Plus-API", 1, true));
         }
 
         if(guibutton.id == 111) {
