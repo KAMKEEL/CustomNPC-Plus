@@ -1569,8 +1569,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			jobInterface.readFromNBT(bard);
 		}
 		if(advanced.role == EnumRoleType.Companion){
-			NBTTagCompound puppet = compound.getCompoundTag("Companion");
-			roleInterface.readFromNBT(puppet);
+			NBTTagCompound companion = compound.getCompoundTag("Companion");
+			roleInterface.readFromNBT(companion);
 		}
 		if(this instanceof EntityCustomNpc){
 			((EntityCustomNpc)this).modelData.readFromNBT(compound.getCompoundTag("ModelData"));
