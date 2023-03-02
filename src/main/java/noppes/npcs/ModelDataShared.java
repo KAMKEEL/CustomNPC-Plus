@@ -10,8 +10,10 @@ import java.util.HashMap;
 
 public class ModelDataShared{
 	public ModelPartConfig arms = new ModelPartConfig();
+	public ModelPartConfig rarm = new ModelPartConfig();
 	public ModelPartConfig body = new ModelPartConfig();
 	public ModelPartConfig legs = new ModelPartConfig();
+	public ModelPartConfig rleg = new ModelPartConfig();
 	public ModelPartConfig head = new ModelPartConfig();
 
 	public ModelPartData legParts = new ModelPartData();
@@ -24,6 +26,13 @@ public class ModelDataShared{
 	private HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
 	public byte breasts = 0;
 
+	// Rotations
+	public boolean whileStanding = true;
+	public boolean whileAttacking = false;
+	public boolean whileMoving = false;
+
+	///////////////////////////////
+	// WILL BE PORTED TO ModelPartConfig
 	// Enabled vs Disabled
 	public byte headwear = 2;
 	public byte bodywear = 0;
@@ -39,6 +48,7 @@ public class ModelDataShared{
 	public byte hideBody = 0;
 	public byte hideArms = 0;
 	public byte hideLegs = 0;
+	///////////////////////////////
 			
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
@@ -46,10 +56,12 @@ public class ModelDataShared{
 		if(entityClass != null)
 			compound.setString("EntityClass", entityClass.getCanonicalName());
 
-		compound.setTag("ArmsConfig", arms.writeToNBT());
-		compound.setTag("BodyConfig", body.writeToNBT());
-		compound.setTag("LegsConfig", legs.writeToNBT());
 		compound.setTag("HeadConfig", head.writeToNBT());
+		compound.setTag("BodyConfig", body.writeToNBT());
+		compound.setTag("ArmsConfig", arms.writeToNBT());
+		compound.setTag("RightArmConfig", rarm.writeToNBT());
+		compound.setTag("LegsConfig", legs.writeToNBT());
+		compound.setTag("RightLegConfig", rleg.writeToNBT());
 
 		compound.setTag("LegParts", legParts.writeToNBT());
 
@@ -69,6 +81,10 @@ public class ModelDataShared{
 		compound.setByte("Breasts", breasts);
 		compound.setTag("ExtraData", extra);
 
+		compound.setBoolean("PuppetStanding", whileStanding);
+		compound.setBoolean("PuppetAttacking", whileAttacking);
+		compound.setBoolean("PuppetMoving", whileMoving);
+
 		NBTTagList list = new NBTTagList();
 		for(String name : parts.keySet()){
 			NBTTagCompound item = parts.get(name).writeToNBT();
@@ -82,11 +98,13 @@ public class ModelDataShared{
 
 	public void readFromNBT(NBTTagCompound compound){
 		setEntityClass(compound.getString("EntityClass"));
-		
-		arms.readFromNBT(compound.getCompoundTag("ArmsConfig"));
-		body.readFromNBT(compound.getCompoundTag("BodyConfig"));
-		legs.readFromNBT(compound.getCompoundTag("LegsConfig"));
+
 		head.readFromNBT(compound.getCompoundTag("HeadConfig"));
+		body.readFromNBT(compound.getCompoundTag("BodyConfig"));
+		arms.readFromNBT(compound.getCompoundTag("ArmsConfig"));
+		rarm.readFromNBT(compound.getCompoundTag("RightArmConfig"));
+		legs.readFromNBT(compound.getCompoundTag("LegsConfig"));
+		legs.readFromNBT(compound.getCompoundTag("RightLegConfig"));
 
 		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
 
@@ -105,7 +123,11 @@ public class ModelDataShared{
 
 		breasts = compound.getByte("Breasts");
 		extra = compound.getCompoundTag("ExtraData");
-				
+
+		whileStanding = compound.getBoolean("PuppetStanding");
+		whileAttacking = compound.getBoolean("PuppetAttacking");
+		whileMoving = compound.getBoolean("PuppetMoving");
+
 		HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
 		NBTTagList list = compound.getTagList("Parts", 10);
 		for (int i = 0; i < list.tagCount(); i++) {
