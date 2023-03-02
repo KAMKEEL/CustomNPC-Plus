@@ -59,9 +59,9 @@ public class ModelDataShared{
 		compound.setTag("HeadConfig", head.writeToNBT());
 		compound.setTag("BodyConfig", body.writeToNBT());
 		compound.setTag("ArmsConfig", arms.writeToNBT());
-		compound.setTag("RightArmConfig", rarm.writeToNBT());
+		compound.setTag("RArmsConfig", rarm.writeToNBT());
 		compound.setTag("LegsConfig", legs.writeToNBT());
-		compound.setTag("RightLegConfig", rleg.writeToNBT());
+		compound.setTag("RLegsConfig", rleg.writeToNBT());
 
 		compound.setTag("LegParts", legParts.writeToNBT());
 
