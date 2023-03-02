@@ -129,11 +129,11 @@ scale.shared=Shared
 npc.head=Head
 npc.body=Body
 npc.arms=Arms
-npc.rarm=RArm
-npc.larm=LArm
+npc.rarm=Right Arm
+npc.larm=Left Arm
 npc.legs=Legs
-npc.rleg=RLeg
-npc.lleg=LLeg
+npc.rleg=Right Leg
+npc.lleg=Left Leg
 
 remote.title=Nearby NPCs
 remote.reset=Reset
