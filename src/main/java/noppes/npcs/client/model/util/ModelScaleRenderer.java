@@ -50,7 +50,7 @@ public class ModelScaleRenderer extends ModelRenderer {
         GL11.glPushMatrix();
         GL11.glTranslatef(x, y, z);
     	if(config != null)
-    		GL11.glTranslatef(config.transX, config.transY, config.transZ);
+    		GL11.glTranslatef(0, 0, 0);
         this.postRender(par1);
     	if(config != null)
     		GL11.glScalef(config.scaleX, config.scaleY, config.scaleZ);
