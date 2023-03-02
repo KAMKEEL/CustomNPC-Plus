@@ -1,14 +1,12 @@
 package kamkeel;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.controllers.ScriptController;
 
 
-public class CmdScript extends CommandKamkeelBase {
+public class ScriptCommand extends CommandKamkeelBase {
 
-    @SubCommand(desc = "Reload scripts and saved data from disks script folder.")
+    @SubCommand(desc = "Reload scripts data and folders.")
     public Boolean reload(ICommandSender sender, String args[]) {
 		ScriptController.Instance.loadCategories();
 

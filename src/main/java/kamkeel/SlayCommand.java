@@ -26,10 +26,10 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public class CmdSlay extends CommandKamkeelBase {
+public class SlayCommand extends CommandKamkeelBase {
 	public Map<String, Class<?>> SlayMap = new LinkedHashMap<String, Class<?>>();
 	
-	public CmdSlay(){
+	public SlayCommand(){
         SlayMap.clear();
 		
 		SlayMap.put("all",EntityLivingBase.class);
@@ -60,7 +60,7 @@ public class CmdSlay extends CommandKamkeelBase {
 
 	@Override
 	public String getDescription() {
-		return "Kills given entity within range. Also has all, mobs, animal options. Can have multiple types";
+		return "Kills given entity within range. Tab to see options.";
 	}
 
 	@Override
