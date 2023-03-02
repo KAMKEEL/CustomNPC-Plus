@@ -1,17 +1,16 @@
 package kamkeel;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map.Entry;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
 
-public class CmdHelp extends CommandKamkeelBase{
+public class HelpCommand extends CommandKamkeelBase{
 	private CommandKamkeel parent;
 	
-	public CmdHelp(CommandKamkeel parent){
+	public HelpCommand(CommandKamkeel parent){
 		this.parent = parent;
 	}
 
@@ -51,9 +50,11 @@ public class CmdHelp extends CommandKamkeelBase{
 		}
 		if(m == null){
 			sendMessage(sender, "\u00A78------ \u00A7a" + command.getCommandName().toUpperCase() + " SubCommands \u00A78------");
+			sendMessage(sender, "\u00A77Usage: \u00A76" + command.getUsage());
 			for(Entry<String, Method> entry : command.subcommands.entrySet()){
 				sender.addChatMessage(new ChatComponentTranslation("\u00A77> " + "\u00A7e" + entry.getKey() + "\u00A78: \u00A77" + entry.getValue().getAnnotation(SubCommand.class).desc()));
 			}
+			sender.addChatMessage(new ChatComponentTranslation("\u00A78Permission:\u00A77 " + CommandKamkeel.getCommandPermission(command.getCommandName())));
 		}
 		else{
 			sendMessage(sender, "\u00A78------ \u00A7b" + command.getCommandName().toUpperCase() + "." + args[1].toUpperCase() + " Command \u00A78------");
@@ -61,6 +62,7 @@ public class CmdHelp extends CommandKamkeelBase{
 			sender.addChatMessage(new ChatComponentTranslation("\u00A77" + sc.desc()));
 			if(!sc.usage().isEmpty())
 				sender.addChatMessage(new ChatComponentTranslation("\u00A77Usage: \u00A76" + sc.usage()));
+			sender.addChatMessage(new ChatComponentTranslation("\u00A78Permission:\u00A77 " + getSubCommandPermission(args[1])));
 		}
 	}
 }

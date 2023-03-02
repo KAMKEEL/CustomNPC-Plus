@@ -12,7 +12,7 @@ import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerFactionData;
 
-public class CmdFaction extends CommandKamkeelBase {
+public class FactionCommand extends CommandKamkeelBase {
 
     public Faction selectedFaction;
     public List<PlayerData> data;

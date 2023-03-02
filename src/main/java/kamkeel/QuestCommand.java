@@ -14,7 +14,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
 
-public class CmdQuest extends CommandKamkeelBase {
+public class QuestCommand extends CommandKamkeelBase {
 
 	@Override
 	public String getCommandName() {

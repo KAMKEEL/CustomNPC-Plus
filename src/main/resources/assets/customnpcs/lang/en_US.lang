@@ -122,7 +122,18 @@ gui.position=Position
 gui.screen=Screen
 gui.option=Option
 gui.default=Default
-gui.type=Type
+gui.edit=Edit
+gui.reset=Reset
+scale.shared=Shared
+
+npc.head=Head
+npc.body=Body
+npc.arms=Arms
+npc.rarm=RArm
+npc.larm=LArm
+npc.legs=Legs
+npc.rleg=RLeg
+npc.lleg=LLeg
 
 remote.title=Nearby NPCs
 remote.reset=Reset

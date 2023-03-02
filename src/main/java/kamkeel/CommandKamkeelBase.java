@@ -79,7 +79,7 @@ public abstract class CommandKamkeelBase extends CommandBase{
 			throw new CommandException("Unknown subcommand " + command);
 
 		SubCommand sc = m.getAnnotation(SubCommand.class);
-		if(!sender.canCommandSenderUseCommand(sc.permission(), "commands.kamkeel." + getCommandName().toLowerCase() + "." + command.toLowerCase()))
+		if(!sender.canCommandSenderUseCommand(sc.permission(), getSubCommandPermission(command)))
 			throw new CommandException("You are not allowed to use this command: " + command);
 
 		canRun(sender, sc.usage(), args);
@@ -111,4 +111,8 @@ public abstract class CommandKamkeelBase extends CommandBase{
     public int getRequiredPermissionLevel(){
         return 2;
     }
+
+	public String getSubCommandPermission(String subCommand){
+		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "." + subCommand.toLowerCase();
+	}
 }

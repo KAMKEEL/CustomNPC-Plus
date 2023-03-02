@@ -16,7 +16,7 @@ import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityDialogNpc;
 
-public class CmdDialog extends CommandKamkeelBase {
+public class DialogCommand extends CommandKamkeelBase {
 
 	@Override
 	public String getCommandName() {

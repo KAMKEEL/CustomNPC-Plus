@@ -9,24 +9,23 @@ import java.util.Map;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.math.BlockPos;
 import noppes.npcs.scripted.CustomNPCsException;
 
 public class CommandKamkeel extends CommandBase{
 	
 	public Map<String, CommandKamkeelBase> map = new HashMap<String, CommandKamkeelBase>();
-	public CmdHelp help = new CmdHelp(this);
+	public HelpCommand help = new HelpCommand(this);
 	
 	public CommandKamkeel(){
 		registerCommand(help);
-		registerCommand(new CmdScript());
-		registerCommand(new CmdSlay());
-		registerCommand(new CmdQuest());
-		registerCommand(new CmdDialog());
-		registerCommand(new CmdFaction());
-		registerCommand(new CmdNPC());
-		registerCommand(new CmdClone());
-		registerCommand(new CmdConfig());
+		registerCommand(new ScriptCommand());
+		registerCommand(new SlayCommand());
+		registerCommand(new QuestCommand());
+		registerCommand(new DialogCommand());
+		registerCommand(new FactionCommand());
+		registerCommand(new NpcCommand());
+		registerCommand(new CloneCommand());
+		registerCommand(new ConfigCommand());
 	}
 	
 	public void registerCommand(CommandKamkeelBase command){
@@ -59,7 +58,7 @@ public class CommandKamkeel extends CommandBase{
 		
 		args = Arrays.copyOfRange(args, 1, args.length);
 		if(command.subcommands.isEmpty() || !command.runSubCommands()){
-			if(!sender.canCommandSenderUseCommand(command.getRequiredPermissionLevel(), "commands.kamkeel." + command.getCommandName().toLowerCase()))
+			if(!sender.canCommandSenderUseCommand(command.getRequiredPermissionLevel(), getCommandPermission(command.getCommandName())))
 				throw new CommandException("You are not allowed to use this command: " + command);
 			command.canRun(sender, command.getUsage(), args);
 			command.processCommand(sender, args);
@@ -96,5 +95,9 @@ public class CommandKamkeel extends CommandBase{
     public int getRequiredPermissionLevel(){
         return 2;
     }
+
+	public static String getCommandPermission(String command){
+		return "cnpc.kamkeel." + command.toLowerCase();
+	}
 }
 

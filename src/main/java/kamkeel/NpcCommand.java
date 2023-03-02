@@ -6,7 +6,6 @@ import java.util.List;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.NumberInvalidException;
 import net.minecraft.command.PlayerNotFoundException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,7 +22,7 @@ import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
 import org.apache.commons.lang3.ArrayUtils;
 
-public class CmdNPC extends CommandKamkeelBase {
+public class NpcCommand extends CommandKamkeelBase {
     
     public EntityNPCInterface selectedNpc;
 

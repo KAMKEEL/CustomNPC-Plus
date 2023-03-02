@@ -7,7 +7,6 @@ import net.minecraft.block.Block;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.NumberInvalidException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,7 +18,7 @@ import net.minecraft.world.WorldServer;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public class CmdClone extends CommandKamkeelBase {
+public class CloneCommand extends CommandKamkeelBase {
 
 	@Override
 	public String getCommandName() {

@@ -17,7 +17,7 @@ import noppes.npcs.controllers.ChunkController;
 import java.util.Arrays;
 import java.util.Set;
 
-public class CmdConfig extends CommandKamkeelBase {
+public class ConfigCommand extends CommandKamkeelBase {
 
 
 	@Override
@@ -143,7 +143,7 @@ public class CmdConfig extends CommandKamkeelBase {
     }
     
     @SubCommand(
-    		desc = "Set how many active chunkloaders you can have",
+    		desc = "Set number of active chunkloaders",
             usage = "<number>",
             permission = 4
     )
