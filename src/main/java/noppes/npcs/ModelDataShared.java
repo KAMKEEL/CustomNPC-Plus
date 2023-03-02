@@ -10,10 +10,10 @@ import java.util.HashMap;
 
 public class ModelDataShared{
 	public ModelPartConfig arms = new ModelPartConfig();
-	public ModelPartConfig rarm = new ModelPartConfig();
+	public ModelPartConfig rarms = new ModelPartConfig();
 	public ModelPartConfig body = new ModelPartConfig();
 	public ModelPartConfig legs = new ModelPartConfig();
-	public ModelPartConfig rleg = new ModelPartConfig();
+	public ModelPartConfig rlegs = new ModelPartConfig();
 	public ModelPartConfig head = new ModelPartConfig();
 
 	public ModelPartData legParts = new ModelPartData();
@@ -59,9 +59,9 @@ public class ModelDataShared{
 		compound.setTag("HeadConfig", head.writeToNBT());
 		compound.setTag("BodyConfig", body.writeToNBT());
 		compound.setTag("ArmsConfig", arms.writeToNBT());
-		compound.setTag("RArmsConfig", rarm.writeToNBT());
+		compound.setTag("RArmsConfig", rarms.writeToNBT());
 		compound.setTag("LegsConfig", legs.writeToNBT());
-		compound.setTag("RLegsConfig", rleg.writeToNBT());
+		compound.setTag("RLegsConfig", rlegs.writeToNBT());
 
 		compound.setTag("LegParts", legParts.writeToNBT());
 
@@ -102,9 +102,9 @@ public class ModelDataShared{
 		head.readFromNBT(compound.getCompoundTag("HeadConfig"));
 		body.readFromNBT(compound.getCompoundTag("BodyConfig"));
 		arms.readFromNBT(compound.getCompoundTag("ArmsConfig"));
-		rarm.readFromNBT(compound.getCompoundTag("RightArmConfig"));
+		rarms.readFromNBT(compound.getCompoundTag("RArmsConfig"));
 		legs.readFromNBT(compound.getCompoundTag("LegsConfig"));
-		legs.readFromNBT(compound.getCompoundTag("RightLegConfig"));
+		rlegs.readFromNBT(compound.getCompoundTag("RLegsConfig"));
 
 		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
 
