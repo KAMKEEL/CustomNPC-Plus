@@ -36,81 +36,85 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
     	super.initGui();
 
 		int y = guiTop;
-		addLabel(new GuiNpcLabel(26, "gui.settings", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 6){
-			addButton(new GuiNpcButton(30, guiLeft + 120, y += 14, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileStanding?0:1));
-			addLabel(new GuiNpcLabel(30, "puppet.standing", guiLeft + 30, y + 5, 0xFFFFFF));
-			addButton(new GuiNpcButton(31, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileMoving?0:1));
-			addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
-			addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileAttacking?0:1));
-			addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
-			y += 24;
-		}
-		else{
-			addButton(new GuiNpcButton(6, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
-		
-		addLabel(new GuiNpcLabel(20, "model.head", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 0){
-			drawSlider(y, playerdata.head);
-			y += 90;
-		}
-		else{
-			addButton(new GuiNpcButton(0, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
-		
-		addLabel(new GuiNpcLabel(21, "model.body", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 1){
-			drawSlider(y, playerdata.body);
-			y += 90;
-		}
-		else{
-			addButton(new GuiNpcButton(1, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
-		
-		addLabel(new GuiNpcLabel(22, "model.larm", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 2){
-			drawSlider(y, playerdata.arms);
-			y += 90;
-		}
-		else{
-			addButton(new GuiNpcButton(2, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
-		
-		addLabel(new GuiNpcLabel(23, "model.rarm", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 3){
-			drawSlider(y, playerdata.rarms);
-			y += 90;
-		}
-		else{
-			addButton(new GuiNpcButton(3, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
-		
-		addLabel(new GuiNpcLabel(24, "model.lleg", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 4){
-			drawSlider(y, playerdata.legs);
-			y += 90;
-		}
-		else{
-			addButton(new GuiNpcButton(4, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
-		
-		addLabel(new GuiNpcLabel(25, "model.rleg", guiLeft + 55, y + 5, 0xFFFFFF));
-		if(type == 5){
-			drawSlider(y, playerdata.rlegs);
-			y += 90;
-		}
-		else{
-			addButton(new GuiNpcButton(5, guiLeft + 110, y , 60, 20, "selectServer.edit"));
-			y += 24;
-		}
+		addLabel(new GuiNpcLabel(27, "movement.rotation", guiLeft + 55, y + 5, 0xFFFFFF));
+		addButton(new GuiNpcButton(14, guiLeft + 110, y , 60, 20, new String[]{"gui.enabled","gui.disabled"}, playerdata.enableRotation?0:1));
+		y += 24;
+		if(playerdata.enableRotation){
+			addLabel(new GuiNpcLabel(26, "gui.settings", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 6){
+				addButton(new GuiNpcButton(30, guiLeft + 120, y += 14, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileStanding?0:1));
+				addLabel(new GuiNpcLabel(30, "puppet.standing", guiLeft + 30, y + 5, 0xFFFFFF));
+				addButton(new GuiNpcButton(31, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileMoving?0:1));
+				addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
+				addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileAttacking?0:1));
+				addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
+				y += 24;
+			}
+			else{
+				addButton(new GuiNpcButton(6, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
 
+			addLabel(new GuiNpcLabel(20, "model.head", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 0){
+				drawSlider(y, playerdata.head);
+				y += 90;
+			}
+			else{
+				addButton(new GuiNpcButton(0, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
+
+			addLabel(new GuiNpcLabel(21, "model.body", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 1){
+				drawSlider(y, playerdata.body);
+				y += 90;
+			}
+			else{
+				addButton(new GuiNpcButton(1, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
+
+			addLabel(new GuiNpcLabel(22, "model.larm", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 2){
+				drawSlider(y, playerdata.arms);
+				y += 90;
+			}
+			else{
+				addButton(new GuiNpcButton(2, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
+
+			addLabel(new GuiNpcLabel(23, "model.rarm", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 3){
+				drawSlider(y, playerdata.rarms);
+				y += 90;
+			}
+			else{
+				addButton(new GuiNpcButton(3, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
+
+			addLabel(new GuiNpcLabel(24, "model.lleg", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 4){
+				drawSlider(y, playerdata.legs);
+				y += 90;
+			}
+			else{
+				addButton(new GuiNpcButton(4, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
+
+			addLabel(new GuiNpcLabel(25, "model.rleg", guiLeft + 55, y + 5, 0xFFFFFF));
+			if(type == 5){
+				drawSlider(y, playerdata.rlegs);
+				y += 90;
+			}
+			else{
+				addButton(new GuiNpcButton(5, guiLeft + 110, y , 60, 20, "selectServer.edit"));
+				y += 24;
+			}
+		}
     }
     
     private void drawSlider(int y, ModelPartConfig config){
@@ -145,6 +149,10 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
     		return;
     	
     	GuiNpcButton button = (GuiNpcButton) btn;
+		if(btn.id == 14){
+			playerdata.enableRotation = button.getValue() == 0;
+			initGui();
+		}
     	if(btn.id == 29){
     		part.disabled = button.getValue() == 1;
     	}

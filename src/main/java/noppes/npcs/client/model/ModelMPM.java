@@ -446,53 +446,55 @@ public class ModelMPM extends ModelNPCMale{
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
 			this.setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
-			if(isRotationActive(npc)){
-				float pi = (float) Math.PI;
+			if(npc.modelData.enableRotation){
+				if(isRotationActive(npc)){
+					float pi = (float) Math.PI;
 
-				if(!npc.modelData.head.disabled){
-					bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = npc.modelData.head.rotationX * pi;
-					bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY = npc.modelData.head.rotationY * pi;
-					bipedHeadwear.rotateAngleZ = bipedHead.rotateAngleZ = npc.modelData.head.rotationZ * pi;
-				}
-
-				if(!npc.modelData.body.disabled){
-					bipedBody.rotateAngleX = npc.modelData.body.rotationX * pi;
-					bipedBody.rotateAngleY = npc.modelData.body.rotationY * pi;
-					bipedBody.rotateAngleZ = npc.modelData.body.rotationZ * pi;
-				}
-
-				if(!npc.modelData.arms.disabled){
-					bipedLeftArm.rotateAngleX = npc.modelData.arms.rotationX * pi;
-					bipedLeftArm.rotateAngleY = npc.modelData.arms.rotationY * pi;
-					bipedLeftArm.rotateAngleZ = npc.modelData.arms.rotationZ * pi;
-
-					if(!npc.display.disableLivingAnimation){
-						this.bipedLeftArm.rotateAngleZ -= MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
-						this.bipedLeftArm.rotateAngleX -= MathHelper.sin(par3 * 0.067F) * 0.05F;
+					if(!npc.modelData.head.disabled){
+						bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = npc.modelData.head.rotationX * pi;
+						bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY = npc.modelData.head.rotationY * pi;
+						bipedHeadwear.rotateAngleZ = bipedHead.rotateAngleZ = npc.modelData.head.rotationZ * pi;
 					}
-				}
 
-				if(!npc.modelData.rarms.disabled){
-					bipedRightArm.rotateAngleX = npc.modelData.rarms.rotationX * pi;
-					bipedRightArm.rotateAngleY = npc.modelData.rarms.rotationY * pi;
-					bipedRightArm.rotateAngleZ = npc.modelData.rarms.rotationZ * pi;
-
-					if(!npc.display.disableLivingAnimation){
-						this.bipedRightArm.rotateAngleZ += MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
-						this.bipedRightArm.rotateAngleX += MathHelper.sin(par3 * 0.067F) * 0.05F;
+					if(!npc.modelData.body.disabled){
+						bipedBody.rotateAngleX = npc.modelData.body.rotationX * pi;
+						bipedBody.rotateAngleY = npc.modelData.body.rotationY * pi;
+						bipedBody.rotateAngleZ = npc.modelData.body.rotationZ * pi;
 					}
-				}
 
-				if(!npc.modelData.rlegs.disabled){
-					bipedRightLeg.rotateAngleX = npc.modelData.rlegs.rotationX * pi;
-					bipedRightLeg.rotateAngleY = npc.modelData.rlegs.rotationY * pi;
-					bipedRightLeg.rotateAngleZ = npc.modelData.rlegs.rotationZ * pi;
-				}
+					if(!npc.modelData.arms.disabled){
+						bipedLeftArm.rotateAngleX = npc.modelData.arms.rotationX * pi;
+						bipedLeftArm.rotateAngleY = npc.modelData.arms.rotationY * pi;
+						bipedLeftArm.rotateAngleZ = npc.modelData.arms.rotationZ * pi;
 
-				if(!npc.modelData.legs.disabled){
-					bipedLeftLeg.rotateAngleX = npc.modelData.legs.rotationX * pi;
-					bipedLeftLeg.rotateAngleY = npc.modelData.legs.rotationY * pi;
-					bipedLeftLeg.rotateAngleZ = npc.modelData.legs.rotationZ * pi;
+						if(!npc.display.disableLivingAnimation){
+							this.bipedLeftArm.rotateAngleZ -= MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
+							this.bipedLeftArm.rotateAngleX -= MathHelper.sin(par3 * 0.067F) * 0.05F;
+						}
+					}
+
+					if(!npc.modelData.rarms.disabled){
+						bipedRightArm.rotateAngleX = npc.modelData.rarms.rotationX * pi;
+						bipedRightArm.rotateAngleY = npc.modelData.rarms.rotationY * pi;
+						bipedRightArm.rotateAngleZ = npc.modelData.rarms.rotationZ * pi;
+
+						if(!npc.display.disableLivingAnimation){
+							this.bipedRightArm.rotateAngleZ += MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
+							this.bipedRightArm.rotateAngleX += MathHelper.sin(par3 * 0.067F) * 0.05F;
+						}
+					}
+
+					if(!npc.modelData.rlegs.disabled){
+						bipedRightLeg.rotateAngleX = npc.modelData.rlegs.rotationX * pi;
+						bipedRightLeg.rotateAngleY = npc.modelData.rlegs.rotationY * pi;
+						bipedRightLeg.rotateAngleZ = npc.modelData.rlegs.rotationZ * pi;
+					}
+
+					if(!npc.modelData.legs.disabled){
+						bipedLeftLeg.rotateAngleX = npc.modelData.legs.rotationX * pi;
+						bipedLeftLeg.rotateAngleY = npc.modelData.legs.rotationY * pi;
+						bipedLeftLeg.rotateAngleZ = npc.modelData.legs.rotationZ * pi;
+					}
 				}
 			}
 			renderHead(npc, par7);

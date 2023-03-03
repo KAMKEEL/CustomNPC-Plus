@@ -27,6 +27,7 @@ public class ModelDataShared{
 	public byte breasts = 0;
 
 	// Rotations
+	public boolean enableRotation = false;
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
 	public boolean whileMoving = false;
@@ -81,9 +82,10 @@ public class ModelDataShared{
 		compound.setByte("Breasts", breasts);
 		compound.setTag("ExtraData", extra);
 
-		compound.setBoolean("PuppetStanding", whileStanding);
-		compound.setBoolean("PuppetAttacking", whileAttacking);
-		compound.setBoolean("PuppetMoving", whileMoving);
+		compound.setBoolean("EnableRotation", enableRotation);
+		compound.setBoolean("WhileStanding", whileStanding);
+		compound.setBoolean("WhileAttacking", whileAttacking);
+		compound.setBoolean("WhileMoving", whileMoving);
 
 		NBTTagList list = new NBTTagList();
 		for(String name : parts.keySet()){
@@ -124,9 +126,10 @@ public class ModelDataShared{
 		breasts = compound.getByte("Breasts");
 		extra = compound.getCompoundTag("ExtraData");
 
-		whileStanding = compound.getBoolean("PuppetStanding");
-		whileAttacking = compound.getBoolean("PuppetAttacking");
-		whileMoving = compound.getBoolean("PuppetMoving");
+		enableRotation = compound.getBoolean("EnableRotation");
+		whileStanding = compound.getBoolean("WhileStanding");
+		whileAttacking = compound.getBoolean("WhileAttacking");
+		whileMoving = compound.getBoolean("WhileMoving");
 
 		HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
 		NBTTagList list = compound.getTagList("Parts", 10);
