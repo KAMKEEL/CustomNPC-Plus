@@ -61,12 +61,12 @@ public class AnimationData implements IAnimationData {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setBoolean("PuppetEnabled", allowAnimation);
+        compound.setBoolean("AllowAnimation", allowAnimation);
         return compound;
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        this.allowAnimation = compound.getBoolean("PuppetEnabled");
+        this.allowAnimation = compound.getBoolean("AllowAnimation");
     }
 
     public void setEnabled(boolean enabled) {
