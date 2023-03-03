@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class VersionCompatibility {
-	public static int ModRev = 19;
+	public static int ModRev = 20;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
@@ -113,21 +113,71 @@ public class VersionCompatibility {
 	public static void CheckModelCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
 			return;
-		if(npc.npcVersion < 19) {
-			NBTTagCompound partData = compound.getCompoundTag("NpcModelData");
+		NBTTagCompound modelData = compound.getCompoundTag("NpcModelData");
+		if(npc.npcVersion < 20){
+			System.out.println("MODEL REV FOUND");
+			// Convert Puppet Job
+			if (compound.hasKey("NpcJob")) {
+				System.out.println("FOUND JOB " + compound.getInteger("NpcJob"));
+				if(compound.getInteger("NpcJob") == 9){
+					System.out.println("PUPPET JOB");
 
+					// Remove Job
+					compound.setInteger("NpcJob", 0);
+
+					// Get Puppet Data
+					boolean moving = compound.getBoolean("PuppetMoving");
+					boolean attacking = compound.getBoolean("PuppetAttacking");
+					boolean standing = compound.getBoolean("PuppetStanding");
+					NBTTagCompound head = compound.getCompoundTag("PuppetHead");
+					NBTTagCompound body = compound.getCompoundTag("PuppetBody");
+					NBTTagCompound larm = compound.getCompoundTag("PuppetLArm");
+					NBTTagCompound rarm = compound.getCompoundTag("PuppetRArm");
+					NBTTagCompound lleg = compound.getCompoundTag("PuppetLLeg");
+					NBTTagCompound rleg = compound.getCompoundTag("PuppetRLeg");
+
+					// Enable Rotations
+					modelData.setBoolean("EnableRotation", true);
+					// Make New Rotation and Write It
+					ModelRotate newRotation = new ModelRotate();
+					newRotation.whileMoving = moving;
+					newRotation.whileAttacking = attacking;
+					newRotation.whileStanding = standing;
+					NBTTagCompound rotation = newRotation.writeToNBT();
+					rotation.setTag("PuppetHead", head);
+					rotation.setTag("PuppetBody", body);
+					rotation.setTag("PuppetLArm", larm);
+					rotation.setTag("PuppetRArm", rarm);
+					rotation.setTag("PuppetLLeg", lleg);
+					rotation.setTag("PuppetRLeg", rleg);
+					modelData.setTag("ModelRotation", rotation);
+
+					// Remove All Old Tags
+					compound.removeTag("PuppetMoving");
+					compound.removeTag("PuppetAttacking");
+					compound.removeTag("PuppetStanding");
+					compound.removeTag("PuppetHead");
+					compound.removeTag("PuppetBody");
+					compound.removeTag("PuppetLArm");
+					compound.removeTag("PuppetRArm");
+					compound.removeTag("PuppetLLeg");
+					compound.removeTag("PuppetRLeg");
+				}
+			}
+		}
+		if(npc.npcVersion < 19) {
 			// Fix Leg MPM Dependency
-			if(partData.hasKey("LegParts")){
-				NBTTagCompound legParts = partData.getCompoundTag("LegParts");
+			if(modelData.hasKey("LegParts")){
+				NBTTagCompound legParts = modelData.getCompoundTag("LegParts");
 				if(legParts.hasKey("Texture")){
 					legParts.setString("Texture", legParts.getString("Texture").replace("moreplayermodels:textures", "customnpcs:textures/parts"));
 				}
-				partData.setTag("LegParts", legParts);
+				modelData.setTag("LegParts", legParts);
 			}
 
 			// Fix Part MPM Dependency
-			if(partData.hasKey("Parts")){
-				NBTTagList list = partData.getTagList("Parts", 10);
+			if(modelData.hasKey("Parts")){
+				NBTTagList list = modelData.getTagList("Parts", 10);
 
 				for (int i = 0; i < list.tagCount(); i++) {
 					NBTTagCompound item = list.getCompoundTagAt(i);
@@ -137,10 +187,10 @@ public class VersionCompatibility {
 					}
 					list.func_150304_a(i, item);
 				}
-				partData.setTag("Parts", list);
+				modelData.setTag("Parts", list);
 			}
-			compound.setTag("NpcModelData", partData);
 		}
+		compound.setTag("NpcModelData", modelData);
 	}
 
 	public static void CheckAvailabilityCompatibility(ICompatibilty compatibilty, NBTTagCompound compound){

@@ -11,8 +11,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.*;
 import noppes.npcs.api.ISkinOverlay;
-import noppes.npcs.api.handler.data.IFramePart;
-import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
@@ -450,22 +448,22 @@ public class ModelMPM extends ModelNPCMale{
 				if(isRotationActive(npc)){
 					float pi = (float) Math.PI;
 
-					if(!npc.modelData.head.disabled){
-						bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = npc.modelData.head.rotationX * pi;
-						bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY = npc.modelData.head.rotationY * pi;
-						bipedHeadwear.rotateAngleZ = bipedHead.rotateAngleZ = npc.modelData.head.rotationZ * pi;
+					if(!npc.modelData.rotation.head.disabled){
+						bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = npc.modelData.rotation.head.rotationX * pi;
+						bipedHeadwear.rotateAngleY = bipedHead.rotateAngleY = npc.modelData.rotation.head.rotationY * pi;
+						bipedHeadwear.rotateAngleZ = bipedHead.rotateAngleZ = npc.modelData.rotation.head.rotationZ * pi;
 					}
 
-					if(!npc.modelData.body.disabled){
-						bipedBody.rotateAngleX = npc.modelData.body.rotationX * pi;
-						bipedBody.rotateAngleY = npc.modelData.body.rotationY * pi;
-						bipedBody.rotateAngleZ = npc.modelData.body.rotationZ * pi;
+					if(!npc.modelData.rotation.body.disabled){
+						bipedBody.rotateAngleX = npc.modelData.rotation.body.rotationX * pi;
+						bipedBody.rotateAngleY = npc.modelData.rotation.body.rotationY * pi;
+						bipedBody.rotateAngleZ = npc.modelData.rotation.body.rotationZ * pi;
 					}
 
-					if(!npc.modelData.arms.disabled){
-						bipedLeftArm.rotateAngleX = npc.modelData.arms.rotationX * pi;
-						bipedLeftArm.rotateAngleY = npc.modelData.arms.rotationY * pi;
-						bipedLeftArm.rotateAngleZ = npc.modelData.arms.rotationZ * pi;
+					if(!npc.modelData.rotation.larm.disabled){
+						bipedLeftArm.rotateAngleX = npc.modelData.rotation.larm.rotationX * pi;
+						bipedLeftArm.rotateAngleY = npc.modelData.rotation.larm.rotationY * pi;
+						bipedLeftArm.rotateAngleZ = npc.modelData.rotation.larm.rotationZ * pi;
 
 						if(!npc.display.disableLivingAnimation){
 							this.bipedLeftArm.rotateAngleZ -= MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
@@ -473,10 +471,10 @@ public class ModelMPM extends ModelNPCMale{
 						}
 					}
 
-					if(!npc.modelData.rarms.disabled){
-						bipedRightArm.rotateAngleX = npc.modelData.rarms.rotationX * pi;
-						bipedRightArm.rotateAngleY = npc.modelData.rarms.rotationY * pi;
-						bipedRightArm.rotateAngleZ = npc.modelData.rarms.rotationZ * pi;
+					if(!npc.modelData.rotation.rarm.disabled){
+						bipedRightArm.rotateAngleX = npc.modelData.rotation.rarm.rotationX * pi;
+						bipedRightArm.rotateAngleY = npc.modelData.rotation.rarm.rotationY * pi;
+						bipedRightArm.rotateAngleZ = npc.modelData.rotation.rarm.rotationZ * pi;
 
 						if(!npc.display.disableLivingAnimation){
 							this.bipedRightArm.rotateAngleZ += MathHelper.cos(par3 * 0.09F) * 0.05F + 0.05F;
@@ -484,16 +482,16 @@ public class ModelMPM extends ModelNPCMale{
 						}
 					}
 
-					if(!npc.modelData.rlegs.disabled){
-						bipedRightLeg.rotateAngleX = npc.modelData.rlegs.rotationX * pi;
-						bipedRightLeg.rotateAngleY = npc.modelData.rlegs.rotationY * pi;
-						bipedRightLeg.rotateAngleZ = npc.modelData.rlegs.rotationZ * pi;
+					if(!npc.modelData.rotation.rleg.disabled){
+						bipedRightLeg.rotateAngleX = npc.modelData.rotation.rleg.rotationX * pi;
+						bipedRightLeg.rotateAngleY = npc.modelData.rotation.rleg.rotationY * pi;
+						bipedRightLeg.rotateAngleZ = npc.modelData.rotation.rleg.rotationZ * pi;
 					}
 
-					if(!npc.modelData.legs.disabled){
-						bipedLeftLeg.rotateAngleX = npc.modelData.legs.rotationX * pi;
-						bipedLeftLeg.rotateAngleY = npc.modelData.legs.rotationY * pi;
-						bipedLeftLeg.rotateAngleZ = npc.modelData.legs.rotationZ * pi;
+					if(!npc.modelData.rotation.lleg.disabled){
+						bipedLeftLeg.rotateAngleX = npc.modelData.rotation.lleg.rotationX * pi;
+						bipedLeftLeg.rotateAngleY = npc.modelData.rotation.lleg.rotationY * pi;
+						bipedLeftLeg.rotateAngleZ = npc.modelData.rotation.lleg.rotationZ * pi;
 					}
 				}
 			}
@@ -738,7 +736,7 @@ public class ModelMPM extends ModelNPCMale{
 			float dancing = entity.ticksExisted / 4f;
 			GL11.glTranslatef((float)Math.sin(dancing) * 0.075F, (float)Math.abs(Math.cos(dancing)) * 0.125F - 0.02F, (float)(-Math.abs(Math.cos(dancing))) * 0.075F);
 		}
-		ModelPartConfig head = entity.modelData.head;
+		ModelLimbConfig head = entity.modelData.head;
 
 		this.copyAnglesPivots(headwear,bipedHead);
 		this.copyAnglesPivots(bipedHeadwear,bipedHead);
@@ -774,7 +772,7 @@ public class ModelMPM extends ModelNPCMale{
 			GL11.glTranslatef((float)Math.sin(dancing) * 0.015F, 0.0F, 0.0F);
 		}
 
-		ModelPartConfig body = entity.modelData.body;
+		ModelLimbConfig body = entity.modelData.body;
 
 		// Hide Body
 		((ModelScaleRenderer)this.bipedBody).isHidden = entity.modelData.hideBody == 1;
@@ -806,7 +804,7 @@ public class ModelMPM extends ModelNPCMale{
 	}
 	public void renderArms(EntityCustomNpc entity, float f, boolean bo){
 		loadPlayerTexture(entity);
-		ModelPartConfig arms = entity.modelData.arms;
+		ModelLimbConfig arms = entity.modelData.arms;
 
 		float x = (1 - entity.modelData.body.scaleX) * 0.25f + (1 - arms.scaleX) * 0.075f;
 		float y = entity.modelData.getBodyY() + (1 - arms.scaleY) * -0.1f;
@@ -885,7 +883,7 @@ public class ModelMPM extends ModelNPCMale{
 	}
 	private void renderLegs(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
-		ModelPartConfig legs = entity.modelData.legs;
+		ModelLimbConfig legs = entity.modelData.legs;
 
 		float x = (1 - legs.scaleX) * 0.125f;
 		float y = entity.modelData.getLegsY();
@@ -1011,7 +1009,7 @@ public class ModelMPM extends ModelNPCMale{
 		if(!npc.isEntityAlive())
 			return false;
 
-		if(npc.modelData.whileAttacking && npc.isAttacking() || npc.modelData.whileMoving && npc.isWalking() || npc.modelData.whileStanding && !npc.isWalking())
+		if(npc.modelData.rotation.whileAttacking && npc.isAttacking() || npc.modelData.rotation.whileMoving && npc.isWalking() || npc.modelData.rotation.whileStanding && !npc.isWalking())
 			return true;
 		return false;
 	}

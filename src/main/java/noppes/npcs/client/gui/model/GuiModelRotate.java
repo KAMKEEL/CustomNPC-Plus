@@ -2,23 +2,21 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartConfig;
-import noppes.npcs.client.Client;
+import noppes.npcs.ModelLimbConfig;
+import noppes.npcs.ModelRotatePart;
 import noppes.npcs.client.gui.util.GuiModelInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcSlider;
 import noppes.npcs.client.gui.util.ISliderListener;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityCustomNpc;
 
 public class GuiModelRotate extends GuiModelInterface implements ISliderListener{
 
 	private GuiScreen parent;
 	private int type = 6;
-	private ModelPartConfig part;
+	private ModelRotatePart part;
 
 	private GuiNpcSlider rotateX;
 	private GuiNpcSlider rotateY;
@@ -42,11 +40,11 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 		if(playerdata.enableRotation){
 			addLabel(new GuiNpcLabel(26, "gui.settings", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 6){
-				addButton(new GuiNpcButton(30, guiLeft + 120, y += 14, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileStanding?0:1));
+				addButton(new GuiNpcButton(30, guiLeft + 120, y += 14, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.rotation.whileStanding?0:1));
 				addLabel(new GuiNpcLabel(30, "puppet.standing", guiLeft + 30, y + 5, 0xFFFFFF));
-				addButton(new GuiNpcButton(31, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileMoving?0:1));
+				addButton(new GuiNpcButton(31, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.rotation.whileMoving?0:1));
 				addLabel(new GuiNpcLabel(31, "puppet.walking", guiLeft + 30, y + 5, 0xFFFFFF));
-				addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.whileAttacking?0:1));
+				addButton(new GuiNpcButton(32, guiLeft + 120, y += 22, 60, 20, new String[]{"gui.yes", "gui.no"}, playerdata.rotation.whileAttacking?0:1));
 				addLabel(new GuiNpcLabel(32, "puppet.attacking", guiLeft + 30, y + 5, 0xFFFFFF));
 				y += 24;
 			}
@@ -57,7 +55,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 			addLabel(new GuiNpcLabel(20, "model.head", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 0){
-				drawSlider(y, playerdata.head);
+				drawSlider(y, playerdata.rotation.head);
 				y += 90;
 			}
 			else{
@@ -67,7 +65,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 			addLabel(new GuiNpcLabel(21, "model.body", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 1){
-				drawSlider(y, playerdata.body);
+				drawSlider(y, playerdata.rotation.body);
 				y += 90;
 			}
 			else{
@@ -77,7 +75,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 			addLabel(new GuiNpcLabel(22, "model.larm", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 2){
-				drawSlider(y, playerdata.arms);
+				drawSlider(y, playerdata.rotation.larm);
 				y += 90;
 			}
 			else{
@@ -87,7 +85,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 			addLabel(new GuiNpcLabel(23, "model.rarm", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 3){
-				drawSlider(y, playerdata.rarms);
+				drawSlider(y, playerdata.rotation.rarm);
 				y += 90;
 			}
 			else{
@@ -97,7 +95,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 			addLabel(new GuiNpcLabel(24, "model.lleg", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 4){
-				drawSlider(y, playerdata.legs);
+				drawSlider(y, playerdata.rotation.lleg);
 				y += 90;
 			}
 			else{
@@ -107,7 +105,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 			addLabel(new GuiNpcLabel(25, "model.rleg", guiLeft + 55, y + 5, 0xFFFFFF));
 			if(type == 5){
-				drawSlider(y, playerdata.rlegs);
+				drawSlider(y, playerdata.rotation.rleg);
 				y += 90;
 			}
 			else{
@@ -117,9 +115,9 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 		}
     }
     
-    private void drawSlider(int y, ModelPartConfig config){
+    private void drawSlider(int y, ModelRotatePart config){
     	part = config;
-		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, config.disabled?1:0));
+		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, config.disabled ?1:0));
 		y += 22;
 		addLabel(new GuiNpcLabel(10, "X", guiLeft, y + 5, 0xFFFFFF));
 		rotateX = new GuiNpcSlider(this, 10, guiLeft + 50, y, config.rotationX + 0.5f);
@@ -157,13 +155,13 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
     		part.disabled = button.getValue() == 1;
     	}
     	if(btn.id == 30){
-    		playerdata.whileStanding = button.getValue() == 0;
+    		playerdata.rotation.whileStanding = button.getValue() == 0;
     	}
     	if(btn.id == 31){
-			playerdata.whileMoving = button.getValue() == 0;
+			playerdata.rotation.whileMoving = button.getValue() == 0;
     	}
     	if(btn.id == 32){
-			playerdata.whileAttacking = button.getValue() == 0;
+			playerdata.rotation.whileAttacking = button.getValue() == 0;
     	}
     	if(btn.id == 170 || btn.id == 171 || btn.id == 172){
 			if(btn.id == 170){

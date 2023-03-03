@@ -9,12 +9,13 @@ import java.util.HashMap;
 
 
 public class ModelDataShared{
-	public ModelPartConfig arms = new ModelPartConfig();
-	public ModelPartConfig rarms = new ModelPartConfig();
-	public ModelPartConfig body = new ModelPartConfig();
-	public ModelPartConfig legs = new ModelPartConfig();
-	public ModelPartConfig rlegs = new ModelPartConfig();
-	public ModelPartConfig head = new ModelPartConfig();
+	public ModelLimbConfig head = new ModelLimbConfig();
+	public ModelLimbConfig arms = new ModelLimbConfig();
+	public ModelLimbConfig body = new ModelLimbConfig();
+	public ModelLimbConfig legs = new ModelLimbConfig();
+
+	public boolean enableRotation = false;
+	public ModelRotate rotation = new ModelRotate();
 
 	public ModelPartData legParts = new ModelPartData();
 	
@@ -26,15 +27,6 @@ public class ModelDataShared{
 	private HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
 	public byte breasts = 0;
 
-	// Rotations
-	public boolean enableRotation = false;
-	public boolean whileStanding = true;
-	public boolean whileAttacking = false;
-	public boolean whileMoving = false;
-
-	///////////////////////////////
-	// WILL BE PORTED TO ModelPartConfig
-	// Enabled vs Disabled
 	public byte headwear = 2;
 	public byte bodywear = 0;
 	public byte armwear = 0;
@@ -49,8 +41,7 @@ public class ModelDataShared{
 	public byte hideBody = 0;
 	public byte hideArms = 0;
 	public byte hideLegs = 0;
-	///////////////////////////////
-			
+
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 
@@ -60,9 +51,7 @@ public class ModelDataShared{
 		compound.setTag("HeadConfig", head.writeToNBT());
 		compound.setTag("BodyConfig", body.writeToNBT());
 		compound.setTag("ArmsConfig", arms.writeToNBT());
-		compound.setTag("RArmsConfig", rarms.writeToNBT());
 		compound.setTag("LegsConfig", legs.writeToNBT());
-		compound.setTag("RLegsConfig", rlegs.writeToNBT());
 
 		compound.setTag("LegParts", legParts.writeToNBT());
 
@@ -79,13 +68,12 @@ public class ModelDataShared{
 		compound.setByte("hideArms", hideArms);
 		compound.setByte("hideLegs", hideLegs);
 
+		compound.setBoolean("EnableRotation", enableRotation);
+		if(enableRotation)
+			compound.setTag("ModelRotation", rotation.writeToNBT());
+
 		compound.setByte("Breasts", breasts);
 		compound.setTag("ExtraData", extra);
-
-		compound.setBoolean("EnableRotation", enableRotation);
-		compound.setBoolean("WhileStanding", whileStanding);
-		compound.setBoolean("WhileAttacking", whileAttacking);
-		compound.setBoolean("WhileMoving", whileMoving);
 
 		NBTTagList list = new NBTTagList();
 		for(String name : parts.keySet()){
@@ -104,9 +92,7 @@ public class ModelDataShared{
 		head.readFromNBT(compound.getCompoundTag("HeadConfig"));
 		body.readFromNBT(compound.getCompoundTag("BodyConfig"));
 		arms.readFromNBT(compound.getCompoundTag("ArmsConfig"));
-		rarms.readFromNBT(compound.getCompoundTag("RArmsConfig"));
 		legs.readFromNBT(compound.getCompoundTag("LegsConfig"));
-		rlegs.readFromNBT(compound.getCompoundTag("RLegsConfig"));
 
 		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
 
@@ -123,13 +109,12 @@ public class ModelDataShared{
 		hideArms = compound.getByte("hideArms");
 		hideLegs = compound.getByte("hideLegs");
 
+		enableRotation = compound.getBoolean("EnableRotation");
+		if(enableRotation)
+			rotation.readFromNBT(compound.getCompoundTag("ModelRotation"));
+
 		breasts = compound.getByte("Breasts");
 		extra = compound.getCompoundTag("ExtraData");
-
-		enableRotation = compound.getBoolean("EnableRotation");
-		whileStanding = compound.getBoolean("WhileStanding");
-		whileAttacking = compound.getBoolean("WhileAttacking");
-		whileMoving = compound.getBoolean("WhileMoving");
 
 		HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
 		NBTTagList list = compound.getTagList("Parts", 10);

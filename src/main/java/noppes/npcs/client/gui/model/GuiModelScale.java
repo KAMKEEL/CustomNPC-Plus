@@ -3,7 +3,7 @@ package noppes.npcs.client.gui.model;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartConfig;
+import noppes.npcs.ModelLimbConfig;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityCustomNpc;
 
@@ -71,7 +71,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 		}
     }
     
-    private void drawSlider(int y, ModelPartConfig config){
+    private void drawSlider(int y, ModelLimbConfig config){
 		y += 20;
 		addLabel(new GuiNpcLabel(10, "Width", guiLeft - 25 + offset, y + 5, 0xFFFFFF));
 		scaleWidth = new GuiNpcSlider(this, 10, guiLeft + 50 + offset, y, config.scaleX - 0.5f);
@@ -100,7 +100,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
     	}
 		else{
 			// Resetting Type
-			ModelPartConfig config = playerdata.head;
+			ModelLimbConfig config = playerdata.head;
 			if(type == 1)
 				config = playerdata.body;
 			else if(type == 2)
@@ -143,7 +143,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 	public void mouseDragged(GuiNpcSlider slider) {
 		int percent = (int) (50 + slider.sliderValue * 100);
 		slider.setString(percent + "%");
-		ModelPartConfig config = playerdata.head;
+		ModelLimbConfig config = playerdata.head;
 		if(type == 1)
 			config = playerdata.body;
 		else if(type == 2)
