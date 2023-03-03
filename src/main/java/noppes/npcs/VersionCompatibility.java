@@ -115,13 +115,9 @@ public class VersionCompatibility {
 			return;
 		NBTTagCompound modelData = compound.getCompoundTag("NpcModelData");
 		if(npc.npcVersion < 20){
-			System.out.println("MODEL REV FOUND");
 			// Convert Puppet Job
 			if (compound.hasKey("NpcJob")) {
-				System.out.println("FOUND JOB " + compound.getInteger("NpcJob"));
 				if(compound.getInteger("NpcJob") == 9){
-					System.out.println("PUPPET JOB");
-
 					// Remove Job
 					compound.setInteger("NpcJob", 0);
 
