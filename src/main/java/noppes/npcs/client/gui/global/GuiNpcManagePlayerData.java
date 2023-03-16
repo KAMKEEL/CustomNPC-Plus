@@ -21,7 +21,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	private EnumPlayerData selection = EnumPlayerData.Players;
 	private String search = "";
 	
-    public GuiNpcManagePlayerData(EntityNPCInterface npc,GuiNPCInterface2 parent)
+    public GuiNpcManagePlayerData(EntityNPCInterface npc)
     {
     	super(npc);
     	Client.sendData(EnumPacketServer.PlayerDataGet,selection);

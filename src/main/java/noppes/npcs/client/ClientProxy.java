@@ -46,6 +46,7 @@ import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionStats;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
+import noppes.npcs.client.gui.GuiNpcRemoteEditor;
 import noppes.npcs.client.gui.roles.*;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.gui.script.GuiScriptItem;
@@ -248,10 +249,16 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNPCManageTags(npc);
 
 		else if (gui == EnumGuiType.ManageAnimations) {
-			EntityCustomNpc animNpc = new EntityCustomNpc(npc.worldObj);
-			animNpc.copyDataFrom(npc,true);
-			animNpc.display.showName = 1;
-			animNpc.display.showBossBar = 0;
+			EntityCustomNpc animNpc;
+			if (npc != null) {
+				animNpc = new EntityCustomNpc(npc.worldObj);
+				animNpc.copyDataFrom(npc, true);
+				animNpc.display.showName = 1;
+				animNpc.display.showBossBar = 0;
+			} else {
+				animNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+				animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+			}
 			return new GuiNPCManageAnimations(animNpc);
 		}
 

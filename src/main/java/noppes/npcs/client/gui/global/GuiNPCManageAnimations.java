@@ -35,7 +35,6 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
         Client.sendData(EnumPacketServer.AnimationListGet);
         xOffset -= 20;
         yOffset = -45;
-        npc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
 
         AnimationData data = npc.display.animationData;
         data.setEnabled(true);
