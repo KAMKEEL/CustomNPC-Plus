@@ -14,6 +14,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.INpc;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
@@ -205,6 +206,8 @@ public class NpcAPI extends AbstractNpcAPI {
                 data = new ScriptEntityData(new ScriptLivingBase<>((EntityLivingBase)entity));
             else if(entity instanceof EntityProjectile)
                 data = new ScriptEntityData(new ScriptProjectile<>((EntityProjectile)entity));
+            else if(entity instanceof EntityItem)
+                data = new ScriptEntityData(new ScriptEntityItem<>((EntityItem)entity));
             else
                 data = new ScriptEntityData(new ScriptEntity<>(entity));
             entity.registerExtendedProperties("ScriptedObject", data);
