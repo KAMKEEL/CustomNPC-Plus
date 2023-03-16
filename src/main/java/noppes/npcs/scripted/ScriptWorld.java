@@ -16,7 +16,11 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
@@ -28,6 +32,7 @@ import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.scoreboard.ScriptScoreboard;
 
 import java.util.*;
@@ -460,6 +465,49 @@ public class ScriptWorld implements IWorld {
 
 	public void removeBlock(IPos pos){
 		this.removeBlock(pos.getX(),pos.getY(),pos.getZ());
+	}
+
+	public boolean isPlaceCancelled(int posX, int posY, int posZ) {
+		IBlock block = this.getBlock(posX,posY,posZ);
+		if (block == null) {
+			return false;
+		}
+
+		Block mcBlock = block.getMCBlock();
+		int metadata = this.getBlockMetadata(posX,posY,posZ);
+
+		final BlockEvent.PlaceEvent placeEvent = new BlockEvent.PlaceEvent(
+				new BlockSnapshot(this.world, (int)Math.floor(posX), (int)Math.floor(posY), (int)Math.floor(posZ), mcBlock, metadata),
+				Blocks.air, EntityNPCInterface.CommandPlayer);
+
+		MinecraftForge.EVENT_BUS.post(placeEvent);
+
+		return placeEvent.isCanceled();
+	}
+
+	public boolean isPlaceCancelled(IPos pos) {
+		return this.isPlaceCancelled(pos.getX(),pos.getY(),pos.getZ());
+	}
+
+	public boolean isBreakCancelled(int posX, int posY, int posZ) {
+		IBlock block = this.getBlock(posX,posY,posZ);
+		if (block == null) {
+			return false;
+		}
+
+		Block mcBlock = block.getMCBlock();
+		int metadata = this.getBlockMetadata(posX,posY,posZ);
+
+		final BlockEvent.BreakEvent placeEvent = new BlockEvent.BreakEvent(posX, posY, posZ, world,
+				mcBlock, metadata, EntityNPCInterface.CommandPlayer);
+
+		MinecraftForge.EVENT_BUS.post(placeEvent);
+
+		return placeEvent.isCanceled();
+	}
+
+	public boolean isBreakCancelled(IPos pos) {
+		return this.isBreakCancelled(pos.getX(),pos.getY(),pos.getZ());
 	}
 
 	public IPos rayCastPos(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
