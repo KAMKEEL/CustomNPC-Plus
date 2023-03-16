@@ -943,6 +943,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.readToNBT(compound);
 		ai.readToNBT(compound);
 		script.readFromNBT(compound);
+		script.readEventsFromNBT(compound);
 		timers.readFromNBT(compound);
 		if (compound.hasKey("ItemGiverId")) {
 			itemGiverId = compound.getInteger("ItemGiverId");
@@ -980,6 +981,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.writeToNBT(compound);
 		ai.writeToNBT(compound);
 		script.writeToNBT(compound);
+		script.writeEventsToNBT(compound);
 		timers.writeToNBT(compound);
 		advanced.writeToNBT(compound);
 		if (advanced.role != EnumRoleType.None && roleInterface != null)

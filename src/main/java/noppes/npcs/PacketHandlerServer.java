@@ -103,7 +103,7 @@ public class PacketHandlerServer{
 			else if(type.hasPermission() && !CustomNpcsPermissions.hasPermission(player, type.permission)){
 				//player doesnt have permission to do this
 			}
-			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
+			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
@@ -120,10 +120,12 @@ public class PacketHandlerServer{
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
 						blockPackets(type, buffer, player);
 					else if (ConfigScript.isScriptDev(player)) {
-						if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
+						if (type == EnumPacketServer.EventScriptDataGet || type == EnumPacketServer.EventScriptDataSave)
+							npcEventScriptPackets(type, buffer, player, npc);
+						else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
 							playerScriptPackets(type, buffer, player);
-						else if (type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave)
-							npcScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave)
+							npcGlobalScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
 							forgeScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
@@ -225,8 +227,12 @@ public class PacketHandlerServer{
 
 	private void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		int tab = buffer.readInt();
+		int totalScripts = buffer.readInt();
+		if (totalScripts == 0) {
+			data.getScripts().clear();
+		}
+
 		if (tab >= 0) {
-			int totalScripts = buffer.readInt();
 			if (data.getScripts().size() > totalScripts) {
 				data.setScripts(data.getScripts().subList(0,totalScripts));
 			} else while (data.getScripts().size() < totalScripts) {
@@ -245,6 +251,20 @@ public class PacketHandlerServer{
 				}
 			}
 			data.setEnabled(compound.getBoolean("ScriptEnabled"));
+		}
+	}
+
+	private void npcEventScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
+		DataScript data = npc.script;
+		if(type == EnumPacketServer.EventScriptDataGet) {
+			this.getScripts(data,buffer,player);
+		} else if(type == EnumPacketServer.EventScriptDataSave) {
+			this.saveScripts(data,buffer,player);
+			npc.updateAI = true;
+			npc.script.hasInited = false;
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 	}
 
@@ -268,13 +288,13 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void npcScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
-		NPCDataScript data = ScriptController.Instance.npcScripts;
-		if(type == EnumPacketServer.ScriptNPCGet) {
+	private void npcGlobalScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		GlobalNPCDataScript data = ScriptController.Instance.globalNpcScripts;
+		if(type == EnumPacketServer.ScriptGlobalNPCGet) {
 			this.getScripts(data,buffer,player);
-		} else if(type == EnumPacketServer.ScriptNPCSave) {
+		} else if(type == EnumPacketServer.ScriptGlobalNPCSave) {
 			this.saveScripts(data,buffer,player);
-			ScriptController.Instance.lastNpcUpdate = System.currentTimeMillis();
+			ScriptController.Instance.lastGlobalNpcUpdate = System.currentTimeMillis();
 		}
 	}
 

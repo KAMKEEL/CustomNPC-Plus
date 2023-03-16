@@ -10,7 +10,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.ForgeDataScript;
-import noppes.npcs.controllers.data.NPCDataScript;
+import noppes.npcs.controllers.data.GlobalNPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
@@ -49,8 +49,8 @@ public class ScriptController {
 	public ForgeDataScript forgeScripts = new ForgeDataScript();
 	public long lastForgeUpdate = 0L;
 
-	public NPCDataScript npcScripts = new NPCDataScript((EntityNPCInterface) null);
-	public long lastNpcUpdate = 0L;
+	public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript((EntityNPCInterface) null);
+	public long lastGlobalNpcUpdate = 0L;
 
 	public ScriptController(){
 		loaded = false;
@@ -137,15 +137,15 @@ public class ScriptController {
 		}
 	}
 
-	public boolean loadNPCScripts() {
-		this.npcScripts.clear();
+	public boolean loadGlobalNPCScripts() {
+		this.globalNpcScripts.clear();
 		File file = this.npcScriptsFile();
 
 		try {
 			if(!file.exists()) {
 				return false;
 			} else {
-				this.npcScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
+				this.globalNpcScripts.readFromNBT(NBTJsonUtil.LoadFile(file));
 				shouldSave = false;
 				return true;
 			}
@@ -155,11 +155,11 @@ public class ScriptController {
 		}
 	}
 
-	public void saveNpcScripts() {
+	public void saveGlobalNpcScripts() {
 		File file = this.npcScriptsFile();
 		try {
-			NBTJsonUtil.SaveFile(file, this.npcScripts.writeToNBT(new NBTTagCompound()));
-			this.npcScripts.lastInited = -1L;
+			NBTJsonUtil.SaveFile(file, this.globalNpcScripts.writeToNBT(new NBTTagCompound()));
+			this.globalNpcScripts.lastInited = -1L;
 		} catch (IOException | JsonException var4) {
 			var4.printStackTrace();
 		}

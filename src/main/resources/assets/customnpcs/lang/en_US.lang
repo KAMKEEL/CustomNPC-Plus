@@ -524,6 +524,7 @@ script.collide=Collide
 script.kills=Kills
 script.dialog_closed=Dialog Closed
 
+eventscript.eventScripts=Event Scripts
 eventscript.playerevent=Player Events
 
 playerscript.disabled=Disabled

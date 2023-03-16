@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.script.GuiNPCEventScripts;
 import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
@@ -43,6 +44,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		guiTop += 10;
 		GuiMenuTopButton top;
 		addTopButton(top = new GuiMenuTopButton(13, guiLeft + 4, guiTop - 17, "script.scripts"));
+		addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 100), guiTop - 17, "eventscript.eventScripts"));
 		top.active = showScript;
 		addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
 		top.active = !showScript;
@@ -161,6 +163,10 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		if(guibutton.id == 15){
 			GuiConfirmOpenLink guiyesno = new GuiConfirmOpenLink(this, "https://kamkeel.github.io/CustomNPC-Plus/", 0, true);
 			mc.displayGuiScreen(guiyesno);
+		}
+		if(guibutton.id == 16){
+			close();
+			mc.displayGuiScreen(new GuiNPCEventScripts(npc));
 		}
 		if (guibutton.id == 100) {
 			NoppesStringUtils.setClipboardContents(getTextField(2).getText());

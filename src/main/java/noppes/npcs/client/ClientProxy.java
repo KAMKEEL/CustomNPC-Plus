@@ -305,7 +305,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)
-			return new GuiScriptItem(Minecraft.getMinecraft().thePlayer);
+			return new GuiScriptItem();
 
 		else if(gui == EnumGuiType.PlayerAnvil)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);

@@ -5,22 +5,12 @@
 
 package noppes.npcs.client.gui.script;
 
-import com.google.common.reflect.ClassPath;
-import cpw.mods.fml.common.eventhandler.Event;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.event.world.ChunkDataEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.ChunkWatchEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.swing.GuiJTextArea;
@@ -29,13 +19,8 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
-import noppes.npcs.controllers.data.NPCDataScript;
-import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.scripted.item.ScriptCustomItem;
-import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -44,6 +29,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public IScriptHandler handler;
     public Map<String, List<String>> languages = new HashMap();
     private int scriptLimit = 1;
+    public List<String> hookList = new ArrayList<String>();
 
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
@@ -91,132 +77,15 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         top.active = true;
         if(this.activeTab > 0) {
-            List<String> hookList = new ArrayList<String>();
-
             GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
             hooks.allowUserInput = false;
             hooks.setSize(108, 198);
             hooks.guiLeft = guiLeft - 110;
             hooks.guiTop = guiTop + 14;
 
-            if(handler instanceof PlayerDataScript) {
-                hookList.add("init");
-                hookList.add("tick");
-                hookList.add("interact");
-                hookList.add("attack");
-                hookList.add("attacked");
-                hookList.add("damagedEntity");
-                hookList.add("damaged");
-                hookList.add("kills");
-                hookList.add("killed");
-                hookList.add("drop");
-                hookList.add("respawn");
-                hookList.add("breakBlock");
-                hookList.add("chat");
-                hookList.add("login");
-                hookList.add("logout");
-                hookList.add("keyPressed");
-                hookList.add("mouseClicked");
-                hookList.add("toss");
-                hookList.add("pickUp");
-                hookList.add("pickupXP");
-                hookList.add("rangedCharge");
-                hookList.add("rangedLaunched");
-                hookList.add("timer");
-                hookList.add("startItem");
-                hookList.add("usingItem");
-                hookList.add("stopItem");
-                hookList.add("finishItem");
-                hookList.add("containerOpen");
-                hookList.add("useHoe");
-                hookList.add("bonemeal");
-                hookList.add("fillBucket");
-                hookList.add("jump");
-                hookList.add("fall");
-                hookList.add("wakeUp");
-                hookList.add("sleep");
-                hookList.add("playSound");
-                hookList.add("lightning");
-                hookList.add("changedDim");
-                hookList.add("questStart");
-                hookList.add("questCompleted");
-                hookList.add("questTurnIn");
-                hookList.add("factionPoints");
-                hookList.add("dialogOpen");
-                hookList.add("dialogOption");
-                hookList.add("dialogClose");
-                hookList.add("customGuiClosed");
-                hookList.add("customGuiButton");
-                hookList.add("customGuiSlot");
-                hookList.add("customGuiSlotClicked");
-                hookList.add("customGuiScroll");
-                hookList.add("customGuiTextfield");
-
-            }
-            else if(handler instanceof NPCDataScript) {
-                hookList.add("init");
-                hookList.add("tick");
-                hookList.add("interact");
-                hookList.add("dialog");
-                hookList.add("damaged");
-                hookList.add("killed");
-                hookList.add("meleeAttack");
-                hookList.add("rangedLaunched");
-                hookList.add("target");
-                hookList.add("collide");
-                hookList.add("kills");
-                hookList.add("dialogClose");
-                hookList.add("timer");
-            }
-            else if(handler instanceof ScriptCustomItem) {
-                hookList.add("init");
-                hookList.add("tick");
-                hookList.add("tossed");
-                hookList.add("pickedUp");
-                hookList.add("spawn");
-                hookList.add("interact");
-                hookList.add("attack");
-                hookList.add("startItem");
-                hookList.add("usingItem");
-                hookList.add("stopItem");
-                hookList.add("finishItem");
-            }
-            else if(handler instanceof ForgeDataScript) {
+            if(handler instanceof ForgeDataScript) {
                 hooks.setSize(238, 198);
                 hooks.guiLeft = guiLeft - 240;
-
-                hookList.add("init");
-
-                ArrayList<ClassPath.ClassInfo> list = new ArrayList();
-                try {
-                    list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
-                    list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event"));
-                    list.removeAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event.terraingen"));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                for(ClassPath.ClassInfo e1 : list){
-                    ClassPath.ClassInfo classLoader = e1;
-                    Class infoClass = classLoader.load();
-                    ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
-                    if(c.isEmpty()) {
-                        c.add(infoClass);
-                    }
-                    Iterator var10 = c.iterator();
-                    while(var10.hasNext()) {
-                        Class c1 = (Class) var10.next();
-                        if(!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
-                            String eventName = c1.getName();
-                            int i = eventName.lastIndexOf(".");
-                            eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
-
-                            hookList.add(eventName);
-                        }
-                    }
-                }
-
-                hookList.add("onCNPCNaturalSpawn");
             }
             hooks.setUnsortedList(hookList);
             addScroll(hooks);

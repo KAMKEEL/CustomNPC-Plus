@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
@@ -29,6 +30,8 @@ import javax.script.ScriptEngine;
 import java.util.*;
 
 public class DataScript implements IScriptHandler {
+	public List<ScriptContainer> eventScripts = new ArrayList();
+
 	public List<ScriptContainer> scripts = new ArrayList();
 	private final static EntityType entities = new EntityType();
 	private final static JobType jobs = new JobType();
@@ -72,10 +75,22 @@ public class DataScript implements IScriptHandler {
 		enabled = compound.getBoolean("ScriptEnabled");
 	}
 
+	public void readEventsFromNBT(NBTTagCompound compound) {
+		eventScripts = NBTTags.GetScript(compound,this);
+	}
+
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("ScriptsContainers", writeScript(scripts));
 		compound.setString("ScriptLanguage", scriptLanguage);
 		compound.setBoolean("ScriptEnabled", enabled);
+		return compound;
+	}
+
+	public NBTTagCompound writeEventsToNBT(NBTTagCompound compound) {
+		compound.setInteger("TotalScripts",this.eventScripts.size());
+		for (int i = 0; i < this.eventScripts.size(); i++) {
+			compound.setTag("Tab"+i,this.eventScripts.get(i).writeToNBT(new NBTTagCompound()));
+		}
 		return compound;
 	}
 
@@ -118,10 +133,15 @@ public class DataScript implements IScriptHandler {
 		}
 		if(!isEnabled())
 			return false;
+
 		if(!hasInited && !npc.isRemote() && type != EnumScriptType.INIT){
 			hasInited = true;
 			EventHooks.onNPCInit(this.npc);
 		}
+		for (ScriptContainer script : eventScripts) {
+			script.run(type, event);
+		}
+
 		ScriptContainer script = scripts.get(type.ordinal());
 		if(script == null || script.errored || !script.hasCode())
 			return false;
@@ -178,7 +198,7 @@ public class DataScript implements IScriptHandler {
 	public Map<Long, String> getConsoleText() {
 		Map<Long, String> map = new TreeMap();
 		int tab = 0;
-		Iterator var3 = this.getScripts().iterator();
+		Iterator var3 = this.scripts.iterator();
 
 		while(var3.hasNext()) {
 			ScriptContainer script = (ScriptContainer)var3.next();
@@ -195,7 +215,7 @@ public class DataScript implements IScriptHandler {
 	}
 
 	public void clearConsole() {
-		Iterator var1 = this.getScripts().iterator();
+		Iterator var1 = this.scripts.iterator();
 
 		while(var1.hasNext()) {
 			ScriptContainer script = (ScriptContainer)var1.next();
@@ -205,8 +225,8 @@ public class DataScript implements IScriptHandler {
 	}
 
 	@Override
-	public void callScript(EnumScriptType var1, Event var2) {
-		callScript(var1, var2, "$$IGNORED$$", null);
+	public void callScript(EnumScriptType type, Event event) {
+		callScript(type, event, "$$IGNORED$$", null);
 	}
 
 	public boolean isClient() {
@@ -234,7 +254,7 @@ public class DataScript implements IScriptHandler {
 	}
 
 	public List<ScriptContainer> getScripts() {
-		return this.scripts;
+		return this.eventScripts;
 	}
 
 	public String noticeString() {
