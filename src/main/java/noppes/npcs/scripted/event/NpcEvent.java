@@ -420,11 +420,13 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
     @Cancelable
     public static class TargetLostEvent extends NpcEvent implements INpcEvent.TargetLostEvent {
-        public final IEntityLivingBase entity;
+        public final IEntityLivingBase oldTarget;
+        public final IEntityLivingBase newTarget;
 
-        public TargetLostEvent(ICustomNpc npc, EntityLivingBase entity) {
+        public TargetLostEvent(ICustomNpc npc, EntityLivingBase oldTarget, EntityLivingBase newTarget) {
             super(npc);
-            this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
+            this.oldTarget = (IEntityLivingBase) NpcAPI.Instance().getIEntity(oldTarget);
+            this.newTarget = (IEntityLivingBase) NpcAPI.Instance().getIEntity(newTarget);
         }
 
         public String getHookName() {
@@ -432,7 +434,11 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         }
 
         public IEntityLivingBase getTarget() {
-            return entity;
+            return oldTarget;
+        }
+
+        public IEntityLivingBase getNewTarget() {
+            return newTarget;
         }
     }
 

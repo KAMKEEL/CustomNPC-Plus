@@ -63,6 +63,9 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		list.add("script.kills");
 		list.add("script.dialog_closed");
 		list.add("script.timer");
+		list.add("script.targetLost");
+		list.add("script.projectileTick");
+		list.add("script.projectileImpact");
 
 		if(showScript){
 			addLabel(new GuiNpcLabel(0, "script.hooks", guiLeft + 4, guiTop + 5));

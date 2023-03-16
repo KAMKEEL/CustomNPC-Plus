@@ -26,6 +26,9 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
         hookList.add("kills");
         hookList.add("dialogClose");
         hookList.add("timer");
+        hookList.add("targetLost");
+        hookList.add("projectileTick");
+        hookList.add("projectileImpact");
 
         this.handler = this.script;
         Client.sendData(EnumPacketServer.ScriptGlobalNPCGet);

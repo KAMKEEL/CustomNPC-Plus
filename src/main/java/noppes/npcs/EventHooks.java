@@ -204,6 +204,16 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onNPCTargetLost(EntityNPCInterface npc, EntityLivingBase prevtarget, EntityLivingBase newTarget) {
+        if(npc.script.isClient())
+            return false;
+        NpcEvent.TargetLostEvent event = new NpcEvent.TargetLostEvent(npc.wrappedNPC, prevtarget, newTarget);
+
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TARGET_LOST, event);
+        npc.script.callScript(EnumScriptType.TARGET_LOST, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static void onNPCCollide(EntityNPCInterface npc, Entity entity){
         if(npc == null || npc.wrappedNPC == null)
             return;

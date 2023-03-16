@@ -48,7 +48,7 @@ public class DataScript implements IScriptHandler {
 	public boolean hasInited = false;
 
 	public DataScript(EntityNPCInterface npc) {
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < 15; i++) {
 			scripts.add(new ScriptContainer(this));
 		}
 
