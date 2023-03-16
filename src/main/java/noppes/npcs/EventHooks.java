@@ -22,14 +22,17 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomGuiController;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.PlayerEvent.*;
@@ -236,6 +239,25 @@ public class EventHooks {
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
         npc.script.callScript(EnumScriptType.TIMER, event);
         ScriptController.Instance.npcScripts.callScript(EnumScriptType.TIMER, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onProjectileTick(EntityProjectile projectile) {
+        ProjectileEvent.UpdateEvent event = new ProjectileEvent.UpdateEvent((IProjectile) NpcAPI.Instance().getIEntity(projectile));
+        for(ScriptContainer script : projectile.scripts) {
+            if(script.isValid()) {
+                script.run(EnumScriptType.PROJECTILE_TICK, event);
+            }
+        }
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onProjectileImpact(EntityProjectile projectile, ProjectileEvent.ImpactEvent event) {
+        for(ScriptContainer script : projectile.scripts) {
+            if(script.isValid()) {
+                script.run(EnumScriptType.PROJECTILE_IMPACT, event);
+            }
+        }
         NpcAPI.EVENT_BUS.post(event);
     }
 

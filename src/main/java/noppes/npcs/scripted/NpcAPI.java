@@ -54,6 +54,7 @@ import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
@@ -202,6 +203,8 @@ public class NpcAPI extends AbstractNpcAPI {
                 data = new ScriptEntityData(new ScriptLiving<>((EntityLiving) entity));
             else if(entity instanceof EntityLivingBase)
                 data = new ScriptEntityData(new ScriptLivingBase<>((EntityLivingBase)entity));
+            else if(entity instanceof EntityProjectile)
+                data = new ScriptEntityData(new ScriptProjectile<>((EntityProjectile)entity));
             else
                 data = new ScriptEntityData(new ScriptEntity<>(entity));
             entity.registerExtendedProperties("ScriptedObject", data);
