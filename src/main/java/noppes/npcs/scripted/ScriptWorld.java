@@ -20,6 +20,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
@@ -30,6 +31,7 @@ import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.blocks.tiles.TileBigSign;
+import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -476,9 +478,13 @@ public class ScriptWorld implements IWorld {
 		Block mcBlock = block.getMCBlock();
 		int metadata = this.getBlockMetadata(posX,posY,posZ);
 
+		FakePlayer fakePlayer = new FakePlayer(this.world, EntityNPCInterface.chateventProfile);
+		IItemStack stack = NpcAPI.Instance().createItem("minecraft:stone",0,1);
+		fakePlayer.setCurrentItemOrArmor(0, stack.getMCItemStack());
+
 		final BlockEvent.PlaceEvent placeEvent = new BlockEvent.PlaceEvent(
 				new BlockSnapshot(this.world, (int)Math.floor(posX), (int)Math.floor(posY), (int)Math.floor(posZ), mcBlock, metadata),
-				Blocks.air, EntityNPCInterface.CommandPlayer);
+				Blocks.air, fakePlayer);
 
 		MinecraftForge.EVENT_BUS.post(placeEvent);
 
@@ -498,8 +504,12 @@ public class ScriptWorld implements IWorld {
 		Block mcBlock = block.getMCBlock();
 		int metadata = this.getBlockMetadata(posX,posY,posZ);
 
+		FakePlayer fakePlayer = new FakePlayer(this.world, EntityNPCInterface.chateventProfile);
+		IItemStack stack = NpcAPI.Instance().createItem("minecraft:stone",0,1);
+		fakePlayer.setCurrentItemOrArmor(0, stack.getMCItemStack());
+
 		final BlockEvent.BreakEvent placeEvent = new BlockEvent.BreakEvent(posX, posY, posZ, world,
-				mcBlock, metadata, EntityNPCInterface.CommandPlayer);
+				mcBlock, metadata, fakePlayer);
 
 		MinecraftForge.EVENT_BUS.post(placeEvent);
 
