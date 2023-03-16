@@ -44,7 +44,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		guiTop += 10;
 		GuiMenuTopButton top;
 		addTopButton(top = new GuiMenuTopButton(13, guiLeft + 4, guiTop - 17, "script.scripts"));
-		addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 100), guiTop - 17, "eventscript.eventScripts"));
+		addTopButton(new GuiMenuTopButton(16, guiLeft + (xSize - 82), guiTop - 17, "eventscript.eventScripts"));
 		top.active = showScript;
 		addTopButton(top = new GuiMenuTopButton(14, top, "gui.settings"));
 		top.active = !showScript;
@@ -133,7 +133,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	}
 
 	private String getConsoleText() {
-		Map<Long, String> map = this.script.getConsoleText();
+		Map<Long, String> map = this.script.getOldConsoleText();
 		StringBuilder builder = new StringBuilder();
 		Iterator var3 = map.entrySet().iterator();
 

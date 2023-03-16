@@ -136,9 +136,13 @@ public class DataScript implements IScriptHandler {
 
 		if(!hasInited && !npc.isRemote() && type != EnumScriptType.INIT){
 			hasInited = true;
+			for (ScriptContainer scriptContainer : this.eventScripts) {
+				scriptContainer.errored = false;
+			}
 			EventHooks.onNPCInit(this.npc);
 		}
-		for (ScriptContainer script : eventScripts) {
+
+		for (ScriptContainer script : this.eventScripts) {
 			script.run(type, event);
 		}
 
@@ -193,9 +197,7 @@ public class DataScript implements IScriptHandler {
 		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
 	}
 
-	public void setConsoleText(Map<Long, String> map) {}
-
-	public Map<Long, String> getConsoleText() {
+	public Map<Long, String> getOldConsoleText() {
 		Map<Long, String> map = new TreeMap();
 		int tab = 0;
 		Iterator var3 = this.scripts.iterator();
@@ -214,14 +216,23 @@ public class DataScript implements IScriptHandler {
 		return map;
 	}
 
-	public void clearConsole() {
-		Iterator var1 = this.scripts.iterator();
+	public Map<Long, String> getConsoleText() {
+		TreeMap<Long, String> map = new TreeMap<>();
+		int tab = 0;
+		for (ScriptContainer script : this.getScripts()) {
+			++tab;
 
-		while(var1.hasNext()) {
-			ScriptContainer script = (ScriptContainer)var1.next();
+			for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
+				map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+			}
+		}
+		return map;
+	}
+
+	public void clearConsole() {
+		for (ScriptContainer script : this.getScripts()) {
 			script.console.clear();
 		}
-
 	}
 
 	@Override

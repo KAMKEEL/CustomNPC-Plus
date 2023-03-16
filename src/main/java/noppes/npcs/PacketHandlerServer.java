@@ -207,7 +207,7 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+	private void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setBoolean("ScriptEnabled", data.getEnabled());
 		compound.setString("ScriptLanguage", data.getLanguage());

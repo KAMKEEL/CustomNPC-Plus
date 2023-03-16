@@ -247,13 +247,14 @@ public class EventHooks {
             return;
 
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
-        npc.script.callScript(EnumScriptType.TIMER, event);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TIMER, event);
+        npc.script.callScript(EnumScriptType.TIMER, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onProjectileTick(EntityProjectile projectile) {
         ProjectileEvent.UpdateEvent event = new ProjectileEvent.UpdateEvent((IProjectile) NpcAPI.Instance().getIEntity(projectile));
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.PROJECTILE_TICK, event);
         for(ScriptContainer script : projectile.scripts) {
             if(script.isValid()) {
                 script.run(EnumScriptType.PROJECTILE_TICK, event);
@@ -263,6 +264,7 @@ public class EventHooks {
     }
 
     public static void onProjectileImpact(EntityProjectile projectile, ProjectileEvent.ImpactEvent event) {
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.PROJECTILE_IMPACT, event);
         for(ScriptContainer script : projectile.scripts) {
             if(script.isValid()) {
                 script.run(EnumScriptType.PROJECTILE_IMPACT, event);
