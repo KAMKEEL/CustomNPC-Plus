@@ -189,10 +189,10 @@ public class RoleCompanion extends RoleInterface {
 		EntityCustomNpc npc = (EntityCustomNpc) this.npc;
 		npc.ai.animationType = stage.animation;
 		if(stage == EnumCompanionStage.BABY){
-			npc.modelData.arms.setScale(0.5f, 0.5f, 0.5f);
-			npc.modelData.legs.setScale(0.5f, 0.5f, 0.5f);
-			npc.modelData.body.setScale(0.5f, 0.5f, 0.5f);
-			npc.modelData.head.setScale(0.7f, 0.7f, 0.7f);
+			npc.modelData.modelScale.arms.setScale(0.5f, 0.5f, 0.5f);
+			npc.modelData.modelScale.legs.setScale(0.5f, 0.5f, 0.5f);
+			npc.modelData.modelScale.body.setScale(0.5f, 0.5f, 0.5f);
+			npc.modelData.modelScale.head.setScale(0.7f, 0.7f, 0.7f);
 			
 			npc.ai.onAttack = 1;
 			npc.ai.setWalkingSpeed(3);
@@ -200,10 +200,10 @@ public class RoleCompanion extends RoleInterface {
 				talents.put(EnumCompanionTalent.INVENTORY, 0);
 		}
 		if(stage == EnumCompanionStage.CHILD){
-			npc.modelData.arms.setScale(0.6f, 0.6f, 0.6f);
-			npc.modelData.legs.setScale(0.6f, 0.6f, 0.6f);
-			npc.modelData.body.setScale(0.6f, 0.6f, 0.6f);
-			npc.modelData.head.setScale(0.8f, 0.8f, 0.8f);
+			npc.modelData.modelScale.arms.setScale(0.6f, 0.6f, 0.6f);
+			npc.modelData.modelScale.legs.setScale(0.6f, 0.6f, 0.6f);
+			npc.modelData.modelScale.body.setScale(0.6f, 0.6f, 0.6f);
+			npc.modelData.modelScale.head.setScale(0.8f, 0.8f, 0.8f);
 
 			npc.ai.onAttack = 0;
 			npc.ai.setWalkingSpeed(4);
@@ -211,10 +211,10 @@ public class RoleCompanion extends RoleInterface {
 				talents.put(EnumCompanionTalent.SWORD, 0);
 		}
 		if(stage == EnumCompanionStage.TEEN){
-			npc.modelData.arms.setScale(0.8f, 0.8f, 0.8f);
-			npc.modelData.legs.setScale(0.8f, 0.8f, 0.8f);
-			npc.modelData.body.setScale(0.8f, 0.8f, 0.8f);
-			npc.modelData.head.setScale(0.9f, 0.9f, 0.9f);
+			npc.modelData.modelScale.arms.setScale(0.8f, 0.8f, 0.8f);
+			npc.modelData.modelScale.legs.setScale(0.8f, 0.8f, 0.8f);
+			npc.modelData.modelScale.body.setScale(0.8f, 0.8f, 0.8f);
+			npc.modelData.modelScale.head.setScale(0.9f, 0.9f, 0.9f);
 
 			npc.ai.onAttack = 0;
 			npc.ai.setWalkingSpeed(5);
@@ -222,10 +222,10 @@ public class RoleCompanion extends RoleInterface {
 				talents.put(EnumCompanionTalent.ARMOR, 0);			
 		}
 		if(stage == EnumCompanionStage.ADULT || stage == EnumCompanionStage.FULLGROWN){
-			npc.modelData.arms.setScale(1f, 1f, 1f);
-			npc.modelData.legs.setScale(1f, 1f, 1f);
-			npc.modelData.body.setScale(1f, 1f, 1f);
-			npc.modelData.head.setScale(1f, 1f, 1f);
+			npc.modelData.modelScale.arms.setScale(1f, 1f, 1f);
+			npc.modelData.modelScale.legs.setScale(1f, 1f, 1f);
+			npc.modelData.modelScale.body.setScale(1f, 1f, 1f);
+			npc.modelData.modelScale.head.setScale(1f, 1f, 1f);
 
 			npc.ai.onAttack = 0;
 			npc.ai.setWalkingSpeed(5);

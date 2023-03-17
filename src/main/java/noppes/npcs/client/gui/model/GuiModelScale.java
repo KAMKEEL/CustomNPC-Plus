@@ -2,8 +2,8 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelLimbConfig;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelScalePart;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityCustomNpc;
 
@@ -32,7 +32,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 
 		addLabel(new GuiNpcLabel(20, "Head", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 0){
-			drawSlider(y, playerdata.head);
+			drawSlider(y, playerdata.modelScale.head);
 			y += 88;
 		}
 		else{
@@ -42,7 +42,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 		
 		addLabel(new GuiNpcLabel(21, "Body", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 1){
-			drawSlider(y, playerdata.body);
+			drawSlider(y, playerdata.modelScale.body);
 			y += 88;
 		}
 		else{
@@ -52,7 +52,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 		
 		addLabel(new GuiNpcLabel(22, "Arms", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 2){
-			drawSlider(y, playerdata.arms);
+			drawSlider(y, playerdata.modelScale.arms);
 			y += 88;
 		}
 		else {
@@ -62,7 +62,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 		
 		addLabel(new GuiNpcLabel(23, "Legs", guiLeft + 55, y + 5, 0xFFFFFF));
 		if(type == 3){
-			drawSlider(y, playerdata.legs);
+			drawSlider(y, playerdata.modelScale.legs);
 			y += 88;
 		}
 		else{
@@ -71,7 +71,7 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 		}
     }
     
-    private void drawSlider(int y, ModelLimbConfig config){
+    private void drawSlider(int y, ModelScalePart config){
 		y += 20;
 		addLabel(new GuiNpcLabel(10, "Width", guiLeft - 25 + offset, y + 5, 0xFFFFFF));
 		scaleWidth = new GuiNpcSlider(this, 10, guiLeft + 50 + offset, y, config.scaleX - 0.5f);
@@ -100,13 +100,13 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
     	}
 		else{
 			// Resetting Type
-			ModelLimbConfig config = playerdata.head;
+			ModelScalePart config = playerdata.modelScale.head;
 			if(type == 1)
-				config = playerdata.body;
+				config = playerdata.modelScale.body;
 			else if(type == 2)
-				config = playerdata.arms;
+				config = playerdata.modelScale.arms;
 			else if(type == 3)
-				config = playerdata.legs;
+				config = playerdata.modelScale.legs;
 
 			if(btn.id == 170){
 				config.scaleX = 1.0f;
@@ -143,13 +143,13 @@ public class GuiModelScale extends GuiModelInterface implements ISliderListener{
 	public void mouseDragged(GuiNpcSlider slider) {
 		int percent = (int) (50 + slider.sliderValue * 100);
 		slider.setString(percent + "%");
-		ModelLimbConfig config = playerdata.head;
+		ModelScalePart config = playerdata.modelScale.head;
 		if(type == 1)
-			config = playerdata.body;
+			config = playerdata.modelScale.body;
 		else if(type == 2)
-			config = playerdata.arms;
+			config = playerdata.modelScale.arms;
 		else if(type == 3)
-			config = playerdata.legs;
+			config = playerdata.modelScale.legs;
 		
 		if(slider.id == 10)
 			config.scaleX = slider.sliderValue + 0.5f;

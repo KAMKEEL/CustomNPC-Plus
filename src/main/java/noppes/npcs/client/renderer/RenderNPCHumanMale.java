@@ -145,17 +145,17 @@ public class RenderNPCHumanMale extends RenderNPCInterface
         modelArmorChestplate.heldItemRight = modelArmor.heldItemRight = modelBipedMain.heldItemRight =
         		itemstack == null ? 0 : npc.hurtResistantTime > 0 ? 3 : 1;
 
-        modelArmorChestplate.heldItemLeft = modelArmor.heldItemLeft = modelBipedMain.heldItemLeft = 
+        modelArmorChestplate.heldItemLeft = modelArmor.heldItemLeft = modelBipedMain.heldItemLeft =
         		npc.getOffHand() == null ? 0 : npc.hurtResistantTime > 0 ? 3 : 1;
-        
+
         modelArmorChestplate.isSneak = modelArmor.isSneak = modelBipedMain.isSneak = npc.isSneaking();
 
         modelArmorChestplate.isSleeping = modelArmor.isSleeping = modelBipedMain.isSleeping = npc.isPlayerSleeping();
         modelArmorChestplate.isDancing = modelArmor.isDancing = modelBipedMain.isDancing = npc.currentAnimation == EnumAnimation.DANCING;
         modelArmorChestplate.aimedBow = modelArmor.aimedBow = modelBipedMain.aimedBow = npc.currentAnimation == EnumAnimation.AIMING;
-        
+
         modelArmorChestplate.isRiding = modelArmor.isRiding = modelBipedMain.isRiding = npc.isRiding();
-        
+
         double d3 = d1 - (double)npc.yOffset;
         if(npc.isSneaking())
         {
@@ -185,7 +185,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             	EntityCustomNpc cnpc = (EntityCustomNpc) npc;
 	            GL11.glTranslatef(0, cnpc.modelData.getBodyY(), 0);
 	            this.modelBipedMain.bipedHead.postRender(0.0625F);
-	            GL11.glScalef(cnpc.modelData.head.scaleX, cnpc.modelData.head.scaleY, cnpc.modelData.head.scaleZ);
+	            GL11.glScalef(cnpc.modelData.modelScale.head.scaleX, cnpc.modelData.modelScale.head.scaleY, cnpc.modelData.modelScale.head.scaleZ);
             }
             else
 	            this.modelBipedMain.bipedHead.postRender(0.0625F);
@@ -218,8 +218,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             float x = 0;
             if(npc instanceof EntityCustomNpc){
             	EntityCustomNpc cnpc = (EntityCustomNpc) npc;
-                y = (cnpc.modelData.arms.scaleY - 1) * 0.7f;
-        		x = (1 - cnpc.modelData.body.scaleX) * 0.28f + (1 - cnpc.modelData.arms.scaleX) * 0.175f;
+                y = (cnpc.modelData.modelScale.arms.scaleY - 1) * 0.7f;
+        		x = (1 - cnpc.modelData.modelScale.body.scaleX) * 0.28f + (1 - cnpc.modelData.modelScale.arms.scaleX) * 0.175f;
                 GL11.glTranslatef(x, cnpc.modelData.getBodyY(), 0);
             }
 		    this.modelBipedMain.bipedRightArm.postRender(0.0625F);
@@ -263,7 +263,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
                     GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
                     GL11.glTranslatef(0.0F, -0.125F, 0.0F);
                 }
-                
+
                 if (npc.hurtResistantTime > 0 && npc.stats.resistances.playermelee > 1f)
                 {
                     GL11.glTranslatef(0.05F, 0.0F, -0.1F);
@@ -309,7 +309,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             }
             else
                 renderManager.itemRenderer.renderItem(npc, itemstack2, 0);
-            
+
             GL11.glPopMatrix();
         }
         GL11.glColor4f(1, 1, 1, 1.0F);
@@ -321,8 +321,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface
             float x = 0;
             if(npc instanceof EntityCustomNpc){
             	EntityCustomNpc cnpc = (EntityCustomNpc) npc;
-                y = (cnpc.modelData.arms.scaleY - 1) * 0.7f;
-        		x = (1 - cnpc.modelData.body.scaleX) * -0.28f + (1 - cnpc.modelData.arms.scaleX) * -0.175f;
+                y = (cnpc.modelData.modelScale.arms.scaleY - 1) * 0.7f;
+        		x = (1 - cnpc.modelData.modelScale.body.scaleX) * -0.28f + (1 - cnpc.modelData.modelScale.arms.scaleX) * -0.175f;
                 GL11.glTranslatef(x, cnpc.modelData.getBodyY(), 0);
             }
 		    this.modelBipedMain.bipedLeftArm.postRender(0.0625F);

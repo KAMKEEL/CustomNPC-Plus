@@ -1,18 +1,18 @@
-package noppes.npcs;
+package noppes.npcs.entity.data;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.api.entity.data.IModelData;
+import noppes.npcs.api.entity.data.IModelRotate;
+import noppes.npcs.api.entity.data.IModelScale;
 
 import java.util.HashMap;
 
 
-public class ModelDataShared{
-	public ModelLimbConfig head = new ModelLimbConfig();
-	public ModelLimbConfig arms = new ModelLimbConfig();
-	public ModelLimbConfig body = new ModelLimbConfig();
-	public ModelLimbConfig legs = new ModelLimbConfig();
+public class ModelDataShared implements IModelData {
+	public ModelScale modelScale = new ModelScale();
 
 	public boolean enableRotation = false;
 	public ModelRotate rotation = new ModelRotate();
@@ -48,10 +48,7 @@ public class ModelDataShared{
 		if(entityClass != null)
 			compound.setString("EntityClass", entityClass.getCanonicalName());
 
-		compound.setTag("HeadConfig", head.writeToNBT());
-		compound.setTag("BodyConfig", body.writeToNBT());
-		compound.setTag("ArmsConfig", arms.writeToNBT());
-		compound.setTag("LegsConfig", legs.writeToNBT());
+		compound = this.modelScale.writeToNBT(compound);
 
 		compound.setTag("LegParts", legParts.writeToNBT());
 
@@ -87,12 +84,9 @@ public class ModelDataShared{
 	}
 
 	public void readFromNBT(NBTTagCompound compound){
-		setEntityClass(compound.getString("EntityClass"));
+		setEntity(compound.getString("EntityClass"));
 
-		head.readFromNBT(compound.getCompoundTag("HeadConfig"));
-		body.readFromNBT(compound.getCompoundTag("BodyConfig"));
-		arms.readFromNBT(compound.getCompoundTag("ArmsConfig"));
-		legs.readFromNBT(compound.getCompoundTag("LegsConfig"));
+		this.modelScale.readFromNBT(compound);
 
 		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
 
@@ -126,33 +120,6 @@ public class ModelDataShared{
 		}
 		this.parts = parts;
 		
-	}
-
-	public void readPartsFromNBT(NBTTagCompound compound){
-		legParts.readFromNBT(compound.getCompoundTag("LegParts"));
-
-		HashMap<String,ModelPartData> parts = new HashMap<String,ModelPartData>();
-		NBTTagList list = compound.getTagList("Parts", 10);
-		for (int i = 0; i < list.tagCount(); i++) {
-			NBTTagCompound item = list.getCompoundTagAt(i);
-			ModelPartData part = new ModelPartData();
-			part.readFromNBT(item);
-			parts.put(item.getString("PartName"), part);
-		}
-		this.parts = parts;
-	}
-
-	private void setEntityClass(String string) {
-		entityClass = null;
-		entity = null;
-		try {
-			Class<?> cls = Class.forName(string);
-            if (EntityLivingBase.class.isAssignableFrom(cls)) 
-            	entityClass = cls.asSubclass(EntityLivingBase.class);
-            
-		} catch (ClassNotFoundException e) {
-			
-		}
 	}
 	
 	public void setEntityClass(Class<? extends EntityLivingBase> entityClass){
@@ -195,15 +162,46 @@ public class ModelDataShared{
 	
 	public float getBodyY(){
 		if(legParts.type == 3)
-			return (0.9f - body.scaleY) * 0.75f + getLegsY();
+			return (0.9f - modelScale.body.scaleY) * 0.75f + getLegsY();
 		if(legParts.type == 3)
-			return (0.5f - body.scaleY) * 0.75f + getLegsY();
-		return (1 - body.scaleY) * 0.75f + getLegsY();
+			return (0.5f - modelScale.body.scaleY) * 0.75f + getLegsY();
+		return (1 - modelScale.body.scaleY) * 0.75f + getLegsY();
 	}
 
 	public float getLegsY() {
 		if(legParts.type == 3)
-			return (0.87f - legs.scaleY) * 1f;
-		return (1 - legs.scaleY) * 0.75f;
+			return (0.87f - modelScale.legs.scaleY);
+		return (1 - modelScale.legs.scaleY) * 0.75f;
+	}
+
+	public void enableRotation(boolean enableRotation) {
+		this.enableRotation = enableRotation;
+	}
+
+	public boolean enableRotation() {
+		return this.enableRotation;
+	}
+
+	public IModelRotate getRotation() {
+		return this.rotation;
+	}
+
+	public IModelScale getScale() {
+		return this.modelScale;
+	}
+
+	public void setEntity(String string) {
+		entityClass = null;
+		entity = null;
+		try {
+			Class<?> cls = Class.forName(string);
+			if (EntityLivingBase.class.isAssignableFrom(cls))
+				entityClass = cls.asSubclass(EntityLivingBase.class);
+
+		} catch (ClassNotFoundException ignored) {}
+	}
+
+	public String getEntity() {
+		return entityClass == null ? null : entityClass.getName();
 	}
 }

@@ -1,19 +1,17 @@
-package noppes.npcs;
+package noppes.npcs.entity.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.entity.data.IModelScalePart;
 import noppes.npcs.util.ValueUtil;
 
-public class ModelLimbConfig {
-
+public class ModelScalePart implements IModelScalePart {
 	public float scaleX = 1, scaleY = 1, scaleZ = 1;
-	public boolean shared = false;
 
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setFloat("ScaleX", scaleX);
 		compound.setFloat("ScaleY", scaleY);
 		compound.setFloat("ScaleZ", scaleZ);
-		compound.setBoolean("Shared", shared);
 
 		return compound;
 	}
@@ -28,14 +26,26 @@ public class ModelLimbConfig {
 		return "ScaleX: " + scaleX + " - ScaleY: " + scaleY + " - ScaleZ: " + scaleZ;
 	}
 
-	public void setScale(float x, float y, float z) {
-		scaleX = x;
-		scaleY = y;
-		scaleZ = z;
-	}
 	public void setScale(float x, float y) {
 		scaleZ = scaleX = x;
 		scaleY = y;
 	}
 
+	public void setScale(float x, float y, float z) {
+		scaleX = ValueUtil.correctFloat(x, 0.5f, 1.5f);
+		scaleY = ValueUtil.correctFloat(y, 0.5f, 1.5f);
+		scaleZ = ValueUtil.correctFloat(z, 0.5f, 1.5f);
+	}
+
+	public float getScaleX() {
+		return scaleX;
+	}
+
+	public float getScaleY() {
+		return scaleY;
+	}
+
+	public float getScaleZ() {
+		return scaleZ;
+	}
 }

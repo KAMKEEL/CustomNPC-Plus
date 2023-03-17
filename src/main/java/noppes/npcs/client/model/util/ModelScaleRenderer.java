@@ -5,7 +5,7 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.Tessellator;
-import noppes.npcs.ModelLimbConfig;
+import noppes.npcs.entity.data.ModelScalePart;
 import org.lwjgl.opengl.GL11;
 
 public class ModelScaleRenderer extends ModelRenderer {
@@ -15,7 +15,7 @@ public class ModelScaleRenderer extends ModelRenderer {
     /** The GL display list rendered by the Tessellator for this model */
     public int displayList;
     
-    protected ModelLimbConfig config;
+    protected ModelScalePart config;
     
     public float x, y, z;
 
@@ -28,7 +28,7 @@ public class ModelScaleRenderer extends ModelRenderer {
         this.setTextureOffset(par2, par3);
     }
     
-    public void setConfig(ModelLimbConfig config, float x, float y, float z){
+    public void setConfig(ModelScalePart config, float x, float y, float z){
     	this.config = config;
     	this.x = x;
     	this.y = y;

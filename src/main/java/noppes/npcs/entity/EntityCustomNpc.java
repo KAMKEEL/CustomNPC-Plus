@@ -5,8 +5,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.client.EntityUtil;
 
@@ -64,7 +64,7 @@ public class EntityCustomNpc extends EntityNPCFlying {
 	public void updateHitbox() {
 		Entity entity = modelData.getEntity(this);
 		if(modelData == null || entity == null){
-			baseHeight = 1.9f - modelData.getBodyY() + (modelData.head.scaleY - 1) / 2;
+			baseHeight = 1.9f - modelData.getBodyY() + (modelData.modelScale.head.scaleY - 1) / 2;
 			super.updateHitbox();
 		}
 		else{
