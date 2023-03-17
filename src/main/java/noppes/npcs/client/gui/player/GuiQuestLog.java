@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
 import noppes.npcs.client.Client;
@@ -83,15 +84,19 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         addButton(new GuiButtonNextPage(1, guiLeft + 286, guiTop + 176, true));
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        GuiNpcButton trackingButton = new GuiNpcButton(3, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"Track", "Tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
-        if (trackingButton.displayString.equals("Tracking")) {
+        GuiNpcButton trackingButton = new GuiNpcButton(3, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"quest.track", "quest.tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
+        if (trackingButton.displayString.equals("quest.tracking")) {
             trackingButton.packedFGColour = 0x32CD32;
         }
         addButton(trackingButton);
 
+        GuiNpcButton alertButton = new GuiNpcButton(4, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
+        addButton(alertButton);
+
         getButton(1).visible = questDetails && data.hasSelectedQuest();
         getButton(2).visible = !questDetails && data.hasSelectedQuest();
         getButton(3).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
+        getButton(4).visible = getButton(3).visible;
     }
     @Override
 	protected void actionPerformed(GuiButton guibutton){
@@ -107,6 +112,9 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
             } else {
                 data.trackedQuestKey = "";
             }
+        }
+        if(guibutton.id == 4){
+            data.toggleQuestAlerts();
         }
         initGui();
     }
@@ -248,8 +256,11 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 
     @Override
 	public void save() {
-        if (this.data != null)
-        Client.sendData(EnumPacketServer.UpdateTrackedQuest, this.data.trackedQuestKey);
+        if (this.data != null) {
+            NBTTagCompound compound = new NBTTagCompound();
+            compound.setTag("Alerts", NBTTags.nbtStringStringMap(data.questAlerts));
+            Client.sendData(EnumPacketServer.QuestLogToServer, compound, this.data.trackedQuestKey);
+        }
 	}
 	
 }

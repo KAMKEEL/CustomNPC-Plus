@@ -47,10 +47,7 @@ import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PacketHandlerServer{
 
@@ -92,8 +89,8 @@ public class PacketHandlerServer{
 			} else if (type == EnumPacketServer.CustomGuiClose) {
 				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
 				return;
-			} else if (type == EnumPacketServer.UpdateTrackedQuest) {
-				updateTrackedQuest(buffer, player);
+			} else if (type == EnumPacketServer.QuestLogToServer) {
+				updateQuestLogData(buffer, player);
 				return;
 			}
 
@@ -142,12 +139,11 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void updateTrackedQuest(ByteBuf buffer, EntityPlayerMP player) {
-		String trackedQuestString = Server.readString(buffer);
-		if (trackedQuestString != null && trackedQuestString.contains(":")) {
-			String[] splitString = trackedQuestString.split(":");
+	private Quest getQuestFromString(String string) {
+		if (string != null && string.contains(":")) {
+			String[] splitString = string.split(":");
 			if(splitString.length < 2){
-				return;
+				return null;
 			}
 			String categoryName = splitString[0];
 			String questName = splitString[1];
@@ -156,16 +152,35 @@ public class PacketHandlerServer{
 				if (category.title.equals(categoryName)) {
 					for (Quest quest : category.quests.values()) {
 						if (quest.title.equals(questName)) {
-							PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = quest;
-							NoppesUtilPlayer.sendTrackedQuestData(player, quest);
-							return;
+							return quest;
 						}
 					}
 				}
 			}
 		}
+		return null;
+	}
 
-		PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
+	private void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+
+		NBTTagCompound compound = Server.readNBT(buffer);
+		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
+		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
+			Quest quest = this.getQuestFromString(entry.getKey());
+			if (quest != null) {
+				playerData.questData.activeQuests.get(quest.id).sendAlerts = Boolean.parseBoolean(entry.getValue());
+			}
+		}
+
+		String trackedQuestString = Server.readString(buffer);
+		Quest trackedQuest = this.getQuestFromString(trackedQuestString);
+		if (trackedQuest != null) {
+			playerData.questData.trackedQuest = trackedQuest;
+			NoppesUtilPlayer.sendTrackedQuestData(player, trackedQuest);
+		}
+
+		playerData.questData.trackedQuest = null;
 		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
 	}
 

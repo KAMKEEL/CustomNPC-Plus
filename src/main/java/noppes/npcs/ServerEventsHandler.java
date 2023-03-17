@@ -292,48 +292,54 @@ public class ServerEventsHandler {
 	private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {
 		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
-		boolean change = false;
+		boolean checkCompletion = false;
 		String entityName = EntityList.getEntityString(entity);
 
 		ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
 		for(QuestData data : activeQuestValues){
-			if(data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
+			if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
 				continue;
-			if(data.quest.type == EnumQuestType.AreaKill && all){
-				List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
-				for(EntityPlayer pl : list)
-					if(pl != player)
-						doQuest(pl, entity, false);
 
+			if (data.quest.type == EnumQuestType.AreaKill && all) {
+				List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
+				for (EntityPlayer pl : list) {
+					if (pl != player) {
+						doQuest(pl, entity, false);
+					}
+				}
 			}
 			String name = entityName;
 			QuestKill quest = (QuestKill) data.quest.questInterface;
 
 			Class entityType = EntityNPCInterface.class;
-			if(quest.targetType == 2) {
+			if (quest.targetType == 2) {
 				try {
 					entityType = Class.forName(quest.customTargetType);
 				} catch (ClassNotFoundException notFoundException) {
 					continue;
 				}
 			}
-			if(quest.targetType > 0 && !(entityType.isInstance(entity)))
+
+			if (quest.targetType > 0 && !(entityType.isInstance(entity)))
 				continue;
-			if(quest.targets.containsKey(entity.getCommandSenderName()))
+
+			if (quest.targets.containsKey(entity.getCommandSenderName()))
 				name = entity.getCommandSenderName();
-			else if(!quest.targets.containsKey(name))
+			else if (!quest.targets.containsKey(name))
 				continue;
+
+			checkCompletion = true;
+
 			HashMap<String, Integer> killed = quest.getKilled(data);
-			if(killed.containsKey(name) && killed.get(name) >= quest.targets.get(name))
-				continue;
-			int amount = 0;
-			if(killed.containsKey(name))
-				amount = killed.get(name);
-			killed.put(name, amount + 1);
+			if (!killed.containsKey(name)) {
+				killed.put(name, 1);
+			} else if(killed.get(name) < quest.targets.get(name)) {
+				int amount = killed.get(name);
+				killed.put(name, amount + 1);
+			}
 			quest.setKilled(data, killed);
-			change = true;
 		}
-		if(!change)
+		if(!checkCompletion)
 			return;
 
 		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);

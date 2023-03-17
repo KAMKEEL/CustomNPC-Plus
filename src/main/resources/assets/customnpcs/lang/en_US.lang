@@ -500,6 +500,10 @@ quest.randomitem=Random Item
 quest.exp=Exp
 quest.takeitems=Take Items
 quest.objectives=Objectives
+quest.track=Track
+quest.tracking=Tracking
+quest.alerts=Alerts
+quest.noAlerts=No Alerts
 
 script.apidoc=API Docs
 script.apisrc=API Source

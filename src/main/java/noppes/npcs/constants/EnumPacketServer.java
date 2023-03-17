@@ -85,7 +85,7 @@ public enum EnumPacketServer {
 
 	AnimationListGet, AnimationGet, AnimationAdd, AnimationDelete, AnimationSave,
 
-	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, UpdateTrackedQuest,
+	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, QuestLogToServer,
 
 	RemoteNpcsGet(CustomNpcsPermissions.NPC_GUI), 
 	RemoteTpToNpc,QuestGet, QuestCategoryGet, 

@@ -130,9 +130,8 @@ public class Quest implements ICompatibilty, IQuest {
 		return QuestController.instance == null?null:QuestController.instance.quests.get(nextQuestid);
 	}
 
-	public boolean complete(EntityPlayer player, QuestData data) {
-		if(completion == EnumQuestCompletion.Instant){
-			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
+	public boolean instantComplete(EntityPlayer player, QuestData data) {
+		if(completion == EnumQuestCompletion.Instant && NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id)){
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
 			return true;
 		}

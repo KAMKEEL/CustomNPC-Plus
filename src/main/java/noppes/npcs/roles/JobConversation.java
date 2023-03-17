@@ -8,6 +8,7 @@ import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -123,7 +124,7 @@ public class JobConversation extends JobInterface{
 
 			for (EntityPlayer player : inRange){
 				if(availability.isAvailable(player))
-					PlayerQuestController.addActiveQuest(getQuest(), player);
+					PlayerQuestController.addActiveQuest(new QuestData(getQuest()), player);
 			}
 		}
 	}

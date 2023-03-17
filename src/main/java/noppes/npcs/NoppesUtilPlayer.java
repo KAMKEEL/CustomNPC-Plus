@@ -18,10 +18,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.containers.ContainerNPCFollowerHire;
@@ -329,25 +326,27 @@ public class NoppesUtilPlayer {
         data.setData(player);
         Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
 	}
-	public static void questCompletion(EntityPlayerMP player, int questId) {
+	public static boolean questCompletion(EntityPlayerMP player, int questId) {
 		if(player == null)
-			return;
+			return false;
 
 		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
 		QuestData data = questData.activeQuests.get(questId);
 
-		if(data == null)
-			return;
+		if (data == null)
+			return false;
 
-		if(!data.quest.questInterface.isCompleted(playerData))
-			return;
+		if (!data.quest.questInterface.isCompleted(playerData))
+			return false;
+
+		if (data.quest.completion == EnumQuestCompletion.Instant) {
+			EventHooks.onQuestFinished(player, data.quest);
+		}
 
 		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
-		if (event.isCancelled())
-			return;
-		event.expReward = data.quest.rewardExp;
 
+		event.expReward = data.quest.rewardExp;
 		List<IItemStack> list = new ArrayList();
 		Iterator var8 = data.quest.rewardItems.items.values().iterator();
 
@@ -368,6 +367,9 @@ public class NoppesUtilPlayer {
 		}
 
 		EventHooks.onQuestTurnedIn(event);
+		if (event.isCancelled())
+			return false;
+
 		IItemStack[] var12 = event.itemRewards;
 		int var14 = var12.length;
 		for(int var10 = 0; var10 < var14; ++var10) {
@@ -393,11 +395,13 @@ public class NoppesUtilPlayer {
 
 		PlayerQuestController.setQuestFinished(data.quest, player);
 		if (data.quest.hasNewQuest()) {
-			Quest nextQuest = data.quest.getNextQuest();
+			QuestData nextQuest = new QuestData(data.quest.getNextQuest());
+			nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
 			PlayerQuestController.addActiveQuest(nextQuest, player);
-			NoppesUtilPlayer.sendTrackedQuestData(player,nextQuest);
+			NoppesUtilPlayer.sendTrackedQuestData(player,nextQuest.quest);
 		}
-		playerData.savePlayerDataOnFile();
+
+		return true;
 	}
 	
 	public static boolean compareItems(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT){
