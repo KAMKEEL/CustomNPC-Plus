@@ -25,9 +25,9 @@ public class ModelRotatePart implements IModelRotatePart {
 	}
 
 	public void setRotation(float x, float y, float z) {
-		this.rotationX = x;
-		this.rotationY = y;
-		this.rotationZ = z;
+		this.rotationX = ValueUtil.correctFloat(x, -0.5f, 0.5f);
+		this.rotationY = ValueUtil.correctFloat(y, -0.5f, 0.5f);
+		this.rotationZ = ValueUtil.correctFloat(z, -0.5f, 0.5f);
 	}
 
 	public float getRotateX() {
