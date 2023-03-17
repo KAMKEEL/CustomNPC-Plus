@@ -30,6 +30,7 @@ public class ModelDataShared implements IModelData {
 
 	public byte headwear = 2;
 	public byte bodywear = 0;
+	// Hide Arm/Legwear [0: None, 1: Both, 2: Right, 3: Left],
 	public byte armwear = 0;
 	public byte legwear = 0;
 
@@ -173,6 +174,178 @@ public class ModelDataShared implements IModelData {
 		if(legParts.type == 3)
 			return (0.87f - modelScale.legs.scaleY);
 		return (1 - modelScale.legs.scaleY) * 0.75f;
+	}
+
+	//0 - hidden, 1 - 2d, 2 - 3d
+	public void headWear(byte config) {
+		headwear = ValueUtil.clamp(config, (byte)0, (byte)2);
+	}
+
+	public byte headWear() {
+		return this.headwear;
+	}
+
+	//0 - hidden, 1 - 2d, 2 - 3d
+	public void bodyWear(byte config) {
+		bodywear = ValueUtil.clamp(config, (byte)0, (byte)2);
+	}
+
+	public byte bodyWear() {
+		return this.bodywear;
+	}
+
+	//0 - hidden, 1 - 2d, 2 - 3d
+	public void rightArmWear(byte config) {
+		config = ValueUtil.clamp(config, (byte)0, (byte)2);
+
+		// Hide Arm/Legwear [0: None, 1: Both, 2: Right, 3: Left],
+		if (config == 1 || config == 2) {
+			if (armwear == 0)
+				armwear = 2;
+			else if (armwear == 3)
+				armwear = 1;
+		} else {
+			if (armwear == 1)
+				armwear = 3;
+			else if (armwear == 2)
+				armwear = 0;
+		}
+
+		// Solid or normal arm/legwear [0: None, 1: Both, 2: Right, 3: Left]
+		if (config == 1) {
+			solidArmwear = 0;
+		} else if (config == 2) {
+			if (solidArmwear == 0) {
+				solidArmwear = 2;
+			} else if (solidArmwear == 3) {
+				solidArmwear = 1;
+			}
+		}
+	}
+
+	public byte rightArmWear() {
+		if (armwear == 0 || armwear == 3) {
+			return 0;
+		} else if (solidArmwear == 1 || solidArmwear == 2) {
+			return 2;
+		} else {
+			return 1;
+		}
+	}
+
+	//0 - hidden, 1 - 2d, 2 - 3d
+	public void leftArmWear(byte config) {
+		config = ValueUtil.clamp(config, (byte)0, (byte)2);
+
+		// Hide Arm/Legwear [0: None, 1: Both, 2: Right, 3: Left],
+		if (config == 1 || config == 2) {
+			if (armwear == 0)
+				armwear = 3;
+			else if (armwear == 2)
+				armwear = 1;
+		} else {
+			if (armwear == 1)
+				armwear = 2;
+			else if (armwear == 3)
+				armwear = 0;
+		}
+
+		// Solid or normal arm/legwear [0: None, 1: Both, 2: Right, 3: Left]
+		if (config == 1) {
+			solidArmwear = 0;
+		} else if (config == 2) {
+			if (solidArmwear == 0) {
+				solidArmwear = 3;
+			} else if (solidArmwear == 2) {
+				solidArmwear = 1;
+			}
+		}
+	}
+
+	public byte leftArmWear() {
+		if (armwear == 0 || armwear == 2) {
+			return 0;
+		} else if (solidArmwear == 1 || solidArmwear == 3) {
+			return 2;
+		} else {
+			return 1;
+		}
+	}
+
+	public void rightLegWear(byte config) {
+		config = ValueUtil.clamp(config, (byte)0, (byte)2);
+
+		// Hide Arm/Legwear [0: None, 1: Both, 2: Right, 3: Left],
+		if (config == 1 || config == 2) {
+			if (legwear == 0)
+				legwear = 2;
+			else if (legwear == 3)
+				legwear = 1;
+		} else {
+			if (legwear == 1)
+				legwear = 3;
+			else if (legwear == 2)
+				legwear = 0;
+		}
+
+		// Solid or normal arm/legwear [0: None, 1: Both, 2: Right, 3: Left]
+		if (config == 1) {
+			solidLegwear = 0;
+		} else if (config == 2) {
+			if (solidLegwear == 0) {
+				solidLegwear = 2;
+			} else if (solidLegwear == 3) {
+				solidLegwear = 1;
+			}
+		}
+	}
+
+	public byte rightLegWear() {
+		if (legwear == 0 || legwear == 3) {
+			return 0;
+		} else if (solidLegwear == 1 || solidLegwear == 2) {
+			return 2;
+		} else {
+			return 1;
+		}
+	}
+
+	public void leftLegWear(byte config) {
+		config = ValueUtil.clamp(config, (byte)0, (byte)2);
+
+		// Hide Arm/Legwear [0: None, 1: Both, 2: Right, 3: Left],
+		if (config == 1 || config == 2) {
+			if (legwear == 0)
+				legwear = 3;
+			else if (legwear == 2)
+				legwear = 1;
+		} else {
+			if (legwear == 1)
+				legwear = 2;
+			else if (legwear == 3)
+				legwear = 0;
+		}
+
+		// Solid or normal arm/legwear [0: None, 1: Both, 2: Right, 3: Left]
+		if (config == 1) {
+			solidLegwear = 0;
+		} else if (config == 2) {
+			if (solidLegwear == 0) {
+				solidLegwear = 3;
+			} else if (solidLegwear == 2) {
+				solidLegwear = 1;
+			}
+		}
+	}
+
+	public byte leftLegWear() {
+		if (legwear == 0 || legwear == 2) {
+			return 0;
+		} else if (solidLegwear == 1 || solidLegwear == 3) {
+			return 2;
+		} else {
+			return 1;
+		}
 	}
 
 	public void hidePart(int part, byte hide) {
