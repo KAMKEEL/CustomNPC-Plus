@@ -96,7 +96,7 @@ public class DataScript implements IScriptHandler {
 
 	private List<ScriptContainer> readScript(NBTTagList list){
 		List<ScriptContainer> scripts = new ArrayList<>();
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < 15; i++) {
 			scripts.add(new ScriptContainer(this));
 		}
 
