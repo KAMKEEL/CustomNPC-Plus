@@ -175,9 +175,6 @@ public class ModelDataShared implements IModelData {
 		return (1 - modelScale.legs.scaleY) * 0.75f;
 	}
 
-	// Hide Body Parts
-	// [0: Head, 1: Body, 2: Arms, 3: Legs]
-	// [0: None, 1: Both, 2: Right, 3: Left]
 	public void hidePart(int part, byte hide) {
 		part = ValueUtil.clamp(part,0,3);
 		hide = part > 1 ? ValueUtil.clamp(hide,(byte) 0,(byte) 3) : ValueUtil.clamp(hide,(byte) 0,(byte) 1);
