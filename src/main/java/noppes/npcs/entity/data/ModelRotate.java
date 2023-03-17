@@ -69,7 +69,7 @@ public class ModelRotate implements IModelRotate {
 	}
 
 	public IModelRotatePart getPart(int part) {
-		switch (ValueUtil.CorrectInt(part,0,5)) {
+		switch (ValueUtil.clamp(part,0,5)) {
 			case 0:
 				return head;
 			case 1:

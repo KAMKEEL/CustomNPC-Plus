@@ -17,9 +17,9 @@ public class ModelScalePart implements IModelScalePart {
 	}
 	
 	public void readFromNBT(NBTTagCompound compound){
-		scaleX = ValueUtil.correctFloat(compound.getFloat("ScaleX"), 0.5f, 1.5f);
-		scaleY = ValueUtil.correctFloat(compound.getFloat("ScaleY"), 0.5f, 1.5f);
-		scaleZ = ValueUtil.correctFloat(compound.getFloat("ScaleZ"), 0.5f, 1.5f);
+		scaleX = ValueUtil.clamp(compound.getFloat("ScaleX"), 0.5f, 1.5f);
+		scaleY = ValueUtil.clamp(compound.getFloat("ScaleY"), 0.5f, 1.5f);
+		scaleZ = ValueUtil.clamp(compound.getFloat("ScaleZ"), 0.5f, 1.5f);
 	}
 	
 	public String toString(){
@@ -32,9 +32,9 @@ public class ModelScalePart implements IModelScalePart {
 	}
 
 	public void setScale(float x, float y, float z) {
-		scaleX = ValueUtil.correctFloat(x, 0.5f, 1.5f);
-		scaleY = ValueUtil.correctFloat(y, 0.5f, 1.5f);
-		scaleZ = ValueUtil.correctFloat(z, 0.5f, 1.5f);
+		scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
+		scaleY = ValueUtil.clamp(y, 0.5f, 1.5f);
+		scaleZ = ValueUtil.clamp(z, 0.5f, 1.5f);
 	}
 
 	public float getScaleX() {

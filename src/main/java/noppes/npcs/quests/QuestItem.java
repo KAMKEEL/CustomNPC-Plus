@@ -187,7 +187,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 				}
 			}
 
-			return ValueUtil.CorrectInt(count, 0, this.questItem.stackSize);
+			return ValueUtil.clamp(count, 0, this.questItem.stackSize);
 		}
 
 		public void setProgress(int progress) {

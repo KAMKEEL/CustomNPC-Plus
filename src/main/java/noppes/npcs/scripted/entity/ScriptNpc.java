@@ -939,9 +939,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void setHeadScale(float x, float y, float z){
 		if(npc instanceof EntityCustomNpc) {
-			((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleX = ValueUtil.correctFloat(x, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleY = ValueUtil.correctFloat(y, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleZ = ValueUtil.correctFloat(z, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleY = ValueUtil.clamp(y, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.head.scaleZ = ValueUtil.clamp(z, 0.5f, 1.5f);
 
 			npc.script.clientNeedsUpdate = true;
 		}
@@ -949,9 +949,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void setBodyScale(float x, float y, float z){
 		if(npc instanceof EntityCustomNpc) {
-			((EntityCustomNpc) this.npc).modelData.modelScale.body.scaleX = ValueUtil.correctFloat(x, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.body.scaleY = ValueUtil.correctFloat(y, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.body.scaleZ = ValueUtil.correctFloat(z, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.body.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.body.scaleY = ValueUtil.clamp(y, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.body.scaleZ = ValueUtil.clamp(z, 0.5f, 1.5f);
 
 			npc.script.clientNeedsUpdate = true;
 		}
@@ -959,9 +959,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	
 	public void setArmsScale(float x, float y, float z){
 		if(npc instanceof EntityCustomNpc) {
-			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleX = ValueUtil.correctFloat(x, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleY = ValueUtil.correctFloat(y, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleZ = ValueUtil.correctFloat(z, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleY = ValueUtil.clamp(y, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleZ = ValueUtil.clamp(z, 0.5f, 1.5f);
 
 			npc.script.clientNeedsUpdate = true;
 		}
@@ -969,9 +969,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	
 	public void setLegsScale(float x, float y, float z){
 		if(npc instanceof EntityCustomNpc) {
-			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleX = ValueUtil.correctFloat(x, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleY = ValueUtil.correctFloat(y, 0.5f, 1.5f);
-			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleZ = ValueUtil.correctFloat(z, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleY = ValueUtil.clamp(y, 0.5f, 1.5f);
+			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleZ = ValueUtil.clamp(z, 0.5f, 1.5f);
 
 			npc.script.clientNeedsUpdate = true;
 		}
@@ -982,7 +982,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      * @param resistance Explosion resistance (0-2) default is 1
      */
 	public void setExplosionResistance(float resistance){
-		npc.stats.resistances.explosion = ValueUtil.correctFloat(resistance, 0, 2);
+		npc.stats.resistances.explosion = ValueUtil.clamp(resistance, 0, 2);
 	}
 
     /**
@@ -997,7 +997,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      * @param resistance Melee resistance (0-2) default is 1
      */
 	public void setMeleeResistance(float resistance){
-		npc.stats.resistances.playermelee = ValueUtil.correctFloat(resistance, 0, 2);
+		npc.stats.resistances.playermelee = ValueUtil.clamp(resistance, 0, 2);
 	}
 
     /**
@@ -1011,7 +1011,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      * @param resistance Arrow resistance (0-2) default is 1
      */
 	public void setArrowResistance(float resistance){
-		npc.stats.resistances.arrow = ValueUtil.correctFloat(resistance, 0, 2);
+		npc.stats.resistances.arrow = ValueUtil.clamp(resistance, 0, 2);
 	}
 
     /**
@@ -1025,7 +1025,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      * @param resistance Knockback resistance (0-2) default is 1
      */
 	public void setKnockbackResistance(double resistance){
-		npc.stats.resistances.knockback = ValueUtil.correctFloat((float) resistance, 0, 2);
+		npc.stats.resistances.knockback = ValueUtil.clamp((float) resistance, 0, 2);
 	}
 
     /**

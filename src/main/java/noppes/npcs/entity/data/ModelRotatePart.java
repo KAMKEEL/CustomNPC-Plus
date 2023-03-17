@@ -19,15 +19,15 @@ public class ModelRotatePart implements IModelRotatePart {
 	
 	public void readFromNBT(NBTTagCompound compound){
 		disabled = compound.getBoolean("Disabled");
-		rotationX = ValueUtil.correctFloat(compound.getFloat("RotationX"), -0.5f, 0.5f);
-		rotationY = ValueUtil.correctFloat(compound.getFloat("RotationY"), -0.5f, 0.5f);
-		rotationZ = ValueUtil.correctFloat(compound.getFloat("RotationZ"), -0.5f, 0.5f);
+		rotationX = ValueUtil.clamp(compound.getFloat("RotationX"), -0.5f, 0.5f);
+		rotationY = ValueUtil.clamp(compound.getFloat("RotationY"), -0.5f, 0.5f);
+		rotationZ = ValueUtil.clamp(compound.getFloat("RotationZ"), -0.5f, 0.5f);
 	}
 
 	public void setRotation(float x, float y, float z) {
-		this.rotationX = ValueUtil.correctFloat(x, -0.5f, 0.5f);
-		this.rotationY = ValueUtil.correctFloat(y, -0.5f, 0.5f);
-		this.rotationZ = ValueUtil.correctFloat(z, -0.5f, 0.5f);
+		this.rotationX = ValueUtil.clamp(x, -0.5f, 0.5f);
+		this.rotationY = ValueUtil.clamp(y, -0.5f, 0.5f);
+		this.rotationZ = ValueUtil.clamp(z, -0.5f, 0.5f);
 	}
 
 	public float getRotateX() {

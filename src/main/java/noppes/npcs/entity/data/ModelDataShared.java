@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.entity.data.IModelData;
 import noppes.npcs.api.entity.data.IModelRotate;
 import noppes.npcs.api.entity.data.IModelScale;
+import noppes.npcs.util.ValueUtil;
 
 import java.util.HashMap;
 
@@ -172,6 +173,43 @@ public class ModelDataShared implements IModelData {
 		if(legParts.type == 3)
 			return (0.87f - modelScale.legs.scaleY);
 		return (1 - modelScale.legs.scaleY) * 0.75f;
+	}
+
+	// Hide Body Parts
+	// [0: Head, 1: Body, 2: Arms, 3: Legs]
+	// [0: None, 1: Both, 2: Right, 3: Left]
+	public void hidePart(int part, byte hide) {
+		part = ValueUtil.clamp(part,0,3);
+		hide = part > 1 ? ValueUtil.clamp(hide,(byte) 0,(byte) 3) : ValueUtil.clamp(hide,(byte) 0,(byte) 1);
+		switch (part) {
+			case 0:
+				this.hideHead = hide;
+				break;
+			case 1:
+				this.hideBody = hide;
+				break;
+			case 2:
+				this.hideArms = hide;
+				break;
+			case 3:
+				this.hideLegs = hide;
+				break;
+		}
+	}
+
+	public int hidden(int part) {
+		part = ValueUtil.clamp(part,0,3);
+		switch (part) {
+			case 0:
+				return this.hideHead;
+			case 1:
+				return this.hideBody;
+			case 2:
+				return this.hideArms;
+			case 3:
+				return this.hideLegs;
+		}
+		return 0;
 	}
 
 	public void enableRotation(boolean enableRotation) {

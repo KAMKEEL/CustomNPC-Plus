@@ -163,7 +163,7 @@ public class DataDisplay {
 
 		animationData.readFromNBT(nbttagcompound);
 
-		modelSize = ValueUtil.CorrectInt(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
+		modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		if(modelSize > ConfigMain.NpcSizeLimit)
 			modelSize = ConfigMain.NpcSizeLimit;
 
@@ -253,7 +253,7 @@ public class DataDisplay {
 	public void setMarkovGender(int gender) {
 		if(markovGender == gender)
 			return;
-		this.markovGender = ValueUtil.CorrectInt(gender, 0, 2);
+		this.markovGender = ValueUtil.clamp(gender, 0, 2);
 	}
 
 	public int getMarkovGeneratorId(){
@@ -263,7 +263,7 @@ public class DataDisplay {
 	public void setMarkovGeneratorId(int id) {
 		if(markovGeneratorId == id)
 			return;
-		this.markovGeneratorId = ValueUtil.CorrectInt(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
+		this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
 	}
 
 }
