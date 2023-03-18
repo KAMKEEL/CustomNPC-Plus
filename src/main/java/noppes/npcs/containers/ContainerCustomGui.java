@@ -108,9 +108,12 @@ public class ContainerCustomGui extends Container {
     public ItemStack slotClick(int slotId, int dragType, int clickTypeIn, EntityPlayer player) {
         if(slotId < 0)
             return super.slotClick(slotId, dragType, clickTypeIn, player);
-        if(!player.worldObj.isRemote && this.getSlot(slotId) instanceof CustomGuiSlot) {
-            CustomGuiSlot guiSlot = (CustomGuiSlot) this.getSlot(slotId);
-            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, guiSlot.guiSlotId, dragType, clickTypeIn)) {
+        if(!player.worldObj.isRemote) {
+            CustomGuiSlot guiSlot = null;
+            if (this.getSlot(slotId) instanceof CustomGuiSlot) {
+                guiSlot = (CustomGuiSlot) this.getSlot(slotId);
+            }
+            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, guiSlot, dragType, clickTypeIn)) {
                 ItemStack item = super.slotClick(slotId, dragType, clickTypeIn, player);
                 EntityPlayerMP p = (EntityPlayerMP) player;
                 p.sendContainerToPlayer(this);

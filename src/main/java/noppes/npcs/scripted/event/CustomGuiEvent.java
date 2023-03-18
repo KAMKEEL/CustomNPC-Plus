@@ -123,7 +123,11 @@ public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
             super(player, gui);
             this.slotId = slotId;
             this.stack = stack;
-            this.slot = (IItemSlot) gui.getComponent(((CustomGuiSlot)(((EntityPlayerMP)player.getMCEntity()).openContainer.getSlot(slotId))).guiSlotId);
+            if ((((EntityPlayerMP)player.getMCEntity()).openContainer.getSlot(slotId) instanceof CustomGuiSlot)) {
+                this.slot = (IItemSlot) gui.getComponent(((CustomGuiSlot) (((EntityPlayerMP) player.getMCEntity()).openContainer.getSlot(slotId))).guiSlotId);
+            } else {
+                this.slot = null;
+            }
         }
 
         public String getHookName() {
@@ -150,13 +154,17 @@ public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
          */
         public final int clickType;
 
-        public SlotClickEvent(IPlayer player, ICustomGui gui, int slotId, int guiSlotId, IItemStack stack, int dragType, int clickType) {
+        public SlotClickEvent(IPlayer player, ICustomGui gui, int slotId, CustomGuiSlot guiSlot, IItemStack stack, int dragType, int clickType) {
             super(player,gui);
             this.slotId = slotId;
             this.stack = stack;
             this.dragType = dragType;
             this.clickType = clickType;
-            this.slot = (IItemSlot) gui.getComponent(guiSlotId);
+            if (guiSlot != null) {
+                this.slot = (IItemSlot) gui.getComponent(guiSlot.guiSlotId);
+            } else {
+                this.slot = null;
+            }
         }
 
         public String getHookName() {

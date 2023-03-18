@@ -26,6 +26,7 @@ import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptContainer;
@@ -560,8 +561,8 @@ public class EventHooks {
         CustomGuiController.onSlotChange(event);
     }
 
-    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, int guiSlotId, int dragType, int clickType) {
-        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, guiSlotId, player.getOpenContainer().getSlot(slotId), dragType, clickType);
+    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, CustomGuiSlot guiSlot, int dragType, int clickType) {
+        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, guiSlot, player.getOpenContainer().getSlot(slotId), dragType, clickType);
         return CustomGuiController.onSlotClick(event);
     }
 

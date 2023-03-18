@@ -143,13 +143,13 @@ public class ScriptGui implements ICustomGui {
     }
 
     public IItemSlot addItemSlot(int x, int y) {
-        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(this.getMaxId() + 1, x, y);
+        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(-1, x, y);
         this.slots.add(slot);
         return (IItemSlot)this.slots.get(this.slots.size() - 1);
     }
 
     public IItemSlot addItemSlot(int x, int y, IItemStack stack) {
-        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(this.getMaxId() + 1, x, y, stack);
+        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(-1, x, y, stack);
         this.slots.add(slot);
         return (IItemSlot)this.slots.get(this.slots.size() - 1);
     }
@@ -308,6 +308,9 @@ public class ScriptGui implements ICustomGui {
 
         while(var3.hasNext()) {
             c = (ICustomGuiComponent)var3.next();
+            if (c.getID() == -1) {
+                c.setID(this.getMaxId()+1);
+            }
             list.appendTag(((ScriptGuiComponent)c).toNBT(new NBTTagCompound()));
         }
 
