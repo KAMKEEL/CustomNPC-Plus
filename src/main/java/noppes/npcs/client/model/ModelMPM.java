@@ -446,7 +446,7 @@ public class ModelMPM extends ModelNPCMale{
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
 			this.setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
-			if(npc.modelData.enableRotation){
+			if(npc.modelData.enableRotation && !npc.display.animationData.isActive()){
 				if(isRotationActive(npc)){
 					float pi = (float) Math.PI;
 
