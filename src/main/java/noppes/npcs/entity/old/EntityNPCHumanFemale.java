@@ -6,7 +6,7 @@ package noppes.npcs.entity.old;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.ModelData;
+import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -34,10 +34,10 @@ public class EntityNPCHumanFemale extends EntityNPCInterface
 	    	npc.readFromNBT(compound);
 	    	ModelData data = npc.modelData;
 			data.breasts = 2;
-			data.head.setScale(0.95f,0.95f);
-			data.legs.setScale(0.92f,0.92f);
-			data.arms.setScale(0.80f,0.92f);
-			data.body.setScale(0.92f, 0.92f);
+			data.modelScale.head.setScale(0.95f,0.95f);
+			data.modelScale.legs.setScale(0.92f,0.92f);
+			data.modelScale.arms.setScale(0.80f,0.92f);
+			data.modelScale.body.setScale(0.92f, 0.92f);
 	    	worldObj.spawnEntityInWorld(npc);
     	}
     	super.onUpdate();

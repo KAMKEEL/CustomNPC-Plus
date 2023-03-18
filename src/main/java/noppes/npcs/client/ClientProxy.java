@@ -46,6 +46,7 @@ import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionStats;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
+import noppes.npcs.client.gui.GuiNpcRemoteEditor;
 import noppes.npcs.client.gui.roles.*;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.gui.script.GuiScriptItem;
@@ -60,6 +61,8 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabFactions;
@@ -248,10 +251,16 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNPCManageTags(npc);
 
 		else if (gui == EnumGuiType.ManageAnimations) {
-			EntityCustomNpc animNpc = new EntityCustomNpc(npc.worldObj);
-			animNpc.copyDataFrom(npc,true);
-			animNpc.display.showName = 1;
-			animNpc.display.showBossBar = 0;
+			EntityCustomNpc animNpc;
+			if (npc != null) {
+				animNpc = new EntityCustomNpc(npc.worldObj);
+				animNpc.copyDataFrom(npc, true);
+				animNpc.display.showName = 1;
+				animNpc.display.showBossBar = 0;
+			} else {
+				animNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+				animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+			}
 			return new GuiNPCManageAnimations(animNpc);
 		}
 
@@ -298,7 +307,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)
-			return new GuiScriptItem(Minecraft.getMinecraft().thePlayer);
+			return new GuiScriptItem();
 
 		else if(gui == EnumGuiType.PlayerAnvil)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);

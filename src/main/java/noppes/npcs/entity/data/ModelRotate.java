@@ -1,9 +1,11 @@
-package noppes.npcs;
+package noppes.npcs.entity.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.entity.data.IModelRotate;
+import noppes.npcs.api.entity.data.IModelRotatePart;
 import noppes.npcs.util.ValueUtil;
 
-public class ModelRotate {
+public class ModelRotate implements IModelRotate {
 	// Rotation
 	public boolean whileStanding = true;
 	public boolean whileAttacking = false;
@@ -42,4 +44,45 @@ public class ModelRotate {
 		lleg.readFromNBT(compound.getCompoundTag("PuppetLLeg"));
 	}
 
+	public boolean whileStanding() {
+		return this.whileStanding;
+	}
+
+	public void whileStanding(boolean whileStanding) {
+		this.whileStanding = whileStanding;
+	}
+
+	public boolean whileAttacking() {
+		return this.whileAttacking;
+	}
+
+	public void whileAttacking(boolean whileAttacking) {
+		this.whileAttacking = whileAttacking;
+	}
+
+	public boolean whileMoving() {
+		return this.whileMoving;
+	}
+
+	public void whileMoving(boolean whileMoving) {
+		this.whileMoving = whileMoving;
+	}
+
+	public IModelRotatePart getPart(int part) {
+		switch (ValueUtil.clamp(part,0,5)) {
+			case 0:
+				return head;
+			case 1:
+				return body;
+			case 2:
+				return larm;
+			case 3:
+				return rarm;
+			case 4:
+				return lleg;
+			case 5:
+				return rleg;
+		}
+		return null;
+	}
 }

@@ -535,9 +535,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param z The z position
 	 */
 	public void setSpawnpoint(int x, int y, int z){
-		x = ValueUtil.CorrectInt(x, -30000000, 30000000);
-		z = ValueUtil.CorrectInt(z, -30000000, 30000000);
-		y = ValueUtil.CorrectInt(y, 0, 256);
+		x = ValueUtil.clamp(x, -30000000, 30000000);
+		z = ValueUtil.clamp(z, -30000000, 30000000);
+		y = ValueUtil.clamp(y, 0, 256);
         player.setSpawnChunk(new ChunkCoordinates(x, y, z), true);
 	}
 

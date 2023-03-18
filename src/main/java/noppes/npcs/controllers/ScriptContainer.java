@@ -204,6 +204,10 @@ public class ScriptContainer {
         }
     }
 
+    public boolean isValid() {
+        return init && !errored;
+    }
+
     public boolean hasCode() {
         return !this.getFullCode().isEmpty();
     }

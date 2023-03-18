@@ -17,7 +17,7 @@ import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
 import java.util.*;
 
-public class NPCDataScript implements IScriptHandler {
+public class GlobalNPCDataScript implements IScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;
@@ -26,7 +26,7 @@ public class NPCDataScript implements IScriptHandler {
     private long lastNpcUpdate = -1L;
     public boolean enabled = false;
 
-    public NPCDataScript(EntityNPCInterface npc) {
+    public GlobalNPCDataScript(EntityNPCInterface npc) {
         if(npc != null) {
             this.npc = npc;
         }
@@ -62,9 +62,9 @@ public class NPCDataScript implements IScriptHandler {
 
     public void callScript(EnumScriptType type, Event event) {
         if (this.isEnabled()) {
-            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastNpcUpdate > this.lastNpcUpdate) {
+            if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastGlobalNpcUpdate > this.lastNpcUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
-                this.lastNpcUpdate = ScriptController.Instance.lastNpcUpdate;
+                this.lastNpcUpdate = ScriptController.Instance.lastGlobalNpcUpdate;
 
                 for (ScriptContainer script : this.scripts) {
                     script.errored = false;
@@ -109,7 +109,7 @@ public class NPCDataScript implements IScriptHandler {
             return "Global script";
         } else {
             BlockPos pos = new BlockPos(this.npc);
-            return NPCDataScript.toStringHelper(this.npc).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
+            return GlobalNPCDataScript.toStringHelper(this.npc).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
     }
     public ICustomNpc getNpc() {
@@ -140,61 +140,61 @@ public class NPCDataScript implements IScriptHandler {
 
     public static final class ToStringHelper {
         private final String className;
-        private final NPCDataScript.ToStringHelper.ValueHolder holderHead;
-        private NPCDataScript.ToStringHelper.ValueHolder holderTail;
+        private final GlobalNPCDataScript.ToStringHelper.ValueHolder holderHead;
+        private GlobalNPCDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
         private boolean omitEmptyValues;
         private ToStringHelper(String className) {
-            this.holderHead = new NPCDataScript.ToStringHelper.ValueHolder();
+            this.holderHead = new GlobalNPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
             this.className = (String) Preconditions.checkNotNull(className);
         }
-        public NPCDataScript.ToStringHelper omitNullValues() {
+        public GlobalNPCDataScript.ToStringHelper omitNullValues() {
             this.omitNullValues = true;
             return this;
         }
-        public NPCDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
             return this.addHolder(name, value);
         }
-        public NPCDataScript.ToStringHelper add(String name, boolean value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, boolean value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper add(String name, char value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, char value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper add(String name, double value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, double value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper add(String name, float value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, float value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper add(String name, int value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, int value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper add(String name, long value) {
+        public GlobalNPCDataScript.ToStringHelper add(String name, long value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper addValue(@CheckForNull Object value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(@CheckForNull Object value) {
             return this.addHolder(value);
         }
-        public NPCDataScript.ToStringHelper addValue(boolean value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(boolean value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper addValue(char value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(char value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper addValue(double value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(double value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper addValue(float value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(float value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper addValue(int value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(int value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
-        public NPCDataScript.ToStringHelper addValue(long value) {
+        public GlobalNPCDataScript.ToStringHelper addValue(long value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
         private static boolean isEmpty(Object value) {
@@ -225,9 +225,9 @@ public class NPCDataScript implements IScriptHandler {
             boolean omitEmptyValuesSnapshot = this.omitEmptyValues;
             String nextSeparator = "";
             StringBuilder builder = (new StringBuilder(32)).append(this.className).append('{');
-            for(NPCDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
+            for(GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
                 Object value = valueHolder.value;
-                if (!(valueHolder instanceof NPCDataScript.ToStringHelper.UnconditionalValueHolder)) {
+                if (!(valueHolder instanceof GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder)) {
                     if (value == null) {
                         if (omitNullValuesSnapshot) {
                             continue;
@@ -251,39 +251,39 @@ public class NPCDataScript implements IScriptHandler {
             }
             return builder.append('}').toString();
         }
-        private NPCDataScript.ToStringHelper.ValueHolder addHolder() {
-            NPCDataScript.ToStringHelper.ValueHolder valueHolder = new NPCDataScript.ToStringHelper.ValueHolder();
+        private GlobalNPCDataScript.ToStringHelper.ValueHolder addHolder() {
+            GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = new GlobalNPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
-        private NPCDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
-            NPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
+        private GlobalNPCDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
+            GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             return this;
         }
-        private NPCDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
-            NPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
+        private GlobalNPCDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
+            GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             valueHolder.name = (String)Preconditions.checkNotNull(name);
             return this;
         }
-        private NPCDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
-            NPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new NPCDataScript.ToStringHelper.UnconditionalValueHolder();
+        private GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
+            GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
-        private NPCDataScript.ToStringHelper addUnconditionalHolder(Object value) {
-            NPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
+        private GlobalNPCDataScript.ToStringHelper addUnconditionalHolder(Object value) {
+            GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             return this;
         }
-        private NPCDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
-            NPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
+        private GlobalNPCDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
+            GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             valueHolder.name = (String)Preconditions.checkNotNull(name);
             return this;
         }
-        private static final class UnconditionalValueHolder extends NPCDataScript.ToStringHelper.ValueHolder {
+        private static final class UnconditionalValueHolder extends GlobalNPCDataScript.ToStringHelper.ValueHolder {
             private UnconditionalValueHolder() {
                 super();
             }
@@ -294,12 +294,12 @@ public class NPCDataScript implements IScriptHandler {
             @CheckForNull
             Object value;
             @CheckForNull
-            NPCDataScript.ToStringHelper.ValueHolder next;
+            GlobalNPCDataScript.ToStringHelper.ValueHolder next;
             private ValueHolder() {
             }
         }
     }
-    public static NPCDataScript.ToStringHelper toStringHelper(Object self) {
-        return new NPCDataScript.ToStringHelper(self.getClass().getSimpleName());
+    public static GlobalNPCDataScript.ToStringHelper toStringHelper(Object self) {
+        return new GlobalNPCDataScript.ToStringHelper(self.getClass().getSimpleName());
     }
 }

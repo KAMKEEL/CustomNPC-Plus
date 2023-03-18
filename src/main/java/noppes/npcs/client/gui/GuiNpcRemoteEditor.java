@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.mainmenu.GuiNPCGlobalMainMenu;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -43,9 +44,10 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
         this.addButton(new GuiNpcButton(0, guiLeft + 170, guiTop + 6,82,20, "selectServer.edit"));
         this.addButton(new GuiNpcButton(1, guiLeft + 170, guiTop + 28,82,20, "selectWorld.deleteButton"));
         this.addButton(new GuiNpcButton(2, guiLeft + 170, guiTop + 50,82,20, "remote.reset"));
+		this.addButton(new GuiNpcButton(3, guiLeft + 170, guiTop + 132,82,20, "remote.freeze"));
         this.addButton(new GuiNpcButton(4, guiLeft + 170, guiTop + 72,82,20, "remote.tp"));
         this.addButton(new GuiNpcButton(5, guiLeft + 170, guiTop + 110,82,20, "remote.resetall"));
-        this.addButton(new GuiNpcButton(3, guiLeft + 170, guiTop + 132,82,20, "remote.freeze"));
+		this.addButton(new GuiNpcButton(6, guiLeft + 170, guiTop + 165,82,20, "menu.global"));
     }
 
     @Override
@@ -69,6 +71,9 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
 	    			((EntityNPCInterface)entity).reset();
     		}
     	}
+		if(id == 6){
+			NoppesUtil.openGUI(player, new GuiNPCGlobalMainMenu(null));
+		}
     	
     	if(!data.containsKey(scroll.getSelected()))
     		return;

@@ -1,8 +1,8 @@
 package noppes.npcs.client.controllers;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 import java.util.HashMap;
 
@@ -28,10 +28,10 @@ public class Preset {
 		Preset preset = new Preset();
 		preset.name = "Elf Male";
 		preset.data = data;
-		data.legs.setScale(0.85f,1.15f);
-		data.arms.setScale(0.85f,1.15f);
-		data.body.setScale(0.85f,1.15f);
-		data.head.setScale(0.85f,0.95f);
+		data.modelScale.legs.setScale(0.85f,1.15f);
+		data.modelScale.arms.setScale(0.85f,1.15f);
+		data.modelScale.body.setScale(0.85f,1.15f);
+		data.modelScale.head.setScale(0.85f,0.95f);
 		presets.put("elf male", preset);
 		
 		data = new ModelData();
@@ -39,20 +39,20 @@ public class Preset {
 		preset.name = "Elf Female";
 		preset.data = data;
 		data.breasts = 2;
-		data.legs.setScale(0.8f,1.05f);
-		data.arms.setScale(0.8f,1.05f);
-		data.body.setScale(0.8f,1.05f);
-		data.head.setScale(0.8f,0.85f);
+		data.modelScale.legs.setScale(0.8f,1.05f);
+		data.modelScale.arms.setScale(0.8f,1.05f);
+		data.modelScale.body.setScale(0.8f,1.05f);
+		data.modelScale.head.setScale(0.8f,0.85f);
 		presets.put("elf female", preset);
 
 		data = new ModelData();
 		preset = new Preset();
 		preset.name = "Dwarf Male";
 		preset.data = data;
-		data.legs.setScale(1.1f,0.7f, 0.9f);
-		data.arms.setScale(0.9f,0.7f);
-		data.body.setScale(1.2f, 0.7f, 1.5f);
-		data.head.setScale(0.85f,0.85f);
+		data.modelScale.legs.setScale(1.1f,0.7f, 0.9f);
+		data.modelScale.arms.setScale(0.9f,0.7f);
+		data.modelScale.body.setScale(1.2f, 0.7f, 1.5f);
+		data.modelScale.head.setScale(0.85f,0.85f);
 		presets.put("dwarf male", preset);
 
 		data = new ModelData();
@@ -60,20 +60,20 @@ public class Preset {
 		preset.name = "Dwarf Female";
 		preset.data = data;
 		data.breasts = 2;
-		data.legs.setScale(0.9f,0.65f);
-		data.arms.setScale(0.9f,0.65f);
-		data.body.setScale(1f, 0.65f, 1.1f);
-		data.head.setScale(0.85f,0.85f);
+		data.modelScale.legs.setScale(0.9f,0.65f);
+		data.modelScale.arms.setScale(0.9f,0.65f);
+		data.modelScale.body.setScale(1f, 0.65f, 1.1f);
+		data.modelScale.head.setScale(0.85f,0.85f);
 		presets.put("dwarf female", preset);
 
 		data = new ModelData();
 		preset = new Preset();
 		preset.name = "Orc Male";
 		preset.data = data;
-		data.legs.setScale(1.2f,1.05f);
-		data.arms.setScale(1.2f,1.05f);
-		data.body.setScale(1.4f, 1.1f, 1.5f);
-		data.head.setScale(1.2f,1.1f);
+		data.modelScale.legs.setScale(1.2f,1.05f);
+		data.modelScale.arms.setScale(1.2f,1.05f);
+		data.modelScale.body.setScale(1.4f, 1.1f, 1.5f);
+		data.modelScale.head.setScale(1.2f,1.1f);
 		presets.put("orc male", preset);
 
 		data = new ModelData();
@@ -81,9 +81,9 @@ public class Preset {
 		preset.name = "Orc Female";
 		preset.data = data;
 		data.breasts = 2;
-		data.legs.setScale(1.1f,1);
-		data.arms.setScale(1.1f,1);
-		data.body.setScale(1.1f, 1f, 1.25f);
+		data.modelScale.legs.setScale(1.1f,1);
+		data.modelScale.arms.setScale(1.1f,1);
+		data.modelScale.body.setScale(1.1f, 1f, 1.25f);
 		presets.put("orc female", preset);
 
 		data = new ModelData();
@@ -97,10 +97,10 @@ public class Preset {
 		preset.name = "Human Female";
 		preset.data = data;
 		data.breasts = 2;
-		data.head.setScale(0.95f,0.95f);
-		data.legs.setScale(0.92f,0.92f);
-		data.arms.setScale(0.80f,0.92f);
-		data.body.setScale(0.92f, 0.92f);
+		data.modelScale.head.setScale(0.95f,0.95f);
+		data.modelScale.legs.setScale(0.92f,0.92f);
+		data.modelScale.arms.setScale(0.80f,0.92f);
+		data.modelScale.body.setScale(0.92f, 0.92f);
 		presets.put("human female", preset);
 
 		data = new ModelData();
@@ -132,10 +132,10 @@ public class Preset {
 		tail.setTexture("tail/tail1", 0);
 		tail.color = 0xD9A64E;
 		data.breasts = 2;
-		data.head.setScale(0.95f,0.95f);
-		data.legs.setScale(0.92f,0.92f);
-		data.arms.setScale(0.80f,0.92f);
-		data.body.setScale(0.92f, 0.92f);
+		data.modelScale.head.setScale(0.95f,0.95f);
+		data.modelScale.legs.setScale(0.92f,0.92f);
+		data.modelScale.arms.setScale(0.80f,0.92f);
+		data.modelScale.body.setScale(0.92f, 0.92f);
 		presets.put("cat female", preset);
 
 		data = new ModelData();
@@ -167,18 +167,18 @@ public class Preset {
 		tail.setTexture("tail/tail2", 0);
 		tail.color = 0x5E5855;
 		data.breasts = 2;
-		data.head.setScale(0.95f,0.95f);
-		data.legs.setScale(0.92f,0.92f);
-		data.arms.setScale(0.80f,0.92f);
-		data.body.setScale(0.92f, 0.92f);
+		data.modelScale.head.setScale(0.95f,0.95f);
+		data.modelScale.legs.setScale(0.92f,0.92f);
+		data.modelScale.arms.setScale(0.80f,0.92f);
+		data.modelScale.body.setScale(0.92f, 0.92f);
 		presets.put("wolf female", preset);
 
 		data = new ModelData();
 		preset = new Preset();
 		preset.name = "Enderchibi";
 		preset.data = data;
-		data.legs.setScale(0.65f,0.75f);
-		data.arms.setScale(0.50f,1.45f);
+		data.modelScale.legs.setScale(0.65f,0.75f);
+		data.modelScale.arms.setScale(0.50f,1.45f);
 		ModelPartData part = data.getOrCreatePart("particles");
 		part.setTexture("particle/type1", 1);
 		part.color = 0xFF0000;

@@ -3,7 +3,7 @@ package noppes.npcs.client.model.part;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.part.legs.ModelDigitigradeLegs;
@@ -294,8 +294,8 @@ public class ModelLegs extends ModelScaleRenderer{
 				spiderNeck.rotateAngleX = (float) (Math.PI / -8);
 	        }
 	        if(base.isSleeping(entity) || this.entity.currentAnimation == EnumAnimation.CRAWLING){
-	        	rotationPointY = 12 * this.entity.modelData.legs.scaleY;
-	        	rotationPointZ = 15 * this.entity.modelData.legs.scaleY;
+	        	rotationPointY = 12 * this.entity.modelData.modelScale.legs.scaleY;
+	        	rotationPointZ = 15 * this.entity.modelData.modelScale.legs.scaleY;
 
 				this.rotateAngleX = (float) (Math.PI / -2);
 	        }

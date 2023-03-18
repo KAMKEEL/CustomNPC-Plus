@@ -454,10 +454,6 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         Client.sendData(EnumPacketServer.CustomGuiButton, new Object[]{this.updateGui().toNBT(), button.id});
     }
 
-    public void slotChange(CustomGuiSlot slot) {
-        Client.sendData(EnumPacketServer.CustomGuiSlotChange, new Object[]{this.updateGui().toNBT(), slot.slotNumber});
-    }
-
     public String prevScrollClicked = null;
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
         Client.sendData(EnumPacketServer.CustomGuiScrollClick, new Object[]{this.updateGui().toNBT(), scroll.id, scroll.selected, this.getScrollSelection((CustomGuiScrollComponent)scroll), false});
@@ -636,7 +632,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     }
 
     public boolean doesGuiPauseGame() {
-        return this.gui == null || this.gui.getDoesPauseGame();
+        return this.gui == null || this.gui.doesPauseGame();
     }
 
     public void addDataHolder(IDataHolder component) {

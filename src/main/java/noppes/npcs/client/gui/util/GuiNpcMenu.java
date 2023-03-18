@@ -32,18 +32,20 @@ public class GuiNpcMenu implements GuiYesNoCallback{
     {        
         Keyboard.enableRepeatEvents(true);
 
-        GuiMenuTopButton display = new GuiMenuTopButton(1,guiLeft + 4, guiTop - 17, "menu.display");
-        GuiMenuTopButton stats = new GuiMenuTopButton(2,display.xPosition + display.getWidth() , guiTop - 17, "menu.stats");
-        GuiMenuTopButton ai = new GuiMenuTopButton(6,stats.xPosition + stats.getWidth() , guiTop - 17, "menu.ai");
-        GuiMenuTopButton inv = new GuiMenuTopButton(3,ai.xPosition + ai.getWidth() , guiTop - 17,  "menu.inventory");
-        GuiMenuTopButton advanced = new GuiMenuTopButton(4,inv.xPosition + inv.getWidth() , guiTop - 17, "menu.advanced");
-        GuiMenuTopButton global = new GuiMenuTopButton(5,advanced.xPosition + advanced.getWidth() , guiTop - 17, "menu.global");
-
-        GuiMenuTopButton close = new GuiMenuTopButton(0,guiLeft + width - 22, guiTop - 17, "X");
-        GuiMenuTopButton delete = new GuiMenuTopButton(66,guiLeft + width - 72, guiTop - 17,"selectWorld.deleteButton");
-        delete.xPosition = close.xPosition - delete.getWidth();
-        
-        topButtons = new GuiMenuTopButton[]{display,stats,ai,inv,advanced,global,close,delete};
+		GuiMenuTopButton close = new GuiMenuTopButton(0,guiLeft + width - 22, guiTop - 17, "X");
+		if (npc != null) {
+			GuiMenuTopButton display = new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "menu.display");
+			GuiMenuTopButton stats = new GuiMenuTopButton(2, display.xPosition + display.getWidth(), guiTop - 17, "menu.stats");
+			GuiMenuTopButton ai = new GuiMenuTopButton(6, stats.xPosition + stats.getWidth(), guiTop - 17, "menu.ai");
+			GuiMenuTopButton inv = new GuiMenuTopButton(3, ai.xPosition + ai.getWidth(), guiTop - 17, "menu.inventory");
+			GuiMenuTopButton advanced = new GuiMenuTopButton(4, inv.xPosition + inv.getWidth(), guiTop - 17, "menu.advanced");
+			GuiMenuTopButton global = new GuiMenuTopButton(5, advanced.xPosition + advanced.getWidth(), guiTop - 17, "menu.global");
+			GuiMenuTopButton delete = new GuiMenuTopButton(66,guiLeft + width - 72, guiTop - 17,"selectWorld.deleteButton");
+			delete.xPosition = close.xPosition - delete.getWidth();
+			topButtons = new GuiMenuTopButton[]{display,stats,ai,inv,advanced,global,close,delete};
+		} else {
+			topButtons = new GuiMenuTopButton[]{close};
+		}
         
         for(GuiMenuTopButton button : topButtons)
         	button.active = button.id == activeMenu;

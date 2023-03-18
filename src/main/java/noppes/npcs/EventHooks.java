@@ -22,14 +22,19 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.api.gui.ICustomGui;
+import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomGuiController;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.PlayerEvent.*;
@@ -115,7 +120,7 @@ public class EventHooks {
             return;
 
         noppes.npcs.scripted.event.NpcEvent.InitEvent event = new noppes.npcs.scripted.event.NpcEvent.InitEvent(npc.wrappedNPC);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.INIT, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.INIT, event);
         npc.script.callScript(EnumScriptType.INIT, event);
         NpcAPI.EVENT_BUS.post(event);
         npc.advanced.soulStoneInit = false;
@@ -126,7 +131,7 @@ public class EventHooks {
             return;
 
         noppes.npcs.scripted.event.NpcEvent.UpdateEvent event = new noppes.npcs.scripted.event.NpcEvent.UpdateEvent(npc.wrappedNPC);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.TICK, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TICK, event);
         npc.script.callScript(EnumScriptType.TICK, event);
         NpcAPI.EVENT_BUS.post(event);
     }
@@ -136,7 +141,7 @@ public class EventHooks {
             return false;
 
         NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.DIALOG, event);
         npc.script.callScript(EnumScriptType.DIALOG, event, "player", event.getPlayer(), "dialog", event.getDialogId(), "option", event.getOptionId(), "dialogObj", event.getDialog());
 
         return NpcAPI.EVENT_BUS.post(event);
@@ -147,7 +152,7 @@ public class EventHooks {
             return;
 
         NpcEvent.DialogClosedEvent event = new NpcEvent.DialogClosedEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.DIALOG_CLOSE, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.DIALOG_CLOSE, event);
         npc.script.callScript(EnumScriptType.DIALOG_CLOSE, event, "player", event.getPlayer(), "dialog", event.getDialogId(), "option", event.getOptionId(), "dialogObj", event.getDialog());
 
         NpcAPI.EVENT_BUS.post(event);
@@ -158,7 +163,7 @@ public class EventHooks {
             return false;
 
         NpcEvent.InteractEvent event = new NpcEvent.InteractEvent(npc.wrappedNPC,player);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.INTERACT, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.INTERACT, event);
         boolean result = npc.script.callScript(EnumScriptType.INTERACT, event, "player", player);
         NpcAPI.EVENT_BUS.post(event);
         return result;
@@ -168,7 +173,7 @@ public class EventHooks {
         if(npc == null || npc.wrappedNPC == null)
             return false;
 
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.ATTACK_MELEE, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ATTACK_MELEE, event);
         npc.script.callScript(EnumScriptType.ATTACK,  event, "target", event.target);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -177,7 +182,7 @@ public class EventHooks {
         if(npc == null || npc.wrappedNPC == null)
             return false;
 
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.RANGED_LAUNCHED, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.RANGED_LAUNCHED, event);
         npc.script.callScript(EnumScriptType.ATTACK, event, "target", event.target);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -187,7 +192,7 @@ public class EventHooks {
             return;
 
         NpcEvent.KilledEntityEvent event = new NpcEvent.KilledEntityEvent(npc.wrappedNPC,entity);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.KILLS, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.KILLS, event);
         npc.script.callScript(EnumScriptType.KILLS, event, "target", entity);
         NpcAPI.EVENT_BUS.post(event);
     }
@@ -196,8 +201,18 @@ public class EventHooks {
         if(npc == null || npc.wrappedNPC == null)
             return false;
 
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.TARGET, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TARGET, event);
         npc.script.callScript(EnumScriptType.TARGET, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onNPCTargetLost(EntityNPCInterface npc, EntityLivingBase prevtarget, EntityLivingBase newTarget) {
+        if(npc.script.isClient())
+            return false;
+        NpcEvent.TargetLostEvent event = new NpcEvent.TargetLostEvent(npc.wrappedNPC, prevtarget, newTarget);
+
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TARGET_LOST, event);
+        npc.script.callScript(EnumScriptType.TARGET_LOST, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -206,7 +221,7 @@ public class EventHooks {
             return;
 
         NpcEvent.CollideEvent event = new NpcEvent.CollideEvent(npc.wrappedNPC,entity);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.COLLIDE, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.COLLIDE, event);
         npc.script.callScript(EnumScriptType.COLLIDE, event, "entity", entity);
         NpcAPI.EVENT_BUS.post(event);
     }
@@ -215,7 +230,7 @@ public class EventHooks {
         if(npc == null || npc.wrappedNPC == null)
             return false;
 
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.DAMAGED, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.DAMAGED, event);
         npc.script.callScript(EnumScriptType.DAMAGED, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -224,7 +239,7 @@ public class EventHooks {
         if(npc == null || npc.wrappedNPC == null)
             return false;
 
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.KILLED, event);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.KILLED, event);
         npc.script.callScript(EnumScriptType.KILLED, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -234,8 +249,29 @@ public class EventHooks {
             return;
 
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TIMER, event);
         npc.script.callScript(EnumScriptType.TIMER, event);
-        ScriptController.Instance.npcScripts.callScript(EnumScriptType.TIMER, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onProjectileTick(EntityProjectile projectile) {
+        ProjectileEvent.UpdateEvent event = new ProjectileEvent.UpdateEvent((IProjectile) NpcAPI.Instance().getIEntity(projectile));
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.PROJECTILE_TICK, event);
+        for(ScriptContainer script : projectile.scripts) {
+            if(script.isValid()) {
+                script.run(EnumScriptType.PROJECTILE_TICK, event);
+            }
+        }
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onProjectileImpact(EntityProjectile projectile, ProjectileEvent.ImpactEvent event) {
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.PROJECTILE_IMPACT, event);
+        for(ScriptContainer script : projectile.scripts) {
+            if(script.isValid()) {
+                script.run(EnumScriptType.PROJECTILE_IMPACT, event);
+            }
+        }
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -521,13 +557,13 @@ public class EventHooks {
         CustomGuiController.onButton(event);
     }
 
-    public static void onCustomGuiSlot(IPlayer player, ICustomGui gui, int slotId) {
-        CustomGuiEvent.SlotEvent event = new CustomGuiEvent.SlotEvent(player, gui, slotId, player.getOpenContainer().getSlot(slotId));
+    public static void onCustomGuiSlot(IPlayer player, ICustomGui gui, int slotId, ItemStack stack, IItemSlot slot) {
+        CustomGuiEvent.SlotEvent event = new CustomGuiEvent.SlotEvent(player, gui, slotId, stack, slot);
         CustomGuiController.onSlotChange(event);
     }
 
-    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, int dragType, int clickType) {
-        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, player.getOpenContainer().getSlot(slotId), dragType, clickType);
+    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, IItemSlot slot, int dragType, int clickType) {
+        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, slot, player.getOpenContainer().getSlot(slotId), dragType, clickType);
         return CustomGuiController.onSlotClick(event);
     }
 

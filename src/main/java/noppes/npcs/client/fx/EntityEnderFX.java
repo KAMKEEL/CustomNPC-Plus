@@ -3,7 +3,7 @@ package noppes.npcs.client.fx;
 import net.minecraft.client.particle.EntityPortalFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.entity.EntityCustomNpc;
 import org.lwjgl.opengl.GL11;

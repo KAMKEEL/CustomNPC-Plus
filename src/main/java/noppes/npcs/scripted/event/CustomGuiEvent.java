@@ -1,11 +1,16 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.ICustomGuiEvent;
 import noppes.npcs.api.gui.ICustomGui;
+import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.scripted.NpcAPI;
 
 public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
     public final IPlayer player;
@@ -114,11 +119,13 @@ public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
     public static class SlotEvent extends CustomGuiEvent implements ICustomGuiEvent.SlotEvent {
         public final int slotId;
         public final IItemStack stack;
+        public final IItemSlot slot;
 
-        public SlotEvent(IPlayer player, ICustomGui gui, int slotId, IItemStack stack) {
+        public SlotEvent(IPlayer player, ICustomGui gui, int slotId, ItemStack stack, IItemSlot slot) {
             super(player, gui);
             this.slotId = slotId;
-            this.stack = stack;
+            this.stack = NpcAPI.Instance().getIItemStack(stack);
+            this.slot = slot;
         }
 
         public String getHookName() {
@@ -139,17 +146,19 @@ public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
         public final int slotId;
         public final IItemStack stack;
         public final int dragType;
+        public final IItemSlot slot;
         /**
          *
          */
         public final int clickType;
 
-        public SlotClickEvent(IPlayer player, ICustomGui gui, int slotId, IItemStack stack, int dragType, int clickType) {
+        public SlotClickEvent(IPlayer player, ICustomGui gui, int slotId, IItemSlot slot, IItemStack stack, int dragType, int clickType) {
             super(player,gui);
             this.slotId = slotId;
             this.stack = stack;
             this.dragType = dragType;
             this.clickType = clickType;
+            this.slot = slot;
         }
 
         public String getHookName() {

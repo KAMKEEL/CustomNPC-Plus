@@ -24,6 +24,8 @@ import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelPartData;
+import noppes.npcs.entity.data.ModelScalePart;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
@@ -444,7 +446,7 @@ public class ModelMPM extends ModelNPCMale{
 			setPlayerData(npc);
 			currentlyPlayerTexture = true;
 			this.setRotationAngles(par2, par3, par4, par5, par6, par7, par1Entity);
-			if(npc.modelData.enableRotation){
+			if(npc.modelData.enableRotation && !npc.display.animationData.isActive()){
 				if(isRotationActive(npc)){
 					float pi = (float) Math.PI;
 
@@ -632,7 +634,7 @@ public class ModelMPM extends ModelNPCMale{
 			bipedRightArm.rotateAngleZ = (float) (Math.PI - 1f  - Math.sin(entity.ticksExisted * 0.27f) * 0.5f );
 		}
 		else if(isSneak){
-			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.body.scaleY;
+			this.bipedBody.rotateAngleX = 0.5F / npc.modelData.modelScale.body.scaleY;
 		}
 
 		AnimationData animationData = npc.display.animationData;
@@ -736,7 +738,7 @@ public class ModelMPM extends ModelNPCMale{
 			float dancing = entity.ticksExisted / 4f;
 			GL11.glTranslatef((float)Math.sin(dancing) * 0.075F, (float)Math.abs(Math.cos(dancing)) * 0.125F - 0.02F, (float)(-Math.abs(Math.cos(dancing))) * 0.075F);
 		}
-		ModelLimbConfig head = entity.modelData.head;
+		ModelScalePart head = entity.modelData.modelScale.head;
 
 		this.copyAnglesPivots(headwear,bipedHead);
 		this.copyAnglesPivots(bipedHeadwear,bipedHead);
@@ -772,7 +774,7 @@ public class ModelMPM extends ModelNPCMale{
 			GL11.glTranslatef((float)Math.sin(dancing) * 0.015F, 0.0F, 0.0F);
 		}
 
-		ModelLimbConfig body = entity.modelData.body;
+		ModelScalePart body = entity.modelData.modelScale.body;
 
 		// Hide Body
 		((ModelScaleRenderer)this.bipedBody).isHidden = entity.modelData.hideBody == 1;
@@ -782,7 +784,7 @@ public class ModelMPM extends ModelNPCMale{
 
 		if(bipedBodywear.showModel && !bipedBodywear.isHidden){
 			if(entity.modelData.bodywear == 1 || isArmor){
-				((ModelScaleRenderer)this.bipedBodywear).setConfig(entity.modelData.body,x,y,z);
+				((ModelScaleRenderer)this.bipedBodywear).setConfig(entity.modelData.modelScale.body,x,y,z);
 				((ModelScaleRenderer)this.bipedBodywear).render(f);
 			}
 			else if(entity.modelData.bodywear == 2){
@@ -792,7 +794,7 @@ public class ModelMPM extends ModelNPCMale{
 				this.bodywear.rotationPointX = bipedBodywear.rotationPointX;
 				this.bodywear.rotationPointY = bipedBodywear.rotationPointY;
 				this.bodywear.rotationPointZ = bipedBodywear.rotationPointZ;
-				this.bodywear.setConfig(entity.modelData.body,x,y,z);
+				this.bodywear.setConfig(entity.modelData.modelScale.body,x,y,z);
 				this.bodywear.render(f);
 			}
 		}
@@ -804,9 +806,9 @@ public class ModelMPM extends ModelNPCMale{
 	}
 	public void renderArms(EntityCustomNpc entity, float f, boolean bo){
 		loadPlayerTexture(entity);
-		ModelLimbConfig arms = entity.modelData.arms;
+		ModelScalePart arms = entity.modelData.modelScale.arms;
 
-		float x = (1 - entity.modelData.body.scaleX) * 0.25f + (1 - arms.scaleX) * 0.075f;
+		float x = (1 - entity.modelData.modelScale.body.scaleX) * 0.25f + (1 - arms.scaleX) * 0.075f;
 		float y = entity.modelData.getBodyY() + (1 - arms.scaleY) * -0.1f;
 		float z = 0;
 
@@ -883,7 +885,7 @@ public class ModelMPM extends ModelNPCMale{
 	}
 	private void renderLegs(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
-		ModelLimbConfig legs = entity.modelData.legs;
+		ModelScalePart legs = entity.modelData.modelScale.legs;
 
 		float x = (1 - legs.scaleX) * 0.125f;
 		float y = entity.modelData.getLegsY();

@@ -57,6 +57,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.*;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
@@ -69,7 +70,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public static final GameProfileAlt chateventProfile = new GameProfileAlt();
 	public static FakePlayer chateventPlayer;
-	public static FakePlayer CommandPlayer;
 	public DataDisplay display;
 	public DataStats stats;
 	public DataAI ai;
@@ -551,6 +551,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 					entity = null;
 				else
 					entity = event.getTarget().getMCEntity();
+			} else {
+				if(EventHooks.onNPCTargetLost(this, getAttackTarget(), entity))
+					return;
 			}
 			if (entity != null && entity != this && ai.onAttack != 3 && !isAttacking()) {
 				Line line = advanced.getAttackLine();
@@ -901,6 +904,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		EntityUtil.Copy(this, chateventPlayer);
 		chateventProfile.npc = this;
 		chateventPlayer.refreshDisplayName();
+		IItemStack stack = NpcAPI.Instance().createItem("minecraft:stone",0,1);
+		chateventPlayer.setCurrentItemOrArmor(0, stack.getMCItemStack());
 		return chateventPlayer;
 	}
 
@@ -941,6 +946,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.readToNBT(compound);
 		ai.readToNBT(compound);
 		script.readFromNBT(compound);
+		script.readEventsFromNBT(compound);
 		timers.readFromNBT(compound);
 		if (compound.hasKey("ItemGiverId")) {
 			itemGiverId = compound.getInteger("ItemGiverId");
@@ -978,6 +984,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		stats.writeToNBT(compound);
 		ai.writeToNBT(compound);
 		script.writeToNBT(compound);
+		script.writeEventsToNBT(compound);
 		timers.writeToNBT(compound);
 		advanced.writeToNBT(compound);
 		if (advanced.role != EnumRoleType.None && roleInterface != null)
@@ -1576,17 +1583,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			((EntityCustomNpc)this).modelData.readFromNBT(compound.getCompoundTag("ModelData"));
 		}
 		display.readToNBT(compound);
-	}
-
-	public Entity func_174793_f() {
-		if (this.worldObj.isRemote) {
-			return this;
-		} else {
-			EntityUtil.Copy(this, CommandPlayer);
-			CommandPlayer.setWorld(this.worldObj);
-			CommandPlayer.setPosition(this.posX, this.posY, this.posZ);
-			return CommandPlayer;
-		}
 	}
 
 	@Override

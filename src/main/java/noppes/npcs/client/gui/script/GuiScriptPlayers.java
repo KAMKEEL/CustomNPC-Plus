@@ -20,6 +20,58 @@ public class GuiScriptPlayers extends GuiScriptInterface {
     private PlayerDataScript script = new PlayerDataScript((EntityPlayer)null);
 
     public GuiScriptPlayers() {
+        hookList.add("init");
+        hookList.add("tick");
+        hookList.add("interact");
+        hookList.add("attack");
+        hookList.add("attacked");
+        hookList.add("damagedEntity");
+        hookList.add("damaged");
+        hookList.add("kills");
+        hookList.add("killed");
+        hookList.add("drop");
+        hookList.add("respawn");
+        hookList.add("breakBlock");
+        hookList.add("chat");
+        hookList.add("login");
+        hookList.add("logout");
+        hookList.add("keyPressed");
+        hookList.add("mouseClicked");
+        hookList.add("toss");
+        hookList.add("pickUp");
+        hookList.add("pickupXP");
+        hookList.add("rangedCharge");
+        hookList.add("rangedLaunched");
+        hookList.add("timer");
+        hookList.add("startItem");
+        hookList.add("usingItem");
+        hookList.add("stopItem");
+        hookList.add("finishItem");
+        hookList.add("containerOpen");
+        hookList.add("useHoe");
+        hookList.add("bonemeal");
+        hookList.add("fillBucket");
+        hookList.add("jump");
+        hookList.add("fall");
+        hookList.add("wakeUp");
+        hookList.add("sleep");
+        hookList.add("playSound");
+        hookList.add("lightning");
+        hookList.add("changedDim");
+        hookList.add("questStart");
+        hookList.add("questCompleted");
+        hookList.add("questTurnIn");
+        hookList.add("factionPoints");
+        hookList.add("dialogOpen");
+        hookList.add("dialogOption");
+        hookList.add("dialogClose");
+        hookList.add("customGuiClosed");
+        hookList.add("customGuiButton");
+        hookList.add("customGuiSlot");
+        hookList.add("customGuiSlotClicked");
+        hookList.add("customGuiScroll");
+        hookList.add("customGuiTextfield");
+
         this.handler = this.script;
         Client.sendData(EnumPacketServer.ScriptPlayerGet);
     }
@@ -54,6 +106,6 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         scriptData.setString("ScriptLanguage", this.script.getLanguage());
         scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
         scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
-        Client.sendData(EnumPacketServer.ScriptPlayerSave, -1, scriptData);
+        Client.sendData(EnumPacketServer.ScriptPlayerSave, -1, containers.size(), scriptData);
     }
 }

@@ -267,7 +267,7 @@ public class PacketHandlerPlayer{
 				if(mail.time == time && mail.sender.equals(username)){
 					mail.beenRead = true;
 					if(mail.hasQuest())
-						PlayerQuestController.addActiveQuest(mail.getQuest(), player);
+						PlayerQuestController.addActiveQuest(new QuestData(mail.getQuest()), player);
 				}
 			}
 		}

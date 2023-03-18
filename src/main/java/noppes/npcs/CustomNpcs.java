@@ -202,7 +202,7 @@ public class CustomNpcs {
         new AnimationController();
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();
-        ScriptController.Instance.loadNPCScripts();
+        ScriptController.Instance.loadGlobalNPCScripts();
         ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
         NpcAPI.clearCache();
@@ -239,7 +239,7 @@ public class CustomNpcs {
         GlobalDataController.instance.saveData();
         ScriptController.Instance.saveForgeScripts();
         ScriptController.Instance.savePlayerScripts();
-        ScriptController.Instance.saveNpcScripts();
+        ScriptController.Instance.saveGlobalNpcScripts();
     }
 
     @EventHandler

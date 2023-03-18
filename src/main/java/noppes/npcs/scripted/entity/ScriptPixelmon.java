@@ -184,7 +184,7 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 	 * @param value 0-255
 	 */
 	public void setHapiness(int value){
-		value = ValueUtil.CorrectInt(value, 0, 255);
+		value = ValueUtil.clamp(value, 0, 255);
 		compound.setInteger("Friendship", value);
 		pixelmon.readEntityFromNBT(compound);
 	}
@@ -241,7 +241,7 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 	}
 	
 	public void setMove(int slot, String move){
-		slot = ValueUtil.CorrectInt(slot, 0, 3);
+		slot = ValueUtil.clamp(slot, 0, 3);
 		int id = PixelmonHelper.getAttackID(move);
 		compound.removeTag("PixelmonMovePP" + slot);
 		compound.removeTag("PixelmonMovePPBase" + slot);

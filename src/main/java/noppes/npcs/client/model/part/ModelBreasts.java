@@ -2,7 +2,7 @@ package noppes.npcs.client.model.part;
 
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import noppes.npcs.ModelData;
+import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.client.model.util.ModelPartInterface;

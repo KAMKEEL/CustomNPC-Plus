@@ -6,7 +6,7 @@ package noppes.npcs.entity.old;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.ModelData;
+import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -34,10 +34,10 @@ public class EntityNPCDwarfMale extends EntityNPCInterface
 	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
 	    	npc.readFromNBT(compound);
 	    	ModelData data = npc.modelData;
-			data.legs.setScale(1.1f,0.7f, 0.9f);
-			data.arms.setScale(0.9f,0.7f);
-			data.body.setScale(1.2f, 0.7f, 1.5f);
-			data.head.setScale(0.85f,0.85f);
+			data.modelScale.legs.setScale(1.1f,0.7f, 0.9f);
+			data.modelScale.arms.setScale(0.9f,0.7f);
+			data.modelScale.body.setScale(1.2f, 0.7f, 1.5f);
+			data.modelScale.head.setScale(0.85f,0.85f);
 	    	worldObj.spawnEntityInWorld(npc);
     	}
     	super.onUpdate();

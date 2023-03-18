@@ -2,9 +2,8 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelLimbConfig;
-import noppes.npcs.ModelRotatePart;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelRotatePart;
 import noppes.npcs.client.gui.util.GuiModelInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;

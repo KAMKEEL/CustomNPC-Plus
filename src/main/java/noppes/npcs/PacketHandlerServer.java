@@ -47,10 +47,7 @@ import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PacketHandlerServer{
 
@@ -77,10 +74,6 @@ public class PacketHandlerServer{
 				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
 				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
-			} else if (type == EnumPacketServer.CustomGuiSlotChange && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
-				EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
-				return;
 			} else if (type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
 				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
 				EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
@@ -92,8 +85,8 @@ public class PacketHandlerServer{
 			} else if (type == EnumPacketServer.CustomGuiClose) {
 				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
 				return;
-			} else if (type == EnumPacketServer.UpdateTrackedQuest) {
-				updateTrackedQuest(buffer, player);
+			} else if (type == EnumPacketServer.QuestLogToServer) {
+				updateQuestLogData(buffer, player);
 				return;
 			}
 
@@ -103,7 +96,7 @@ public class PacketHandlerServer{
 			else if(type.hasPermission() && !CustomNpcsPermissions.hasPermission(player, type.permission)){
 				//player doesnt have permission to do this
 			}
-			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
+			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
@@ -120,10 +113,12 @@ public class PacketHandlerServer{
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
 						blockPackets(type, buffer, player);
 					else if (ConfigScript.isScriptDev(player)) {
-						if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
+						if (type == EnumPacketServer.EventScriptDataGet || type == EnumPacketServer.EventScriptDataSave)
+							npcEventScriptPackets(type, buffer, player, npc);
+						else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
 							playerScriptPackets(type, buffer, player);
-						else if (type == EnumPacketServer.ScriptNPCGet || type == EnumPacketServer.ScriptNPCSave)
-							npcScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave)
+							npcGlobalScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
 							forgeScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
@@ -140,12 +135,11 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void updateTrackedQuest(ByteBuf buffer, EntityPlayerMP player) {
-		String trackedQuestString = Server.readString(buffer);
-		if (trackedQuestString != null && trackedQuestString.contains(":")) {
-			String[] splitString = trackedQuestString.split(":");
+	private Quest getQuestFromString(String string) {
+		if (string != null && string.contains(":")) {
+			String[] splitString = string.split(":");
 			if(splitString.length < 2){
-				return;
+				return null;
 			}
 			String categoryName = splitString[0];
 			String questName = splitString[1];
@@ -154,16 +148,35 @@ public class PacketHandlerServer{
 				if (category.title.equals(categoryName)) {
 					for (Quest quest : category.quests.values()) {
 						if (quest.title.equals(questName)) {
-							PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = quest;
-							NoppesUtilPlayer.sendTrackedQuestData(player, quest);
-							return;
+							return quest;
 						}
 					}
 				}
 			}
 		}
+		return null;
+	}
 
-		PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
+	private void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+
+		NBTTagCompound compound = Server.readNBT(buffer);
+		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
+		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
+			Quest quest = this.getQuestFromString(entry.getKey());
+			if (quest != null) {
+				playerData.questData.activeQuests.get(quest.id).sendAlerts = Boolean.parseBoolean(entry.getValue());
+			}
+		}
+
+		String trackedQuestString = Server.readString(buffer);
+		Quest trackedQuest = this.getQuestFromString(trackedQuestString);
+		if (trackedQuest != null) {
+			playerData.questData.trackedQuest = trackedQuest;
+			NoppesUtilPlayer.sendTrackedQuestData(player, trackedQuest);
+		}
+
+		playerData.questData.trackedQuest = null;
 		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
 	}
 
@@ -205,7 +218,7 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+	private void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setBoolean("ScriptEnabled", data.getEnabled());
 		compound.setString("ScriptLanguage", data.getLanguage());
@@ -225,8 +238,12 @@ public class PacketHandlerServer{
 
 	private void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		int tab = buffer.readInt();
+		int totalScripts = buffer.readInt();
+		if (totalScripts == 0) {
+			data.getScripts().clear();
+		}
+
 		if (tab >= 0) {
-			int totalScripts = buffer.readInt();
 			if (data.getScripts().size() > totalScripts) {
 				data.setScripts(data.getScripts().subList(0,totalScripts));
 			} else while (data.getScripts().size() < totalScripts) {
@@ -245,6 +262,20 @@ public class PacketHandlerServer{
 				}
 			}
 			data.setEnabled(compound.getBoolean("ScriptEnabled"));
+		}
+	}
+
+	private void npcEventScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
+		DataScript data = npc.script;
+		if(type == EnumPacketServer.EventScriptDataGet) {
+			this.getScripts(data,buffer,player);
+		} else if(type == EnumPacketServer.EventScriptDataSave) {
+			this.saveScripts(data,buffer,player);
+			npc.updateAI = true;
+			npc.script.hasInited = false;
+			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+				LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+			}
 		}
 	}
 
@@ -268,13 +299,13 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void npcScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
-		NPCDataScript data = ScriptController.Instance.npcScripts;
-		if(type == EnumPacketServer.ScriptNPCGet) {
+	private void npcGlobalScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		GlobalNPCDataScript data = ScriptController.Instance.globalNpcScripts;
+		if(type == EnumPacketServer.ScriptGlobalNPCGet) {
 			this.getScripts(data,buffer,player);
-		} else if(type == EnumPacketServer.ScriptNPCSave) {
+		} else if(type == EnumPacketServer.ScriptGlobalNPCSave) {
 			this.saveScripts(data,buffer,player);
-			ScriptController.Instance.lastNpcUpdate = System.currentTimeMillis();
+			ScriptController.Instance.lastGlobalNpcUpdate = System.currentTimeMillis();
 		}
 	}
 

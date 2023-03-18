@@ -500,6 +500,10 @@ quest.randomitem=Random Item
 quest.exp=Exp
 quest.takeitems=Take Items
 quest.objectives=Objectives
+quest.track=Track
+quest.tracking=Tracking
+quest.alerts=Alerts
+quest.noAlerts=No Alerts
 
 script.apidoc=API Docs
 script.apisrc=API Source
@@ -518,12 +522,16 @@ script.killed=Killed
 script.attack=Attack
 script.target=Target
 script.timer=Timer
+script.targetLost=Target Lost
+script.projectileTick=Proj. Tick
+script.projectileImpact=Proj. Impact
 script.availableScripts=Available Scripts
 script.loadedScripts=Loaded Scripts
 script.collide=Collide
 script.kills=Kills
 script.dialog_closed=Dialog Closed
 
+eventscript.eventScripts=Event Scripts
 eventscript.playerevent=Player Events
 
 playerscript.disabled=Disabled

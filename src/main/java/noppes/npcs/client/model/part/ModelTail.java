@@ -5,7 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.part.tails.*;
@@ -87,18 +87,18 @@ public class ModelTail extends ModelScaleRenderer {
         
         if(this.entity.modelData.legParts.type == 2){
         	rotationPointY = 13f;
-        	rotationPointZ = 14 * this.entity.modelData.legs.scaleZ;
+        	rotationPointZ = 14 * this.entity.modelData.modelScale.legs.scaleZ;
 
 	        if(base.isSleeping(entity) || this.entity.currentAnimation == EnumAnimation.CRAWLING){
-	        	rotationPointY = 12 + 16 * this.entity.modelData.legs.scaleZ;
-	        	rotationPointZ = 1f * this.entity.modelData.legs.scaleY;
+	        	rotationPointY = 12 + 16 * this.entity.modelData.modelScale.legs.scaleZ;
+	        	rotationPointZ = 1f * this.entity.modelData.modelScale.legs.scaleY;
 
 				rotateAngleX = (float) (Math.PI / -4);
 	        }
         }
         else if(this.entity.modelData.legParts.type == 3){
         	rotationPointY = 8.6f;
-        	rotationPointZ = 19 * this.entity.modelData.legs.scaleZ;
+        	rotationPointZ = 19 * this.entity.modelData.modelScale.legs.scaleZ;
         }
         else{
         	rotationPointY = 11;

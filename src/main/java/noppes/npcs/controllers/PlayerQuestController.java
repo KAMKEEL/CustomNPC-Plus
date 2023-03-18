@@ -35,19 +35,21 @@ public class PlayerQuestController {
 		return data.finishedQuests.containsKey(questid);
 	}
 
-	public static void addActiveQuest(Quest quest, EntityPlayer player) {
+	public static void addActiveQuest(QuestData questData, EntityPlayer player) {
 		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
-		if(canQuestBeAccepted(quest, player)){
-			if (EventHooks.onQuestStarted(player, quest)) {
+		if(canQuestBeAccepted(questData.quest, player)){
+			if (EventHooks.onQuestStarted(player, questData.quest)) {
 				return;
 			}
 
-			data.activeQuests.put(quest.id,new QuestData(quest));
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+			data.activeQuests.put(questData.quest.id,questData);
+			if (questData.sendAlerts) {
+				Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.newquest", questData.quest.title);
+				Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.newquest", ": ", questData.quest.title);
+			}
 		} else {
-			long timeUntilRepeat = quest.getTimeUntilRepeat(player);
-			if (timeUntilRepeat > 0 && quest.getIsRepeatable() && quest.repeat != EnumQuestRepeat.NONE && quest.repeat != EnumQuestRepeat.REPEATABLE) {
+			long timeUntilRepeat = questData.quest.getTimeUntilRepeat(player);
+			if (timeUntilRepeat > 0 && questData.quest.getIsRepeatable() && questData.quest.repeat != EnumQuestRepeat.NONE && questData.quest.repeat != EnumQuestRepeat.REPEATABLE) {
 				String timeString = NoppesUtilServer.millisToTime(timeUntilRepeat);
 				String message = "You have " + timeString + " left until you can repeat this quest.";
 				player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));

@@ -3,7 +3,7 @@ package noppes.npcs.entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import noppes.npcs.ModelData;
+import noppes.npcs.entity.data.ModelData;
 
 public class EntityNpcPony extends EntityNPCInterface
 {

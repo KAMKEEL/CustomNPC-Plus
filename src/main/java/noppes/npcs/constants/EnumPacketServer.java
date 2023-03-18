@@ -44,14 +44,15 @@ public enum EnumPacketServer {
 	ScriptForgeSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptForgeGet(false),
 
-	ScriptNPCSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
-	ScriptNPCGet(false),
+	ScriptGlobalNPCSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
+	ScriptGlobalNPCGet(false),
 
 	ScriptItemDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptItemDataGet(false),
 
 	LinkedGetAll, LinkedRemove(CustomNpcsPermissions.GLOBAL_LINKED), LinkedAdd(CustomNpcsPermissions.GLOBAL_LINKED),
 	ScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), ScriptDataGet(true),
+	EventScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), EventScriptDataGet(true),
 	PlayerDataRemove(CustomNpcsPermissions.GLOBAL_PLAYERDATA), 
 	BankSave(CustomNpcsPermissions.GLOBAL_BANK), BanksGet, BankGet, 
 	BankRemove(CustomNpcsPermissions.GLOBAL_BANK),  
@@ -84,7 +85,7 @@ public enum EnumPacketServer {
 
 	AnimationListGet, AnimationGet, AnimationAdd, AnimationDelete, AnimationSave,
 
-	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, UpdateTrackedQuest,
+	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, QuestLogToServer,
 
 	RemoteNpcsGet(CustomNpcsPermissions.NPC_GUI), 
 	RemoteTpToNpc,QuestGet, QuestCategoryGet, 
@@ -92,7 +93,7 @@ public enum EnumPacketServer {
 	NaturalSpawnGetAll, MailOpenSetup,
 	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen,
 
-	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
+	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
 
     ServerUpdateSkinOverlays;
 

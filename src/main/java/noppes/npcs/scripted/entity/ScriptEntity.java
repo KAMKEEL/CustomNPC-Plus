@@ -14,6 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
@@ -421,6 +422,24 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 
 	public int getDimension(){
 		return entity.dimension;
+	}
+
+	public void setDimension(int dimensionId) {
+		IWorld world = NpcAPI.Instance().getIWorld(dimensionId);
+		if (world != null) {
+			World mcWorld = world.getMCWorld();
+			if (this.entity.riddenByEntity != null)
+			{
+				this.entity.riddenByEntity.mountEntity((Entity)null);
+			}
+			if (this.entity.ridingEntity != null)
+			{
+				this.entity.mountEntity((Entity)null);
+			}
+			this.entity.worldObj = mcWorld;
+			this.entity.dimension = dimensionId;
+			mcWorld.addLoadedEntities(new ArrayList<Entity>(Collections.singleton(this.entity)));
+		}
 	}
 
 	/**

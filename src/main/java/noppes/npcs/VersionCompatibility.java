@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.data.ModelRotate;
 
 import java.util.Collection;
 import java.util.List;

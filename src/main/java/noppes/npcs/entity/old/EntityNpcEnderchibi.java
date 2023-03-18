@@ -6,8 +6,8 @@ package noppes.npcs.entity.old;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.ModelData;
-import noppes.npcs.ModelPartData;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -34,8 +34,8 @@ public class EntityNpcEnderchibi extends EntityNPCInterface
 	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
 	    	npc.readFromNBT(compound);
 	    	ModelData data = npc.modelData;
-			data.legs.setScale(0.65f,0.75f);
-			data.arms.setScale(0.50f,1.45f);
+			data.modelScale.legs.setScale(0.65f,0.75f);
+			data.modelScale.arms.setScale(0.50f,1.45f);
 			ModelPartData part = data.getOrCreatePart("particles");
 			part.playerTexture = true;
 	    	

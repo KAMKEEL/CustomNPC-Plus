@@ -58,7 +58,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageTransport);
 		}
 		if (id == 13) {
-			NoppesUtil.openGUI(player, new GuiNpcManagePlayerData(npc, this));
+			NoppesUtil.openGUI(player, new GuiNpcManagePlayerData(npc));
 		}
 		if (id == 14) {
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes, 4, 0, 0);

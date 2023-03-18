@@ -6,7 +6,7 @@ package noppes.npcs.entity;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.ModelData;
+import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.constants.EnumAnimation;
 
 // Referenced classes of package net.minecraft.src:

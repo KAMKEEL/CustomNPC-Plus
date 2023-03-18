@@ -179,7 +179,7 @@ public class NoppesUtilServer {
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG, npc.getEntityId(), dialog.writeToNBT(new NBTTagCompound()));
 		dia.factionOptions.addPoints(player);
         if(dialog.hasQuest())
-        	PlayerQuestController.addActiveQuest(dialog.getQuest(),player);
+        	PlayerQuestController.addActiveQuest(new QuestData(dialog.getQuest()),player);
         if(!dialog.command.isEmpty()){            
             runCommand(player, npc.getCommandSenderName(), dialog.command);
         }

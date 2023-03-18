@@ -136,10 +136,10 @@ public class DataStats {
 
 		rangedRange = compound.getInteger("MaxFiringRange");
 		fireRate = compound.getInteger("FireRate");
-		minDelay = ValueUtil.CorrectInt(compound.getInteger("minDelay"), 1, 9999);
-		maxDelay = ValueUtil.CorrectInt(compound.getInteger("maxDelay"), 1, 9999);
+		minDelay = ValueUtil.clamp(compound.getInteger("minDelay"), 1, 9999);
+		maxDelay = ValueUtil.clamp(compound.getInteger("maxDelay"), 1, 9999);
 		burstCount = compound.getInteger("BurstCount");
-		shotCount = ValueUtil.CorrectInt(compound.getInteger("ShotCount"), 1, 10);
+		shotCount = ValueUtil.clamp(compound.getInteger("ShotCount"), 1, 10);
 		accuracy = compound.getInteger("Accuracy");
 
 		pDamage = compound.getFloat("pDamage");

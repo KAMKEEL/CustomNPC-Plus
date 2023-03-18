@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.EventHooks;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.config.ConfigDebug;
@@ -29,6 +30,8 @@ import javax.script.ScriptEngine;
 import java.util.*;
 
 public class DataScript implements IScriptHandler {
+	public List<ScriptContainer> eventScripts = new ArrayList();
+
 	public List<ScriptContainer> scripts = new ArrayList();
 	private final static EntityType entities = new EntityType();
 	private final static JobType jobs = new JobType();
@@ -45,7 +48,7 @@ public class DataScript implements IScriptHandler {
 	public boolean hasInited = false;
 
 	public DataScript(EntityNPCInterface npc) {
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < 15; i++) {
 			scripts.add(new ScriptContainer(this));
 		}
 
@@ -72,6 +75,10 @@ public class DataScript implements IScriptHandler {
 		enabled = compound.getBoolean("ScriptEnabled");
 	}
 
+	public void readEventsFromNBT(NBTTagCompound compound) {
+		eventScripts = NBTTags.GetScript(compound,this);
+	}
+
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("ScriptsContainers", writeScript(scripts));
 		compound.setString("ScriptLanguage", scriptLanguage);
@@ -79,9 +86,17 @@ public class DataScript implements IScriptHandler {
 		return compound;
 	}
 
+	public NBTTagCompound writeEventsToNBT(NBTTagCompound compound) {
+		compound.setInteger("TotalScripts",this.eventScripts.size());
+		for (int i = 0; i < this.eventScripts.size(); i++) {
+			compound.setTag("Tab"+i,this.eventScripts.get(i).writeToNBT(new NBTTagCompound()));
+		}
+		return compound;
+	}
+
 	private List<ScriptContainer> readScript(NBTTagList list){
 		List<ScriptContainer> scripts = new ArrayList<>();
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < 15; i++) {
 			scripts.add(new ScriptContainer(this));
 		}
 
@@ -118,10 +133,19 @@ public class DataScript implements IScriptHandler {
 		}
 		if(!isEnabled())
 			return false;
+
 		if(!hasInited && !npc.isRemote() && type != EnumScriptType.INIT){
 			hasInited = true;
+			for (ScriptContainer scriptContainer : this.eventScripts) {
+				scriptContainer.errored = false;
+			}
 			EventHooks.onNPCInit(this.npc);
 		}
+
+		for (ScriptContainer script : this.eventScripts) {
+			script.run(type, event);
+		}
+
 		ScriptContainer script = scripts.get(type.ordinal());
 		if(script == null || script.errored || !script.hasCode())
 			return false;
@@ -173,12 +197,10 @@ public class DataScript implements IScriptHandler {
 		return enabled && ScriptController.HasStart && !npc.worldObj.isRemote && !scripts.isEmpty() && ConfigScript.ScriptingEnabled;
 	}
 
-	public void setConsoleText(Map<Long, String> map) {}
-
-	public Map<Long, String> getConsoleText() {
+	public Map<Long, String> getOldConsoleText() {
 		Map<Long, String> map = new TreeMap();
 		int tab = 0;
-		Iterator var3 = this.getScripts().iterator();
+		Iterator var3 = this.scripts.iterator();
 
 		while(var3.hasNext()) {
 			ScriptContainer script = (ScriptContainer)var3.next();
@@ -194,19 +216,28 @@ public class DataScript implements IScriptHandler {
 		return map;
 	}
 
-	public void clearConsole() {
-		Iterator var1 = this.getScripts().iterator();
+	public Map<Long, String> getConsoleText() {
+		TreeMap<Long, String> map = new TreeMap<>();
+		int tab = 0;
+		for (ScriptContainer script : this.getScripts()) {
+			++tab;
 
-		while(var1.hasNext()) {
-			ScriptContainer script = (ScriptContainer)var1.next();
+			for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
+				map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+			}
+		}
+		return map;
+	}
+
+	public void clearConsole() {
+		for (ScriptContainer script : this.getScripts()) {
 			script.console.clear();
 		}
-
 	}
 
 	@Override
-	public void callScript(EnumScriptType var1, Event var2) {
-		callScript(var1, var2, "$$IGNORED$$", null);
+	public void callScript(EnumScriptType type, Event event) {
+		callScript(type, event, "$$IGNORED$$", null);
 	}
 
 	public boolean isClient() {
@@ -234,7 +265,7 @@ public class DataScript implements IScriptHandler {
 	}
 
 	public List<ScriptContainer> getScripts() {
-		return this.scripts;
+		return this.eventScripts;
 	}
 
 	public String noticeString() {

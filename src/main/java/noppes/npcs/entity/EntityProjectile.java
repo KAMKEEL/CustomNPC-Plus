@@ -25,10 +25,18 @@ import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import noppes.npcs.DataStats;
+import noppes.npcs.EventHooks;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
+import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.ProjectileEvent;
 import noppes.npcs.util.IProjectileCallback;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -76,10 +84,11 @@ public class EntityProjectile extends EntityThrowable {
     public EnumPotionType effect = EnumPotionType.None;
     public int duration = 5;
     public int amplify = 0;
+	public int accuracy = 60;
 
     public IProjectileCallback callback;
     public ItemStack callbackItem;
-    
+	public List<ScriptContainer> scripts = new ArrayList<ScriptContainer>();
     
     public EntityProjectile(World par1World)
     {
@@ -209,6 +218,10 @@ public class EntityProjectile extends EntityThrowable {
     public void onUpdate()
     {
         super.onEntityUpdate();
+		if(++ticksExisted % 10 == 0){
+			EventHooks.onProjectileTick(this);
+		}
+
         if (this.prevRotationPitch == 0.0F && this.prevRotationYaw == 0.0F)
         {
             float f = MathHelper.sqrt_double(this.motionX * this.motionX + this.motionZ * this.motionZ);
@@ -432,11 +445,25 @@ public class EntityProjectile extends EntityThrowable {
     @Override
     protected void onImpact(MovingObjectPosition movingobjectposition)
     {
+		ProjectileEvent.ImpactEvent event;
+		if(movingobjectposition.entityHit != null) {
+			IPos pos = NpcAPI.Instance().getIPos(movingobjectposition.entityHit.posX,movingobjectposition.entityHit.posY,movingobjectposition.entityHit.posZ);
+			event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 0, movingobjectposition.entityHit);
+		}
+		else {
+			IPos pos = NpcAPI.Instance().getIPos(movingobjectposition.blockX,movingobjectposition.blockY,movingobjectposition.blockZ);
+			IWorld world = NpcAPI.Instance().getIWorld(this.worldObj);
+			event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 1, NpcAPI.Instance().getIBlock(world, pos));
+		}
+		if (movingobjectposition.entityHit != null) {
+			if (callback != null && callbackItem != null && movingobjectposition.entityHit instanceof EntityLivingBase && callback.onImpact(this, (EntityLivingBase) movingobjectposition.entityHit, callbackItem)) {
+				return;
+			}
+		}
+		EventHooks.onProjectileImpact(this, event);
+
     	if (movingobjectposition.entityHit != null)
         {
-        	if(callback != null && callbackItem != null && movingobjectposition.entityHit instanceof EntityLivingBase && callback.onImpact(this, (EntityLivingBase)movingobjectposition.entityHit, callbackItem)){
-        		return;
-        	}
     		float damage = this.damage;
     		if(damage == 0)
     			damage = 0.001f;
@@ -695,6 +722,7 @@ public class EntityProjectile extends EntityThrowable {
 		par1NBTTagCompound.setBoolean("accelerate", this.accelerate);
 		par1NBTTagCompound.setByte("glows", this.dataWatcher.getWatchableObjectByte(24));
 		par1NBTTagCompound.setBoolean("explosive", explosive);
+		par1NBTTagCompound.setInteger("accuracy", accuracy);
 		par1NBTTagCompound.setInteger("PotionEffect", effect.ordinal());
 		par1NBTTagCompound.setString("trail", this.dataWatcher.getWatchableObjectString(22));
 		par1NBTTagCompound.setByte("Render3D", this.dataWatcher.getWatchableObjectByte(28));
@@ -724,6 +752,7 @@ public class EntityProjectile extends EntityThrowable {
     	this.duration = par1NBTTagCompound.getInteger("effectDuration");
     	this.accelerate = par1NBTTagCompound.getBoolean("accelerate");
     	this.explosive = par1NBTTagCompound.getBoolean("explosive");
+		this.accuracy = par1NBTTagCompound.getInteger("accuracy");
     	this.effect = EnumPotionType.values()[par1NBTTagCompound.getInteger("PotionEffect") % EnumPotionType.values().length];
         this.dataWatcher.updateObject(22, par1NBTTagCompound.getString("trail"));
 		this.dataWatcher.updateObject(23, Integer.valueOf(par1NBTTagCompound.getInteger("size")));
