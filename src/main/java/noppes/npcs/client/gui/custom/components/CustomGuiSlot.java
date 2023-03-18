@@ -12,12 +12,14 @@ import noppes.npcs.client.gui.custom.GuiCustom;
 
 public class CustomGuiSlot extends Slot {
     public boolean clientSide;
-    public int slotNumber;
+    public final int slotNumber;
+    public final int guiSlotId;
 
-    public CustomGuiSlot(IInventory inventoryIn, int index, int xPosition, int yPosition, boolean clientSide) {
+    public CustomGuiSlot(IInventory inventoryIn, int index, int guiSlotId, int xPosition, int yPosition, boolean clientSide) {
         super(inventoryIn, index, xPosition, yPosition);
         this.clientSide = clientSide;
         this.slotNumber = index;
+        this.guiSlotId = guiSlotId;
     }
 
     public void onSlotChanged() {

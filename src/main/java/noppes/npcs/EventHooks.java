@@ -560,8 +560,8 @@ public class EventHooks {
         CustomGuiController.onSlotChange(event);
     }
 
-    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, int dragType, int clickType) {
-        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, player.getOpenContainer().getSlot(slotId), dragType, clickType);
+    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, int guiSlotId, int dragType, int clickType) {
+        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, guiSlotId, player.getOpenContainer().getSlot(slotId), dragType, clickType);
         return CustomGuiController.onSlotClick(event);
     }
 

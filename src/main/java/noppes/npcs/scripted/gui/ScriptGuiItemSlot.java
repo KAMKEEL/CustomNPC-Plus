@@ -13,12 +13,13 @@ public class ScriptGuiItemSlot extends ScriptGuiComponent implements IItemSlot {
     public ScriptGuiItemSlot() {
     }
 
-    public ScriptGuiItemSlot(int x, int y) {
+    public ScriptGuiItemSlot(int id, int x, int y) {
+        this.setID(id);
         this.setPos(x, y);
     }
 
-    public ScriptGuiItemSlot(int x, int y, IItemStack stack) {
-        this(x, y);
+    public ScriptGuiItemSlot(int id, int x, int y, IItemStack stack) {
+        this(id, x, y);
         this.setStack(stack);
     }
 

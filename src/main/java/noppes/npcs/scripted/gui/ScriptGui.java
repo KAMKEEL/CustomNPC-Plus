@@ -143,13 +143,25 @@ public class ScriptGui implements ICustomGui {
     }
 
     public IItemSlot addItemSlot(int x, int y) {
-        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(x, y);
+        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(this.getMaxId() + 1, x, y);
         this.slots.add(slot);
         return (IItemSlot)this.slots.get(this.slots.size() - 1);
     }
 
     public IItemSlot addItemSlot(int x, int y, IItemStack stack) {
-        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(x, y, stack);
+        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(this.getMaxId() + 1, x, y, stack);
+        this.slots.add(slot);
+        return (IItemSlot)this.slots.get(this.slots.size() - 1);
+    }
+
+    public IItemSlot addItemSlot(int id, int x, int y) {
+        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(id, x, y);
+        this.slots.add(slot);
+        return (IItemSlot)this.slots.get(this.slots.size() - 1);
+    }
+
+    public IItemSlot addItemSlot(int id, int x, int y, IItemStack stack) {
+        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(id, x, y, stack);
         this.slots.add(slot);
         return (IItemSlot)this.slots.get(this.slots.size() - 1);
     }
@@ -228,6 +240,16 @@ public class ScriptGui implements ICustomGui {
 
     public int getPlayerInvY() {
         return this.playerInvY;
+    }
+
+    private int getMaxId() {
+        int max = 0;
+        for (ICustomGuiComponent component : this.getComponents()) {
+            if (component.getID() >= max) {
+                max = component.getID();
+            }
+        }
+        return max;
     }
 
     public ICustomGui fromNBT(NBTTagCompound tag) {

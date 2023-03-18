@@ -44,9 +44,9 @@ public class ContainerCustomGui extends Container {
         while(var3.hasNext()) {
             IItemSlot slot = (IItemSlot)var3.next();
             if (slot.hasStack()) {
-                this.addSlot(slot.getPosX(), slot.getPosY(), slot.getStack().getMCItemStack(), player.worldObj.isRemote);
+                this.addSlot(slot.getPosX(), slot.getPosY(), slot.getID(), slot.getStack().getMCItemStack(), player.worldObj.isRemote);
             } else {
-                this.addSlot(slot.getPosX(), slot.getPosY(), player.worldObj.isRemote);
+                this.addSlot(slot.getPosX(), slot.getPosY(), slot.getID(), player.worldObj.isRemote);
             }
         }
     }
@@ -75,13 +75,13 @@ public class ContainerCustomGui extends Container {
         return itemstack;
     }
 
-    void addSlot(int x, int y, boolean clientSide) {
-        this.addSlotToContainer(new CustomGuiSlot(this.guiInventory, this.slotCount++, x, y, clientSide));
+    void addSlot(int x, int y, int guiSlotId, boolean clientSide) {
+        this.addSlotToContainer(new CustomGuiSlot(this.guiInventory, this.slotCount++, guiSlotId, x, y, clientSide));
     }
 
-    void addSlot(int x, int y, ItemStack itemStack, boolean clientSide) {
+    void addSlot(int x, int y, int guiSlotId, ItemStack itemStack, boolean clientSide) {
         this.guiInventory.setInventorySlotContents(this.slotCount, itemStack);
-        this.addSlotToContainer(new CustomGuiSlot(this.guiInventory, this.slotCount++, x, y, clientSide));
+        this.addSlotToContainer(new CustomGuiSlot(this.guiInventory, this.slotCount++, guiSlotId, x, y, clientSide));
     }
 
     void addPlayerInventory(EntityPlayer player, int x, int y) {
@@ -108,8 +108,9 @@ public class ContainerCustomGui extends Container {
     public ItemStack slotClick(int slotId, int dragType, int clickTypeIn, EntityPlayer player) {
         if(slotId < 0)
             return super.slotClick(slotId, dragType, clickTypeIn, player);
-        if(!player.worldObj.isRemote) {
-            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, dragType, clickTypeIn)) {
+        if(!player.worldObj.isRemote && this.getSlot(slotId) instanceof CustomGuiSlot) {
+            CustomGuiSlot guiSlot = (CustomGuiSlot) this.getSlot(slotId);
+            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, guiSlot.guiSlotId, dragType, clickTypeIn)) {
                 ItemStack item = super.slotClick(slotId, dragType, clickTypeIn, player);
                 EntityPlayerMP p = (EntityPlayerMP) player;
                 p.sendContainerToPlayer(this);
