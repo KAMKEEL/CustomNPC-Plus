@@ -14,8 +14,10 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import scala.actors.threadpool.Arrays;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,8 +30,7 @@ public class ScriptGui implements ICustomGui {
     boolean pauseGame;
     boolean showPlayerInv;
     String backgroundTexture = "";
-    //ScriptContainer scriptHandler;
-    List<ICustomGuiComponent> components = new ArrayList();
+    HashMap<Integer,ICustomGuiComponent> components = new HashMap<>();
     List<IItemSlot> slots = new ArrayList();
 
     public ScriptGui() {
@@ -56,7 +57,7 @@ public class ScriptGui implements ICustomGui {
     }
 
     public List<ICustomGuiComponent> getComponents() {
-        return this.components;
+        return Arrays.asList(this.components.values().toArray());
     }
 
     public List<IItemSlot> getSlots() {
@@ -76,7 +77,7 @@ public class ScriptGui implements ICustomGui {
         this.pauseGame = pauseGame;
     }
 
-    public boolean getDoesPauseGame() {
+    public boolean doesPauseGame() {
         return this.pauseGame;
     }
 
@@ -90,98 +91,94 @@ public class ScriptGui implements ICustomGui {
 
     public IButton addButton(int id, String label, int x, int y) {
         ScriptGuiButton component = new ScriptGuiButton(id, label, x, y);
-        this.components.add(component);
-        return (IButton)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (IButton)this.getComponent(id);
     }
 
     public IButton addButton(int id, String label, int x, int y, int width, int height) {
         ScriptGuiButton component = new ScriptGuiButton(id, label, x, y, width, height);
-        this.components.add(component);
-        return (IButton)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (IButton)this.getComponent(id);
     }
 
     public IButton addTexturedButton(int id, String label, int x, int y, int width, int height, String texture) {
         ScriptGuiButton component = new ScriptGuiButton(id, label, x, y, width, height, texture);
-        this.components.add(component);
-        return (IButton)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (IButton)this.getComponent(id);
     }
 
     public IButton addTexturedButton(int id, String label, int x, int y, int width, int height, String texture, int textureX, int textureY) {
         ScriptGuiButton component = new ScriptGuiButton(id, label, x, y, width, height, texture, textureX, textureY);
-        this.components.add(component);
-        return (IButton)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (IButton)this.getComponent(id);
     }
 
     public ILabel addLabel(int id, String label, int x, int y, int width, int height) {
         ScriptGuiLabel component = new ScriptGuiLabel(id, label, x, y, width, height);
-        this.components.add(component);
-        return (ILabel)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (ILabel)this.getComponent(id);
     }
 
     public ILabel addLabel(int id, String label, int x, int y, int width, int height, int color) {
         ScriptGuiLabel component = new ScriptGuiLabel(id, label, x, y, width, height, color);
-        this.components.add(component);
-        return (ILabel)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (ILabel)this.getComponent(id);
     }
 
     public ITextField addTextField(int id, int x, int y, int width, int height) {
         ScriptGuiTextField component = new ScriptGuiTextField(id, x, y, width, height);
-        this.components.add(component);
-        return (ITextField)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (ITextField)this.getComponent(id);
     }
 
     public ITexturedRect addTexturedRect(int id, String texture, int x, int y, int width, int height) {
         ScriptGuiTexturedRect component = new ScriptGuiTexturedRect(id, texture, x, y, width, height);
-        this.components.add(component);
-        return (ITexturedRect)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (ITexturedRect)this.getComponent(id);
     }
 
     public ITexturedRect addTexturedRect(int id, String texture, int x, int y, int width, int height, int textureX, int textureY) {
         ScriptGuiTexturedRect component = new ScriptGuiTexturedRect(id, texture, x, y, width, height, textureX, textureY);
-        this.components.add(component);
-        return (ITexturedRect)this.components.get(this.components.size() - 1);
-    }
-
-    public IItemSlot addItemSlot(int x, int y) {
-        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(-1, x, y);
-        this.slots.add(slot);
-        return (IItemSlot)this.slots.get(this.slots.size() - 1);
-    }
-
-    public IItemSlot addItemSlot(int x, int y, IItemStack stack) {
-        ScriptGuiItemSlot slot = new ScriptGuiItemSlot(-1, x, y, stack);
-        this.slots.add(slot);
-        return (IItemSlot)this.slots.get(this.slots.size() - 1);
+        this.updateComponent(component);
+        return (ITexturedRect)this.getComponent(id);
     }
 
     public IItemSlot addItemSlot(int id, int x, int y) {
         ScriptGuiItemSlot slot = new ScriptGuiItemSlot(id, x, y);
-        this.slots.add(slot);
-        return (IItemSlot)this.slots.get(this.slots.size() - 1);
+        this.updateComponent(slot);
+        return (IItemSlot)this.getComponent(id);
     }
 
     public IItemSlot addItemSlot(int id, int x, int y, IItemStack stack) {
         ScriptGuiItemSlot slot = new ScriptGuiItemSlot(id, x, y, stack);
-        this.slots.add(slot);
-        return (IItemSlot)this.slots.get(this.slots.size() - 1);
+        this.updateComponent(slot);
+        return (IItemSlot)this.getComponent(id);
+    }
+
+    public IItemSlot addItemSlot(int x, int y) {
+        return this.addItemSlot(-1, x, y);
+    }
+
+    public IItemSlot addItemSlot(int x, int y, IItemStack stack) {
+        return this.addItemSlot(-1, x, y, stack);
     }
 
     public IScroll addScroll(int id, int x, int y, int width, int height, String[] list) {
         ScriptGuiScroll component = new ScriptGuiScroll(id, x, y, width, height, list);
-        this.components.add(component);
-        return (IScroll)this.components.get(this.components.size() - 1);
+        this.updateComponent(component);
+        return (IScroll)this.getComponent(id);
     }
 
     public ILine addLine(int id, int x1, int y1, int x2, int y2, int color, int thickness) {
-        ScriptGuiLine line = new ScriptGuiLine(id, x1, y1, x2, y2, color, thickness);
-        this.components.add(line);
-        return (ILine) this.components.get(this.components.size() - 1);
+        ScriptGuiLine component = new ScriptGuiLine(id, x1, y1, x2, y2, color, thickness);
+        this.updateComponent(component);
+        return (ILine) this.getComponent(id);
     }
 
     public ILine addLine(int id, int x1, int y1, int x2, int y2) {
-        ScriptGuiLine line = new ScriptGuiLine(id, x1, y1, x2, y2);
-        this.components.add(line);
-        return (ILine) this.components.get(this.components.size() - 1);
+        ScriptGuiLine component = new ScriptGuiLine(id, x1, y1, x2, y2);
+        this.updateComponent(component);
+        return (ILine) this.getComponent(id);
     }
 
     public void showPlayerInventory(int x, int y) {
@@ -191,39 +188,32 @@ public class ScriptGui implements ICustomGui {
     }
 
     public ICustomGuiComponent getComponent(int componentID) {
-        Iterator var2 = this.components.iterator();
-
-        ICustomGuiComponent component;
-        do {
-            if (!var2.hasNext()) {
-                return null;
-            }
-
-            component = (ICustomGuiComponent)var2.next();
-        } while(component.getID() != componentID);
-
-        return component;
+        return this.components.get(componentID);
     }
 
     public void removeComponent(int componentID) {
-        for(int i = 0; i < this.components.size(); ++i) {
-            if (((ICustomGuiComponent)this.components.get(i)).getID() == componentID) {
-                this.components.remove(i);
-                return;
+        if (this.components.containsKey(componentID)) {
+            ICustomGuiComponent component = this.getComponent(componentID);
+            if (component instanceof IItemSlot) {
+                for (IItemSlot slot : this.slots) {
+                    if (slot.getID() == componentID) {
+                        this.slots.remove(slot);
+                        break;
+                    }
+                }
             }
+            this.components.remove(componentID);
         }
-
     }
 
     public void updateComponent(ICustomGuiComponent component) {
-        for(int i = 0; i < this.components.size(); ++i) {
-            ICustomGuiComponent c = (ICustomGuiComponent)this.components.get(i);
-            if (c.getID() == component.getID()) {
-                this.components.set(i, component);
-                return;
+        if (component != null) {
+            this.removeComponent(component.getID());
+            this.components.put(component.getID(), component);
+            if (component instanceof IItemSlot) {
+                this.slots.add((IItemSlot) component);
             }
         }
-
     }
 
     public void update(IPlayer player) {
@@ -258,16 +248,16 @@ public class ScriptGui implements ICustomGui {
         this.height = tag.getIntArray("size")[1];
         this.pauseGame = tag.getBoolean("pause");
         this.backgroundTexture = tag.getString("bgTexture");
-        List<ICustomGuiComponent> components = new ArrayList();
 
         NBTTagList list = tag.getTagList("components", 10);
         for(int i = 0; i < list.tagCount(); i++){
             NBTBase b = list.getCompoundTagAt(i);
             ScriptGuiComponent component = ScriptGuiComponent.createFromNBT((NBTTagCompound)b);
-            components.add(component);
+            if (component != null) {
+                components.put(component.getID(), component);
+            }
         }
 
-        this.components = components;
         List<IItemSlot> slots = new ArrayList();
         list = tag.getTagList("slots", 10);
 
@@ -294,7 +284,7 @@ public class ScriptGui implements ICustomGui {
         tag.setBoolean("pause", this.pauseGame);
         tag.setString("bgTexture", this.backgroundTexture);
         NBTTagList list = new NBTTagList();
-        Iterator var3 = this.components.iterator();
+        Iterator var3 = this.components.values().iterator();
 
         ICustomGuiComponent c;
         while(var3.hasNext()) {

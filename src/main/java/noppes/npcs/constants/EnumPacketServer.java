@@ -93,7 +93,7 @@ public enum EnumPacketServer {
 	NaturalSpawnGetAll, MailOpenSetup,
 	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen,
 
-	CustomGuiButton,CustomGuiSlotChange,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
+	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
 
     ServerUpdateSkinOverlays;
 

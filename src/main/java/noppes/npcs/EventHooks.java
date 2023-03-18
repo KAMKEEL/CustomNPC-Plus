@@ -24,6 +24,7 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.api.gui.ICustomGui;
+import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
@@ -556,13 +557,13 @@ public class EventHooks {
         CustomGuiController.onButton(event);
     }
 
-    public static void onCustomGuiSlot(IPlayer player, ICustomGui gui, int slotId) {
-        CustomGuiEvent.SlotEvent event = new CustomGuiEvent.SlotEvent(player, gui, slotId, player.getOpenContainer().getSlot(slotId));
+    public static void onCustomGuiSlot(IPlayer player, ICustomGui gui, int slotId, ItemStack stack, IItemSlot slot) {
+        CustomGuiEvent.SlotEvent event = new CustomGuiEvent.SlotEvent(player, gui, slotId, stack, slot);
         CustomGuiController.onSlotChange(event);
     }
 
-    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, CustomGuiSlot guiSlot, int dragType, int clickType) {
-        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, guiSlot, player.getOpenContainer().getSlot(slotId), dragType, clickType);
+    public static boolean onCustomGuiSlotClicked(IPlayer player, ICustomGui gui, int slotId, IItemSlot slot, int dragType, int clickType) {
+        CustomGuiEvent.SlotClickEvent event = new CustomGuiEvent.SlotClickEvent(player, gui, slotId, slot, player.getOpenContainer().getSlot(slotId), dragType, clickType);
         return CustomGuiController.onSlotClick(event);
     }
 

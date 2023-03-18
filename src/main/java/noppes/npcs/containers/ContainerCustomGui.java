@@ -7,9 +7,11 @@ package noppes.npcs.containers;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.entity.IPlayer;
@@ -44,9 +46,9 @@ public class ContainerCustomGui extends Container {
         while(var3.hasNext()) {
             IItemSlot slot = (IItemSlot)var3.next();
             if (slot.hasStack()) {
-                this.addSlot(slot.getPosX(), slot.getPosY(), slot.getID(), slot.getStack().getMCItemStack(), player.worldObj.isRemote);
+                this.addSlot(player, slot.getPosX(), slot.getPosY(), slot, slot.getStack().getMCItemStack(), player.worldObj.isRemote);
             } else {
-                this.addSlot(slot.getPosX(), slot.getPosY(), slot.getID(), player.worldObj.isRemote);
+                this.addSlot(player, slot.getPosX(), slot.getPosY(), slot, player.worldObj.isRemote);
             }
         }
     }
@@ -75,13 +77,13 @@ public class ContainerCustomGui extends Container {
         return itemstack;
     }
 
-    void addSlot(int x, int y, int guiSlotId, boolean clientSide) {
-        this.addSlotToContainer(new CustomGuiSlot(this.guiInventory, this.slotCount++, guiSlotId, x, y, clientSide));
+    void addSlot(EntityPlayer player, int x, int y, IItemSlot slot, boolean clientSide) {
+        this.addSlotToContainer(new CustomGuiSlot(player, this.guiInventory, this.slotCount++, slot, x, y, clientSide));
     }
 
-    void addSlot(int x, int y, int guiSlotId, ItemStack itemStack, boolean clientSide) {
+    void addSlot(EntityPlayer player, int x, int y, IItemSlot slot, ItemStack itemStack, boolean clientSide) {
         this.guiInventory.setInventorySlotContents(this.slotCount, itemStack);
-        this.addSlotToContainer(new CustomGuiSlot(this.guiInventory, this.slotCount++, guiSlotId, x, y, clientSide));
+        this.addSlotToContainer(new CustomGuiSlot(player, this.guiInventory, this.slotCount++, slot, x, y, clientSide));
     }
 
     void addPlayerInventory(EntityPlayer player, int x, int y) {
@@ -108,20 +110,36 @@ public class ContainerCustomGui extends Container {
     public ItemStack slotClick(int slotId, int dragType, int clickTypeIn, EntityPlayer player) {
         if(slotId < 0)
             return super.slotClick(slotId, dragType, clickTypeIn, player);
-        if(!player.worldObj.isRemote) {
-            CustomGuiSlot guiSlot = null;
+        Slot mcSlot = (Slot)this.inventorySlots.get(slotId);
+        if(!player.worldObj.isRemote && mcSlot != null) {
+            IItemSlot slot = null;
             if (this.getSlot(slotId) instanceof CustomGuiSlot) {
-                guiSlot = (CustomGuiSlot) this.getSlot(slotId);
+                slot = ((CustomGuiSlot)this.getSlot(slotId)).slot;
             }
-            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, guiSlot, dragType, clickTypeIn)) {
+            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, slot, dragType, clickTypeIn)) {
+                ItemStack prevStack = mcSlot.getStack();
+                if (slot != null) {
+                    prevStack = slot.getStack() == null ? null : slot.getStack().getMCItemStack();
+                }
                 ItemStack item = super.slotClick(slotId, dragType, clickTypeIn, player);
+
+                if (!ItemStack.areItemStacksEqual(prevStack,item)) {
+                    if (slot != null) {
+                        slot.setStack(NpcAPI.Instance().getIItemStack(mcSlot.getStack()));
+                    }
+                    if (player.openContainer instanceof ContainerCustomGui) {
+                        EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui,
+                                mcSlot.slotNumber, prevStack, slot);
+                    }
+                }
+
                 EntityPlayerMP p = (EntityPlayerMP) player;
                 p.sendContainerToPlayer(this);
 
                 return item;
             }
-
         }
+
         return null;
     }
 
