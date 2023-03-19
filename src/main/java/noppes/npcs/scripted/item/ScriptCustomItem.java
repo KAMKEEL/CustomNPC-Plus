@@ -38,7 +38,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
     public int enchantability;
 
     public String texture = "minecraft:textures/items/iron_pickaxe.png";
-    public int width = -1, height = -1;
 
     public float translateX, translateY, translateZ;
     public float scaleX = 1.0F, scaleY = 1.0F, scaleZ = 1.0F;

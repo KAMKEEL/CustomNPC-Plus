@@ -49,14 +49,8 @@ public class CustomItemRenderer implements IItemRenderer {
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
         ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
 
-        BufferedImage bufferedImage = Client.getImageData(scriptCustomItem.texture).getBufferedImage();
-        if ((scriptCustomItem.width == -1 || scriptCustomItem.height == -1) && bufferedImage != null) {
-            scriptCustomItem.width = bufferedImage.getWidth();
-            scriptCustomItem.height = bufferedImage.getHeight();
-            scriptCustomItem.saveItemData();
-        }
-
-        if(scriptCustomItem.width == -1 || scriptCustomItem.height == -1)
+        ImageData imageData = Client.getImageData(scriptCustomItem.texture);
+        if(imageData.getTotalWidth() == -1 || imageData.getTotalHeight() == -1)
             return;
 
         if (type == ItemRenderType.INVENTORY) {
@@ -192,7 +186,8 @@ public class CustomItemRenderer implements IItemRenderer {
                     // Makes items offset when in 3D, like when in 2D, looks much better. Considered a vanilla bug...
                     GL11.glTranslatef(0f, 0f, f9 + f10);
 
-                    ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, scriptCustomItem.width, scriptCustomItem.height, f9);
+                    ImageData imageData = Client.getImageData(scriptCustomItem.texture);
+                    ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
 
                     if (itemStack.hasEffect(pass))
                     {
@@ -423,8 +418,9 @@ public class CustomItemRenderer implements IItemRenderer {
 
     public static void renderCustomItemIn2D(ItemStack itemStack, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
     {
-        int width = ItemScripted.GetWrapper(itemStack).width;
-        int height = ItemScripted.GetWrapper(itemStack).height;
+        ImageData imageData = Client.getImageData(ItemScripted.GetWrapper(itemStack).texture);
+        int width = imageData.getTotalWidth();
+        int height = imageData.getTotalHeight();
 
         p_78439_0_.startDrawingQuads();
         p_78439_0_.setNormal(0.0F, 0.0F, 1.0F);

@@ -13,13 +13,11 @@ import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.client.renderer.customitem.ItemImageData;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityItemScripted;
@@ -27,8 +25,6 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
-
-import java.util.HashMap;
 
 public class ItemScripted extends Item implements ItemRenderInterface {
     public ItemScripted() {
