@@ -393,9 +393,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         compound.setFloat("TranslateY",this.translateY);
         compound.setFloat("TranslateZ",this.translateZ);
 
-        compound.setInteger("Width", this.width);
-        compound.setInteger("Height", this.height);
-
         compound.setBoolean("IsTool", this.isTool);
         compound.setInteger("DigSpeed", this.digSpeed);
         compound.setInteger("ArmorType", this.armorType);
@@ -431,9 +428,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         this.translateX = compound.getFloat("TranslateX");
         this.translateY = compound.getFloat("TranslateY");
         this.translateZ = compound.getFloat("TranslateZ");
-
-        this.width = compound.getInteger("Width");
-        this.height = compound.getInteger("Height");
 
         this.isTool = compound.getBoolean("IsTool");
         this.digSpeed = compound.getInteger("DigSpeed");

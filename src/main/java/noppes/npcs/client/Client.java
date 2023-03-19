@@ -8,6 +8,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.renderer.customitem.ItemImageData;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.SkinOverlay;
 
@@ -20,6 +21,7 @@ public class Client {
 	public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
 	public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
 	public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
+	private static HashMap<String, ItemImageData> imageDataCache = new HashMap<>();
 
 	public static void sendData(EnumPacketServer enu, Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();
@@ -30,5 +32,13 @@ public class Client {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static ItemImageData getImageData(String directory) {
+		if (!imageDataCache.containsKey(directory)) {
+			ItemImageData downloadData = new ItemImageData(directory);
+			imageDataCache.put(directory, downloadData);
+		}
+		return imageDataCache.get(directory);
 	}
 }

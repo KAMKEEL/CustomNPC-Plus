@@ -1,4 +1,4 @@
-package noppes.npcs.client.renderer;
+package noppes.npcs.client.renderer.customitem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
+import noppes.npcs.client.Client;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
@@ -46,28 +47,13 @@ public class CustomItemRenderer implements IItemRenderer {
 
     @Override
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
-        InputStream inputstream = null;
         ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
 
-        if(scriptCustomItem.width == -1 || scriptCustomItem.height == -1) {
-            try {
-                IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(ItemScripted.getLocation(scriptCustomItem.texture));
-                inputstream = iresource.getInputStream();
-                BufferedImage bufferedimage = ImageIO.read(inputstream);
-                scriptCustomItem.width = bufferedimage.getWidth();
-                scriptCustomItem.height = bufferedimage.getHeight();
-                scriptCustomItem.saveItemData();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (inputstream != null) {
-                        inputstream.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+        BufferedImage bufferedImage = Client.getImageData(scriptCustomItem.texture).getBufferedImage();
+        if ((scriptCustomItem.width == -1 || scriptCustomItem.height == -1) && bufferedImage != null) {
+            scriptCustomItem.width = bufferedImage.getWidth();
+            scriptCustomItem.height = bufferedImage.getHeight();
+            scriptCustomItem.saveItemData();
         }
 
         if(scriptCustomItem.width == -1 || scriptCustomItem.height == -1)
@@ -150,7 +136,7 @@ public class CustomItemRenderer implements IItemRenderer {
         int pass = 0;
 
         GL11.glPushMatrix();
-            ResourceLocation location = ItemScripted.getLocation(scriptCustomItem.texture);
+            ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
 
             Tessellator tessellator = Tessellator.instance;
@@ -305,7 +291,7 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            ResourceLocation location = ItemScripted.getLocation(scriptCustomItem.texture);
+            ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
             renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
@@ -381,7 +367,7 @@ public class CustomItemRenderer implements IItemRenderer {
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ResourceLocation location = ItemScripted.getLocation(scriptCustomItem.texture);
+        ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
         texturemanager.bindTexture(location);
 
         Tessellator tessellator = Tessellator.instance;

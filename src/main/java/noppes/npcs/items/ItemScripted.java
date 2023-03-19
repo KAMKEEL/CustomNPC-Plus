@@ -4,9 +4,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,8 +19,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
+import noppes.npcs.client.renderer.customitem.ItemImageData;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityItemScripted;
@@ -31,12 +28,9 @@ import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 public class ItemScripted extends Item implements ItemRenderInterface {
-    private static HashMap<String, ResourceLocation> resourceCache = new HashMap<>();
-
     public ItemScripted() {
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
@@ -192,18 +186,5 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     public void renderOffset(ScriptCustomItem scriptCustomItem) {
         GL11.glTranslatef(0.135F * scriptCustomItem.scaleX, 0.2F * scriptCustomItem.scaleY, 0.07F * scriptCustomItem.scaleZ);
-    }
-
-    public static ResourceLocation getLocation(String directory) {
-        if (!resourceCache.containsKey(directory)) {
-            ResourceLocation location = new ResourceLocation(directory);
-            if (directory.startsWith("https://")) {
-                TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-                ImageDownloadAlt imageDownloadAlt = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true, false));
-                texturemanager.loadTexture(location, imageDownloadAlt);
-            }
-            resourceCache.put(directory, location);
-        }
-        return resourceCache.get(directory);
     }
 }
