@@ -51,7 +51,7 @@ public class CustomItemRenderer implements IItemRenderer {
 
         if(scriptCustomItem.width == -1 || scriptCustomItem.height == -1) {
             try {
-                IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(scriptCustomItem.texture));
+                IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(ItemScripted.getLocation(scriptCustomItem.texture));
                 inputstream = iresource.getInputStream();
                 BufferedImage bufferedimage = ImageIO.read(inputstream);
                 scriptCustomItem.width = bufferedimage.getWidth();
@@ -150,7 +150,7 @@ public class CustomItemRenderer implements IItemRenderer {
         int pass = 0;
 
         GL11.glPushMatrix();
-            ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
+            ResourceLocation location = ItemScripted.getLocation(scriptCustomItem.texture);
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
 
             Tessellator tessellator = Tessellator.instance;
@@ -305,7 +305,7 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
+            ResourceLocation location = ItemScripted.getLocation(scriptCustomItem.texture);
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
             renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
@@ -381,7 +381,7 @@ public class CustomItemRenderer implements IItemRenderer {
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
+        ResourceLocation location = ItemScripted.getLocation(scriptCustomItem.texture);
         texturemanager.bindTexture(location);
 
         Tessellator tessellator = Tessellator.instance;
