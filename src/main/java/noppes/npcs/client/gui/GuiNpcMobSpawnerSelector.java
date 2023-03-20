@@ -111,7 +111,9 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
     	if(sel == null)
     		return null;
 
-		return ClientCloneController.Instance.getCloneData(player, sel, activeTab);
+		NBTTagCompound compound = ClientCloneController.Instance.getCloneData(player, sel, activeTab);
+		compound.setString("ClonedName", sel);
+		return compound;
 	}
 	
 	public void buttonEvent(GuiButton guibutton)

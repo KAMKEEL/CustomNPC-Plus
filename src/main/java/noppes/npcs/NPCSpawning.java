@@ -78,13 +78,9 @@ public class NPCSpawning {
 
                 x += world.rand.nextInt(b1) - world.rand.nextInt(b1);
                 z += world.rand.nextInt(b1) - world.rand.nextInt(b1);
-                
-
-                
-                Block block = world.getBlock(x, y, z);
 
     			String name = world.getBiomeGenForCoords(x, z).biomeName;
-    			SpawnData data = SpawnController.instance.getRandomSpawnData(name, block.getMaterial() == Material.air);
+    			SpawnData data = SpawnController.instance.getRandomSpawnData(name, world.provider.dimensionId);
                 if (data == null || !canCreatureTypeSpawnAtLocation(data, world, x, y, z) || world.getClosestPlayer(x, y, z, 24.0D) != null)
                 	continue;
                 
@@ -115,7 +111,7 @@ public class NPCSpawning {
     public static void performWorldGenSpawning(World world, int x, int z, Random rand){
         BiomeGenBase biome = world.getBiomeGenForCoords(x + 8, z + 8);
     	while (rand.nextFloat() < biome.getSpawningChance()){
-    		SpawnData data = SpawnController.instance.getRandomSpawnData(biome.biomeName, true);
+    		SpawnData data = SpawnController.instance.getRandomSpawnData(biome.biomeName, world.provider.dimensionId);
     		if(data == null)
     			continue;
     		
@@ -153,7 +149,7 @@ public class NPCSpawning {
         EntityLiving entityliving;
 
         try{
-            NBTTagCompound[] allCompoundList = new NBTTagCompound[]{data.compound1,data.compound2,data.compound3,data.compound4,data.compound5};
+            NBTTagCompound[] allCompoundList = data.spawnCompounds.values().toArray(new NBTTagCompound[0]);
             ArrayList<Entity> entities = new ArrayList<>();
             for (NBTTagCompound compound : allCompoundList) {
                 Entity entity;

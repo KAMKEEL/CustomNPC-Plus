@@ -168,10 +168,20 @@ public class SpawnController implements INaturalSpawnsHandler {
 		return biomes.get(biome);
 	}
 
-	public SpawnData getRandomSpawnData(String biome, boolean isAir) {
-		List<SpawnData> list = getSpawnList(biome);
-		if(list == null || list.isEmpty())
+	public SpawnData getRandomSpawnData(String biome, int dimensionId) {
+		List<SpawnData> biomeList = getSpawnList(biome);
+		if (biomeList == null)
 			return null;
+
+		ArrayList<SpawnData> list = new ArrayList<>();
+		for (SpawnData data : biomeList) {
+			if (data.dimensions.contains(dimensionId)) {
+				list.add(data);
+			}
+		}
+		if(list.isEmpty())
+			return null;
+
 		return (SpawnData) WeightedRandom.getRandomItem(this.random, list);
 	}
 

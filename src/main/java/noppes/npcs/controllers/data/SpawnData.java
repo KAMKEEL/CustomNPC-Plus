@@ -4,27 +4,23 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.WeightedRandom;
+import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.data.INaturalSpawn;
-import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
-	public List<String> biomes = new ArrayList<String>();
+	public List<String> biomes = new ArrayList<>();
+	public HashSet<Integer> dimensions = new HashSet<>();
 	public int id = -1;
 	public String name = "";
-	public NBTTagCompound compound1 = new NBTTagCompound();
-	public NBTTagCompound compound2 = new NBTTagCompound();
-	public NBTTagCompound compound3 = new NBTTagCompound();
-	public NBTTagCompound compound4 = new NBTTagCompound();
-	public NBTTagCompound compound5 = new NBTTagCompound();
+
+	public HashMap<Integer,NBTTagCompound> spawnCompounds = new HashMap<>();
 
 	public boolean animalSpawning = true;
 	public boolean monsterSpawning = false;
@@ -32,7 +28,7 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 	public boolean airSpawning = false;
 
 	public int spawnHeightMin;
-	public int spawnHeightMax;
+	public int spawnHeightMax = 100;
 
 	public SpawnData() {
 		super(10);
@@ -46,11 +42,20 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 			itemWeight = 1;
 
 		biomes = NBTTags.getStringList(compound.getTagList("SpawnBiomes", 10));
-		compound1 = compound.getCompoundTag("SpawnCompound1");
-		compound2 = compound.getCompoundTag("SpawnCompound2");
-		compound3 = compound.getCompoundTag("SpawnCompound3");
-		compound4 = compound.getCompoundTag("SpawnCompound4");
-		compound5 = compound.getCompoundTag("SpawnCompound5");
+		if (!compound.hasKey("SpawnDimensions")) {
+			dimensions.addAll(Arrays.asList(DimensionManager.getStaticDimensionIDs()));
+		} else {
+			dimensions = NBTTags.getIntegerSet(compound.getTagList("SpawnDimensions", 10));
+		}
+
+		this.spawnCompounds.clear();
+		Set<?> keys = compound.func_150296_c();
+		for (Object key : keys) {
+			if (((String)key).startsWith("SpawnCompound")) {
+				int i = Integer.parseInt(((String)key).replace("SpawnCompound",""));
+				this.spawnCompounds.put(i,compound.getCompoundTag("SpawnCompound"+i));
+			}
+		}
 
 		animalSpawning = compound.getBoolean("AnimalSpawning");
 		monsterSpawning = compound.getBoolean("MonsterSpawning");
@@ -71,11 +76,14 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 		compound.setInteger("SpawnWeight", itemWeight);
 		
 		compound.setTag("SpawnBiomes", NBTTags.nbtStringList(biomes));
-		compound.setTag("SpawnCompound1", compound1);
-		compound.setTag("SpawnCompound2", compound2);
-		compound.setTag("SpawnCompound3", compound3);
-		compound.setTag("SpawnCompound4", compound4);
-		compound.setTag("SpawnCompound5", compound5);
+		if (!this.dimensions.isEmpty()) {
+			compound.setTag("SpawnDimensions", NBTTags.nbtIntegerSet(dimensions));
+		}
+
+		Set<Map.Entry<Integer,NBTTagCompound>> entries = this.spawnCompounds.entrySet();
+		for (Map.Entry<Integer,NBTTagCompound> entry : entries) {
+			compound.setTag("SpawnCompound"+entry.getKey(),entry.getValue());
+		}
 
 		compound.setBoolean("AnimalSpawning", animalSpawning);
 		compound.setBoolean("MonsterSpawning", monsterSpawning);
@@ -98,71 +106,28 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 	}
 
 	public void setEntity(IEntity entity, int slot) {
-		if (slot < 1)
-			slot = 1;
-		if (slot > 5)
-			slot = 5;
-
 		NBTTagCompound compound = new NBTTagCompound();
 		if (entity != null && !entity.getMCEntity().writeToNBTOptional(compound)) {
 			throw new CustomNPCsException("Entity could not be written to NBT");
 		} else {
-			switch (slot) {
-				case 1:
-					ServerCloneController.Instance.cleanTags(compound1);
-					compound1 = compound;
-					break;
-				case 2:
-					ServerCloneController.Instance.cleanTags(compound2);
-					compound2 = compound;
-					break;
-				case 3:
-					ServerCloneController.Instance.cleanTags(compound3);
-					compound3 = compound;
-					break;
-				case 4:
-					ServerCloneController.Instance.cleanTags(compound4);
-					compound4 = compound;
-					break;
-				case 5:
-					ServerCloneController.Instance.cleanTags(compound5);
-					compound5 = compound;
-					break;
-			}
+			this.spawnCompounds.put(slot,compound);
 		}
 	}
 
 	public IEntity getEntity(IWorld world, int slot) {
-		if (slot < 1)
-			slot = 1;
-		if (slot > 5)
-			slot = 5;
-
+		if (!this.spawnCompounds.containsKey(slot)) {
+			return null;
+		}
 		try {
-			NBTTagCompound compound = new NBTTagCompound();
-			switch (slot) {
-				case 1:
-					compound = compound1;
-					break;
-				case 2:
-					compound = compound2;
-					break;
-				case 3:
-					compound = compound3;
-					break;
-				case 4:
-					compound = compound4;
-					break;
-				case 5:
-					compound = compound5;
-					break;
-			}
-
-			Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
+			Entity entity = EntityList.createEntityFromNBT(this.spawnCompounds.get(slot), world.getMCWorld());
 			return NpcAPI.Instance().getIEntity(entity);
 		} catch (Exception e) {
 			throw new CustomNPCsException("Error creating entity from spawn data:\n" + e.getMessage());
 		}
+	}
+
+	public Integer[] getSlots() {
+		return this.spawnCompounds.keySet().toArray(new Integer[0]);
 	}
 
 	public void setWeight(int weight) {
