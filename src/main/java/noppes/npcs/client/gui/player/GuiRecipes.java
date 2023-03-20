@@ -9,10 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.gui.util.GuiButtonNextPage;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import org.lwjgl.opengl.GL11;
@@ -26,10 +24,10 @@ public class GuiRecipes extends GuiNPCInterface
 {
 	private static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/slot.png");
     private int page = 0;
-    private boolean npcRecipes = true;
     private GuiNpcLabel label;
     private GuiNpcButton left, right;
     private List<IRecipe> recipes = new ArrayList<IRecipe>();
+	private String search = "";
 
     public GuiRecipes(){
         this.ySize = 182;
@@ -41,8 +39,11 @@ public class GuiRecipes extends GuiNPCInterface
     @Override
     public void initGui(){
     	super.initGui();
+		guiTop += 10;
 
-    	addLabel(new GuiNpcLabel(0, "Recipe List", guiLeft + 5, guiTop + 5));
+		addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft + 2, guiTop - 25, 250, 20, search));
+
+		addLabel(new GuiNpcLabel(0, "Recipe List", guiLeft + 5, guiTop + 5));
     	addLabel(label = new GuiNpcLabel(1, "", guiLeft + 5, guiTop + 168));
 
         addButton(this.left = new GuiButtonNextPage(1, guiLeft + 150, guiTop + 164, true));
@@ -54,7 +55,30 @@ public class GuiRecipes extends GuiNPCInterface
     	right.visible = right.enabled = page > 0;
     	left.visible = left.enabled = page + 1 < MathHelper.ceiling_float_int(recipes.size() / 4f);
     }
-    
+
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(search.equals(getTextField(3).getText()))
+			return;
+		search = getTextField(3).getText().toLowerCase();
+		recipes = getSearchList();
+		updateButton();
+	}
+
+	private List<IRecipe> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<IRecipe>(RecipeController.instance.anvilRecipes.values());
+		}
+		List<IRecipe> list = new ArrayList<IRecipe>();
+		for(IRecipe recipe : RecipeController.instance.anvilRecipes.values()){
+			// System.out.println(recipe.getRecipeOutput().getDisplayName());
+			if(recipe.getRecipeOutput().getDisplayName().toLowerCase().contains(search.toLowerCase()))
+				list.add(recipe);
+		}
+		return list;
+	}
+
     protected void actionPerformed(GuiButton button){
     	if(!button.enabled)
     		return;
