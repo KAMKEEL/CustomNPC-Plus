@@ -230,6 +230,8 @@ availability.editIcon=For the next 10 seconds you can set any item icon by right
 
 spawning.availableBiomes=Available Biomes
 spawning.spawningBiomes=Spawning Biomes
+spawning.availableDimensions=Available Dimensions
+spawning.spawningDimensions=Spawning Dimensions
 spawning.biomes=Biomes
 spawning.weightedChance=Weighted Chance
 spawning.options=Spawning Options

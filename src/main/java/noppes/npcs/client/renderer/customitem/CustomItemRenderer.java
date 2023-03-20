@@ -1,4 +1,4 @@
-package noppes.npcs.client.renderer;
+package noppes.npcs.client.renderer.customitem;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
+import noppes.npcs.client.Client;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
@@ -46,31 +47,10 @@ public class CustomItemRenderer implements IItemRenderer {
 
     @Override
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
-        InputStream inputstream = null;
         ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
 
-        if(scriptCustomItem.width == -1 || scriptCustomItem.height == -1) {
-            try {
-                IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(new ResourceLocation(scriptCustomItem.texture));
-                inputstream = iresource.getInputStream();
-                BufferedImage bufferedimage = ImageIO.read(inputstream);
-                scriptCustomItem.width = bufferedimage.getWidth();
-                scriptCustomItem.height = bufferedimage.getHeight();
-                scriptCustomItem.saveItemData();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (inputstream != null) {
-                        inputstream.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        if(scriptCustomItem.width == -1 || scriptCustomItem.height == -1)
+        ImageData imageData = Client.getImageData(scriptCustomItem.texture);
+        if(imageData.getTotalWidth() == -1 || imageData.getTotalHeight() == -1)
             return;
 
         if (type == ItemRenderType.INVENTORY) {
@@ -150,7 +130,7 @@ public class CustomItemRenderer implements IItemRenderer {
         int pass = 0;
 
         GL11.glPushMatrix();
-            ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
+            ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
 
             Tessellator tessellator = Tessellator.instance;
@@ -206,7 +186,8 @@ public class CustomItemRenderer implements IItemRenderer {
                     // Makes items offset when in 3D, like when in 2D, looks much better. Considered a vanilla bug...
                     GL11.glTranslatef(0f, 0f, f9 + f10);
 
-                    ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, scriptCustomItem.width, scriptCustomItem.height, f9);
+                    ImageData imageData = Client.getImageData(scriptCustomItem.texture);
+                    ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
 
                     if (itemStack.hasEffect(pass))
                     {
@@ -305,7 +286,7 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
+            ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
             Minecraft.getMinecraft().getTextureManager().bindTexture(location);
             renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
@@ -381,7 +362,7 @@ public class CustomItemRenderer implements IItemRenderer {
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ResourceLocation location = new ResourceLocation(scriptCustomItem.texture);
+        ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
         texturemanager.bindTexture(location);
 
         Tessellator tessellator = Tessellator.instance;
@@ -437,8 +418,9 @@ public class CustomItemRenderer implements IItemRenderer {
 
     public static void renderCustomItemIn2D(ItemStack itemStack, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
     {
-        int width = ItemScripted.GetWrapper(itemStack).width;
-        int height = ItemScripted.GetWrapper(itemStack).height;
+        ImageData imageData = Client.getImageData(ItemScripted.GetWrapper(itemStack).texture);
+        int width = imageData.getTotalWidth();
+        int height = imageData.getTotalHeight();
 
         p_78439_0_.startDrawingQuads();
         p_78439_0_.setNormal(0.0F, 0.0F, 1.0F);

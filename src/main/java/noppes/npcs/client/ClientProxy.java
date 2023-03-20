@@ -53,6 +53,7 @@ import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.*;
+import noppes.npcs.client.renderer.customitem.CustomItemRenderer;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;

@@ -88,6 +88,13 @@ public class PacketHandlerServer{
 			} else if (type == EnumPacketServer.QuestLogToServer) {
 				updateQuestLogData(buffer, player);
 				return;
+			} else if(type == EnumPacketServer.DimensionsGet){
+				HashMap<String,Integer> map = new HashMap<String,Integer>();
+				for(int id : DimensionManager.getStaticDimensionIDs()){
+					WorldProvider provider = DimensionManager.createProviderFor(id);
+					map.put(provider.getDimensionName(), id);
+				}
+				NoppesUtilServer.sendScrollData(player, map);
 			}
 
 			if(type.needsNpc && npc == null){
@@ -330,15 +337,7 @@ public class PacketHandlerServer{
 	}
 
 	private void featherPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		if(type == EnumPacketServer.DimensionsGet){
-			HashMap<String,Integer> map = new HashMap<String,Integer>();
-			for(int id : DimensionManager.getStaticDimensionIDs()){
-				WorldProvider provider = DimensionManager.createProviderFor(id);
-				map.put(provider.getDimensionName(), id);
-			}
-			NoppesUtilServer.sendScrollData(player, map);
-		}
-		else if(type == EnumPacketServer.DimensionTeleport){
+		if(type == EnumPacketServer.DimensionTeleport){
 			int dimension = buffer.readInt();
 			WorldServer world = MinecraftServer.getServer().worldServerForDimension(dimension);
 			ChunkCoordinates coords = world.getEntrancePortalLocation();
