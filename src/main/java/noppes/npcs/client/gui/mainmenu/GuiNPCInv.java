@@ -56,6 +56,9 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
         addButton(new GuiNpcButton(11, guiLeft + 375, guiTop + 13, 30, 20, "1"));
         addButton(new GuiNpcButton(12, guiLeft + 375, guiTop + 34, 30, 20, "2"));
 
+        getButton(11 + this.inventoryTab).setEnabled(false);
+        getButton(12 - this.inventoryTab).setEnabled(true);
+
         for(int c = 0; c < 4; c++) {
             for (int r = 0; r < 9; r++) {
                 double chance = 100;
