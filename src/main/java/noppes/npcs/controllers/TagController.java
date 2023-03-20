@@ -84,6 +84,7 @@ public class TagController implements ITagHandler {
 		}
 		this.tags = tags;
 	}
+
 	public NBTTagCompound getNBT(){
 		NBTTagList list = new NBTTagList();
 		for(int slot : tags.keySet()){
@@ -97,6 +98,7 @@ public class TagController implements ITagHandler {
 		nbttagcompound.setTag("NPCTags", list);
 		return nbttagcompound;
 	}
+
 	public void saveTags(){
 		try {
 			File saveDir = CustomNpcs.getWorldSaveDirectory();
@@ -171,6 +173,7 @@ public class TagController implements ITagHandler {
 		lastUsedID++;
 		return lastUsedID;
 	}
+
 	public ITag delete(int id) {
 		if (id >= 0 && this.tags.size() > 1) {
 			Tag tag = (Tag)this.tags.remove(id);
