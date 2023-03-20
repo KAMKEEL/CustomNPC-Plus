@@ -80,7 +80,9 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 		if (this.spawnEntryScroll.hasSelected()) {
 			int selected = Integer.parseInt(this.spawnEntryScroll.getSelected());
 			addButton(new GuiNpcButton(22, guiLeft + 32, y, 20, 20, "-"));
-			addTextField(new GuiNpcTextField(25, this, guiLeft + 60, y += 10, 30, 20, String.valueOf(selected)));
+			GuiNpcTextField num = new GuiNpcTextField(25, this, guiLeft + 60, y += 10, 30, 20, String.valueOf(selected));
+			num.integersOnly = true;
+			addTextField(num);
 			addButton(new GuiNpcButton(26, guiLeft + 92, y, 100, 20, this.getTitle(this.spawn.spawnCompounds.get(selected))));
 		}
 	}
