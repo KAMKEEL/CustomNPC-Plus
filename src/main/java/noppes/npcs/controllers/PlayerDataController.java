@@ -26,9 +26,29 @@ import java.util.concurrent.Executors;
 
 public class PlayerDataController {
 	public static PlayerDataController instance;
+	public Map<String, String> nameUUIDs;
 
 	public PlayerDataController(){
 		instance = this;
+		File dir = getSaveDir();
+		if(dir != null){
+			Map<String, String> map = new HashMap<String, String>();
+			if(dir.listFiles() != null){
+				for(File file : dir.listFiles()){
+					if(file.isDirectory() || !file.getName().endsWith(".json"))
+						continue;
+					try {
+						NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+						if(compound.hasKey("PlayerName")){
+							map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 5));
+						}
+					} catch (Exception e) {
+						LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+					}
+				}
+				nameUUIDs = map;
+			}
+		}
 	}
 	public File getSaveDir(){
 		try{
@@ -133,7 +153,7 @@ public class PlayerDataController {
 		return data;
 	}
 	public String hasPlayer(String username) {
-		for(String name : getUsernameData().keySet()){
+		for(String name : nameUUIDs.keySet()){
 			if(name.equalsIgnoreCase(username))
 				return name;
 		}
@@ -145,17 +165,16 @@ public class PlayerDataController {
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
 		PlayerData data = null;
 		if(player == null){
-			Map<String, NBTTagCompound> map = getUsernameData();
-			for(String name : map.keySet()){
+			for(String name : nameUUIDs.keySet()){
 				if(name.equalsIgnoreCase(username)){
 					data = new PlayerData();
-					data.setNBT(map.get(name));
+					data.setNBT(PlayerData.loadPlayerData(nameUUIDs.get(name)));
 					break;
 				}
 			}
 		}
 		else
-			data = getPlayerData(player);
+			data = PlayerData.get(player);
 
 		return data;
 	}
@@ -167,23 +186,6 @@ public class PlayerDataController {
 		PlayerData data = getDataFromUsername(username);
 		data.mailData.playermail.add(mail.copy());
 		savePlayerData(data);
-	}
-
-	public Map<String, NBTTagCompound> getUsernameData(){
-		Map<String, NBTTagCompound> map = new HashMap<String, NBTTagCompound>();
-		for(File file : getSaveDir().listFiles()){
-			if(file.isDirectory() || !file.getName().endsWith(".json"))
-				continue;
-			try {
-				NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
-				if(compound.hasKey("PlayerName")){
-					map.put(compound.getString("PlayerName"), compound);
-				}
-			} catch (Exception e) {
-				LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-			}
-		}
-		return map;
 	}
 
 	public List<PlayerData> getPlayersData(ICommandSender sender, String username){

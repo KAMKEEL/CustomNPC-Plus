@@ -1,5 +1,6 @@
 package noppes.npcs;
 
+import foxz.utils.Utils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
@@ -380,10 +381,12 @@ public class NoppesUtilServer {
 		Map<String,Integer> map = new HashMap<String,Integer>();
         
 		if(type == EnumPlayerData.Players){
-	        File loc = PlayerDataController.instance.getSaveDir();
-	        for(String username : PlayerDataController.instance.getUsernameData().keySet()){
-	        	map.put(username, 0);
-	        }
+			for(String username : PlayerDataController.instance.nameUUIDs.keySet()){
+				map.put(username, 0);
+			}
+			for(String username : MinecraftServer.getServer().getConfigurationManager().getAllUsernames()){
+				map.put(username, 0);
+			}
 		}
 		else{
 			PlayerData playerdata = PlayerDataController.instance.getDataFromUsername(name);
@@ -470,6 +473,9 @@ public class NoppesUtilServer {
                 playerdata.savePlayerDataOnFile();
                 return;
             }
+			else {
+				PlayerDataController.instance.nameUUIDs.remove(name);
+			}
         }
         if(type == EnumPlayerData.Quest){
         	PlayerQuestData data = playerdata.questData;
