@@ -5,6 +5,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
@@ -18,6 +19,10 @@ public class AnimationController implements IAnimationHandler {
         instance = this;
         animations = new HashMap<>();
         load();
+    }
+
+    public static AnimationController getInstance(){
+        return instance;
     }
 
     public void load(){
@@ -100,4 +105,24 @@ public class AnimationController implements IAnimationHandler {
         ArrayList<IAnimation> animations = new ArrayList<>(this.animations.values());
         return animations.toArray(new IAnimation[0]);
     }
+
+    public Animation getAnimationFromName(String animation){
+        for (Map.Entry<String,Animation> entryAnimation : AnimationController.getInstance().animations.entrySet()){
+            if (entryAnimation.getValue().name.equalsIgnoreCase(animation)){
+                return entryAnimation.getValue();
+            }
+        }
+        return null;
+    }
+
+    public String[] getNames() {
+        String[] names = new String[animations.size()];
+        int i = 0;
+        for(Animation animation : animations.values()){
+            names[i] = animation.name.toLowerCase();
+            i++;
+        }
+        return names;
+    }
+
 }
