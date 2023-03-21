@@ -6,29 +6,27 @@ import net.minecraft.util.StatCollector;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class GuiCustomScroll extends GuiScreen
 {
 	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/misc.png");
-    private List<String> list;
+    protected List<String> list;
+    public final HashMap<String,Integer> colors = new HashMap<>();
 
     public int id;
     public int guiLeft = 0;
     public int guiTop = 0;
     public int xSize, ySize;
     public int selected;
-    private HashSet<String> selectedList;
-    private int hover;
+    protected HashSet<String> selectedList;
+    protected int hover;
     private int listHeight;
-    private int scrollY;
-    private int maxScrollY;
-    private int scrollHeight;
+    protected int scrollY;
+    protected int maxScrollY;
+    protected int scrollHeight;
     private boolean isScrolling;
-    private boolean multipleSelection = false;
+    public boolean multipleSelection = false;
     private ICustomScrollListener listener;
     private boolean isSorted = true;
 	public boolean visible = true;

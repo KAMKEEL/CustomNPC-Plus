@@ -42,7 +42,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 			npcTags = new GuiCustomScroll(this,1);
 			npcTags.setSize(120, 180);
 		}
-		npcTags.guiLeft = guiLeft + width - 180;
+		npcTags.guiLeft = guiLeft + 250;
 		npcTags.guiTop = guiTop + 24;
 		npcTags.setList(tagNames);
 		this.addScroll(npcTags);

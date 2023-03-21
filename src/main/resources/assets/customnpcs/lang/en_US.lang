@@ -124,6 +124,10 @@ gui.option=Option
 gui.default=Default
 gui.edit=Edit
 gui.reset=Reset
+gui.filters=Filters
+gui.selectAll=Select All
+gui.deselectAll=Deselect All
+
 scale.shared=Shared
 
 remote.title=Nearby NPCs
@@ -395,6 +399,8 @@ menu.global=Global
 menu.role=Role
 menu.animations=Animations
 menu.tags=Tags
+
+tags.taglessEntries=Tagless Entries
 
 global.banks=Banks
 global.transport=Transport

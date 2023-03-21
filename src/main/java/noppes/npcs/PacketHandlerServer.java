@@ -6,6 +6,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -761,7 +762,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.TagSet){
-			npc.advanced.tagUUIDs.clear();
+			npc.advanced.tagUUIDs.removeIf(uuid -> TagController.getInstance().getTagFromUUID(uuid) != null);
 			NBTTagCompound compound = Server.readNBT(buffer);
 			NBTTagList list = compound.getTagList("TagNames",8);
 			for (int i = 0; i < list.tagCount(); i++) {
@@ -1072,6 +1073,33 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("List", list);
 
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if (type == EnumPacketServer.CloneTagList) {
+			int tab = buffer.readInt();
+			List<String> cloneNames = ServerCloneController.Instance.getClones(tab);
+			NBTTagList cloneTags = new NBTTagList();
+			for (String name : cloneNames) {
+				NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
+				if (compound.hasKey("TagUUIDs")) {
+					NBTTagCompound tagCompound = new NBTTagCompound();
+					tagCompound.setString("Name",name);
+
+					NBTTagList uuidList = compound.getTagList("TagUUIDs",8);
+					NBTTagList tags = new NBTTagList();
+					for (int i = 0; i < uuidList.tagCount(); i++) {
+						String uuidString = uuidList.getStringTagAt(i);
+						NBTTagCompound tagNBT = new NBTTagCompound();
+						TagController.getInstance().getTagFromUUID(UUID.fromString(uuidString)).writeNBT(tagNBT);
+						tags.appendTag(tagNBT);
+					}
+					tagCompound.setTag("Tags",tags);
+					cloneTags.appendTag(tagCompound);
+				}
+			}
+
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setTag("CloneTags", cloneTags);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
