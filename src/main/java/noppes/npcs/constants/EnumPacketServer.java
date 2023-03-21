@@ -66,7 +66,7 @@ public enum EnumPacketServer {
 	FactionRemove(CustomNpcsPermissions.GLOBAL_FACTION), 
 	FactionSave(CustomNpcsPermissions.GLOBAL_FACTION), FactionsGet, FactionGet,
 	TagRemove(CustomNpcsPermissions.GLOBAL_TAG),
-	TagSave(CustomNpcsPermissions.GLOBAL_TAG), TagsGet, TagGet,
+	TagSave(CustomNpcsPermissions.GLOBAL_TAG), TagsGet, TagGet, NpcTagsGet,
 	QuestCategorySave(CustomNpcsPermissions.GLOBAL_QUEST), QuestCategoriesGet,
 	QuestRemove(CustomNpcsPermissions.GLOBAL_QUEST),
 	QuestCategoryRemove(CustomNpcsPermissions.GLOBAL_QUEST),

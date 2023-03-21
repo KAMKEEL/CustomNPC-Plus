@@ -95,6 +95,19 @@ public class PacketHandlerServer{
 					map.put(provider.getDimensionName(), id);
 				}
 				NoppesUtilServer.sendScrollData(player, map);
+			} else if(type == EnumPacketServer.TagsGet){
+				NoppesUtilServer.sendTagDataAll(player);
+			} else if (type == EnumPacketServer.NpcTagsGet) {
+				NBTTagCompound compound = new NBTTagCompound();
+				NBTTagList tagList = new NBTTagList();
+				for (UUID uuid : npc.advanced.tagUUIDs) {
+					Tag tag = TagController.getInstance().getTagFromUUID(uuid);
+					if (tag != null) {
+						tagList.appendTag(new NBTTagString(tag.name));
+					}
+				}
+				compound.setTag("TagNames",tagList);
+				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 			}
 
 			if(type.needsNpc && npc == null){
@@ -403,9 +416,6 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
-		}
-		else if(type == EnumPacketServer.TagsGet){
-			NoppesUtilServer.sendTagDataAll(player);
 		}
 		else if(type == EnumPacketServer.DialogGet){
 			Dialog dialog = DialogController.instance.dialogs.get(buffer.readInt());
@@ -751,7 +761,13 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.TagSet){
-			// npc.setFaction(buffer.readInt());
+			npc.advanced.tagUUIDs.clear();
+			NBTTagCompound compound = Server.readNBT(buffer);
+			NBTTagList list = compound.getTagList("TagNames",8);
+			for (int i = 0; i < list.tagCount(); i++) {
+				String tagName = list.getStringTagAt(i);
+				npc.advanced.tagUUIDs.add(((Tag)TagController.getInstance().getTagFromName(tagName)).uuid);
+			}
 		}
 		else if(type == EnumPacketServer.TagSave){
 			Tag tag = new Tag();
