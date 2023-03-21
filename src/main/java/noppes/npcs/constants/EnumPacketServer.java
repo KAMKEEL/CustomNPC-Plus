@@ -33,7 +33,7 @@ public enum EnumPacketServer {
 	RoleCompanionUpdate(CustomNpcsPermissions.NPC_ADVANCED, true),
 	LinkedSet(CustomNpcsPermissions.NPC_ADVANCED, true),
 	
-	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList,
+	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList, CloneTagList,
 
 	ScriptGlobalGuiDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptGlobalGuiDataGet(false),
@@ -66,7 +66,7 @@ public enum EnumPacketServer {
 	FactionRemove(CustomNpcsPermissions.GLOBAL_FACTION), 
 	FactionSave(CustomNpcsPermissions.GLOBAL_FACTION), FactionsGet, FactionGet,
 	TagRemove(CustomNpcsPermissions.GLOBAL_TAG),
-	TagSave(CustomNpcsPermissions.GLOBAL_TAG), TagsGet, TagGet,
+	TagSave(CustomNpcsPermissions.GLOBAL_TAG), TagsGet, TagGet, NpcTagsGet,
 	QuestCategorySave(CustomNpcsPermissions.GLOBAL_QUEST), QuestCategoriesGet,
 	QuestRemove(CustomNpcsPermissions.GLOBAL_QUEST),
 	QuestCategoryRemove(CustomNpcsPermissions.GLOBAL_QUEST),

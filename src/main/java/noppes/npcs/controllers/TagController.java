@@ -10,10 +10,7 @@ import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public class TagController implements ITagHandler {
@@ -206,6 +203,7 @@ public class TagController implements ITagHandler {
 				return true;
 		return false;
 	}
+
 	public Tag getTagFromName(String tagname){
 		for (Map.Entry<Integer,Tag> entryTag: TagController.getInstance().tags.entrySet()){
 			if (entryTag.getValue().name.equalsIgnoreCase(tagname)){
@@ -223,5 +221,14 @@ public class TagController implements ITagHandler {
 			i++;
 		}
 		return names;
+	}
+
+	public Tag getTagFromUUID(UUID uuid){
+		for (Map.Entry<Integer,Tag> entryTag: TagController.getInstance().tags.entrySet()){
+			if (entryTag.getValue().uuid.equals(uuid)) {
+				return entryTag.getValue();
+			}
+		}
+		return null;
 	}
 }

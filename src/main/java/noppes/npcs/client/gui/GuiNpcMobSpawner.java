@@ -12,15 +12,19 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.data.Tag;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
+public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData,ISubGuiListener {
+	public static HashSet<String> allTags = new HashSet<>();
+	public static HashSet<String> filter = new HashSet<>();
+	public static boolean showNoTags = true;
+	public HashMap<String,HashSet<Tag>> tags = new HashMap<>();
 
-	private GuiCustomScroll scroll;
+
+	private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this,0);
 	private int posX,posY,posZ;
 
 	private List<String> list;
@@ -41,6 +45,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 		this.closeOnEsc = true;
 
 		setBackground("menubg.png");
+		Client.sendData(EnumPacketServer.TagsGet);
 	}
 	public void initGui()
 	{
@@ -48,12 +53,8 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 		guiTop += 10;
 		guiLeft += 30;
 
-		if(scroll == null){
-			scroll = new GuiCustomScroll(this,0);
-			scroll.setSize(293, 188);
-		}
-		else
-			scroll.clear();
+		scroll.clear();
+		scroll.setSize(293, 188);
 		scroll.guiLeft = guiLeft + 4;
 		scroll.guiTop = guiTop + 26;
 		addScroll(scroll);
@@ -68,8 +69,10 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 		addTopButton(button = new GuiMenuTopButton(4, button, "spawner.entities"));
 		button.active = showingClones == 1;
 
+
 		addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 52, 20, "item.monsterPlacer.name"));
 
+		addButton(new GuiNpcButton(7, guiLeft + 298, guiTop + 78, 52, 20, "gui.filters"));
 		addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 100, 52, 20, "spawner.mobspawner"));
 
 		if(showingClones == 0 || showingClones == 2){
@@ -120,6 +123,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 		scroll.setList(getSearchList());
 	}
 	private void showClones() {
+		Client.sendData(EnumPacketServer.CloneTagList, activeTab);
 		if(showingClones == 2){
 			Client.sendData(EnumPacketServer.CloneList, activeTab);
 			return;
@@ -227,10 +231,24 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 				initGui();
 			}
 		}
+		if (id == 7) {
+			setSubGui(new SubGuiNpcFilterTags());
+		}
 		if(id > 20){
 			activeTab = id - 20;
 			initGui();
 		}
+	}
+
+	@Override
+	public void setData(Vector<String> list, HashMap<String, Integer> data)
+	{
+		allTags.addAll(list);
+		filter.addAll(allTags);
+	}
+
+	@Override
+	public void setSelected(String selected) {
 	}
 
 	@Override
@@ -240,13 +258,39 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData{
 	}
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
-		NBTTagList nbtlist = compound.getTagList("List", 8);
-		List<String> list = new ArrayList<String>();
-		for(int i = 0; i < nbtlist.tagCount(); i++){
-			list.add(nbtlist.getStringTagAt(i));
+		if (compound.hasKey("CloneTags")) {
+			this.tags.clear();
+			NBTTagList cloneTags = compound.getTagList("CloneTags", 10);
+			for (int i = 0; i < cloneTags.tagCount(); i++) {
+				NBTTagCompound tagCompound = cloneTags.getCompoundTagAt(i);
+				String name = tagCompound.getString("Name");
+
+				HashSet<Tag> tagNames = new HashSet<>();
+				NBTTagList tagList = tagCompound.getTagList("Tags", 10);
+				for (int j = 0; j < tagList.tagCount(); j++) {
+					Tag tag = new Tag();
+					tag.readNBT(tagList.getCompoundTagAt(j));
+					tagNames.add(tag);
+				}
+
+				this.tags.put(name, tagNames);
+			}
+		} else {
+			NBTTagList nbtlist = compound.getTagList("List", 8);
+			List<String> list = new ArrayList<String>();
+			for(int i = 0; i < nbtlist.tagCount(); i++){
+				list.add(nbtlist.getStringTagAt(i));
+			}
+			this.list = list;
+			scroll.setList(getSearchList());
 		}
-		this.list = list;
-		scroll.setList(getSearchList());
 	}
 
+	@Override
+	public void subGuiClosed(SubGuiInterface subgui) {
+		SubGuiNpcFilterTags filterGui = (SubGuiNpcFilterTags) subgui;
+		filter = filterGui.filterScroll.getSelectedList();
+		showNoTags = filterGui.showNoTags;
+		initGui();
+	}
 }

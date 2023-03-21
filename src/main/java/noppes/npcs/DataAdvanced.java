@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.GlobalDataController;
@@ -13,6 +14,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.UUID;
 
 public class DataAdvanced {
 
@@ -32,6 +35,7 @@ public class DataAdvanced {
 
     private EntityNPCInterface npc;
     public FactionOptions factions = new FactionOptions();
+    public HashSet<UUID> tagUUIDs = new HashSet<>();
 
     public EnumRoleType role = EnumRoleType.None;
     public EnumJobType job = EnumJobType.None;
@@ -78,6 +82,12 @@ public class DataAdvanced {
 		compound.setBoolean("RefuseSoulStone", refuseSoulStone);
 		compound.setString("SoulStonePlayerName", soulStonePlayerName);
 		compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
+
+        NBTTagList nbtTagList = new NBTTagList();
+        for (UUID uuid : tagUUIDs) {
+            nbtTagList.appendTag(new NBTTagString(uuid.toString()));
+        }
+        compound.setTag("TagUUIDs", nbtTagList);
 		
         return compound;
     }
@@ -113,6 +123,11 @@ public class DataAdvanced {
 		refuseSoulStone = compound.getBoolean("RefuseSoulStone");
 		soulStonePlayerName = compound.getString("SoulStonePlayerName");
 		minFactionPointsToSoulStone = compound.getInteger("MinFactionPointsToSoulStone");
+
+        NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
+        for (int i = 0; i < nbtTagList.tagCount(); i++) {
+            tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+        }
     }
 
 	private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {
