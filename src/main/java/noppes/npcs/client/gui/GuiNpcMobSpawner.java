@@ -11,19 +11,20 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.controllers.ClientCloneController;
+import noppes.npcs.client.controllers.ClientTagMapController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.controllers.data.TagMap;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData {
-	public static HashSet<String> allTags = new HashSet<>();
-	public static HashSet<String> filter = new HashSet<>();
+	public static HashMap<UUID, String> allTags = new HashMap<>();
+	public static HashSet<UUID> filter = new HashSet<>();
 	public static boolean showHidden = false;
-	public HashMap<String,HashSet<Tag>> tags = new HashMap<>();
-
+	public TagMap tagMap;
 
 	private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this,0);
 	private final GuiCustomScroll filterScroll  = new GuiCustomScroll(this,1);
@@ -60,14 +61,20 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		scroll.setSize(293, 188);
 		scroll.guiLeft = guiLeft + 4;
 		scroll.guiTop = guiTop + 26;
-
 		filterScroll.clear();
 		filterScroll.setSize(140, 188);
 		filterScroll.guiLeft = guiLeft + 4;
 		filterScroll.guiTop = guiTop + 19;
-		filterScroll.setList(new ArrayList<>(allTags));
+		filterScroll.setList(new ArrayList<>(allTags.values()));
+
+//		HashSet<String> set = new HashSet<String>();
+//		for(String s : data.keySet()){
+//			if(!s.equals(faction.name) && faction.attackFactions.contains(data.get(s)))
+//				set.add(s);
+//		}
+
 		filterScroll.multipleSelection = true;
-		filterScroll.setSelectedList(filter);
+		filterScroll.setSelectedList(new HashSet());
 
 		GuiMenuTopButton button;
 		addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
@@ -150,27 +157,51 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		}
 		ArrayList<String> list = new ArrayList<String>();
 		this.list = ClientCloneController.Instance.getClones(activeTab);
+		this.tagMap = ClientTagMapController.Instance.getTagMap(activeTab);
 		scroll.setList(getSearchList());
 	}
 	public void keyTyped(char c, int i)
 	{
 		super.keyTyped(c, i);
-
-		if(search.equals(getTextField(1).getText()))
-			return;
-		search = getTextField(1).getText().toLowerCase();
+		if(getTextField(1) != null){
+			if(search.equals(getTextField(1).getText()))
+				return;
+			search = getTextField(1).getText().toLowerCase();
+		}
 		scroll.setList(getSearchList());
 	}
+
 	private List<String> getSearchList(){
-		if(search.isEmpty())
+		// No Search // No Filters
+ 		if(search.isEmpty() && filter.size() == 0)
 			return new ArrayList<String>(list);
+		// Yes Search // No Filters
+		else if(!search.isEmpty() && filter.size() == 0){
+			List<String> list = new ArrayList<String>();
+			for(String name : this.list){
+				if(name.toLowerCase().contains(search))
+					list.add(name);
+			}
+			return list;
+		}
+		// No Search // Yes Filters
+		else if(search.isEmpty() && filter.size() > 0){
+			List<String> list = new ArrayList<String>();
+			for(String name : this.list){
+				if(name.toLowerCase().contains(search))
+					list.add(name);
+			}
+		}
+		// Yes Search // Yes Filters
 		List<String> list = new ArrayList<String>();
 		for(String name : this.list){
-			if(name.toLowerCase().contains(search))
+			if(name.toLowerCase().contains(search)){
 				list.add(name);
+			}
 		}
 		return list;
 	}
+
 	private NBTTagCompound getCompound(){
 		String sel = scroll.getSelected();
 		if(sel == null)
@@ -259,7 +290,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			}
 		}
 		if (id == 10) {
-			HashSet<String> hashSet = new HashSet<>(allTags);
+			HashSet<String> hashSet = new HashSet<>(allTags.values());
 			filterScroll.setSelectedList(hashSet);
 		}
 		if (id == 11) {
@@ -277,7 +308,13 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data)
 	{
-		allTags.addAll(list);
+		System.out.println("------- LIST");
+		System.out.println(list);
+		System.out.println("------- DATA");
+		System.out.println(data);
+		for(String s : list){
+			allTags.put(UUID.randomUUID(), s);
+		}
 	}
 
 	@Override
@@ -292,22 +329,9 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		if (compound.hasKey("CloneTags")) {
-			this.tags.clear();
-			NBTTagList cloneTags = compound.getTagList("CloneTags", 10);
-			for (int i = 0; i < cloneTags.tagCount(); i++) {
-				NBTTagCompound tagCompound = cloneTags.getCompoundTagAt(i);
-				String name = tagCompound.getString("Name");
-
-				HashSet<Tag> tagNames = new HashSet<>();
-				NBTTagList tagList = tagCompound.getTagList("Tags", 10);
-				for (int j = 0; j < tagList.tagCount(); j++) {
-					Tag tag = new Tag();
-					tag.readNBT(tagList.getCompoundTagAt(j));
-					tagNames.add(tag);
-				}
-
-				this.tags.put(name, tagNames);
-			}
+			tagMap = new TagMap(activeTab);
+			NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
+			tagMap.readNBT(cloneTags);
 		} else {
 			NBTTagList nbtlist = compound.getTagList("List", 8);
 			List<String> list = new ArrayList<String>();

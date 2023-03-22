@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.GuiNpcMobSpawner;
 import noppes.npcs.controllers.data.Tag;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 public class GuiCustomScrollCloner extends GuiCustomScroll {
     private final GuiNpcMobSpawner parent;
@@ -19,11 +20,11 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
         int l = 0;
         for(int i = 0; i < list.size(); i++)
         {
-            if (this.parent.tags.containsKey(list.get(i))) {
-                HashSet<Tag> tags = this.parent.tags.get(list.get(i));
+            if (this.parent.tagMap.hasClone(list.get(i))) {
+                HashSet<UUID> tags = this.parent.tagMap.getUUIDs(list.get(i));
                 boolean inFilter = false;
-                for (Tag tag : tags) {
-                    if (GuiNpcMobSpawner.filter.contains(tag.name)) {
+                for (UUID uuid : tags) {
+                    if (GuiNpcMobSpawner.filter.contains(uuid)) {
                         inFilter = true;
                         break;
                     }
@@ -71,12 +72,12 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                 }
 
                 int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
-                if (this.parent.tags.containsKey(list.get(i))) {
-                    for (Tag tag : this.parent.tags.get(list.get(i))) {
-                        if (!tag.getIsHidden()) {
-                            fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
-                            tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
-                        }
+                if (this.parent.tagMap.hasClone(list.get(i))) {
+                    for (UUID tag : this.parent.tagMap.getUUIDs(list.get(i))) {
+//                        if (!tag.getIsHidden()) {
+//                            fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
+//                            tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
+//                        }
                     }
                 }
             }
