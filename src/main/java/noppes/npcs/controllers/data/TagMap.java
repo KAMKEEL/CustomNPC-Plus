@@ -2,8 +2,6 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.TagController;
 
 import java.util.*;
 
@@ -77,6 +75,14 @@ public class TagMap {
 			return tagMap.get(cloneName);
 		}
 		return null;
+	}
+
+	public void removeClone(String cloneName) {
+		tagMap.remove(cloneName);
+	}
+
+	public void putClone(String cloneName, HashSet<UUID> uuids) {
+		tagMap.put(cloneName, uuids);
 	}
 
 	public boolean hasTag(String cloneName, UUID tag) {

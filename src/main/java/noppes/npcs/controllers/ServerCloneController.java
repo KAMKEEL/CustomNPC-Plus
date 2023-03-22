@@ -14,44 +14,42 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.ICloneHandler;
+import noppes.npcs.controllers.data.TagMap;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ServerCloneController implements ICloneHandler {
 	public static ServerCloneController Instance;
-	
+
 	public ServerCloneController(){
 		loadClones();
 	}
-	
+
 	private void loadClones(){
 		try {
 			File dir = new File(getDir(), "..");
-	        File file = new File(dir, "clonednpcs.dat");
-	        // System.out.println(file.getAbsolutePath());
-	        // System.out.println(file.exists());
-	        if(file.exists()){
-	        	Map<Integer, Map<String, NBTTagCompound>> clones = loadOldClones(file);
-		        file.delete();
+			File file = new File(dir, "clonednpcs.dat");
+			// System.out.println(file.getAbsolutePath());
+			// System.out.println(file.exists());
+			if(file.exists()){
+				Map<Integer, Map<String, NBTTagCompound>> clones = loadOldClones(file);
+				file.delete();
 				file = new File(dir, "clonednpcs.dat_old");
 				if(file.exists())
 					file.delete();
-				
+
 				for(int tab : clones.keySet()){
 					Map<String, NBTTagCompound> map = clones.get(tab);
 					for(String name: map.keySet()){
 						saveClone(tab, name, map.get(name));
 					}
 				}
-	        }
+			}
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -63,40 +61,40 @@ public class ServerCloneController implements ICloneHandler {
 			dir.mkdir();
 		return dir;
 	}
-	
+
 	private Map<Integer, Map<String, NBTTagCompound>> loadOldClones(File file) throws Exception{
 		Map<Integer, Map<String, NBTTagCompound>> clones = new HashMap<Integer, Map<String, NBTTagCompound>>();
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
-        NBTTagList list = nbttagcompound1.getTagList("Data", 10);
-        if(list == null){
-        	return clones;
-        }
-        for(int i = 0; i < list.tagCount(); i++)
-        {
-            NBTTagCompound compound = list.getCompoundTagAt(i);
-            if(!compound.hasKey("ClonedTab")){
-            	compound.setInteger("ClonedTab", 1);
-            }
-            
-            Map<String, NBTTagCompound> tab = clones.get(compound.getInteger("ClonedTab"));
-            if(tab == null)
-            	clones.put(compound.getInteger("ClonedTab"), tab = new HashMap<String, NBTTagCompound>());
-            
-        	String name = compound.getString("ClonedName");
-        	int number = 1;
-        	while(tab.containsKey(name)){
-        		number++;
-            	name = String.format("%s%s", compound.getString("ClonedName"), number);
-        	}
-        	compound.removeTag("ClonedName");
-        	compound.removeTag("ClonedTab");
-        	compound.removeTag("ClonedDate");
-    		cleanTags(compound);
-        	tab.put(name, compound);
-        }
+		NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+		NBTTagList list = nbttagcompound1.getTagList("Data", 10);
+		if(list == null){
+			return clones;
+		}
+		for(int i = 0; i < list.tagCount(); i++)
+		{
+			NBTTagCompound compound = list.getCompoundTagAt(i);
+			if(!compound.hasKey("ClonedTab")){
+				compound.setInteger("ClonedTab", 1);
+			}
+
+			Map<String, NBTTagCompound> tab = clones.get(compound.getInteger("ClonedTab"));
+			if(tab == null)
+				clones.put(compound.getInteger("ClonedTab"), tab = new HashMap<String, NBTTagCompound>());
+
+			String name = compound.getString("ClonedName");
+			int number = 1;
+			while(tab.containsKey(name)){
+				number++;
+				name = String.format("%s%s", compound.getString("ClonedName"), number);
+			}
+			compound.removeTag("ClonedName");
+			compound.removeTag("ClonedTab");
+			compound.removeTag("ClonedDate");
+			cleanTags(compound);
+			tab.put(name, compound);
+		}
 		return clones;
 	}
-	
+
 	public NBTTagCompound getCloneData(ICommandSender player, String name, int tab) {
 		File file = new File(new File(getDir(), tab + ""), name + ".json");
 		if(!file.exists()){
@@ -113,22 +111,23 @@ public class ServerCloneController implements ICloneHandler {
 		}
 		return null;
 	}
-	
+
 	public void saveClone(int tab, String name, NBTTagCompound compound){
 		try {
 			File dir = new File(getDir(), tab + "");
 			if(!dir.exists())
 				dir.mkdir();
 			String filename = name + ".json";
-			
-            File file = new File(dir, filename + "_new");
-            File file2 = new File(dir, filename);
-            
-            NBTJsonUtil.SaveFile(file, compound);
-            if(file2.exists()){
-            	file2.delete();
-            }
-            file.renameTo(file2);
+
+			File file = new File(dir, filename + "_new");
+			File file2 = new File(dir, filename);
+
+			NBTJsonUtil.SaveFile(file, compound);
+			if(file2.exists()){
+				file2.delete();
+			}
+			file.renameTo(file2);
+			addToTagMap(compound, name, tab);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -144,27 +143,44 @@ public class ServerCloneController implements ICloneHandler {
 		}
 		return list;
 	}
-	
+
 	public boolean removeClone(String name, int tab){
-        File file = new File(new File(getDir(), tab + ""), name + ".json");
-        if(!file.exists())
-        	return false;
-        file.delete();
-        return true;
+		File file = new File(new File(getDir(), tab + ""), name + ".json");
+		if(!file.exists())
+			return false;
+		file.delete();
+		return true;
 	}
-	
+
 	public String addClone(NBTTagCompound nbttagcompound, String name, int tab) {
 		cleanTags(nbttagcompound);
 		saveClone(tab, name, nbttagcompound);
 		return name;
 	}
-	
+
+	public boolean addToTagMap(NBTTagCompound nbttagcompound, String name, int tab){
+		HashSet<UUID> tagUUIDs = new HashSet<UUID>();
+		if(nbttagcompound.hasKey("TagUUIDs")){
+			NBTTagList nbtTagList = nbttagcompound.getTagList("TagUUIDs",8);
+			for (int i = 0; i < nbtTagList.tagCount(); i++) {
+				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+			}
+		}
+		if(tagUUIDs.size() > 0){
+			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
+			tagMap.putClone(name, tagUUIDs);
+			ServerTagMapController.Instance.saveTagMap(tagMap);
+			return true;
+		}
+		return false;
+	}
+
 	public void cleanTags(NBTTagCompound nbttagcompound){
 		if(nbttagcompound.hasKey("ItemGiverId"))
 			nbttagcompound.setInteger("ItemGiverId", 0);
 		if(nbttagcompound.hasKey("TransporterId"))
 			nbttagcompound.setInteger("TransporterId", -1);
-		
+
 		nbttagcompound.removeTag("StartPosNew");
 		nbttagcompound.removeTag("StartPos");
 		nbttagcompound.removeTag("MovingPathNew");
@@ -187,7 +203,7 @@ public class ServerCloneController implements ICloneHandler {
 			adv.setInteger("ItemGiverId", 0);
 			nbttagcompound.setTag("TransformJob", adv);
 		}
-		
+
 		if(nbttagcompound.hasKey("TransformAI")){
 			NBTTagCompound adv = nbttagcompound.getCompoundTag("TransformAI");
 			adv.removeTag("StartPosNew");
