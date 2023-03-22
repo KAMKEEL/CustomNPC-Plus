@@ -14,7 +14,7 @@ public class TagMap {
 	}
 
 	public void readNBT(NBTTagCompound compound){
-		NBTTagList list = compound.getTagList(String.valueOf(cloneTab), 10);
+		NBTTagList list = compound.getTagList("CloneMap", 10);
 		if(list != null){
 			for(int i = 0; i < list.tagCount(); i++)
 			{
@@ -57,7 +57,7 @@ public class TagMap {
 			}
 		}
 
-		nbt.setTag(String.valueOf(cloneTab), cloneList);
+		nbt.setTag("CloneMap", cloneList);
 		return nbt;
 	}
 
