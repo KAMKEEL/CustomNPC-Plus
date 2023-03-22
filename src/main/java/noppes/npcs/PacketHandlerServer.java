@@ -1080,6 +1080,15 @@ public class PacketHandlerServer{
 			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("CloneTags", tagMap.writeNBT());
+
+			HashSet<Tag> validTags = TagController.getInstance().getValidTags(tagMap);
+			NBTTagList validTagList = new NBTTagList();
+			for(Tag tag : validTags){
+				NBTTagCompound tagCompound = new NBTTagCompound();
+				tag.writeNBT(tagCompound);
+				validTagList.appendTag(tagCompound);
+			}
+			compound.setTag("ValidTags", validTagList);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else

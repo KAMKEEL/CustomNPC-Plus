@@ -8,6 +8,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.controllers.data.TagMap;
 import scala.Int;
 
 import java.io.*;
@@ -245,5 +246,16 @@ public class TagController implements ITagHandler {
 			}
 		}
 		return null;
+	}
+
+	public HashSet<Tag> getValidTags(TagMap tagMap){
+		HashSet<Tag> tags = new HashSet<Tag>();
+		for(UUID tagUUID : tagMap.getAllUUIDs()){
+			Tag foundTag = get(tagUUID);
+			if(foundTag != null){
+				tags.add(foundTag);
+			}
+		}
+		return tags;
 	}
 }

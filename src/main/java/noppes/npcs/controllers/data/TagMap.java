@@ -2,6 +2,9 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.TagController;
+
 import java.util.*;
 
 public class TagMap {
@@ -82,6 +85,14 @@ public class TagMap {
 			return false;
 		}
 		return uuids.contains(tag);
+	}
+
+	public HashSet<UUID> getAllUUIDs() {
+		HashSet<UUID> uuids = new HashSet<UUID>();
+		for(HashSet<UUID> uuids1 : tagMap.values()){
+			uuids.addAll(uuids1);
+		}
+		return uuids;
 	}
 
 }

@@ -23,7 +23,8 @@ import java.util.*;
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData {
 	public static HashSet<String> allTags = new HashSet<>();
 	public static HashSet<String> filter = new HashSet<>();
-	public static boolean showHidden = false;
+	public static HashMap<UUID, Tag> tags = new HashMap<>();
+	public byte displayTags = 0;
 	public TagMap tagMap;
 
 	private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this,0);
@@ -120,7 +121,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			addButton(new GuiNpcButton(10, guiLeft + 150, guiTop + 20, 120, 20, "gui.selectAll"));
 			addButton(new GuiNpcButton(11, guiLeft + 150, guiTop + 43, 120, 20, "gui.deselectAll"));
 			addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.taglessEntries") + ":", guiLeft + 150, guiTop + 72));
-			addButton(new GuiNpcButton(12, guiLeft + 240, guiTop + 65, new String[]{"display.show", "display.hide"}, showHidden ? 0 : 1));
+			addButton(new GuiNpcButton(12, guiLeft + 240, guiTop + 65, new String[]{"all", "none", "hidden"}, displayTags));
 			getButton(12).width = 60;
 			getButton(12).height = 20;
 		}
@@ -312,7 +313,8 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			filterScroll.setSelectedList(new HashSet<>());
 		}
 		if (id == 12) {
-			showHidden = !showHidden;
+			GuiNpcButton button = (GuiNpcButton) guibutton;
+			displayTags = (byte) button.getValue();
 		}
 		if(id > 20){
 			activeTab = id - 20;
@@ -341,6 +343,17 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			tagMap = new TagMap(activeTab);
 			NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
 			tagMap.readNBT(cloneTags);
+
+			NBTTagList validTags = compound.getTagList("ValidTags", 10);
+			if(validTags != null){
+				for(int j = 0; j < validTags.tagCount(); j++)
+				{
+					NBTTagCompound tagStructure = validTags.getCompoundTagAt(j);
+					Tag tag = new Tag();
+					tag.readNBT(tagStructure);
+					tags.put(tag.uuid, tag);
+				}
+			}
 		} else {
 			NBTTagList nbtlist = compound.getTagList("List", 8);
 			List<String> list = new ArrayList<String>();
