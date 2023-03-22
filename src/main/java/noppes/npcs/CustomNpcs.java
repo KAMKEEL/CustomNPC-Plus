@@ -231,6 +231,7 @@ public class CustomNpcs {
         QuestController.instance.load();
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
+        ServerTagMapController.Instance = new ServerTagMapController();
     }
 
     @EventHandler
