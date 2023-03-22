@@ -8,6 +8,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
+import scala.Int;
 
 import java.io.*;
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.zip.GZIPInputStream;
 
 public class TagController implements ITagHandler {
 	public HashMap<Integer, Tag> tags;
+	public HashMap<UUID, Integer> tagsUUID;
 	private static TagController instance;
 
 	private int lastUsedID = 0;
@@ -22,14 +24,14 @@ public class TagController implements ITagHandler {
 	public TagController(){
 		instance = this;
 		tags = new HashMap<Integer, Tag>();
+		tagsUUID = new HashMap<UUID, Integer>();
 		loadTags();
-		if(tags.isEmpty()){
-			// TO-DO
+//		if(tags.isEmpty()){
+//			// TO-DO
 //			tags.put(0,new Faction(0,"Friendly", 0x00DD00, 2000));
 //			tags.put(1,new Faction(1,"Neutral", 0xF2DD00, 1000));
 //			tags.put(2,new Faction(2,"Aggressive", 0xDD0000, 0));
-		}
-
+//		}
 	}
 	public static TagController getInstance(){
 		return instance;
@@ -66,6 +68,7 @@ public class TagController implements ITagHandler {
 
 	public void loadTags(DataInputStream stream) throws IOException{
 		HashMap<Integer,Tag> tags = new HashMap<Integer,Tag>();
+		HashMap<UUID, Integer> tagUUIDs = new HashMap<UUID, Integer>();
 		NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
 		lastUsedID = nbttagcompound1.getInteger("lastID");
 		NBTTagList list = nbttagcompound1.getTagList("NPCTags", 10);
@@ -77,9 +80,11 @@ public class TagController implements ITagHandler {
 				Tag tag = new Tag();
 				tag.readNBT(nbttagcompound);
 				tags.put(tag.id,tag);
+				tagUUIDs.put(tag.uuid, tag.id);
 			}
 		}
 		this.tags = tags;
+		this.tagsUUID = tagUUIDs;
 	}
 
 	public NBTTagCompound getNBT(){
@@ -126,6 +131,14 @@ public class TagController implements ITagHandler {
 		return tags.get(tagSlot);
 	}
 
+	public Tag get(UUID uuid) {
+		Integer id = tagsUUID.get(uuid);
+		if(id != null){
+			get(id);
+		}
+		return null;
+	}
+
 	public List<ITag> list() {
 		return new ArrayList(this.tags.values());
 	}
@@ -145,6 +158,7 @@ public class TagController implements ITagHandler {
 		}
 		tags.remove(tag.id);
 		tags.put(tag.id, tag);
+		tagsUUID.put(tag.uuid, tag.id);
 		saveTags();
 	}
 
@@ -178,6 +192,7 @@ public class TagController implements ITagHandler {
 			if (tag == null) {
 				return null;
 			} else {
+				this.tagsUUID.remove(tag.uuid);
 				this.saveTags();
 				tag.id = -1;
 				return tag;
