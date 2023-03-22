@@ -20,22 +20,6 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
         int l = 0;
         for(int i = 0; i < list.size(); i++)
         {
-//            if (this.parent.tagMap.hasClone(list.get(i))) {
-//                HashSet<UUID> tags = this.parent.tagMap.getUUIDs(list.get(i));
-//                boolean inFilter = false;
-//                for (UUID uuid : tags) {
-//                    if (GuiNpcMobSpawner.filter.contains(uuid)) {
-//                        inFilter = true;
-//                        break;
-//                    }
-//                }
-//                if (!inFilter) {
-//                    continue;
-//                }
-//            } else if (!GuiNpcMobSpawner.showHidden) {
-//                continue;
-//            }
-
             int j = 4;
             int k = (14 * l + 4) - scrollY;
             l++;
@@ -71,20 +55,22 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                     fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
                 }
 
-                int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
-                if(this.parent.displayTags == 0 || this.parent.displayTags == 2){
-                    if (this.parent.tagMap.hasClone(list.get(i))) {
-                        for (UUID tagUUID : this.parent.tagMap.getUUIDs(list.get(i))){
-                            Tag tag = this.parent.tags.get(tagUUID);
-                            if(tag != null){
-                                if(this.parent.displayTags == 2){
-                                    fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
-                                    tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
-                                }
-                                else {
-                                    if(!tag.getIsHidden()){
+                if((this.parent.getShowingClones() == 0 || this.parent.getShowingClones() == 2) && this.parent.tagMap != null){
+                    int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
+                    if(this.parent.displayTags == 0 || this.parent.displayTags == 2){
+                        if (this.parent.tagMap.hasClone(list.get(i))) {
+                            for (UUID tagUUID : this.parent.tagMap.getUUIDs(list.get(i))){
+                                Tag tag = this.parent.tags.get(tagUUID);
+                                if(tag != null){
+                                    if(this.parent.displayTags == 2){
                                         fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
                                         tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
+                                    }
+                                    else {
+                                        if(!tag.getIsHidden()){
+                                            fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
+                                            tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
+                                        }
                                     }
                                 }
                             }
