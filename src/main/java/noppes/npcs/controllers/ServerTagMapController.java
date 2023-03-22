@@ -44,9 +44,7 @@ public class ServerTagMapController {
 				if(file.exists()){
 					loadTagMapFile(file);
 				}
-
-			} catch (Exception ee) {
-			}
+			} catch (Exception ignored) {}
 		}
 		return this.tagMap;
 	}
