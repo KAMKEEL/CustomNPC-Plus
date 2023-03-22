@@ -21,8 +21,8 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData {
-	public static HashMap<UUID, String> allTags = new HashMap<>();
-	public static HashSet<UUID> filter = new HashSet<>();
+	public static HashSet<String> allTags = new HashSet<>();
+	public static HashSet<String> filter = new HashSet<>();
 	public static boolean showHidden = false;
 	public TagMap tagMap;
 
@@ -65,16 +65,9 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		filterScroll.setSize(140, 188);
 		filterScroll.guiLeft = guiLeft + 4;
 		filterScroll.guiTop = guiTop + 19;
-		filterScroll.setList(new ArrayList<>(allTags.values()));
-
-//		HashSet<String> set = new HashSet<String>();
-//		for(String s : data.keySet()){
-//			if(!s.equals(faction.name) && faction.attackFactions.contains(data.get(s)))
-//				set.add(s);
-//		}
-
+		filterScroll.setList(new ArrayList<>(allTags));
 		filterScroll.multipleSelection = true;
-		filterScroll.setSelectedList(new HashSet());
+		filterScroll.setSelectedList(filter);
 
 		GuiMenuTopButton button;
 		addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
@@ -188,15 +181,37 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		else if(search.isEmpty() && filter.size() > 0){
 			List<String> list = new ArrayList<String>();
 			for(String name : this.list){
-				if(name.toLowerCase().contains(search))
-					list.add(name);
+				if(tagMap.hasClone(name)){
+					boolean hasAll = true;
+					for(String uuid : filter){
+						if(!tagMap.hasTag(name, UUID.fromString(uuid))){
+							hasAll = false;
+							break;
+						}
+					}
+					if(hasAll){
+						list.add(name);
+					}
+				}
 			}
+			return list;
 		}
 		// Yes Search // Yes Filters
 		List<String> list = new ArrayList<String>();
 		for(String name : this.list){
-			if(name.toLowerCase().contains(search)){
-				list.add(name);
+			if(name.toLowerCase().contains(search)) {
+				if(tagMap.hasClone(name)){
+					boolean hasAll = true;
+					for(String uuid : filter){
+						if(!tagMap.hasTag(name, UUID.fromString(uuid))){
+							hasAll = false;
+							break;
+						}
+					}
+					if(hasAll){
+						list.add(name);
+					}
+				}
 			}
 		}
 		return list;
@@ -290,7 +305,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			}
 		}
 		if (id == 10) {
-			HashSet<String> hashSet = new HashSet<>(allTags.values());
+			HashSet<String> hashSet = new HashSet<>(allTags);
 			filterScroll.setSelectedList(hashSet);
 		}
 		if (id == 11) {
@@ -308,13 +323,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data)
 	{
-		System.out.println("------- LIST");
-		System.out.println(list);
-		System.out.println("------- DATA");
-		System.out.println(data);
-		for(String s : list){
-			allTags.put(UUID.randomUUID(), s);
-		}
+		allTags.addAll(list);
 	}
 
 	@Override
