@@ -22,11 +22,11 @@ public class TagMap {
 				String cloneName = nbttagcompound.getString("Clone");
 				NBTTagList allUUIDs = compound.getTagList("UUIDs", 10);
 				HashSet<UUID> uuids = new HashSet<UUID>();
-				if(list != allUUIDs){
+				if(allUUIDs != null){
 					for(int j = 0; j < allUUIDs.tagCount(); j++)
 					{
 						NBTTagCompound uuidCompound = list.getCompoundTagAt(j);
-						String uuid = nbttagcompound.getString("UUID");
+						String uuid = uuidCompound.getString("UUID");
 						if(!uuid.isEmpty()){
 							uuids.add(UUID.fromString(uuid));
 						}
