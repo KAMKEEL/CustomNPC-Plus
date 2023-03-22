@@ -1077,7 +1077,6 @@ public class PacketHandlerServer{
 		}
 		else if (type == EnumPacketServer.CloneTagList) {
 			int tab = buffer.readInt();
-			List<String> cloneNames = ServerCloneController.Instance.getClones(tab);
 			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("CloneTags", tagMap.writeNBT());
