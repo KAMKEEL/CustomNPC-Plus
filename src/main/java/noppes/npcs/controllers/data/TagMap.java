@@ -65,8 +65,12 @@ public class TagMap {
 		return this.cloneTab;
 	}
 
+	public boolean hasClone(String cloneName) {
+		return tagMap.containsKey(cloneName);
+	}
+
 	public HashSet<UUID> getUUIDs(String cloneName) {
-		if(tagMap.containsKey(cloneName)){
+		if(hasClone(cloneName)){
 			return tagMap.get(cloneName);
 		}
 		return null;
