@@ -7,6 +7,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.controllers.ClientCloneController;
@@ -17,14 +18,16 @@ import noppes.npcs.controllers.data.Tag;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData,ISubGuiListener {
+public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData {
 	public static HashSet<String> allTags = new HashSet<>();
 	public static HashSet<String> filter = new HashSet<>();
-	public static boolean showNoTags = true;
+	public static boolean showHidden = false;
 	public HashMap<String,HashSet<Tag>> tags = new HashMap<>();
 
 
 	private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this,0);
+	private final GuiCustomScroll filterScroll  = new GuiCustomScroll(this,1);
+
 	private int posX,posY,posZ;
 
 	private List<String> list;
@@ -57,9 +60,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		scroll.setSize(293, 188);
 		scroll.guiLeft = guiLeft + 4;
 		scroll.guiTop = guiTop + 26;
-		addScroll(scroll);
 
-		addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 293, 20, search));
+		filterScroll.clear();
+		filterScroll.setSize(140, 188);
+		filterScroll.guiLeft = guiLeft + 4;
+		filterScroll.guiTop = guiTop + 19;
+		filterScroll.setList(new ArrayList<>(allTags));
+		filterScroll.multipleSelection = true;
+		filterScroll.setSelectedList(filter);
 
 		GuiMenuTopButton button;
 		addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
@@ -68,41 +76,53 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		button.active = showingClones == 2;
 		addTopButton(button = new GuiMenuTopButton(4, button, "spawner.entities"));
 		button.active = showingClones == 1;
+		addTopButton(button = new GuiMenuTopButton(16, guiLeft + (xSize - 67), guiTop - 17, "gui.filters"));
+		button.active = showingClones == 3;
+		addTopButton(button = new GuiMenuTopButton(17, guiLeft + (xSize - 22), guiTop - 17, "X"));
 
+		if (showingClones < 3){
+			addScroll(scroll);
+			addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 293, 20, search));
+			addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 52, 20, "item.monsterPlacer.name"));
+			addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 100, 52, 20, "spawner.mobspawner"));
 
-		addButton(new GuiNpcButton(1, guiLeft + 298, guiTop + 6, 52, 20, "item.monsterPlacer.name"));
+			if(showingClones == 0 || showingClones == 2){
 
-		addButton(new GuiNpcButton(7, guiLeft + 298, guiTop + 78, 52, 20, "gui.filters"));
-		addButton(new GuiNpcButton(2, guiLeft + 298, guiTop + 100, 52, 20, "spawner.mobspawner"));
+				addSideButton(new GuiMenuSideButton(21,guiLeft - 70, this.guiTop + 2, 70,22, "1"));
+				addSideButton(new GuiMenuSideButton(22,guiLeft - 70, this.guiTop + 23, 70,22, "2"));
+				addSideButton(new GuiMenuSideButton(23,guiLeft - 70, this.guiTop + 44, 70,22, "3"));
+				addSideButton(new GuiMenuSideButton(24,guiLeft - 70, this.guiTop + 65, 70,22, "4"));
+				addSideButton(new GuiMenuSideButton(25,guiLeft - 70, this.guiTop + 86, 70,22, "5"));
+				addSideButton(new GuiMenuSideButton(26,guiLeft - 70, this.guiTop + 107, 35,22, "6"));
+				addSideButton(new GuiMenuSideButton(27,guiLeft - 35, this.guiTop + 107, 35,22, "7"));
+				addSideButton(new GuiMenuSideButton(28,guiLeft - 70, this.guiTop + 128, 35,22, "8"));
+				addSideButton(new GuiMenuSideButton(29,guiLeft - 35, this.guiTop + 128, 35,22, "9"));
+				addSideButton(new GuiMenuSideButton(30,guiLeft - 70, this.guiTop + 149, 35,22, "10"));
+				addSideButton(new GuiMenuSideButton(31,guiLeft - 35, this.guiTop + 149, 35,22, "11"));
+				addSideButton(new GuiMenuSideButton(32,guiLeft - 70, this.guiTop + 170, 35,22, "12"));
+				addSideButton(new GuiMenuSideButton(33,guiLeft - 35, this.guiTop + 170, 35,22, "13"));
+				addSideButton(new GuiMenuSideButton(34,guiLeft - 70, this.guiTop + 191, 35,22, "14"));
+				addSideButton(new GuiMenuSideButton(35,guiLeft - 35, this.guiTop + 191, 35,22, "15"));
 
-		if(showingClones == 0 || showingClones == 2){
+				addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 52, 20, "gui.remove"));
 
-			addSideButton(new GuiMenuSideButton(21,guiLeft - 70, this.guiTop + 2, 70,22, "1"));
-			addSideButton(new GuiMenuSideButton(22,guiLeft - 70, this.guiTop + 23, 70,22, "2"));
-			addSideButton(new GuiMenuSideButton(23,guiLeft - 70, this.guiTop + 44, 70,22, "3"));
-			addSideButton(new GuiMenuSideButton(24,guiLeft - 70, this.guiTop + 65, 70,22, "4"));
-			addSideButton(new GuiMenuSideButton(25,guiLeft - 70, this.guiTop + 86, 70,22, "5"));
-			addSideButton(new GuiMenuSideButton(26,guiLeft - 70, this.guiTop + 107, 35,22, "6"));
-			addSideButton(new GuiMenuSideButton(27,guiLeft - 35, this.guiTop + 107, 35,22, "7"));
-			addSideButton(new GuiMenuSideButton(28,guiLeft - 70, this.guiTop + 128, 35,22, "8"));
-			addSideButton(new GuiMenuSideButton(29,guiLeft - 35, this.guiTop + 128, 35,22, "9"));
-			addSideButton(new GuiMenuSideButton(30,guiLeft - 70, this.guiTop + 149, 35,22, "10"));
-			addSideButton(new GuiMenuSideButton(31,guiLeft - 35, this.guiTop + 149, 35,22, "11"));
-			addSideButton(new GuiMenuSideButton(32,guiLeft - 70, this.guiTop + 170, 35,22, "12"));
-			addSideButton(new GuiMenuSideButton(33,guiLeft - 35, this.guiTop + 170, 35,22, "13"));
-			addSideButton(new GuiMenuSideButton(34,guiLeft - 70, this.guiTop + 191, 35,22, "14"));
-			addSideButton(new GuiMenuSideButton(35,guiLeft - 35, this.guiTop + 191, 35,22, "15"));
+				getSideButton(20 + activeTab).active = true;
+				showClones();
+			}
+			else {
+				showEntities();
+			}
+		} else {
+			// Show Filters
+			addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("menu.tags"), guiLeft + 7, guiTop + 7));
+			addScroll(filterScroll);
 
-
-
-			// addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 82, 20, "gui.remove"));
-			addButton(new GuiNpcButton(6, guiLeft + 298, guiTop + 190, 52, 20, "gui.remove"));
-
-			getSideButton(20 + activeTab).active = true;
-			showClones();
-		}
-		else{
-			showEntities();
+			addButton(new GuiNpcButton(10, guiLeft + 150, guiTop + 20, 120, 20, "gui.selectAll"));
+			addButton(new GuiNpcButton(11, guiLeft + 150, guiTop + 43, 120, 20, "gui.deselectAll"));
+			addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.taglessEntries") + ":", guiLeft + 150, guiTop + 72));
+			addButton(new GuiNpcButton(12, guiLeft + 240, guiTop + 65, new String[]{"display.show", "display.hide"}, showHidden ? 0 : 1));
+			getButton(12).width = 60;
+			getButton(12).height = 20;
 		}
 	}
 
@@ -220,6 +240,13 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			showingClones = 2;
 			initGui();
 		}
+		if(id == 16){
+			showingClones = 3;
+			initGui();
+		}
+		if(id == 17){
+			close();
+		}
 		if(id == 6){
 			if(scroll.getSelected() != null){
 				if(showingClones == 2){
@@ -234,6 +261,16 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		if (id == 7) {
 			setSubGui(new SubGuiNpcFilterTags());
 		}
+		if (id == 10) {
+			HashSet<String> hashSet = new HashSet<>(allTags);
+			filterScroll.setSelectedList(hashSet);
+		}
+		if (id == 11) {
+			filterScroll.setSelectedList(new HashSet<>());
+		}
+		if (id == 12) {
+			showHidden = !showHidden;
+		}
 		if(id > 20){
 			activeTab = id - 20;
 			initGui();
@@ -244,7 +281,6 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 	public void setData(Vector<String> list, HashMap<String, Integer> data)
 	{
 		allTags.addAll(list);
-		filter.addAll(allTags);
 	}
 
 	@Override
@@ -286,11 +322,4 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		}
 	}
 
-	@Override
-	public void subGuiClosed(SubGuiInterface subgui) {
-		SubGuiNpcFilterTags filterGui = (SubGuiNpcFilterTags) subgui;
-		filter = filterGui.filterScroll.getSelectedList();
-		showNoTags = filterGui.showNoTags;
-		initGui();
-	}
 }
