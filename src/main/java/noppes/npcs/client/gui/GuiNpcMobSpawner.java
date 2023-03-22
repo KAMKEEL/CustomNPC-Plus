@@ -22,7 +22,7 @@ import java.util.*;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData {
 	public static HashSet<String> allTags = new HashSet<>();
-	public static HashSet<String> filter = new HashSet<>();
+	public static HashSet<String> tagFilters = new HashSet<>();
 	public static HashMap<UUID, Tag> tags = new HashMap<>();
 	public byte displayTags = 0;
 	public TagMap tagMap;
@@ -68,7 +68,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		filterScroll.guiTop = guiTop + 19;
 		filterScroll.setList(new ArrayList<>(allTags));
 		filterScroll.multipleSelection = true;
-		filterScroll.setSelectedList(filter);
+		filterScroll.setSelectedList(tagFilters);
 
 		GuiMenuTopButton button;
 		addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
@@ -127,6 +127,11 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		}
 	}
 
+	public int getShowingClones()
+	{
+		return showingClones;
+	}
+
 	private void showEntities() {
 		Map<?,?> data = EntityList.stringToClassMapping;
 		ArrayList<String> list = new ArrayList<String>();
@@ -169,11 +174,11 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		if(this.list == null){
 			this.list = new ArrayList<String>();
 		}
-		// No Search // No Filters
- 		if(search.isEmpty() && filter.size() == 0)
+		// No Search // No Filters - or - Entities
+ 		if(search.isEmpty() && (tagFilters.size() == 0 || showingClones == 1))
 			return new ArrayList<String>(list);
-		// Yes Search // No Filters
-		else if(!search.isEmpty() && filter.size() == 0){
+		// Yes Search // No Filters - or - Entities
+		else if(!search.isEmpty() && (tagFilters.size() == 0 || showingClones == 1)){
 			List<String> list = new ArrayList<String>();
 			for(String name : this.list){
 				if(name.toLowerCase().contains(search))
@@ -182,12 +187,12 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			return list;
 		}
 		// No Search // Yes Filters
-		else if(search.isEmpty() && filter.size() > 0){
+		else if(search.isEmpty() && tagFilters.size() > 0){
 			List<String> list = new ArrayList<String>();
 			for(String name : this.list){
 				if(tagMap.hasClone(name)){
 					boolean hasAll = true;
-					for(String uuid : filter){
+					for(String uuid : tagFilters){
 						if(!tagMap.hasTag(name, UUID.fromString(uuid))){
 							hasAll = false;
 							break;
@@ -206,7 +211,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			if(name.toLowerCase().contains(search)) {
 				if(tagMap.hasClone(name)){
 					boolean hasAll = true;
-					for(String uuid : filter){
+					for(String uuid : tagFilters){
 						if(!tagMap.hasTag(name, UUID.fromString(uuid))){
 							hasAll = false;
 							break;
