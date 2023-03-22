@@ -102,7 +102,7 @@ public class PacketHandlerServer{
 				NBTTagCompound compound = new NBTTagCompound();
 				NBTTagList tagList = new NBTTagList();
 				for (UUID uuid : npc.advanced.tagUUIDs) {
-					Tag tag = TagController.getInstance().getTagFromUUID(uuid);
+					Tag tag = TagController.getInstance().get(uuid);
 					if (tag != null) {
 						tagList.appendTag(new NBTTagString(tag.name));
 					}
@@ -762,7 +762,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.TagSet){
-			npc.advanced.tagUUIDs.removeIf(uuid -> TagController.getInstance().getTagFromUUID(uuid) != null);
+			npc.advanced.tagUUIDs.removeIf(uuid -> TagController.getInstance().get(uuid) != null);
 			NBTTagCompound compound = Server.readNBT(buffer);
 			NBTTagList list = compound.getTagList("TagNames",8);
 			for (int i = 0; i < list.tagCount(); i++) {
@@ -1000,7 +1000,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
-			warn(player,"tried todo something with the wrong tool, probably a hacker");
+			warn(player,"WE 1 tried todo something with the wrong tool, probably a hacker");
 	}
 
 	private void clonePackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -1092,7 +1092,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
-			warn(player,"tried todo something with the wrong tool, probably a hacker");
+			warn(player,"WE 2 tried todo something with the wrong tool, probably a hacker");
 	}
 
 	private void warn(EntityPlayer player, String warning){

@@ -203,14 +203,6 @@ public class TagController implements ITagHandler {
 		}
 	}
 
-	public int getFirstTagId() {
-		return tags.keySet().iterator().next();
-	}
-
-	public Tag getFirstTag() {
-		return tags.values().iterator().next();
-	}
-
 	public boolean hasName(String newName) {
 		if(newName.trim().isEmpty())
 			return true;
@@ -237,15 +229,6 @@ public class TagController implements ITagHandler {
 			i++;
 		}
 		return names;
-	}
-
-	public Tag getTagFromUUID(UUID uuid){
-		for (Map.Entry<Integer,Tag> entryTag: TagController.getInstance().tags.entrySet()){
-			if (entryTag.getValue().uuid.equals(uuid)) {
-				return entryTag.getValue();
-			}
-		}
-		return null;
 	}
 
 	public HashSet<Tag> getValidTags(TagMap tagMap){
