@@ -14,7 +14,7 @@ public class TagMap {
 	}
 
 	public void readNBT(NBTTagCompound compound){
-		NBTTagList list = compound.getTagList(String.valueOf((cloneTab)), 10);
+		NBTTagList list = compound.getTagList(String.valueOf(cloneTab), 10);
 		if(list != null){
 			for(int i = 0; i < list.tagCount(); i++)
 			{
@@ -35,9 +35,30 @@ public class TagMap {
 				tagMap.put(cloneName, uuids);
 			}
 		}
-  }
-	public void writeNBT(NBTTagCompound compound){
+	}
 
+	public NBTTagCompound writeNBT(){
+		NBTTagCompound nbt = new NBTTagCompound();
+
+		NBTTagList cloneList = new NBTTagList();
+		for(String key: tagMap.keySet()){
+			Set<UUID> uuidSet = tagMap.get(key);
+			if(uuidSet.size() > 0){
+				NBTTagCompound cloneCompound = new NBTTagCompound();
+				cloneCompound.setString("Clone", key);
+				NBTTagList uuidList = new NBTTagList();
+				for(UUID uuid : uuidSet){
+					NBTTagCompound uuidCompound = new NBTTagCompound();
+					uuidCompound.setString("UUID", uuid.toString());
+					uuidList.appendTag(uuidCompound);
+				}
+				cloneCompound.setTag("UUIDs", uuidList);
+				cloneList.appendTag(cloneCompound);
+			}
+		}
+
+		nbt.setTag(String.valueOf(cloneTab), cloneList);
+		return nbt;
 	}
 
 	public int getCloneTab() {
