@@ -258,9 +258,6 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 				initGui();
 			}
 		}
-		if (id == 7) {
-			setSubGui(new SubGuiNpcFilterTags());
-		}
 		if (id == 10) {
 			HashSet<String> hashSet = new HashSet<>(allTags);
 			filterScroll.setSelectedList(hashSet);
