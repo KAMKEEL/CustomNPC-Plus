@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.TagMap;
 
@@ -59,6 +60,32 @@ public class ServerTagMapController {
 	public void loadTagMaps(DataInputStream stream) throws IOException{
 		NBTTagCompound nbtCompound = CompressedStreamTools.read(stream);
 		this.tagMap.readNBT(nbtCompound);
+	}
+
+	public void saveTagMap(TagMap tagMap){
+		try {
+			File saveDir = getCloneTabDir(tagMap.cloneTab);
+			File file = new File(saveDir, "_____tag_map.dat_new");
+			File file1 = new File(saveDir, "_____tag_map.dat_old");
+			File file2 = new File(saveDir, "_____tag_map.dat");
+			CompressedStreamTools.writeCompressed(tagMap.writeNBT(), new FileOutputStream(file));
+			if(file1.exists())
+			{
+				file1.delete();
+			}
+			file2.renameTo(file1);
+			if(file2.exists())
+			{
+				file2.delete();
+			}
+			file.renameTo(file2);
+			if(file.exists())
+			{
+				file.delete();
+			}
+		} catch (Exception e) {
+			LogWriter.except(e);
+		}
 	}
 
 }
