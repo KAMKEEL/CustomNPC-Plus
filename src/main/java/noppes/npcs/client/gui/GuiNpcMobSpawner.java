@@ -166,6 +166,9 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 	}
 
 	private List<String> getSearchList(){
+		if(this.list == null){
+			this.list = new ArrayList<String>();
+		}
 		// No Search // No Filters
  		if(search.isEmpty() && filter.size() == 0)
 			return new ArrayList<String>(list);
