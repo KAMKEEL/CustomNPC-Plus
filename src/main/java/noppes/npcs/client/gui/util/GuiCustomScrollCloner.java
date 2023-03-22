@@ -31,7 +31,7 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                 if (!inFilter) {
                     continue;
                 }
-            } else if (!GuiNpcMobSpawner.showNoTags) {
+            } else if (!GuiNpcMobSpawner.showHidden) {
                 continue;
             }
 
