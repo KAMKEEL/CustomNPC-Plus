@@ -149,6 +149,7 @@ public class ServerCloneController implements ICloneHandler {
 		if(!file.exists())
 			return false;
 		file.delete();
+		removeFromTagMap(name, tab);
 		return true;
 	}
 
@@ -169,6 +170,15 @@ public class ServerCloneController implements ICloneHandler {
 		if(tagUUIDs.size() > 0){
 			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
 			tagMap.putClone(name, tagUUIDs);
+			ServerTagMapController.Instance.saveTagMap(tagMap);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean removeFromTagMap(String name, int tab){
+		TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
+		if(tagMap.removeClone(name)){
 			ServerTagMapController.Instance.saveTagMap(tagMap);
 			return true;
 		}

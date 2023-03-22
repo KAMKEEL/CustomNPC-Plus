@@ -77,8 +77,8 @@ public class TagMap {
 		return null;
 	}
 
-	public void removeClone(String cloneName) {
-		tagMap.remove(cloneName);
+	public boolean removeClone(String cloneName) {
+		return tagMap.remove(cloneName) != null;
 	}
 
 	public void putClone(String cloneName, HashSet<UUID> uuids) {
