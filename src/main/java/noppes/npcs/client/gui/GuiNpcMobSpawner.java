@@ -22,12 +22,12 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
+	public static HashMap<UUID, Tag> tags = new HashMap<>();
 	public static HashMap<String, UUID> tagNames = new HashMap<>();
 	public static HashSet<String> tagFilters = new HashSet<>();
 	public static byte displayTags = 0;
 
 	public TagMap tagMap;
-	public HashMap<UUID, Tag> tags = new HashMap<>();
 
 	private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this,0);
 	private final GuiCustomScroll filterScroll  = new GuiCustomScroll(this,1);
@@ -159,8 +159,6 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		ArrayList<String> list = new ArrayList<String>();
 		this.list = ClientCloneController.Instance.getClones(activeTab);
 		this.tagMap = ClientTagMapController.Instance.getTagMap(activeTab);
-		System.out.println("Client Tag Map");
-		System.out.println(this.tagMap);
 		scroll.setList(getSearchList());
 	}
 	public void keyTyped(char c, int i)

@@ -1094,7 +1094,6 @@ public class PacketHandlerServer{
 			}
 			compound.setTag("AllTags", validTagList);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
-			System.out.println("-------------- We sent the tags");
 		}
 		else
 			warn(player,"WE 2 tried todo something with the wrong tool, probably a hacker");

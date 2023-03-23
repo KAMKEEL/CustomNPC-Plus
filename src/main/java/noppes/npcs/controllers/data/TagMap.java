@@ -25,9 +25,9 @@ public class TagMap {
 				String cloneName = nbttagcompound.getString("Clone");
 
 				HashSet<UUID> uuids = new HashSet<UUID>();
-				NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
+				NBTTagList nbtTagList = nbttagcompound.getTagList("TagUUIDs",8);
 				for (int j = 0; j < nbtTagList.tagCount(); j++) {
-					String uuid = nbtTagList.getStringTagAt(i);
+					String uuid = nbtTagList.getStringTagAt(j);
 					if(!uuid.isEmpty()){
 						uuids.add(UUID.fromString(uuid));
 					}
