@@ -192,10 +192,13 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			for(String name : this.list){
 				if(tagMap.hasClone(name)){
 					boolean hasAll = true;
-					for(String uuid : tagFilters){
-						if(!tagMap.hasTag(name, UUID.fromString(uuid))){
-							hasAll = false;
-							break;
+					for(String tagName : tagFilters){
+						UUID tagUUID = tagNames.get(tagName);
+						if(tagUUID != null){
+							if(!tagMap.hasTag(name, tagUUID)){
+								hasAll = false;
+								break;
+							}
 						}
 					}
 					if(hasAll){
@@ -211,10 +214,13 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			if(name.toLowerCase().contains(search)) {
 				if(tagMap.hasClone(name)){
 					boolean hasAll = true;
-					for(String uuid : tagFilters){
-						if(!tagMap.hasTag(name, UUID.fromString(uuid))){
-							hasAll = false;
-							break;
+					for(String tagName : tagFilters){
+						UUID tagUUID = tagNames.get(tagName);
+						if(tagUUID != null){
+							if(!tagMap.hasTag(name, tagUUID)){
+								hasAll = false;
+								break;
+							}
 						}
 					}
 					if(hasAll){
