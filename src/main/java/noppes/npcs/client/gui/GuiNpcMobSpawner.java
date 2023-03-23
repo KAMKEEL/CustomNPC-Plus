@@ -16,16 +16,18 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
+import org.lwjgl.Sys;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	public static HashMap<String, UUID> tagNames = new HashMap<>();
-	public static HashMap<UUID, Tag> tags = new HashMap<>();
 	public static HashSet<String> tagFilters = new HashSet<>();
-	public byte displayTags = 0;
+	public static byte displayTags = 0;
+
 	public TagMap tagMap;
+	public HashMap<UUID, Tag> tags = new HashMap<>();
 
 	private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this,0);
 	private final GuiCustomScroll filterScroll  = new GuiCustomScroll(this,1);
@@ -149,14 +151,16 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		scroll.setList(getSearchList());
 	}
 	private void showClones() {
-		Client.sendData(EnumPacketServer.CloneTagList, activeTab);
 		if(showingClones == 2){
+			Client.sendData(EnumPacketServer.CloneTagList, activeTab);
 			Client.sendData(EnumPacketServer.CloneList, activeTab);
 			return;
 		}
 		ArrayList<String> list = new ArrayList<String>();
 		this.list = ClientCloneController.Instance.getClones(activeTab);
 		this.tagMap = ClientTagMapController.Instance.getTagMap(activeTab);
+		System.out.println("Client Tag Map");
+		System.out.println(this.tagMap);
 		scroll.setList(getSearchList());
 	}
 	public void keyTyped(char c, int i)
@@ -344,9 +348,9 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		if (compound.hasKey("CloneTags")) {
-			tagMap = new TagMap(activeTab);
+			this.tagMap = new TagMap(activeTab);
 			NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
-			tagMap.readNBT(cloneTags);
+			this.tagMap.readNBT(cloneTags);
 		}
 		else if (compound.hasKey("AllTags")) {
 			NBTTagList validTags = compound.getTagList("AllTags", 10);

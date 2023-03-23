@@ -57,12 +57,16 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
 
                 if((this.parent.getShowingClones() == 0 || this.parent.getShowingClones() == 2) && this.parent.tagMap != null){
                     int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
-                    if(this.parent.displayTags == 0 || this.parent.displayTags == 2){
+                    if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 2){
                         if (this.parent.tagMap.hasClone(list.get(i))) {
+                            System.out.println("BRUH 2");
                             for (UUID tagUUID : this.parent.tagMap.getUUIDs(list.get(i))){
                                 Tag tag = this.parent.tags.get(tagUUID);
+                                System.out.println("BRUH 2.5");
                                 if(tag != null){
-                                    if(this.parent.displayTags == 2){
+                                    System.out.println("-- BRUH 3 --");
+                                    System.out.println(GuiNpcMobSpawner.displayTags);
+                                    if(GuiNpcMobSpawner.displayTags == 2){
                                         fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
                                         tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
                                     }

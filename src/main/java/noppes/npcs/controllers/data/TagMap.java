@@ -16,6 +16,7 @@ public class TagMap {
 	}
 
 	public void readNBT(NBTTagCompound compound){
+		this.tagMap = new HashMap<String, HashSet<UUID>>();
 		NBTTagList list = compound.getTagList("TagMap", 10);
 		if(list != null){
 			for(int i = 0; i < list.tagCount(); i++)
