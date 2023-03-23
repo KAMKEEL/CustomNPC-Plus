@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 
 import java.util.*;
 
@@ -21,16 +22,13 @@ public class TagMap {
 			{
 				NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
 				String cloneName = nbttagcompound.getString("Clone");
-				NBTTagList allUUIDs = compound.getTagList("UUIDs", 10);
+
 				HashSet<UUID> uuids = new HashSet<UUID>();
-				if(allUUIDs != null){
-					for(int j = 0; j < allUUIDs.tagCount(); j++)
-					{
-						NBTTagCompound uuidCompound = list.getCompoundTagAt(j);
-						String uuid = uuidCompound.getString("UUID");
-						if(!uuid.isEmpty()){
-							uuids.add(UUID.fromString(uuid));
-						}
+				NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
+				for (int j = 0; j < nbtTagList.tagCount(); j++) {
+					String uuid = nbtTagList.getStringTagAt(i);
+					if(!uuid.isEmpty()){
+						uuids.add(UUID.fromString(uuid));
 					}
 				}
 				tagMap.put(cloneName, uuids);
@@ -40,24 +38,20 @@ public class TagMap {
 
 	public NBTTagCompound writeNBT(){
 		NBTTagCompound nbt = new NBTTagCompound();
-
 		NBTTagList cloneList = new NBTTagList();
 		for(String key: tagMap.keySet()){
 			HashSet<UUID> uuidSet = tagMap.get(key);
 			if(uuidSet.size() > 0){
 				NBTTagCompound cloneCompound = new NBTTagCompound();
 				cloneCompound.setString("Clone", key);
-				NBTTagList uuidList = new NBTTagList();
-				for(UUID uuid : uuidSet){
-					NBTTagCompound uuidCompound = new NBTTagCompound();
-					uuidCompound.setString("UUID", uuid.toString());
-					uuidList.appendTag(uuidCompound);
+				NBTTagList nbtTagList = new NBTTagList();
+				for (UUID uuid : uuidSet) {
+					nbtTagList.appendTag(new NBTTagString(uuid.toString()));
 				}
-				cloneCompound.setTag("UUIDs", uuidList);
+				cloneCompound.setTag("TagUUIDs", nbtTagList);
 				cloneList.appendTag(cloneCompound);
 			}
 		}
-
 		nbt.setTag("TagMap", cloneList);
 		return nbt;
 	}
