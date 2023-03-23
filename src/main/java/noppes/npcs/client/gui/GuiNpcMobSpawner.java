@@ -50,7 +50,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		this.closeOnEsc = true;
 
 		setBackground("menubg.png");
-		Client.sendData(EnumPacketServer.TagsGet);
+		Client.sendData(EnumPacketServer.CloneAllTags, activeTab);
 	}
 	public void initGui()
 	{
@@ -357,6 +357,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 					Tag tag = new Tag();
 					tag.readNBT(tagStructure);
 					tags.put(tag.uuid, tag);
+					tagNames.put(tag.name, tag.uuid);
 				}
 			}
 		}

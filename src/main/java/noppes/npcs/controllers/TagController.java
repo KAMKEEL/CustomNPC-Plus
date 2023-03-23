@@ -17,7 +17,6 @@ import java.util.zip.GZIPInputStream;
 
 public class TagController implements ITagHandler {
 	public HashMap<Integer, Tag> tags;
-	public HashMap<UUID, Integer> tagsUUID;
 	private static TagController instance;
 
 	private int lastUsedID = 0;
@@ -25,7 +24,6 @@ public class TagController implements ITagHandler {
 	public TagController(){
 		instance = this;
 		tags = new HashMap<Integer, Tag>();
-		tagsUUID = new HashMap<UUID, Integer>();
 		loadTags();
 //		if(tags.isEmpty()){
 //			// TO-DO
@@ -85,7 +83,6 @@ public class TagController implements ITagHandler {
 			}
 		}
 		this.tags = tags;
-		this.tagsUUID = tagUUIDs;
 	}
 
 	public NBTTagCompound getNBT(){
@@ -132,14 +129,6 @@ public class TagController implements ITagHandler {
 		return tags.get(tagSlot);
 	}
 
-	public Tag get(UUID uuid) {
-		Integer id = tagsUUID.get(uuid);
-		if(id != null){
-			get(id);
-		}
-		return null;
-	}
-
 	public List<ITag> list() {
 		return new ArrayList(this.tags.values());
 	}
@@ -159,7 +148,6 @@ public class TagController implements ITagHandler {
 		}
 		tags.remove(tag.id);
 		tags.put(tag.id, tag);
-		tagsUUID.put(tag.uuid, tag.id);
 		saveTags();
 	}
 
@@ -193,7 +181,6 @@ public class TagController implements ITagHandler {
 			if (tag == null) {
 				return null;
 			} else {
-				this.tagsUUID.remove(tag.uuid);
 				this.saveTags();
 				tag.id = -1;
 				return tag;
@@ -221,6 +208,15 @@ public class TagController implements ITagHandler {
 		return null;
 	}
 
+	public Tag getTagFromUUID(UUID uuid){
+		for (Map.Entry<Integer,Tag> entryTag: TagController.getInstance().tags.entrySet()){
+			if (entryTag.getValue().uuid.equals(uuid)) {
+				return entryTag.getValue();
+			}
+		}
+		return null;
+	}
+
 	public String[] getNames() {
 		String[] names = new String[tags.size()];
 		int i = 0;
@@ -233,16 +229,5 @@ public class TagController implements ITagHandler {
 
 	public HashSet<Tag> getAllTags(){
 		return new HashSet<Tag>(this.tags.values());
-	}
-
-	public HashSet<Tag> getValidTags(TagMap tagMap){
-		HashSet<Tag> tags = new HashSet<Tag>();
-		for(UUID tagUUID : tagMap.getAllUUIDs()){
-			Tag foundTag = get(tagUUID);
-			if(foundTag != null){
-				tags.add(foundTag);
-			}
-		}
-		return tags;
 	}
 }
