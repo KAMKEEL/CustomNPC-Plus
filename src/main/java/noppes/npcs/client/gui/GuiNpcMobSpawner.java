@@ -20,10 +20,10 @@ import noppes.npcs.controllers.data.TagMap;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGuiData {
-	public static HashSet<String> allTags = new HashSet<>();
-	public static HashSet<String> tagFilters = new HashSet<>();
+public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
+	public static HashMap<String, UUID> tagNames = new HashMap<>();
 	public static HashMap<UUID, Tag> tags = new HashMap<>();
+	public static HashSet<String> tagFilters = new HashSet<>();
 	public byte displayTags = 0;
 	public TagMap tagMap;
 
@@ -66,7 +66,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 		filterScroll.setSize(140, 188);
 		filterScroll.guiLeft = guiLeft + 4;
 		filterScroll.guiTop = guiTop + 19;
-		filterScroll.setList(new ArrayList<>(allTags));
+		filterScroll.setList(new ArrayList<>(tagNames.keySet()));
 		filterScroll.multipleSelection = true;
 		filterScroll.setSelectedList(tagFilters);
 
@@ -314,7 +314,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 			}
 		}
 		if (id == 10) {
-			HashSet<String> hashSet = new HashSet<>(allTags);
+			HashSet<String> hashSet = new HashSet<>(tagNames.keySet());
 			filterScroll.setSelectedList(hashSet);
 		}
 		if (id == 11) {
@@ -331,28 +331,19 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data)
-	{
-		allTags.addAll(list);
-	}
-
-	@Override
-	public void setSelected(String selected) {
-	}
-
-	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-
 	}
+
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		if (compound.hasKey("CloneTags")) {
 			tagMap = new TagMap(activeTab);
 			NBTTagCompound cloneTags = compound.getCompoundTag("CloneTags");
 			tagMap.readNBT(cloneTags);
-
-			NBTTagList validTags = compound.getTagList("ValidTags", 10);
+		}
+		else if (compound.hasKey("AllTags")) {
+			NBTTagList validTags = compound.getTagList("AllTags", 10);
 			if(validTags != null){
 				for(int j = 0; j < validTags.tagCount(); j++)
 				{
@@ -362,7 +353,8 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IScrollData,IGu
 					tags.put(tag.uuid, tag);
 				}
 			}
-		} else {
+		}
+		else {
 			NBTTagList nbtlist = compound.getTagList("List", 8);
 			List<String> list = new ArrayList<String>();
 			for(int i = 0; i < nbtlist.tagCount(); i++){

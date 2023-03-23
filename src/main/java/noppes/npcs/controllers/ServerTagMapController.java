@@ -34,13 +34,13 @@ public class ServerTagMapController {
 	public TagMap getTagMap(int tab){
 		this.tagMap = new TagMap(tab);
 		try {
-			File file = new File(getCloneTabDir(tab), "_____tag_map.dat");
+			File file = new File(getCloneTabDir(tab), "___tagmap.dat");
 			if(file.exists()){
 				loadTagMapFile(file);
 			}
 		} catch (Exception e) {
 			try {
-				File file = new File(getCloneTabDir(tab), "_____tag_map.dat_old");
+				File file = new File(getCloneTabDir(tab), "___tagmap.dat_old");
 				if(file.exists()){
 					loadTagMapFile(file);
 				}
@@ -63,9 +63,9 @@ public class ServerTagMapController {
 	public void saveTagMap(TagMap tagMap){
 		try {
 			File saveDir = getCloneTabDir(tagMap.cloneTab);
-			File file = new File(saveDir, "_____tag_map.dat_new");
-			File file1 = new File(saveDir, "_____tag_map.dat_old");
-			File file2 = new File(saveDir, "_____tag_map.dat");
+			File file = new File(saveDir, "___tagmap.dat_new");
+			File file1 = new File(saveDir, "___tagmap.dat_old");
+			File file2 = new File(saveDir, "___tagmap.dat");
 			CompressedStreamTools.writeCompressed(tagMap.writeNBT(), new FileOutputStream(file));
 			if(file1.exists())
 			{

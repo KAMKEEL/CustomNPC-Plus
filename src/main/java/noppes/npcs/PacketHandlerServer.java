@@ -28,6 +28,7 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
@@ -1081,14 +1082,14 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("CloneTags", tagMap.writeNBT());
 
-			HashSet<Tag> validTags = TagController.getInstance().getValidTags(tagMap);
+			HashSet<Tag> validTags = TagController.getInstance().getAllTags();
 			NBTTagList validTagList = new NBTTagList();
 			for(Tag tag : validTags){
 				NBTTagCompound tagCompound = new NBTTagCompound();
 				tag.writeNBT(tagCompound);
 				validTagList.appendTag(tagCompound);
 			}
-			compound.setTag("ValidTags", validTagList);
+			compound.setTag("AllTags", validTagList);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else

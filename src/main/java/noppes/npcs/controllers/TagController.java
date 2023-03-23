@@ -231,6 +231,10 @@ public class TagController implements ITagHandler {
 		return names;
 	}
 
+	public HashSet<Tag> getAllTags(){
+		return new HashSet<Tag>(this.tags.values());
+	}
+
 	public HashSet<Tag> getValidTags(TagMap tagMap){
 		HashSet<Tag> tags = new HashSet<Tag>();
 		for(UUID tagUUID : tagMap.getAllUUIDs()){
