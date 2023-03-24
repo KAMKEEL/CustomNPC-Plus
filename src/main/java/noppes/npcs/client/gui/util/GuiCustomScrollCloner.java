@@ -57,20 +57,14 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
 
                 if((this.parent.getShowingClones() == 0 || this.parent.getShowingClones() == 2) && this.parent.tagMap != null){
                     int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
-                    if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 2){
+                    if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1){
                         if (this.parent.tagMap.hasClone(list.get(i))) {
                             for (UUID tagUUID : this.parent.tagMap.getUUIDs(list.get(i))){
                                 Tag tag = this.parent.tags.get(tagUUID);
                                 if(tag != null){
-                                    if(GuiNpcMobSpawner.displayTags == 2){
+                                    if(GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()){
                                         fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
                                         tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
-                                    }
-                                    else {
-                                        if(!tag.getIsHidden()){
-                                            fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
-                                            tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
-                                        }
                                     }
                                 }
                             }
