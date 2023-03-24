@@ -57,7 +57,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     	addLabel(new GuiNpcLabel(1,"gui.color", guiLeft + 8, guiTop + 31));
     	getButton(10).setTextColor(tag.color);
 		
-    	addLabel(new GuiNpcLabel(3,"tag.hidden", guiLeft + 8, guiTop + 75));
+    	addLabel(new GuiNpcLabel(3,"faction.hidden", guiLeft + 8, guiTop + 75));
        	this.addButton(new GuiNpcButton(3,guiLeft + 100, guiTop + 70, 45, 20, new String[]{"gui.no","gui.yes"},tag.hideTag?1:0));
     }
 
