@@ -175,6 +175,7 @@ mailbox.setup=Setup mail
 display.model=Model
 display.show=Show
 display.hide=Hide
+display.all=All
 display.showAttacking=Show when attacking
 display.size=Size
 display.texture=Texture
