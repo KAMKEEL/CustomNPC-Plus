@@ -5,7 +5,7 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentTranslation;
-import noppes.npcs.controllers.InnDoorData;
+import noppes.npcs.controllers.data.InnDoorData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;

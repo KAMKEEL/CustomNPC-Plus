@@ -8,6 +8,8 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
+import noppes.npcs.controllers.data.TagMap;
+import scala.Int;
 
 import java.io.*;
 import java.util.*;
@@ -23,13 +25,12 @@ public class TagController implements ITagHandler {
 		instance = this;
 		tags = new HashMap<Integer, Tag>();
 		loadTags();
-		if(tags.isEmpty()){
-			// TO-DO
+//		if(tags.isEmpty()){
+//			// TO-DO
 //			tags.put(0,new Faction(0,"Friendly", 0x00DD00, 2000));
 //			tags.put(1,new Faction(1,"Neutral", 0xF2DD00, 1000));
 //			tags.put(2,new Faction(2,"Aggressive", 0xDD0000, 0));
-		}
-
+//		}
 	}
 	public static TagController getInstance(){
 		return instance;
@@ -66,6 +67,7 @@ public class TagController implements ITagHandler {
 
 	public void loadTags(DataInputStream stream) throws IOException{
 		HashMap<Integer,Tag> tags = new HashMap<Integer,Tag>();
+		HashMap<UUID, Integer> tagUUIDs = new HashMap<UUID, Integer>();
 		NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
 		lastUsedID = nbttagcompound1.getInteger("lastID");
 		NBTTagList list = nbttagcompound1.getTagList("NPCTags", 10);
@@ -77,6 +79,7 @@ public class TagController implements ITagHandler {
 				Tag tag = new Tag();
 				tag.readNBT(nbttagcompound);
 				tags.put(tag.id,tag);
+				tagUUIDs.put(tag.uuid, tag.id);
 			}
 		}
 		this.tags = tags;
@@ -187,14 +190,6 @@ public class TagController implements ITagHandler {
 		}
 	}
 
-	public int getFirstTagId() {
-		return tags.keySet().iterator().next();
-	}
-
-	public Tag getFirstTag() {
-		return tags.values().iterator().next();
-	}
-
 	public boolean hasName(String newName) {
 		if(newName.trim().isEmpty())
 			return true;
@@ -213,6 +208,15 @@ public class TagController implements ITagHandler {
 		return null;
 	}
 
+	public Tag getTagFromUUID(UUID uuid){
+		for (Map.Entry<Integer,Tag> entryTag: TagController.getInstance().tags.entrySet()){
+			if (entryTag.getValue().uuid.equals(uuid)) {
+				return entryTag.getValue();
+			}
+		}
+		return null;
+	}
+
 	public String[] getNames() {
 		String[] names = new String[tags.size()];
 		int i = 0;
@@ -223,12 +227,7 @@ public class TagController implements ITagHandler {
 		return names;
 	}
 
-	public Tag getTagFromUUID(UUID uuid){
-		for (Map.Entry<Integer,Tag> entryTag: TagController.getInstance().tags.entrySet()){
-			if (entryTag.getValue().uuid.equals(uuid)) {
-				return entryTag.getValue();
-			}
-		}
-		return null;
+	public HashSet<Tag> getAllTags(){
+		return new HashSet<Tag>(this.tags.values());
 	}
 }

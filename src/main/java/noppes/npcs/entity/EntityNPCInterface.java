@@ -291,6 +291,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			if(getHealth() <= 0){
 				clearActivePotions();
 				setBoolFlag(true, 8);
+				updateTasks();
+				updateHitbox();
 			}
 			setBoolFlag(this.getAttackTarget() != null, 4);
 			setBoolFlag(!getNavigator().noPath(), 1);
@@ -618,6 +620,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		clearTasks(tasks);
 		clearTasks(targetTasks);
+		if(isKilled())
+			return;
+
 		IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
 		this.targetTasks.addTask(0, new EntityAIClearTarget(this));
 		this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
@@ -1017,6 +1022,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		width = (width / 5f) * display.modelSize;
 		height = (height / 5f) * display.modelSize;
+
+		if(isKilled() && stats.hideKilledBody) {
+			width = 0.00001f;
+		}
+		if(width / 2 > worldObj.MAX_ENTITY_RADIUS) {
+			worldObj.MAX_ENTITY_RADIUS = width / 2;
+		}
 
 		this.setPosition(posX, posY, posZ);
 	}

@@ -28,6 +28,7 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
@@ -1000,7 +1001,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
-			warn(player,"tried todo something with the wrong tool, probably a hacker");
+			warn(player,"WE 1 tried todo something with the wrong tool, probably a hacker");
 	}
 
 	private void clonePackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -1077,33 +1078,25 @@ public class PacketHandlerServer{
 		}
 		else if (type == EnumPacketServer.CloneTagList) {
 			int tab = buffer.readInt();
-			List<String> cloneNames = ServerCloneController.Instance.getClones(tab);
-			NBTTagList cloneTags = new NBTTagList();
-			for (String name : cloneNames) {
-				NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, name, tab);
-				if (compound.hasKey("TagUUIDs")) {
-					NBTTagCompound tagCompound = new NBTTagCompound();
-					tagCompound.setString("Name",name);
-
-					NBTTagList uuidList = compound.getTagList("TagUUIDs",8);
-					NBTTagList tags = new NBTTagList();
-					for (int i = 0; i < uuidList.tagCount(); i++) {
-						String uuidString = uuidList.getStringTagAt(i);
-						NBTTagCompound tagNBT = new NBTTagCompound();
-						TagController.getInstance().getTagFromUUID(UUID.fromString(uuidString)).writeNBT(tagNBT);
-						tags.appendTag(tagNBT);
-					}
-					tagCompound.setTag("Tags",tags);
-					cloneTags.appendTag(tagCompound);
-				}
-			}
-
+			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
 			NBTTagCompound compound = new NBTTagCompound();
-			compound.setTag("CloneTags", cloneTags);
+			compound.setTag("CloneTags", tagMap.writeNBT());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if (type == EnumPacketServer.CloneAllTags) {
+			NBTTagCompound compound = new NBTTagCompound();
+			HashSet<Tag> validTags = TagController.getInstance().getAllTags();
+			NBTTagList validTagList = new NBTTagList();
+			for(Tag tag : validTags){
+				NBTTagCompound tagCompound = new NBTTagCompound();
+				tag.writeNBT(tagCompound);
+				validTagList.appendTag(tagCompound);
+			}
+			compound.setTag("AllTags", validTagList);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else
-			warn(player,"tried todo something with the wrong tool, probably a hacker");
+			warn(player,"WE 2 tried todo something with the wrong tool, probably a hacker");
 	}
 
 	private void warn(EntityPlayer player, String warning){

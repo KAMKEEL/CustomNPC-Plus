@@ -231,12 +231,24 @@ public class GuiCustomScroll extends GuiScreen
 		// TODO Auto-generated method stub
 		return selected >= 0;
 	}
-	public void setList(List<String> list){
+
+    public void setList(List<String> list){
 		isSorted = true;
 		Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
 		this.list = list;
 		setSize(xSize,ySize);
 	}
+
+    public void setList(List<String> list, boolean ascending){
+        isSorted = true;
+        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        if(!ascending){
+            Collections.reverse(list);
+        }
+        this.list = list;
+        setSize(xSize,ySize);
+    }
+
 	public void setUnsortedList(List<String> list){
 		isSorted = false;
 		this.list = list;

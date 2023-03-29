@@ -53,12 +53,12 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     	String color = Integer.toHexString(tag.color);
     	while(color.length() < 6)
     		color = "0" + color;
-    	addButton(new GuiNpcButton(10, guiLeft + 40, guiTop + 26, 60, 20, color));
-    	addLabel(new GuiNpcLabel(1,"gui.color", guiLeft + 8, guiTop + 31));
+    	addButton(new GuiNpcButton(10, guiLeft + 50, guiTop + 30, 60, 20, color));
+    	addLabel(new GuiNpcLabel(1,"gui.color", guiLeft + 8, guiTop + 35));
     	getButton(10).setTextColor(tag.color);
 		
-    	addLabel(new GuiNpcLabel(3,"tag.hidden", guiLeft + 8, guiTop + 75));
-       	this.addButton(new GuiNpcButton(3,guiLeft + 100, guiTop + 70, 45, 20, new String[]{"gui.no","gui.yes"},tag.hideTag?1:0));
+    	addLabel(new GuiNpcLabel(3,"faction.hidden", guiLeft + 8, guiTop + 59));
+       	this.addButton(new GuiNpcButton(3,guiLeft + 50, guiTop + 54, 60, 20, new String[]{"gui.no","gui.yes"},tag.hideTag?1:0));
     }
 
     @Override

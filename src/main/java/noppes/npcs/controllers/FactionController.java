@@ -18,11 +18,11 @@ import java.util.zip.GZIPInputStream;
 
 public class FactionController implements IFactionHandler {
 	public HashMap<Integer,Faction> factions;
-	
+
 	private static FactionController instance;
 
 	private int lastUsedID = 0;
-	
+
 	public FactionController(){
 		instance = this;
 		factions = new HashMap<Integer, Faction>();
@@ -32,9 +32,9 @@ public class FactionController implements IFactionHandler {
 			factions.put(1,new Faction(1,"Neutral", 0xF2DD00, 1000));
 			factions.put(2,new Faction(2,"Aggressive", 0xDD0000, 0));
 		}
-		
+
 	}
-	
+
 	public static FactionController getInstance(){
 		return instance;
 	}
@@ -50,79 +50,79 @@ public class FactionController implements IFactionHandler {
 			return;
 		}
 		try {
-	        File file = new File(saveDir, "factions.dat");
-	        if(file.exists()){
-	        	loadFactionsFile(file);
-	        }
+			File file = new File(saveDir, "factions.dat");
+			if(file.exists()){
+				loadFactionsFile(file);
+			}
 		} catch (Exception e) {
 			try {
-		        File file = new File(saveDir, "factions.dat_old");
-		        if(file.exists()){
-		        	loadFactionsFile(file);
-		        }
-		        
+				File file = new File(saveDir, "factions.dat_old");
+				if(file.exists()){
+					loadFactionsFile(file);
+				}
+
 			} catch (Exception ee) {
 			}
 		}
 	}
 
 	private void loadFactionsFile(File file) throws IOException{
-        DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
+		DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
 		loadFactions(var1);
 		var1.close();
 	}
 
 	public void loadFactions(DataInputStream stream) throws IOException{
 		HashMap<Integer,Faction> factions = new HashMap<Integer,Faction>();
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
-        lastUsedID = nbttagcompound1.getInteger("lastID");
-        NBTTagList list = nbttagcompound1.getTagList("NPCFactions", 10);
+		NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
+		lastUsedID = nbttagcompound1.getInteger("lastID");
+		NBTTagList list = nbttagcompound1.getTagList("NPCFactions", 10);
 
-	    if(list != null){
-	        for(int i = 0; i < list.tagCount(); i++)
-	        {
-	            NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
-	            Faction faction = new Faction();
-	            faction.readNBT(nbttagcompound);
-	            factions.put(faction.id,faction);
-	        }
-	    }
-    	this.factions = factions;
+		if(list != null){
+			for(int i = 0; i < list.tagCount(); i++)
+			{
+				NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
+				Faction faction = new Faction();
+				faction.readNBT(nbttagcompound);
+				factions.put(faction.id,faction);
+			}
+		}
+		this.factions = factions;
 	}
 	public NBTTagCompound getNBT(){
-        NBTTagList list = new NBTTagList();
-        for(int slot : factions.keySet()){
-        	Faction faction = factions.get(slot);
-            NBTTagCompound nbtfactions = new NBTTagCompound();
-            faction.writeNBT(nbtfactions);
-        	list.appendTag(nbtfactions);
-        }
-        NBTTagCompound nbttagcompound = new NBTTagCompound();
-        nbttagcompound.setInteger("lastID", lastUsedID);
-        nbttagcompound.setTag("NPCFactions", list);
-        return nbttagcompound;
+		NBTTagList list = new NBTTagList();
+		for(int slot : factions.keySet()){
+			Faction faction = factions.get(slot);
+			NBTTagCompound nbtfactions = new NBTTagCompound();
+			faction.writeNBT(nbtfactions);
+			list.appendTag(nbtfactions);
+		}
+		NBTTagCompound nbttagcompound = new NBTTagCompound();
+		nbttagcompound.setInteger("lastID", lastUsedID);
+		nbttagcompound.setTag("NPCFactions", list);
+		return nbttagcompound;
 	}
 	public void saveFactions(){
 		try {
 			File saveDir = CustomNpcs.getWorldSaveDirectory();
-            File file = new File(saveDir, "factions.dat_new");
-            File file1 = new File(saveDir, "factions.dat_old");
-            File file2 = new File(saveDir, "factions.dat");
-            CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
-            if(file1.exists())
-            {
-                file1.delete();
-            }
-            file2.renameTo(file1);
-            if(file2.exists())
-            {
-                file2.delete();
-            }
-            file.renameTo(file2);
-            if(file.exists())
-            {
-                file.delete();
-            }
+			File file = new File(saveDir, "factions.dat_new");
+			File file1 = new File(saveDir, "factions.dat_old");
+			File file2 = new File(saveDir, "factions.dat");
+			CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
+			if(file1.exists())
+			{
+				file1.delete();
+			}
+			file2.renameTo(file1);
+			if(file2.exists())
+			{
+				file2.delete();
+			}
+			file.renameTo(file2);
+			if(file.exists())
+			{
+				file.delete();
+			}
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -166,7 +166,7 @@ public class FactionController implements IFactionHandler {
 		this.saveFaction(faction);
 		return faction;
 	}
-	
+
 	public int getUnusedId(){
 		if(lastUsedID == 0){
 			for(int catid : factions.keySet())
@@ -191,7 +191,7 @@ public class FactionController implements IFactionHandler {
 			return null;
 		}
 	}
-	
+
 	public int getFirstFactionId() {
 		return factions.keySet().iterator().next();
 	}
@@ -206,22 +206,23 @@ public class FactionController implements IFactionHandler {
 				return true;
 		return false;
 	}
-        public Faction getFactionFromName(String factioname){
-            for (Map.Entry<Integer,Faction>entryfaction:FactionController.getInstance().factions.entrySet()){
-                if (entryfaction.getValue().name.equalsIgnoreCase(factioname)){
-                    return entryfaction.getValue();
-                }
-            }
-            return null;
-        }
-
-		public String[] getNames() {
-			String[] names = new String[factions.size()];
-			int i = 0;
-			for(Faction faction : factions.values()){
-				names[i] = faction.name.toLowerCase();
-				i++;
+	
+	public Faction getFactionFromName(String factioname){
+		for (Map.Entry<Integer,Faction>entryfaction:FactionController.getInstance().factions.entrySet()){
+			if (entryfaction.getValue().name.equalsIgnoreCase(factioname)){
+				return entryfaction.getValue();
 			}
-			return names;
 		}
+		return null;
+	}
+
+	public String[] getNames() {
+		String[] names = new String[factions.size()];
+		int i = 0;
+		for(Faction faction : factions.values()){
+			names[i] = faction.name.toLowerCase();
+			i++;
+		}
+		return names;
+	}
 }

@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.GuiNpcMobSpawner;
 import noppes.npcs.controllers.data.Tag;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 public class GuiCustomScrollCloner extends GuiCustomScroll {
     private final GuiNpcMobSpawner parent;
@@ -19,22 +20,6 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
         int l = 0;
         for(int i = 0; i < list.size(); i++)
         {
-            if (this.parent.tags.containsKey(list.get(i))) {
-                HashSet<Tag> tags = this.parent.tags.get(list.get(i));
-                boolean inFilter = false;
-                for (Tag tag : tags) {
-                    if (GuiNpcMobSpawner.filter.contains(tag.name)) {
-                        inFilter = true;
-                        break;
-                    }
-                }
-                if (!inFilter) {
-                    continue;
-                }
-            } else if (!GuiNpcMobSpawner.showNoTags) {
-                continue;
-            }
-
             int j = 4;
             int k = (14 * l + 4) - scrollY;
             l++;
@@ -70,12 +55,19 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                     fontRendererObj.drawString(text, j, k, this.colors.getOrDefault(text, 0xffffff));
                 }
 
-                int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
-                if (this.parent.tags.containsKey(list.get(i))) {
-                    for (Tag tag : this.parent.tags.get(list.get(i))) {
-                        if (!tag.getIsHidden()) {
-                            fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
-                            tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
+                if((this.parent.getShowingClones() == 0 || this.parent.getShowingClones() == 2) && this.parent.tagMap != null){
+                    int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
+                    if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1){
+                        if (this.parent.tagMap.hasClone(list.get(i))) {
+                            for (UUID tagUUID : this.parent.tagMap.getUUIDs(list.get(i))){
+                                Tag tag = this.parent.tags.get(tagUUID);
+                                if(tag != null){
+                                    if(GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()){
+                                        fontRendererObj.drawString("[" + tag.name + "]", tagStartX, k, tag.color);
+                                        tagStartX += fontRendererObj.getStringWidth("[" + tag.name + "]") + 2;
+                                    }
+                                }
+                            }
                         }
                     }
                 }

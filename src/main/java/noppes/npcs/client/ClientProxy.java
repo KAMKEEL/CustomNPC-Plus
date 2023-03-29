@@ -30,10 +30,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import noppes.npcs.*;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
-import noppes.npcs.client.controllers.ClientCloneController;
-import noppes.npcs.client.controllers.MusicController;
-import noppes.npcs.client.controllers.PresetController;
-import noppes.npcs.client.controllers.ScriptSoundController;
+import noppes.npcs.client.controllers.*;
 import noppes.npcs.client.fx.EntityElementalStaffFX;
 import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
@@ -145,6 +142,7 @@ public class ClientProxy extends CommonProxy {
 		}
 
 		ClientCloneController.Instance = new ClientCloneController();
+		ClientTagMapController.Instance = new ClientTagMapController();
 
 		MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
 
