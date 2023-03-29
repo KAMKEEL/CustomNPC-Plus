@@ -14,7 +14,6 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
-import scala.actors.threadpool.Arrays;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,7 +56,7 @@ public class ScriptGui implements ICustomGui {
     }
 
     public List<ICustomGuiComponent> getComponents() {
-        return Arrays.asList(this.components.values().toArray());
+        return new ArrayList<>(this.components.values());
     }
 
     public List<IItemSlot> getSlots() {
