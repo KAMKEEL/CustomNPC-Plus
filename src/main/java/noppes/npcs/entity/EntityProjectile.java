@@ -1,5 +1,6 @@
 package noppes.npcs.entity;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
@@ -445,22 +446,22 @@ public class EntityProjectile extends EntityThrowable {
     @Override
     protected void onImpact(MovingObjectPosition movingobjectposition)
     {
-		ProjectileEvent.ImpactEvent event;
-		if(movingobjectposition.entityHit != null) {
-			IPos pos = NpcAPI.Instance().getIPos(movingobjectposition.entityHit.posX,movingobjectposition.entityHit.posY,movingobjectposition.entityHit.posZ);
-			event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 0, movingobjectposition.entityHit);
-		}
-		else {
-			IPos pos = NpcAPI.Instance().getIPos(movingobjectposition.blockX,movingobjectposition.blockY,movingobjectposition.blockZ);
-			IWorld world = NpcAPI.Instance().getIWorld(this.worldObj);
-			event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 1, NpcAPI.Instance().getIBlock(world, pos));
-		}
-		if (movingobjectposition.entityHit != null) {
-			if (callback != null && callbackItem != null && movingobjectposition.entityHit instanceof EntityLivingBase && callback.onImpact(this, (EntityLivingBase) movingobjectposition.entityHit, callbackItem)) {
-				return;
+		if (!this.worldObj.isRemote) {
+			ProjectileEvent.ImpactEvent event;
+			if (movingobjectposition.entityHit != null) {
+				event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 0, movingobjectposition.entityHit);
+			} else {
+				IPos pos = NpcAPI.Instance().getIPos(movingobjectposition.blockX, movingobjectposition.blockY, movingobjectposition.blockZ);
+				IWorld world = NpcAPI.Instance().getIWorld(this.worldObj);
+				event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 1, NpcAPI.Instance().getIBlock(world, pos));
 			}
+			if (movingobjectposition.entityHit != null) {
+				if (callback != null && callbackItem != null && movingobjectposition.entityHit instanceof EntityLivingBase && callback.onImpact(this, (EntityLivingBase) movingobjectposition.entityHit, callbackItem)) {
+					return;
+				}
+			}
+			EventHooks.onProjectileImpact(this, event);
 		}
-		EventHooks.onProjectileImpact(this, event);
 
     	if (movingobjectposition.entityHit != null)
         {
