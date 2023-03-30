@@ -34,12 +34,6 @@ public class ItemScripted extends Item implements ItemRenderInterface {
         setHasSubtypes(true);
     }
 
-    @Override
-    public void onUpdate(ItemStack stack, World world, Entity player, int p_77663_4_, boolean p_77663_5_) {
-        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
-        EventHooks.onScriptItemUpdate((ScriptCustomItem) istack, (EntityPlayer) player);
-    }
-
     @SideOnly(Side.CLIENT)
     public void registerIcons(IIconRegister par1IconRegister){
         this.itemIcon = Items.iron_pickaxe.getIconFromDamage(0);

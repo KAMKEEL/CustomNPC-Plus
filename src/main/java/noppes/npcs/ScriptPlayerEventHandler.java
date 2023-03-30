@@ -14,6 +14,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ContainerPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
@@ -32,6 +33,7 @@ import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {
@@ -48,6 +50,14 @@ public class ScriptPlayerEventHandler {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
                 EventHooks.onPlayerTick(handler, scriptPlayer);
+
+                for(int i = 0; i < player.inventory.getSizeInventory(); i++){
+                    ItemStack item = player.inventory.getStackInSlot(i);
+                    if(item != null && item.getItem() == CustomItems.scripted_item){
+                        ScriptCustomItem isw = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(item);
+                        EventHooks.onScriptItemUpdate(isw, player);
+                    }
+                }
             }
 
             if (PlayerDataController.instance != null) {
