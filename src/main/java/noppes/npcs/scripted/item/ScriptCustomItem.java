@@ -17,7 +17,6 @@ import java.util.*;
 public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
-    private Map<Long, String> console = new TreeMap();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
     public long lastInited = -1L;
@@ -54,7 +53,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         compound.setTag("Scripts", NBTTags.NBTScript(this.scripts));
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
-        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.console));
         return compound;
     }
 
@@ -63,7 +61,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
             this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
             this.scriptLanguage = compound.getString("ScriptLanguage");
             this.enabled = compound.getBoolean("ScriptEnabled");
-            this.console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
         }
     }
 
@@ -95,23 +92,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
 
                     if (script.errored) {
                         this.errored.add(i);
-                    }
-
-                    Iterator var8 = script.console.entrySet().iterator();
-
-                    boolean saveConsoleData = false;
-                    while(var8.hasNext()) {
-                        Map.Entry<Long, String> entry = (Map.Entry)var8.next();
-                        if (!this.console.containsKey(entry.getKey())) {
-                            this.console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + (String)entry.getValue());
-                            saveConsoleData = true;
-                        }
-                    }
-
-                    script.console.clear();
-
-                    if (saveConsoleData) {
-                        saveScriptData();
                     }
                 }
             }
@@ -154,16 +134,11 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         return "ScriptedItem";
     }
 
-    public void setConsoleText(Map<Long, String> map) {
-        this.console = map;
-    }
-
     public Map<Long, String> getConsoleText() {
-        return this.console;
+        return new TreeMap<>();
     }
 
     public void clearConsole() {
-        this.console.clear();
     }
 
     public String getTexture() {
