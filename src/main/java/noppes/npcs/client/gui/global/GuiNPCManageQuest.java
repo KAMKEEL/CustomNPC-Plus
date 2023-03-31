@@ -87,7 +87,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
 
     	this.addButton(new GuiNpcButton(9, guiLeft + 4, guiTop + 131,90, 20, new String[]{"quest.npc","quest.instant"},quest.completion.ordinal()));
 
-    	if(quest.completerNpc.isEmpty())
+    	if(quest.completerNpc.isEmpty() && npc != null)
     		quest.completerNpc = npc.display.name;
     	
 		this.addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft + 96, guiTop + 131, 114, 20, quest.completerNpc));
