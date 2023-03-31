@@ -18,7 +18,7 @@ import java.util.*;
 
 public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, IScrollData, ITextfieldListener, ICustomScrollListener, ISliderListener{
 	private GuiCustomScroll scrollNaturalSpawns;
-	private GuiCustomScroll spawnEntryScroll;
+	private final GuiCustomScroll spawnEntryScroll = new GuiCustomScroll(this, 20, false);
 	private HashMap<String, Integer> data = new HashMap<String, Integer>();
 
 	private SpawnData spawn = new SpawnData();
@@ -62,9 +62,6 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 
         addSlider(new GuiNpcSlider(this, 5, guiLeft + 4, y += 17, 180, 20, (float)this.spawn.itemWeight / 100));
 
-		if (this.spawnEntryScroll == null) {
-			this.spawnEntryScroll = new GuiCustomScroll(this, 20, false);
-		}
 		this.spawnEntryScroll.guiLeft = guiLeft + 4;
 		this.spawnEntryScroll.guiTop = y + 40;
 		this.spawnEntryScroll.setSize(50, 102);
