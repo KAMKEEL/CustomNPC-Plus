@@ -18,19 +18,17 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.Predicate;
 
 public class ScriptContainer {
     private static final String lock = "lock";
     public static ScriptContainer Current;
     private static String CurrentType;
-    private static final HashMap<String, Object> Data = new HashMap();
     public String fullscript = "";
     public String script = "";
-    public TreeMap<Long, String> console = new TreeMap();
+    public TreeMap<Long, String> console = new TreeMap<>();
     public boolean errored = false;
-    public List<String> scripts = new ArrayList();
-    private HashSet<String> unknownFunctions = new HashSet();
+    public List<String> scripts = new ArrayList<>();
+    private HashSet<String> unknownFunctions = new HashSet<>();
     public long lastCreated = 0L;
     private String currentScriptLanguage = null;
     public ScriptEngine engine = null;
@@ -105,8 +103,9 @@ public class ScriptContainer {
                     this.fullscript = this.fullscript + code + "\n";
                 }
             }
-        }
 
+            this.unknownFunctions = new HashSet<String>();
+        }
         return this.fullscript;
     }
 
@@ -122,9 +121,9 @@ public class ScriptContainer {
 
             if(compScript != null){
                 compScript.eval(engine.getContext());
-            }
-            else
+            } else {
                 engine.eval(getFullCode());
+            }
         } catch (Throwable var14) {
             this.errored = true;
             var14.printStackTrace(pw);
@@ -143,48 +142,64 @@ public class ScriptContainer {
     }
 
     public void run(String type, Object event) {
-        if(!ConfigScript.ScriptingEnabled)
+        if(errored || !hasCode() || unknownFunctions.contains(type) || !ConfigScript.ScriptingEnabled)
             return;
 
-        if (!this.errored && this.hasCode() && !this.unknownFunctions.contains(type)) {
-            this.setEngine(this.handler.getLanguage());
-            if (this.engine != null) {
-                if (ScriptController.Instance.lastLoaded > this.lastCreated) {
-                    this.lastCreated = ScriptController.Instance.lastLoaded;
-                    this.init = false;
+        this.setEngine(handler.getLanguage());
+        if(engine == null)
+            return;
+        if(ScriptController.Instance.lastLoaded > this.lastCreated){
+            this.lastCreated = ScriptController.Instance.lastLoaded;
+            init = false;
+        }
+
+        synchronized (lock) {
+            Current = this;
+            CurrentType = type;
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            engine.getContext().setWriter(pw);
+            engine.getContext().setErrorWriter(pw);
+
+            engine.put("API", NpcAPI.Instance());
+            HashMap<String,Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
+            for (Map.Entry<String,Object> objectEntry : engineEntries.entrySet()) {
+                engine.put(objectEntry.getKey(),objectEntry.getValue());
+            }
+
+            try {
+                if(!init){
+                    engine.eval(getFullCode());
+                    init = true;
                 }
-
-                engine.put("API", NpcAPI.Instance());
-                HashMap<String,Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
-                for (Map.Entry<String,Object> objectEntry : engineEntries.entrySet()) {
-                    engine.put(objectEntry.getKey(),objectEntry.getValue());
-                }
-
-                Current = this;
-                CurrentType = type;
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                this.engine.getContext().setWriter(pw);
-                this.engine.getContext().setErrorWriter(pw);
-
-                try {
-                    if (!this.init) {
-                        this.engine.eval(this.getFullCode());
-                        this.init = true;
+                if(engine.getFactory().getLanguageName().equals("lua")){
+                    Object ob = engine.get(type);
+                    if(ob != null){
+                        if(luaCoerce == null){
+                            luaCoerce = Class.forName("org.luaj.vm2.lib.jse.CoerceJavaToLua").getMethod("coerce", Object.class);
+                            luaCall = ob.getClass().getMethod("call", Class.forName("org.luaj.vm2.LuaValue"));
+                        }
+                        luaCall.invoke(ob, luaCoerce.invoke(null, event));
                     }
-
-                    ((Invocable)this.engine).invokeFunction(type, new Object[]{event});
-                } catch (NoSuchMethodException var13) {
-                    this.unknownFunctions.add(type);
-                } catch (Throwable var14) {
-                    this.errored = true;
-                    var14.printStackTrace(pw);
-                } finally {
-                    String errorString = sw.getBuffer().toString().trim();
-                    this.appandConsole(errorString);
-                    pw.close();
-                    Current = null;
+                    else{
+                        unknownFunctions.add(type);
+                    }
                 }
+                else{
+                    ((Invocable)engine).invokeFunction(type, event);
+                }
+            } catch (NoSuchMethodException e) {
+                unknownFunctions.add(type);
+            } catch (Throwable e) {
+                errored = true;
+                e.printStackTrace(pw);
+            }
+            finally {
+                appandConsole(sw.getBuffer().toString().trim());
+                pw.close();
+                Current = null;
             }
         }
     }
@@ -218,18 +233,9 @@ public class ScriptContainer {
         if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
             System.setProperty("nashorn.args", "--language=es6");
         }
-        ScriptEngine engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowAllAccess", true);
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostAccess", true);
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLookup", (Predicate<String>) s -> true);
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowHostClassLoading", true);
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).put("polyglot.js.allowNativeAccess", true);
-        System.setProperty("polyglot.js.nashorn-compat", "true");
-        System.setProperty("polyglot.js.scripting", "true");
-        System.setProperty("polyglot.js.scripting", "true");
-        System.setProperty("polyglot.js.syntax-extensions", "true");
-        this.engine = engine;
+        this.engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());
 
         currentScriptLanguage = scriptLanguage;
+        init = false;
     }
 }
