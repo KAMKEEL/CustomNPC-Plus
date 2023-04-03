@@ -72,6 +72,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     		}
     	}
 		if(id == 6){
+			NoppesUtil.setLastNpc(null);
 			NoppesUtil.openGUI(player, new GuiNPCGlobalMainMenu(null));
 		}
     	
