@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
 import noppes.npcs.client.gui.util.*;
@@ -29,7 +30,8 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
     public void initGui()
     {
         super.initGui();
-        
+
+		addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("tags.allTags"), guiLeft + 54, guiTop + 11));
         if(scrollTags == null){
 	        scrollTags = new GuiCustomScroll(this,0);
 	        scrollTags.setSize(120, 180);
@@ -38,6 +40,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
         scrollTags.guiTop = guiTop + 24;
         this.addScroll(scrollTags);
 
+		addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.selectedTags"), guiLeft + 254, guiTop + 11));
 		if(npcTags == null){
 			npcTags = new GuiCustomScroll(this,1);
 			npcTags.setSize(120, 180);

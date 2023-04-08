@@ -401,7 +401,11 @@ menu.role=Role
 menu.animations=Animations
 menu.tags=Tags
 
-tags.taglessEntries=Tagless Entries
+cloner.wandTags=Wand Tags
+cloner.npcTags=NPC Tags
+
+tags.allTags=All Tags
+tags.selectedTags=Selected Tags
 
 global.banks=Banks
 global.transport=Transport
