@@ -18,7 +18,9 @@ public class ImageData {
     private ImageDownloadAlt imageDownloadAlt = null;
     private BufferedImage bufferedImage = null;
     private int totalWidth, totalHeight;
+
     private boolean gotWidthHeight;
+    private boolean invalid;
 
     public ImageData(String directory) {
         this.location = new ResourceLocation(directory);
@@ -29,6 +31,21 @@ public class ImageData {
             texturemanager.loadTexture(location, this.imageDownloadAlt);
         } else {
             this.isUrl = false;
+        }
+    }
+
+    public boolean invalidTexture() {
+        return this.invalid;
+    }
+
+    public void bindTexture() {
+        ResourceLocation location = this.getLocation();
+        if (location != null && !this.invalid) {
+            try {
+                Minecraft.getMinecraft().getTextureManager().bindTexture(location);
+            } catch (Exception exception) {
+                this.invalid = true;
+            }
         }
     }
 

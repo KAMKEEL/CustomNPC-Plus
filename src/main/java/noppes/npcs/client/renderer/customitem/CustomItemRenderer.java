@@ -50,7 +50,7 @@ public class CustomItemRenderer implements IItemRenderer {
         ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
 
         ImageData imageData = Client.getImageData(scriptCustomItem.texture);
-        if(imageData.getTotalWidth() == -1 || imageData.getTotalHeight() == -1)
+        if(imageData.getTotalWidth() == -1 || imageData.getTotalHeight() == -1 || imageData.invalidTexture())
             return;
 
         if (type == ItemRenderType.INVENTORY) {
@@ -130,8 +130,7 @@ public class CustomItemRenderer implements IItemRenderer {
         int pass = 0;
 
         GL11.glPushMatrix();
-            ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
-            Minecraft.getMinecraft().getTextureManager().bindTexture(location);
+            Client.getImageData(scriptCustomItem.texture).bindTexture();
 
             Tessellator tessellator = Tessellator.instance;
 
@@ -286,8 +285,7 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
-            Minecraft.getMinecraft().getTextureManager().bindTexture(location);
+            Client.getImageData(scriptCustomItem.texture).bindTexture();
             renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
             GL11.glEnable(GL11.GL_LIGHTING);
@@ -362,8 +360,7 @@ public class CustomItemRenderer implements IItemRenderer {
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ResourceLocation location = Client.getImageData(scriptCustomItem.texture).getLocation();
-        texturemanager.bindTexture(location);
+        Client.getImageData(scriptCustomItem.texture).bindTexture();
 
         Tessellator tessellator = Tessellator.instance;
         IIcon icon = entityLivingBase.getItemIcon(itemStack, par3);
