@@ -123,7 +123,12 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(BlockPos.fromLong(serialized));
     }
 
-    public double[] normalize() {
+    public IPos normalize() {
+        double d = Math.sqrt((double)(this.blockPos.getX() * this.blockPos.getX() + this.blockPos.getY() * this.blockPos.getY() + this.blockPos.getZ() * this.blockPos.getZ()));
+        return NpcAPI.Instance().getIPos((double)this.getX() / d, (double)this.getY() / d, (double)this.getZ() / d);
+    }
+
+    public double[] normalizeDouble() {
         double d = Math.sqrt((double)(this.blockPos.getX() * this.blockPos.getX() + this.blockPos.getY() * this.blockPos.getY() + this.blockPos.getZ() * this.blockPos.getZ()));
         return new double[]{(double)this.getX() / d, (double)this.getY() / d, (double)this.getZ() / d};
     }

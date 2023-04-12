@@ -557,11 +557,11 @@ public class ScriptWorld implements IWorld {
 	}
 
 	public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
-		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
+		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalizeDouble(), maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
 	}
 
 	public IPos rayCastPos(IPos startPos, IPos lookVector, int maxDistance) {
-		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, true, false, false);
+		return rayCastPos(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalizeDouble(), maxDistance, true, false, false);
 	}
 
 	public IBlock rayCastBlock(double[] startPos, double[] lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
@@ -573,11 +573,11 @@ public class ScriptWorld implements IWorld {
 	}
 
 	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
-		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
+		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalizeDouble(), maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
 	}
 
 	public IBlock rayCastBlock(IPos startPos, IPos lookVector, int maxDistance) {
-		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance);
+		return rayCastBlock(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalizeDouble(), maxDistance);
 	}
 
 	public IPos getNearestAir(IPos pos, int maxHeight) {
@@ -651,7 +651,7 @@ public class ScriptWorld implements IWorld {
 	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,
 									 int maxDistance, double offset, double range,
 									 boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
-		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, stopOnBlock, stopOnLiquid, stopOnCollision);
+		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalizeDouble(), maxDistance, offset, range, stopOnBlock, stopOnLiquid, stopOnCollision);
 	}
 
 	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
@@ -661,7 +661,7 @@ public class ScriptWorld implements IWorld {
 
 	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,
 									 int maxDistance, double offset, double range) {
-		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalize(), maxDistance, offset, range, true, false, true);
+		return rayCastEntities(new double[] {startPos.getX(), startPos.getY(), startPos.getZ()}, lookVector.normalizeDouble(), maxDistance, offset, range, true, false, true);
 	}
 
 	@Deprecated
