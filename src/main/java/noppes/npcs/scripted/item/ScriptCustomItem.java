@@ -43,6 +43,8 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
     public float rotationX, rotationY, rotationZ;
     public float rotationXRate, rotationYRate, rotationZRate;
 
+    public int width = -1, height = -1;
+
     public ScriptCustomItem(ItemStack item) {
         super(item);
         loadScriptData();
