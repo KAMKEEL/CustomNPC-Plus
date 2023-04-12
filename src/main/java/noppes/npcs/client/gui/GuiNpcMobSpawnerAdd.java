@@ -9,9 +9,12 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.ClientCloneController;
+import noppes.npcs.client.gui.advanced.GuiNPCTagSetup;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -106,6 +109,9 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		if(id == 3){
 			serverSide = ((GuiNpcButton)guibutton).getValue() == 1;
 		}
+		if (id == 5) {
+			this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone));
+		}
 	}
 
 
@@ -149,8 +155,10 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
-		SubGuiNpcQuickTags filterGui = (SubGuiNpcQuickTags) subgui;
-		// filter = filterGui.filterScroll.getSelectedList();
+		if (subgui instanceof SubGuiNpcQuickTags) {
+			SubGuiNpcQuickTags filterGui = (SubGuiNpcQuickTags) subgui;
+			// filter = filterGui.filterScroll.getSelectedList();
+		}
 		initGui();
 	}
 }

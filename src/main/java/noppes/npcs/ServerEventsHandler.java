@@ -95,6 +95,9 @@ public class ServerEventsHandler {
 			if(!Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.CLONE, compound))
 				event.entityPlayer.addChatMessage(new ChatComponentText("Entity too big to clone"));
 			data.cloned = compound;
+			if (event.target instanceof EntityNPCInterface) {
+				NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface) event.target);
+			}
 			event.setCanceled(true);
 		}
 		else if(item.getItem() == CustomItems.scripter && !isRemote && npcInteracted){
