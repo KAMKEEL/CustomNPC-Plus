@@ -522,6 +522,67 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcState2");
     }
 
+    public double getFormMastery(String formTree, byte form) {
+        try {
+            if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
+                String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
+                        getString("jrmcFormMastery" + formTree).split(";");
+                String masteryString = formMasteries[form];
+                return Double.parseDouble(masteryString.split(",")[1]);
+            }
+        } catch (Exception ignored) {}
+        return 0.0D;
+    }
+
+    public void setFormMastery(String formTree, byte form, double value) {
+        try {
+            if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
+                String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
+                        getString("jrmcFormMastery" + formTree).split(";");
+                if (form >= formMasteries.length)
+                    return;
+
+                formMasteries[form] = formMasteries[form].split(",")[0] + "," + value;
+
+                StringBuilder masteryString = new StringBuilder();
+                for (int i = 0; i < formMasteries.length; i++) {
+                    masteryString.append(formMasteries[i]);
+                    if (i < formMasteries.length - 1) {
+                        masteryString.append(';');
+                    }
+                }
+
+                player.getEntityData().getCompoundTag("PlayerPersisted").
+                        setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
+            }
+        } catch (Exception ignored) {}
+    }
+
+    public void addFormMastery(String formTree, byte form, double value) {
+        try {
+            if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
+                String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
+                        getString("jrmcFormMastery" + formTree).split(";");
+                if (form >= formMasteries.length)
+                    return;
+
+                double newMastery = Double.parseDouble(formMasteries[form].split(",")[1]) + value;
+                formMasteries[form] = formMasteries[form].split(",")[0] + "," + newMastery;
+
+                StringBuilder masteryString = new StringBuilder();
+                for (int i = 0; i < formMasteries.length; i++) {
+                    masteryString.append(formMasteries[i]);
+                    if (i < formMasteries.length - 1) {
+                        masteryString.append(';');
+                    }
+                }
+
+                player.getEntityData().getCompoundTag("PlayerPersisted").
+                        setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
+            }
+        } catch (Exception ignored) {}
+    }
+
     public void setPowerPoints(int points){
         player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcArcRsrv",points);
     }
