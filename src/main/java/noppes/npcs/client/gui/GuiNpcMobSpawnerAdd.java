@@ -9,14 +9,11 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.ClientCloneController;
-import noppes.npcs.client.gui.advanced.GuiNPCTagSetup;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.UUID;
@@ -35,10 +32,11 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 	public GuiNpcMobSpawnerAdd(NBTTagCompound compound){
 		this.toClone = EntityList.createEntityFromNBT(compound, Minecraft.getMinecraft().theWorld);
 		this.compound = compound;
+		updateIsNPC();
 
 		// Get Tag UUIDs
-		this.getTagUUIDs();
 		if(isNPC){
+			this.getTagUUIDs();
 			Client.sendData(EnumPacketServer.TagsGet);
 		}
 
@@ -72,14 +70,10 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 	}
 
 	public void getTagUUIDs(){
-		// Is an NPC
-		if(compound.hasKey("ModRev")){
-			this.isNPC = true;
-			if(compound.hasKey("TagUUIDs")){
-				NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
-				for (int i = 0; i < nbtTagList.tagCount(); i++) {
-					npcTags.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
-				}
+		if(compound.hasKey("TagUUIDs")){
+			NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
+			for (int i = 0; i < nbtTagList.tagCount(); i++) {
+				npcTags.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
 			}
 		}
 	}
@@ -153,10 +147,22 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		}
 	}
 
+	public void updateIsNPC(){
+		if(compound.hasKey("id")){
+			String id = compound.getString("id");
+			if(id.equals("customnpcs.CustomNpc")){
+				this.isNPC = true;
+				return;
+			}
+		}
+		this.isNPC = false;
+	}
+
+
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
-		if (subgui instanceof SubGuiNpcQuickTags) {
-			SubGuiNpcQuickTags filterGui = (SubGuiNpcQuickTags) subgui;
+		if (subgui instanceof SubGuiClonerQuickTags) {
+			SubGuiClonerQuickTags filterGui = (SubGuiClonerQuickTags) subgui;
 			// filter = filterGui.filterScroll.getSelectedList();
 		}
 		initGui();

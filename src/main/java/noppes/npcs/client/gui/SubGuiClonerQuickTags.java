@@ -10,14 +10,14 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class SubGuiNpcQuickTags extends SubGuiInterface
+public class SubGuiClonerQuickTags extends SubGuiInterface
 {
 	public GuiNpcMobSpawnerAdd parent;
 	ArrayList<String> allTags = new ArrayList<>();
 	HashSet<String> filter;
 	public GuiCustomScroll filterScroll;
 
-    public SubGuiNpcQuickTags(GuiNpcMobSpawnerAdd par){
+    public SubGuiClonerQuickTags(GuiNpcMobSpawnerAdd par){
 		this.parent = par;
 		setBackground("menubg.png");
 		xSize = 305;

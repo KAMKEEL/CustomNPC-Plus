@@ -29,7 +29,7 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         setBackground("menubg.png");
         xSize = 305;
         ySize = 220;
-        closeOnEsc = true;
+        closeOnEsc = false;
     }
 
     public void initGui()
@@ -60,6 +60,8 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
 
         addButton(new GuiNpcButton(12, guiLeft + 120, guiTop + 140, 55, 20, ">>"));
         addButton(new GuiNpcButton(13, guiLeft + 120, guiTop + 162, 55, 20, "<<"));
+
+        addButton(new GuiNpcButton(66, guiLeft + 120, guiTop + 50, 55, 20, "gui.save"));
     }
 
     @Override
@@ -76,6 +78,9 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         }
         if (guibutton.id == 13) {
             tagNames.clear();
+        }
+        if (guibutton.id == 66) {
+            close();
         }
         initGui();
     }
@@ -122,4 +127,11 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         tagCompound.setTag("TagNames",tagList);
         Client.sendData(EnumPacketServer.TagSet, tagCompound);
     }
+
+    @Override
+    public void close() {
+        save();
+        super.close();
+    }
+
 }
