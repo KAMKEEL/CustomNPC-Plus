@@ -129,6 +129,11 @@ gui.selectAll=Select All
 gui.deselectAll=Deselect All
 
 scale.shared=Shared
+filter.contains=Contains
+filter.any=Any
+filter.all=All
+filter.notany=Not Any
+filter.notall=Not All
 
 remote.title=Nearby NPCs
 remote.reset=Reset
@@ -401,8 +406,16 @@ menu.role=Role
 menu.animations=Animations
 menu.tags=Tags
 
+cloner.tagFilters=Tag Filters
+cloner.tagVisibility=Tag Visibility
 cloner.wandTags=Wand Tags
 cloner.npcTags=NPC Tags
+cloner.order=Sort Order
+cloner.ascending=Ascending
+cloner.descending=Descending
+cloner.type=Sort Type
+cloner.name=Name
+cloner.date=Date
 
 tags.allTags=All Tags
 tags.selectedTags=Selected Tags

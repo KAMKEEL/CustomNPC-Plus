@@ -18,6 +18,7 @@ import noppes.npcs.controllers.data.TagMap;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.NBTJsonUtil;
+import org.lwjgl.Sys;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -140,6 +141,27 @@ public class ServerCloneController implements ICloneHandler {
 		for(String file : dir.list()){
 			if(file.endsWith(".json"))
 				list.add(file.substring(0, file.length() - 5));
+		}
+		return list;
+	}
+
+	public List<String> getClonesDate(int tab){
+		List<String> list = new ArrayList<String>();
+		File dir = new File(getDir(), tab + "");
+		if(!dir.exists() || !dir.isDirectory())
+			return list;
+		File[] files = dir.listFiles();
+		Arrays.sort(files, new Comparator<File>(){
+			public int compare(File f1, File f2)
+			{
+				return Long.compare(f1.lastModified(), f2.lastModified());
+			}
+		});
+
+		for(File file : files){
+			String fileName = file.getName();
+			if(fileName.endsWith(".json"))
+				list.add(fileName.substring(0, fileName.length() - 5));
 		}
 		return list;
 	}

@@ -985,12 +985,17 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.CloneList){
 			NBTTagList list = new NBTTagList();
-
-			for(String name : ServerCloneController.Instance.getClones(buffer.readInt()))
+			int tab = buffer.readInt();
+			for(String name : ServerCloneController.Instance.getClones(tab))
 				list.appendTag(new NBTTagString(name));
+
+			NBTTagList listDate = new NBTTagList();
+			for(String name : ServerCloneController.Instance.getClonesDate(tab))
+				listDate.appendTag(new NBTTagString(name));
 
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("List", list);
+			compound.setTag("ListDate", listDate);
 
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
@@ -1054,19 +1059,29 @@ public class PacketHandlerServer{
 			for(String name : ServerCloneController.Instance.getClones(tab))
 				list.appendTag(new NBTTagString(name));
 
+			NBTTagList listDate = new NBTTagList();
+			for(String name : ServerCloneController.Instance.getClonesDate(tab))
+				listDate.appendTag(new NBTTagString(name));
+
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("List", list);
+			compound.setTag("ListDate", listDate);
 
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.CloneList){
 			NBTTagList list = new NBTTagList();
-
-			for(String name : ServerCloneController.Instance.getClones(buffer.readInt()))
+			int tab = buffer.readInt();
+			for(String name : ServerCloneController.Instance.getClones(tab))
 				list.appendTag(new NBTTagString(name));
+
+			NBTTagList listDate = new NBTTagList();
+			for(String name : ServerCloneController.Instance.getClonesDate(tab))
+				listDate.appendTag(new NBTTagString(name));
 
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("List", list);
+			compound.setTag("ListDate", listDate);
 
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}

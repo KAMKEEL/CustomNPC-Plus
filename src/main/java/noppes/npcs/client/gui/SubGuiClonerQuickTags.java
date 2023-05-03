@@ -13,8 +13,8 @@ import java.util.HashSet;
 public class SubGuiClonerQuickTags extends SubGuiInterface
 {
 	public GuiNpcMobSpawnerAdd parent;
-	ArrayList<String> allTags = new ArrayList<>();
-	HashSet<String> filter;
+	public ArrayList<String> allTags = new ArrayList<>();
+	public HashSet<String> filter;
 	public GuiCustomScroll filterScroll;
 
     public SubGuiClonerQuickTags(GuiNpcMobSpawnerAdd par){
