@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -9,6 +10,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
@@ -17,8 +19,9 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 {
 	private GuiCustomScroll scrollTags;
 	private GuiCustomScroll npcTags;
-	private HashMap<String,Integer> data = new HashMap<>();
-	private final ArrayList<String> tagNames = new ArrayList<>();
+	private final ArrayList<String> allTags = new ArrayList<>();
+	private ArrayList<String> tagNames = new ArrayList<>();
+	private String search = "";
 
     public GuiNPCTagSetup(EntityNPCInterface npc)
     {
@@ -31,19 +34,20 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
     {
         super.initGui();
 
-		addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("tags.allTags"), guiLeft + 54, guiTop + 11));
+		addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("tags.allTags"), guiLeft + 22, guiTop + 11));
         if(scrollTags == null){
 	        scrollTags = new GuiCustomScroll(this,0);
-	        scrollTags.setSize(120, 180);
+	        scrollTags.setSize(150, 155);
         }
-        scrollTags.guiLeft = guiLeft + 50;
+        scrollTags.guiLeft = guiLeft + 20;
         scrollTags.guiTop = guiTop + 24;
         this.addScroll(scrollTags);
+		addTextField(new GuiNpcTextField(4, this, fontRendererObj, guiLeft + 20, guiTop + 24 + 160, 150, 20, search));
 
-		addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.selectedTags"), guiLeft + 254, guiTop + 11));
+		addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.selectedTags"), guiLeft + 252, guiTop + 11));
 		if(npcTags == null){
 			npcTags = new GuiCustomScroll(this,1);
-			npcTags.setSize(120, 180);
+			npcTags.setSize(150, 180);
 		}
 		npcTags.guiLeft = guiLeft + 250;
 		npcTags.guiTop = guiTop + 24;
@@ -64,7 +68,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 		}
 		if (guibutton.id == 12) {
 			tagNames.clear();
-			tagNames.addAll(data.keySet());
+			tagNames.addAll(allTags);
 		}
 		if (guibutton.id == 11 && npcTags.hasSelected()) {
 			tagNames.remove(npcTags.getSelected());
@@ -78,8 +82,9 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) 
 	{
-		this.data = data;
-		scrollTags.setList(list);
+		allTags.addAll(data.keySet());
+		allTags.sort(String.CASE_INSENSITIVE_ORDER);
+		scrollTags.setList(allTags);
 		initGui();
 	}
 
@@ -116,5 +121,28 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 		}
 		tagCompound.setTag("TagNames",tagList);
 		Client.sendData(EnumPacketServer.TagSet, tagCompound);
+	}
+
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(4) != null){
+			if(search.equals(getTextField(4).getText()))
+				return;
+			search = getTextField(4).getText().toLowerCase();
+			scrollTags.setList(getSearchList());
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(allTags);
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.allTags){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
 	}
 }
