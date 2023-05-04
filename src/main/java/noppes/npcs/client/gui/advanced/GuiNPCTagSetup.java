@@ -54,11 +54,11 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 		npcTags.setList(tagNames);
 		this.addScroll(npcTags);
 
-		addButton(new GuiNpcButton(10, guiLeft + 180, guiTop + 90, 55, 20, ">"));
-		addButton(new GuiNpcButton(11, guiLeft + 180, guiTop + 112, 55, 20, "<"));
+		addButton(new GuiNpcButton(10, guiLeft + 185, guiTop + 90, 55, 20, ">"));
+		addButton(new GuiNpcButton(11, guiLeft + 185, guiTop + 112, 55, 20, "<"));
 
-		addButton(new GuiNpcButton(12, guiLeft + 180, guiTop + 140, 55, 20, ">>"));
-		addButton(new GuiNpcButton(13, guiLeft + 180, guiTop + 162, 55, 20, "<<"));
+		addButton(new GuiNpcButton(12, guiLeft + 185, guiTop + 140, 55, 20, ">>"));
+		addButton(new GuiNpcButton(13, guiLeft + 185, guiTop + 162, 55, 20, "<<"));
     }
 
     @Override
