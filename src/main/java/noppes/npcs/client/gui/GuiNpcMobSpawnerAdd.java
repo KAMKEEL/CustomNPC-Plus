@@ -21,24 +21,13 @@ import java.util.UUID;
 public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ISubGuiListener{
 	
 	private Entity toClone;
-	private boolean isNPC;
 	private NBTTagCompound compound;
-	public HashSet<UUID> npcTags = new HashSet<UUID>();
-
-	public static ArrayList<String> allTags = new ArrayList<>();
 	private static boolean serverSide = false;
 	private static int tab = 1;
 
 	public GuiNpcMobSpawnerAdd(NBTTagCompound compound){
 		this.toClone = EntityList.createEntityFromNBT(compound, Minecraft.getMinecraft().theWorld);
 		this.compound = compound;
-		updateIsNPC();
-
-		// Get Tag UUIDs
-		if(isNPC){
-			this.getTagUUIDs();
-			Client.sendData(EnumPacketServer.TagsGet);
-		}
 
 		setBackground("menubg.png");
 		xSize = 256;
@@ -63,18 +52,9 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 70, 80, 20, "gui.save"));
 		addButton(new GuiNpcButton(1, guiLeft + 86, guiTop + 70, 80, 20, "gui.cancel"));
 
-		if(isNPC){
+		if(toClone instanceof EntityNPCInterface){
 			addButton(new GuiNpcButton(4, guiLeft + 4, guiTop + 120, 99, 20, "cloner.wandTags"));
 			addButton(new GuiNpcButton(5, guiLeft + 106, guiTop + 120, 99, 20, "cloner.npcTags"));
-		}
-	}
-
-	public void getTagUUIDs(){
-		if(compound.hasKey("TagUUIDs")){
-			NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
-			for (int i = 0; i < nbtTagList.tagCount(); i++) {
-				npcTags.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
-			}
 		}
 	}
 
@@ -103,8 +83,13 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		if(id == 3){
 			serverSide = ((GuiNpcButton)guibutton).getValue() == 1;
 		}
+		if (id == 4) {
+			this.setSubGui(new SubGuiClonerQuickTags(this));
+		}
 		if (id == 5) {
-			this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone));
+			if(toClone instanceof EntityNPCInterface){
+				this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone));
+			}
 		}
 	}
 
@@ -138,26 +123,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 			else
 				confirmClicked(true, 0);
 		}
-		if(compound.hasKey("TagNames")){
-			NBTTagList tagList = compound.getTagList("TagNames",8);
-			allTags.clear();
-			for (int i = 0; i < tagList.tagCount(); i++) {
-				allTags.add(tagList.getStringTagAt(i));
-			}
-		}
 	}
-
-	public void updateIsNPC(){
-		if(compound.hasKey("id")){
-			String id = compound.getString("id");
-			if(id.equals("customnpcs.CustomNpc")){
-				this.isNPC = true;
-				return;
-			}
-		}
-		this.isNPC = false;
-	}
-
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
