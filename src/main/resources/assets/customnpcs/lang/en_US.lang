@@ -419,6 +419,7 @@ cloner.date=Date
 
 tags.allTags=All Tags
 tags.selectedTags=Selected Tags
+tags.tags=Tags
 
 global.banks=Banks
 global.transport=Transport

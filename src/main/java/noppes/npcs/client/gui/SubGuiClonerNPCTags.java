@@ -21,8 +21,9 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
     private final ArrayList<String> allTags = new ArrayList<>();
     private final ArrayList<String> tagNames = new ArrayList<>();
     private String search = "";
+    private EntityNPCInterface npc;
 
-    public SubGuiClonerNPCTags()
+    public SubGuiClonerNPCTags(EntityNPCInterface npc)
     {
         Client.sendData(EnumPacketServer.TagsGet);
         Client.sendData(EnumPacketServer.NpcTagsGet);
@@ -30,33 +31,36 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         xSize = 305;
         ySize = 220;
         closeOnEsc = false;
+        this.npc = npc;
     }
 
     public void initGui()
     {
         super.initGui();
 
-        addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("tags.allTags"), guiLeft + 10, guiTop + 11));
+        addLabel(new GuiNpcLabel(5, npc.display.name + " " + StatCollector.translateToLocal("tags.tags"), guiLeft + 10, guiTop + 8));
+
+        addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("tags.allTags"), guiLeft + 10, guiTop + 22));
         if(scrollTags == null){
             scrollTags = new GuiCustomScroll(this,0);
-            scrollTags.setSize(110, 155);
+            scrollTags.setSize(110, 145);
         }
         scrollTags.guiLeft = guiLeft + 10;
-        scrollTags.guiTop = guiTop + 24;
+        scrollTags.guiTop = guiTop + 34;
         this.addScroll(scrollTags);
         addTextField(new GuiNpcTextField(4, this, fontRendererObj, guiLeft + 10, guiTop + 24 + 160, 110, 20, search));
 
-        addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.selectedTags"), guiLeft + 185, guiTop + 11));
+        addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("tags.selectedTags"), guiLeft + 185, guiTop + 22));
         if(npcTags == null){
             npcTags = new GuiCustomScroll(this,1);
-            npcTags.setSize(110, 180);
+            npcTags.setSize(110, 170);
         }
         npcTags.guiLeft = guiLeft + 185;
-        npcTags.guiTop = guiTop + 24;
+        npcTags.guiTop = guiTop + 34;
         npcTags.setList(tagNames);
         this.addScroll(npcTags);
 
-        addButton(new GuiNpcButton(66, guiLeft + 125, guiTop + 24, 55, 20, "gui.save"));
+        addButton(new GuiNpcButton(66, guiLeft + 125, guiTop + 34, 55, 20, "gui.save"));
 
         addButton(new GuiNpcButton(10, guiLeft + 125, guiTop + 90, 55, 20, ">"));
         addButton(new GuiNpcButton(11, guiLeft + 125, guiTop + 112, 55, 20, "<"));

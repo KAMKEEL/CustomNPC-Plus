@@ -88,7 +88,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		}
 		if (id == 5) {
 			if(toClone instanceof EntityNPCInterface){
-				this.setSubGui(new SubGuiClonerNPCTags());
+				this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone));
 			}
 		}
 	}
