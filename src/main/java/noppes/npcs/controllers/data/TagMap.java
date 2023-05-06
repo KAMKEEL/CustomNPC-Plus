@@ -72,6 +72,17 @@ public class TagMap {
 		return null;
 	}
 
+	public List<UUID> getUUIDsList(String cloneName) {
+		HashSet<UUID> uuids = getUUIDs(cloneName);
+		if(uuids != null){
+			List<UUID> tagUUIDS = new ArrayList<>(uuids);
+			Collections.sort(tagUUIDS);
+			return tagUUIDS;
+		}
+
+		return null;
+	}
+
 	public boolean removeClone(String cloneName) {
 		return tagMap.remove(cloneName) != null;
 	}
