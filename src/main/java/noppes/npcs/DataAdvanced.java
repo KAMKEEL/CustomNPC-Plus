@@ -83,11 +83,13 @@ public class DataAdvanced {
 		compound.setString("SoulStonePlayerName", soulStonePlayerName);
 		compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
 
-        NBTTagList nbtTagList = new NBTTagList();
-        for (UUID uuid : tagUUIDs) {
-            nbtTagList.appendTag(new NBTTagString(uuid.toString()));
+        if(tagUUIDs.size() > 0){
+            NBTTagList nbtTagList = new NBTTagList();
+            for (UUID uuid : tagUUIDs) {
+                nbtTagList.appendTag(new NBTTagString(uuid.toString()));
+            }
+            compound.setTag("TagUUIDs", nbtTagList);
         }
-        compound.setTag("TagUUIDs", nbtTagList);
 		
         return compound;
     }
@@ -124,9 +126,11 @@ public class DataAdvanced {
 		soulStonePlayerName = compound.getString("SoulStonePlayerName");
 		minFactionPointsToSoulStone = compound.getInteger("MinFactionPointsToSoulStone");
 
-        NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
-        for (int i = 0; i < nbtTagList.tagCount(); i++) {
-            tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+        if(compound.hasKey("TagUUIDs")){
+            NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
+            for (int i = 0; i < nbtTagList.tagCount(); i++) {
+                tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+            }
         }
     }
 
