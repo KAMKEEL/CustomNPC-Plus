@@ -113,7 +113,7 @@ def refMapForYourConfig = 'customnpcs.refmap.json'
 def relativePathToMixinAP = 'tools/mixin-0.8-SNAPSHOT.jar'
 
 if(!embedMixin){
-    version += "+nomixin"
+    version += "-nomixin"
 }
 
 repositories {
