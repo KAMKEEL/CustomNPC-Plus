@@ -1048,7 +1048,10 @@ public class PacketHandlerServer{
 			PlayerData data = PlayerDataController.instance.getPlayerData(player);
 			if(data.cloned == null)
 				return;
-			ServerCloneController.Instance.addClone(data.cloned, Server.readString(buffer), buffer.readInt());
+			String name = Server.readString(buffer);
+			int tab = buffer.readInt();
+			NBTTagCompound tagExtra = Server.readNBT(buffer);
+			ServerCloneController.Instance.addClone(data.cloned, name, tab, tagExtra);
 		}
 		else if(type == EnumPacketServer.CloneRemove){
 			int tab = buffer.readInt();
@@ -1102,6 +1105,18 @@ public class PacketHandlerServer{
 				validTagList.appendTag(tagCompound);
 			}
 			compound.setTag("AllTags", validTagList);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		}
+		else if (type == EnumPacketServer.CloneAllTagsShort) {
+			NBTTagCompound compound = new NBTTagCompound();
+			HashSet<Tag> validTags = TagController.getInstance().getAllTags();
+			NBTTagList validTagList = new NBTTagList();
+			for(Tag tag : validTags){
+				NBTTagCompound tagCompound = new NBTTagCompound();
+				tag.writeShortNBT(tagCompound);
+				validTagList.appendTag(tagCompound);
+			}
+			compound.setTag("ShortTags", validTagList);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if (type == EnumPacketServer.TagSet) {

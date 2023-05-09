@@ -33,7 +33,7 @@ public enum EnumPacketServer {
 	RoleCompanionUpdate(CustomNpcsPermissions.NPC_ADVANCED, true),
 	LinkedSet(CustomNpcsPermissions.NPC_ADVANCED, true),
 	
-	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList, CloneTagList, CloneAllTags,
+	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList, CloneTagList, CloneAllTags, CloneAllTagsShort,
 
 	ScriptGlobalGuiDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptGlobalGuiDataGet(false),
