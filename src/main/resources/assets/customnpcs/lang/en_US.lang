@@ -416,6 +416,8 @@ cloner.descending=Descending
 cloner.type=Sort Type
 cloner.name=Name
 cloner.date=Date
+cloner.wandtags=Wand Tags
+cloner.wandtagsapplied=Wand Tags will be applied
 
 tags.allTags=All Tags
 tags.selectedTags=Selected Tags
