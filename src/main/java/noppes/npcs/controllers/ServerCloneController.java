@@ -6,6 +6,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
@@ -18,7 +19,6 @@ import noppes.npcs.controllers.data.TagMap;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.NBTJsonUtil;
-import org.lwjgl.Sys;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -122,13 +122,12 @@ public class ServerCloneController implements ICloneHandler {
 
 			File file = new File(dir, filename + "_new");
 			File file2 = new File(dir, filename);
-
 			NBTJsonUtil.SaveFile(file, compound);
+			addToTagMap(compound, name, tab);
 			if(file2.exists()){
 				file2.delete();
 			}
 			file.renameTo(file2);
-			addToTagMap(compound, name, tab);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -179,6 +178,43 @@ public class ServerCloneController implements ICloneHandler {
 		cleanTags(nbttagcompound);
 		saveClone(tab, name, nbttagcompound);
 		return name;
+	}
+
+	public String addClone(NBTTagCompound nbttagcompound, String name, int tab, NBTTagCompound tempTags) {
+		cleanTagList(nbttagcompound, tempTags);
+		cleanTags(nbttagcompound);
+		saveClone(tab, name, nbttagcompound);
+		return name;
+	}
+
+	public NBTTagCompound cleanTagList(NBTTagCompound nbttagcompound, NBTTagCompound tempTags){
+		HashSet<UUID> tagUUIDs = new HashSet<UUID>();
+		if(nbttagcompound.hasKey("TagUUIDs")){
+			NBTTagList nbtTagList = nbttagcompound.getTagList("TagUUIDs",8);
+			for (int i = 0; i < nbtTagList.tagCount(); i++) {
+				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+			}
+
+			nbttagcompound.removeTag("TagUUIDs");
+		}
+		if(tempTags.hasKey("TempTagUUIDs")){
+			NBTTagList nbtTagList = tempTags.getTagList("TempTagUUIDs",8);
+			for (int i = 0; i < nbtTagList.tagCount(); i++) {
+				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+			}
+
+			tempTags.removeTag("TempTagUUIDs");
+		}
+
+		if(tagUUIDs.size() > 0){
+			NBTTagList nbtTagList = new NBTTagList();
+			for (UUID uuid : tagUUIDs) {
+				nbtTagList.appendTag(new NBTTagString(uuid.toString()));
+			}
+			nbttagcompound.setTag("TagUUIDs", nbtTagList);
+		}
+
+		return nbttagcompound;
 	}
 
 	public boolean addToTagMap(NBTTagCompound nbttagcompound, String name, int tab){
