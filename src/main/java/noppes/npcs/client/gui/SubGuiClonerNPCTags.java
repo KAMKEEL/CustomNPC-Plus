@@ -15,13 +15,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,IScrollData,ICustomScrollListener {
+public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,IScrollData {
     private GuiCustomScroll scrollTags;
     private GuiCustomScroll npcTags;
     private final ArrayList<String> allTags = new ArrayList<>();
     private final ArrayList<String> tagNames = new ArrayList<>();
     private String search = "";
-    private EntityNPCInterface npc;
+    private final EntityNPCInterface npc;
 
     public SubGuiClonerNPCTags(EntityNPCInterface npc)
     {
@@ -119,10 +119,6 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
     @Override
     public void setSelected(String selected) {
         scrollTags.setSelected(selected);
-    }
-
-    @Override
-    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
     }
 
     @Override
