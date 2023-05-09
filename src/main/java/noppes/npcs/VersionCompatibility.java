@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class VersionCompatibility {
-	public static int ModRev = 20;
+	public static int ModRev = 21;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
