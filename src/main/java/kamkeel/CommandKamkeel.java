@@ -93,9 +93,11 @@ public class CommandKamkeel extends CommandBase{
 			}
 		}
 		if(args.length <= useArgs.length + 2) {
-			String usage = useArgs[args.length - 3];
-			if(usage.equals("<player>") || usage.equals("[player]")) {
-				return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
+			if(args.length - 3 >= 0){
+				String usage = useArgs[args.length - 3];
+				if(usage.equals("<player>") || usage.equals("[player]")) {
+					return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
+				}
 			}
 		}
 		return command.addTabCompletionOptions(sender, Arrays.copyOfRange(args, 1, args.length));

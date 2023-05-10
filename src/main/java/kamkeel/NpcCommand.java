@@ -94,7 +94,7 @@ public class NpcCommand extends CommandKamkeelBase {
 		}
 
 		selectedNpc.ai.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
-		sendResult(sender, String.format("Set NPC \u00A7e%s\u00A77 Home to \u00A7b[%f] [%f] [%f]\u00A77", selectedNpc.display.name, posX, posY, posZ));
+		sendResult(sender, String.format("Set NPC \u00A7e%s\u00A77 Home to \u00A7b[%.1f] [%.1f] [%.1f]\u00A77", selectedNpc.display.name, posX, posY, posZ));
 	}
 
 	@SubCommand(
