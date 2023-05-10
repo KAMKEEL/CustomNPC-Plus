@@ -44,7 +44,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
     	y+=23;
         addLabel(new GuiNpcLabel(11,"gui.title", guiLeft + 5, y + 5));
-        addTextField(new GuiNpcTextField(11,this, fontRendererObj, guiLeft + 50, y, 200, 20, display.title));
+        addTextField(new GuiNpcTextField(11,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.title));
 
     	y+=23;
         addLabel(new GuiNpcLabel(1,"display.model", guiLeft + 5, y + 5));
