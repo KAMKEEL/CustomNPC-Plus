@@ -54,8 +54,10 @@ public class QuestCommand extends CommandKamkeelBase {
 	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
             playerdata.savePlayerDataOnFile();
-			Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-			Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+            if(playerdata.player != null){
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+            }
         }
     }
     
@@ -82,9 +84,17 @@ public class QuestCommand extends CommandKamkeelBase {
         if (quest == null){
         	throw new CommandException("Unknown QuestID: " + questid);
         }             
-        for(PlayerData playerdata : data){  
+        for(PlayerData playerdata : data){
+            if(playerdata.questData.activeQuests.containsKey(questid)){
+                playerdata.questData.activeQuests.remove(questid);
+            }
+            
 	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());
             playerdata.savePlayerDataOnFile();
+            if(playerdata.player != null){
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
+            }
         }
     }
 
