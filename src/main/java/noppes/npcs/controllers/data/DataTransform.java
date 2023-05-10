@@ -232,8 +232,8 @@ public class DataTransform {
 			inv = compound;
     	}
     	npc.updateHitbox();
-    	this.isActive = isActive;
-		npc.updateAI= true;
+		npc.updateAI = true;
+		this.isActive = isActive;
 		npc.updateClient = true;
 	}
 }

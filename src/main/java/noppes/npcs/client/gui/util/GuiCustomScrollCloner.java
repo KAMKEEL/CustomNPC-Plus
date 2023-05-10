@@ -59,7 +59,7 @@ public class GuiCustomScrollCloner extends GuiCustomScroll {
                     int tagStartX = j + fontRendererObj.getStringWidth(displayString) + 5;
                     if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1){
                         if (this.parent.tagMap.hasClone(list.get(i))) {
-                            for (UUID tagUUID : this.parent.tagMap.getUUIDs(list.get(i))){
+                            for (UUID tagUUID : this.parent.tagMap.getUUIDsList(list.get(i))){
                                 Tag tag = this.parent.tags.get(tagUUID);
                                 if(tag != null){
                                     if(GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()){

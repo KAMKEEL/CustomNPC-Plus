@@ -40,6 +40,14 @@ public class Tag implements ITag {
 		compound.setString("Uuid", uuid.toString());
 		compound.setBoolean("HideTag", hideTag);
 	}
+	public void readShortNBT(NBTTagCompound compound){
+		name = compound.getString("Name");
+		uuid = UUID.fromString(compound.getString("Uuid"));
+	}
+	public void writeShortNBT(NBTTagCompound compound){
+		compound.setString("Name", name);
+		compound.setString("Uuid", uuid.toString());
+	}
 
 	public int getId() {
 		return this.id;

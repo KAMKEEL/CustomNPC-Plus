@@ -1,38 +1,43 @@
 
 ## 👋 Welcome to the CustomNPC+ Repository.
-![](images/logo.png)  
+![](images/logo_banner.png)  
 
 > CustomNPC+ is a [Minecraft](https://minecraft.net/) mod that allows you to add custom NPCs to your world. It is developed for creative and storytelling players who want to make their Minecraft worlds more in-depth and unique. CustomNPC+ is only a branch version of the **1.7.10** Forge version of the original (down below) and has no plans to add or update any other version. This is not an official version of CustomNPC.
 
-**CurseForge**: [Download](https://www.curseforge.com/minecraft/mc-mods/customnpc-plus)
+----------------
 
-[![Discord Badge](https://img.shields.io/badge/KAMKEEL_Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/pQqRTvFeJ5)
-[![Download CustomNPC+](https://img.shields.io/badge/CustomNPC+-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/customnpc-plus)
-[![Download CustomNPC+](https://img.shields.io/badge/MorePlayerModels+-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/moreplayermodels-plus)
+<a href="https://discord.gg/pQqRTvFeJ5"> <img src="https://img.shields.io/badge/KAMKEEL_Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white" width="400" height="60"> </a>
+<a href="https://ko-fi.com/kamkeel"> <img src="https://img.shields.io/badge/Support_Me_|_Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support Me"  width="400" height="60"> </a>
+
+[![Download CustomNPC+](https://img.shields.io/badge/CustomNPC+-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://modrinth.com/mod/customnpc-plus)
+[![Download MPM+](https://img.shields.io/badge/MorePlayerModels+-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://www.curseforge.com/minecraft/mc-mods/moreplayermodels-plus)
 [![Download PluginMod](https://img.shields.io/badge/Plugin_Mod-0081CB?style=for-the-badge&logo=material-ui&logoColor=white)](https://github.com/KAMKEEL/Plugin-Mod)
-<a href="https://ko-fi.com/kamkeel"> <img src="https://i.imgur.com/zvdVbeW.png" alt="Support Me"  width="180" height="27"> </a>
 
+----------------
 
 ### ❗ Notice
-I am not the original creator of CustomNPC. The original creator is @[Noppes](https://github.com/Noppes). I have been permitted to update the 1.7.10 and post my results on GitHub. The original mod that is updated to the latest versions of Minecraft can be found on these links: [CurseForge](https://www.curseforge.com/minecraft/mc-mods/custom-npcs), [kodevelopment](http://www.kodevelopment.nl/minecraft/customnpcs)
+I am not the original creator of CustomNPC. The original creator is @[Noppes](https://github.com/Noppes). I have been permitted to update and develop my own branch version for 1.7.10. The original mod that is updated to the latest versions of Minecraft can be found on these links: [CurseForge](https://www.curseforge.com/minecraft/mc-mods/custom-npcs), [kodevelopment](http://www.kodevelopment.nl/minecraft/customnpcs)
+
+### ⬇️ Downloads
+
+- **Modrinth**: [Download](https://modrinth.com/mod/customnpc-plus)
+- **CurseForge**: [Download](https://www.curseforge.com/minecraft/mc-mods/customnpc-plus)
 
 ### 🔹 Installation
 This mod is an ***update*** to CustomNPC and not an add-on. Do not install CustomNPC with CustomNPC-Plus. CustomNPC-Plus does not remove any functional features from the original mod. It expands upon CustomNPC with original features and backported features from newer versions. Simply drag CustomNPC-Plus into any client/server mods folder to utilize. Please **backup** before using as this could still have unforeseen errors. Report any bugs if found, thank you and enjoy.
 
 ### ❓ Features:
 - Flying NPC (Smart Pathfinding)
-- 1.8 Skin Support (64x64) (3D Bodywear)
+- 1.8 Skin Support (64x64) (Alex/Steve64)
 - Full URL64 Selector (Downloads FULL Size Images for Custom Mob Skins)
-- Alex Model (64x64)
 - Additional Parts: [Wings, Fins, Capes, Horns, Tail]
 - Hide Body Parts [Arms, Legs, Head, Body]
 - Custom Overlays
-- Updated Cloner GUI (with more Tabs!)
+- Animation Maker
+- Enhanced Cloner GUI (More Tabs, Filters, Tags)
 - Markov Name Generator
-- Backported GUI Features
 - Dark Mode GUI (Link Below)
 - 1.12 Scripting Features (Details below)
-- Script Logging (See Config)
 
 #### Scripting:
 - CustomNPC+ Api: [API](https://github.com/KAMKEEL/CustomNPC-Plus-API)
@@ -41,7 +46,9 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Player Overlays
 - Script Timers
 - Global Scripts
+- Script Logging
 - GUI Overlays
+- Event Scripting
 (We never remove script functionality, only add on existing functions)
 
 ## 🔰 Skin Model Feature:

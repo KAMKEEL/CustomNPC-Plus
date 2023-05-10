@@ -6,6 +6,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
@@ -121,13 +122,12 @@ public class ServerCloneController implements ICloneHandler {
 
 			File file = new File(dir, filename + "_new");
 			File file2 = new File(dir, filename);
-
 			NBTJsonUtil.SaveFile(file, compound);
+			addToTagMap(compound, name, tab);
 			if(file2.exists()){
 				file2.delete();
 			}
 			file.renameTo(file2);
-			addToTagMap(compound, name, tab);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -140,6 +140,27 @@ public class ServerCloneController implements ICloneHandler {
 		for(String file : dir.list()){
 			if(file.endsWith(".json"))
 				list.add(file.substring(0, file.length() - 5));
+		}
+		return list;
+	}
+
+	public List<String> getClonesDate(int tab){
+		List<String> list = new ArrayList<String>();
+		File dir = new File(getDir(), tab + "");
+		if(!dir.exists() || !dir.isDirectory())
+			return list;
+		File[] files = dir.listFiles();
+		Arrays.sort(files, new Comparator<File>(){
+			public int compare(File f1, File f2)
+			{
+				return Long.compare(f1.lastModified(), f2.lastModified());
+			}
+		});
+
+		for(File file : files){
+			String fileName = file.getName();
+			if(fileName.endsWith(".json"))
+				list.add(fileName.substring(0, fileName.length() - 5));
 		}
 		return list;
 	}
@@ -157,6 +178,43 @@ public class ServerCloneController implements ICloneHandler {
 		cleanTags(nbttagcompound);
 		saveClone(tab, name, nbttagcompound);
 		return name;
+	}
+
+	public String addClone(NBTTagCompound nbttagcompound, String name, int tab, NBTTagCompound tempTags) {
+		cleanTagList(nbttagcompound, tempTags);
+		cleanTags(nbttagcompound);
+		saveClone(tab, name, nbttagcompound);
+		return name;
+	}
+
+	public NBTTagCompound cleanTagList(NBTTagCompound nbttagcompound, NBTTagCompound tempTags){
+		HashSet<UUID> tagUUIDs = new HashSet<UUID>();
+		if(nbttagcompound.hasKey("TagUUIDs")){
+			NBTTagList nbtTagList = nbttagcompound.getTagList("TagUUIDs",8);
+			for (int i = 0; i < nbtTagList.tagCount(); i++) {
+				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+			}
+
+			nbttagcompound.removeTag("TagUUIDs");
+		}
+		if(tempTags.hasKey("TempTagUUIDs")){
+			NBTTagList nbtTagList = tempTags.getTagList("TempTagUUIDs",8);
+			for (int i = 0; i < nbtTagList.tagCount(); i++) {
+				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
+			}
+
+			tempTags.removeTag("TempTagUUIDs");
+		}
+
+		if(tagUUIDs.size() > 0){
+			NBTTagList nbtTagList = new NBTTagList();
+			for (UUID uuid : tagUUIDs) {
+				nbtTagList.appendTag(new NBTTagString(uuid.toString()));
+			}
+			nbttagcompound.setTag("TagUUIDs", nbtTagList);
+		}
+
+		return nbttagcompound;
 	}
 
 	public boolean addToTagMap(NBTTagCompound nbttagcompound, String name, int tab){

@@ -25,7 +25,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	public static HashMap<String, UUID> tagNames = new HashMap<>();
 	public static HashSet<String> tagFilters = new HashSet<>();
 	public static byte displayTags = 0;
-	public static boolean ascending = true;
+
+	// 0 - Any, 1 - All, 2 - Not Any, 3 - Not All
+	public static byte filterCondition = 0;
+
+	public static byte ascending = 0;
+
+	// 0 - By Name, 1 - By Date
+	public static byte sortType = 0;
 
 	public TagMap tagMap;
 
@@ -118,16 +125,37 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			}
 		} else {
 			// Show Filters
-			addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("menu.tags"), guiLeft + 7, guiTop + 7));
+			addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("cloner.tagFilters"), guiLeft + 7, guiTop + 7));
 			addScroll(filterScroll);
 			addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 4, guiTop + 190, 140, 20, tagSearch));
 
-			addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("display.visible") + ":", guiLeft + 150, guiTop + 27));
-			addButton(new GuiNpcButton(12, guiLeft + 190, guiTop + 20, new String[]{"display.show", "display.all", "display.hide"}, displayTags));
-			addButton(new GuiNpcButton(11, guiLeft + 150, guiTop + 43, 100, 20, "gui.deselectAll"));
+			addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("cloner.tagVisibility"), guiLeft + 150, guiTop + 27));
+			addButton(new GuiNpcButton(12, guiLeft + 215, guiTop + 20, new String[]{"display.show", "display.all", "display.hide"}, displayTags));
 
-			getButton(12).width = 60;
+			addLabel(new GuiNpcLabel(3, StatCollector.translateToLocal("filter.contains"), guiLeft + 150, guiTop + 50));
+			addButton(new GuiNpcButton(13, guiLeft + 215, guiTop + 43, new String[]{"filter.any", "filter.all", "filter.notany", "filter.notall"}, filterCondition));
+
+			addButton(new GuiNpcButton(11, guiLeft + 150, guiTop + 66, 130, 20, "gui.deselectAll"));
+
+
+			addLabel(new GuiNpcLabel(4, StatCollector.translateToLocal("cloner.order"), guiLeft + 150, guiTop + 112));
+			addButton(new GuiNpcButton(14, guiLeft + 215, guiTop + 105, new String[]{"cloner.ascending", "cloner.descending"}, ascending));
+
+			addLabel(new GuiNpcLabel(5, StatCollector.translateToLocal("cloner.type"), guiLeft + 150, guiTop + 135));
+			addButton(new GuiNpcButton(15, guiLeft + 215, guiTop + 128, new String[]{"cloner.name", "cloner.date"}, sortType));
+
+
+			getButton(12).width = 65;
 			getButton(12).height = 20;
+
+			getButton(13).width = 65;
+			getButton(13).height = 20;
+
+			getButton(14).width = 65;
+			getButton(14).height = 20;
+
+			getButton(15).width = 65;
+			getButton(15).height = 20;
 
 			showFilters();
 		}
@@ -153,7 +181,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			}
 		}
 		this.list = list;
-		scroll.setList(getSearchList(), ascending);
+		scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 	}
 	private void showClones() {
 		if(showingClones == 2){
@@ -161,10 +189,16 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			Client.sendData(EnumPacketServer.CloneList, activeTab);
 			return;
 		}
-		ArrayList<String> list = new ArrayList<String>();
-		this.list = ClientCloneController.Instance.getClones(activeTab);
+
+		if(sortType == 0){
+			this.list = ClientCloneController.Instance.getClones(activeTab);
+		}
+		else {
+			this.list = ClientCloneController.Instance.getClonesDate(activeTab);
+		}
+
 		this.tagMap = ClientTagMapController.Instance.getTagMap(activeTab);
-		scroll.setList(getSearchList(), ascending);
+		scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 	}
 	public void keyTyped(char c, int i)
 	{
@@ -173,7 +207,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			if(search.equals(getTextField(1).getText()))
 				return;
 			search = getTextField(1).getText().toLowerCase();
-			scroll.setList(getSearchList(), ascending);
+			scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 		}
 		if(getTextField(2) != null){
 			if(tagSearch.equals(getTextField(2).getText()))
@@ -188,62 +222,85 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		if(this.list == null){
 			this.list = new ArrayList<String>();
 		}
-		// No Search // No Filters - or - Entities
- 		if(search.isEmpty() && (tagFilters.size() == 0 || showingClones == 1))
-			return new ArrayList<String>(list);
-		// Yes Search // No Filters - or - Entities
-		else if(!search.isEmpty() && (tagFilters.size() == 0 || showingClones == 1)){
-			List<String> list = new ArrayList<String>();
-			for(String name : this.list){
-				if(name.toLowerCase().contains(search))
-					list.add(name);
+
+		// No Filters - or - Entities
+		if(tagFilters.size() == 0 || showingClones == 1){
+			// No Search
+			if(search.isEmpty())
+				return new ArrayList<String>(this.list);
+			// Yes Search
+			else {
+				List<String> list = new ArrayList<String>();
+				for(String name : this.list){
+					if(name.toLowerCase().contains(search))
+						list.add(name);
+				}
+				return list;
 			}
-			return list;
 		}
-		// No Search // Yes Filters
-		else if(search.isEmpty() && tagFilters.size() > 0){
+
+		////////////////////////
+		//// WITH FILTERS
+
+		// No Search
+		if(search.isEmpty()){
 			List<String> list = new ArrayList<String>();
 			for(String name : this.list){
 				if(tagMap.hasClone(name)){
-					boolean hasAll = true;
-					for(String tagName : tagFilters){
-						UUID tagUUID = tagNames.get(tagName);
-						if(tagUUID != null){
-							if(!tagMap.hasTag(name, tagUUID)){
-								hasAll = false;
-								break;
-							}
-						}
-					}
-					if(hasAll){
+					if(meetsCondition(name)){
 						list.add(name);
 					}
 				}
 			}
 			return list;
 		}
-		// Yes Search // Yes Filters
+
+		// Yes Search
 		List<String> list = new ArrayList<String>();
 		for(String name : this.list){
 			if(name.toLowerCase().contains(search)) {
 				if(tagMap.hasClone(name)){
-					boolean hasAll = true;
-					for(String tagName : tagFilters){
-						UUID tagUUID = tagNames.get(tagName);
-						if(tagUUID != null){
-							if(!tagMap.hasTag(name, tagUUID)){
-								hasAll = false;
-								break;
-							}
-						}
-					}
-					if(hasAll){
+					if(meetsCondition(name)){
 						list.add(name);
 					}
 				}
 			}
 		}
 		return list;
+	}
+
+	private boolean meetsCondition(String name){
+		if(tagMap == null){
+			return true;
+		}
+		boolean conditionMet = true;
+		boolean allRequirement = filterCondition == 1 || filterCondition == 3;
+
+		for(String tagName : tagFilters){
+			UUID tagUUID = tagNames.get(tagName);
+			if(tagUUID != null) {
+				boolean hasTag = tagMap.hasTag(name, tagUUID);
+				if (!allRequirement) {
+					if (!hasTag && filterCondition == 0) {
+						conditionMet = false;
+						break;
+					} else if (hasTag && filterCondition == 2) {
+						conditionMet = false;
+						break;
+					}
+				} else {
+					if (!hasTag && filterCondition == 1) {
+						conditionMet = false;
+						break;
+					} else if (hasTag && filterCondition == 3) {
+						conditionMet = false;
+						break;
+					}
+				}
+			}
+		}
+
+		return conditionMet;
 	}
 
 	private List<String> getTagList(){
@@ -359,6 +416,18 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			GuiNpcButton button = (GuiNpcButton) guibutton;
 			displayTags = (byte) button.getValue();
 		}
+		if (id == 13) {
+			GuiNpcButton button = (GuiNpcButton) guibutton;
+			filterCondition = (byte) button.getValue();
+		}
+		if (id == 14) {
+			GuiNpcButton button = (GuiNpcButton) guibutton;
+			ascending = (byte) button.getValue();
+		}
+		if (id == 15) {
+			GuiNpcButton button = (GuiNpcButton) guibutton;
+			sortType = (byte) button.getValue();
+		}
 		if(id > 20){
 			activeTab = id - 20;
 			initGui();
@@ -397,13 +466,22 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			}
 		}
 		else {
-			NBTTagList nbtlist = compound.getTagList("List", 8);
 			List<String> list = new ArrayList<String>();
-			for(int i = 0; i < nbtlist.tagCount(); i++){
-				list.add(nbtlist.getStringTagAt(i));
+			if(sortType == 1){
+				NBTTagList nbtlist = compound.getTagList("ListDate", 8);
+				for(int i = 0; i < nbtlist.tagCount(); i++){
+					list.add(nbtlist.getStringTagAt(i));
+				}
 			}
+			else {
+				NBTTagList nbtlist = compound.getTagList("List", 8);
+				for(int i = 0; i < nbtlist.tagCount(); i++){
+					list.add(nbtlist.getStringTagAt(i));
+				}
+			}
+
 			this.list = list;
-			scroll.setList(getSearchList(), ascending);
+			scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 		}
 	}
 

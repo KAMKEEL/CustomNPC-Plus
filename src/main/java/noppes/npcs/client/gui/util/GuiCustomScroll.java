@@ -239,9 +239,11 @@ public class GuiCustomScroll extends GuiScreen
 		setSize(xSize,ySize);
 	}
 
-    public void setList(List<String> list, boolean ascending){
+    public void setList(List<String> list, boolean ascending, boolean caseOrder){
         isSorted = true;
-        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        if(caseOrder){
+            Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        }
         if(!ascending){
             Collections.reverse(list);
         }
