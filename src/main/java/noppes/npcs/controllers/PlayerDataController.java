@@ -174,7 +174,7 @@ public class PlayerDataController {
 			}
 		}
 		else
-			data = PlayerData.get(player);
+			data = PlayerDataController.instance.getPlayerData(player);
 
 		return data;
 	}
