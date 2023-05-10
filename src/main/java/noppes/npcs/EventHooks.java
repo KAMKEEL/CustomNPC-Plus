@@ -549,7 +549,7 @@ public class EventHooks {
             handler.callScript(EnumScriptType.CNPC_NATURAL_SPAWN, event);
             return NpcAPI.EVENT_BUS.post(event);
         }
-        return true;
+        return false;
     }
 
     public static void onCustomGuiButton(IPlayer player, ICustomGui gui, int buttonId) {
