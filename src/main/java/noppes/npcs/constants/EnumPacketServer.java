@@ -53,7 +53,7 @@ public enum EnumPacketServer {
 	LinkedGetAll, LinkedRemove(CustomNpcsPermissions.GLOBAL_LINKED), LinkedAdd(CustomNpcsPermissions.GLOBAL_LINKED),
 	ScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), ScriptDataGet(true),
 	EventScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), EventScriptDataGet(true),
-	PlayerDataRemove(CustomNpcsPermissions.GLOBAL_PLAYERDATA), 
+	PlayerDataRemove(CustomNpcsPermissions.GLOBAL_PLAYERDATA), PlayerDataRegen(CustomNpcsPermissions.GLOBAL_PLAYERDATA),
 	BankSave(CustomNpcsPermissions.GLOBAL_BANK), BanksGet, BankGet, 
 	BankRemove(CustomNpcsPermissions.GLOBAL_BANK),  
 	DialogCategorySave(CustomNpcsPermissions.GLOBAL_DIALOG), DialogCategoriesGet, DialogsGetFromDialog,
