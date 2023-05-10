@@ -1,14 +1,17 @@
 package kamkeel;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.scripted.CustomNPCsException;
 
 public class CommandKamkeel extends CommandBase{
@@ -75,13 +78,26 @@ public class CommandKamkeel extends CommandBase{
 
 	@Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args){
-    	if(args.length == 1)
-    		return new ArrayList<String>(map.keySet());
+		if(args.length == 1)
+			return CommandBase.getListOfStringsMatchingLastWord(args, map.keySet().toArray(new String[map.size()]));
     	CommandKamkeelBase command = getCommand(args);
 		if(command == null)
 			return null;
-    	if(args.length == 2 && command.runSubCommands())
-    		return new ArrayList<String>(command.subcommands.keySet());
+		if(args.length == 2 && command.runSubCommands())
+			return CommandBase.getListOfStringsMatchingLastWord(args, command.subcommands.keySet().toArray(new String[command.subcommands.keySet().size()]));
+		String[] useArgs = command.getUsage().split(" ");
+		if(command.runSubCommands()) {
+			Method m = command.subcommands.get(args[1].toLowerCase());
+			if(m != null) {
+				useArgs = m.getAnnotation(CommandKamkeelBase.SubCommand.class).usage().split(" ");
+			}
+		}
+		if(args.length <= useArgs.length + 2) {
+			String usage = useArgs[args.length - 3];
+			if(usage.equals("<player>") || usage.equals("[player]")) {
+				return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
+			}
+		}
 		return command.addTabCompletionOptions(sender, Arrays.copyOfRange(args, 1, args.length));
     }
     
