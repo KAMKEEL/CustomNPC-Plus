@@ -37,7 +37,7 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void leavesdecay(ICommandSender sender, String[] args){
     	if(args.length == 0){
-    		sendMessage(sender, "LeavesDecay: " + ConfigMain.LeavesDecayEnabled);
+			sendResult(sender, "LeavesDecay: \u00A7c" + ConfigMain.LeavesDecayEnabled);
     	}
     	else{
 			ConfigMain.LeavesDecayEnabled = Boolean.parseBoolean(args[0]);
@@ -52,7 +52,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             		block.setTickRandomly(ConfigMain.LeavesDecayEnabled);
             	}
             }
-            sendMessage(sender, "LeavesDecay is now " + ConfigMain.LeavesDecayEnabled);
+            sendResult(sender, "LeavesDecay is now \u00A7c" + ConfigMain.LeavesDecayEnabled);
     	}
     }
     
@@ -63,7 +63,7 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void vinegrowth(ICommandSender sender, String[] args){
     	if(args.length == 0){
-    		sendMessage(sender, "VineGrowth: " + ConfigMain.VineGrowthEnabled);
+    		sendResult(sender, "VineGrowth: \u00A7c" + ConfigMain.VineGrowthEnabled);
     	}
     	else{
 			ConfigMain.VineGrowthEnabled = Boolean.parseBoolean(args[0]);
@@ -78,7 +78,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             		block.setTickRandomly(ConfigMain.VineGrowthEnabled);
             	}
             }
-            sendMessage(sender, "VineGrowth is now " + ConfigMain.VineGrowthEnabled);
+            sendResult(sender, "VineGrowth is now \u00A7c" + ConfigMain.VineGrowthEnabled);
     	}
     }
     
@@ -89,7 +89,7 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void icemelts(ICommandSender sender, String[] args){
     	if(args.length == 0){
-    		sendMessage(sender, "IceMelts: " + ConfigMain.IceMeltsEnabled);
+    		sendResult(sender, "IceMelts: \u00A7c" + ConfigMain.IceMeltsEnabled);
     	}
     	else{
 			ConfigMain.IceMeltsEnabled = Boolean.parseBoolean(args[0]);
@@ -104,7 +104,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             		block.setTickRandomly(ConfigMain.IceMeltsEnabled);
             	}
             }
-            sendMessage(sender, "IceMelts is now " + ConfigMain.IceMeltsEnabled);
+            sendResult(sender, "IceMelts is now \u00A7c" + ConfigMain.IceMeltsEnabled);
     	}
     }
 
@@ -115,7 +115,7 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void guns(ICommandSender sender, String[] args){
     	if(args.length == 0){
-    		sendMessage(sender, "GunsEnabled: " + ConfigMain.GunsEnabled);
+    		sendResult(sender, "GunsEnabled: \u00A7c" + ConfigMain.GunsEnabled);
     	}
     	else{
 			ConfigMain.GunsEnabled = Boolean.parseBoolean(args[0]);
@@ -123,7 +123,7 @@ public class ConfigCommand extends CommandKamkeelBase {
 			if(ConfigMain.config.hasChanged()){
 				ConfigMain.config.save();
 			}
-            sendMessage(sender, "GunsEnabled is now " + ConfigMain.GunsEnabled);
+            sendResult(sender, "GunsEnabled is now \u00A7c" + ConfigMain.GunsEnabled);
     	}
     }
     
@@ -134,11 +134,11 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void freezenpcs(ICommandSender sender, String[] args){
     	if(args.length == 0){
-    		sendMessage(sender, "Frozen NPCs: " + CustomNpcs.FreezeNPCs);
+    		sendResult(sender, "Frozen NPCs: \u00A7c" + CustomNpcs.FreezeNPCs);
     	}
     	else{
 			CustomNpcs.FreezeNPCs = Boolean.parseBoolean(args[0]);
-            sendMessage(sender, "FrozenNPCs is now " + CustomNpcs.FreezeNPCs);
+            sendResult(sender, "FrozenNPCs is now \u00A7c" + CustomNpcs.FreezeNPCs);
     	}
     }
     
@@ -149,14 +149,15 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void chunkloaders(ICommandSender sender, String[] args) throws CommandException{
     	if(args.length == 0){
-    		sendMessage(sender, "ChunkLoaders: " + ChunkController.instance.size() + "/" + ConfigMain.ChunkLoaders);
+    		sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     	else{
     		try{
 				ConfigMain.ChunkLoaders = Integer.parseInt(args[0]);
     		}
     		catch(NumberFormatException ex){
-    			throw new CommandException("Did not get a number: " + args[0]);
+				sendError(sender, "Did not get a number: " + args[0]);
+    			return;
     		}
 			ConfigMain.ChunkLoadersProperty.set(ConfigMain.ChunkLoaders);
 			if(ConfigMain.config.hasChanged()){
@@ -166,9 +167,9 @@ public class ConfigCommand extends CommandKamkeelBase {
 			int size = ChunkController.instance.size();
 			if(size > ConfigMain.ChunkLoaders){
 				ChunkController.instance.unload(size - ConfigMain.ChunkLoaders);
-				sendMessage(sender, size - ConfigMain.ChunkLoaders + " chunksloaders unloaded");
+				sendResult(sender, size - ConfigMain.ChunkLoaders + " chunksloaders unloaded");
 			}
-    		sendMessage(sender, "ChunkLoaders: " + ChunkController.instance.size() + "/" + ConfigMain.ChunkLoaders);
+			sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     }
     
