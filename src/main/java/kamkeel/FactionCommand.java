@@ -45,7 +45,8 @@ public class FactionCommand extends CommandKamkeelBase {
 
         data = PlayerDataController.instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-            throw new CommandException("Unknown player: " + playername);
+            sendError(sender, "Unknown player: " + playername);
+            return;
         } 
         
         try{
@@ -56,7 +57,8 @@ public class FactionCommand extends CommandKamkeelBase {
         }
         
         if (selectedFaction == null) {
-            throw new CommandException("Unknown faction: " + factionname);
+            sendError(sender, "Unknown faction: " + factionname);
+            return;
         }
         
         processSubCommand(sender, args[2], Arrays.copyOfRange(args, 3, args.length));
@@ -75,13 +77,15 @@ public class FactionCommand extends CommandKamkeelBase {
         try {
             points = Integer.parseInt(args[0]);
         } catch (NumberFormatException ex) {
-        	throw new CommandException("Must be an integer: " + args[0]);
+            sendError(sender, "Must be an integer: " + args[0]);
+            return;
         }
         int factionid = this.selectedFaction.id;
 
         for(PlayerData playerdata : data){
 	        PlayerFactionData playerfactiondata = playerdata.factionData;
 	        playerfactiondata.increasePoints(factionid, points, playerdata.player);
+            sendResult(sender, String.format("Added Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
 
@@ -94,12 +98,14 @@ public class FactionCommand extends CommandKamkeelBase {
         try {
             points = Integer.parseInt(args[0]);
         } catch (NumberFormatException ex) {
-        	throw new CommandException("Must be an integer: " + args[0]);
+            sendError(sender, "Must be an integer: " + args[0]);
+            return;
         }
         int factionid = this.selectedFaction.id;
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
         	playerfactiondata.increasePoints(factionid, -points, playerdata.player);
+            sendResult(sender, String.format("Subtracted Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
 
@@ -107,6 +113,7 @@ public class FactionCommand extends CommandKamkeelBase {
     public void reset(ICommandSender sender, String[] args) {
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
+            sendResult(sender, String.format("Reset Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
 
@@ -119,11 +126,13 @@ public class FactionCommand extends CommandKamkeelBase {
         try {
             points = Integer.parseInt(args[0]);
         } catch (NumberFormatException ex) {
-        	throw new CommandException("Must be an integer: " + args[0]);
+            sendError(sender, "Must be an integer: " + args[0]);
+            return;
         }
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
-        	playerfactiondata.factionData.put(this.selectedFaction.id,points);
+        	playerfactiondata.factionData.put(this.selectedFaction.id, points);
+            sendResult(sender, String.format("Set Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
     
@@ -131,6 +140,7 @@ public class FactionCommand extends CommandKamkeelBase {
     public void drop(ICommandSender sender, String[] args){
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.remove(this.selectedFaction.id);
+            sendResult(sender, String.format("Dropped Faction \u00A7e%s (%d)\u00A77 from Player \u00A7b%s\u00A77", this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
     
