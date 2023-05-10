@@ -121,7 +121,7 @@ public class SlayCommand extends CommandKamkeelBase {
 			}
 		}
 		
-		sender.addChatMessage(new ChatComponentTranslation(count + " entities deleted"));
+		sendResult(sender, count + " entities deleted");
 	}
 	
     private boolean delete(Entity entity, ArrayList<Class<?>> toDelete) {
