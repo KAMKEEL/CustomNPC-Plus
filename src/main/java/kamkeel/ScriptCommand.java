@@ -11,19 +11,19 @@ public class ScriptCommand extends CommandKamkeelBase {
 		ScriptController.Instance.loadCategories();
 
 		if(ScriptController.Instance.loadPlayerScripts())
-			sendMessage(sender, "Reload player scripts successfully");
+			sendResult(sender, "Reload player scripts successfully");
 		else
-			sendMessage(sender, "Failed reloading player scripts");
+			sendError(sender, "Failed reloading player scripts");
 
 		if(ScriptController.Instance.loadForgeScripts())
-			sendMessage(sender, "Reload forge scripts successfully");
+			sendResult(sender, "Reload forge scripts successfully");
 		else
-			sendMessage(sender, "Failed reloading forge scripts");
+			sendError(sender, "Failed reloading forge scripts");
 
 		if(ScriptController.Instance.loadStoredData())
-			sendMessage(sender, "Reload stored data successfully");
+			sendResult(sender, "Reload stored data successfully");
 		else
-			sendMessage(sender, "Failed reloading stored data");
+			sendError(sender, "Failed reloading stored data");
 		return true;
 
 	}

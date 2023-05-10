@@ -1,10 +1,14 @@
 package noppes.npcs.mixin;
 
+import cpw.mods.fml.relauncher.FMLLaunchHandler;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMixin;
 import org.spongepowered.asm.lib.tree.ClassNode;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -32,13 +36,23 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
+
+        // Load Mixin Config
+        String configPath = "config"  + File.separator + "CustomNpcPlus" + File.separator;
+        ConfigMixin.init(new File(configPath + "mixin.cfg"));
+        boolean client = FMLLaunchHandler.side().isClient();
+
         List<String> mixins = new ArrayList<>();
-        if (ConfigClient.EntityRendererMixin){
-            mixins.add("MixinEntityRenderer");
-        }
-        if (ConfigClient.AnimationMixin) {
-            mixins.add("MixinModelRenderer");
-            mixins.add("MixinRenderPlayer");
+
+        // Client Only Mixins
+        if(client){
+            if (ConfigMixin.EntityRendererMixin){
+                mixins.add("MixinEntityRenderer");
+            }
+            if (ConfigMixin.AnimationMixin) {
+                mixins.add("MixinModelRenderer");
+                mixins.add("MixinRenderPlayer");
+            }
         }
         return mixins;
     }

@@ -38,15 +38,18 @@ public class DialogCommand extends CommandKamkeelBase {
         try {
         	diagid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-            throw new CommandException("DialogID must be an integer: " + args[1]);
+            sendError(sender, "DialogID must be an integer: " + args[1]);
+            return;
         }
         List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-        	throw new CommandException("Unknown player: " + playername);
+            sendError(sender, "Unknown player: " + playername);
+            return;
         }
         for(PlayerData playerdata : data){     
 	        playerdata.dialogData.dialogsRead.add(diagid);
             playerdata.savePlayerDataOnFile();
+            sendResult(sender, String.format("Forced Read for Dialog \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", diagid, playerdata.playername));
         }
     }
     
@@ -60,15 +63,18 @@ public class DialogCommand extends CommandKamkeelBase {
         try {
         	diagid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-            throw new CommandException("DialogID must be an integer: " + args[1]);
+            sendError(sender, "DialogID must be an integer: " + args[1]);
+            return;
         }
         List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-            throw new CommandException("Unknown player: " + playername);
+            sendError(sender, "Unknown player: " + playername);
+            return;
         }
         for(PlayerData playerdata : data){  
 	        playerdata.dialogData.dialogsRead.remove(diagid);
             playerdata.savePlayerDataOnFile();
+            sendResult(sender, String.format("Forced Unread for Dialog \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", diagid, playerdata.playername));
         }
     }
     @SubCommand(
@@ -77,6 +83,7 @@ public class DialogCommand extends CommandKamkeelBase {
     )      
     public void reload(ICommandSender sender, String args[]){
     	new DialogController();
+        sendResult(sender, "Dialogs Reloaded");
     }
 
     @SubCommand(
@@ -86,18 +93,21 @@ public class DialogCommand extends CommandKamkeelBase {
     public void show(ICommandSender sender, String args[]) throws CommandException{
     	EntityPlayer player = CommandBase.getPlayer(sender, args[0]);
     	if(player == null){
-            throw new CommandException("Unknown player: " + args[0]);
+            sendError(sender, "Unknown player: " + args[0]);
+            return;
     	}
     		
         int diagid;
         try {
         	diagid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-        	throw new CommandException("DialogID must be an integer: " + args[1]);
+            sendError(sender, "DialogID must be an integer: " + args[1]);
+            return;
         }
         Dialog dialog = DialogController.instance.dialogs.get(diagid);
         if(dialog == null){
-        	throw new CommandException("Unknown dialog id: " + args[1]);
+            sendError(sender, "Unknown dialog id: " + args[1]);
+            return;
         }
         
     	EntityDialogNpc npc = new EntityDialogNpc(sender.getEntityWorld());
@@ -108,5 +118,6 @@ public class DialogCommand extends CommandKamkeelBase {
 		option.title = dialog.title;
     	npc.dialogs.put(0, option);
     	NoppesUtilServer.openDialog(player, npc, dialog, 0);
+        sendResult(sender, String.format("Displayed Dialog \u00A7e%d\u00A77 to Player '\u00A7b%s\u00A77'", diagid, player.getCommandSenderName()));
     }
 }

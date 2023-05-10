@@ -475,6 +475,7 @@ public class NoppesUtilServer {
             }
 			else {
 				PlayerDataController.instance.nameUUIDs.remove(name);
+				PlayerDataController.instance.savePlayerDataMap();
 			}
         }
         if(type == EnumPlayerData.Quest){
@@ -505,6 +506,10 @@ public class NoppesUtilServer {
             playerdata.savePlayerDataOnFile();
         }
         sendPlayerData(type, player, name);
+	}
+
+	public static void regenPlayerData(EntityPlayerMP player) throws IOException {
+		PlayerDataController.instance.generatePlayerMap(player);
 	}
 	
 	public static void sendRecipeData(EntityPlayerMP player, int size) {

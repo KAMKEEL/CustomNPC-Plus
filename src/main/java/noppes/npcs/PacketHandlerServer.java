@@ -794,6 +794,9 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.PlayerDataRemove){
 			NoppesUtilServer.removePlayerData(buffer,player);
 		}
+		else if(type == EnumPacketServer.PlayerDataRegen){
+			NoppesUtilServer.regenPlayerData(player);
+		}
 		else if(type == EnumPacketServer.MainmenuDisplayGet){
 			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.display.writeToNBT(new NBTTagCompound()));
 		}

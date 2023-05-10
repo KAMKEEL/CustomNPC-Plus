@@ -1,7 +1,12 @@
 package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerData;
@@ -12,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener
+public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener,GuiYesNoCallback
 {
 	private GuiCustomScroll scroll;
 	private String selectedPlayer = null;
@@ -45,7 +50,9 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     	this.addButton(new GuiNpcButton(4, guiLeft + 200, guiTop + 98,98, 20, "Transport Data"));
     	this.addButton(new GuiNpcButton(5, guiLeft + 200, guiTop + 120,98, 20, "Bank Data"));
     	this.addButton(new GuiNpcButton(6, guiLeft + 200, guiTop + 142,98, 20, "Faction Data"));
-    	
+
+		this.addButton(new GuiNpcButton(7, guiLeft + 200, guiTop + 193,98, 20, "Regen PlayerMap"));
+
     	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 193, 190, 20, search));
     	getTextField(0).enabled = selection == EnumPlayerData.Players;
     	
@@ -126,6 +133,9 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
         	Client.sendData(EnumPacketServer.PlayerDataGet, selection, selectedPlayer);
         	selected = null;
         }
+		if(id == 7){
+			displayGuiScreen(new GuiYesNo(this, "Warning", "Do not operate on PlayerData as its regenerating", 1));
+		}
     }
 	
 	@Override
@@ -155,5 +165,14 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 			selectedPlayer = selected;
 	}
 
+	@Override
+	public void confirmClicked(boolean confirm, int id){
+		if(confirm){
+			Client.sendData(EnumPacketServer.PlayerDataRegen);
+			close();
+		}
+		else
+			displayGuiScreen(this);
+	}
 
 }

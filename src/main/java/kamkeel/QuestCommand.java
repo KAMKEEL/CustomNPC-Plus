@@ -36,26 +36,32 @@ public class QuestCommand extends CommandKamkeelBase {
         try {
         	questid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-            throw new CommandException("QuestID must be an integer: " + args[1]);
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
         }
         
         List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
         
         if (data.isEmpty()) {
-            throw new CommandException("Unknown player: " + playername);
+            sendError(sender, "Unknown player: " + playername);
+            return;
         }
         
         Quest quest = QuestController.instance.quests.get(questid);
         if (quest == null){
-        	throw new CommandException("Unknown QuestID: " + questid);
+        	sendError(sender, "Unknown QuestID: " + questid);
+            return;
         }
         
         for(PlayerData playerdata : data){  
 	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
             playerdata.savePlayerDataOnFile();
-			Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-			Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+            if(playerdata.player != null){
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+            }
+            sendResult(sender, String.format("Started Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
     
@@ -70,21 +76,33 @@ public class QuestCommand extends CommandKamkeelBase {
         	questid = Integer.parseInt(args[1]);
         } 
         catch (NumberFormatException ex) {
-        	throw new CommandException("QuestID must be an integer: " + args[1]);
+        	sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
         }
         
         List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-        	throw new CommandException(String.format("Unknow player '%s'", playername));
+        	sendError(sender, String.format("Unknown player '%s'", playername));
+            return;
         }
         
         Quest quest = QuestController.instance.quests.get(questid);
         if (quest == null){
-        	throw new CommandException("Unknown QuestID: " + questid);
+        	sendError(sender, "Unknown QuestID: " + questid);
+            return;
         }             
-        for(PlayerData playerdata : data){  
+        for(PlayerData playerdata : data){
+            if(playerdata.questData.activeQuests.containsKey(questid)){
+                playerdata.questData.activeQuests.remove(questid);
+            }
+            
 	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());
             playerdata.savePlayerDataOnFile();
+            if(playerdata.player != null){
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
+                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
+            }
+            sendResult(sender, String.format("Finished Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
 
@@ -98,19 +116,23 @@ public class QuestCommand extends CommandKamkeelBase {
         try {
         	questid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-        	throw new CommandException("QuestID must be an integer: " + args[1]);
+        	sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
         }
         List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-        	throw new CommandException(String.format("Unknow player '%s'", playername));
+        	sendError(sender, String.format("Unknown player '%s'", playername));
+            return;
         }
         Quest quest = QuestController.instance.quests.get(questid);
         if (quest == null){
-        	throw new CommandException("Unknown QuestID: " + questid);
+        	sendError(sender, "Unknown QuestID: " + questid);
+            return;
         }       
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
             playerdata.savePlayerDataOnFile();
+            sendResult(sender, String.format("Stopped Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
     
@@ -124,23 +146,27 @@ public class QuestCommand extends CommandKamkeelBase {
         try {
         	questid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
-        	throw new CommandException("QuestID must be an integer: " + args[1]);
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
         }
         
         List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-        	throw new CommandException(String.format("Unknown player '%s'", playername));
+            sendError(sender, String.format("Unknown player '%s'", playername));
+            return;
         }
         
         Quest quest = QuestController.instance.quests.get(questid);
         if (quest == null){
-        	throw new CommandException(String.format("Unknown QuestID"));
+        	sendError(sender, String.format("Unknown QuestID"));
+            return;
         }     
         
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
             playerdata.savePlayerDataOnFile();
+            sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
     
@@ -149,7 +175,9 @@ public class QuestCommand extends CommandKamkeelBase {
             permission = 4
     )      
     public void reload(ICommandSender sender, String args[]){
-    	new DialogController();
+    	new QuestController();
+        QuestController.instance.load();
+        sendResult(sender, "Quests Reloaded");
     }
 }
 

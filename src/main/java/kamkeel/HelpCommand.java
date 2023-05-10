@@ -36,9 +36,11 @@ public class HelpCommand extends CommandKamkeelBase{
 		}
 		
 		CommandKamkeelBase command = parent.getCommand(args);
-		if(command == null)
-			throw new CommandException("Unknown command " + args[0]);
-		
+		if(command == null){
+			sendError(sender, "Unknown command " + args[0]);
+			return;
+		}
+
 		if(command.subcommands.isEmpty()){
 			sender.addChatMessage(new ChatComponentTranslation(command.getCommandUsage(sender)));
 			return;
