@@ -62,7 +62,7 @@ public abstract class CommandKamkeelBase extends CommandBase{
 	}
 
 	protected static void sendError(ICommandSender sender, String message, Object... obs) {
-		sender.addChatMessage(new ChatComponentTranslation("\u00A76[\u00A7eCNPC+\u00A76]\u00A74Error:\u00A7c " + message, obs));
+		sender.addChatMessage(new ChatComponentTranslation("\u00A76[\u00A7eCNPC+\u00A76]\u00A74 Error:\u00A7c " + message, obs));
 	}
 
 	@Retention(value = RetentionPolicy.RUNTIME)
