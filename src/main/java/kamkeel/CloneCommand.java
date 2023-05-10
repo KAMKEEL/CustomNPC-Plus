@@ -39,9 +39,14 @@ public class CloneCommand extends CommandKamkeelBase {
         int tab = 0;
         try{
         	tab = Integer.parseInt(args[1]);
+            if(tab < 0 || tab > 15){
+                sendError(sender, "Tab must be within 1-15");
+                return;
+            }
         }
         catch(NumberFormatException ex){
-        	
+            sendError(sender, String.format("Tab is not a number: %s", args[1]));
+            return;
         }
 
         int x = sender.getPlayerCoordinates().posX;
@@ -58,6 +63,7 @@ public class CloneCommand extends CommandKamkeelBase {
     			if(!npc.writeToNBTOptional(compound))
     				return;
     			ServerCloneController.Instance.addClone(compound, name, tab);
+                sendResult(sender, String.format("Added NPC \u00A7e%s\u00A77 to Tab \u00A7b%d\u00A77", name, tab));
             }
         }
     }
@@ -71,11 +77,17 @@ public class CloneCommand extends CommandKamkeelBase {
         sendMessage(sender, "--- Stored NPCs --- (server side)");
         int tab = 0;
         try{
-        	tab = Integer.parseInt(args[0]);
+            tab = Integer.parseInt(args[1]);
+            if(tab < 0 || tab > 15){
+                sendError(sender, "Tab must be within 1-15");
+                return;
+            }
         }
         catch(NumberFormatException ex){
-        	
+            sendError(sender, String.format("Tab is not a number: %s", args[1]));
+            return;
         }
+
         for (String name : ServerCloneController.Instance.getClones(tab)) {
             sendMessage(sender, name);
         }
@@ -91,11 +103,17 @@ public class CloneCommand extends CommandKamkeelBase {
         String nametodel = args[0];
         int tab = 0;
         try{
-        	tab = Integer.parseInt(args[1]);
+            tab = Integer.parseInt(args[1]);
+            if(tab < 0 || tab > 15){
+                sendError(sender, String.format("Tab must be within 1-15"));
+                return;
+            }
         }
         catch(NumberFormatException ex){
-        	
+            sendError(sender, String.format("Tab is not a number: %s", args[1]));
+            return;
         }
+
         boolean deleted = false;
         for(String name : ServerCloneController.Instance.getClones(tab)){
         	if(nametodel.equalsIgnoreCase(name)){
@@ -105,7 +123,9 @@ public class CloneCommand extends CommandKamkeelBase {
         	}
         }      
         if (!ServerCloneController.Instance.removeClone(nametodel, tab)) {
-            throw new CommandException(String.format("Npc '%s' wasn't found", nametodel));
+            sendError(sender, String.format("NPC '%s' was not found", nametodel));
+        } else {
+            sendResult(sender, String.format("Removed NPC \u00A7e%s\u00A77 from Tab \u00A7b%d\u00A77", nametodel, tab));
         }
     }
 
@@ -119,14 +139,20 @@ public class CloneCommand extends CommandKamkeelBase {
         int tab = 0;
         try{
             tab = Integer.parseInt(args[1]);
+            if(tab < 0 || tab > 15){
+                sendError(sender, String.format("Tab must be within 1-15"));
+                return;
+            }
         }
         catch(NumberFormatException ex){
-
+            sendError(sender, String.format("Tab is not a number: %s", args[1]));
+            return;
         }
+
         String newname=null;
         NBTTagCompound compound = ServerCloneController.Instance.getCloneData(sender, name, tab);
         if(compound == null){
-            sendMessage(sender, "Unknown npc");
+            sendError(sender, "Unknown npc");
             return;
         }
         World world = sender.getEntityWorld();
@@ -142,14 +168,15 @@ public class CloneCommand extends CommandKamkeelBase {
                 location = par[1];
                 world = Utils.getWorld(par[0]);
                 if (world == null){
-                    throw new CommandException(String.format("'%s' is an unknown world", par[0]));
+                    sendError(sender, String.format("'%s' is an unknown world", par[0]));
+                    return;
                 }
             }
 
             if (location.contains(",")){
                 par = location.split(",");
                 if (par.length != 3){
-                    sendMessage(sender, "Location need be x,y,z");
+                    sendError(sender, "Location need be x,y,z");
                     return;
                 }
                 try{
@@ -157,7 +184,7 @@ public class CloneCommand extends CommandKamkeelBase {
                     posY = CommandBase.func_110665_a(sender, posY, par[1].trim(), 0, 0);
                     posZ = CommandBase.func_110666_a(sender, posZ, par[2]);
                 }  catch(NumberFormatException ex){
-                    sendMessage(sender, "Location should be in numbers");
+                    sendError(sender, "Location should be in numbers");
                     return;
                 }
                 if (args.length > 3){
@@ -169,7 +196,7 @@ public class CloneCommand extends CommandKamkeelBase {
         }
 
         if (posX == 0 && posY == 0 && posZ == 0){//incase it was called from the console and not pos was given
-            sendMessage(sender, "Location needed");
+            sendError(sender, "Location needed");
             return;
         }
 
@@ -194,9 +221,14 @@ public class CloneCommand extends CommandKamkeelBase {
         int tab = 0;
         try{
             tab = Integer.parseInt(args[1]);
+            if(tab < 0 || tab > 15){
+                sendError(sender, String.format("Tab must be within 1-15"));
+                return;
+            }
         }
         catch(NumberFormatException ex){
-
+            sendError(sender, String.format("Tab is not a number: %s", args[1]));
+            return;
         }
 
         int width, height;
@@ -205,7 +237,7 @@ public class CloneCommand extends CommandKamkeelBase {
             height = Integer.parseInt(args[3]);
         }
         catch(NumberFormatException ex){
-            sendMessage(sender, "length or width was not a number");
+            sendError(sender, "length or width was not a number");
             return;
         }
 
@@ -213,7 +245,7 @@ public class CloneCommand extends CommandKamkeelBase {
         String newname=null;
         NBTTagCompound compound = ServerCloneController.Instance.getCloneData(sender, name, tab);
         if(compound == null){
-            sendMessage(sender, "Unknown npc");
+            sendError(sender, "Unknown npc");
             return;
         }
         World world = sender.getEntityWorld();
@@ -229,14 +261,14 @@ public class CloneCommand extends CommandKamkeelBase {
                 location = par[1];
                 world = Utils.getWorld(par[0]);
                 if (world == null){
-                    throw new CommandException(String.format("'%s' is an unknown world", par[0]));
+                    sendError(sender, String.format("'%s' is an unknown world", par[0]));
                 }
             }
 
             if (location.contains(",")){
                 par = location.split(",");
                 if (par.length != 3){
-                    sendMessage(sender, "Location need be x,y,z");
+                    sendError(sender, "Location need be x,y,z");
                     return;
                 }
                 try{
@@ -244,7 +276,7 @@ public class CloneCommand extends CommandKamkeelBase {
                     posY = CommandBase.func_110665_a(sender, posY, par[1].trim(), 0, 0);
                     posZ = CommandBase.func_110666_a(sender, posZ, par[2]);
                 }  catch(NumberFormatException ex){
-                    sendMessage(sender, "Location should be in numbers");
+                    sendError(sender, "Location should be in numbers");
                     return;
                 }
                 if (args.length > 5){
@@ -256,7 +288,7 @@ public class CloneCommand extends CommandKamkeelBase {
         }
 
         if (posX == 0 && posY == 0 && posZ == 0){//incase it was called from the console and not pos was given
-            sendMessage(sender, "Location needed");
+            sendError(sender, "Location needed");
             return;
         }
 
