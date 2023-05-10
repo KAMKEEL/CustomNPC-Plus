@@ -23,8 +23,8 @@ import noppes.npcs.roles.RoleFollower;
 import org.apache.commons.lang3.ArrayUtils;
 
 public class NpcCommand extends CommandKamkeelBase {
-    
-    public EntityNPCInterface selectedNpc;
+
+	public EntityNPCInterface selectedNpc;
 
 
 	@Override
@@ -49,39 +49,40 @@ public class NpcCommand extends CommandKamkeelBase {
 
 	@Override
 	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        String npcname = args[0].replace("%", " ");
-        String command = args[1];
+		String npcname = args[0].replace("%", " ");
+		String command = args[1];
 		args = Arrays.copyOfRange(args, 2, args.length);
 		if(command.equalsIgnoreCase("create")){
 			args = ArrayUtils.add(args, 0, npcname);
-            processSubCommand(sender, command, args);
-    		return;
-    	}
+			processSubCommand(sender, command, args);
+			return;
+		}
 
 		int x = sender.getPlayerCoordinates().posX;
 		int y = sender.getPlayerCoordinates().posY;
 		int z = sender.getPlayerCoordinates().posZ;
 		List<EntityNPCInterface> list = getEntities(EntityNPCInterface.class, sender.getEntityWorld(), x, y, z, 80);
-        for (EntityNPCInterface npc : list) {
-            String name = npc.display.getName().replace(" ", "_");
-            if (name.equalsIgnoreCase(npcname)){
-            	if(selectedNpc == null || selectedNpc.getDistanceSq(x, y, z) > npc.getDistanceSq(x, y, z))
-            		selectedNpc = npc;
-            }
-        }
-        if(selectedNpc == null)
-        	throw new CommandException("Npc " + npcname + " was not found");
-        
-        processSubCommand(sender, command, args);
-        selectedNpc = null;
-        
+		for (EntityNPCInterface npc : list) {
+			String name = npc.display.getName().replace(" ", "_");
+			if (name.equalsIgnoreCase(npcname)){
+				if(selectedNpc == null || selectedNpc.getDistanceSq(x, y, z) > npc.getDistanceSq(x, y, z))
+					selectedNpc = npc;
+			}
+		}
+		if(selectedNpc == null){
+			sendError(sender, "Npc " + npcname + " was not found");
+			return;
+		}
+
+		processSubCommand(sender, command, args);
+		selectedNpc = null;
 	}
-	
-    @SubCommand(
-            desc = "Set Home (respawn place)",
-            usage = "[x] [y] [z]"
-    )
-    public void home(ICommandSender sender, String[] args) {
+
+	@SubCommand(
+			desc = "Set Home (respawn place)",
+			usage = "[x] [y] [z]"
+	)
+	public void home(ICommandSender sender, String[] args) {
 		double posX = sender.getPlayerCoordinates().posX;
 		double posY = sender.getPlayerCoordinates().posY;
 		double posZ = sender.getPlayerCoordinates().posZ;
@@ -93,13 +94,14 @@ public class NpcCommand extends CommandKamkeelBase {
 		}
 
 		selectedNpc.ai.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
-    }
-    
-    @SubCommand(
-            desc = "Set NPC visibility",
-            usage = "[true/false/semi]"
-    )
-    public void visible(ICommandSender sender, String[] args){
+		sendResult(sender, String.format("Set NPC \u00A7e%s\u00A77 Home to \u00A7b[%f] [%f] [%f]\u00A77", selectedNpc.display.name, posX, posY, posZ));
+	}
+
+	@SubCommand(
+			desc = "Set NPC visibility",
+			usage = "[true/false/semi]"
+	)
+	public void visible(ICommandSender sender, String[] args){
 		if(args.length < 1)
 			return;
 		boolean bo = args[0].equalsIgnoreCase("true");
@@ -113,74 +115,84 @@ public class NpcCommand extends CommandKamkeelBase {
 		else
 			selectedNpc.display.visible = 1;
 
+		String[] list = new String[]{"True", "False", "Semi"};
+
 		if(current != selectedNpc.display.visible)
 			selectedNpc.updateClient = true;
 
+		sendResult(sender, String.format("Set NPC \u00A7e%s\u00A77 Visibility to \u00A7b%s\u00A77", selectedNpc.display.name, list[selectedNpc.display.visible]));
 	}
-    
-    @SubCommand(desc = "Delete an NPC")
-    public void delete(ICommandSender sender, String[] args){
-    	selectedNpc.delete();
-    }
-    
-    @SubCommand(
-            desc = "Sets the owner of an follower/companion",
-            usage = "[player]"
-    )
-    public void owner(ICommandSender sender, String[] args){
-    	if(args.length < 1){
-    		EntityPlayer player = null;
-    		if(selectedNpc.roleInterface instanceof RoleFollower)
-    			player = ((RoleFollower)selectedNpc.roleInterface).owner;
-    		
-    		if(selectedNpc.roleInterface instanceof RoleCompanion)
-    			player = ((RoleCompanion)selectedNpc.roleInterface).owner;
-    		
-    		if(player == null)
-    			sendMessage(sender, "No owner");
-    		else
-    			sendMessage(sender, "Owner is: " + player.getDisplayName());
-    	}
-    	else{
-    		EntityPlayerMP player = null;
+
+	@SubCommand(desc = "Delete an NPC")
+	public void delete(ICommandSender sender, String[] args){
+		selectedNpc.delete();
+	}
+
+	@SubCommand(
+			desc = "Sets the owner of an follower/companion",
+			usage = "[player]"
+	)
+	public void owner(ICommandSender sender, String[] args){
+		if(args.length < 1){
+			EntityPlayer player = null;
+			if(selectedNpc.roleInterface instanceof RoleFollower)
+				player = ((RoleFollower)selectedNpc.roleInterface).owner;
+
+			if(selectedNpc.roleInterface instanceof RoleCompanion)
+				player = ((RoleCompanion)selectedNpc.roleInterface).owner;
+
+			if(player == null)
+				sendResult(sender, String.format("NPC \u00A7e%s\u00A77 Owner: \u00A7b%s\u00A77", selectedNpc.display.name, "NULL"));
+			else
+				sendResult(sender, String.format("NPC \u00A7e%s\u00A77 Owner: \u00A7b%s\u00A77", selectedNpc.display.name, player.getDisplayName()));
+		}
+		else{
+			EntityPlayerMP player = null;
 			try {
 				player = CommandBase.getPlayer(sender, args[0]);
 			} catch (PlayerNotFoundException e) {
-				
-			}
-    		if(selectedNpc.roleInterface instanceof RoleFollower)
-    			((RoleFollower)selectedNpc.roleInterface).setOwner(player);
-    		
-    		if(selectedNpc.roleInterface instanceof RoleCompanion)
-    			((RoleCompanion)selectedNpc.roleInterface).setOwner(player);
-    	}
-    }
 
-    
-    @SubCommand(
-            desc = "Set NPC name",
-            usage = "[name]"
-    )
-    public void name(ICommandSender sender, String[] args){
-    	if(args.length < 1)
-    		return;
-    	
-    	String name = args[0];
-    	for(int i = 1; i < args.length; i++){
-    		name += " " + args[i];
-    	}
-    	
-    	if(!selectedNpc.display.getName().equals(name)){
-        	selectedNpc.display.setName(name);
+			}
+			if(selectedNpc.roleInterface instanceof RoleFollower)
+				((RoleFollower)selectedNpc.roleInterface).setOwner(player);
+
+			if(selectedNpc.roleInterface instanceof RoleCompanion)
+				((RoleCompanion)selectedNpc.roleInterface).setOwner(player);
+
+			if(player == null)
+				sendResult(sender, String.format("NPC \u00A7e%s\u00A77 Owner: \u00A7b%s\u00A77", selectedNpc.display.name, "NULL"));
+			else
+				sendResult(sender, String.format("NPC \u00A7e%s\u00A77 Owner: \u00A7b%s\u00A77", selectedNpc.display.name, player.getDisplayName()));
+		}
+	}
+
+
+	@SubCommand(
+			desc = "Set NPC name",
+			usage = "[name]"
+	)
+	public void name(ICommandSender sender, String[] args){
+		if(args.length < 1)
+			return;
+
+		String name = args[0];
+		for(int i = 1; i < args.length; i++){
+			name += " " + args[i];
+		}
+
+		sendResult(sender, String.format("NPC \u00A7e%s\u00A77 Name set to \u00A7b%s\u00A77", selectedNpc.display.name, name));
+
+		if(!selectedNpc.display.getName().equals(name)){
+			selectedNpc.display.setName(name);
 			selectedNpc.updateClient = true;
-    	}
-    }
-    
-    @SubCommand(
-            desc = "Creates an NPC",
-            usage = "[name]"
-    )
-    public void create(ICommandSender sender, String[] args) {
+		}
+	}
+
+	@SubCommand(
+			desc = "Creates an NPC",
+			usage = "[name]"
+	)
+	public void create(ICommandSender sender, String[] args) {
 		EntityPlayerMP player = (EntityPlayerMP) sender;
 		World pw = player.getEntityWorld();
 		EntityCustomNpc npc = new EntityCustomNpc(pw);
@@ -191,10 +203,9 @@ public class NpcCommand extends CommandKamkeelBase {
 		pw.spawnEntityInWorld(npc);
 		npc.setHealth(npc.getMaxHealth());
 		NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, npc);
-    }
-    
-    
-    @Override
+	}
+
+	@Override
 	public List addTabCompletionOptions(ICommandSender par1, String[] args) {
 		if(args.length == 2){
 			return CommandBase.getListOfStringsMatchingLastWord(args, new String[]{"create", "home", "visible", "delete", "owner", "name"});
@@ -204,14 +215,14 @@ public class NpcCommand extends CommandKamkeelBase {
 		}
 
 		return null;
-    }
+	}
 
-    @Override
-    public int getRequiredPermissionLevel(){
-        return 4;
-    }
+	@Override
+	public int getRequiredPermissionLevel(){
+		return 4;
+	}
 
-    public <T extends Entity> List<T> getEntities(Class<? extends T> cls, World world, int x, int y, int z, int range) {
+	public <T extends Entity> List<T> getEntities(Class<? extends T> cls, World world, int x, int y, int z, int range) {
 		AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1).expand(range, range, range);
 		List<T> list = world.getEntitiesWithinAABB(cls, bb);
 		return list;
