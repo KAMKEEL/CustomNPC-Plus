@@ -72,7 +72,12 @@ public class GuiRecipes extends GuiNPCInterface
 		}
 		List<IRecipe> list = new ArrayList<IRecipe>();
 		for(IRecipe recipe : RecipeController.instance.anvilRecipes.values()){
-			// System.out.println(recipe.getRecipeOutput().getDisplayName());
+			if(recipe.getRecipeOutput() == null)
+				continue;
+
+			if(recipe.getRecipeOutput().getDisplayName() == null)
+				continue;
+
 			if(recipe.getRecipeOutput().getDisplayName().toLowerCase().contains(search.toLowerCase()))
 				list.add(recipe);
 		}
