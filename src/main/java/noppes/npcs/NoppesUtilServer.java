@@ -799,35 +799,21 @@ public class NoppesUtilServer {
 		long minutes = seconds / 60;
 		long hours = minutes / 60;
 		long days = hours / 24;
-		long months = days / 30;
-		long years = months / 12;
-
-		months = months % 12;
-		days = days % 30;
-		hours = hours % 24;
-		minutes = minutes % 60;
-		seconds = seconds % 60;
+		seconds %= 60;
+		minutes %= 60;
+		hours %= 24;
 
 		StringBuilder sb = new StringBuilder();
-		if (years > 0) {
-			sb.append(years + " year(s) ");
-		}
-		if (months > 0) {
-			sb.append(months + " month(s) ");
-		}
 		if (days > 0) {
-			sb.append(days + " day(s) ");
+			sb.append(days).append(" day").append(days == 1 ? "" : "s").append(", ");
 		}
 		if (hours > 0) {
-			sb.append(hours + " hour(s) ");
+			sb.append(hours).append(" hour").append(hours == 1 ? "" : "s").append(", ");
 		}
 		if (minutes > 0) {
-			sb.append(minutes + " minute(s) ");
+			sb.append(minutes).append(" minute").append(minutes == 1 ? "" : "s").append(", ");
 		}
-		if (seconds > 0) {
-			sb.append(seconds + " second(s)");
-		}
-
+		sb.append(seconds).append(" second").append(seconds == 1 ? "" : "s");
 		return sb.toString();
 	}
 }

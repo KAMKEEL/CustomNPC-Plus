@@ -148,11 +148,11 @@ public class Quest implements ICompatibilty, IQuest {
 
 		switch (repeat) {
 			case MCDAILY:
-				return Math.max(0, questTime + 24000 - player.worldObj.getTotalWorldTime());
+				return Math.max(0, (questTime + 24000 - player.worldObj.getTotalWorldTime()) * 50);
 			case MCWEEKLY:
-				return Math.max(0, questTime + 168000 - player.worldObj.getTotalWorldTime());
+				return Math.max(0, (questTime + 168000 - player.worldObj.getTotalWorldTime()) * 50);
 			case RLDAILY:
-				return Math.max(0, questTime + 86400000 - System.currentTimeMillis());
+				return Math.max(0, questTime + 86400000  - System.currentTimeMillis());
 			case RLWEEKLY:
 				return Math.max(0, questTime + 604800000 - System.currentTimeMillis());
 		}
