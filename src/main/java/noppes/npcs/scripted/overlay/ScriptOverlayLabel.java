@@ -9,6 +9,7 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
     int height;
     float scale;
     boolean shadow;
+    boolean normalStyle = false;
 
     public ScriptOverlayLabel() {
         this.color = 16777215;
@@ -69,6 +70,15 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
     public void setShadow(boolean shadow){
         this.shadow = shadow;
     }
+    
+    public boolean getNormalStyle(){
+        return this.normalStyle;
+    }
+
+    public IOverlayLabel setNormalStyle(boolean normalStyle){
+        this.normalStyle = normalStyle;
+        return this;
+    }
 
     @Override
     public int getType() {
@@ -81,6 +91,7 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         nbt.setIntArray("size", new int[]{this.width, this.height});
         nbt.setFloat("scale", this.scale);
         nbt.setBoolean("shadow",this.shadow);
+        nbt.setBoolean("normalStyle", this.normalStyle);
         return nbt;
     }
 
@@ -90,6 +101,7 @@ public class ScriptOverlayLabel extends ScriptOverlayComponent implements IOverl
         this.setSize(nbt.getIntArray("size")[0], nbt.getIntArray("size")[1]);
         this.setScale(nbt.getFloat("scale"));
         this.setShadow(nbt.getBoolean("shadow"));
+        this.setNormalStyle(nbt.getBoolean("normalStyle"));
         return this;
     }
 }
