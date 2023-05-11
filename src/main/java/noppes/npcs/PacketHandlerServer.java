@@ -192,14 +192,18 @@ public class PacketHandlerServer{
 		}
 
 		String trackedQuestString = Server.readString(buffer);
+		Quest prevTracked = (Quest) playerData.questData.trackedQuest;
 		Quest trackedQuest = this.getQuestFromString(trackedQuestString);
 		if (trackedQuest != null) {
 			playerData.questData.trackedQuest = trackedQuest;
 			NoppesUtilPlayer.sendTrackedQuestData(player, trackedQuest);
+			if (prevTracked != playerData.questData.trackedQuest) {
+				NoppesUtilPlayer.sendTrackedQuestData(player, (Quest) playerData.questData.trackedQuest);
+			}
+		} else {
+			playerData.questData.trackedQuest = null;
+			Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
 		}
-
-		playerData.questData.trackedQuest = null;
-		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
 	}
 
 	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {

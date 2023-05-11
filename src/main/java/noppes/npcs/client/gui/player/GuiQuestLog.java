@@ -20,10 +20,7 @@ import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabQuests;
 import tconstruct.client.tabs.TabRegistry;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,ICustomScrollListener, IGuiData{
 
@@ -35,6 +32,9 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 	private QuestLogData data = new QuestLogData();
 	private boolean noQuests = false;
 	private boolean questDetails = true;
+
+    private HashMap<String,String> questAlertsOnOpen;
+    private String trackedQuestKeyOnOpen;
 
 	private Minecraft mc = Minecraft.getMinecraft();
 
@@ -245,6 +245,8 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 		QuestLogData data = new QuestLogData();
 		data.readNBT(compound);
 		this.data = data;
+        this.questAlertsOnOpen = new HashMap<>(data.questAlerts);
+        this.trackedQuestKeyOnOpen = data.trackedQuestKey;
 		initGui();
 	}
 
@@ -256,7 +258,9 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 
     @Override
 	public void save() {
-        if (this.data != null) {
+        if (this.data != null &&
+                (!Objects.equals(this.questAlertsOnOpen, data.questAlerts) ||
+                !Objects.equals(this.trackedQuestKeyOnOpen, data.trackedQuestKey))) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Alerts", NBTTags.nbtStringStringMap(data.questAlerts));
             Client.sendData(EnumPacketServer.QuestLogToServer, compound, this.data.trackedQuestKey);
