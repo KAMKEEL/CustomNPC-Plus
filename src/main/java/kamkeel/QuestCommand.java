@@ -59,7 +59,7 @@ public class QuestCommand extends CommandKamkeelBase {
 	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
             playerdata.savePlayerDataOnFile();
-            if(playerdata.player != null){
+            if(playerdata.player != null && questdata.sendAlerts){
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
             }
