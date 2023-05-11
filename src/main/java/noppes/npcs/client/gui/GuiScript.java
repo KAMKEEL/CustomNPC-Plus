@@ -78,7 +78,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			hooks.selected = activeTab;
 			addScroll(hooks);
 
-			ScriptContainer container = script.scripts.get(activeTab);
+			ScriptContainer container = script.getNPCScript(activeTab);
 
 			addTextField(new GuiNpcTextArea(2, this, guiLeft + 74, guiTop + 4, 239, 208, container == null?"":container.script));
 
@@ -185,11 +185,11 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			getTextField(2).setText("");
 			if(!showScript){
 				if(activeConsole == 0){
-					for(ScriptContainer container : script.scripts)
+					for(ScriptContainer container : script.getNPCScripts())
 						container.console.clear();
 				}
 				else{
-					ScriptContainer container = script.scripts.get(activeConsole - 1);
+					ScriptContainer container = script.getNPCScript(activeConsole - 1);
 					if(container != null)
 						container.console.clear();
 				}
@@ -209,13 +209,13 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			NoppesUtil.openFolder(ScriptController.Instance.dir);
 		}
 		if (guibutton.id == 107) {
-			ScriptContainer container = script.scripts.get(activeTab);
+			ScriptContainer container = script.getNPCScript(activeTab);
 			if(container == null)
-				script.scripts.set(activeTab, container = new ScriptContainer(this.script));
+				script.setNPCScript(activeTab, container = new ScriptContainer(this.script));
 			setSubGui(new GuiScriptList(languages.get(script.scriptLanguage), container));
 		}
 		if (guibutton.id == 108) {
-			ScriptContainer container = script.scripts.get(activeTab);
+			ScriptContainer container = script.getNPCScript(activeTab);
 			if(container != null){
 				setScript();
 				this.AWTWindow = new GuiJTextArea(container.script).setListener(this);
@@ -225,9 +225,9 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
 	private void setScript(){
 		if(showScript){
-			ScriptContainer container = script.scripts.get(activeTab);
+			ScriptContainer container = script.getNPCScript(activeTab);
 			if(container == null)
-				script.scripts.set(activeTab, container = new ScriptContainer(this.script));
+				script.setNPCScript(activeTab, container = new ScriptContainer(this.script));
 			String text = getTextField(2).getText();
 			text = text.replace("\r\n", "\n");
 			text = text.replace("\r", "\n");
@@ -270,7 +270,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
 	@Override
 	public void saveText(String text) {
-		ScriptContainer container = script.scripts.get(activeTab);
+		ScriptContainer container = script.getNPCScript(activeTab);
 		if(container != null)
 			container.script = text;
 		initGui();

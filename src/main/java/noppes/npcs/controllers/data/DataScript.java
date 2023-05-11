@@ -30,9 +30,9 @@ import javax.script.ScriptEngine;
 import java.util.*;
 
 public class DataScript implements IScriptHandler {
-	public List<ScriptContainer> eventScripts = new ArrayList();
+	public List<ScriptContainer> eventScripts = new ArrayList<>();
 
-	public List<ScriptContainer> scripts = new ArrayList();
+	private HashMap<EnumScriptType,ScriptContainer> scripts = new HashMap<>();
 	private final static EntityType entities = new EntityType();
 	private final static JobType jobs = new JobType();
 	private final static RoleType roles = new RoleType();
@@ -49,7 +49,7 @@ public class DataScript implements IScriptHandler {
 
 	public DataScript(EntityNPCInterface npc) {
 		for (int i = 0; i < 15; i++) {
-			scripts.add(new ScriptContainer(this));
+			this.setNPCScript(i, new ScriptContainer(this));
 		}
 
 		this.npc = npc;
@@ -94,30 +94,30 @@ public class DataScript implements IScriptHandler {
 		return compound;
 	}
 
-	private List<ScriptContainer> readScript(NBTTagList list){
-		List<ScriptContainer> scripts = new ArrayList<>();
+	private HashMap<EnumScriptType,ScriptContainer> readScript(NBTTagList list){
+		HashMap<EnumScriptType,ScriptContainer> scripts = new HashMap<>();
 		for (int i = 0; i < 15; i++) {
-			scripts.add(new ScriptContainer(this));
+			scripts.put(EnumScriptType.values()[i], new ScriptContainer(this));
 		}
 
 		for(int i = 0; i < list.tagCount(); i++){
 			NBTTagCompound compoundd = list.getCompoundTagAt(i);
 			ScriptContainer script = new ScriptContainer(this);
 			script.readFromNBT(compoundd);
-			if(script.hasCode() || npc.isRemote())
-				scripts.set(compoundd.getInteger("Type"), script);
+			if (script.hasCode() || npc.isRemote()) {
+				scripts.put(EnumScriptType.values()[compoundd.getInteger("Type")], script);
+			}
 		}
 		return scripts;
 	}
 
-	private NBTTagList writeScript(List<ScriptContainer> scripts){
+	private NBTTagList writeScript(HashMap<EnumScriptType,ScriptContainer> scripts){
 		NBTTagList list = new NBTTagList();
-		for(int type = 0; type < scripts.size(); type++){
-			NBTTagCompound compoundd = new NBTTagCompound();
-			compoundd.setInteger("Type", type);
-			ScriptContainer script = scripts.get(type);
-			script.writeToNBT(compoundd);
-			list.appendTag(compoundd);
+		for (Map.Entry<EnumScriptType,ScriptContainer> entry : scripts.entrySet()) {
+			NBTTagCompound tagCompound = new NBTTagCompound();
+			tagCompound.setInteger("Type", entry.getKey().ordinal());
+			entry.getValue().writeToNBT(tagCompound);
+			list.appendTag(tagCompound);
 		}
 		return list;
 	}
@@ -146,7 +146,7 @@ public class DataScript implements IScriptHandler {
 			script.run(type, event);
 		}
 
-		ScriptContainer script = scripts.get(type.ordinal());
+		ScriptContainer script = scripts.get(type);
 		if(script == null || script.errored || !script.hasCode())
 			return false;
 		script.setEngine(scriptLanguage);
@@ -198,18 +198,11 @@ public class DataScript implements IScriptHandler {
 	}
 
 	public Map<Long, String> getOldConsoleText() {
-		Map<Long, String> map = new TreeMap();
-		int tab = 0;
-		Iterator var3 = this.scripts.iterator();
+		Map<Long, String> map = new TreeMap<>();
 
-		while(var3.hasNext()) {
-			ScriptContainer script = (ScriptContainer)var3.next();
-			++tab;
-			Iterator var5 = script.console.entrySet().iterator();
-
-			while(var5.hasNext()) {
-				Map.Entry<Long, String> entry = (Map.Entry)var5.next();
-				map.put(entry.getKey(), " tab " + tab + ":\n" + (String)entry.getValue());
+		for (Map.Entry<EnumScriptType,ScriptContainer> entry : scripts.entrySet()) {
+			for (Map.Entry<Long,String> consoleEntry : entry.getValue().console.entrySet()) {
+				map.put(consoleEntry.getKey(), " tab " + entry.getKey().ordinal() + ":\n" + consoleEntry.getValue());
 			}
 		}
 
@@ -261,7 +254,7 @@ public class DataScript implements IScriptHandler {
 	}
 
 	public void setScripts(List<ScriptContainer> list) {
-		this.scripts = list;
+		this.eventScripts = list;
 	}
 
 	public List<ScriptContainer> getScripts() {
@@ -279,4 +272,23 @@ public class DataScript implements IScriptHandler {
 			dummyWorld = new ScriptWorld((WorldServer) world);
 	}
 
+	public ScriptContainer getNPCScript(EnumScriptType scriptType) {
+		return this.scripts.get(scriptType);
+	}
+
+	public ScriptContainer getNPCScript(int ordinal) {
+		return this.getNPCScript(EnumScriptType.values()[ordinal]);
+	}
+
+	public void setNPCScript(EnumScriptType scriptType, ScriptContainer container) {
+		this.scripts.put(scriptType, container);
+	}
+
+	public void setNPCScript(int ordinal, ScriptContainer container) {
+		this.setNPCScript(EnumScriptType.values()[ordinal], container);
+	}
+
+	public Collection<ScriptContainer> getNPCScripts() {
+		return this.scripts.values();
+	}
 }
