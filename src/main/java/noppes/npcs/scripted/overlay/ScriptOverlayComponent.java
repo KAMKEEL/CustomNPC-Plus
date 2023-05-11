@@ -85,7 +85,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
 
     public ICustomOverlayComponent setCenterPoint(boolean centerPoint) {
         this.centerPoint = centerPoint;
-		return this;
+	return this;
     }
 
     public abstract int getType();
