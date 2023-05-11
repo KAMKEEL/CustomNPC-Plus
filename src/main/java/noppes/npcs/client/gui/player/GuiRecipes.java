@@ -78,6 +78,9 @@ public class GuiRecipes extends GuiNPCInterface
 			if(recipe.getRecipeOutput().getDisplayName() == null)
 				continue;
 
+			if(recipe.getRecipeOutput().getDisplayName().trim().equals(""))
+				continue;
+
 			if(recipe.getRecipeOutput().getDisplayName().toLowerCase().contains(search.toLowerCase()))
 				list.add(recipe);
 		}
