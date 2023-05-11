@@ -254,8 +254,6 @@ public class ServerCloneController implements ICloneHandler {
 		nbttagcompound.removeTag("MovingPathNew");
 		nbttagcompound.removeTag("Pos");
 		nbttagcompound.removeTag("Riding");
-		nbttagcompound.removeTag("UUIDMost");
-		nbttagcompound.removeTag("UUIDLeast");
 
 		if(!nbttagcompound.hasKey("ModRev"))
 			nbttagcompound.setInteger("ModRev", 1);
