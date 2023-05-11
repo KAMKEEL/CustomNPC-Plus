@@ -32,6 +32,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
     int textureX;
     int textureY;
     float scale;
+    boolean centerPoint = false;
 
     int color;
     float alpha;
@@ -97,8 +98,12 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
             float green = (color >> 8  & 255) / 255f;
             float blue = (color & 255) / 255f;
 
-            GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);
-            GL11.glTranslatef( this.x - u1 * totalWidth, this.y - v1 * totalHeight,(float)this.id);
+            if(!centerPoint) {
+            	GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);
+            	GL11.glTranslatef( this.x - u1 * totalWidth, this.y - v1 * totalHeight,(float)this.id);
+            } else {
+            	GL11.glTranslatef(OverlayCustom.scaledWidth / 2 - this.x - u1 * totalWidth, OverlayCustom.scaledHeight - this.y - v1 * totalHeight,(float)this.id);
+            }
 
             GL11.glScalef(this.scale, this.scale, this.scale);
 
@@ -123,6 +128,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
         component.setAlpha(alpha);
         component.setColor(color);
         component.setRotation(rotation);
+        component.setCenterPoint(centerPoint);
         return component;
     }
 
@@ -139,6 +145,7 @@ public class CustomOverlayTexturedRect extends Gui implements IOverlayComponent 
         rect.alpha = component.getAlpha();
         rect.color = component.getColor();
         rect.rotation = component.getRotation();
+        rect.centerPoint = component.getCenterPoint();
 
         return rect;
     }
