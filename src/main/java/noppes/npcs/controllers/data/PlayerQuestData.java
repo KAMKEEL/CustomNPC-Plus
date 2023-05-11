@@ -11,6 +11,7 @@ import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
@@ -164,7 +165,11 @@ public class PlayerQuestData implements IPlayerQuestData {
 		Quest quest = QuestController.instance.quests.get(id);
 		if (quest == null)
 			return;
-		finishedQuests.put(id, System.currentTimeMillis());
+
+		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
+			finishedQuests.put(quest.id, System.currentTimeMillis());
+		else
+			finishedQuests.put(quest.id, parent.player.worldObj.getTotalWorldTime());
 	}
 
 	public void stopQuest(int id) {

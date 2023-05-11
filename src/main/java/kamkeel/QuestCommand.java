@@ -5,8 +5,10 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
@@ -95,8 +97,12 @@ public class QuestCommand extends CommandKamkeelBase {
             if(playerdata.questData.activeQuests.containsKey(questid)){
                 playerdata.questData.activeQuests.remove(questid);
             }
-            
-	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());
+
+            if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
+                playerdata.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
+            else
+                playerdata.questData.finishedQuests.put(quest.id, sender.getEntityWorld().getTotalWorldTime());
+
             playerdata.savePlayerDataOnFile();
             if(playerdata.player != null){
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
