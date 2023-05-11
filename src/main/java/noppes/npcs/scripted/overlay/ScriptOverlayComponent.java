@@ -11,6 +11,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
     int color = 0xFFFFFF;
     float alpha = 1.0F;
     float rotation = 0;
+    boolean centerPoint = false;
     /*  ========ALIGNMENTS========
         0           1           2
 
@@ -77,6 +78,15 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
     public void setRotation(float rotation) {
         this.rotation = rotation;
     }
+    
+    public boolean getCenterPoint(){
+        return this.centerPoint;
+    }
+
+    public ICustomOverlayComponent setCenterPoint(boolean centerPoint) {
+        this.centerPoint = centerPoint;
+		return this;
+    }
 
     public abstract int getType();
 
@@ -87,8 +97,8 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         nbt.setInteger("color", this.color);
         nbt.setFloat("alpha",this.alpha);
         nbt.setFloat("rotation",this.rotation);
-
         nbt.setInteger("type", this.getType());
+        nbt.setBoolean("centerPoint", this.centerPoint);
         return nbt;
     }
 
@@ -99,7 +109,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         this.setColor(nbt.getInteger("color"));
         this.setAlpha(nbt.getFloat("alpha"));
         this.setRotation(nbt.getInteger("rotation"));
-
+        this.setCenterPoint(nbt.getBoolean("centerPoint"));
         return this;
     }
 
