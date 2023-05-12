@@ -131,18 +131,16 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 	}
 
 	public IQuestObjective[] getObjectives(EntityPlayer player) {
-		List<IQuestObjective> list = new ArrayList();
+		List<IQuestObjective> list = new ArrayList<>();
 		List<ItemStack> questItems = NoppesUtilPlayer.countStacks(this.items, this.ignoreDamage, this.ignoreNBT);
-		Iterator var4 = questItems.iterator();
 
-		while(var4.hasNext()) {
-			ItemStack stack = (ItemStack)var4.next();
+		for (ItemStack stack : questItems) {
 			if (stack.stackSize > 0) {
-				list.add(new noppes.npcs.quests.QuestItem.QuestItemObjective(this, player, stack));
+				list.add(new QuestItemObjective(this, player, stack));
 			}
 		}
 
-		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+		return list.toArray(new IQuestObjective[0]);
 	}
 
 	public void setLeaveItems(boolean leaveItems){

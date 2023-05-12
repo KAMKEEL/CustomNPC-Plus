@@ -146,7 +146,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 	}
 
 	public void trackQuest(IQuest quest) {
-		if (quest.getId() != this.trackedQuest.getId()) {
+		if (this.trackedQuest == null || quest.getId() != this.trackedQuest.getId()) {
 			this.trackedQuest = quest;
 			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) this.parent.player, (Quest) this.trackedQuest);
 		}
