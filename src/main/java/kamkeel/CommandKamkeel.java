@@ -11,7 +11,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.scripted.CustomNPCsException;
 
 public class CommandKamkeel extends CommandBase{
@@ -61,7 +64,7 @@ public class CommandKamkeel extends CommandBase{
 		
 		args = Arrays.copyOfRange(args, 1, args.length);
 		if(command.subcommands.isEmpty() || !command.runSubCommands()){
-			if(!sender.canCommandSenderUseCommand(command.getRequiredPermissionLevel(), getCommandPermission(command.getCommandName())))
+			if(!canSendCommand(sender, command))
 				throw new CommandException("You are not allowed to use this command: " + command);
 			command.canRun(sender, command.getUsage(), args);
 			command.processCommand(sender, args);
@@ -116,6 +119,26 @@ public class CommandKamkeel extends CommandBase{
 
 	public static String getCommandPermission(String command){
 		return "cnpc.kamkeel." + command.toLowerCase();
+	}
+
+	public static String getUniversalPermission(){
+		return "cnpc.kamkeel.*";
+	}
+
+	public static boolean canSendCommand(ICommandSender sender, CommandKamkeelBase command){
+		if(sender.canCommandSenderUseCommand(command.getRequiredPermissionLevel(), getUniversalPermission())){
+			return true;
+		}
+
+		if(sender.canCommandSenderUseCommand(command.getRequiredPermissionLevel(), getCommandPermission(command.getCommandName()))){
+			return true;
+		}
+
+		if(sender instanceof EntityPlayer){
+			return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getCommandPermission(command.getCommandName()));
+		}
+
+		return false;
 	}
 }
 

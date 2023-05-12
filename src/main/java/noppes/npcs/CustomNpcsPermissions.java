@@ -80,6 +80,13 @@ public class CustomNpcsPermissions{
 		return true;
 	}
 
+	public static boolean hasCustomPermission(EntityPlayer player, String permission){
+		if(Instance.bukkit != null){
+			return Instance.bukkitPermission(player.getCommandSenderName(), permission);
+		}
+		return false;
+	}
+
 	private boolean bukkitPermission(String username, String permission) {
 		try {
 			Object player = getPlayer.invoke(null, username);
