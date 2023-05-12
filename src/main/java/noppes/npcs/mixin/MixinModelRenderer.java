@@ -1,7 +1,9 @@
 package noppes.npcs.mixin;
 
+import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import noppes.npcs.AnimationData;
@@ -37,6 +39,8 @@ public abstract class MixinModelRenderer {
     @Shadow private int displayList;
     @Shadow public List childModels;
     @Shadow abstract void compileDisplayList(float p_78788_1_);
+
+    @Shadow public ModelBase baseModel;
 
     /**
      * @author Someone
@@ -274,30 +278,32 @@ public abstract class MixinModelRenderer {
     }
 
     public EnumAnimationPart pivotEqualPart(ModelRenderer renderer) {
-        ModelRenderer head = ((ModelBiped) renderer.baseModel).bipedHead;
-        ModelRenderer body = ((ModelBiped) renderer.baseModel).bipedBody;
-        ModelRenderer larm = ((ModelBiped) renderer.baseModel).bipedLeftArm;
-        ModelRenderer rarm = ((ModelBiped) renderer.baseModel).bipedRightArm;
-        ModelRenderer lleg = ((ModelBiped) renderer.baseModel).bipedLeftLeg;
-        ModelRenderer rleg = ((ModelBiped) renderer.baseModel).bipedRightLeg;
+        if(renderer.baseModel instanceof ModelBiped){
+            ModelRenderer head = ((ModelBiped) renderer.baseModel).bipedHead;
+            ModelRenderer body = ((ModelBiped) renderer.baseModel).bipedBody;
+            ModelRenderer larm = ((ModelBiped) renderer.baseModel).bipedLeftArm;
+            ModelRenderer rarm = ((ModelBiped) renderer.baseModel).bipedRightArm;
+            ModelRenderer lleg = ((ModelBiped) renderer.baseModel).bipedLeftLeg;
+            ModelRenderer rleg = ((ModelBiped) renderer.baseModel).bipedRightLeg;
 
-        if (pivotsEqual(renderer,head)) {
-            return EnumAnimationPart.HEAD;
-        }
-        if (pivotsEqual(renderer,body)) {
-            return EnumAnimationPart.BODY;
-        }
-        if (pivotsEqual(renderer,rarm)) {
-            return EnumAnimationPart.RIGHT_ARM;
-        }
-        if (pivotsEqual(renderer,larm)) {
-            return EnumAnimationPart.LEFT_ARM;
-        }
-        if (pivotsEqual(renderer,rleg)) {
-            return EnumAnimationPart.RIGHT_LEG;
-        }
-        if (pivotsEqual(renderer,lleg)) {
-            return EnumAnimationPart.LEFT_LEG;
+            if (pivotsEqual(renderer,head)) {
+                return EnumAnimationPart.HEAD;
+            }
+            if (pivotsEqual(renderer,body)) {
+                return EnumAnimationPart.BODY;
+            }
+            if (pivotsEqual(renderer,rarm)) {
+                return EnumAnimationPart.RIGHT_ARM;
+            }
+            if (pivotsEqual(renderer,larm)) {
+                return EnumAnimationPart.LEFT_ARM;
+            }
+            if (pivotsEqual(renderer,rleg)) {
+                return EnumAnimationPart.RIGHT_LEG;
+            }
+            if (pivotsEqual(renderer,lleg)) {
+                return EnumAnimationPart.LEFT_LEG;
+            }
         }
 
         return null;
