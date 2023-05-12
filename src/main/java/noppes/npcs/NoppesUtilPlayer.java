@@ -32,10 +32,7 @@ import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class NoppesUtilPlayer {
 
@@ -300,8 +297,52 @@ public class NoppesUtilPlayer {
     	else
 			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
 	}
+
+	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
+		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+
+		NBTTagCompound compound = Server.readNBT(buffer);
+		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
+		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
+			Quest quest = getQuestFromStringKey(entry.getKey());
+			if (quest != null) {
+				playerData.questData.activeQuests.get(quest.id).sendAlerts = Boolean.parseBoolean(entry.getValue());
+			}
+		}
+
+		String trackedQuestString = Server.readString(buffer);
+		Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
+		if (trackedQuest != null) {
+			playerData.questData.trackQuest(trackedQuest);
+		} else {
+			playerData.questData.untrackQuest();
+		}
+	}
+
+	private static Quest getQuestFromStringKey(String string) {
+		if (string != null && string.contains(":")) {
+			String[] splitString = string.split(":");
+			if(splitString.length < 2){
+				return null;
+			}
+			String categoryName = splitString[0];
+			String questName = splitString[1];
+
+			for (QuestCategory category : QuestController.instance.categories.values()) {
+				if (category.title.equals(categoryName)) {
+					for (Quest quest : category.quests.values()) {
+						if (quest.title.equals(questName)) {
+							return quest;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	public static void sendTrackedQuestData(EntityPlayerMP player, Quest trackedQuest) {
-		Quest quest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.trackedQuest;
+		Quest quest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.getTrackedQuest();
 		if (quest == null || trackedQuest == null || quest.id != trackedQuest.id) {
 			return;
 		}
@@ -398,7 +439,7 @@ public class NoppesUtilPlayer {
 			QuestData nextQuest = new QuestData(data.quest.getNextQuest());
 			nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
 			PlayerQuestController.addActiveQuest(nextQuest, player);
-			NoppesUtilPlayer.sendTrackedQuestData(player,nextQuest.quest);
+			questData.trackQuest(nextQuest.quest);
 		}
 
 		return true;

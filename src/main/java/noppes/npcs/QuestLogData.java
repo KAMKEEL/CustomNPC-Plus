@@ -57,8 +57,8 @@ public class QuestLogData {
     		if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData))
     			finish.put(category + ":" + quest.title, quest.completerNpc);
 
-			if (playerData.questData.trackedQuest != null) {
-				if (quest.id == playerData.questData.trackedQuest.getId()) {
+			if (playerData.questData.getTrackedQuest() != null) {
+				if (quest.id == playerData.questData.getTrackedQuest().getId()) {
 					trackedQuestKey = category + ":" + quest.title;
 				}
 			}

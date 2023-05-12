@@ -25,7 +25,7 @@ import java.util.List;
 
 public class PlayerQuestData implements IPlayerQuestData {
 	private final PlayerData parent;
-	public IQuest trackedQuest = null;
+	private IQuest trackedQuest = null;
 
 	public HashMap<Integer,QuestData> activeQuests = new HashMap<Integer,QuestData>();
 	public HashMap<Integer,Long> finishedQuests = new HashMap<Integer,Long>();
@@ -145,8 +145,20 @@ public class PlayerQuestData implements IPlayerQuestData {
 		
 	}
 
+	public void trackQuest(IQuest quest) {
+		if (quest.getId() != this.trackedQuest.getId()) {
+			this.trackedQuest = quest;
+			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) this.parent.player, (Quest) this.trackedQuest);
+		}
+	}
+
+	public void untrackQuest() {
+		this.trackedQuest = null;
+		Server.sendData((EntityPlayerMP) this.parent.player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+	}
+
 	public IQuest getTrackedQuest() {
-		return trackedQuest;
+		return this.trackedQuest;
 	}
 
 	public void startQuest(int id) {

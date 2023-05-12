@@ -88,7 +88,7 @@ public class PacketHandlerServer{
 				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
 				return;
 			} else if (type == EnumPacketServer.QuestLogToServer) {
-				updateQuestLogData(buffer, player);
+				NoppesUtilPlayer.updateQuestLogData(buffer, player);
 				return;
 			} else if(type == EnumPacketServer.DimensionsGet){
 				HashMap<String,Integer> map = new HashMap<String,Integer>();
@@ -154,55 +154,6 @@ public class PacketHandlerServer{
 			}
 		} catch (Exception e) {
 			LogWriter.error("Error with EnumPacketServer." + type, e);
-		}
-	}
-
-	private Quest getQuestFromString(String string) {
-		if (string != null && string.contains(":")) {
-			String[] splitString = string.split(":");
-			if(splitString.length < 2){
-				return null;
-			}
-			String categoryName = splitString[0];
-			String questName = splitString[1];
-
-			for (QuestCategory category : QuestController.instance.categories.values()) {
-				if (category.title.equals(categoryName)) {
-					for (Quest quest : category.quests.values()) {
-						if (quest.title.equals(questName)) {
-							return quest;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	private void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-
-		NBTTagCompound compound = Server.readNBT(buffer);
-		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
-		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
-			Quest quest = this.getQuestFromString(entry.getKey());
-			if (quest != null) {
-				playerData.questData.activeQuests.get(quest.id).sendAlerts = Boolean.parseBoolean(entry.getValue());
-			}
-		}
-
-		String trackedQuestString = Server.readString(buffer);
-		Quest prevTracked = (Quest) playerData.questData.trackedQuest;
-		Quest trackedQuest = this.getQuestFromString(trackedQuestString);
-		if (trackedQuest != null) {
-			playerData.questData.trackedQuest = trackedQuest;
-			NoppesUtilPlayer.sendTrackedQuestData(player, trackedQuest);
-			if (prevTracked != playerData.questData.trackedQuest) {
-				NoppesUtilPlayer.sendTrackedQuestData(player, (Quest) playerData.questData.trackedQuest);
-			}
-		} else {
-			playerData.questData.trackedQuest = null;
-			Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
 		}
 	}
 
