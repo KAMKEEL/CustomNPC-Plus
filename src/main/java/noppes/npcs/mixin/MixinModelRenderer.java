@@ -112,7 +112,7 @@ public abstract class MixinModelRenderer {
                 }
                 if (ClientEventHandler.renderingPlayer != null && Client.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
                     animData = Client.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
-                    EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
+                    EnumAnimationPart mainPartType = null;
                     EnumAnimationPart pivotEqualPart = null;
                     if (mainPartType == null) {
                         pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
@@ -161,7 +161,9 @@ public abstract class MixinModelRenderer {
                         {
                             for (i = 0; i < this.childModels.size(); ++i)
                             {
-                                ((ModelRenderer)this.childModels.get(i)).render(p_78785_1_);
+                                if(this.childModels.get(i) instanceof ModelRenderer){
+                                    ((ModelRenderer)this.childModels.get(i)).render(p_78785_1_);
+                                }
                             }
                         }
                     }
@@ -174,7 +176,9 @@ public abstract class MixinModelRenderer {
                         {
                             for (i = 0; i < this.childModels.size(); ++i)
                             {
-                                ((ModelRenderer)this.childModels.get(i)).render(p_78785_1_);
+                                if(this.childModels.get(i) instanceof ModelRenderer){
+                                    ((ModelRenderer)this.childModels.get(i)).render(p_78785_1_);
+                                }
                             }
                         }
 
@@ -207,10 +211,11 @@ public abstract class MixinModelRenderer {
                     {
                         for (i = 0; i < this.childModels.size(); ++i)
                         {
-                            ((ModelRenderer)this.childModels.get(i)).render(p_78785_1_);
+                            if(this.childModels.get(i) instanceof ModelRenderer){
+                                ((ModelRenderer)this.childModels.get(i)).render(p_78785_1_);
+                            }
                         }
                     }
-
                     GL11.glPopMatrix();
                 }
 
