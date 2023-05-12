@@ -14,6 +14,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.util.NBTJsonUtil;
+import org.lwjgl.Sys;
 
 import java.io.*;
 import java.util.*;
@@ -140,14 +141,18 @@ public class PlayerDataController {
 				return true;
 			}
 		} catch (Exception e) {
-			try {
-				File file = new File(getSaveDir(), "___playermap.dat_old");
-				if(file.exists()){
-					loadPlayerDataMap(file);
-					return true;
-				}
-			} catch (Exception ignored) {}
+			LogWriter.except(e);
 		}
+		try {
+			File file = new File(getSaveDir(), "___playermap.dat_old");
+			if(file.exists()){
+				loadPlayerDataMap(file);
+				return true;
+			}
+		} catch (Exception e2) {
+			LogWriter.except(e2);
+		}
+
 		return false;
 	}
 
