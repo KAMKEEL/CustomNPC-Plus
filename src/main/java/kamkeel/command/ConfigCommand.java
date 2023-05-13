@@ -1,4 +1,4 @@
-package kamkeel;
+package kamkeel.command;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;

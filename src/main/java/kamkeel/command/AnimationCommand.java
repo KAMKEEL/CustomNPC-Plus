@@ -1,14 +1,11 @@
-package kamkeel;
+package kamkeel.command;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.monster.EntityEnderman;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerFactionData;
 
 import java.util.Arrays;
 import java.util.List;

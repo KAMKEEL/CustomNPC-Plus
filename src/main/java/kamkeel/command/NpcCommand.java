@@ -1,4 +1,4 @@
-package kamkeel;
+package kamkeel.command;
 
 import java.util.Arrays;
 import java.util.List;

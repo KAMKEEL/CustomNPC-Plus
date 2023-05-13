@@ -1,4 +1,4 @@
-package kamkeel;
+package kamkeel.command;
 
 import net.minecraft.command.ICommandSender;
 import noppes.npcs.controllers.ScriptController;
