@@ -9,7 +9,7 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
-import kamkeel.CommandKamkeel;
+import kamkeel.command.CommandKamkeel;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-@Mod(modid = "customnpcs", name = "CustomNpcs", version = "1.8.2-beta2")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.8.2-beta2")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -51,8 +51,6 @@ public class CustomNpcs {
 
     public static FMLEventChannel Channel;
     public static FMLEventChannel ChannelPlayer;
-
-    public static ArrayList<UUID> ScriptDevs = new ArrayList<>();
 
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
 
