@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,7 +32,32 @@ public class Server {
 		}
 		return true;
 	}
-	
+
+	public static void sendDataDelayed(final EntityPlayerMP player, final EnumPacketClient type, int delay, final Object... obs) {
+		CustomNPCsScheduler.runTack(() -> {
+			PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+			try {
+				if (!fillBuffer(buffer, type, obs))
+					return;
+				CustomNpcs.Channel.sendTo(new FMLProxyPacket(buffer, "CustomNPCs"), player);
+			} catch (IOException e) {
+				LogWriter.error(type + " Errored", e);
+			}
+		}, delay);
+	}
+
+	public static boolean sendDataChecked(EntityPlayerMP player, EnumPacketClient type, Object... obs) {
+		PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+		try {
+			if(!fillBuffer(buffer, type, obs))
+				return false;
+			CustomNpcs.Channel.sendTo(new FMLProxyPacket(buffer, "CustomNPCs"), player);
+		} catch (IOException e) {
+			LogWriter.error(type + " Errored", e);
+		}
+		return true;
+	}
+
 	public static void sendAssociatedData(Entity entity, EnumPacketClient enu, Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();
 		try {

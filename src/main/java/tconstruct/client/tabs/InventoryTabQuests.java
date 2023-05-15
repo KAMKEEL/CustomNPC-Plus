@@ -5,7 +5,9 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C0DPacketCloseWindow;
 import noppes.npcs.CustomItems;
+import noppes.npcs.client.gui.player.GuiFaction;
 import noppes.npcs.client.gui.player.GuiQuestLog;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 public class InventoryTabQuests extends AbstractTab {
 	public InventoryTabQuests() {
@@ -17,19 +19,10 @@ public class InventoryTabQuests extends AbstractTab {
 
 	@Override
 	public void onTabClicked() {
-		Thread t = new Thread(){
-			@Override
-			public void run(){
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				Minecraft mc = Minecraft.getMinecraft();
-				mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
-			}
-		};
-		t.start();
+		CustomNPCsScheduler.runTack(() -> {
+			Minecraft mc = Minecraft.getMinecraft();
+			mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+		}, 100);
 	}
 
 	@Override

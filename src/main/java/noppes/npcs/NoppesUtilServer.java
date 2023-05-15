@@ -39,6 +39,7 @@ import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -172,9 +173,9 @@ public class NoppesUtilServer {
 			}
 		}
 
-		if(npc instanceof EntityDialogNpc){
+		if(npc instanceof EntityDialogNpc || dia.id < 0){
 			dialog.hideNPC = true;
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG_DUMMY, npc.getCommandSenderName(), dialog.writeToNBT(new NBTTagCompound()));
+			Server.sendDataDelayed((EntityPlayerMP)player, EnumPacketClient.DIALOG_DUMMY, 100, npc.getCommandSenderName(), dialog.writeToNBT(new NBTTagCompound()));
 		}
 		else
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG, npc.getEntityId(), dialog.writeToNBT(new NBTTagCompound()));
@@ -248,18 +249,21 @@ public class NoppesUtilServer {
 				
 		setEditingNpc(player, npc);
 		sendExtraData(player, npc,gui, i, j, k);
-		if(CustomNpcs.proxy.getServerGuiElement(gui.ordinal(), player, player.worldObj, i, j, k) != null){
-			player.openGui(CustomNpcs.instance, gui.ordinal(), player.worldObj, i, j, k);
-			return;
-		}
-		else{
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
-		}
-		ArrayList<String> list = getScrollData(player, gui, npc);
-		if(list == null || list.isEmpty())
-			return;
 
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
+		CustomNPCsScheduler.runTack(() -> {
+			if(CustomNpcs.proxy.getServerGuiElement(gui.ordinal(), player, player.worldObj, i, j, k) != null){
+				player.openGui(CustomNpcs.instance, gui.ordinal(), player.worldObj, i, j, k);
+				return;
+			}
+			else{
+				Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+			}
+			ArrayList<String> list = getScrollData(player, gui, npc);
+			if(list == null || list.isEmpty())
+				return;
+
+			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
+		}, 200);
 	}
 
 

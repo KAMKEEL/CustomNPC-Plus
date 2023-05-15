@@ -13,6 +13,7 @@ import net.minecraft.util.IChatComponent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.*;
+import noppes.npcs.util.CustomNPCsScheduler;
 import noppes.npcs.util.NBTJsonUtil;
 import org.lwjgl.Sys;
 
@@ -26,7 +27,6 @@ import java.util.zip.GZIPInputStream;
 public class PlayerDataController {
 	public static PlayerDataController instance;
 	public HashMap<String, String> nameUUIDs;
-	private static final Executor playerDataThread = Executors.newSingleThreadExecutor();
 
 	public PlayerDataController(){
 		instance = this;
@@ -257,13 +257,14 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public void savePlayerData(PlayerData data){
+	public synchronized void savePlayerData(PlayerData data){
 		NBTTagCompound compound = data.getNBT();
-		playerDataThread.execute(() -> {
-			String filename = data.uuid + ".json";
+		String filename = data.uuid + ".json";
+
+		CustomNPCsScheduler.runTack(() -> {
 			try {
 				File saveDir = getSaveDir();
-				File file = new File(saveDir, filename+"_new");
+				File file = new File(saveDir, filename + "_new");
 				File file1 = new File(saveDir, filename);
 				NBTJsonUtil.SaveFile(file, compound);
 				if(file1.exists()){
