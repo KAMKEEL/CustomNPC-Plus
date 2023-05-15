@@ -89,8 +89,6 @@ processResources
             }
         }
 
-sourceSets {main { output.resourcesDir = output.classesDir }}
-
 jar {
     from sourceSets.api.output
 
@@ -201,4 +199,9 @@ sourceSets {
     main {
         ext.refMap = refMapForYourConfig
     }
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'dev'
 }
