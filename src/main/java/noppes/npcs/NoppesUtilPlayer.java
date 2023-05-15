@@ -341,11 +341,8 @@ public class NoppesUtilPlayer {
 		return null;
 	}
 
-	public static void sendTrackedQuestData(EntityPlayerMP player, Quest trackedQuest) {
-		Quest quest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.getTrackedQuest();
-		if (quest == null || trackedQuest == null || quest.id != trackedQuest.id) {
-			return;
-		}
+	public static void sendTrackedQuestData(EntityPlayerMP player) {
+		Quest trackedQuest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.getTrackedQuest();
 
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
@@ -356,6 +353,7 @@ public class NoppesUtilPlayer {
 			nbtTagList.appendTag(new NBTTagString(objective.getText()));
 		}
 		compound.setTag("ObjectiveList",nbtTagList);
+
 		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
 	}
 

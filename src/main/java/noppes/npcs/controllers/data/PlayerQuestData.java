@@ -121,8 +121,6 @@ public class PlayerQuestData implements IPlayerQuestData {
 			if(data.quest.type != type && type != null)
 				continue;
 
-			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player,data.quest);
-
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if((!data.isCompleted && data.quest.completion == EnumQuestCompletion.Npc) || data.quest.instantComplete(player,data)){
@@ -139,6 +137,10 @@ public class PlayerQuestData implements IPlayerQuestData {
 			} else {
 				data.isCompleted = false;
 			}
+
+			if (this.trackedQuest != null && data.quest.getId() == this.trackedQuest.getId()) {
+				NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
+			}
 		}
 		QuestItem.pickedUp = null;
 		return bo;
@@ -148,13 +150,15 @@ public class PlayerQuestData implements IPlayerQuestData {
 	public void trackQuest(IQuest quest) {
 		if (this.trackedQuest == null || quest.getId() != this.trackedQuest.getId()) {
 			this.trackedQuest = quest;
-			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) this.parent.player, (Quest) this.trackedQuest);
+			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) this.parent.player);
 		}
 	}
 
 	public void untrackQuest() {
-		this.trackedQuest = null;
-		Server.sendData((EntityPlayerMP) this.parent.player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+		if (this.trackedQuest != null) {
+			this.trackedQuest = null;
+			Server.sendData((EntityPlayerMP) this.parent.player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+		}
 	}
 
 	public IQuest getTrackedQuest() {

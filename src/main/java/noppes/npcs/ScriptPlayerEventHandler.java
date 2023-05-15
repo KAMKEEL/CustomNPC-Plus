@@ -26,10 +26,12 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
@@ -73,6 +75,13 @@ public class ScriptPlayerEventHandler {
 
                 if (player.ticksExisted%20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
                     PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
+                }
+
+                if (player.ticksExisted%40 == 0) {
+                    PlayerQuestData questData = playerData.questData;
+                    if (questData.getTrackedQuest() != null && ((Quest) questData.getTrackedQuest()).type == EnumQuestType.Item) {
+                        NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                    }
                 }
             }
         }
@@ -465,7 +474,7 @@ public class ScriptPlayerEventHandler {
 
             Quest quest = (Quest) PlayerDataController.instance.getPlayerData(event.player).questData.getTrackedQuest();
             if (quest != null) {
-                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player, quest);
+                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
             }
 
             PlayerDataController.instance.getPlayerData(event.player).skinOverlays.updateClient();

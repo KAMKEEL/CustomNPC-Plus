@@ -178,8 +178,13 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 		public int getProgress() {
 			int count = 0;
 
+			ItemStack item = QuestItem.pickedUp;
+			if (!NoppesUtilServer.IsItemStackNull(item) && NoppesUtilPlayer.compareItems(this.questItem, item, this.parent.ignoreDamage, this.parent.ignoreNBT)) {
+				count += item.stackSize;
+			}
+
 			for(int i = 0; i < this.player.inventory.getSizeInventory(); ++i) {
-				ItemStack item = this.player.inventory.getStackInSlot(i);
+				item = this.player.inventory.getStackInSlot(i);
 				if (!NoppesUtilServer.IsItemStackNull(item) && NoppesUtilPlayer.compareItems(this.questItem, item, this.parent.ignoreDamage, this.parent.ignoreNBT)) {
 					count += item.stackSize;
 				}
