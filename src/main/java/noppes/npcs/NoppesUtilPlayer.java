@@ -343,18 +343,19 @@ public class NoppesUtilPlayer {
 
 	public static void sendTrackedQuestData(EntityPlayerMP player) {
 		Quest trackedQuest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.getTrackedQuest();
+		if(trackedQuest != null){
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
+			compound.setString("CategoryName", trackedQuest.getCategory().getName());
+			compound.setString("TurnInNPC", trackedQuest.getNpcName());
+			NBTTagList nbtTagList = new NBTTagList();
+			for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
+				nbtTagList.appendTag(new NBTTagString(objective.getText()));
+			}
+			compound.setTag("ObjectiveList",nbtTagList);
 
-		NBTTagCompound compound = new NBTTagCompound();
-		compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
-		compound.setString("CategoryName", trackedQuest.getCategory().getName());
-		compound.setString("TurnInNPC", trackedQuest.getNpcName());
-		NBTTagList nbtTagList = new NBTTagList();
-		for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
-			nbtTagList.appendTag(new NBTTagString(objective.getText()));
+			Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
 		}
-		compound.setTag("ObjectiveList",nbtTagList);
-
-		Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
 	}
 
 	public static void sendQuestLogData(EntityPlayerMP player) {
