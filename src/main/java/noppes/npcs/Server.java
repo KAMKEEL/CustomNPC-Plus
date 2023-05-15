@@ -59,15 +59,17 @@ public class Server {
 	}
 
 	public static void sendAssociatedData(Entity entity, EnumPacketClient enu, Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
-		try {
-			if(!fillBuffer(buffer, enu, obs))
-				return;
-			TargetPoint point = new TargetPoint(entity.dimension, entity.posX, entity.posY, entity.posZ, 60);
-			CustomNpcs.Channel.sendToAllAround(new FMLProxyPacket(buffer,"CustomNPCs"), point);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		CustomNPCsScheduler.runTack(() -> {
+			ByteBuf buffer = Unpooled.buffer();
+			try {
+				if(!fillBuffer(buffer, enu, obs))
+					return;
+				TargetPoint point = new TargetPoint(entity.dimension, entity.posX, entity.posY, entity.posZ, 60);
+				CustomNpcs.Channel.sendToAllAround(new FMLProxyPacket(buffer,"CustomNPCs"), point);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 	public static void sendToAll(EnumPacketClient enu, Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();
