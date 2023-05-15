@@ -37,6 +37,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
+import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
+
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {
     }
@@ -73,14 +75,16 @@ public class ScriptPlayerEventHandler {
                     PlayerDataController.instance.getPlayerData(player).questData.untrackQuest();
                 }
 
-                if (player.ticksExisted%20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
+                if (player.ticksExisted % 20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
                     PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
                 }
 
-                if (player.ticksExisted%40 == 0) {
+                if (player.ticksExisted % (TrackedQuestUpdateFrequency * 20) == 0) {
                     PlayerQuestData questData = playerData.questData;
-                    if (questData.getTrackedQuest() != null && ((Quest) questData.getTrackedQuest()).type == EnumQuestType.Item) {
-                        NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                    if(questData != null){
+                        if (questData.getTrackedQuest() != null && ((Quest) questData.getTrackedQuest()).type == EnumQuestType.Item) {
+                            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                        }
                     }
                 }
             }
