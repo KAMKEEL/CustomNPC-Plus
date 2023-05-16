@@ -100,18 +100,16 @@ public class BankData {
     		NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerBankSmall, npc, slot, bank.id, 0);
     	}
 		final ItemStack item = currency;
-		CustomNPCsThreader.runTack(() -> {
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setInteger("MaxSlots", bank.getMaxSlots());
-			compound.setInteger("UnlockedSlots", unlockedSlots);
-			if (item != null) {
-				compound.setTag("Currency", NoppesUtilServer.writeItem(item, new NBTTagCompound()));
-				ContainerNPCBankInterface container = getContainer(player);
-				if (container != null)
-					container.setCurrency(item);
-			}
-			Server.sendDataChecked((EntityPlayerMP) player, EnumPacketClient.GUI_DATA, compound);
-		}, 300);
+		NBTTagCompound compound = new NBTTagCompound();
+		compound.setInteger("MaxSlots", bank.getMaxSlots());
+		compound.setInteger("UnlockedSlots", unlockedSlots);
+		if (item != null) {
+			compound.setTag("Currency", NoppesUtilServer.writeItem(item, new NBTTagCompound()));
+			ContainerNPCBankInterface container = getContainer(player);
+			if (container != null)
+				container.setCurrency(item);
+		}
+		Server.sendDataChecked((EntityPlayerMP) player, EnumPacketClient.GUI_DATA, compound);
 	}
 	private ContainerNPCBankInterface getContainer(EntityPlayer player){
 		Container con = player.openContainer;

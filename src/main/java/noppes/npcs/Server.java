@@ -25,19 +25,6 @@ public class Server {
 		sendDataChecked(player, enu, obs);
 	}
 
-	public static void sendDataDelayed(final EntityPlayerMP player, final EnumPacketClient type, int delay, final Object... obs) {
-		CustomNPCsThreader.runTack(() -> {
-			PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-			try {
-				if (!fillBuffer(buffer, type, obs))
-					return;
-				CustomNpcs.Channel.sendTo(new FMLProxyPacket(buffer, "CustomNPCs"), player);
-			} catch (IOException e) {
-				LogWriter.error(type + " Errored", e);
-			}
-		}, delay);
-	}
-
 	public static boolean sendDataChecked(EntityPlayerMP player, EnumPacketClient type, Object... obs) {
 		PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
 		try {

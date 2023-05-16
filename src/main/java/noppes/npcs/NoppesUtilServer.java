@@ -174,7 +174,7 @@ public class NoppesUtilServer {
 
 		if(npc instanceof EntityDialogNpc || dia.id < 0){
 			dialog.hideNPC = true;
-			Server.sendDataDelayed((EntityPlayerMP)player, EnumPacketClient.DIALOG_DUMMY, 100, npc.getCommandSenderName(), dialog.writeToNBT(new NBTTagCompound()));
+			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG_DUMMY, npc.getCommandSenderName(), dialog.writeToNBT(new NBTTagCompound()));
 		}
 		else
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG, npc.getEntityId(), dialog.writeToNBT(new NBTTagCompound()));
