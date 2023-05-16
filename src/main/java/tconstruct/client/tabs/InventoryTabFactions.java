@@ -26,7 +26,7 @@ public class InventoryTabFactions extends AbstractTab {
 					e.printStackTrace();
 				}
 				Minecraft mc = Minecraft.getMinecraft();
-				mc.displayGuiScreen(new GuiFaction);
+				mc.displayGuiScreen(new GuiFaction());
 			}
 		};
 		t.start();
