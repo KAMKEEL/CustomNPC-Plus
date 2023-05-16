@@ -3,17 +3,14 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.PacketBuffer;
 import noppes.npcs.AnimationData;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.LogWriter;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.customitem.ImageData;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.SkinOverlay;
-import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.io.IOException;
 import java.util.HashMap;
