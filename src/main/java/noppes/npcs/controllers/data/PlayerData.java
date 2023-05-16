@@ -19,11 +19,13 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.util.CustomNPCsScheduler;
+import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
+
+import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerDialogData dialogData = new PlayerDialogData(this);
@@ -302,8 +304,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public synchronized void save() {
 		final NBTTagCompound compound = getNBT();
 		final String filename = uuid + ".json";
-
-		CustomNPCsScheduler.runTack(() -> {
+		playerDataThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");
@@ -316,8 +317,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			} catch (Exception e) {
 				LogWriter.except(e);
 			}
-
-			PlayerDataController.instance.putPlayerMap(playername, uuid);
 		});
+		PlayerDataController.instance.putPlayerMap(playername, uuid);
 	}
 }

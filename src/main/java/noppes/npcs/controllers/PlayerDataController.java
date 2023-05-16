@@ -9,20 +9,19 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.IChatComponent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.*;
-import noppes.npcs.util.CustomNPCsScheduler;
+import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
-import org.lwjgl.Sys;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
+
+import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
 
 public class PlayerDataController {
 	public static PlayerDataController instance;
@@ -169,7 +168,7 @@ public class PlayerDataController {
 	}
 
 	public synchronized void savePlayerDataMap(){
-		CustomNPCsScheduler.runTack(() -> {
+		playerDataThread.execute(() -> {
 			try {
 				File saveDir = getSaveDir();
 				File file = new File(saveDir, "___playermap.dat_new");

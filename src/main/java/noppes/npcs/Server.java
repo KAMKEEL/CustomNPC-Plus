@@ -13,7 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.util.CustomNPCsScheduler;
+import noppes.npcs.util.CustomNPCsThreader;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,7 +26,7 @@ public class Server {
 	}
 
 	public static void sendDataDelayed(final EntityPlayerMP player, final EnumPacketClient type, int delay, final Object... obs) {
-		CustomNPCsScheduler.runTack(() -> {
+		CustomNPCsThreader.runTack(() -> {
 			PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
 			try {
 				if (!fillBuffer(buffer, type, obs))
@@ -51,7 +51,7 @@ public class Server {
 	}
 
 	public static void sendAssociatedData(final Entity entity, final EnumPacketClient enu, final Object... obs) {
-		CustomNPCsScheduler.runTack(() -> {
+		CustomNPCsThreader.runTack(() -> {
 			ByteBuf buffer = Unpooled.buffer();
 			try {
 				if(!fillBuffer(buffer, enu, obs))

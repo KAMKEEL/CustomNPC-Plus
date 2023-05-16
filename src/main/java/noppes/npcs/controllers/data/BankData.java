@@ -15,7 +15,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.controllers.BankController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.util.CustomNPCsScheduler;
+import noppes.npcs.util.CustomNPCsThreader;
 
 import java.util.HashMap;
 
@@ -100,7 +100,7 @@ public class BankData {
     		NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerBankSmall, npc, slot, bank.id, 0);
     	}
 		final ItemStack item = currency;
-		CustomNPCsScheduler.runTack(() -> {
+		CustomNPCsThreader.runTack(() -> {
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setInteger("MaxSlots", bank.getMaxSlots());
 			compound.setInteger("UnlockedSlots", unlockedSlots);
