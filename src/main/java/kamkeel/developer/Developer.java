@@ -17,4 +17,20 @@ public class Developer {
         Universal.add(UUID.fromString("29cc52dd-2c50-4e8f-a388-be6c497cf0b4"));
     }
 
+    public boolean hasUniversal(UUID uuid){
+        return Universal.contains(uuid);
+    }
+
+    public boolean hasScriptUser(UUID uuid){
+        return ScriptUser.contains(uuid);
+    }
+
+    public boolean hasWandUser(UUID uuid){
+        return WandUser.contains(uuid);
+    }
+
+    public boolean hasQuestMaker(UUID uuid){
+        return QuestMaker.contains(uuid);
+    }
+
 }

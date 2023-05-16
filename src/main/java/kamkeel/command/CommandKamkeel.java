@@ -133,9 +133,6 @@ public class CommandKamkeel extends CommandBase{
 		}
 
 		if(sender instanceof EntityPlayer){
-			if(Developer.Universal.contains(((EntityPlayer) sender).getUniqueID())){
-				return true;
-			}
 			return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getCommandPermission(command.getCommandName()));
 		}
 

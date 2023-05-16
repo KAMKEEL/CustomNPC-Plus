@@ -141,9 +141,6 @@ public abstract class CommandKamkeelBase extends CommandBase{
 		}
 
 		if(sender instanceof EntityPlayer){
-			if(Developer.Universal.contains(((EntityPlayer) sender).getUniqueID())){
-				return true;
-			}
 			return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getSubCommandPermission(subCommand));
 		}
 
