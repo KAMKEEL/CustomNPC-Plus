@@ -17,7 +17,6 @@ import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.util.CustomNPCsThreader;
 
 import java.util.Iterator;
 

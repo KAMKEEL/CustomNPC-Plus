@@ -25,8 +25,6 @@ import noppes.npcs.util.NBTJsonUtil;
 import java.io.File;
 import java.io.FileInputStream;
 
-import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
-
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerDialogData dialogData = new PlayerDialogData(this);
 	public PlayerBankData bankData = new PlayerBankData(this);
@@ -304,7 +302,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public synchronized void save() {
 		final NBTTagCompound compound = getNBT();
 		final String filename = uuid + ".json";
-		playerDataThread.execute(() -> {
+		CustomNPCsThreader.playerDataThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");
