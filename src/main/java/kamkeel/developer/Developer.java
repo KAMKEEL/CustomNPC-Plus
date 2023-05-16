@@ -1,14 +1,16 @@
 package kamkeel.developer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class Developer {
 
-    public static ArrayList<UUID> Universal = new ArrayList<>();
-    public static ArrayList<UUID> ScriptUser = new ArrayList<>();
-    public static ArrayList<UUID> WandUser = new ArrayList<>();
-    public static ArrayList<UUID> QuestMaker = new ArrayList<>();
+    public static HashSet<UUID> Universal = new HashSet<>();
+    public static HashSet<UUID> ScriptUser = new HashSet<>();
+    public static HashSet<UUID> WandUser = new HashSet<>();
+    public static HashSet<UUID> QuestMaker = new HashSet<>();
     public static Developer instance;
 
     public Developer(){
@@ -18,10 +20,16 @@ public class Developer {
     }
 
     public boolean hasUniversal(UUID uuid){
+        if(Universal == null){
+            Universal = new HashSet<>();
+        }
         return Universal.contains(uuid);
     }
 
     public boolean hasScriptUser(UUID uuid){
+        if(ScriptUser == null){
+            ScriptUser = new HashSet<>();
+        }
         return ScriptUser.contains(uuid);
     }
 
