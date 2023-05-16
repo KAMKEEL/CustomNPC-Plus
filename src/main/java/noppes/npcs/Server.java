@@ -21,16 +21,8 @@ import java.util.Map;
 
 public class Server {
 
-	public static boolean sendData(final EntityPlayerMP player, final EnumPacketClient enu, final Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
-		try {
-			if(!fillBuffer(buffer, enu, obs))
-				return false;
-			CustomNpcs.Channel.sendTo(new FMLProxyPacket(buffer, "CustomNPCs"), player);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return true;
+	public static void sendData(final EntityPlayerMP player, final EnumPacketClient enu, final Object... obs) {
+		sendDataDelayed(player, enu, 0, obs);
 	}
 
 	public static void sendDataDelayed(final EntityPlayerMP player, final EnumPacketClient type, int delay, final Object... obs) {

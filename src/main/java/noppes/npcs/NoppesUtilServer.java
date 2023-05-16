@@ -56,7 +56,7 @@ public class NoppesUtilServer {
     	PlayerData data = PlayerDataController.instance.getPlayerData(player);
     	data.editingNpc = npc;
     	if(npc != null)
-    		Server.sendData((EntityPlayerMP)player, EnumPacketClient.EDIT_NPC, npc.getEntityId());
+    		Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.EDIT_NPC, npc.getEntityId());
     }
     public static EntityNPCInterface getEditingNpc(EntityPlayer player){
     	PlayerData data = PlayerDataController.instance.getPlayerData(player);
@@ -242,6 +242,12 @@ public class NoppesUtilServer {
 			EnumGuiType gui, EntityNPCInterface npc) {
 		sendOpenGui(player, gui, npc, 0, 0, 0);
 	}
+
+	public static void sendOpenGuiNoDelay(EntityPlayer player,
+								   EnumGuiType gui, EntityNPCInterface npc) {
+		sendOpenGuiNoDelay(player, gui, npc, 0, 0, 0);
+	}
+
 	public static void sendOpenGui(final EntityPlayer player,
 								   final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
 		if(!(player instanceof EntityPlayerMP))
@@ -256,14 +262,36 @@ public class NoppesUtilServer {
 				return;
 			}
 			else{
-				Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+				Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
 			}
 			ArrayList<String> list = getScrollData(player, gui, npc);
 			if(list == null || list.isEmpty())
 				return;
 
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
-		}, 200);
+		}, 100);
+	}
+
+	public static void sendOpenGuiNoDelay(final EntityPlayer player,
+								   final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
+		if(!(player instanceof EntityPlayerMP))
+			return;
+
+		setEditingNpc(player, npc);
+		sendExtraData(player, npc,gui, i, j, k);
+
+		if(CustomNpcs.proxy.getServerGuiElement(gui.ordinal(), player, player.worldObj, i, j, k) != null){
+			player.openGui(CustomNpcs.instance, gui.ordinal(), player.worldObj, i, j, k);
+			return;
+		}
+		else{
+			Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+		}
+		ArrayList<String> list = getScrollData(player, gui, npc);
+		if(list == null || list.isEmpty())
+			return;
+
+		Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
 	}
 
 
@@ -474,7 +502,7 @@ public class NoppesUtilServer {
             if(pl != null){
             	playerdata.setNBT(new NBTTagCompound());
                 sendPlayerData(type, player, name);
-                playerdata.savePlayerDataOnFile();
+                playerdata.save();
                 return;
             }
 			else {
@@ -487,27 +515,27 @@ public class NoppesUtilServer {
         	int questId = buffer.readInt();
         	data.activeQuests.remove(questId);
         	data.finishedQuests.remove(questId);
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
         }
         if(type == EnumPlayerData.Dialog){
         	PlayerDialogData data = playerdata.dialogData;
         	data.dialogsRead.remove(buffer.readInt());
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
         }
         if(type == EnumPlayerData.Transport){
         	PlayerTransportData data = playerdata.transportData;
         	data.transports.remove(buffer.readInt());
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
         }
         if(type == EnumPlayerData.Bank){
         	PlayerBankData data = playerdata.bankData;
         	data.banks.remove(buffer.readInt());
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
         }
         if(type == EnumPlayerData.Factions){
         	PlayerFactionData data = playerdata.factionData;
         	data.factionData.remove(buffer.readInt());
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
         }
         sendPlayerData(type, player, name);
 	}

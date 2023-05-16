@@ -56,7 +56,7 @@ public class QuestCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){  
 	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
             if(playerdata.player != null && questdata.sendAlerts){
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
@@ -101,7 +101,7 @@ public class QuestCommand extends CommandKamkeelBase {
             else
                 playerdata.questData.finishedQuests.put(quest.id, sender.getEntityWorld().getTotalWorldTime());
 
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
             if(playerdata.player != null){
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
@@ -135,7 +135,7 @@ public class QuestCommand extends CommandKamkeelBase {
         }       
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
             sendResult(sender, String.format("Stopped Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
@@ -169,7 +169,7 @@ public class QuestCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
-            playerdata.savePlayerDataOnFile();
+            playerdata.save();
             sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }

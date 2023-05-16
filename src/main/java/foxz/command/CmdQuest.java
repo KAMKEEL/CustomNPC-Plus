@@ -56,7 +56,7 @@ public class CmdQuest extends ChMcLogger{
 	        	continue;
 	        QuestData questdata = new QuestData(quest);    
 	        playerdata.questData.activeQuests.put(questid, questdata);
-	        playerdata.savePlayerDataOnFile();
+	        playerdata.save();
 	        if(playerdata.player != null){
 				Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 				Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
@@ -93,7 +93,7 @@ public class CmdQuest extends ChMcLogger{
         }             
         for(PlayerData playerdata : data){  
 	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());    
-	        playerdata.savePlayerDataOnFile(); 
+	        playerdata.save();
         }
         return true;
     }
@@ -124,7 +124,7 @@ public class CmdQuest extends ChMcLogger{
         }       
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
-	        playerdata.savePlayerDataOnFile(); 
+	        playerdata.save();
         }
         return true;
     }
@@ -156,7 +156,7 @@ public class CmdQuest extends ChMcLogger{
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
-	        playerdata.savePlayerDataOnFile(); 
+	        playerdata.save();
         }
         return true;
     }

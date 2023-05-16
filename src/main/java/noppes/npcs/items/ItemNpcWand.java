@@ -43,7 +43,7 @@ public class ItemNpcWand extends Item{
 		if(ConfigMain.OpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile())){
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));
 		}
-		else if(CustomNpcsPermissions.Instance.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){
+		else if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){
 			EntityCustomNpc npc = new EntityCustomNpc(par3World);
 	    	npc.ai.startPos = new int[]{par4,par5,par6};
 	    	
@@ -52,7 +52,7 @@ public class ItemNpcWand extends Item{
 			par3World.spawnEntityInWorld(npc);
 			npc.setHealth(npc.getMaxHealth());
 
-            CustomNPCsScheduler.runTack(() -> NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay,npc), 100);
+            NoppesUtilServer.sendOpenGuiNoDelay(player, EnumGuiType.MainMenuDisplay,npc);
 		}
 		else
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));

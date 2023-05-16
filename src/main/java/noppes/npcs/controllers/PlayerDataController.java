@@ -169,29 +169,31 @@ public class PlayerDataController {
 	}
 
 	public void savePlayerDataMap(){
-		try {
-			File saveDir = getSaveDir();
-			File file = new File(saveDir, "___playermap.dat_new");
-			File file1 = new File(saveDir, "___playermap.dat_old");
-			File file2 = new File(saveDir, "___playermap.dat");
-			CompressedStreamTools.writeCompressed(writeNBT(), new FileOutputStream(file));
-			if(file1.exists())
-			{
-				file1.delete();
+		CustomNPCsScheduler.runTack(() -> {
+			try {
+				File saveDir = getSaveDir();
+				File file = new File(saveDir, "___playermap.dat_new");
+				File file1 = new File(saveDir, "___playermap.dat_old");
+				File file2 = new File(saveDir, "___playermap.dat");
+				CompressedStreamTools.writeCompressed(writeNBT(), new FileOutputStream(file));
+				if(file1.exists())
+				{
+					file1.delete();
+				}
+				file2.renameTo(file1);
+				if(file2.exists())
+				{
+					file2.delete();
+				}
+				file.renameTo(file2);
+				if(file.exists())
+				{
+					file.delete();
+				}
+			} catch (Exception e) {
+				LogWriter.except(e);
 			}
-			file2.renameTo(file1);
-			if(file2.exists())
-			{
-				file2.delete();
-			}
-			file.renameTo(file2);
-			if(file.exists())
-			{
-				file.delete();
-			}
-		} catch (Exception e) {
-			LogWriter.except(e);
-		}
+		});
 	}
 
 	public File getSaveDir(){
@@ -257,29 +259,6 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public synchronized void savePlayerData(final PlayerData data){
-		final NBTTagCompound compound = data.getNBT();
-		final String filename = data.uuid + ".json";
-
-		CustomNPCsScheduler.runTack(() -> {
-			try {
-				File saveDir = getSaveDir();
-				File file = new File(saveDir, filename + "_new");
-				File file1 = new File(saveDir, filename);
-				NBTJsonUtil.SaveFile(file, compound);
-				if(file1.exists()){
-					file1.delete();
-				}
-				file.renameTo(file1);
-			} catch (Exception e) {
-				LogWriter.except(e);
-			}
-
-			nameUUIDs.put(data.playername, data.uuid);
-			savePlayerDataMap();
-		});
-	}
-
 	public PlayerBankData getBankData(EntityPlayer player, int bankId) {
 		Bank bank = BankController.getInstance().getBank(bankId);
 		PlayerBankData data = getPlayerData(player).bankData;
@@ -332,7 +311,7 @@ public class PlayerDataController {
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
 		PlayerData data = getDataFromUsername(username);
 		data.mailData.playermail.add(mail.copy());
-		savePlayerData(data);
+		data.save();
 	}
 
 	public List<PlayerData> getPlayersData(ICommandSender sender, String username){
@@ -350,6 +329,11 @@ public class PlayerDataController {
 		}
 
 		return list;
+	}
+
+	public void putPlayerMap(String playerName, String uuid) {
+		nameUUIDs.put(playerName, uuid);
+		savePlayerDataMap();
 	}
 
 	public boolean hasMail(EntityPlayer player) {
