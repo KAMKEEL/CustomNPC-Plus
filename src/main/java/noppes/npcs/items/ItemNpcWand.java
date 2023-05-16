@@ -18,7 +18,6 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityCustomNpc;
-import noppes.npcs.util.CustomNPCsScheduler;
 
 public class ItemNpcWand extends Item{
 	

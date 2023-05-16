@@ -22,7 +22,7 @@ import java.util.Map;
 public class Server {
 
 	public static void sendData(final EntityPlayerMP player, final EnumPacketClient enu, final Object... obs) {
-		sendDataDelayed(player, enu, 0, obs);
+		sendDataChecked(player, enu, obs);
 	}
 
 	public static void sendDataDelayed(final EntityPlayerMP player, final EnumPacketClient type, int delay, final Object... obs) {

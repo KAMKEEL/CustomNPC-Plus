@@ -27,16 +27,14 @@ public class Client {
 	private static HashMap<String, ImageData> imageDataCache = new HashMap<>();
 
 	public static void sendData(final EnumPacketServer enu, final Object... obs) {
-		CustomNPCsScheduler.runTack(() -> {
-			ByteBuf buffer = Unpooled.buffer();
-			try {
-				if(!Server.fillBuffer(buffer, enu, obs))
-					return;
-				CustomNpcs.Channel.sendToServer(new FMLProxyPacket(buffer, "CustomNPCs"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
+		ByteBuf buffer = Unpooled.buffer();
+		try {
+			if(!Server.fillBuffer(buffer, enu, obs))
+				return;
+			CustomNpcs.Channel.sendToServer(new FMLProxyPacket(buffer, "CustomNPCs"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static ImageData getImageData(String directory) {
