@@ -19,10 +19,8 @@ public class InventoryTabQuests extends AbstractTab {
 
 	@Override
 	public void onTabClicked() {
-		CustomNPCsScheduler.runTack(() -> {
-			Minecraft mc = Minecraft.getMinecraft();
-			mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
-		}, 100);
+		Minecraft mc = Minecraft.getMinecraft();
+		mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
 	}
 
 	@Override
