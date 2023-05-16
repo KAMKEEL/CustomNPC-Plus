@@ -64,7 +64,7 @@ public class FactionCommand extends CommandKamkeelBase {
         processSubCommand(sender, args[2], Arrays.copyOfRange(args, 3, args.length));
         
         for(PlayerData playerdata : data){
-            playerdata.save();
+            playerdata.save(true);
         }
 	}
 

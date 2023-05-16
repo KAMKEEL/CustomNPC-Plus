@@ -50,7 +50,7 @@ public class CmdDialog extends ChMcLogger {
         }
         for(PlayerData playerdata : data){     
 	        playerdata.dialogData.dialogsRead.add(diagid);
-	        playerdata.save();
+	        playerdata.save(true);
         }
         return true;
     }
@@ -76,7 +76,7 @@ public class CmdDialog extends ChMcLogger {
         }
         for(PlayerData playerdata : data){  
 	        playerdata.dialogData.dialogsRead.remove(diagid);
-	        playerdata.save();
+	        playerdata.save(true);
         }
         return true;
     }

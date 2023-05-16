@@ -11,6 +11,7 @@ import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.DialogController;
 
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.PlayerData;
@@ -48,7 +49,7 @@ public class DialogCommand extends CommandKamkeelBase {
         }
         for(PlayerData playerdata : data){     
 	        playerdata.dialogData.dialogsRead.add(diagid);
-            playerdata.save();
+            playerdata.save(true);
             sendResult(sender, String.format("Forced Read for Dialog \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", diagid, playerdata.playername));
         }
     }
@@ -73,7 +74,7 @@ public class DialogCommand extends CommandKamkeelBase {
         }
         for(PlayerData playerdata : data){  
 	        playerdata.dialogData.dialogsRead.remove(diagid);
-            playerdata.save();
+            playerdata.save(true);
             sendResult(sender, String.format("Forced Unread for Dialog \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", diagid, playerdata.playername));
         }
     }
@@ -83,6 +84,7 @@ public class DialogCommand extends CommandKamkeelBase {
     )      
     public void reload(ICommandSender sender, String args[]){
     	new DialogController();
+        SyncController.syncAllDialogs();
         sendResult(sender, "Dialogs Reloaded");
     }
 

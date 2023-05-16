@@ -10,6 +10,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
@@ -56,7 +57,7 @@ public class QuestCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){  
 	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
-            playerdata.save();
+            playerdata.save(true);
             if(playerdata.player != null && questdata.sendAlerts){
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
@@ -101,7 +102,7 @@ public class QuestCommand extends CommandKamkeelBase {
             else
                 playerdata.questData.finishedQuests.put(quest.id, sender.getEntityWorld().getTotalWorldTime());
 
-            playerdata.save();
+            playerdata.save(true);
             if(playerdata.player != null){
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
@@ -135,7 +136,7 @@ public class QuestCommand extends CommandKamkeelBase {
         }       
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
-            playerdata.save();
+            playerdata.save(true);
             sendResult(sender, String.format("Stopped Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
@@ -169,7 +170,7 @@ public class QuestCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){  
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
-            playerdata.save();
+            playerdata.save(true);
             sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
@@ -181,6 +182,7 @@ public class QuestCommand extends CommandKamkeelBase {
     public void reload(ICommandSender sender, String args[]){
     	new QuestController();
         QuestController.instance.load();
+        SyncController.syncAllQuests();
         sendResult(sender, "Quests Reloaded");
     }
 }

@@ -311,7 +311,7 @@ public class PlayerDataController {
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
 		PlayerData data = getDataFromUsername(username);
 		data.mailData.playermail.add(mail.copy());
-		data.save();
+		data.save(false);
 	}
 
 	public List<PlayerData> getPlayersData(ICommandSender sender, String username){

@@ -166,7 +166,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 				if ((!completed || progress != 1) && (completed || progress != 0)) {
 					questData.extraData.setBoolean(this.nbtName, progress == 1);
 					data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
-					data.save();
+					data.save(true);
 				}
 			} else {
 				throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);

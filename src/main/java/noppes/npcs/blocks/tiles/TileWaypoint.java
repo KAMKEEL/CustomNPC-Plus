@@ -56,6 +56,7 @@ public class TileWaypoint extends TileEntity {
 					player.addChatMessage(new ChatComponentTranslation(name + " " + StatCollector.translateToLocal("quest.found")));
 
 					questData.checkQuestCompletion(playerData, EnumQuestType.Location);
+					playerData.updateClient = true;
 				}
 			}
 		}

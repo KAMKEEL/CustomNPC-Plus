@@ -6,9 +6,12 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
@@ -19,6 +22,7 @@ import java.util.*;
 
 public class QuestController implements IQuestHandler {
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
+	public HashMap<Integer,QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
 
 	public static QuestController instance;
@@ -142,6 +146,7 @@ public class QuestController implements IQuestHandler {
 		for(int dia : cat.quests.keySet())
 			quests.remove(dia);
 		categories.remove(category);
+		Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.QUEST_CATEGORY, category);
 	}
 	
 	public void saveCategory(QuestCategory category){
@@ -172,6 +177,7 @@ public class QuestController implements IQuestHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
+		Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST_CATEGORY, category.writeNBT(new NBTTagCompound()));
 	}
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -219,6 +225,7 @@ public class QuestController implements IQuestHandler {
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
+			Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST, quest.writeToNBT(new NBTTagCompound()), category.id);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -230,6 +237,7 @@ public class QuestController implements IQuestHandler {
 			return;
 		quests.remove(quest.id);
 		quest.category.quests.remove(quest.id);
+		Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.QUEST, quest.id);
 	}
 
 	private File getDir(){

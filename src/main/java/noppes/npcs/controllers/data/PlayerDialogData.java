@@ -48,9 +48,11 @@ public class PlayerDialogData implements IPlayerDialogData {
 
 	public void readDialog(int id) {
 		dialogsRead.add(id);
+		parent.updateClient = true;
 	}
 
 	public void unreadDialog(int id) {
 		dialogsRead.remove(id);
+		parent.updateClient = true;
 	}
 }

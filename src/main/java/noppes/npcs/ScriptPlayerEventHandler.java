@@ -27,6 +27,7 @@ import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
@@ -66,6 +67,11 @@ public class ScriptPlayerEventHandler {
 
             if (PlayerDataController.instance != null) {
                 PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+
+                if(playerData.updateClient) {
+                    Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNC_END, SyncType.PLAYER_DATA, playerData.getSyncNBT());
+                    playerData.updateClient = false;
+                }
 
                 if (playerData.timers.size() > 0) {
                     playerData.timers.update();
