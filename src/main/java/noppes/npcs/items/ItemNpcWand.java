@@ -18,6 +18,7 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 public class ItemNpcWand extends Item{
 	
@@ -35,7 +36,7 @@ public class ItemNpcWand extends Item{
     }
 
 	@Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer player, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
+    public boolean onItemUse(ItemStack par1ItemStack, final EntityPlayer player, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
     {
 		if(par3World.isRemote)
 			return true;
@@ -50,8 +51,8 @@ public class ItemNpcWand extends Item{
 
 			par3World.spawnEntityInWorld(npc);
 			npc.setHealth(npc.getMaxHealth());
-			
-			NoppesUtilServer.sendOpenGui(player,EnumGuiType.MainMenuDisplay,npc);
+
+            CustomNPCsScheduler.runTack(() -> NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay,npc), 100);
 		}
 		else
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));

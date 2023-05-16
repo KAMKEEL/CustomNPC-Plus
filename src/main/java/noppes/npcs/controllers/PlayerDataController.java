@@ -257,9 +257,9 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public synchronized void savePlayerData(PlayerData data){
-		NBTTagCompound compound = data.getNBT();
-		String filename = data.uuid + ".json";
+	public synchronized void savePlayerData(final PlayerData data){
+		final NBTTagCompound compound = data.getNBT();
+		final String filename = data.uuid + ".json";
 
 		CustomNPCsScheduler.runTack(() -> {
 			try {

@@ -242,8 +242,8 @@ public class NoppesUtilServer {
 			EnumGuiType gui, EntityNPCInterface npc) {
 		sendOpenGui(player, gui, npc, 0, 0, 0);
 	}
-	public static void sendOpenGui(EntityPlayer player,
-			EnumGuiType gui, EntityNPCInterface npc, int i, int j, int k) {
+	public static void sendOpenGui(final EntityPlayer player,
+								   final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
 		if(!(player instanceof EntityPlayerMP))
 			return;
 				

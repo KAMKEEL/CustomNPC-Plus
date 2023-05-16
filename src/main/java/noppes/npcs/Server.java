@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class Server {
 
-	public static boolean sendData(EntityPlayerMP player, EnumPacketClient enu, Object... obs) {
+	public static boolean sendData(final EntityPlayerMP player, final EnumPacketClient enu, final Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();
 		try {
 			if(!fillBuffer(buffer, enu, obs))
@@ -58,7 +58,7 @@ public class Server {
 		return true;
 	}
 
-	public static void sendAssociatedData(Entity entity, EnumPacketClient enu, Object... obs) {
+	public static void sendAssociatedData(final Entity entity, final EnumPacketClient enu, final Object... obs) {
 		CustomNPCsScheduler.runTack(() -> {
 			ByteBuf buffer = Unpooled.buffer();
 			try {

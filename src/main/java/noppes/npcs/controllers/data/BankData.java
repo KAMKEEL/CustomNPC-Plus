@@ -15,6 +15,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.controllers.BankController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.util.HashMap;
 
@@ -74,10 +75,8 @@ public class BankData {
 		return bank.canBeUpgraded(slot) && upgradedSlots.get(slot);
 	}
 	
-	public void openBankGui(EntityPlayer player, EntityNPCInterface npc, int bankId, int slot) {
-		Bank bank = BankController.getInstance().banks.get(bankId);
-		if(bank == null)
-			bank = BankController.getInstance().banks.values().iterator().next();
+	public void openBankGui(final EntityPlayer player, EntityNPCInterface npc, int bankId, int slot) {
+		final Bank bank = BankController.getInstance().getBank(bankId);
 
 		if(bank.getMaxSlots() <= slot)
 			return;
@@ -100,17 +99,19 @@ public class BankData {
     	else{
     		NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerBankSmall, npc, slot, bank.id, 0);
     	}
-    	
-    	NBTTagCompound compound = new NBTTagCompound();
-    	compound.setInteger("MaxSlots", bank.getMaxSlots());
-    	compound.setInteger("UnlockedSlots", unlockedSlots);
-    	if(currency != null){
-    		compound.setTag("Currency", NoppesUtilServer.writeItem(currency, new NBTTagCompound()));
-    		ContainerNPCBankInterface container = getContainer(player);
-    		container.currency.item = currency;
-    	}
-    	
-    	Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_DATA,compound);
+		final ItemStack item = currency;
+		CustomNPCsScheduler.runTack(() -> {
+			NBTTagCompound compound = new NBTTagCompound();
+			compound.setInteger("MaxSlots", bank.getMaxSlots());
+			compound.setInteger("UnlockedSlots", unlockedSlots);
+			if (item != null) {
+				compound.setTag("Currency", NoppesUtilServer.writeItem(item, new NBTTagCompound()));
+				ContainerNPCBankInterface container = getContainer(player);
+				if (container != null)
+					container.setCurrency(item);
+			}
+			Server.sendDataChecked((EntityPlayerMP) player, EnumPacketClient.GUI_DATA, compound);
+		}, 300);
 	}
 	private ContainerNPCBankInterface getContainer(EntityPlayer player){
 		Container con = player.openContainer;

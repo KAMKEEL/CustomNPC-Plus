@@ -19,6 +19,7 @@ import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.util.Iterator;
 
@@ -134,8 +135,7 @@ public class ContainerCustomGui extends Container {
                 }
 
                 EntityPlayerMP p = (EntityPlayerMP) player;
-                p.sendContainerToPlayer(this);
-
+                CustomNPCsScheduler.runTack(() -> {p.sendContainerToPlayer(this);}, 10);
                 return item;
             }
         }
