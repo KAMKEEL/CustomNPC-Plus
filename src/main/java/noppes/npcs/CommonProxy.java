@@ -94,8 +94,11 @@ public class CommonProxy implements IGuiHandler {
 		if(gui == EnumGuiType.MerchantAdd)
 			return new ContainerMerchantAdd(player, ServerEventsHandler.Merchant, player.worldObj);
 
-		if(gui == EnumGuiType.Crate)
-			return new ContainerCrate(player.inventory, (TileNpcContainer)player.worldObj.getTileEntity(x, y, z));
+		if(gui == EnumGuiType.Crate){
+			if(player.inventory != null && (TileNpcContainer)player.worldObj.getTileEntity(x, y, z) != null){
+				return new ContainerCrate(player.inventory, (TileNpcContainer)player.worldObj.getTileEntity(x, y, z));
+			}
+		}
 
 		if(gui == EnumGuiType.PlayerMailman)
 			return new ContainerMail(player, x == 1, y == 1);

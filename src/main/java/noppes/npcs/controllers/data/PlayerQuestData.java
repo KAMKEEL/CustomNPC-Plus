@@ -11,6 +11,7 @@ import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
@@ -24,7 +25,7 @@ import java.util.List;
 
 public class PlayerQuestData implements IPlayerQuestData {
 	private final PlayerData parent;
-	public IQuest trackedQuest = null;
+	private IQuest trackedQuest = null;
 
 	public HashMap<Integer,QuestData> activeQuests = new HashMap<Integer,QuestData>();
 	public HashMap<Integer,Long> finishedQuests = new HashMap<Integer,Long>();
@@ -120,8 +121,6 @@ public class PlayerQuestData implements IPlayerQuestData {
 			if(data.quest.type != type && type != null)
 				continue;
 
-			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player,data.quest);
-
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if((!data.isCompleted && data.quest.completion == EnumQuestCompletion.Npc) || data.quest.instantComplete(player,data)){
@@ -138,14 +137,32 @@ public class PlayerQuestData implements IPlayerQuestData {
 			} else {
 				data.isCompleted = false;
 			}
+
+			if (this.trackedQuest != null && data.quest.getId() == this.trackedQuest.getId()) {
+				NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
+			}
 		}
 		QuestItem.pickedUp = null;
 		return bo;
 		
 	}
 
+	public void trackQuest(IQuest quest) {
+		if (this.trackedQuest == null || quest.getId() != this.trackedQuest.getId()) {
+			this.trackedQuest = quest;
+			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) this.parent.player);
+		}
+	}
+
+	public void untrackQuest() {
+		if (this.trackedQuest != null) {
+			this.trackedQuest = null;
+			Server.sendData((EntityPlayerMP) this.parent.player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+		}
+	}
+
 	public IQuest getTrackedQuest() {
-		return trackedQuest;
+		return this.trackedQuest;
 	}
 
 	public void startQuest(int id) {
@@ -164,7 +181,11 @@ public class PlayerQuestData implements IPlayerQuestData {
 		Quest quest = QuestController.instance.quests.get(id);
 		if (quest == null)
 			return;
-		finishedQuests.put(id, System.currentTimeMillis());
+
+		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
+			finishedQuests.put(quest.id, System.currentTimeMillis());
+		else
+			finishedQuests.put(quest.id, parent.player.worldObj.getTotalWorldTime());
 	}
 
 	public void stopQuest(int id) {

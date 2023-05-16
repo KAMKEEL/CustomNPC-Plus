@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,28 +21,47 @@ import java.util.Map;
 
 public class Server {
 
-	public static boolean sendData(EntityPlayerMP player, EnumPacketClient enu, Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
+	public static void sendData(final EntityPlayerMP player, final EnumPacketClient enu, final Object... obs) {
+		sendDataDelayed(player, enu, 0, obs);
+	}
+
+	public static void sendDataDelayed(final EntityPlayerMP player, final EnumPacketClient type, int delay, final Object... obs) {
+		CustomNPCsScheduler.runTack(() -> {
+			PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+			try {
+				if (!fillBuffer(buffer, type, obs))
+					return;
+				CustomNpcs.Channel.sendTo(new FMLProxyPacket(buffer, "CustomNPCs"), player);
+			} catch (IOException e) {
+				LogWriter.error(type + " Errored", e);
+			}
+		}, delay);
+	}
+
+	public static boolean sendDataChecked(EntityPlayerMP player, EnumPacketClient type, Object... obs) {
+		PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
 		try {
-			if(!fillBuffer(buffer, enu, obs))
+			if(!fillBuffer(buffer, type, obs))
 				return false;
 			CustomNpcs.Channel.sendTo(new FMLProxyPacket(buffer, "CustomNPCs"), player);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LogWriter.error(type + " Errored", e);
 		}
 		return true;
 	}
-	
-	public static void sendAssociatedData(Entity entity, EnumPacketClient enu, Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
-		try {
-			if(!fillBuffer(buffer, enu, obs))
-				return;
-			TargetPoint point = new TargetPoint(entity.dimension, entity.posX, entity.posY, entity.posZ, 60);
-			CustomNpcs.Channel.sendToAllAround(new FMLProxyPacket(buffer,"CustomNPCs"), point);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+
+	public static void sendAssociatedData(final Entity entity, final EnumPacketClient enu, final Object... obs) {
+		CustomNPCsScheduler.runTack(() -> {
+			ByteBuf buffer = Unpooled.buffer();
+			try {
+				if(!fillBuffer(buffer, enu, obs))
+					return;
+				TargetPoint point = new TargetPoint(entity.dimension, entity.posX, entity.posY, entity.posZ, 60);
+				CustomNpcs.Channel.sendToAllAround(new FMLProxyPacket(buffer,"CustomNPCs"), point);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 	public static void sendToAll(EnumPacketClient enu, Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();

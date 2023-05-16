@@ -60,17 +60,24 @@ public class PlayerQuestController {
 	public static void setQuestFinished(Quest quest, EntityPlayer player){
 		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
 		PlayerQuestData data = playerdata.questData;
+		QuestData questData = data.activeQuests.get(quest.id);
 		data.activeQuests.remove(quest.id);
 		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
 			data.finishedQuests.put(quest.id, System.currentTimeMillis());
 		else
 			data.finishedQuests.put(quest.id,player.worldObj.getTotalWorldTime());
+
 		if(quest.repeat != EnumQuestRepeat.NONE && quest.type == EnumQuestType.Dialog){
 			QuestDialog questdialog = (QuestDialog) quest.questInterface;
 			for(int dialog : questdialog.dialogs.values()){
 				playerdata.dialogData.dialogsRead.remove(dialog);
 			}
 		}
+		if (questData.sendAlerts) {
+			Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
+			Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
+		}
+
 	}
 	public static boolean canQuestBeAccepted(Quest quest, EntityPlayer player){
 		if(quest == null)

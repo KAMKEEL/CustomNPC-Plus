@@ -92,7 +92,7 @@ public class ServerEventsHandler {
 				return;
 			PlayerData data = PlayerDataController.instance.getPlayerData(event.entityPlayer);
 			ServerCloneController.Instance.cleanTags(compound);
-			if(!Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.CLONE, compound))
+			if(!Server.sendDataChecked((EntityPlayerMP)event.entityPlayer, EnumPacketClient.CLONE, compound))
 				event.entityPlayer.addChatMessage(new ChatComponentText("Entity too big to clone"));
 			data.cloned = compound;
 			if (event.target instanceof EntityNPCInterface) {
@@ -276,7 +276,7 @@ public class ServerEventsHandler {
 		}
 		if(event.entityLiving instanceof EntityPlayer){
 			PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer)event.entityLiving);
-			data.savePlayerDataOnFile();
+			data.save();
 		}
 	}
 
@@ -369,7 +369,7 @@ public class ServerEventsHandler {
 	@SubscribeEvent
 	public void world(PlayerEvent.SaveToFile event){
 		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
-		data.savePlayerDataOnFile();
+		data.save();
 	}
 
 	@SubscribeEvent
