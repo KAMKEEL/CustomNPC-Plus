@@ -99,13 +99,13 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 				if (progress == 0 && completed) {
 					data.dialogData.dialogsRead.remove(this.dialog.id);
 					data.questData.checkQuestCompletion(data, EnumQuestType.values()[1]);
-					data.savePlayerDataOnFile();
+					data.save();
 				}
 
 				if (progress == 1 && !completed) {
 					data.dialogData.dialogsRead.add(this.dialog.id);
 					data.questData.checkQuestCompletion(data, EnumQuestType.values()[1]);
-					data.savePlayerDataOnFile();
+					data.save();
 				}
 
 			} else {

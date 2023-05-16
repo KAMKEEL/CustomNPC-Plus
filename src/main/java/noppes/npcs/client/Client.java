@@ -23,7 +23,7 @@ public class Client {
 	public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
 	private static HashMap<String, ImageData> imageDataCache = new HashMap<>();
 
-	public static void sendData(EnumPacketServer enu, Object... obs) {
+	public static void sendData(final EnumPacketServer enu, final Object... obs) {
 		ByteBuf buffer = Unpooled.buffer();
 		try {
 			if(!Server.fillBuffer(buffer, enu, obs))

@@ -19,6 +19,7 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
@@ -53,10 +54,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
 		//Do Nothing
-	}
-
-	public void savePlayerDataOnFile() {
-		PlayerDataController.instance.savePlayerData(this);
 	}
 
 	@Override
@@ -142,7 +139,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public void setGUIOpen(boolean bool) {
 		isGUIOpen = bool;
-		savePlayerDataOnFile();
+		save();
 	}
 
 	public boolean getGUIOpen() {
@@ -161,7 +158,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		activeCompanion = npc;
 		if(npc != null)
 			((RoleCompanion)npc.roleInterface).companionID = companionID;
-		savePlayerDataOnFile();
+		save();
 	}
 
 	public void updateCompanion(World world) {
@@ -302,7 +299,23 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		return mailData;
 	}
 
-	public void save() {
-		PlayerDataController.instance.savePlayerData(this);
+	public synchronized void save() {
+		final NBTTagCompound compound = getNBT();
+		final String filename = uuid + ".json";
+		CustomNPCsThreader.playerDataThread.execute(() -> {
+			try {
+				File saveDir = PlayerDataController.instance.getSaveDir();
+				File file = new File(saveDir, filename + "_new");
+				File file1 = new File(saveDir, filename);
+				NBTJsonUtil.SaveFile(file, compound);
+				if(file1.exists()){
+					file1.delete();
+				}
+				file.renameTo(file1);
+			} catch (Exception e) {
+				LogWriter.except(e);
+			}
+		});
+		PlayerDataController.instance.putPlayerMap(playername, uuid);
 	}
 }

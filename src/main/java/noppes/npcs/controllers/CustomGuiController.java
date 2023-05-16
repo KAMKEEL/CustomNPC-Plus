@@ -27,12 +27,12 @@ public class CustomGuiController {
         EntityPlayerMP entityPlayerMP = (EntityPlayerMP) player.getMCEntity();
         entityPlayerMP.openGui(CustomNpcs.instance, EnumGuiType.CustomGui.ordinal(), player.getWorld().getMCWorld(), gui.getSlots().size(), 0, 0);
         ((ContainerCustomGui)((EntityPlayerMP)player.getMCEntity()).openContainer).setGui(gui, (EntityPlayer)player.getMCEntity());
-        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
+        Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
     }
 
     public static boolean updateGui(IPlayer player, ScriptGui gui) {
         if (((EntityPlayerMP)player.getMCEntity()).openContainer instanceof ContainerCustomGui) {
-            Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
+            Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
             return true;
         } else {
             return false;
@@ -40,11 +40,11 @@ public class CustomGuiController {
     }
 
     public static void openOverlay(IPlayer player, ScriptOverlay gui) {
-        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
+        Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
     }
 
     public static boolean updateOverlay(IPlayer player, ScriptOverlay gui) {
-        Server.sendData((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
+        Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
         return true;
     }
 

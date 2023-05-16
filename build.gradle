@@ -34,7 +34,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.8.1"
+version = "1.8.3"
 group= "com.kamkeel.customnpc-plus" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -88,8 +88,6 @@ processResources
                 exclude 'mcmod.info'
             }
         }
-
-sourceSets {main { output.resourcesDir = output.classesDir }}
 
 jar {
     from sourceSets.api.output
@@ -201,4 +199,9 @@ sourceSets {
     main {
         ext.refMap = refMapForYourConfig
     }
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'dev'
 }

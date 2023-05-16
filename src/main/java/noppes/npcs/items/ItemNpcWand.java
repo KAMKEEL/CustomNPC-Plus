@@ -35,14 +35,14 @@ public class ItemNpcWand extends Item{
     }
 
 	@Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer player, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
+    public boolean onItemUse(ItemStack par1ItemStack, final EntityPlayer player, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
     {
 		if(par3World.isRemote)
 			return true;
 		if(ConfigMain.OpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile())){
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));
 		}
-		else if(CustomNpcsPermissions.Instance.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){
+		else if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){
 			EntityCustomNpc npc = new EntityCustomNpc(par3World);
 	    	npc.ai.startPos = new int[]{par4,par5,par6};
 	    	
@@ -50,8 +50,8 @@ public class ItemNpcWand extends Item{
 
 			par3World.spawnEntityInWorld(npc);
 			npc.setHealth(npc.getMaxHealth());
-			
-			NoppesUtilServer.sendOpenGui(player,EnumGuiType.MainMenuDisplay,npc);
+
+            NoppesUtilServer.sendOpenGuiNoDelay(player, EnumGuiType.MainMenuDisplay,npc);
 		}
 		else
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));
