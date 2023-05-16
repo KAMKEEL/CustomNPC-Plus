@@ -26,14 +26,18 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
+
+import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
 public class ScriptPlayerEventHandler {
     public ScriptPlayerEventHandler() {
@@ -67,13 +71,21 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
-                if (playerData.questData.trackedQuest != null && !playerData.questData.activeQuests.containsKey(playerData.questData.trackedQuest.getId())) {
-                    PlayerDataController.instance.getPlayerData(player).questData.trackedQuest = null;
-                    Server.sendData((EntityPlayerMP) player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
+                if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId())) {
+                    PlayerDataController.instance.getPlayerData(player).questData.untrackQuest();
                 }
 
-                if (player.ticksExisted%20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
+                if (player.ticksExisted % 20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
                     PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
+                }
+
+                if (player.ticksExisted % (TrackedQuestUpdateFrequency * 20) == 0) {
+                    PlayerQuestData questData = playerData.questData;
+                    if(questData != null){
+                        if (questData.getTrackedQuest() != null && ((Quest) questData.getTrackedQuest()).type == EnumQuestType.Item) {
+                            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                        }
+                    }
                 }
             }
         }
@@ -464,9 +476,9 @@ public class ScriptPlayerEventHandler {
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
 
-            Quest quest = (Quest) PlayerDataController.instance.getPlayerData(event.player).questData.trackedQuest;
+            Quest quest = (Quest) PlayerDataController.instance.getPlayerData(event.player).questData.getTrackedQuest();
             if (quest != null) {
-                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player, quest);
+                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
             }
 
             PlayerDataController.instance.getPlayerData(event.player).skinOverlays.updateClient();

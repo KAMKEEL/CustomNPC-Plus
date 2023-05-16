@@ -15,6 +15,7 @@ public class ConfigMain
 
     public final static String GENERAL = "General";
     public final static String NPC = "NPC";
+    public final static String UPDATE = "Update";
 
     /**
      *  General Main Properties
@@ -86,6 +87,13 @@ public class ConfigMain
 
     public static Property NpcUseOpCommandsProperty;
     public static boolean NpcUseOpCommands = false;
+
+    /**
+     *  Update Properties
+     **/
+
+    public static Property TrackedQuestUpdateFrequencyProperty;
+    public static int TrackedQuestUpdateFrequency = 5;
 
     public static void init(File configFile)
     {
@@ -160,6 +168,10 @@ public class ConfigMain
 
             SkinOverlayLimitProperty = config.get(NPC, "Skin Overlay Limit", 10, "The maximum number of overlays any npc/player can hold.");
             SkinOverlayLimit = SkinOverlayLimitProperty.getInt(10);
+
+            // Update
+            TrackedQuestUpdateFrequencyProperty = config.get(UPDATE, "Tracked Quest Update Frequency", 5, "How often in seconds to update a players tracked quest. [Only applies to Item Quest currently]");
+            TrackedQuestUpdateFrequency = TrackedQuestUpdateFrequencyProperty.getInt(5);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

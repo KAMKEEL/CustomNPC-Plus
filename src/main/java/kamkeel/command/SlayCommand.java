@@ -1,4 +1,4 @@
-package kamkeel;
+package kamkeel.command;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +23,6 @@ import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class SlayCommand extends CommandKamkeelBase {

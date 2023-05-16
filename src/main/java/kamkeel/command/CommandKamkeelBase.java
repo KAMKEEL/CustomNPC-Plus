@@ -1,4 +1,4 @@
-package kamkeel;
+package kamkeel.command;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,10 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import kamkeel.developer.Developer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.CustomNpcsPermissions;
 
 public abstract class CommandKamkeelBase extends CommandBase{
 	public Map<String, Method> subcommands = new HashMap<String, Method>();
@@ -87,7 +90,7 @@ public abstract class CommandKamkeelBase extends CommandBase{
 			throw new CommandException("Unknown subcommand " + command);
 
 		SubCommand sc = m.getAnnotation(SubCommand.class);
-		if(!sender.canCommandSenderUseCommand(sc.permission(), getSubCommandPermission(command)))
+		if(!canSendCommand(sender, sc, command))
 			throw new CommandException("You are not allowed to use this command: " + command);
 
 		canRun(sender, sc.usage(), args);
@@ -122,5 +125,25 @@ public abstract class CommandKamkeelBase extends CommandBase{
 
 	public String getSubCommandPermission(String subCommand){
 		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "." + subCommand.toLowerCase();
+	}
+
+	public String getSubUniversalPermission(){
+		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "*";
+	}
+
+	public boolean canSendCommand(ICommandSender sender, SubCommand command, String subCommand){
+		if(sender.canCommandSenderUseCommand(command.permission(), getSubUniversalPermission())){
+			return true;
+		}
+
+		if(sender.canCommandSenderUseCommand(command.permission(), getSubCommandPermission(subCommand))){
+			return true;
+		}
+
+		if(sender instanceof EntityPlayer){
+			return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getSubCommandPermission(subCommand));
+		}
+
+		return false;
 	}
 }

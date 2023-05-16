@@ -27,6 +27,7 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.*;
@@ -270,7 +271,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.instance.getPlayerData(player);
-		data.questData.finishedQuests.put(id, System.currentTimeMillis());  
+
+		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
+			data.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
+		else
+			data.questData.finishedQuests.put(quest.id, player.worldObj.getTotalWorldTime());
 	}
 
 	/**

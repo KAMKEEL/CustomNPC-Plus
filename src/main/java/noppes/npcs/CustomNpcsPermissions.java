@@ -1,5 +1,6 @@
 package noppes.npcs;
 
+import kamkeel.developer.Developer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.apache.logging.log4j.LogManager;
@@ -74,10 +75,23 @@ public class CustomNpcsPermissions{
 	}
 	
 	public static boolean hasPermission(EntityPlayer player, Permission permission){
+		if(Developer.instance.hasUniversal(player.getUniqueID())){
+			return true;
+		}
 		if(Instance.bukkit != null){
 			return Instance.bukkitPermission(player.getCommandSenderName(), permission.name);
 		}
 		return true;
+	}
+
+	public static boolean hasCustomPermission(EntityPlayer player, String permission){
+		if(Developer.instance.hasUniversal(player.getUniqueID())){
+			return true;
+		}
+		if(Instance.bukkit != null){
+			return Instance.bukkitPermission(player.getCommandSenderName(), permission);
+		}
+		return false;
 	}
 
 	private boolean bukkitPermission(String username, String permission) {

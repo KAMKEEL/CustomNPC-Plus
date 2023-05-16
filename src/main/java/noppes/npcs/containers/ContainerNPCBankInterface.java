@@ -80,6 +80,10 @@ public class ContainerNPCBankInterface extends ContainerNpcInterface
     	return false;
     }
 
+    public synchronized void setCurrency(ItemStack item){
+        currency.item = item;
+    }
+
     @Override
     public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int i)
     {

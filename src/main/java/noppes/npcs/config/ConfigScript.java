@@ -1,6 +1,7 @@
 package noppes.npcs.config;
 
 import cpw.mods.fml.common.FMLLog;
+import kamkeel.developer.Developer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.config.Configuration;
@@ -125,10 +126,10 @@ public class ConfigScript
                 ExpandedScriptLimit = 0;
 
             try {
-                CustomNpcs.ScriptDevs.clear();
+                Developer.ScriptUser.clear();
                 String[] uuidStrings = ScriptDevIDs.split(",");
                 for (String s : uuidStrings) {
-                    CustomNpcs.ScriptDevs.add(UUID.fromString(s));
+                    Developer.ScriptUser.add(UUID.fromString(s));
                 }
             } catch (Exception ignored) {}
 
@@ -147,7 +148,7 @@ public class ConfigScript
 
     public static boolean isScriptDev(EntityPlayer player) {
         if(ScriptOpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
-                CustomNpcs.ScriptDevs.contains(player.getUniqueID())){
+                Developer.ScriptUser.contains(player.getUniqueID()) || Developer.Universal.contains(player.getUniqueID())){
             return true;
         } else return ScriptDevIDs.isEmpty();
     }
