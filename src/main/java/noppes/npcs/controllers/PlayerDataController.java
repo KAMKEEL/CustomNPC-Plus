@@ -168,7 +168,7 @@ public class PlayerDataController {
 		readNBT(nbttagcompound);
 	}
 
-	public void savePlayerDataMap(){
+	public synchronized void savePlayerDataMap(){
 		CustomNPCsScheduler.runTack(() -> {
 			try {
 				File saveDir = getSaveDir();
