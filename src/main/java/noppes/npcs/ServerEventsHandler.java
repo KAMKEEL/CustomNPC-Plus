@@ -276,7 +276,7 @@ public class ServerEventsHandler {
 		}
 		if(event.entityLiving instanceof EntityPlayer){
 			PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer)event.entityLiving);
-			data.save();
+			data.save(false);
 		}
 	}
 
@@ -341,6 +341,7 @@ public class ServerEventsHandler {
 				killed.put(name, amount + 1);
 			}
 			quest.setKilled(data, killed);
+			playerData.updateClient = true;
 		}
 		if(!checkCompletion)
 			return;
@@ -369,7 +370,7 @@ public class ServerEventsHandler {
 	@SubscribeEvent
 	public void world(PlayerEvent.SaveToFile event){
 		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
-		data.save();
+		data.save(false);
 	}
 
 	@SubscribeEvent

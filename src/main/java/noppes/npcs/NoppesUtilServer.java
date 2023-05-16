@@ -25,10 +25,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPlayerData;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.controllers.*;
@@ -39,7 +36,6 @@ import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
-import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -163,6 +159,7 @@ public class NoppesUtilServer {
 	
 	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia, int optionId){
 		Dialog dialog = dia.copy(player);
+		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
 
 		if (!npc.isRemote()) {
 			if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
@@ -188,8 +185,10 @@ public class NoppesUtilServer {
         if(dialog.mail.isValid())
         	PlayerDataController.instance.addPlayerMessage(player.getCommandSenderName(), dialog.mail);
         PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
-        if(!data.dialogsRead.contains(dialog.id))
-        	data.dialogsRead.add(dialog.id);
+        if(!data.dialogsRead.contains(dialog.id)){
+			data.dialogsRead.add(dialog.id);
+			playerdata.updateClient = true;
+		}
 		setEditingNpc(player, npc);
 	}
 	public static void runCommand(EntityPlayer player, String name, String command){
@@ -256,20 +255,18 @@ public class NoppesUtilServer {
 		setEditingNpc(player, npc);
 		sendExtraData(player, npc,gui, i, j, k);
 
-		CustomNPCsScheduler.runTack(() -> {
-			if(CustomNpcs.proxy.getServerGuiElement(gui.ordinal(), player, player.worldObj, i, j, k) != null){
-				player.openGui(CustomNpcs.instance, gui.ordinal(), player.worldObj, i, j, k);
-				return;
-			}
-			else{
-				Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
-			}
-			ArrayList<String> list = getScrollData(player, gui, npc);
-			if(list == null || list.isEmpty())
-				return;
+		if(CustomNpcs.proxy.getServerGuiElement(gui.ordinal(), player, player.worldObj, i, j, k) != null){
+			player.openGui(CustomNpcs.instance, gui.ordinal(), player.worldObj, i, j, k);
+			return;
+		}
+		else{
+			Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+		}
+		ArrayList<String> list = getScrollData(player, gui, npc);
+		if(list == null || list.isEmpty())
+			return;
 
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
-		}, 100);
+		Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
 	}
 
 	public static void sendOpenGuiNoDelay(final EntityPlayer player,
@@ -488,7 +485,7 @@ public class NoppesUtilServer {
 			return;
 		String name = Server.readString(buffer);
 		EnumPlayerData type = EnumPlayerData.values()[id];
-        EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(name);
+        EntityPlayerMP pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(name);
 		PlayerData playerdata = null;
 		if(pl == null)
 			playerdata = PlayerDataController.instance.getDataFromUsername(name);
@@ -502,7 +499,7 @@ public class NoppesUtilServer {
             if(pl != null){
             	playerdata.setNBT(new NBTTagCompound());
                 sendPlayerData(type, player, name);
-                playerdata.save();
+                playerdata.save(true);
                 return;
             }
 			else {
@@ -515,28 +512,31 @@ public class NoppesUtilServer {
         	int questId = buffer.readInt();
         	data.activeQuests.remove(questId);
         	data.finishedQuests.remove(questId);
-            playerdata.save();
+            playerdata.save(true);
         }
         if(type == EnumPlayerData.Dialog){
         	PlayerDialogData data = playerdata.dialogData;
         	data.dialogsRead.remove(buffer.readInt());
-            playerdata.save();
+            playerdata.save(true);
         }
         if(type == EnumPlayerData.Transport){
         	PlayerTransportData data = playerdata.transportData;
         	data.transports.remove(buffer.readInt());
-            playerdata.save();
+            playerdata.save(true);
         }
         if(type == EnumPlayerData.Bank){
         	PlayerBankData data = playerdata.bankData;
         	data.banks.remove(buffer.readInt());
-            playerdata.save();
+            playerdata.save(true);
         }
         if(type == EnumPlayerData.Factions){
         	PlayerFactionData data = playerdata.factionData;
         	data.factionData.remove(buffer.readInt());
-            playerdata.save();
+            playerdata.save(true);
         }
+		if(pl != null) {
+			SyncController.syncPlayer(pl);
+		}
         sendPlayerData(type, player, name);
 	}
 

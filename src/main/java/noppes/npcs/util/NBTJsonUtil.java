@@ -24,8 +24,8 @@ public class NBTJsonUtil {
 		json = json.trim();
 		JsonFile file = new JsonFile(json);
 		if(!json.startsWith("{") || !json.endsWith("}"))
-			throw new JsonException("Not properly incapsulated between { }", file);
-		
+			throw new JsonException("Not properly encapsulated between { }", file);
+
 		NBTTagCompound compound = new NBTTagCompound();
 		FillCompound(compound, file);
 		return compound;
@@ -36,7 +36,7 @@ public class NBTJsonUtil {
 			json.cut(1);
 		if(json.startsWith("}"))
 			return;
-		int index = json.indexOf(":");
+		int index = json.findObjectColonIndex();
 		if(index < 1)
 			throw new JsonException("Expected key after ," ,json);
 		
@@ -85,6 +85,16 @@ public class NBTJsonUtil {
 			if(!json.startsWith("]")){
 				throw new JsonException("Expected ]", json);
 			}
+
+			if (json.startsWith("]b")) {
+				json.cut(2);
+				byte[] arr = new byte[list.tagCount()];
+				for(int i = 0; list.tagCount() > 0 ; i++){
+					arr[i] = ((NBTTagInt)list.removeTag(0)).func_150290_f();
+				}
+				return new NBTTagByteArray(arr);
+			}
+
 			json.cut(1);
 
 			if(list.func_150303_d() == 3){
@@ -156,7 +166,19 @@ public class NBTJsonUtil {
 	private static JsonLine ReadTag(String name, NBTBase base, List<JsonLine> list){
 		if(!name.isEmpty())
 			name = "\"" + name + "\": ";
-		if(base.getId() == 8){//NBTTagString
+		if (base.getId() == 7) {//NBTTagByteArray
+			list.add(new JsonLine(name + "["));
+			byte[] bytes = ((NBTTagByteArray) base).func_150292_c();
+
+			for(int i = 0; i < (bytes.length-1); i++) {
+				list.add(new JsonLine(String.format("%s,", bytes[i])));
+			}
+			if (bytes.length > 0) {
+				list.add(new JsonLine(String.format("%s", bytes[bytes.length-1])));
+			}
+			list.add(new JsonLine("]b"));
+		}
+		else if(base.getId() == 8){//NBTTagString
 			String data = ((NBTTagString)base).func_150285_a_();
 			data = data.replace("\"", "\\\""); //replace " with \"
 			list.add(new JsonLine(name + "\"" + data + "\""));
@@ -225,7 +247,8 @@ public class NBTJsonUtil {
 		public boolean reduceTab(){
 			int length = line.length();
 			return length == 1 && (line.endsWith("}") || line.endsWith("]"))
-					|| length == 2 && (line.endsWith("},") ||line.endsWith("],"));
+					   || length == 2 && (line.endsWith("},") ||line.endsWith("],") || line.endsWith("]b"))
+					   || length == 3 && (line.endsWith("]b,"));
 		}
 		
 		public boolean increaseTab(){
@@ -281,6 +304,24 @@ public class NBTJsonUtil {
 			}
 			
 			return "Line: " + lines.length + ", Pos: " + pos + ", Text: " + line;
+		}
+
+		public int findObjectColonIndex() {
+			int trueQuotesAmount = 0;
+
+			for (int i = 0; i < text.length(); i++) {
+				if (text.charAt(i) == '"') {
+					if (i > 1 && text.charAt(i-1) != '\\' || i == 0) {
+						trueQuotesAmount++;
+					}
+				}
+
+				if (trueQuotesAmount == 2) {
+					return text.indexOf(":", i);
+				}
+			}
+
+			return -1;
 		}
 
 		public boolean startsWith(String... ss) {

@@ -133,7 +133,7 @@ public class Faction implements IFaction {
 	}
 
 	public int playerStatus(IPlayer player) {
-		PlayerFactionData data = PlayerData.get((EntityPlayer) player.getMCEntity()).factionData;
+		PlayerFactionData data = PlayerDataController.instance.getPlayerData((EntityPlayer) player.getMCEntity()).factionData;
 		int points = data.getFactionPoints(this.id);
 		if (points >= this.friendlyPoints) {
 			return 1;

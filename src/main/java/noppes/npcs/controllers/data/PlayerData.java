@@ -50,6 +50,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public int companionID = 0;
 
 	public boolean isGUIOpen = false;
+	public boolean updateClient = false;
 
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
@@ -67,6 +68,15 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			data = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
 		}
 		setNBT(data);
+	}
+
+	public NBTTagCompound getSyncNBT(){
+		NBTTagCompound compound = new NBTTagCompound();
+		dialogData.saveNBTData(compound);
+		questData.saveNBTData(compound);
+		factionData.saveNBTData(compound);
+
+		return compound;
 	}
 
 	public void setNBT(NBTTagCompound data){
@@ -139,7 +149,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public void setGUIOpen(boolean bool) {
 		isGUIOpen = bool;
-		save();
+		save(false);
 	}
 
 	public boolean getGUIOpen() {
@@ -158,7 +168,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		activeCompanion = npc;
 		if(npc != null)
 			((RoleCompanion)npc.roleInterface).companionID = companionID;
-		save();
+		save(false);
 	}
 
 	public void updateCompanion(World world) {
@@ -299,7 +309,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		return mailData;
 	}
 
-	public synchronized void save() {
+	public synchronized void save(boolean update) {
 		final NBTTagCompound compound = getNBT();
 		final String filename = uuid + ".json";
 
@@ -319,5 +329,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 			PlayerDataController.instance.putPlayerMap(playername, uuid);
 		});
+
+		if(update)
+			updateClient = true;
 	}
 }

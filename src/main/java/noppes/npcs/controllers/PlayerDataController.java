@@ -168,7 +168,7 @@ public class PlayerDataController {
 		readNBT(nbttagcompound);
 	}
 
-	public void savePlayerDataMap(){
+	public synchronized void savePlayerDataMap(){
 		CustomNPCsScheduler.runTack(() -> {
 			try {
 				File saveDir = getSaveDir();
@@ -311,7 +311,7 @@ public class PlayerDataController {
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
 		PlayerData data = getDataFromUsername(username);
 		data.mailData.playermail.add(mail.copy());
-		data.save();
+		data.save(false);
 	}
 
 	public List<PlayerData> getPlayersData(ICommandSender sender, String username){

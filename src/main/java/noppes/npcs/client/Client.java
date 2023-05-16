@@ -6,14 +6,12 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.PacketBuffer;
 import noppes.npcs.AnimationData;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.LogWriter;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.customitem.ImageData;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.SkinOverlay;
-import noppes.npcs.util.CustomNPCsScheduler;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -27,16 +25,14 @@ public class Client {
 	private static HashMap<String, ImageData> imageDataCache = new HashMap<>();
 
 	public static void sendData(final EnumPacketServer enu, final Object... obs) {
-		CustomNPCsScheduler.runTack(() -> {
-			ByteBuf buffer = Unpooled.buffer();
-			try {
-				if(!Server.fillBuffer(buffer, enu, obs))
-					return;
-				CustomNpcs.Channel.sendToServer(new FMLProxyPacket(buffer, "CustomNPCs"));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
+		ByteBuf buffer = Unpooled.buffer();
+		try {
+			if(!Server.fillBuffer(buffer, enu, obs))
+				return;
+			CustomNpcs.Channel.sendToServer(new FMLProxyPacket(buffer, "CustomNPCs"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static ImageData getImageData(String directory) {

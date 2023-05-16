@@ -5,8 +5,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
 import noppes.npcs.client.gui.player.GuiFaction;
-import noppes.npcs.client.gui.player.GuiQuestLog;
-import noppes.npcs.util.CustomNPCsScheduler;
 
 public class InventoryTabFactions extends AbstractTab {
 	public InventoryTabFactions() {

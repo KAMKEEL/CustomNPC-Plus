@@ -5,8 +5,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.IFactionHandler;
 import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Faction;
 
 import java.io.*;
@@ -18,7 +21,7 @@ import java.util.zip.GZIPInputStream;
 
 public class FactionController implements IFactionHandler {
 	public HashMap<Integer,Faction> factions;
-
+	public HashMap<Integer,Faction> factionsSync = new HashMap<Integer,Faction>();
 	private static FactionController instance;
 
 	private int lastUsedID = 0;
@@ -151,6 +154,9 @@ public class FactionController implements IFactionHandler {
 		}
 		factions.remove(faction.id);
 		factions.put(faction.id, faction);
+		NBTTagCompound nbtTagCompound = new NBTTagCompound();
+		faction.writeNBT(nbtTagCompound);
+		Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.FACTION, nbtTagCompound);
 		saveFactions();
 	}
 
@@ -185,6 +191,7 @@ public class FactionController implements IFactionHandler {
 			} else {
 				this.saveFactions();
 				faction.id = -1;
+				Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.FACTION, id);
 				return faction;
 			}
 		} else {

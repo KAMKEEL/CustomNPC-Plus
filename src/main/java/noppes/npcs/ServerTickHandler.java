@@ -4,9 +4,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
+import noppes.npcs.controllers.SyncController;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -40,5 +42,9 @@ public class ServerTickHandler {
 			serverName = e;
 		}
 		AnalyticsTracking.sendData(event.player, "join", serverName);
+		if(event.player instanceof EntityPlayerMP){
+			EntityPlayerMP player = (EntityPlayerMP) event.player;
+			SyncController.syncPlayer(player);
+		}
 	}
 }
