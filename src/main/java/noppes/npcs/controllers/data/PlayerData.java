@@ -149,7 +149,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public void setGUIOpen(boolean bool) {
 		isGUIOpen = bool;
-		save();
+		save(false);
 	}
 
 	public boolean getGUIOpen() {

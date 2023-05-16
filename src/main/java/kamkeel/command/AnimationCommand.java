@@ -46,7 +46,7 @@ public class AnimationCommand extends CommandKamkeelBase {
         
         processSubCommand(sender, args[1], Arrays.copyOfRange(args, 2, args.length));
         data.get(0).animationData.updateClient();
-        data.get(0).save();
+        data.get(0).save(true);
 	}
 
     @SubCommand(desc = "enable animation")
