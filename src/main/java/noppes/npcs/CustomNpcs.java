@@ -10,6 +10,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
 import kamkeel.command.CommandKamkeel;
+import kamkeel.developer.Developer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -166,6 +167,7 @@ public class CustomNpcs {
         ForgeChunkManager.setForcedChunkLoadingCallback(this, new ChunkController());
 
         new CustomNpcsPermissions();
+        new Developer();
 
         PixelmonHelper.load();
     }
