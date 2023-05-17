@@ -219,13 +219,12 @@ public class ClientProxy extends CommonProxy {
 
 
 	private GuiScreen getGui(EntityNPCInterface npc, EnumGuiType gui, Container container, int x, int y, int z) {
-		if (gui == EnumGuiType.MainMenuDisplay){
-			if(npc != null)
+		if (gui == EnumGuiType.MainMenuDisplay) {
+			if (npc != null)
 				return new GuiNpcDisplay(npc);
 			else
 				Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText("Unable to find npc"));
-		}
-		else if (gui == EnumGuiType.MainMenuStats)
+		} else if (gui == EnumGuiType.MainMenuStats)
 			return new GuiNpcStats(npc);
 
 		else if (gui == EnumGuiType.MainMenuInv)
@@ -234,10 +233,10 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.MainMenuAdvanced)
 			return new GuiNpcAdvanced(npc);
 
-		else if(gui == EnumGuiType.QuestReward)
+		else if (gui == EnumGuiType.QuestReward)
 			return new GuiNpcQuestReward(npc, (ContainerNpcQuestReward) container);
 
-		else if(gui == EnumGuiType.QuestItem)
+		else if (gui == EnumGuiType.QuestItem)
 			return new GuiNpcQuestTypeItem(npc, (ContainerNpcQuestTypeItem) container);
 
 		else if (gui == EnumGuiType.MovingPath)
@@ -261,16 +260,14 @@ public class ClientProxy extends CommonProxy {
 				animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
 			}
 			return new GuiNPCManageAnimations(animNpc);
-		}
-
-		else if (gui == EnumGuiType.ManageLinked)
+		} else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);
 
 		else if (gui == EnumGuiType.ManageTransport)
 			return new GuiNPCManageTransporters(npc);
 
 		else if (gui == EnumGuiType.ManageRecipes)
-			return new GuiNpcManageRecipes(npc,(ContainerManageRecipes) container);
+			return new GuiNpcManageRecipes(npc, (ContainerManageRecipes) container);
 
 		else if (gui == EnumGuiType.ManageDialogs)
 			return new GuiNPCManageDialogs(npc);
@@ -278,8 +275,8 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ManageQuests)
 			return new GuiNPCManageQuest(npc);
 
-		else if(gui == EnumGuiType.ManageBanks)
-			return new GuiNPCManageBanks(npc,(ContainerManageBanks) container);
+		else if (gui == EnumGuiType.ManageBanks)
+			return new GuiNPCManageBanks(npc, (ContainerManageBanks) container);
 
 		else if (gui == EnumGuiType.MainMenuGlobal)
 			return new GuiNPCGlobalMainMenu(npc);
@@ -293,56 +290,56 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.PlayerFollower)
 			return new GuiNpcFollower(npc, (ContainerNPCFollower) container);
 
-		else if(gui == EnumGuiType.PlayerTrader)
+		else if (gui == EnumGuiType.PlayerTrader)
 			return new GuiNPCTrader(npc, (ContainerNPCTrader) container);
 
-		else if(gui == EnumGuiType.PlayerBankSmall || gui == EnumGuiType.PlayerBankUnlock || gui == EnumGuiType.PlayerBankUprade || gui == EnumGuiType.PlayerBankLarge)
+		else if (gui == EnumGuiType.PlayerBankSmall || gui == EnumGuiType.PlayerBankUnlock || gui == EnumGuiType.PlayerBankUprade || gui == EnumGuiType.PlayerBankLarge)
 			return new GuiNPCBankChest(npc, (ContainerNPCBankInterface) container);
 
-		else if(gui == EnumGuiType.PlayerTransporter)
+		else if (gui == EnumGuiType.PlayerTransporter)
 			return new GuiTransportSelection(npc);
 
-		else if(gui == EnumGuiType.Script && ConfigScript.ScriptingEnabled)
+		else if (gui == EnumGuiType.Script && ConfigScript.ScriptingEnabled)
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)
 			return new GuiScriptItem();
 
-		else if(gui == EnumGuiType.PlayerAnvil)
+		else if (gui == EnumGuiType.PlayerAnvil)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
 
 		else if (gui == EnumGuiType.SetupFollower)
-			return  new GuiNpcFollowerSetup(npc, (ContainerNPCFollowerSetup) container);
+			return new GuiNpcFollowerSetup(npc, (ContainerNPCFollowerSetup) container);
 
 		else if (gui == EnumGuiType.SetupItemGiver)
 			return new GuiNpcItemGiver(npc, (ContainerNpcItemGiver) container);
 
-		else if(gui == EnumGuiType.SetupTrader)
+		else if (gui == EnumGuiType.SetupTrader)
 			return new GuiNpcTraderSetup(npc, (ContainerNPCTraderSetup) container);
 
-		else if(gui == EnumGuiType.SetupTransporter)
+		else if (gui == EnumGuiType.SetupTransporter)
 			return new GuiNpcTransporter(npc);
 
-		else if(gui == EnumGuiType.SetupBank)
+		else if (gui == EnumGuiType.SetupBank)
 			return new GuiNpcBankSetup(npc);
 
-		else if(gui == EnumGuiType.NpcRemote && Minecraft.getMinecraft().currentScreen == null)
+		else if (gui == EnumGuiType.NpcRemote && Minecraft.getMinecraft().currentScreen == null)
 			return new GuiNpcRemoteEditor();
 
-		else if(gui == EnumGuiType.ScriptEvent && Minecraft.getMinecraft().currentScreen == null)
+		else if (gui == EnumGuiType.ScriptEvent && Minecraft.getMinecraft().currentScreen == null)
 			return new GuiScriptGlobal();
 
-		else if(gui == EnumGuiType.PlayerMailman)
+		else if (gui == EnumGuiType.PlayerMailman)
 			return new GuiMailmanWrite((ContainerMail) container, x == 1, y == 1);
 
-		else if(gui == EnumGuiType.PlayerMailbox)
+		else if (gui == EnumGuiType.PlayerMailbox)
 			return new GuiMailbox();
 
-		else if(gui == EnumGuiType.MerchantAdd)
+		else if (gui == EnumGuiType.MerchantAdd)
 			return new GuiMerchantAdd();
 
-		else if(gui == EnumGuiType.Crate)
-			return new GuiCrate((ContainerCrate)container);
+		else if (gui == EnumGuiType.Crate)
+			return new GuiCrate((ContainerCrate) container);
 
 		else if(gui == EnumGuiType.NpcDimensions)
 			return new GuiNpcDimension();
