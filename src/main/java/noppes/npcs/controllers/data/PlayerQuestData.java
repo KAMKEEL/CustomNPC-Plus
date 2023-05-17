@@ -124,10 +124,6 @@ public class PlayerQuestData implements IPlayerQuestData {
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if((!data.isCompleted && data.quest.completion == EnumQuestCompletion.Npc) || data.quest.instantComplete(player,data)){
-					if (data.quest.completeText.isEmpty() && data.sendAlerts) {
-						Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.completed", data.quest.title);
-						Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.completed",": ",data.quest.title);
-					}
 					data.isCompleted = true;
 					if (data.quest.completion == EnumQuestCompletion.Npc) {
 						EventHooks.onQuestFinished(player, data.quest);
