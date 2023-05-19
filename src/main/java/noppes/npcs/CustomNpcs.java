@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.8.3")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.8.4-beta")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
