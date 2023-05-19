@@ -112,7 +112,7 @@ public abstract class MixinModelRenderer {
                 }
                 if (ClientEventHandler.renderingPlayer != null && Client.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
                     animData = Client.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
-                    EnumAnimationPart mainPartType = null;
+                    EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
                     EnumAnimationPart pivotEqualPart = null;
                     if (mainPartType == null) {
                         pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
