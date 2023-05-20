@@ -522,8 +522,9 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcState2");
     }
 
-    public double getFormMastery(String formTree, byte form) {
+    public double getFormMastery(boolean racialForm, byte form) {
         try {
+            String formTree = this.getFormTreeName(racialForm);
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
                         getString("jrmcFormMastery" + formTree).split(";");
@@ -534,8 +535,9 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return 0.0D;
     }
 
-    public void setFormMastery(String formTree, byte form, double value) {
+    public void setFormMastery(boolean racialForm, byte form, double value) {
         try {
+            String formTree = this.getFormTreeName(racialForm);
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
                         getString("jrmcFormMastery" + formTree).split(";");
@@ -558,8 +560,9 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         } catch (Exception ignored) {}
     }
 
-    public void addFormMastery(String formTree, byte form, double value) {
+    public void addFormMastery(boolean racialForm, byte form, double value) {
         try {
+            String formTree = this.getFormTreeName(racialForm);
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
                         getString("jrmcFormMastery" + formTree).split(";");
@@ -581,6 +584,26 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                         setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
             }
         } catch (Exception ignored) {}
+    }
+
+    private String getFormTreeName(boolean racialForm) {
+        if (racialForm) {
+            switch (this.getRace()) {
+                case 0:
+                    return "Racial_Human";
+                case 1:
+                    return "Racial_Saiyan";
+                case 2:
+                    return "Racial_Half-Saiyan";
+                case 3:
+                    return "Racial_Namekian";
+                case 4:
+                    return "Racial_Arcosian";
+                case 5:
+                    return "Racial_Majin";
+            }
+        }
+        return "NonRacial";
     }
 
     public void setPowerPoints(int points){
