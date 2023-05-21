@@ -1,8 +1,5 @@
 package noppes.npcs.scripted.entity;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.IProjectile;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,9 +8,6 @@ import noppes.npcs.api.entity.IDBCPlayer;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> implements IDBCPlayer {
     public T player;
@@ -522,8 +516,9 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcState2");
     }
 
-    public double getFormMastery(String formTree, byte form) {
+    public double getRacialFormMastery(byte form) {
         try {
+            String formTree = this.getRacialTreeName();
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
                         getString("jrmcFormMastery" + formTree).split(";");
@@ -534,8 +529,9 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return 0.0D;
     }
 
-    public void setFormMastery(String formTree, byte form, double value) {
+    public void setRacialFormMastery(byte form, double value) {
         try {
+            String formTree = this.getRacialTreeName();
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
                         getString("jrmcFormMastery" + formTree).split(";");
@@ -558,8 +554,9 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         } catch (Exception ignored) {}
     }
 
-    public void addFormMastery(String formTree, byte form, double value) {
+    public void addRacialFormMastery(byte form, double value) {
         try {
+            String formTree = this.getRacialTreeName();
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
                         getString("jrmcFormMastery" + formTree).split(";");
@@ -579,6 +576,107 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
 
                 player.getEntityData().getCompoundTag("PlayerPersisted").
                         setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private String getRacialTreeName() {
+        switch (this.getRace()) {
+            case 0:
+                return "Racial_Human";
+            case 1:
+                return "Racial_Saiyan";
+            case 2:
+                return "Racial_Half-Saiyan";
+            case 3:
+                return "Racial_Namekian";
+            case 4:
+                return "Racial_Arcosian";
+            case 5:
+                return "Racial_Majin";
+        }
+        return "Racial_Human";
+    }
+
+    public double getOtherFormMastery(String formName) {
+        try {
+            if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMasteryNonRacial")) {
+                String masteryData = player.getEntityData().getCompoundTag("PlayerPersisted").
+                        getString("jrmcFormMasteryNonRacial");
+                if (!masteryData.contains(formName)) {
+                    return 0.0D;
+                }
+
+                String[] formMasteries = masteryData.split(";");
+                for (String masteryString : formMasteries) {
+                    if (masteryString.split(",")[0].equals(formName)) {
+                        return Double.parseDouble(masteryString.split(",")[1]);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return 0.0D;
+    }
+
+    public void setOtherFormMastery(String formName, double value) {
+        try {
+            if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMasteryNonRacial")) {
+                String masteryData = player.getEntityData().getCompoundTag("PlayerPersisted").
+                        getString("jrmcFormMasteryNonRacial");
+                if (!masteryData.contains(formName)) {
+                    return;
+                }
+                String[] formMasteries = masteryData.split(";");
+
+                for (int i = 0; i < formMasteries.length; i++) {
+                    String name = formMasteries[i].split(",")[0];
+                    if (name.equals(formName)) {
+                        formMasteries[i] = name + "," + value;
+                    }
+                }
+
+                StringBuilder masteryString = new StringBuilder();
+                for (int i = 0; i < formMasteries.length; i++) {
+                    masteryString.append(formMasteries[i]);
+                    if (i < formMasteries.length - 1) {
+                        masteryString.append(';');
+                    }
+                }
+
+                player.getEntityData().getCompoundTag("PlayerPersisted").
+                        setString("jrmcFormMasteryNonRacial", String.valueOf(masteryString));
+            }
+        } catch (Exception ignored) {}
+    }
+
+    public void addOtherFormMastery(String formName, double value) {
+        try {
+            if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMasteryNonRacial")) {
+                String masteryData = player.getEntityData().getCompoundTag("PlayerPersisted").
+                        getString("jrmcFormMasteryNonRacial");
+                if (!masteryData.contains(formName)) {
+                    return;
+                }
+                String[] formMasteries = masteryData.split(";");
+
+                for (int i = 0; i < formMasteries.length; i++) {
+                    String name = formMasteries[i].split(",")[0];
+                    if (name.equals(formName)) {
+                        double newMastery = Double.parseDouble(formMasteries[i].split(",")[1]) + value;
+                        formMasteries[i] = name + "," + newMastery;
+                    }
+                }
+
+                StringBuilder masteryString = new StringBuilder();
+                for (int i = 0; i < formMasteries.length; i++) {
+                    masteryString.append(formMasteries[i]);
+                    if (i < formMasteries.length - 1) {
+                        masteryString.append(';');
+                    }
+                }
+
+                player.getEntityData().getCompoundTag("PlayerPersisted").
+                        setString("jrmcFormMasteryNonRacial", String.valueOf(masteryString));
             }
         } catch (Exception ignored) {}
     }
