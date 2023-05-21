@@ -441,6 +441,8 @@ public class NoppesUtilPlayer {
 			questData.trackQuest(nextQuest.quest);
 		}
 
+		playerData.save();
+
 		return true;
 	}
 	

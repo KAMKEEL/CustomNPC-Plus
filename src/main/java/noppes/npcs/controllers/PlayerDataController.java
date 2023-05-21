@@ -12,7 +12,6 @@ import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.*;
-import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -272,7 +271,7 @@ public class PlayerDataController {
 		if(data == null){
 			player.registerExtendedProperties("CustomNpcsData", data = new PlayerData());
 			data.player = player;
-			data.loadPlayerDataFromFile();
+			data.load();
 		}
 		data.player = player;
 		return data;

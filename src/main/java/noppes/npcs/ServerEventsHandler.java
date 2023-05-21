@@ -1,6 +1,7 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
@@ -20,6 +21,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
+import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -253,7 +255,7 @@ public class ServerEventsHandler {
 				doExcalibur((EntityPlayer) event.source.getEntity(),event.entityLiving);
 			}
 
-			if(event.source.getEntity() instanceof EntityNPCInterface && event.entityLiving != null){
+			if(event.source.getEntity() instanceof EntityNPCInterface){
 				EntityNPCInterface npc = (EntityNPCInterface) event.source.getEntity();
 				Line line = npc.advanced.getKillLine();
 				if(line != null)
@@ -358,18 +360,21 @@ public class ServerEventsHandler {
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public void onEntityConstructing(EntityEvent.EntityConstructing event) {
+		if (event.entity instanceof EntityPlayerMP) {
+			PlayerData data = new PlayerData();
+			data.player = (EntityPlayer) event.entity;
+			event.entity.registerExtendedProperties("CustomNpcsData", data);
+		}
+	}
+
 	@SubscribeEvent
 	public void world(EntityJoinWorldEvent event){
 		if(event.world.isRemote || !(event.entity instanceof EntityPlayer))
 			return;
 		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
 		data.updateCompanion(event.world);
-	}
-
-	@SubscribeEvent
-	public void world(PlayerEvent.SaveToFile event){
-		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
-		data.save();
 	}
 
 	@SubscribeEvent

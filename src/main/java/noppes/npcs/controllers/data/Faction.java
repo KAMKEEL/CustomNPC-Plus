@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerDataController;
@@ -133,8 +134,8 @@ public class Faction implements IFaction {
 	}
 
 	public int playerStatus(IPlayer player) {
-		PlayerFactionData data = PlayerData.get((EntityPlayer) player.getMCEntity()).factionData;
-		int points = data.getFactionPoints(this.id);
+		IPlayerFactionData data = player.getData().getFactionData();
+		int points = data.getPoints(this.id);
 		if (points >= this.friendlyPoints) {
 			return 1;
 		} else {

@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
@@ -23,7 +22,6 @@ import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerDialogData dialogData = new PlayerDialogData(this);
@@ -53,20 +51,12 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
-		//Do Nothing
+		this.save();
 	}
 
 	@Override
 	public void loadNBTData(NBTTagCompound compound) {
-		//Do Nothing
-	}
-
-	public void loadPlayerDataFromFile() {
-		NBTTagCompound data = PlayerDataController.instance.loadPlayerData(player.getPersistentID().toString());
-		if(data.hasNoTags()){
-			data = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
-		}
-		setNBT(data);
+		this.load();
 	}
 
 	public void setNBT(NBTTagCompound data){
@@ -138,13 +128,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	}
 
 	public void setGUIOpen(boolean bool) {
-		isGUIOpen = bool;
-		save();
+		this.isGUIOpen = bool;
 	}
 
 	public boolean getGUIOpen() {
-		loadPlayerDataFromFile();
-		return isGUIOpen;
+		return this.isGUIOpen;
 	}
 
 	public boolean hasCompanion(){
@@ -180,44 +168,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		world.spawnEntityInWorld(npc);
 	}
 
-	public static NBTTagCompound loadPlayerDataOld(String player) {
-		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
-		String filename = player;
-		if (player.isEmpty()) {
-			filename = "noplayername";
-		}
-
-		filename = filename + ".dat";
-
-		File file;
-		try {
-			file = new File(saveDir, filename);
-			if (file.exists()) {
-				NBTTagCompound comp = CompressedStreamTools.readCompressed(new FileInputStream(file));
-				file.delete();
-				file = new File(saveDir, filename + "_old");
-				if (file.exists()) {
-					file.delete();
-				}
-
-				return comp;
-			}
-		} catch (Exception var6) {
-			LogWriter.except(var6);
-		}
-
-		try {
-			file = new File(saveDir, filename + "_old");
-			if (file.exists()) {
-				return CompressedStreamTools.readCompressed(new FileInputStream(file));
-			}
-		} catch (Exception var5) {
-			LogWriter.except(var5);
-		}
-
-		return new NBTTagCompound();
-	}
-
 	public static NBTTagCompound loadPlayerData(String player) {
 		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
 		String filename = player;
@@ -238,25 +188,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 
 		return new NBTTagCompound();
-	}
-
-	public static PlayerData get(EntityPlayer player) {
-		if(player.worldObj.isRemote) {
-			return CustomNpcs.proxy.getPlayerData(player);
-		} else {
-			PlayerData data = new PlayerData();
-			if (data.player == null) {
-				data.player = player;
-				NBTTagCompound compound = loadPlayerData(player.getPersistentID().toString());
-				if (compound.hasNoTags()) {
-					compound = loadPlayerDataOld(player.getCommandSenderName());
-				}
-
-				data.setNBT(compound);
-			}
-
-			return data;
-		}
 	}
 
 	public void setCompanion(ICustomNpc npc) {
@@ -317,5 +248,13 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			}
 		});
 		PlayerDataController.instance.putPlayerMap(playername, uuid);
+	}
+
+	public void load() {
+		NBTTagCompound data = PlayerDataController.instance.loadPlayerData(player.getPersistentID().toString());
+		if(data.hasNoTags()){
+			data = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
+		}
+		setNBT(data);
 	}
 }
