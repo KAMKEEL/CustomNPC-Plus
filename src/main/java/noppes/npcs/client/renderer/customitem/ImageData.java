@@ -13,12 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class ImageData {
-    private ResourceLocation location;
+    private final ResourceLocation location;
     private final boolean isUrl;
+
     private ImageDownloadAlt imageDownloadAlt = null;
     private BufferedImage bufferedImage = null;
-    private int totalWidth, totalHeight;
 
+    private int totalWidth, totalHeight;
     private boolean gotWidthHeight;
     private boolean invalid;
 
@@ -28,14 +29,14 @@ public class ImageData {
             this.isUrl = true;
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
             this.imageDownloadAlt = new ImageDownloadAlt(null, directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true, false));
-            texturemanager.loadTexture(location, this.imageDownloadAlt);
+            texturemanager.loadTexture(this.location, this.imageDownloadAlt);
         } else {
             this.isUrl = false;
         }
     }
 
-    public boolean invalidTexture() {
-        return this.invalid;
+    public boolean imageLoaded() {
+        return !this.invalid && this.location != null && this.gotWidthHeight;
     }
 
     public void bindTexture() {
@@ -49,7 +50,7 @@ public class ImageData {
         }
     }
 
-    public ResourceLocation getLocation() {
+    private ResourceLocation getLocation() {
         return this.isUrl && this.imageDownloadAlt.getBufferedImage() == null ? null : this.location;
     }
 

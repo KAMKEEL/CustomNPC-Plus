@@ -14,10 +14,12 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
+import noppes.npcs.client.Client;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
+import noppes.npcs.client.renderer.customitem.ImageData;
 import noppes.npcs.scripted.gui.ScriptGuiButton;
 import org.lwjgl.opengl.GL11;
 
@@ -28,7 +30,9 @@ import java.io.InputStream;
 
 public class CustomGuiButton extends GuiButton implements IClickListener {
     GuiCustom parent;
-    ResourceLocation location = null;
+
+    ImageData imageData = null;
+    String texture;
     public int textureX;
     public int textureY;
     boolean field_146123_n;
@@ -38,11 +42,6 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
     int color;
     float alpha;
     float scale = 1.0F;
-
-    private int totalWidth, totalHeight;
-    private ImageDownloadAlt imageDownloadAlt = null;
-    private boolean isUrl = false;
-    private boolean gotWidthHeight = false;
 
     public CustomGuiButton(int id, String buttonText, int x, int y) {
         super(id, x, y, buttonText);
@@ -58,24 +57,12 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
 
     public CustomGuiButton(int buttonId, String buttonText, int x, int y, int width, int height, String texture, int textureX, int textureY) {
         this(buttonId, buttonText, x, y, width, height);
+        this.texture = texture;
         this.textureX = textureX;
         this.textureY = textureY;
         this.label = buttonText;
         if (texture != null && !texture.isEmpty()) {
-            this.location = new ResourceLocation(texture);
-            if(texture.startsWith("https://")){
-                TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-                ITextureObject object = new ImageDownloadAlt(null, texture, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
-                texturemanager.loadTexture(this.location, object);
-            } else {
-                try {
-                    this.getWidthHeight();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            this.location = null;
+            this.imageData = Client.getImageData(texture);
         }
     }
 
@@ -115,42 +102,36 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         this.field_146123_n = mouseX >= this.xPosition + GuiCustom.guiLeft && mouseY >= this.yPosition + GuiCustom.guiTop && mouseX < this.xPosition + GuiCustom.guiLeft + this.width * this.scale && mouseY < this.yPosition + GuiCustom.guiTop + this.height * this.scale;
-
-        if (this.location == null) {
-            totalWidth = totalHeight = 256;
-            textureX = textureY = 0;
-        }
-
-        float u1 = (float)textureX/(float)totalWidth;
-        float u2 = u1 + (float)width/(float)totalWidth;
-        float v1 = (float)textureY/(float)totalHeight;
-        float v2 = v1 + (float)height/(float)totalHeight;
-
-        if (this.location != null && this.enabled) {
-            if (this.field_146123_n) {
-                v1 = (float)(textureY + 2 * this.height)/(float)totalHeight;
-            } else {
-                v1 = (float)(textureY + this.height)/(float)totalHeight;
-            }
-            v2 = v1 + (float)height/(float)totalHeight;
-        }
-
-        if(imageDownloadAlt != null && isUrl && !gotWidthHeight){
-            getURLWidthHeight();
-        }
-
         FontRenderer fontRenderer = mc.fontRenderer;
-        GL11.glPushMatrix();
-            float red = (color >> 16 & 255) / 255f;
-            float green = (color >> 8  & 255) / 255f;
-            float blue = (color & 255) / 255f;
-            GL11.glColor4f(red,green,blue,this.alpha);
 
-            GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition - u1 * totalWidth * this.scale, GuiCustom.guiTop + this.yPosition - v1 * totalHeight * this.scale,(float)this.id);
-            GL11.glScalef(this.scale,this.scale,1.0F);
+        if (this.imageData != null && this.imageData.imageLoaded()) {
+            int totalWidth = this.imageData.getTotalWidth();
+            int totalHeight = this.imageData.getTotalHeight();
 
-            if (this.location != null) {
-                mc.getTextureManager().bindTexture(this.location);
+            float u1 = (float)textureX/(float)totalWidth;
+            float u2 = u1 + (float)width/(float)totalWidth;
+            float v1 = (float)textureY/(float)totalHeight;
+            float v2 = v1 + (float)height/(float)totalHeight;
+
+            if (this.enabled) {
+                if (this.field_146123_n) {
+                    v1 = (float)(textureY + 2 * this.height)/(float)totalHeight;
+                } else {
+                    v1 = (float)(textureY + this.height)/(float)totalHeight;
+                }
+                v2 = v1 + (float)height/(float)totalHeight;
+            }
+
+            GL11.glPushMatrix();
+                float red = (color >> 16 & 255) / 255f;
+                float green = (color >> 8  & 255) / 255f;
+                float blue = (color & 255) / 255f;
+                GL11.glColor4f(red,green,blue,this.alpha);
+
+                GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition - u1 * totalWidth * this.scale, GuiCustom.guiTop + this.yPosition - v1 * totalHeight * this.scale,(float)this.id);
+                GL11.glScalef(this.scale,this.scale,1.0F);
+
+                this.imageData.bindTexture();
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 Tessellator tessellator = Tessellator.instance;
                 tessellator.startDrawingQuads();
@@ -163,7 +144,9 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
                 tessellator.draw();
                 GL11.glTranslated(0.0D, 0.0D, 0.1D);
                 this.drawCenteredString(fontRenderer, this.label, this.width / 2, (this.height - 8) / 2, this.color);
-            } else {
+            GL11.glPopMatrix();
+        } else {
+            GL11.glPushMatrix();
                 mc.getTextureManager().bindTexture(buttonTextures);
                 int i = this.getHoverState(this.field_146123_n);
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -179,9 +162,9 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
                     j = 16777120;
                 }
                 GL11.glTranslated(0.0D, 0.0D, 0.1D);
-                this.drawCenteredString(fontRenderer, this.displayString, this.width / 2, (this.height-8)/2, j);
-            }
-        GL11.glPopMatrix();
+                this.drawCenteredString(fontRenderer, this.displayString, this.width / 2, (this.height - 8) / 2, j);
+            GL11.glPopMatrix();
+        }
 
         if (this.field_146123_n && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;
@@ -189,7 +172,7 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
     }
 
     public ICustomGuiComponent toComponent() {
-        ScriptGuiButton component = new ScriptGuiButton(this.id, this.label, this.xPosition, this.yPosition, this.width, this.height, this.location.toString(), this.textureX, this.textureY);
+        ScriptGuiButton component = new ScriptGuiButton(this.id, this.label, this.xPosition, this.yPosition, this.width, this.height, this.texture, this.textureX, this.textureY);
         component.setHoverText(this.hoverText);
         component.setColor(this.color);
         component.setAlpha(this.alpha);
@@ -203,41 +186,5 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
         } else {
             return false;
         }
-    }
-
-    public void getWidthHeight() throws IOException {
-        InputStream inputstream = null;
-
-        try {
-            IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(this.location);
-            inputstream = iresource.getInputStream();
-            BufferedImage bufferedimage = ImageIO.read(inputstream);
-            gotWidthHeight = true;
-            this.totalWidth = bufferedimage.getWidth();
-            this.totalHeight = bufferedimage.getHeight();
-            correctWidthHeight();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (inputstream != null) {
-                inputstream.close();
-            }
-        }
-    }
-
-    public void getURLWidthHeight(){
-        if(imageDownloadAlt.getBufferedImage() != null) {
-            gotWidthHeight = true;
-            this.totalWidth = imageDownloadAlt.getBufferedImage().getWidth();
-            this.totalHeight = imageDownloadAlt.getBufferedImage().getHeight();
-            correctWidthHeight();
-        }
-    }
-
-    public void correctWidthHeight(){
-        totalWidth = Math.max(totalWidth, 1);
-        totalHeight = Math.max(totalHeight, 1);
-        this.width = width < 0 ? totalWidth : width;
-        this.height = height < 0 ? totalHeight : height;
     }
 }
