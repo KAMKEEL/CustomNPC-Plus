@@ -33,7 +33,7 @@ public class ScriptContainer {
     private String currentScriptLanguage = null;
     public ScriptEngine engine = null;
     private IScriptHandler handler = null;
-    private boolean init = false;
+    private boolean evaluated = false;
     private static Method luaCoerce;
     private static Method luaCall;
     private CompiledScript compScript = null;
@@ -43,6 +43,7 @@ public class ScriptContainer {
     }
 
     public void readFromNBT(NBTTagCompound compound) {
+        String prevScript = this.script;
         this.script = compound.getString("Script");
         for (int i = 0; i < ConfigScript.ExpandedScriptLimit; i++) {
             if (compound.hasKey("ExpandedScript"+i)) {
@@ -51,7 +52,11 @@ public class ScriptContainer {
                 break;
             }
         }
-        //this.type = compound.getString("Type");
+
+        if (!this.script.equals(prevScript)) {
+            this.evaluated = false;
+        }
+
         this.console = NBTTags.GetLongStringMap(compound.getTagList("Console", 10));
         this.scripts = NBTTags.getStringList(compound.getTagList("ScriptList", 10));
         this.lastCreated = 0L;
@@ -88,7 +93,7 @@ public class ScriptContainer {
     }
 
     private String getFullCode() {
-        if(!this.init) {
+        if(!this.evaluated) {
             this.fullscript = this.script;
             if(!this.fullscript.isEmpty()) {
                 this.fullscript = this.fullscript + "\n";
@@ -150,7 +155,7 @@ public class ScriptContainer {
             return;
         if(ScriptController.Instance.lastLoaded > this.lastCreated){
             this.lastCreated = ScriptController.Instance.lastLoaded;
-            init = false;
+            evaluated = false;
         }
 
         synchronized (lock) {
@@ -170,9 +175,9 @@ public class ScriptContainer {
             }
 
             try {
-                if(!init){
+                if(!evaluated){
                     engine.eval(getFullCode());
-                    init = true;
+                    evaluated = true;
                 }
                 if(engine.getFactory().getLanguageName().equals("lua")){
                     Object ob = engine.get(type);
@@ -220,7 +225,7 @@ public class ScriptContainer {
     }
 
     public boolean isValid() {
-        return init && !errored;
+        return evaluated && !errored;
     }
 
     public boolean hasCode() {
@@ -236,6 +241,6 @@ public class ScriptContainer {
         this.engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());
 
         currentScriptLanguage = scriptLanguage;
-        init = false;
+        evaluated = false;
     }
 }
