@@ -227,7 +227,9 @@ public class PacketHandlerServer{
 				data.getScripts().add(new ScriptContainer(data));
 			}
 			NBTTagCompound tabCompound = Server.readNBT(buffer);
-			data.getScripts().get(tab).readFromNBT(tabCompound);
+			ScriptContainer script = new ScriptContainer(data);
+			script.readFromNBT(tabCompound);
+			data.getScripts().set(tab,script);
 		} else {
 			NBTTagCompound compound = Server.readNBT(buffer);
 			data.setLanguage(compound.getString("ScriptLanguage"));
