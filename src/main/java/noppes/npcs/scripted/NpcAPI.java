@@ -74,7 +74,7 @@ public class NpcAPI extends AbstractNpcAPI {
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
-    public NpcAPI() {
+    private NpcAPI() {
     }
 
     public static void clearCache() {

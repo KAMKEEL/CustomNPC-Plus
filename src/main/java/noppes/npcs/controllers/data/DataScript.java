@@ -180,7 +180,7 @@ public class DataScript implements IScriptHandler {
 		engine.put("npc", dummyNpc);
 		engine.put("world", dummyWorld);
 		engine.put("event", event);
-		engine.put("API", new NpcAPI());
+		engine.put("API", NpcAPI.Instance());
 		engine.put("EntityType", entities);
 		engine.put("RoleType", roles);
 		engine.put("JobType", jobs);
