@@ -72,11 +72,19 @@ public class DataScript implements IScriptHandler {
 				this.scriptLanguage = "ECMAScript";
 			}
 		}
+
+		for (ScriptContainer container : this.scripts.values()) {
+			container.setEngine(this.getLanguage());
+		}
+
 		enabled = compound.getBoolean("ScriptEnabled");
 	}
 
 	public void readEventsFromNBT(NBTTagCompound compound) {
 		eventScripts = NBTTags.GetScript(compound,this);
+		for (ScriptContainer container : this.eventScripts) {
+			container.setEngine(this.getLanguage());
+		}
 	}
 
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -149,7 +157,6 @@ public class DataScript implements IScriptHandler {
 		ScriptContainer script = scripts.get(type);
 		if(script == null || script.errored || !script.hasCode())
 			return false;
-		script.setEngine(scriptLanguage);
 		if(script.engine == null)
 			return false;
 		for(int i = 0; i + 1 < obs.length; i += 2){

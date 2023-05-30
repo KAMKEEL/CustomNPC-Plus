@@ -329,7 +329,7 @@ public class ScriptPlayerEventHandler {
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
-            EventHooks.onPlayerToss(handler, scriptPlayer, event.entityItem);
+            event.setCanceled(EventHooks.onPlayerToss(handler, scriptPlayer, event.entityItem));
         }
     }
 

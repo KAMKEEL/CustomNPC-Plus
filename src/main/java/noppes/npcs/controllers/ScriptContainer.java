@@ -150,7 +150,6 @@ public class ScriptContainer {
         if(errored || !hasCode() || unknownFunctions.contains(type) || !ConfigScript.ScriptingEnabled)
             return;
 
-        this.setEngine(handler.getLanguage());
         if(engine == null)
             return;
         if(ScriptController.Instance.lastLoaded > this.lastCreated){

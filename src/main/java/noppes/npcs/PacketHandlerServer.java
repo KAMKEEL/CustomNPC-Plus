@@ -241,6 +241,9 @@ public class PacketHandlerServer{
 				}
 			}
 			data.setEnabled(compound.getBoolean("ScriptEnabled"));
+			for (ScriptContainer container : data.getScripts()) {
+				container.setEngine(data.getLanguage());
+			}
 		}
 	}
 

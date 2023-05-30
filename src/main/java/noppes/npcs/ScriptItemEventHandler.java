@@ -58,7 +58,7 @@ public class ScriptItemEventHandler {
             try {
                 if (event.entityItem.getEntityItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
                     IItemCustom isw = ItemScripted.GetWrapper(event.entityItem.getEntityItem());
-                    EventHooks.onScriptItemTossed(isw, event.player, event.entityItem);
+                    event.setCanceled(EventHooks.onScriptItemTossed(isw, event.player, event.entityItem));
                 }
             } catch (Exception e) {}
         }

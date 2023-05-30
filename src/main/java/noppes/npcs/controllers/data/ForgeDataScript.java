@@ -46,6 +46,10 @@ public class ForgeDataScript implements IScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
+
+        for (ScriptContainer container : this.scripts) {
+            container.setEngine(this.getLanguage());
+        }
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
