@@ -372,7 +372,13 @@ public class NpcAPI extends AbstractNpcAPI {
 
         long time = System.currentTimeMillis();
         scriptStack.lastAccessed = time;
-        scriptItemCache.entrySet().removeIf(entry -> time - entry.getValue().lastAccessed > 20000);
+        Iterator<Map.Entry<ItemStack, ScriptItemStack>> iterator = scriptItemCache.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<ItemStack, ScriptItemStack> entry = iterator.next();
+            if (time - entry.getValue().lastAccessed > 20000) {
+                iterator.remove();
+            }
+        }
         scriptItemCache.put(itemstack,scriptStack);
 
         return scriptStack;
