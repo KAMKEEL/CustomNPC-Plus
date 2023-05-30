@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ScriptItemStack implements IItemStack {
+	public long lastAccessed;
 	public ItemStack item;
 
 	public ScriptItemStack(ItemStack item){

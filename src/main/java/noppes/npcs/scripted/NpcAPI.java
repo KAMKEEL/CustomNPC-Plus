@@ -70,6 +70,7 @@ import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
+    private static final HashMap<ItemStack,ScriptItemStack> scriptItemCache = new HashMap<>();
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
@@ -352,17 +353,29 @@ public class NpcAPI extends AbstractNpcAPI {
         if(itemstack == null)
             return null;
 
-        if (itemstack.getItem() instanceof ItemScripted) {
-            return new ScriptCustomItem(itemstack);
-        } else if(itemstack.getItem() instanceof ItemArmor) {
-            return new ScriptItemArmor(itemstack);
-        } else if(itemstack.getItem() instanceof ItemBook) {
-            return new ScriptItemBook(itemstack);
-        } else if(itemstack.getItem() instanceof ItemBlock) {
-            return new ScriptItemBlock(itemstack);
+        ScriptItemStack scriptStack;
+        if (scriptItemCache.containsKey(itemstack)) {
+            scriptStack = scriptItemCache.get(itemstack);
         } else {
-            return new ScriptItemStack(itemstack);
+            if (itemstack.getItem() instanceof ItemScripted) {
+                scriptStack = new ScriptCustomItem(itemstack);
+            } else if (itemstack.getItem() instanceof ItemArmor) {
+                scriptStack = new ScriptItemArmor(itemstack);
+            } else if (itemstack.getItem() instanceof ItemBook) {
+                scriptStack = new ScriptItemBook(itemstack);
+            } else if (itemstack.getItem() instanceof ItemBlock) {
+                scriptStack = new ScriptItemBlock(itemstack);
+            } else {
+                scriptStack = new ScriptItemStack(itemstack);
+            }
         }
+
+        long time = System.currentTimeMillis();
+        scriptStack.lastAccessed = time;
+        scriptItemCache.entrySet().removeIf(entry -> time - entry.getValue().lastAccessed > 20000);
+        scriptItemCache.put(itemstack,scriptStack);
+
+        return scriptStack;
     }
 
     public IItemStack createItemFromNBT(INbt nbt) {
