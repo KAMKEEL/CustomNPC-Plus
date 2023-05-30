@@ -294,6 +294,7 @@ public class PacketHandlerServer{
 	private void itemScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		if (type == EnumPacketServer.ScriptItemDataGet) {
 			ScriptCustomItem iw = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
+			iw.loadScriptData();
 			NBTTagCompound compound = iw.getMCNbt();
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
@@ -305,7 +306,8 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = Server.readNBT(buffer);
 			ScriptCustomItem wrapper = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
 			wrapper.setMCNbt(compound);
-			wrapper.lastInited = -1L;
+			wrapper.loadScriptData();
+			wrapper.loaded = false;
 			wrapper.saveScriptData();
 			player.sendContainerToPlayer(player.inventoryContainer);
 		}

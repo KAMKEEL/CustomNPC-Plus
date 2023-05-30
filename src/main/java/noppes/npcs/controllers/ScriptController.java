@@ -33,7 +33,7 @@ public class ScriptController {
 
 	public static ScriptController Instance;
 	public static boolean HasStart = false;
-	private ScriptEngineManager manager;
+	private final ScriptEngineManager manager;
 	public Map<String, String> languages = new HashMap<String, String>();
 	public Map<String, String> scripts = new HashMap<String, String>();
 	public long lastLoaded = 0;

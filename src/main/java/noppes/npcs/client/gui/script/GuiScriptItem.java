@@ -29,6 +29,7 @@ public class GuiScriptItem extends GuiScriptInterface {
 
     public void setGuiData(NBTTagCompound compound) {
         this.item.setMCNbt(compound);
+        this.item.loadScriptData();
         super.setGuiData(compound);
     }
 

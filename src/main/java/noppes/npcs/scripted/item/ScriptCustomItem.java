@@ -19,7 +19,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
-    public long lastInited = -1L;
     public boolean loaded = false;
 
     public boolean durabilityShow = false;
@@ -47,7 +46,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
 
     public ScriptCustomItem(ItemStack item) {
         super(item);
-        loadScriptData();
         loadItemData();
     }
 
@@ -74,16 +72,12 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         if (!this.loaded) {
             this.loadScriptData();
             this.loaded = true;
+            if (type != EnumScriptType.INIT) {
+                EventHooks.onScriptItemInit(this);
+            }
         }
 
         if (this.isEnabled()) {
-            if (ScriptController.Instance.lastLoaded > this.lastInited) {
-                this.lastInited = ScriptController.Instance.lastLoaded;
-                if (type != EnumScriptType.INIT) {
-                    EventHooks.onScriptItemInit(this);
-                }
-            }
-
             for (int i = 0; i < this.scripts.size(); i++) {
                 ScriptContainer script = this.scripts.get(i);
                 if (!this.errored.contains(i)) {

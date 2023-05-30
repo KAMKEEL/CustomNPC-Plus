@@ -237,7 +237,7 @@ public class ScriptContainer {
         if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
             System.setProperty("nashorn.args", "--language=es6");
         }
-        this.engine = new ScriptEngineManager().getEngineByName(scriptLanguage.toLowerCase());
+        this.engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
 
         currentScriptLanguage = scriptLanguage;
         evaluated = false;
