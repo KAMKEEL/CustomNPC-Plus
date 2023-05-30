@@ -373,17 +373,18 @@ public class NpcAPI extends AbstractNpcAPI {
         long time = System.currentTimeMillis();
         scriptStack.lastAccessed = time;
 
-        List<ItemStack> keysToRemove = new ArrayList<>();
-        for (Map.Entry<ItemStack, ScriptItemStack> entry : scriptItemCache.entrySet()) {
-            if (time - entry.getValue().lastAccessed > 20000) {
-                keysToRemove.add(entry.getKey());
+        synchronized (scriptItemCache) {
+            List<ItemStack> keysToRemove = new ArrayList<>();
+            for (Map.Entry<ItemStack, ScriptItemStack> entry : scriptItemCache.entrySet()) {
+                if (time - entry.getValue().lastAccessed > 20000) {
+                    keysToRemove.add(entry.getKey());
+                }
             }
+            for (ItemStack key : keysToRemove) {
+                scriptItemCache.remove(key);
+            }
+            scriptItemCache.put(itemstack, scriptStack);
         }
-        for (ItemStack key : keysToRemove) {
-            scriptItemCache.remove(key);
-        }
-
-        scriptItemCache.put(itemstack,scriptStack);
 
         return scriptStack;
     }
