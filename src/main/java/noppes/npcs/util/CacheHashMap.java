@@ -13,7 +13,8 @@ public class CacheHashMap<K, V extends CacheHashMap.CachedObject<?>> extends Has
     public V get(Object key) {
         synchronized (this) {
             List<K> keysToRemove = new ArrayList<>();
-            for (Map.Entry<K,V> entry : this.entrySet()) {
+            Set<Map.Entry<K,V>> entrySet = this.entrySet();
+            for (Map.Entry<K,V> entry : entrySet) {
                 if (!Objects.equals(key,entry.getKey())) {
                     long timeDiff = entry.getValue().timeSinceAccessed();
                     if (timeDiff > this.maxCacheTime) {
