@@ -6,24 +6,20 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.ClientCache;
+import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Random;
 
 import static net.minecraft.client.renderer.entity.RenderItem.renderInFrame;
@@ -50,7 +46,7 @@ public class CustomItemRenderer implements IItemRenderer {
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
         ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
 
-        BufferedImage bufferedImage = ClientCache.getImageData(scriptCustomItem.texture).getBufferedImage();
+        BufferedImage bufferedImage = ClientCacheHandler.getImageData(scriptCustomItem.texture).getBufferedImage();
         if (bufferedImage != null && (scriptCustomItem.width != bufferedImage.getWidth() || scriptCustomItem.height != bufferedImage.getHeight())) {
             scriptCustomItem.width = bufferedImage.getWidth();
             scriptCustomItem.height = bufferedImage.getHeight();
@@ -137,7 +133,7 @@ public class CustomItemRenderer implements IItemRenderer {
         int pass = 0;
 
         GL11.glPushMatrix();
-            ClientCache.getImageData(scriptCustomItem.texture).bindTexture();
+            ClientCacheHandler.getImageData(scriptCustomItem.texture).bindTexture();
 
             Tessellator tessellator = Tessellator.instance;
 
@@ -192,7 +188,7 @@ public class CustomItemRenderer implements IItemRenderer {
                     // Makes items offset when in 3D, like when in 2D, looks much better. Considered a vanilla bug...
                     GL11.glTranslatef(0f, 0f, f9 + f10);
 
-                    ImageData imageData = ClientCache.getImageData(scriptCustomItem.texture);
+                    ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.texture);
                     ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
 
                     if (itemStack.hasEffect(pass))
@@ -292,7 +288,7 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            ClientCache.getImageData(scriptCustomItem.texture).bindTexture();
+            ClientCacheHandler.getImageData(scriptCustomItem.texture).bindTexture();
             renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
             GL11.glEnable(GL11.GL_LIGHTING);
@@ -367,7 +363,7 @@ public class CustomItemRenderer implements IItemRenderer {
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ClientCache.getImageData(scriptCustomItem.texture).bindTexture();
+        ClientCacheHandler.getImageData(scriptCustomItem.texture).bindTexture();
 
         Tessellator tessellator = Tessellator.instance;
         IIcon icon = entityLivingBase.getItemIcon(itemStack, par3);
@@ -422,7 +418,7 @@ public class CustomItemRenderer implements IItemRenderer {
 
     public static void renderCustomItemIn2D(ItemStack itemStack, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
     {
-        ImageData imageData = ClientCache.getImageData(ItemScripted.GetWrapper(itemStack).texture);
+        ImageData imageData = ClientCacheHandler.getImageData(ItemScripted.GetWrapper(itemStack).texture);
         int width = imageData.getTotalWidth();
         int height = imageData.getTotalHeight();
 

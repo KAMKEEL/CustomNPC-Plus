@@ -9,25 +9,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.ITextureObject;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.ClientCache;
-import noppes.npcs.client.ImageDownloadAlt;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
-import noppes.npcs.client.renderer.customitem.ImageData;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.scripted.gui.ScriptGuiButton;
 import org.lwjgl.opengl.GL11;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class CustomGuiButton extends GuiButton implements IClickListener {
     GuiCustom parent;
@@ -63,7 +51,7 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
         this.textureY = textureY;
         this.label = buttonText;
         if (texture != null && !texture.isEmpty()) {
-            this.imageData = ClientCache.getImageData(texture);
+            this.imageData = ClientCacheHandler.getImageData(texture);
         }
     }
 

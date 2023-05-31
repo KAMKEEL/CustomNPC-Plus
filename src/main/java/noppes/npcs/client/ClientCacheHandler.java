@@ -1,9 +1,9 @@
 package noppes.npcs.client;
 
-import noppes.npcs.client.renderer.customitem.ImageData;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.util.CacheHashMap;
 
-public class ClientCache {
+public class ClientCacheHandler {
     private static final CacheHashMap<String, CacheHashMap.CachedObject<ImageData>> imageDataCache = new CacheHashMap<>(10*60*1000);
 
     public static ImageData getImageData(String directory) {
