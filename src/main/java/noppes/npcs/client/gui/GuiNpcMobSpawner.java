@@ -42,6 +42,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	private int posX,posY,posZ;
 
 	private List<String> list;
+	private List<String> rawList;
 	private List<String> tagList;
 
 	private static int showingClones = 0;
@@ -181,6 +182,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			}
 		}
 		this.list = list;
+		this.rawList = new ArrayList<String>(this.list);
 		scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 	}
 	private void showClones() {
@@ -198,6 +200,26 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		}
 
 		this.tagMap = ClientTagMapController.Instance.getTagMap(activeTab);
+		this.rawList = new ArrayList<String>(this.list);
+		if(this.tagMap != null){
+			if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1){
+				for(int i = 0; i < this.list.size(); i++){
+					StringBuilder npcName = new StringBuilder(list.get(i));
+					if (this.tagMap.hasClone(list.get(i))) {
+						for (UUID tagUUID : this.tagMap.getUUIDsList(list.get(i))){
+							Tag tag = tags.get(tagUUID);
+							if(tag != null){
+								if(GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()){
+									npcName.append(" [" + tag.name + "]");
+								}
+							}
+						}
+					}
+					this.rawList.set(i, npcName.toString());
+				}
+			}
+		}
+
 		scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 	}
 	public void keyTyped(char c, int i)
@@ -222,6 +244,9 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		if(this.list == null){
 			this.list = new ArrayList<String>();
 		}
+		if(this.rawList == null){
+			this.rawList = new ArrayList<String>();
+		}
 
 		// No Filters - or - Entities
 		if(tagFilters.size() == 0 || showingClones == 1){
@@ -231,9 +256,10 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			// Yes Search
 			else {
 				List<String> list = new ArrayList<String>();
-				for(String name : this.list){
-					if(name.toLowerCase().contains(search))
-						list.add(name);
+				for(int i = 0; i < this.list.size(); i++){
+					if(this.rawList.get(i).toLowerCase().contains(search)){
+						list.add(this.list.get(i));
+					}
 				}
 				return list;
 			}
@@ -257,14 +283,16 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 
 		// Yes Search
 		List<String> list = new ArrayList<String>();
-		for(String name : this.list){
-			if(name.toLowerCase().contains(search)) {
-				if(tagMap.hasClone(name)){
-					if(meetsCondition(name)){
-						list.add(name);
+		for(int i = 0; i < this.list.size(); i++){
+			if(this.rawList.get(i).toLowerCase().contains(search)){
+				String npcName = this.list.get(i);
+				if(tagMap.hasClone(npcName)){
+					if(meetsCondition(npcName)){
+						list.add(npcName);
 					}
 				}
 			}
+
 		}
 		return list;
 	}
@@ -481,6 +509,27 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 			}
 
 			this.list = list;
+
+			this.rawList = new ArrayList<String>(this.list);
+			if(this.tagMap != null){
+				if(GuiNpcMobSpawner.displayTags == 0 || GuiNpcMobSpawner.displayTags == 1){
+					for(int i = 0; i < this.list.size(); i++){
+						StringBuilder npcName = new StringBuilder(list.get(i));
+						if (this.tagMap.hasClone(list.get(i))) {
+							for (UUID tagUUID : this.tagMap.getUUIDsList(list.get(i))){
+								Tag tag = tags.get(tagUUID);
+								if(tag != null){
+									if(GuiNpcMobSpawner.displayTags == 1 || !tag.getIsHidden()){
+										npcName.append(" [" + tag.name + "]");
+									}
+								}
+							}
+						}
+						this.rawList.set(i, npcName.toString());
+					}
+				}
+			}
+
 			scroll.setList(getSearchList(), ascending == 0, sortType == 0);
 		}
 	}
