@@ -61,6 +61,7 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
+import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
@@ -70,7 +71,7 @@ import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
-    private static final HashMap<ItemStack,ScriptItemStack> scriptItemCache = new HashMap<>();
+    private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(1000);
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
@@ -353,40 +354,27 @@ public class NpcAPI extends AbstractNpcAPI {
         if(itemstack == null)
             return null;
 
-        ScriptItemStack scriptStack;
-        if (scriptItemCache.containsKey(itemstack)) {
-            scriptStack = scriptItemCache.get(itemstack);
-        } else {
-            if (itemstack.getItem() instanceof ItemScripted) {
-                scriptStack = new ScriptCustomItem(itemstack);
-            } else if (itemstack.getItem() instanceof ItemArmor) {
-                scriptStack = new ScriptItemArmor(itemstack);
-            } else if (itemstack.getItem() instanceof ItemBook) {
-                scriptStack = new ScriptItemBook(itemstack);
-            } else if (itemstack.getItem() instanceof ItemBlock) {
-                scriptStack = new ScriptItemBlock(itemstack);
-            } else {
-                scriptStack = new ScriptItemStack(itemstack);
-            }
-        }
-
-        long time = System.currentTimeMillis();
-        scriptStack.lastAccessed = time;
-
         synchronized (scriptItemCache) {
-            List<ItemStack> keysToRemove = new ArrayList<>();
-            for (Map.Entry<ItemStack, ScriptItemStack> entry : scriptItemCache.entrySet()) {
-                if (time - entry.getValue().lastAccessed > 20000) {
-                    keysToRemove.add(entry.getKey());
+            ScriptItemStack scriptStack;
+            if (scriptItemCache.containsKey(itemstack)) {
+                scriptStack = scriptItemCache.get(itemstack).getObject();
+            } else {
+                if (itemstack.getItem() instanceof ItemScripted) {
+                    scriptStack = new ScriptCustomItem(itemstack);
+                } else if (itemstack.getItem() instanceof ItemArmor) {
+                    scriptStack = new ScriptItemArmor(itemstack);
+                } else if (itemstack.getItem() instanceof ItemBook) {
+                    scriptStack = new ScriptItemBook(itemstack);
+                } else if (itemstack.getItem() instanceof ItemBlock) {
+                    scriptStack = new ScriptItemBlock(itemstack);
+                } else {
+                    scriptStack = new ScriptItemStack(itemstack);
                 }
+                scriptItemCache.put(itemstack, new CacheHashMap.CachedObject<>(scriptStack));
             }
-            for (ItemStack key : keysToRemove) {
-                scriptItemCache.remove(key);
-            }
-            scriptItemCache.put(itemstack, scriptStack);
-        }
 
-        return scriptStack;
+            return scriptStack;
+        }
     }
 
     public IItemStack createItemFromNBT(INbt nbt) {
