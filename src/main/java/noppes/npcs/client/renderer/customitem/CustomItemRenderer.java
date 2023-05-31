@@ -49,15 +49,10 @@ public class CustomItemRenderer implements IItemRenderer {
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
         ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
 
-        BufferedImage bufferedImage = Client.getImageData(scriptCustomItem.texture).getBufferedImage();
-        if (bufferedImage != null && (scriptCustomItem.width != bufferedImage.getWidth() || scriptCustomItem.height != bufferedImage.getHeight())) {
-            scriptCustomItem.width = bufferedImage.getWidth();
-            scriptCustomItem.height = bufferedImage.getHeight();
-            scriptCustomItem.saveItemData();
-        }
-
-        if(scriptCustomItem.width < 1 || scriptCustomItem.height < 1)
+        ImageData imageData = Client.getImageData(scriptCustomItem.texture);
+        if (!imageData.imageLoaded()) {
             return;
+        }
 
         if (type == ItemRenderType.INVENTORY) {
             GL11.glPushMatrix();
@@ -80,7 +75,6 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glRotatef(scriptCustomItem.rotationYRate * entityRenderTicks%360, 0, 1, 0);
             GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks%360, 0, 0, 1);
 
-            GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
             GL11.glTranslatef(0.0F, bobbingY, 0.0F);
 
             int color = scriptCustomItem.getColor();
@@ -184,6 +178,7 @@ public class CustomItemRenderer implements IItemRenderer {
                     b0 = 4;
                 }
 
+                GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
                 GL11.glTranslatef(-f7, -f8, -((f9 + f10) * (float)b0 / 2.0F));
 
                 for (int k = 0; k < b0; ++k)
@@ -253,6 +248,7 @@ public class CustomItemRenderer implements IItemRenderer {
                 for (int l = 0; l < b0; ++l)
                 {
                     GL11.glPushMatrix();
+                    GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
 
                     if (l > 0)
                     {
