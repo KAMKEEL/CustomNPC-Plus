@@ -195,13 +195,13 @@ afterEvaluate {
     }
 }
 
+task deobfJar(type: Jar) {
+    classifier = 'dev'
+    from sourceSets.main.output
+}
+
 sourceSets {
     main {
         ext.refMap = refMapForYourConfig
     }
-}
-
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'dev'
 }
