@@ -14,6 +14,7 @@ import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientCache;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
@@ -61,7 +62,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         this.textureX = textureX;
         this.textureY = textureY;
         if (texture != null && !texture.isEmpty()) {
-            this.imageData = Client.getImageData(texture);
+            this.imageData = ClientCache.getImageData(texture);
         }
     }
 
