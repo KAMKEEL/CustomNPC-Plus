@@ -439,7 +439,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
 
     public void loadItemData() {
         NBTTagCompound c = this.item.getTagCompound();
-        if (c != null){
+        if (c != null && !c.getCompoundTag("ItemData").hasNoTags()){
             this.setItemNBT(c.getCompoundTag("ItemData"));
         }
     }
