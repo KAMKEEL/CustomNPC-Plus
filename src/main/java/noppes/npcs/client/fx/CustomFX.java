@@ -5,27 +5,21 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientProxy;
-import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
+import noppes.npcs.client.renderer.customitem.ImageData;
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.opengl.GL11;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-
 public class CustomFX extends EntityFX {
     private final Entity entity;
-    private final ResourceLocation location;
+    private final String directory;
+    private final ImageData imageData;
     private static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
     private float startX = 0, startY = 0, startZ = 0;
 
@@ -65,7 +59,6 @@ public class CustomFX extends EntityFX {
     public boolean facePlayer = true;
     public boolean glows = true;
 
-    private int totalWidth, totalHeight;
     public int width, height;
     public int offsetX, offsetY;
 
@@ -81,16 +74,13 @@ public class CustomFX extends EntityFX {
     public float HEXColorRate = 0.0F;
     public int HEXColorStart = 0;
 
-    private ImageDownloadAlt imageDownloadAlt = null;
-    private boolean isUrl = false;
-    private boolean gotWidthHeight = false;
-
     double renderPosX, renderPosY, renderPosZ;
 
     public CustomFX(World worldObj, Entity entity, String directory, double x, double y, double z, double motionX, double motionY, double motionZ) {
         super(worldObj, x, y, z, motionX, motionY, motionZ);
         this.entity = entity;
-        this.location = new ResourceLocation(directory);
+        this.directory = directory;
+        this.imageData = Client.getImageData(this.directory);
     }
 
     public static CustomFX fromScriptedParticle(ScriptParticle particle, World worldObj, Entity entity) {
@@ -171,19 +161,6 @@ public class CustomFX extends EntityFX {
         if(customFX.animEnd < customFX.animStart)
             customFX.animEnd = customFX.animStart + customFX.particleMaxAge;
 
-        if(particle.directory.startsWith("https://")){
-            customFX.isUrl = true;
-            TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            customFX.imageDownloadAlt = new ImageDownloadAlt(null, particle.directory, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
-            texturemanager.loadTexture(customFX.location, customFX.imageDownloadAlt);
-        } else {
-            try {
-                customFX.getWidthHeight();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
         customFX.facePlayer = particle.facePlayer;
         customFX.glows = particle.glows;
 
@@ -192,6 +169,10 @@ public class CustomFX extends EntityFX {
 
     @Override
     public void onUpdate() {
+        if (!this.imageLoaded()) {
+            return;
+        }
+
         ++this.timeSinceStart;
 
         if (this.timeSinceStart == this.particleMaxAge)
@@ -206,12 +187,12 @@ public class CustomFX extends EntityFX {
         this.motionY -= 0.04D * (double)this.particleGravity;
         this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
-        if(animRate > 0 && timeSinceStart%animRate == 0 && timeSinceStart > 0 && gotWidthHeight && timeSinceStart >= animStart && timeSinceStart <= animEnd && (animLoop || animPosY <= totalHeight)){
+        if (animRate > 0 && timeSinceStart % animRate == 0 && timeSinceStart > 0 && timeSinceStart >= animStart && timeSinceStart <= animEnd && (animLoop || animPosY <= imageData.getTotalHeight())) {
             animPosX += width;
-            if (animPosX + width > totalWidth) {
+            if (animPosX + width > imageData.getTotalWidth()) {
                 animPosX = offsetX;
                 animPosY += height;
-                if (animPosY > totalHeight && animLoop) {
+                if (animPosY > imageData.getTotalHeight() && animLoop) {
                     animPosY = offsetY;
                 }
             }
@@ -228,11 +209,14 @@ public class CustomFX extends EntityFX {
     @Override
     public void renderParticle(Tessellator tessellator, float partialTick, float cosYaw, float cosPitch, float sinYaw, float sinSinPitch, float cosSinPitch)
     {
-        tessellator.draw();
-        ClientProxy.bindTexture(location);
+        if (!this.imageLoaded()) {
+            return;
+        }
 
-        if(imageDownloadAlt != null && isUrl && !gotWidthHeight){
-            getURLWidthHeight();
+        tessellator.draw();
+        imageData.bindTexture();
+        if (imageData.invalid()) {
+            setDead();
         }
 
         if(entity != null){
@@ -286,6 +270,9 @@ public class CustomFX extends EntityFX {
     }
 
     public void renderParticleSide(boolean front, Tessellator tessellator, float partialTick){
+        int totalWidth = imageData.getTotalWidth();
+        int totalHeight = imageData.getTotalHeight();
+
         float u1 = (float)offsetX/(float)totalWidth + (float)animPosX/(float)totalWidth;
         float u2 = u1 + (float)width/(float)totalWidth;
         float v1 = (float)offsetY/(float)totalHeight + (float)animPosY/(float)totalHeight;
@@ -297,49 +284,49 @@ public class CustomFX extends EntityFX {
         float posZ = (float)((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ;
 
         GL11.glPushMatrix();
-            renderPosX = startX + posX + this.posX;
-            renderPosY = startY + posY + this.posY;
-            renderPosZ = startZ + posZ + this.posZ;
+        renderPosX = startX + posX + this.posX;
+        renderPosY = startY + posY + this.posY;
+        renderPosZ = startZ + posZ + this.posZ;
 
-            GL11.glTranslated(posX,posY,posZ);
-            if(facePlayer) {
-                GL11.glRotated(180 - player.rotationYaw, 0.0, 1.0, 0.0);
-                GL11.glRotated(-player.rotationPitch + 90, 1.0, 0.0, 0.0);
+        GL11.glTranslated(posX,posY,posZ);
+        if(facePlayer) {
+            GL11.glRotated(180 - player.rotationYaw, 0.0, 1.0, 0.0);
+            GL11.glRotated(-player.rotationPitch + 90, 1.0, 0.0, 0.0);
 
-                GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
-                GL11.glRotated(rotationZ, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationY + (!front ? 180 : 0), 0.0, 0.0, 1.0);
-            } else {
-                GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
-                GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationZ + (!front ? 180 : 0), 0.0, 0.0, 1.0);
-            }
+            GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
+            GL11.glRotated(rotationZ, 0.0, 1.0, 0.0);
+            GL11.glRotated(rotationY + (!front ? 180 : 0), 0.0, 0.0, 1.0);
+        } else {
+            GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
+            GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
+            GL11.glRotated(rotationZ + (!front ? 180 : 0), 0.0, 0.0, 1.0);
+        }
 
-            tessellator.startDrawingQuads();
-            if (!this.glows) {
-                tessellator.setBrightness(this.getBrightnessForRender(partialTick));
-            } else {
-                tessellator.setBrightness(240);
-            }
+        tessellator.startDrawingQuads();
+        if (!this.glows) {
+            tessellator.setBrightness(this.getBrightnessForRender(partialTick));
+        } else {
+            tessellator.setBrightness(240);
+        }
 
-            float textureXScale = 1.0F, textureYScale = 1.0F;
-            if (totalWidth > totalHeight) {
-                textureYScale = (float) totalHeight/totalWidth;
-                GL11.glScalef(1/textureYScale/2,1/textureYScale/2,1/textureYScale/2);
-            } else if(totalHeight > totalWidth) {
-                textureXScale = (float) totalWidth/totalHeight;
-                GL11.glScalef(1/textureXScale/2,1/textureXScale/2,1/textureXScale/2);
-            }
-            textureXScale *= scaleX1/10.0F;
-            textureYScale *= scaleY1/10.0F;
+        float textureXScale = 1.0F, textureYScale = 1.0F;
+        if (totalWidth > totalHeight) {
+            textureYScale = (float) totalHeight/totalWidth;
+            GL11.glScalef(1/textureYScale/2,1/textureYScale/2,1/textureYScale/2);
+        } else if(totalHeight > totalWidth) {
+            textureXScale = (float) totalWidth/totalHeight;
+            GL11.glScalef(1/textureXScale/2,1/textureXScale/2,1/textureXScale/2);
+        }
+        textureXScale *= scaleX1/10.0F;
+        textureYScale *= scaleY1/10.0F;
 
-            tessellator.setColorOpaque_F(1, 1, 1);
-            tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
-            tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0,  textureYScale * (v2-v1)/2, u2, v2);
-            tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0, textureYScale * -(v2-v1)/2, u2, v1);
-            tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0,  textureYScale * -(v2-v1)/2, u1, v1);
-            tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0, textureYScale * (v2-v1)/2, u1, v2);
-            tessellator.draw();
+        tessellator.setColorOpaque_F(1, 1, 1);
+        tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
+        tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0,  textureYScale * (v2-v1)/2, u2, v2);
+        tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0, textureYScale * -(v2-v1)/2, u2, v1);
+        tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0,  textureYScale * -(v2-v1)/2, u1, v1);
+        tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0, textureYScale * (v2-v1)/2, u1, v2);
+        tessellator.draw();
         GL11.glPopMatrix();
     }
 
@@ -361,42 +348,6 @@ public class CustomFX extends EntityFX {
         }
     }
 
-    public void getWidthHeight() throws IOException {
-        InputStream inputstream = null;
-
-        try {
-            IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(this.location);
-            inputstream = iresource.getInputStream();
-            BufferedImage bufferedimage = ImageIO.read(inputstream);
-            gotWidthHeight = true;
-            this.totalWidth = bufferedimage.getWidth();
-            this.totalHeight = bufferedimage.getHeight();
-            correctWidthHeight();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (inputstream != null) {
-                inputstream.close();
-            }
-        }
-    }
-
-    public void getURLWidthHeight(){
-        if(imageDownloadAlt.getBufferedImage() != null) {
-            gotWidthHeight = true;
-            this.totalWidth = imageDownloadAlt.getBufferedImage().getWidth();
-            this.totalHeight = imageDownloadAlt.getBufferedImage().getHeight();
-            correctWidthHeight();
-        }
-    }
-
-    public void correctWidthHeight(){
-        totalWidth = Math.max(totalWidth, 1);
-        totalHeight = Math.max(totalHeight, 1);
-        this.width = width < 0 ? totalWidth : width;
-        this.height = height < 0 ? totalHeight : height;
-    }
-
     public int lerpColor(int from, int to, float ratio) {
         float ar = (from & 0xFF0000) >> 16;
         float ag = (from & 0x00FF00) >> 8;
@@ -412,8 +363,17 @@ public class CustomFX extends EntityFX {
 
         return (int)(((int)rr << 16) + ((int)rg << 8) + (rb));
     }
-    
+
     public int getFXLayer(){
-    	return 0;
+        return 0;
+    }
+
+    public boolean imageLoaded() {
+        if (imageData.imageLoaded()) {
+            this.width = width < 0 ? imageData.getTotalWidth() : width;
+            this.height = height < 0 ? imageData.getTotalHeight() : height;
+            return true;
+        }
+        return false;
     }
 }
