@@ -36,6 +36,15 @@ public class ImageData {
     }
 
     public boolean imageLoaded() {
+        if (!this.gotWidthHeight) {
+            try {
+                if (!this.isUrl) {
+                    this.getWidthHeight();
+                } else {
+                    this.getURLWidthHeight();
+                }
+            } catch (Exception ignored) {}
+        }
         return !this.invalid && this.location != null && this.gotWidthHeight;
     }
 
@@ -70,6 +79,10 @@ public class ImageData {
     }
 
     private void getWidthHeight() throws IOException {
+        if (this.invalid) {
+            return;
+        }
+
         InputStream inputstream = null;
 
         try {
@@ -81,7 +94,7 @@ public class ImageData {
             this.totalHeight = bufferedimage.getHeight();
             correctWidthHeight();
         } catch (Exception e) {
-            e.printStackTrace();
+            this.invalid = true;
         } finally {
             if (inputstream != null) {
                 inputstream.close();
@@ -90,7 +103,7 @@ public class ImageData {
     }
 
     private void getURLWidthHeight(){
-        if(this.imageDownloadAlt.getBufferedImage() != null) {
+        if(this.imageDownloadAlt.getBufferedImage() != null && !this.invalid) {
             this.gotWidthHeight = true;
             this.totalWidth = this.imageDownloadAlt.getBufferedImage().getWidth();
             this.totalHeight = this.imageDownloadAlt.getBufferedImage().getHeight();
@@ -104,34 +117,10 @@ public class ImageData {
     }
 
     public int getTotalWidth() {
-        if (!this.gotWidthHeight) {
-            try {
-                if (!this.isUrl) {
-                    this.getWidthHeight();
-                } else {
-                    this.getURLWidthHeight();
-                }
-            } catch (Exception ignored) {}
-            if (!this.gotWidthHeight) {
-                return -1;
-            }
-        }
-        return this.totalWidth;
+        return this.gotWidthHeight ? this.totalWidth : -1;
     }
 
     public int getTotalHeight() {
-        if (!this.gotWidthHeight) {
-            try {
-                if (!this.isUrl) {
-                    this.getWidthHeight();
-                } else {
-                    this.getURLWidthHeight();
-                }
-            } catch (Exception ignored) {}
-            if (!this.gotWidthHeight) {
-                return -1;
-            }
-        }
-        return this.totalHeight;
+        return this.gotWidthHeight ? this.totalHeight : -1;
     }
 }

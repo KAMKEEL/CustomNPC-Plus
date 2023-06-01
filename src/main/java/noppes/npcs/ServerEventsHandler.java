@@ -360,13 +360,10 @@ public class ServerEventsHandler {
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void onEntityConstructing(EntityEvent.EntityConstructing event) {
-		if (event.entity instanceof EntityPlayerMP) {
-			PlayerData data = new PlayerData();
-			data.player = (EntityPlayer) event.entity;
-			event.entity.registerExtendedProperties("CustomNpcsData", data);
-		}
+	@SubscribeEvent
+	public void world(PlayerEvent.SaveToFile event){
+		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
+		data.save();
 	}
 
 	@SubscribeEvent
