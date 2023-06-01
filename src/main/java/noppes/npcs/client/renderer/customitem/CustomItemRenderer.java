@@ -44,15 +44,11 @@ public class CustomItemRenderer implements IItemRenderer {
 
     @Override
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
-        ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
-        BufferedImage bufferedImage = ClientCacheHandler.getImageData(scriptCustomItem.texture).getBufferedImage();
-        if (bufferedImage != null && (scriptCustomItem.width != bufferedImage.getWidth() || scriptCustomItem.height != bufferedImage.getHeight())) {
-            scriptCustomItem.width = bufferedImage.getWidth();
-            scriptCustomItem.height = bufferedImage.getHeight();
-            scriptCustomItem.saveItemData();
-        }
 
-        if(scriptCustomItem.width < 1 || scriptCustomItem.height < 1){
+        // FIX THIS LOUIS!!
+        ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
+        ImageData imageData = Client.getImageData(scriptCustomItem.texture);
+        if (!imageData.imageLoaded()) {
             return;
         }
 
