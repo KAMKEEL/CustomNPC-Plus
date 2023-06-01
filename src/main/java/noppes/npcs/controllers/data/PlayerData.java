@@ -51,12 +51,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
-		this.save();
 	}
 
 	@Override
 	public void loadNBTData(NBTTagCompound compound) {
-		this.load();
 	}
 
 	public void setNBT(NBTTagCompound data){

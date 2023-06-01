@@ -84,6 +84,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             GL11.glRotatef(this.rotation, 0.0F, 0.0F, 1.0F);
             GL11.glScalef(this.scale, this.scale, this.scale);
 
+            this.imageData.bindTexture();
             Tessellator tessellator = Tessellator.instance;
             tessellator.startDrawingQuads();
             tessellator.setColorOpaque_F(1, 1, 1);

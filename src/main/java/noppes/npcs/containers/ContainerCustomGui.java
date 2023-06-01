@@ -108,6 +108,11 @@ public class ContainerCustomGui extends Container {
     public ItemStack slotClick(int slotId, int dragType, int clickTypeIn, EntityPlayer player) {
         if(slotId < 0)
             return super.slotClick(slotId, dragType, clickTypeIn, player);
+
+        if (slotId >= this.inventorySlots.size()) {
+            return null;
+        }
+
         Slot mcSlot = (Slot)this.inventorySlots.get(slotId);
         if(!player.worldObj.isRemote && mcSlot != null) {
             IItemSlot slot = null;
