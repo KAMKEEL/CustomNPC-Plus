@@ -30,8 +30,8 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         setBackground("menubg.png");
         xSize = 305;
         ySize = 220;
-        closeOnEsc = false;
         this.npc = npc;
+        closeOnEsc = false;
     }
 
     public void initGui()

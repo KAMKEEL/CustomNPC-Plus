@@ -10,7 +10,9 @@ import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData
@@ -20,6 +22,7 @@ public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScr
 	private ContainerManageBanks container;
 	private Bank bank = new Bank();
 	private String selected = null;
+	private String search = "";
 	
     public GuiNPCManageBanks(EntityNPCInterface npc,ContainerManageBanks container)
     {
@@ -61,6 +64,8 @@ public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScr
         addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft+10, guiTop + 110, 16, 16, ""));
         getTextField(2).integersOnly = true;
         getTextField(2).setMaxStringLength(1);
+
+		addTextField(new GuiNpcTextField(33, this, fontRendererObj, guiLeft + 174, guiTop + 8 + 3 + 180, 160, 20, search));
     }
 
     public void drawScreen(int x, int y, float f)
@@ -137,12 +142,37 @@ public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScr
 		}
 		setSelected(bank.name);
 	}
-	
+
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(33) != null){
+			if(getTextField(33).isFocused()){
+				if(search.equals(getTextField(33).getText()))
+					return;
+				search = getTextField(33).getText().toLowerCase();
+				scroll.setList(getSearchList());
+			}
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(this.data.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.data.keySet()){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
+	}
+
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scroll.getSelected();
 		this.data = data;
-		scroll.setList(list);
+		scroll.setList(getSearchList());
 		
 		if(name != null)
 			scroll.setSelected(name);
