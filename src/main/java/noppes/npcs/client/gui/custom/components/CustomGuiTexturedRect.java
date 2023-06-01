@@ -6,26 +6,15 @@
 package noppes.npcs.client.gui.custom.components;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.client.renderer.customitem.ImageData;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
 import org.lwjgl.opengl.GL11;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     GuiCustom parent;
@@ -95,6 +84,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             GL11.glRotatef(this.rotation, 0.0F, 0.0F, 1.0F);
             GL11.glScalef(this.scale, this.scale, this.scale);
 
+            this.imageData.bindTexture();
             Tessellator tessellator = Tessellator.instance;
             tessellator.startDrawingQuads();
             tessellator.setColorOpaque_F(1, 1, 1);

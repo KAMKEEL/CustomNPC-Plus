@@ -30,8 +30,8 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         setBackground("menubg.png");
         xSize = 305;
         ySize = 220;
-        closeOnEsc = false;
         this.npc = npc;
+        closeOnEsc = false;
     }
 
     public void initGui()
@@ -86,6 +86,7 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
             tagNames.clear();
         }
         if (guibutton.id == 66) {
+            save();
             close();
         }
         initGui();
@@ -154,11 +155,4 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
         }
         return list;
     }
-
-    @Override
-    public void close() {
-        save();
-        super.close();
-    }
-
 }

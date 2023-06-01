@@ -410,13 +410,13 @@ cloner.tagFilters=Tag Filters
 cloner.tagVisibility=Tag Visibility
 cloner.wandTags=Wand Tags
 cloner.npcTags=NPC Tags
+cloner.selectedTags=Selected Tags
 cloner.order=Sort Order
 cloner.ascending=Ascending
 cloner.descending=Descending
 cloner.type=Sort Type
 cloner.name=Name
 cloner.date=Date
-cloner.wandtags=Wand Tags
 cloner.wandtagsapplied=Wand Tags will be applied
 
 tags.allTags=All Tags
