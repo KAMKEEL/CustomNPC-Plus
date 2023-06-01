@@ -306,9 +306,8 @@ public class PacketHandlerServer{
 			NBTTagCompound compound = Server.readNBT(buffer);
 			ScriptCustomItem wrapper = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
 			wrapper.setMCNbt(compound);
-			wrapper.loadScriptData();
-			wrapper.loaded = false;
 			wrapper.saveScriptData();
+			wrapper.loaded = false;
 			player.sendContainerToPlayer(player.inventoryContainer);
 		}
 	}
