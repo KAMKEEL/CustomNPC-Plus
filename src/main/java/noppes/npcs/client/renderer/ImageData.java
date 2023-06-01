@@ -48,6 +48,10 @@ public class ImageData {
         return !this.invalid && this.location != null && this.gotWidthHeight;
     }
 
+    public boolean invalid() {
+        return this.invalid;
+    }
+
     public void bindTexture() {
         ResourceLocation location = this.getLocation();
         if (location != null && !this.invalid) {
