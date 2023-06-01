@@ -112,12 +112,18 @@ public abstract class MixinModelRenderer {
                 }
                 if (ClientEventHandler.renderingPlayer != null && Client.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
                     animData = Client.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
-                    EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
-                    EnumAnimationPart pivotEqualPart = null;
-                    if (mainPartType == null) {
-                        pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
+
+                    EnumAnimationPart mainPartType = null;
+                    try{
+                        EnumAnimationPart pivotEqualPart = null;
+                        mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
+                        if (mainPartType == null) {
+                            pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
+                        }
+                        partType = mainPartType != null ? mainPartType : pivotEqualPart;
                     }
-                    partType = mainPartType != null ? mainPartType : pivotEqualPart;
+                    catch (Exception ignored){}
+
                     if (partType != null && animData != null) {
                         if (!ClientEventHandler.originalValues.containsKey((ModelRenderer) (Object) this)) {
                             FramePart part = new FramePart();
