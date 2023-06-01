@@ -248,10 +248,14 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IBlock getIBlock(IWorld world, IPos pos) {
-        return this.getIBlock(world, pos.getX(),pos.getY(),pos.getZ());
+        return pos == null ? null : this.getIBlock(world, pos.getX(),pos.getY(),pos.getZ());
     }
 
     public ITileEntity getITileEntity(IWorld world, IPos pos) {
+        if (pos == null) {
+            return null;
+        }
+
         TileEntity tileEntity = world.getMCWorld().getTileEntity(pos.getX(), pos.getY(),pos.getZ());
         return this.getITileEntity(tileEntity);
     }
@@ -282,11 +286,13 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IPos[] getAllInBox(IPos from, IPos to, boolean sortByDistance) {
-        Iterator<BlockPos> posIterable = BlockPos.getAllInBox(from.getMCPos(),to.getMCPos()).iterator();
         ArrayList<IPos> list = new ArrayList<>();
-        posIterable.forEachRemaining(BlockPos -> list.add(this.getIPos(BlockPos)));
-        if (sortByDistance) {
-            list.sort(Comparator.comparingDouble(pos -> pos.distanceTo(from)));
+        if (from != null && to != null) {
+            Iterator<BlockPos> posIterable = BlockPos.getAllInBox(from.getMCPos(),to.getMCPos()).iterator();
+            posIterable.forEachRemaining(BlockPos -> list.add(this.getIPos(BlockPos)));
+            if (sortByDistance) {
+                list.sort(Comparator.comparingDouble(pos -> pos.distanceTo(from)));
+            }
         }
         return list.toArray(new IPos[0]);
     }
@@ -333,6 +339,9 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public ICustomNpc<?> spawnNPC(IWorld world, IPos pos) {
+        if (pos == null) {
+            return null;
+        }
         return this.spawnNPC(world, pos.getX(), pos.getY(), pos.getZ());
     }
 
