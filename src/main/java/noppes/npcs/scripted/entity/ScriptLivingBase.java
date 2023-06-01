@@ -172,7 +172,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public IPos getLookingAtPos(int maxDistance, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 lookVec = entity.getLookVec();
 		return getWorld().rayCastPos(
-				new double[] {entity.posX, entity.posY + entity.getEyeHeight() + 0.5D, entity.posZ},
+				new double[] {entity.posX, entity.posY + entity.getEyeHeight(), entity.posZ},
 				new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord},
 				maxDistance, stopOnBlock, stopOnLiquid, stopOnCollision);
 	}
