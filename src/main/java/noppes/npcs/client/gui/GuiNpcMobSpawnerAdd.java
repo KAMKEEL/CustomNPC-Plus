@@ -172,6 +172,10 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
+		if(subgui instanceof SubGuiClonerNPCTags){
+			close();
+			return;
+		}
 		initGui();
 	}
 
