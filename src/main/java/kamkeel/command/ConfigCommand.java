@@ -13,6 +13,7 @@ import noppes.npcs.Server;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
+import noppes.npcs.controllers.PlayerDataController;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -172,6 +173,51 @@ public class ConfigCommand extends CommandKamkeelBase {
 			sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     }
+
+	@SubCommand(
+			desc = "Generate PlayerData to JSON/DAT",
+			usage = " <fileType> convert",
+			permission = 4
+	)
+	public void playerdata(ICommandSender sender, String[] args) throws CommandException{
+		String fileType;
+		if(ConfigMain.DatFormat){
+			fileType = "DAT";
+		}
+		else {
+			fileType = "JSON";
+		}
+		if(args.length == 0){
+			sendResult(sender, "PlayerData Filetype: \u00A7c" + fileType);
+		}
+		else if(args.length == 1){
+			sendResult(sender, "Please write the word 'convert' at the end to confirm.  \u00A7c<dat/json> convert");
+		}
+		else{
+			if(args.length > 2){
+				sendError(sender, "Two many arguments");
+				return;
+			}
+			String formatType = args[1].toLowerCase();
+			if(!formatType.equals("dat") && !formatType.equals("json")){
+				sendError(sender, "Invalid Format Type - Please use dat or json");
+				return;
+			}
+
+			boolean convertToDat = false;
+			if(formatType.equals(".dat")){
+				convertToDat = true;
+			}
+
+			EntityPlayerMP send = null;
+			if(sender instanceof EntityPlayerMP){
+				send = (EntityPlayerMP) sender;
+			}
+
+			sendResult(sender, "Started Conversion Process for PlayerData");
+			PlayerDataController.instance.convertPlayerFiles(send, convertToDat);
+		}
+	}
     
     @SubCommand(
     		desc = "Get/Set font",
