@@ -235,9 +235,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		final NBTTagCompound compound = getNBT();
 		final String filename;
 		if(ConfigMain.DatFormat){
-			filename = uuid + ".json";
-		} else {
 			filename = uuid + ".dat";
+		} else {
+			filename = uuid + ".json";
 		}
 		CustomNPCsThreader.playerDataThread.execute(() -> {
 			try {
