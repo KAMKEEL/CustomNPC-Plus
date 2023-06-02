@@ -194,23 +194,23 @@ public class ConfigCommand extends CommandKamkeelBase {
 			sendResult(sender, "Please write the word 'convert' at the end to confirm.  \u00A7c<dat/json> convert");
 		}
 		else{
-			if(args.length > 2){
+			if(args.length != 2){
 				sendError(sender, "Two many arguments");
 				return;
 			}
-			String formatType = args[1].toLowerCase();
+			String formatType = args[0].toLowerCase();
 			if(!formatType.equals("dat") && !formatType.equals("json")){
 				sendError(sender, "Invalid Format Type - Please use dat or json");
 				return;
 			}
 
-			String convert = args[12].toLowerCase();
+			String convert = args[1].toLowerCase();
 			if(!convert.equals("convert")){
 				sendError(sender, "Please enter the word 'convert' at the end");
 				return;
 			}
 
-			boolean convertToDat = formatType.equals(".dat");
+			boolean convertToDat = formatType.equals("dat");
 			EntityPlayerMP send = null;
 			if(sender instanceof EntityPlayerMP){
 				send = (EntityPlayerMP) sender;
