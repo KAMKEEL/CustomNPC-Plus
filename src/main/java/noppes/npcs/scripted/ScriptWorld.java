@@ -806,15 +806,28 @@ public class ScriptWorld implements IWorld {
 	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
 										  int maxDistance, double offset, double range,
 										  boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return rayCastEntities(null,startPos,lookVector,maxDistance,offset,range,stopOnBlock,stopOnLiquid,stopOnCollision);
+	}
+
+	public IEntity[] rayCastEntities(IEntity[] ignoreEntities, double[] startPos, double[] lookVector,
+									 int maxDistance, double offset, double range,
+									 boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		if (ignoreEntities == null) {
+			ignoreEntities = new IEntity[0];
+		}
+
 		Vec3 startVec = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]);
 		Vec3 endVec = startVec.addVector(lookVector[0]*maxDistance,lookVector[1]*maxDistance,lookVector[2]*maxDistance);
 		startVec = startVec.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
 
-		Set<IEntity<?>> entities = this.rayCastEntities(startVec,endVec,range,stopOnBlock,stopOnLiquid,stopOnCollision);
+		LinkedHashSet<IEntity> ignoredEntitiesSet = new LinkedHashSet<>();
+		Collections.addAll(ignoredEntitiesSet, ignoreEntities);
+
+		Set<IEntity<?>> entities = this.rayCastEntities(ignoredEntitiesSet,startVec,endVec,range,stopOnBlock,stopOnLiquid,stopOnCollision);
 		return entities.toArray(new IEntity[0]);
 	}
 
-	public Set<IEntity<?>> rayCastEntities(Vec3 startVec, Vec3 endVec, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision)
+	public Set<IEntity<?>> rayCastEntities(LinkedHashSet<IEntity> ignoredEntitiesSet, Vec3 startVec, Vec3 endVec, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision)
 	{
 		LinkedHashSet<IEntity<?>> entities = new LinkedHashSet<>();
 
@@ -832,7 +845,11 @@ public class ScriptWorld implements IWorld {
 				int k1 = this.world.getBlockMetadata(l, i1, j1);
 
 				IEntity<?>[] surrounding = this.getEntitiesNear(l,i1,j1,range);
-				Collections.addAll(entities, surrounding);
+				for (IEntity<?> entity : surrounding) {
+					if (!ignoredEntitiesSet.contains(entity)) {
+						entities.add(entity);
+					}
+				}
 
 				if (block.canCollideCheck(k1, false))
 				{
@@ -850,12 +867,12 @@ public class ScriptWorld implements IWorld {
 				{
 					if (Double.isNaN(startVec.xCoord) || Double.isNaN(startVec.yCoord) || Double.isNaN(startVec.zCoord))
 					{
-						return null;
+						return entities;
 					}
 
 					if (l == endX && i1 == endY && j1 == endZ)
 					{
-						return null;
+						return entities;
 					}
 
 					boolean flag6 = true;
@@ -1003,7 +1020,11 @@ public class ScriptWorld implements IWorld {
 					int l1 = this.world.getBlockMetadata(l, i1, j1);
 
 					IEntity<?>[] surroundingEntities = this.getEntitiesNear(l,i1,j1,range);
-					Collections.addAll(entities, surroundingEntities);
+					for (IEntity<?> entity : surroundingEntities) {
+						if (!ignoredEntitiesSet.contains(entity)) {
+							entities.add(entity);
+						}
+					}
 
 					MovingObjectPosition movingobjectposition1 = block1.collisionRayTrace(this.world, l, i1, j1, startVec, endVec);
 					if (movingobjectposition1 != null)

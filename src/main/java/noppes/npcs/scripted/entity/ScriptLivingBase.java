@@ -16,6 +16,11 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.EntityType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
 	protected T entity;
 	
@@ -181,12 +186,23 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		return getLookingAtPos(maxDistance, true, false, false);
 	}
 
-	public IEntity[] getLookingAtEntities(int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+	public IEntity[] getLookingAtEntities(IEntity[] ignoreEntities, int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 lookVec = entity.getLookVec();
 		double[] startPos = new double[] {entity.posX, entity.posY+entity.getEyeHeight(), entity.posZ};
 		double[] lookVector = new double[] {lookVec.xCoord, lookVec.yCoord, lookVec.zCoord};
 
-		return getWorld().rayCastEntities(startPos,lookVector,maxDistance,offset,range,stopOnBlock,stopOnLiquid,stopOnCollision);
+		if (ignoreEntities == null) {
+			ignoreEntities = new IEntity<?>[0];
+		}
+		ArrayList<IEntity> entities = new ArrayList<>();
+		entities.add(this);
+		Collections.addAll(entities, ignoreEntities);
+
+		return getWorld().rayCastEntities(entities.toArray(new IEntity[0]),startPos,lookVector,maxDistance,offset,range,stopOnBlock,stopOnLiquid,stopOnCollision);
+	}
+
+	public IEntity[] getLookingAtEntities(int maxDistance, double offset, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		return this.getLookingAtEntities(null,maxDistance,offset,range,stopOnBlock,stopOnLiquid,stopOnCollision);
 	}
 
 	public IEntity[] getLookingAtEntities(int maxDistance, double offset, double range) {
