@@ -123,10 +123,10 @@ public class PlayerDataController {
 	public synchronized void savePlayerDataMap(){
 		playerDataThread.execute(() -> {
 			try {
-				File saveDir = getSaveDir();
-				File file = new File(saveDir, "___playermap.dat_new");
-				File file1 = new File(saveDir, "___playermap.dat_old");
-				File file2 = new File(saveDir, "___playermap.dat");
+				File saveDir = CustomNpcs.getWorldSaveDirectory();
+				File file = new File(saveDir, "playerdatamap.dat_new");
+				File file1 = new File(saveDir, "playerdatamap.dat_old");
+				File file2 = new File(saveDir, "playerdatamap.dat");
 				CompressedStreamTools.writeCompressed(writeNBT(), new FileOutputStream(file));
 				if(file1.exists())
 				{
