@@ -24,13 +24,13 @@ public class NBTJsonUtil {
 		json = json.trim();
 		JsonFile file = new JsonFile(json);
 		if(!json.startsWith("{") || !json.endsWith("}"))
-			throw new JsonException("Not properly encapsulated between { }", file);
+			throw new JsonException("Not properly incapsulated between { }", file);
 
 		NBTTagCompound compound = new NBTTagCompound();
 		FillCompound(compound, file);
 		return compound;
 	}
-	
+
 	public static void FillCompound(NBTTagCompound compound, JsonFile json) throws JsonException{
 		if(json.startsWith("{") || json.startsWith(","))
 			json.cut(1);
@@ -39,12 +39,12 @@ public class NBTJsonUtil {
 		int index = json.indexOf(":");
 		if(index < 1)
 			throw new JsonException("Expected key after ," ,json);
-		
+
 		String key = json.substring(0, index);
 		json.cut(index + 1);
-		
+
 		NBTBase base = ReadValue(json);
-		
+
 		if(base == null)
 			base = new NBTTagString();
 
@@ -52,13 +52,13 @@ public class NBTJsonUtil {
 			key = key.substring(1);
 		if(key.endsWith("\""))
 			key = key.substring(0, key.length() - 1);
-		
+
 		compound.setTag(key, base);
 		if(json.startsWith(","))
 			FillCompound(compound, json);
-		
+
 	}
-	
+
 	public static NBTBase ReadValue(JsonFile json) throws JsonException{
 		if(json.startsWith("{")){
 			NBTTagCompound compound = new NBTTagCompound();
@@ -67,13 +67,13 @@ public class NBTJsonUtil {
 				throw new JsonException("Expected }", json);
 			}
 			json.cut(1);
-			
+
 			return compound;
 		}
 		if(json.startsWith("[")){
 			json.cut(1);
 			NBTTagList list = new NBTTagList();
-			
+
 			NBTBase value = ReadValue(json);
 			while(value != null){
 				list.appendTag(value);
@@ -85,16 +85,6 @@ public class NBTJsonUtil {
 			if(!json.startsWith("]")){
 				throw new JsonException("Expected ]", json);
 			}
-
-			if (json.startsWith("]b")) {
-				json.cut(2);
-				byte[] arr = new byte[list.tagCount()];
-				for(int i = 0; list.tagCount() > 0 ; i++){
-					arr[i] = ((NBTTagInt)list.removeTag(0)).func_150290_f();
-				}
-				return new NBTTagByteArray(arr);
-			}
-
 			json.cut(1);
 
 			if(list.func_150303_d() == 3){
@@ -111,7 +101,7 @@ public class NBTJsonUtil {
 				}
 				return new NBTTagByteArray(arr);
 			}
-			
+
 			return list;
 		}
 		if(json.startsWith("\"")){
@@ -158,27 +148,15 @@ public class NBTJsonUtil {
 			throw new JsonException("Unable to convert: "+ s +" to a number", json);
 		}
 	}
-	
+
 	private static List<NBTBase> getListData(NBTTagList list){
 		return ObfuscationReflectionHelper.getPrivateValue(NBTTagList.class, list, 0);
 	}
-	
+
 	private static JsonLine ReadTag(String name, NBTBase base, List<JsonLine> list){
 		if(!name.isEmpty())
 			name = "\"" + name + "\": ";
-		if (base.getId() == 7) {//NBTTagByteArray
-			list.add(new JsonLine(name + "["));
-			byte[] bytes = ((NBTTagByteArray) base).func_150292_c();
-
-			for(int i = 0; i < (bytes.length-1); i++) {
-				list.add(new JsonLine(String.format("%s,", bytes[i])));
-			}
-			if (bytes.length > 0) {
-				list.add(new JsonLine(String.format("%s", bytes[bytes.length-1])));
-			}
-			list.add(new JsonLine("]b"));
-		}
-		else if(base.getId() == 8){//NBTTagString
+		if(base.getId() == 8){//NBTTagString
 			String data = ((NBTTagString)base).func_150285_a_();
 			data = data.replace("\"", "\\\""); //replace " with \"
 			list.add(new JsonLine(name + "\"" + data + "\""));
@@ -200,10 +178,10 @@ public class NBTJsonUtil {
 			JsonLine line = null;
 			for(Object key : compound.func_150296_c())
 				line = ReadTag(key.toString(), compound.getTag(key.toString()), list);
-			
+
 			if(line != null)
 				line.removeComma();
-				
+
 			list.add(new JsonLine("}"));
 		}
 		else if(base.getId() == 11){//NBTTagList
@@ -238,23 +216,22 @@ public class NBTJsonUtil {
 		public JsonLine(String line){
 			this.line = line;
 		}
-		
+
 		public void removeComma(){
 			if(line.endsWith(","))
 				line = line.substring(0, line.length() - 1);
 		}
-		
+
 		public boolean reduceTab(){
 			int length = line.length();
 			return length == 1 && (line.endsWith("}") || line.endsWith("]"))
-					   || length == 2 && (line.endsWith("},") ||line.endsWith("],") || line.endsWith("]b"))
-					   || length == 3 && (line.endsWith("]b,"));
+					|| length == 2 && (line.endsWith("},") ||line.endsWith("],"));
 		}
-		
+
 		public boolean increaseTab(){
 			return line.endsWith("{") || line.endsWith("[");
 		}
-		
+
 		@Override
 		public String toString(){
 			return line;
@@ -263,7 +240,7 @@ public class NBTJsonUtil {
 	static class JsonFile{
 		private String original;
 		private String text;
-		
+
 		public JsonFile(String text){
 			this.text = text;
 			this.original = text;
@@ -288,21 +265,21 @@ public class NBTJsonUtil {
 		public int indexOf(String s) {
 			return text.indexOf(s);
 		}
-		
+
 		public String getCurrentPos(){
 			int lengthOr = original.length();
 			int lengthCur = text.length();
 			int currentPos = lengthOr - lengthCur;
 			String done = original.substring(0, currentPos);
 			String[] lines = done.split("\r\n|\r|\n");
-			
+
 			int pos = 0;
 			String line = "";
 			if(lines.length > 0){
 				pos = lines[lines.length - 1].length();
 				line = original.split("\r\n|\r|\n")[lines.length - 1].trim();
 			}
-			
+
 			return "Line: " + lines.length + ", Pos: " + pos + ", Text: " + line;
 		}
 
@@ -317,18 +294,18 @@ public class NBTJsonUtil {
 		}
 	}
 
-	
+
 	public static NBTTagCompound LoadFile(File file) throws IOException, JsonException {
 		return Convert(Files.toString(file, Charsets.UTF_8));
 	}
-	
+
 	public static void SaveFile(File file, NBTTagCompound compound) throws IOException, JsonException {
 		String json = Convert(compound);
 		OutputStreamWriter writer = null;
 		try{
 			writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
 			writer.write(json);
-			
+
 		}
 		finally{
 			if(writer != null)
