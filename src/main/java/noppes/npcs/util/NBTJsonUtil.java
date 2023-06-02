@@ -36,7 +36,7 @@ public class NBTJsonUtil {
 			json.cut(1);
 		if(json.startsWith("}"))
 			return;
-		int index = json.findObjectColonIndex();
+		int index = json.indexOf(":");
 		if(index < 1)
 			throw new JsonException("Expected key after ," ,json);
 		
@@ -304,24 +304,6 @@ public class NBTJsonUtil {
 			}
 			
 			return "Line: " + lines.length + ", Pos: " + pos + ", Text: " + line;
-		}
-
-		public int findObjectColonIndex() {
-			int trueQuotesAmount = 0;
-
-			for (int i = 0; i < text.length(); i++) {
-				if (text.charAt(i) == '"') {
-					if (i > 1 && text.charAt(i-1) != '\\' || i == 0) {
-						trueQuotesAmount++;
-					}
-				}
-
-				if (trueQuotesAmount == 2) {
-					return text.indexOf(":", i);
-				}
-			}
-
-			return -1;
 		}
 
 		public boolean startsWith(String... ss) {
