@@ -60,6 +60,9 @@ public class ConfigMain
     public static Property SoulStoneFriendlyNPCsProperty;
     public static boolean SoulStoneFriendlyNPCs = false;
 
+    public static Property DatFormatProperty;
+    public static boolean DatFormat = false;
+
     /**
      *  General NPC Properties
      **/
@@ -143,6 +146,8 @@ public class ConfigMain
             SoulStoneFriendlyNPCsProperty = config.get(GENERAL, "Normal playes can use soulstone on Friendly NPCs", false);
             SoulStoneFriendlyNPCs = SoulStoneFriendlyNPCsProperty.getBoolean(false);
 
+            DatFormatProperty = config.get(GENERAL, "Dat Format for PlayerData", false, "This will convert all existing JSON PlayerData files to (.dat). Huge Performance Boost.");
+            DatFormat = DatFormatProperty.getBoolean(false);
 
             // NPC
             NpcNavRangeProperty = config.get(NPC, "NPC Navigation Range", 32, "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.");

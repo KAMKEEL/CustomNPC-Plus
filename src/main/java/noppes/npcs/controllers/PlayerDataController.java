@@ -11,7 +11,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.*;
+import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -47,12 +49,20 @@ public class PlayerDataController {
 					// Load the files in parallel using a stream
 					for(int i = 0; i < length; i++){
 						File file = files[i];
-						if(file.isDirectory() || !file.getName().endsWith(".json"))
+						if(file.isDirectory() || (!file.getName().endsWith(".json") && !file.getName().endsWith(".dat")))
 							continue;
 						try {
-							NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
-							if(compound.hasKey("PlayerName")){
-								map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 5));
+							if(file.getName().endsWith(".json")){
+								NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+								if(compound.hasKey("PlayerName")){
+									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 5));
+								}
+							}
+							if(file.getName().endsWith(".dat")){
+								NBTTagCompound compound = loadNBTData(file);
+								if(compound.hasKey("PlayerName")){
+									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 4));
+								}
 							}
 						} catch (Exception e) {
 							LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
@@ -75,65 +85,9 @@ public class PlayerDataController {
 		LogWriter.info("Done loading PlayerData");
 	}
 
-	public void generatePlayerMap(EntityPlayerMP sender){
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.execute(() -> {
-			if(sender != null){
-				LogWriter.info("PlayerMap regeneration queued by " + sender.getCommandSenderName());
-				sender.addChatMessage(new ChatComponentText("You have initiated PlayerMap regeneration"));
-			}
-			nameUUIDs.clear();
-
-			File dir = getSaveDir();
-			LogWriter.info("Generating PlayerData map file...");
-			File[] files = dir.listFiles(); // Get an array of all files in the directory
-			HashMap<String, String> map = new HashMap<String, String>();
-			if(files != null){
-				int length = files.length;
-				if(length != 0){
-					if(length > 100){
-						LogWriter.info("Found " + length + " PlayerData files... This may take a few minutes");
-					}
-					int tenPercent = (int) ((double) length * 0.1);
-					int progress = 0;
-					// Load the files in parallel using a stream
-					for(int i = 0; i < length; i++){
-						File file = files[i];
-						if(file.isDirectory() || !file.getName().endsWith(".json"))
-							continue;
-						try {
-							NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
-							if(compound.hasKey("PlayerName")){
-								map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 5));
-							}
-						} catch (Exception e) {
-							LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-						}
-						if(tenPercent != 0 ){
-							if(progress != 100){
-								if (i % tenPercent == 0) {
-									progress += 10;
-									LogWriter.info("Creating PlayerMap: Progress: " + progress + "%");
-								}
-							}
-						}
-					}
-				}
-			}
-			nameUUIDs = map;
-			savePlayerDataMap();
-
-			if(sender != null){
-				sender.addChatMessage(new ChatComponentText("PlayerMap regeneration complete"));
-			}
-		});
-
-		executor.shutdown();
-	}
-
 	public boolean getPlayerDataMap(){
 		try {
-			File file = new File(getSaveDir(), "___playermap.dat");
+			File file = new File(CustomNpcs.getWorldSaveDirectory(), "playerdatamap.dat");
 			if(file.exists()){
 				loadPlayerDataMap(file);
 				return true;
@@ -142,7 +96,7 @@ public class PlayerDataController {
 			LogWriter.except(e);
 		}
 		try {
-			File file = new File(getSaveDir(), "___playermap.dat_old");
+			File file = new File(CustomNpcs.getWorldSaveDirectory(), "playerdatamap.dat_old");
 			if(file.exists()){
 				loadPlayerDataMap(file);
 				return true;
@@ -169,10 +123,10 @@ public class PlayerDataController {
 	public synchronized void savePlayerDataMap(){
 		playerDataThread.execute(() -> {
 			try {
-				File saveDir = getSaveDir();
-				File file = new File(saveDir, "___playermap.dat_new");
-				File file1 = new File(saveDir, "___playermap.dat_old");
-				File file2 = new File(saveDir, "___playermap.dat");
+				File saveDir = CustomNpcs.getWorldSaveDirectory();
+				File file = new File(saveDir, "playerdatamap.dat_new");
+				File file1 = new File(saveDir, "playerdatamap.dat_old");
+				File file2 = new File(saveDir, "playerdatamap.dat");
 				CompressedStreamTools.writeCompressed(writeNBT(), new FileOutputStream(file));
 				if(file1.exists())
 				{
@@ -199,6 +153,21 @@ public class PlayerDataController {
 			File file = new File(CustomNpcs.getWorldSaveDirectory(),"playerdata");
 			if(!file.exists())
 				file.mkdir();
+			return file;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public File getNewSaveDir(){
+		try{
+			File file = new File(CustomNpcs.getWorldSaveDirectory(),"playerdata_new");
+			if(file.exists()){
+				return null;
+			}
+			file.mkdir();
 			return file;
 		}
 		catch (Exception e) {
@@ -244,16 +213,34 @@ public class PlayerDataController {
 		String filename = player;
 		if(filename.isEmpty())
 			filename = "noplayername";
-		filename += ".json";
+
+		if(ConfigMain.DatFormat){
+			filename += ".dat";
+		} else {
+			filename += ".json";
+		}
 		try {
 			File file = new File(saveDir, filename);
 			if(file.exists()){
-				return NBTJsonUtil.LoadFile(file);
+				if(ConfigMain.DatFormat){
+					return loadNBTData(file);
+				} else {
+					return NBTJsonUtil.LoadFile(file);
+				}
 			}
 		} catch (Exception e) {
 			LogWriter.error("Error loading: " + filename, e);
 		}
 
+		return new NBTTagCompound();
+	}
+
+	public NBTTagCompound loadNBTData(File file){
+		try {
+			return CompressedStreamTools.readCompressed(new FileInputStream(file));
+		} catch (Exception e) {
+			LogWriter.error("Error loading: " + file.getName(), e);
+		}
 		return new NBTTagCompound();
 	}
 
@@ -292,7 +279,7 @@ public class PlayerDataController {
 			for(String name : nameUUIDs.keySet()){
 				if(name.equalsIgnoreCase(username)){
 					data = new PlayerData();
-					data.setNBT(PlayerData.loadPlayerData(nameUUIDs.get(name)));
+					data.setNBT(PlayerDataController.instance.loadPlayerData(nameUUIDs.get(name)));
 					break;
 				}
 			}
@@ -363,5 +350,169 @@ public class PlayerDataController {
 		}
 		nbt.setTag("PlayerDataMap", playerList);
 		return nbt;
+	}
+
+	public void generatePlayerMap(EntityPlayerMP sender){
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.execute(() -> {
+			if(sender != null){
+				LogWriter.info("PlayerMap regeneration queued by " + sender.getCommandSenderName());
+				sender.addChatMessage(new ChatComponentText("You have initiated PlayerMap regeneration"));
+			}
+			nameUUIDs.clear();
+
+			File dir = getSaveDir();
+			LogWriter.info("Generating PlayerData map file...");
+			File[] files = dir.listFiles(); // Get an array of all files in the directory
+			HashMap<String, String> map = new HashMap<String, String>();
+			if(files != null){
+				int length = files.length;
+				if(length != 0){
+					if(length > 100){
+						LogWriter.info("Found " + length + " PlayerData files... This may take a few minutes");
+					}
+					int tenPercent = (int) ((double) length * 0.1);
+					int progress = 0;
+					// Load the files in parallel using a stream
+					for(int i = 0; i < length; i++){
+						File file = files[i];
+						if(file.isDirectory() || (!file.getName().endsWith(".json") && !file.getName().endsWith(".dat")))
+							continue;
+						try {
+							if(file.getName().endsWith(".json")){
+								NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+								if(compound.hasKey("PlayerName")){
+									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 5));
+								}
+							}
+							if(file.getName().endsWith(".dat")){
+								NBTTagCompound compound = loadNBTData(file);
+								if(compound.hasKey("PlayerName")){
+									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 4));
+								}
+							}
+						} catch (Exception e) {
+							LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+						}
+						if(tenPercent != 0 ){
+							if(progress != 100){
+								if (i % tenPercent == 0) {
+									progress += 10;
+									LogWriter.info("Creating PlayerMap: Progress: " + progress + "%");
+								}
+							}
+						}
+					}
+				}
+			}
+			nameUUIDs = map;
+			savePlayerDataMap();
+			if(sender != null){
+				sender.addChatMessage(new ChatComponentText("PlayerMap regeneration complete"));
+			}
+		});
+
+		executor.shutdown();
+	}
+
+	public void convertPlayerFiles(final EntityPlayerMP sender, final boolean type){
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		executor.execute(() -> {
+			String fileType;
+			if(type){
+				fileType = ".dat";
+			}
+			else {
+				fileType = ".json";
+			}
+
+			if(sender != null){
+				LogWriter.info("PlayerData Conversion queued by " + sender.getCommandSenderName());
+				sender.addChatMessage(new ChatComponentText("PlayerData Conversion to " + fileType + " format"));
+			}
+
+			File dir = getSaveDir();
+			LogWriter.info("Converting PlayerData to " + fileType + " format");
+			File[] files = dir.listFiles(); // Get an array of all files in the directory
+			if(files != null){
+				int length = files.length;
+				if(length != 0){
+					if(length > 100){
+						LogWriter.info("Found " + length + " PlayerData files... This may take a few minutes");
+					}
+					int tenPercent = (int) ((double) length * 0.1);
+					int progress = 0;
+					File saveDir = PlayerDataController.instance.getNewSaveDir();
+					if(saveDir == null){
+						if(sender != null){
+							sender.addChatMessage(new ChatComponentText("playerdata_new folder already exists please delete it or rename it"));
+						}
+						LogWriter.error("playerdata_new folder already exists please delete it or rename it");
+						return;
+					}
+					// Load the files in parallel using a stream
+					for(int i = 0; i < length; i++){
+						File file = files[i];
+						if(file.isDirectory() || (!file.getName().endsWith(".json") && !file.getName().endsWith(".dat")))
+							continue;
+						try {
+							String filename = "error";
+							boolean valid = false;
+							NBTTagCompound compound = new NBTTagCompound();
+							if(type){
+								if(file.getName().endsWith(".json")){
+									compound = NBTJsonUtil.LoadFile(file);
+									if(compound.hasKey("PlayerName")) {
+										filename = file.getName().substring(0, file.getName().length() - 5);
+										valid = true;
+									}
+								}
+							} else {
+								if(file.getName().endsWith(".dat")){
+									compound = loadNBTData(file);
+									if(compound.hasKey("PlayerName")){
+										filename = file.getName().substring(0, file.getName().length() - 4);
+										valid = true;
+									}
+								}
+							}
+							if(valid){
+								try {
+									File newFile = new File(saveDir, filename + "_new" + fileType);
+									File oldFile = new File(saveDir, filename + fileType);
+									if(type){
+										CompressedStreamTools.writeCompressed(compound, new FileOutputStream(newFile));
+									} else {
+										NBTJsonUtil.SaveFile(newFile, compound);
+									}
+									if(oldFile.exists()){
+										oldFile.delete();
+									}
+									newFile.renameTo(oldFile);
+								} catch (Exception e) {
+									LogWriter.except(e);
+								}
+							}
+						} catch (Exception e) {
+							LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+						}
+						if(tenPercent != 0 ){
+							if(progress != 100){
+								if (i % tenPercent == 0) {
+									progress += 10;
+									LogWriter.info("Converting PlayerData: Progress: " + progress + "%");
+								}
+							}
+						}
+					}
+				}
+			}
+			if(sender != null){
+				sender.addChatMessage(new ChatComponentText("PlayerData Conversion complete"));
+			}
+			LogWriter.info("PlayerData Converted - Please rename the playerdata_new folder to playerdata");
+		});
+
+		executor.shutdown();
 	}
 }

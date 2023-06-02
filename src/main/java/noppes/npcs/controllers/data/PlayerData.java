@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
@@ -10,6 +11,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -22,6 +24,7 @@ import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerDialogData dialogData = new PlayerDialogData(this);
@@ -166,28 +169,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		world.spawnEntityInWorld(npc);
 	}
 
-	public static NBTTagCompound loadPlayerData(String player) {
-		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
-		String filename = player;
-		if (player.isEmpty()) {
-			filename = "noplayername";
-		}
-
-		filename = filename + ".json";
-		File file = null;
-
-		try {
-			file = new File(saveDir, filename);
-			if (file.exists()) {
-				return NBTJsonUtil.LoadFile(file);
-			}
-		} catch (Exception var5) {
-			LogWriter.error("Error loading: " + file.getAbsolutePath(), var5);
-		}
-
-		return new NBTTagCompound();
-	}
-
 	public void setCompanion(ICustomNpc npc) {
 		this.setCompanion((EntityNPCInterface) npc.getMCEntity());
 	}
@@ -230,13 +211,22 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public synchronized void save() {
 		final NBTTagCompound compound = getNBT();
-		final String filename = uuid + ".json";
+		final String filename;
+		if(ConfigMain.DatFormat){
+			filename = uuid + ".dat";
+		} else {
+			filename = uuid + ".json";
+		}
 		CustomNPCsThreader.playerDataThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");
 				File file1 = new File(saveDir, filename);
-				NBTJsonUtil.SaveFile(file, compound);
+				if(ConfigMain.DatFormat){
+					CompressedStreamTools.writeCompressed(compound, new FileOutputStream(file));
+				} else {
+					NBTJsonUtil.SaveFile(file, compound);
+				}
 				if(file1.exists()){
 					file1.delete();
 				}
