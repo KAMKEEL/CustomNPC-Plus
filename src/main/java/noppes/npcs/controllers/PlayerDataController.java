@@ -279,7 +279,7 @@ public class PlayerDataController {
 			for(String name : nameUUIDs.keySet()){
 				if(name.equalsIgnoreCase(username)){
 					data = new PlayerData();
-					data.setNBT(PlayerData.loadPlayerData(nameUUIDs.get(name)));
+					data.setNBT(PlayerDataController.instance.loadPlayerData(nameUUIDs.get(name)));
 					break;
 				}
 			}

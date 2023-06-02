@@ -25,6 +25,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerData;
@@ -493,7 +494,11 @@ public class NoppesUtilServer {
 			playerdata = PlayerDataController.instance.getPlayerData(pl);
 
         if(type == EnumPlayerData.Players){
-            File file = new File(PlayerDataController.instance.getSaveDir(), playerdata.uuid + ".json");
+			String fileType = ".json";
+			if(ConfigMain.DatFormat){
+				fileType = ".dat";
+			}
+            File file = new File(PlayerDataController.instance.getSaveDir(), playerdata.uuid + fileType);
             if(file.exists())
             	file.delete();
             if(pl != null){

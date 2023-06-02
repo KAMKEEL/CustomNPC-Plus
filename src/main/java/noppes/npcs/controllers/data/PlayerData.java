@@ -169,28 +169,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		world.spawnEntityInWorld(npc);
 	}
 
-	public static NBTTagCompound loadPlayerData(String player) {
-		File saveDir = CustomNpcs.getWorldSaveDirectory("playerdata");
-		String filename = player;
-		if (player.isEmpty()) {
-			filename = "noplayername";
-		}
-
-		filename = filename + ".json";
-		File file = null;
-
-		try {
-			file = new File(saveDir, filename);
-			if (file.exists()) {
-				return NBTJsonUtil.LoadFile(file);
-			}
-		} catch (Exception var5) {
-			LogWriter.error("Error loading: " + file.getAbsolutePath(), var5);
-		}
-
-		return new NBTTagCompound();
-	}
-
 	public void setCompanion(ICustomNpc npc) {
 		this.setCompanion((EntityNPCInterface) npc.getMCEntity());
 	}
