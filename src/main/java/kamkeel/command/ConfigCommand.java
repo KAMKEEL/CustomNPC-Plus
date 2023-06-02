@@ -176,7 +176,7 @@ public class ConfigCommand extends CommandKamkeelBase {
 
 	@SubCommand(
 			desc = "Generate PlayerData to JSON/DAT",
-			usage = " <fileType> convert",
+			usage = "[fileType] [convert]",
 			permission = 4
 	)
 	public void playerdata(ICommandSender sender, String[] args) throws CommandException{
@@ -204,11 +204,13 @@ public class ConfigCommand extends CommandKamkeelBase {
 				return;
 			}
 
-			boolean convertToDat = false;
-			if(formatType.equals(".dat")){
-				convertToDat = true;
+			String convert = args[12].toLowerCase();
+			if(!convert.equals("convert")){
+				sendError(sender, "Please enter the word 'convert' at the end");
+				return;
 			}
 
+			boolean convertToDat = formatType.equals(".dat");
 			EntityPlayerMP send = null;
 			if(sender instanceof EntityPlayerMP){
 				send = (EntityPlayerMP) sender;
