@@ -808,6 +808,7 @@ public class ScriptWorld implements IWorld {
 										  boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
 		Vec3 startVec = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]);
 		Vec3 endVec = startVec.addVector(lookVector[0]*maxDistance,lookVector[1]*maxDistance,lookVector[2]*maxDistance);
+		startVec = startVec.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
 
 		Set<IEntity<?>> entities = this.rayCastEntities(startVec,endVec,range,stopOnBlock,stopOnLiquid,stopOnCollision);
 		return entities.toArray(new IEntity[0]);
@@ -830,7 +831,8 @@ public class ScriptWorld implements IWorld {
 				Block block = this.world.getBlock(l, i1, j1);
 				int k1 = this.world.getBlockMetadata(l, i1, j1);
 
-				Collections.addAll(entities, this.getEntitiesNear(l,i1,j1,range));
+				IEntity<?>[] surrounding = this.getEntitiesNear(l,i1,j1,range);
+				Collections.addAll(entities, surrounding);
 
 				if (block.canCollideCheck(k1, false))
 				{
@@ -1000,7 +1002,8 @@ public class ScriptWorld implements IWorld {
 					Block block1 = this.world.getBlock(l, i1, j1);
 					int l1 = this.world.getBlockMetadata(l, i1, j1);
 
-					Collections.addAll(entities, this.getEntitiesNear(l,i1,j1,range));
+					IEntity<?>[] surroundingEntities = this.getEntitiesNear(l,i1,j1,range);
+					Collections.addAll(entities, surroundingEntities);
 
 					MovingObjectPosition movingobjectposition1 = block1.collisionRayTrace(this.world, l, i1, j1, startVec, endVec);
 					if (movingobjectposition1 != null)
