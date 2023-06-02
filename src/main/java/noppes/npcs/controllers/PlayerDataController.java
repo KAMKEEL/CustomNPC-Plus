@@ -164,8 +164,10 @@ public class PlayerDataController {
 	public File getNewSaveDir(){
 		try{
 			File file = new File(CustomNpcs.getWorldSaveDirectory(),"playerdata_new");
-			if(!file.exists())
-				file.mkdir();
+			if(file.exists()){
+				return null;
+			}
+			file.mkdir();
 			return file;
 		}
 		catch (Exception e) {
@@ -440,6 +442,14 @@ public class PlayerDataController {
 					}
 					int tenPercent = (int) ((double) length * 0.1);
 					int progress = 0;
+					File saveDir = PlayerDataController.instance.getNewSaveDir();
+					if(saveDir == null){
+						if(sender != null){
+							sender.addChatMessage(new ChatComponentText("playerdata_new folder already exists please delete it or rename it"));
+						}
+						LogWriter.error("playerdata_new folder already exists please delete it or rename it");
+						return;
+					}
 					// Load the files in parallel using a stream
 					for(int i = 0; i < length; i++){
 						File file = files[i];
@@ -468,9 +478,8 @@ public class PlayerDataController {
 							}
 							if(valid){
 								try {
-									File saveDir = PlayerDataController.instance.getNewSaveDir();
-									File newFile = new File(saveDir, filename + "_new");
-									File oldFile = new File(saveDir, filename);
+									File newFile = new File(saveDir, filename + "_new" + fileType);
+									File oldFile = new File(saveDir, filename + fileType);
 									if(type){
 										CompressedStreamTools.writeCompressed(compound, new FileOutputStream(newFile));
 									} else {
