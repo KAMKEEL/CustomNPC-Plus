@@ -55,10 +55,6 @@ public class PlayerDataScript implements IScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
-
-        for (ScriptContainer container : this.scripts) {
-            container.setEngine(this.getLanguage());
-        }
     }
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setInteger("TotalScripts",this.scripts.size());

@@ -413,18 +413,12 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         }
 
         c.setTag("ScriptedData", this.getScriptNBT(new NBTTagCompound()));
-        for (ScriptContainer container : this.scripts) {
-            container.setEngine(this.getLanguage());
-        }
     }
 
     public void loadScriptData() {
         NBTTagCompound c = this.item.getTagCompound();
         if (c != null) {
             this.setScriptNBT(c.getCompoundTag("ScriptedData"));
-            for (ScriptContainer container : this.scripts) {
-                container.setEngine(this.getLanguage());
-            }
         }
     }
 
