@@ -146,7 +146,7 @@ public class ConfigMain
             SoulStoneFriendlyNPCsProperty = config.get(GENERAL, "Normal playes can use soulstone on Friendly NPCs", false);
             SoulStoneFriendlyNPCs = SoulStoneFriendlyNPCsProperty.getBoolean(false);
 
-            DatFormatProperty = config.get(GENERAL, "Dat Format for PlayerData", false, "This will convert all existing JSON PlayerData files to (.dat). Huge Performance Boost.");
+            DatFormatProperty = config.get(GENERAL, "Dat Format for PlayerData", false, "You need to use '/kamkeel config playerdata' to convert existing playerdata to new format.");
             DatFormat = DatFormatProperty.getBoolean(false);
 
             // NPC
