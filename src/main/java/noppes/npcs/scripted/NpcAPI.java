@@ -71,7 +71,7 @@ import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
-    private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(1000);
+    private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60*1000);
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
