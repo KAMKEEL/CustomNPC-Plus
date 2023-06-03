@@ -31,9 +31,8 @@ public class ScriptItemEventHandler {
 
         if (event.entityLiving instanceof EntityCustomNpc) {
             HashMap<Integer, ItemStack> armor = ((EntityCustomNpc) event.entityLiving).inventory.armor;
-            HashMap<Integer, ItemStack> items = ((EntityCustomNpc) event.entityLiving).inventory.items;
             HashMap<Integer, ItemStack> weapons = ((EntityCustomNpc) event.entityLiving).inventory.weapons;
-            HashMap<Integer, ItemStack>[] inventories = new HashMap[]{armor, items, weapons};
+            HashMap<Integer, ItemStack>[] inventories = new HashMap[]{armor, weapons};
 
             for (HashMap<Integer, ItemStack> inventory : inventories) {
                 for (ItemStack stack : inventory.values()) {
