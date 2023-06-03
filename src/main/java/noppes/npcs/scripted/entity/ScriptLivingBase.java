@@ -58,6 +58,14 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		entity.attackEntityFrom(damageSource.getMCDamageSource(),damage);
 	}
 
+	public void setMaxHurtTime(int time) {
+		entity.maxHurtResistantTime = time;
+	}
+
+	public int setMaxHurtTime() {
+		return entity.maxHurtResistantTime;
+	}
+
 	public double getMaxHealth(){
 		return entity.getEntityAttribute(SharedMonsterAttributes.maxHealth).getAttributeValue();
 	}
