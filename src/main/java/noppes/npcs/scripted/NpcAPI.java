@@ -81,6 +81,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+        scriptItemCache.clear();
     }
 
     public void registerICommand(ICommand command) {
