@@ -120,7 +120,8 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos fromLong(long serialized) {
-        return NpcAPI.Instance().getIPos(BlockPos.fromLong(serialized));
+        this.blockPos = BlockPos.fromLong(serialized);
+        return this;
     }
 
     public IPos normalize() {

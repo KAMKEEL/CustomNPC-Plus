@@ -288,6 +288,10 @@ public class NpcAPI extends AbstractNpcAPI {
         return this.getIPos((int)x,(int)y,(int)z);
     }
 
+    public IPos getIPos(long serializedPos) {
+        return this.getIPos(BlockPos.fromLong(serializedPos));
+    }
+
     public IPos[] getAllInBox(IPos from, IPos to, boolean sortByDistance) {
         ArrayList<IPos> list = new ArrayList<>();
         if (from != null && to != null) {
