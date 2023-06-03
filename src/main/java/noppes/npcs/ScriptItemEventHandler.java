@@ -26,7 +26,7 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingEvent.LivingUpdateEvent event) {
-        if(event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving instanceof EntityPlayer)
+        if(event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving instanceof EntityPlayer || event.entityLiving.ticksExisted%10 != 0)
             return;
 
         if (event.entityLiving instanceof EntityCustomNpc) {
