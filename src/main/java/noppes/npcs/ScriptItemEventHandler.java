@@ -26,14 +26,13 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void invoke(LivingEvent.LivingUpdateEvent event) {
-        if(event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving instanceof EntityPlayer)
+        if(event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving instanceof EntityPlayer || event.entityLiving.ticksExisted%10 != 0)
             return;
 
         if (event.entityLiving instanceof EntityCustomNpc) {
             HashMap<Integer, ItemStack> armor = ((EntityCustomNpc) event.entityLiving).inventory.armor;
-            HashMap<Integer, ItemStack> items = ((EntityCustomNpc) event.entityLiving).inventory.items;
             HashMap<Integer, ItemStack> weapons = ((EntityCustomNpc) event.entityLiving).inventory.weapons;
-            HashMap<Integer, ItemStack>[] inventories = new HashMap[]{armor, items, weapons};
+            HashMap<Integer, ItemStack>[] inventories = new HashMap[]{armor, weapons};
 
             for (HashMap<Integer, ItemStack> inventory : inventories) {
                 for (ItemStack stack : inventory.values()) {
