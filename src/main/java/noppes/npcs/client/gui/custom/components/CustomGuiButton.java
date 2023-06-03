@@ -93,6 +93,11 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
         this.field_146123_n = mouseX >= this.xPosition + GuiCustom.guiLeft && mouseY >= this.yPosition + GuiCustom.guiTop && mouseX < this.xPosition + GuiCustom.guiLeft + this.width * this.scale && mouseY < this.yPosition + GuiCustom.guiTop + this.height * this.scale;
         FontRenderer fontRenderer = mc.fontRenderer;
 
+        float red = (color >> 16 & 255) / 255f;
+        float green = (color >> 8  & 255) / 255f;
+        float blue = (color & 255) / 255f;
+        GL11.glColor4f(red,green,blue,this.alpha);
+
         if (this.imageData != null && this.imageData.imageLoaded()) {
             int totalWidth = this.imageData.getTotalWidth();
             int totalHeight = this.imageData.getTotalHeight();
@@ -112,11 +117,6 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
             }
 
             GL11.glPushMatrix();
-                float red = (color >> 16 & 255) / 255f;
-                float green = (color >> 8  & 255) / 255f;
-                float blue = (color & 255) / 255f;
-                GL11.glColor4f(red,green,blue,this.alpha);
-
                 GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition - u1 * totalWidth * this.scale, GuiCustom.guiTop + this.yPosition - v1 * totalHeight * this.scale,(float)this.id);
                 GL11.glScalef(this.scale,this.scale,1.0F);
 
@@ -136,6 +136,9 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
             GL11.glPopMatrix();
         } else {
             GL11.glPushMatrix();
+                GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition, GuiCustom.guiTop + this.yPosition,(float)this.id);
+                GL11.glScalef(this.scale,this.scale,1.0F);
+
                 mc.getTextureManager().bindTexture(buttonTextures);
                 int i = this.getHoverState(this.field_146123_n);
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
