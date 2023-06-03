@@ -405,4 +405,8 @@ public class ScriptItemStack implements IItemStack {
 	public ItemStack getMCItemStack() {
 		return item;
 	}
+
+	public int itemHash() {
+		return item.hashCode();
+	}
 }
