@@ -2,10 +2,11 @@ package noppes.npcs.client;
 
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.util.CacheHashMap;
 
 public class ClientCacheHandler {
-    private static final CacheHashMap<String, CacheHashMap.CachedObject<ImageData>> imageDataCache = new CacheHashMap<>(10*60*1000);
+    private static final CacheHashMap<String, CacheHashMap.CachedObject<ImageData>> imageDataCache = new CacheHashMap<>((long) ConfigClient.CacheLife * 60 * 1000);
 
     public static ImageData getImageData(String directory) {
         synchronized (imageDataCache) {
