@@ -13,8 +13,16 @@ public class ConfigClient
 {
     public static Configuration config;
 
+    public final static String GENERAL = "General";
     public final static String VISUAL = "Visual";
     public final static String QUESTING = "Questing";
+
+
+    /**
+     *  General Properties
+     **/
+    public static Property CacheLifeProperty;
+    public static int CacheLife = 10;
 
     /**
      *  Visual Properties
@@ -50,6 +58,10 @@ public class ConfigClient
         try
         {
             config.load();
+
+            // General
+            CacheLifeProperty = config.get(GENERAL, "Cache Life", 10, "How long should downloaded imagery data be saved client side? (In minutes)");
+            CacheLife = CacheLifeProperty.getInt(10);
 
             // Visual
             EnableChatBubblesProperty = config.get(VISUAL, "Enable Chat Bubbles", true, "Enable/Disable Chat Bubbles");
