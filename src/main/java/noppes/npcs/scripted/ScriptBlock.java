@@ -19,7 +19,6 @@ import noppes.npcs.util.LRUHashMap;
 import java.util.Map;
 
 public class ScriptBlock implements IBlock {
-    private static final Map<String, IBlock> blockCache = new LRUHashMap(400);
     protected IWorld world;
     protected Block block;
     protected BlockPos pos;
@@ -147,10 +146,6 @@ public class ScriptBlock implements IBlock {
         return this.block;
     }
 
-    public static void clearCache() {
-        blockCache.clear();
-    }
-
     public boolean hasTileEntity() {
         return this.tile != null;
     }
@@ -225,5 +220,11 @@ public class ScriptBlock implements IBlock {
 
     public String toString() {
         return this.getName() + " @" + this.getPos() + (world == null ? "" : " in DIM" + world.getDimensionID());
+    }
+
+    public boolean equals(Object obj) {
+        return obj instanceof IBlock && ((ScriptBlock)obj).getName().equals(this.getName()) &&
+                ((ScriptBlock)obj).getWorld() == this.getWorld() &&
+                ((ScriptBlock)obj).getPos().equals(this.getPos());
     }
 }

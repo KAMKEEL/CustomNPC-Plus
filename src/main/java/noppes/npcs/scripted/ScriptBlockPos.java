@@ -154,4 +154,8 @@ public class ScriptBlockPos implements IPos {
     public String toString() {
         return "(" + this.getX() + ", " + this.getY() + ", " + this.getZ() + ")";
     }
+
+    public boolean equals(Object object) {
+        return object instanceof IPos && ((IPos) object).toLong() == this.toLong();
+    }
 }

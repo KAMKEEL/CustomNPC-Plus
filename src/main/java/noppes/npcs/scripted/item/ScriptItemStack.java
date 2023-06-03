@@ -409,4 +409,8 @@ public class ScriptItemStack implements IItemStack {
 	public int itemHash() {
 		return item.hashCode();
 	}
+
+	public boolean equals(Object object) {
+		return object instanceof ScriptItemStack && ((ScriptItemStack) object).getMCItemStack().equals(this.getMCItemStack());
+	}
 }
