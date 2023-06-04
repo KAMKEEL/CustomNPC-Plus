@@ -73,6 +73,7 @@ public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
     private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60*1000);
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
+    public static final HashMap<UUID,ScriptEntityData> scriptPlayerCache = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
@@ -195,8 +196,12 @@ public class NpcAPI extends AbstractNpcAPI {
             ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
             if(data != null)
                 return data.base;
-            if(entity instanceof EntityPlayerMP)
-                data = new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
+            if(entity instanceof EntityPlayerMP) {
+                if (!scriptPlayerCache.containsKey(entity.getPersistentID())) {
+                    scriptPlayerCache.put(entity.getPersistentID(),new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity)));
+                }
+                data = scriptPlayerCache.get(entity.getPersistentID());
+            }
             else if(PixelmonHelper.isPixelmon(entity))
                 return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
             else if(entity instanceof EntityAnimal)
