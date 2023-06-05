@@ -30,15 +30,15 @@ public class JobHealer extends JobInterface{
 		range = nbttagcompound.getInteger("HealerRange");
 		speed = nbttagcompound.getInteger("HealerSpeed");
 	}
-	private List<EntityLivingBase> toHeal = new ArrayList<EntityLivingBase>();
+	private List<EntityLivingBase> toHeal = new ArrayList<>();
 	
 	//TODO heal food, heal potion effects, heal more types of entities besides just the player and npcs
 	public boolean aiShouldExecute() {
 		healTicks++;
-		if (healTicks < speed * 10) 
+		if (healTicks < speed * 10L)
 			return false;
 		
-		for(Object plObj:  npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(range, range/2, range))){
+		for(Object plObj:  npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(range, (double) range /2, range))){
 			EntityLivingBase entity = (EntityLivingBase) plObj;
 			
 			if(entity instanceof EntityPlayer){

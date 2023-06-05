@@ -21,6 +21,10 @@ import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -125,57 +129,48 @@ public class PlayerDataController {
 		readNBT(nbttagcompound);
 	}
 
-	public synchronized void savePlayerDataMap(){
+
+	public synchronized void savePlayerDataMap() {
 		playerDataThread.execute(() -> {
 			try {
 				File saveDir = CustomNpcs.getWorldSaveDirectory();
-				File file = new File(saveDir, "playerdatamap.dat_new");
-				File file1 = new File(saveDir, "playerdatamap.dat_old");
-				File file2 = new File(saveDir, "playerdatamap.dat");
-				CompressedStreamTools.writeCompressed(writeNBT(), new FileOutputStream(file));
-				if(file1.exists())
-				{
-					file1.delete();
-				}
-				file2.renameTo(file1);
-				if(file2.exists())
-				{
-					file2.delete();
-				}
-				file.renameTo(file2);
-				if(file.exists())
-				{
-					file.delete();
-				}
-			} catch (Exception e) {
+				Path saveDirPath = saveDir.toPath();
+				Path newFile = saveDirPath.resolve("playerdatamap.dat_new");
+				Path oldFile = saveDirPath.resolve("playerdatamap.dat_old");
+				Path currentFile = saveDirPath.resolve("playerdatamap.dat");
+
+				Files.deleteIfExists(oldFile);
+				Files.move(currentFile, oldFile, StandardCopyOption.REPLACE_EXISTING);
+				Files.move(newFile, currentFile, StandardCopyOption.REPLACE_EXISTING);
+				Files.deleteIfExists(newFile);
+			} catch (IOException e) {
 				LogWriter.except(e);
 			}
 		});
 	}
 
-	public File getSaveDir(){
-		try{
-			File file = new File(CustomNpcs.getWorldSaveDirectory(),"playerdata");
-			if(!file.exists())
-				file.mkdir();
-			return file;
-		}
-		catch (Exception e) {
+	public File getSaveDir() {
+		try {
+			File saveDir = CustomNpcs.getWorldSaveDirectory();
+			Path directory = Paths.get(saveDir.getAbsolutePath(), "playerdata");
+			Files.createDirectories(directory);
+			return directory.toFile();
+		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public File getNewSaveDir(){
-		try{
-			File file = new File(CustomNpcs.getWorldSaveDirectory(),"playerdata_new");
-			if(file.exists()){
+	public File getNewSaveDir() {
+		try {
+			File saveDir = CustomNpcs.getWorldSaveDirectory();
+			Path directory = Paths.get(saveDir.getAbsolutePath(), "playerdata_new");
+			if (Files.exists(directory)) {
 				return null;
 			}
-			file.mkdir();
-			return file;
-		}
-		catch (Exception e) {
+			Files.createDirectories(directory);
+			return directory.toFile();
+		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
