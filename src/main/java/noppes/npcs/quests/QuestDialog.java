@@ -52,7 +52,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 			if(dialog == null)
 				continue;
 			String title = dialog.title;
-			if(PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.contains(dialogId))
+			if(PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.contains(dialogId))
 				title += " (read)";
 			else
 				title += " (unread)";
@@ -94,7 +94,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= 1) {
-				PlayerData data = PlayerDataController.instance.getPlayerData(player);
+				PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 				boolean completed = data.dialogData.dialogsRead.contains(this.dialog.id);
 				if (progress == 0 && completed) {
 					data.dialogData.dialogsRead.remove(this.dialog.id);
@@ -118,7 +118,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 		}
 
 		public boolean isCompleted() {
-			PlayerData data = PlayerDataController.instance.getPlayerData(player);
+			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 			return data.dialogData.dialogsRead.contains(this.dialog.id);
 		}
 

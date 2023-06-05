@@ -71,7 +71,7 @@ public class NoppesUtilPlayer {
 	}
 	public static void transport(EntityPlayerMP player, EntityNPCInterface npc, String location){
 		TransportLocation loc = TransportController.getInstance().getTransport(location);
-        PlayerTransportData playerdata = PlayerDataController.instance.getPlayerData(player).transportData;
+        PlayerTransportData playerdata = PlayerDataController.Instance.getPlayerData(player).transportData;
 
 		if(loc == null || !loc.isDefault() && !playerdata.transports.contains(loc.id))
 			return;
@@ -215,7 +215,7 @@ public class NoppesUtilPlayer {
 		else
 			currency = currency.splitStack(price);
 		player.closeContainer();
-		PlayerBankData data = PlayerDataController.instance.getBankData(player,bank.id);
+		PlayerBankData data = PlayerDataController.Instance.getBankData(player,bank.id);
         BankData bankData = data.getBank(bank.id);
 		bankData.upgradedSlots.put(container.slot, true);
 
@@ -243,7 +243,7 @@ public class NoppesUtilPlayer {
 		else
 			currency = currency.splitStack(price);
 		player.closeContainer();
-		PlayerBankData data = PlayerDataController.instance.getBankData(player,bank.id);
+		PlayerBankData data = PlayerDataController.Instance.getBankData(player,bank.id);
         BankData bankData = data.getBank(bank.id);
 		if(bankData.unlockedSlots + 1 <= bank.maxSlots)
 			bankData.unlockedSlots++;
@@ -299,7 +299,7 @@ public class NoppesUtilPlayer {
 	}
 
 	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
 		NBTTagCompound compound = Server.readNBT(buffer);
 		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
@@ -342,7 +342,7 @@ public class NoppesUtilPlayer {
 	}
 
 	public static void sendTrackedQuestData(EntityPlayerMP player) {
-		Quest trackedQuest = (Quest) PlayerDataController.instance.getPlayerData(player).questData.getTrackedQuest();
+		Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
 		if(trackedQuest != null){
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
@@ -370,7 +370,7 @@ public class NoppesUtilPlayer {
 		if(player == null)
 			return false;
 
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
 		QuestData data = questData.activeQuests.get(questId);
 
@@ -426,7 +426,7 @@ public class NoppesUtilPlayer {
 		}
 		data.quest.factionOptions.addPoints(player);
 		if(data.quest.mail.isValid()){
-			PlayerDataController.instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
+			PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
 		}
 
 		if(!data.quest.command.isEmpty()){

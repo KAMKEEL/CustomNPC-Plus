@@ -83,7 +83,7 @@ public class ItemSoulstoneEmpty extends Item {
 				int p = npc.advanced.minFactionPointsToSoulStone;
 				if (p == -1 && npc.getFaction().isFriendlyToPlayer(player)) return true;
 				else if (p != -1) {
-					PlayerData data = PlayerDataController.instance.getPlayerData(player);
+					PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 					return data.factionData.getFactionPoints(npc.getFaction().getId()) >= p;
 				}
 			}

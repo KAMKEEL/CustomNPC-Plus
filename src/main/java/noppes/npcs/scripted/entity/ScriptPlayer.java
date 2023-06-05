@@ -187,16 +187,16 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public boolean hasReadDialog(int id){
-		PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
+		PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
 		return data.dialogsRead.contains(id);
 	}
 
 	public void readDialog(int id) {
-		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.add(id);
+		PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.add(id);
 	}
 
 	public void unreadDialog(int id) {
-		PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
+		PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
 	}
 
 	public boolean hasFinishedQuest(IQuest quest) {
@@ -236,12 +236,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 	
 	public boolean hasFinishedQuest(int id){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.finishedQuests.containsKey(id);
 	}
 	
 	public boolean hasActiveQuest(int id){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.activeQuests.containsKey(id);
 	}
 
@@ -253,7 +253,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         if(data.questData.activeQuests.containsKey(id))
         	return;
         QuestData questdata = new QuestData(quest);
@@ -270,7 +270,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 
 		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
 			data.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
@@ -286,7 +286,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		data.questData.activeQuests.remove(id);
 	}
 
@@ -298,7 +298,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		data.questData.activeQuests.remove(id);
 		data.questData.finishedQuests.remove(id);
 	}
@@ -317,7 +317,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param points The points to increase. Use negative values to decrease
 	 */
 	public void addFactionPoints(int faction, int points){
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		data.factionData.increasePoints(faction, points, player);
 	}
 	/**
@@ -325,7 +325,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param points The new point value for this faction
 	 */
 	public void setFactionPoints(int faction, int points) {
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		data.factionData.increasePoints(faction, points-getFactionPoints(faction), player);
 	}
 
@@ -334,7 +334,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @return  points
      */
 	public int getFactionPoints(int faction) {
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		return data.factionData.getFactionPoints(faction);
 	}
 
@@ -675,12 +675,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public ITimers getTimers() {
-		return PlayerDataController.instance.getPlayerData(player).timers;
+		return PlayerDataController.Instance.getPlayerData(player).timers;
 	}
 
 	public void updatePlayerInventory() {
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
@@ -688,7 +688,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	@Deprecated
 	public boolean checkGUIOpen() {
 		NoppesUtilPlayer.isGUIOpen(player);
-		PlayerData data = PlayerDataController.instance.getPlayerData(player);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		return data.getGUIOpen();
 	}
 
@@ -711,7 +711,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public PlayerData getData() {
 		if (this.data == null) {
-			this.data = PlayerDataController.instance.getPlayerData(player);
+			this.data = PlayerDataController.Instance.getPlayerData(player);
 		}
 
 		return this.data;

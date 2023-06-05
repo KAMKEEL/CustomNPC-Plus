@@ -29,7 +29,7 @@ public class RoleBank extends RoleInterface{
 
 	@Override
 	public void interact(EntityPlayer player) {
-		BankData data = PlayerDataController.instance.getBankData(player,bankId).getBankOrDefault(bankId);
+		BankData data = PlayerDataController.Instance.getBankData(player,bankId).getBankOrDefault(bankId);
 		data.openBankGui(player,npc,bankId,0);
 		npc.say(player, npc.advanced.getInteractLine());
 	}

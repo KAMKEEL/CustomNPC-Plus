@@ -185,7 +185,7 @@ public class Availability implements ICompatibilty, IAvailability {
 		if(faction == null)
 			return true;
 		
-		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;
+		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		int points = data.getFactionPoints(id);
 		
 		EnumAvailabilityFaction current = EnumAvailabilityFaction.Neutral;
@@ -207,7 +207,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	public boolean dialogAvailable(int id, EnumAvailabilityDialog en, EntityPlayer player){
 		if(en == EnumAvailabilityDialog.Always)
 			return true;
-		boolean hasRead = PlayerDataController.instance.getPlayerData(player).dialogData.dialogsRead.contains(id);
+		boolean hasRead = PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.contains(id);
 		if(hasRead && en == EnumAvailabilityDialog.After)
 			return true;
 		else if(!hasRead && en == EnumAvailabilityDialog.Before)

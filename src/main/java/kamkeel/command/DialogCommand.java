@@ -41,7 +41,7 @@ public class DialogCommand extends CommandKamkeelBase {
             sendError(sender, "DialogID must be an integer: " + args[1]);
             return;
         }
-        List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
@@ -66,7 +66,7 @@ public class DialogCommand extends CommandKamkeelBase {
             sendError(sender, "DialogID must be an integer: " + args[1]);
             return;
         }
-        List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;

@@ -74,17 +74,17 @@ public class Faction implements IFaction {
 	}
 
 	public boolean isFriendlyToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;
+		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		return data.getFactionPoints(id) >= friendlyPoints;
 	}
 
 	public boolean isAggressiveToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;		
+		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		return data.getFactionPoints(id) < neutralPoints;
 	}
 	
 	public boolean isNeutralToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;
+		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		int points = data.getFactionPoints(id);
 		return points >= neutralPoints && points < friendlyPoints;
 	}
