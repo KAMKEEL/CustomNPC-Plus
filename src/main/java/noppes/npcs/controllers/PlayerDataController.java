@@ -264,6 +264,12 @@ public class PlayerDataController {
 		}
 	}
 
+	public void clearCache() {
+		synchronized (playerDataCache) {
+			playerDataCache.clear();
+		}
+	}
+
 	public PlayerBankData getBankData(EntityPlayer player, int bankId) {
 		Bank bank = BankController.getInstance().getBank(bankId);
 		PlayerBankData data = getPlayerData(player).bankData;

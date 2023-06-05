@@ -206,6 +206,7 @@ public class CustomNpcs {
         ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
         NpcAPI.clearCache();
+        PlayerDataController.instance.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){
