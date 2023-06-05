@@ -220,7 +220,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			filename = uuid + ".json";
 		}
 		PlayerDataController.instance.putPlayerMap(playername, uuid);
-		PlayerDataController.putPlayerDataCache(uuid, this);
+		PlayerDataController.instance.putPlayerDataCache(uuid, this);
 		CustomNPCsThreader.playerDataThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.instance.getSaveDir();

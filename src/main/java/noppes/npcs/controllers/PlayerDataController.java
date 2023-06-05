@@ -30,8 +30,8 @@ import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
 
 public class PlayerDataController {
 	public static PlayerDataController instance;
-	public static HashMap<String, String> nameUUIDs;
-	private static final CacheHashMap<String, CacheHashMap.CachedObject<PlayerData>> playerDataCache = new CacheHashMap<>(60 * 60 * 1000);
+	public HashMap<String, String> nameUUIDs;
+	private final CacheHashMap<String, CacheHashMap.CachedObject<PlayerData>> playerDataCache = new CacheHashMap<>(60 * 60 * 1000);
 
 	public PlayerDataController(){
 		instance = this;
@@ -249,13 +249,13 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public static void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
+	public void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
 		synchronized (playerDataCache) {
 			playerDataCache.put(uuid, new CacheHashMap.CachedObject<>(playerCompound));
 		}
 	}
 
-	public static PlayerData getPlayerDataCache(final String uuid) {
+	public PlayerData getPlayerDataCache(final String uuid) {
 		synchronized (playerDataCache) {
 			if (!playerDataCache.containsKey(uuid)) {
 				return null;
