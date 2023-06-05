@@ -201,6 +201,10 @@ public class NpcAPI extends AbstractNpcAPI {
                     scriptPlayerCache.put(entity.getPersistentID(),new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity)));
                 }
                 data = scriptPlayerCache.get(entity.getPersistentID());
+                if(data == null){
+                    scriptPlayerCache.put(entity.getPersistentID(),new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity)));
+                    data = scriptPlayerCache.get(entity.getPersistentID());
+                }
             }
             else if(PixelmonHelper.isPixelmon(entity))
                 return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
