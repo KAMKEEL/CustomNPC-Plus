@@ -18,6 +18,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.CustomNPCsThreader;
+import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -28,6 +29,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
@@ -435,104 +437,119 @@ public class PlayerDataController {
 		executor.shutdown();
 	}
 
-	public void convertPlayerFiles(final EntityPlayerMP sender, final boolean type){
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		executor.execute(() -> {
-			String fileType;
-			if(type){
-				fileType = ".dat";
-			}
-			else {
-				fileType = ".json";
-			}
+	public void convertPlayerFiles(final EntityPlayerMP sender, final boolean type) {
+		// Determine the file type
+		String fileType = type ? ".dat" : ".json";
 
-			if(sender != null){
-				LogWriter.info("PlayerData Conversion queued by " + sender.getCommandSenderName());
-				sender.addChatMessage(new ChatComponentText("PlayerData Conversion to " + fileType + " format"));
-			}
+		if (sender != null) {
+			LogWriter.info("PlayerData Conversion queued by " + sender.getCommandSenderName());
+			sender.addChatMessage(new ChatComponentText("PlayerData Conversion to " + fileType + " format"));
+		}
 
-			File dir = getSaveDir();
-			LogWriter.info("Converting PlayerData to " + fileType + " format");
-			File[] files = dir.listFiles(); // Get an array of all files in the directory
-			if(files != null){
-				int length = files.length;
-				if(length != 0){
-					if(length > 100){
-						LogWriter.info("Found " + length + " PlayerData files... This may take a few minutes");
-					}
-					int tenPercent = (int) ((double) length * 0.1);
-					int progress = 0;
-					File saveDir = PlayerDataController.instance.getNewSaveDir();
-					if(saveDir == null){
-						if(sender != null){
-							sender.addChatMessage(new ChatComponentText("playerdata_new folder already exists please delete it or rename it"));
-						}
-						LogWriter.error("playerdata_new folder already exists please delete it or rename it");
-						return;
-					}
-					// Load the files in parallel using a stream
-					for(int i = 0; i < length; i++){
-						File file = files[i];
-						if(file.isDirectory() || (!file.getName().endsWith(".json") && !file.getName().endsWith(".dat")))
-							continue;
-						try {
-							String filename = "error";
-							boolean valid = false;
-							NBTTagCompound compound = new NBTTagCompound();
-							if(type){
-								if(file.getName().endsWith(".json")){
-									compound = NBTJsonUtil.LoadFile(file);
-									if(compound.hasKey("PlayerName")) {
-										filename = file.getName().substring(0, file.getName().length() - 5);
-										valid = true;
-									}
-								}
-							} else {
-								if(file.getName().endsWith(".dat")){
-									compound = loadNBTData(file);
-									if(compound.hasKey("PlayerName")){
-										filename = file.getName().substring(0, file.getName().length() - 4);
-										valid = true;
-									}
-								}
-							}
-							if(valid){
-								try {
-									File newFile = new File(saveDir, filename + "_new" + fileType);
-									File oldFile = new File(saveDir, filename + fileType);
-									if(type){
-										CompressedStreamTools.writeCompressed(compound, Files.newOutputStream(newFile.toPath()));
-									} else {
-										NBTJsonUtil.SaveFile(newFile, compound);
-									}
-									if(oldFile.exists()){
-										oldFile.delete();
-									}
-									newFile.renameTo(oldFile);
-								} catch (Exception e) {
-									LogWriter.except(e);
-								}
-							}
-						} catch (Exception e) {
-							LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-						}
-						if(tenPercent != 0 ){
-							if(progress != 100){
-								if (i % tenPercent == 0) {
-									progress += 10;
-									LogWriter.info("Converting PlayerData: Progress: " + progress + "%");
-								}
-							}
-						}
-					}
+		File saveDir = getSaveDir();
+		File[] files = saveDir.listFiles();
+
+		if (files != null && files.length > 0) {
+			File newSaveDir = PlayerDataController.instance.getNewSaveDir();
+
+			if (newSaveDir == null) {
+				if (sender != null) {
+					sender.addChatMessage(new ChatComponentText("playerdata_new folder already exists please delete it or rename it"));
 				}
+				LogWriter.error("playerdata_new folder already exists please delete it or rename it");
+				return;
 			}
-			if(sender != null){
-				sender.addChatMessage(new ChatComponentText("PlayerData Conversion complete"));
-			}
-			LogWriter.info("PlayerData Converted - Please rename the playerdata_new folder to playerdata");
-		});
 
-		executor.shutdown();
+			//Determine the number of threads to be used
+			int numThreads = Runtime.getRuntime().availableProcessors();
+			ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+
+			//Calculate the number of files to process per thread
+			int numFilesPerThread = files.length / numThreads;
+			int remainingFiles = files.length % numThreads;
+
+			int startIndex = 0;
+			int endIndex = numFilesPerThread;
+
+			// Submit conversion tasks to the thread pool
+			for (int i = 0; i < numThreads; i++) {
+				if (i == numThreads - 1) {
+					endIndex += remainingFiles;
+				}
+
+				File[] filesToConvert = Arrays.copyOfRange(files, startIndex, endIndex);
+				startIndex = endIndex;
+				endIndex += numFilesPerThread;
+
+				executor.execute(() -> {
+					convertFiles(filesToConvert, type, fileType, newSaveDir, sender);
+				});
+			}
+
+			executor.shutdown();
+			try {
+				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS); //Wait for all the threads to complete the task
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (sender != null) {
+			sender.addChatMessage(new ChatComponentText("PlayerData Conversion complete"));
+		}
+		LogWriter.info("PlayerData Converted - Please rename the playerdata_new folder to playerdata");
+	}
+
+
+	//Check if a file has a valid extension based on the file type
+	private boolean isValidFile(File file, boolean type) {
+		String extension = type ? ".json" : ".dat";
+		return file.getName().toLowerCase().endsWith(extension);
+	}
+
+	//Extract the filename without the extension based on the file type
+	private String getFilename(String fileName, boolean type) {
+		String extension = type ? ".json" : ".dat";
+		return fileName.substring(0, fileName.length() - extension.length());
+	}
+	private void convertFiles(File[] files, boolean type, String fileType, File newSaveDir, EntityPlayerMP sender) {
+		int totalFiles = files.length;
+		int tenPercent = (int) (totalFiles * 0.1);
+		int progress = 0;
+
+		for (File file : files) {
+			//Skip thr files with invalid extensions
+			if (file.isDirectory() || !isValidFile(file, type)) {
+				continue;
+			}
+			try {
+				String filename = getFilename(file.getName(), type);
+				NBTTagCompound compound = type ? NBTJsonUtil.LoadFile(file) : loadNBTData(file);
+				convertFile(fileType, newSaveDir, type, compound, filename);
+			} catch (Exception e) {
+				LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+			}
+
+			if (tenPercent != 0 && progress != 100 && (progress % tenPercent == 0)) {
+				progress += 10;
+				LogWriter.info("Converting PlayerData: Progress: " + progress + "%");
+			}
+		}
+	}
+
+	//Convert a file and replace the old file with the new one
+	private void convertFile(String fileType, File newSaveDir, boolean type, NBTTagCompound compound, String filename) throws IOException, JsonException {
+		File newFile = new File(newSaveDir, filename + "_new" + fileType);
+		File oldFile = new File(newSaveDir, filename + fileType);
+
+		Path newFilePath = newFile.toPath();
+		if (type) {
+			try (OutputStream outputStream = Files.newOutputStream(newFilePath)) {
+				CompressedStreamTools.writeCompressed(compound, outputStream);
+			}
+		} else {
+			NBTJsonUtil.SaveFile(newFile, compound);
+		}
+		Files.move(newFilePath, oldFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	}
 }
