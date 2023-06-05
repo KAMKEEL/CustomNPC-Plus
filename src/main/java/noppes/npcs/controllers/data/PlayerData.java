@@ -11,6 +11,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
@@ -20,6 +21,7 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -217,6 +219,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		} else {
 			filename = uuid + ".json";
 		}
+		PlayerDataController.instance.putPlayerMap(playername, uuid);
+		PlayerDataController.putPlayerDataCache(uuid, this);
 		CustomNPCsThreader.playerDataThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.instance.getSaveDir();
@@ -235,7 +239,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 				LogWriter.except(e);
 			}
 		});
-		PlayerDataController.instance.putPlayerMap(playername, uuid);
 	}
 
 	public void load() {

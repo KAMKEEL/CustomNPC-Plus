@@ -9,10 +9,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.*;
+import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -26,7 +30,8 @@ import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
 
 public class PlayerDataController {
 	public static PlayerDataController instance;
-	public HashMap<String, String> nameUUIDs;
+	public static HashMap<String, String> nameUUIDs;
+	private static final CacheHashMap<String, CacheHashMap.CachedObject<PlayerData>> playerDataCache = new CacheHashMap<>(60 * 60 * 1000);
 
 	public PlayerDataController(){
 		instance = this;
@@ -244,6 +249,21 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
+	public static void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
+		synchronized (playerDataCache) {
+			playerDataCache.put(uuid, new CacheHashMap.CachedObject<>(playerCompound));
+		}
+	}
+
+	public static PlayerData getPlayerDataCache(final String uuid) {
+		synchronized (playerDataCache) {
+			if (!playerDataCache.containsKey(uuid)) {
+				return null;
+			}
+			return playerDataCache.get(uuid).getObject();
+		}
+	}
+
 	public PlayerBankData getBankData(EntityPlayer player, int bankId) {
 		Bank bank = BankController.getInstance().getBank(bankId);
 		PlayerBankData data = getPlayerData(player).bankData;
@@ -254,7 +274,13 @@ public class PlayerDataController {
 	}
 
 	public PlayerData getPlayerData(EntityPlayer player){
-		PlayerData data = (PlayerData) player.getExtendedProperties("CustomNpcsData");
+		PlayerData data = getPlayerDataCache(player.getUniqueID().toString());
+		if(data != null){
+			data.player = player;
+			return data;
+		}
+
+		data = (PlayerData) player.getExtendedProperties("CustomNpcsData");
 		if(data == null){
 			player.registerExtendedProperties("CustomNpcsData", data = new PlayerData());
 			data.player = player;
