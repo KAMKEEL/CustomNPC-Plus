@@ -6,7 +6,6 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -28,7 +27,6 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
@@ -1006,7 +1004,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.CloneSave){
-			PlayerData data = PlayerDataController.instance.getPlayerData(player);
+			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 			if(data.cloned == null)
 				return;
 			String name = Server.readString(buffer);

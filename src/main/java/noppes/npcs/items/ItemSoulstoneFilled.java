@@ -87,7 +87,7 @@ public class ItemSoulstoneFilled extends Item {
 			npc.advanced.soulStonePlayerName = player.getDisplayName();
     		npc.advanced.soulStoneInit = true;
     		if(npc.advanced.role == EnumRoleType.Companion && player != null){
-    			PlayerData data = PlayerDataController.instance.getPlayerData(player);
+    			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
     			if(data.hasCompanion())
     				return false;
     			((RoleCompanion)npc.roleInterface).setOwner(player);

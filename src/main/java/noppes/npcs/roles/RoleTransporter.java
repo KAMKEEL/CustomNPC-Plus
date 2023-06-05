@@ -79,7 +79,7 @@ public class RoleTransporter extends RoleInterface{
 	}
 	
 	public void unlock(EntityPlayer player, ITransportLocation loc){
-		PlayerTransportData data = PlayerDataController.instance.getPlayerData(player).transportData;
+		PlayerTransportData data = PlayerDataController.Instance.getPlayerData(player).transportData;
 		if(data.transports.contains(transportId))
 			return;
 		data.transports.add(transportId);

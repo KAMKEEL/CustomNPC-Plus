@@ -216,17 +216,17 @@ public class DataAdvanced {
             npc.jobInterface = new JobGuard(npc);
         else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver)) {
             if (!npc.isRemote()) {
-                if (npc.itemGiverId > 0 && GlobalDataController.instance.itemGivers.containsKey(npc.itemGiverId)) {
-                    GlobalDataController.instance.itemGivers.get(npc.itemGiverId).npc = npc;
-                    npc.jobInterface = GlobalDataController.instance.itemGivers.get(npc.itemGiverId);
+                if (npc.itemGiverId > 0 && GlobalDataController.Instance.itemGivers.containsKey(npc.itemGiverId)) {
+                    GlobalDataController.Instance.itemGivers.get(npc.itemGiverId).npc = npc;
+                    npc.jobInterface = GlobalDataController.Instance.itemGivers.get(npc.itemGiverId);
                 } else {
                     npc.jobInterface = new JobItemGiver(npc);
                     if (npc.itemGiverId == -1) {
-                        ((JobItemGiver) npc.jobInterface).itemGiverId = GlobalDataController.instance.incrementItemGiverId();
+                        ((JobItemGiver) npc.jobInterface).itemGiverId = GlobalDataController.Instance.incrementItemGiverId();
                     } else {
                         ((JobItemGiver) npc.jobInterface).itemGiverId = npc.itemGiverId;
                     }
-                    GlobalDataController.instance.itemGivers.put(((JobItemGiver) npc.jobInterface).itemGiverId, (JobItemGiver) npc.jobInterface);
+                    GlobalDataController.Instance.itemGivers.put(((JobItemGiver) npc.jobInterface).itemGiverId, (JobItemGiver) npc.jobInterface);
                     npc.itemGiverId = ((JobItemGiver) npc.jobInterface).itemGiverId;
                 }
             } else {

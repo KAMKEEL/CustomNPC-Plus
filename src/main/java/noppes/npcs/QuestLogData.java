@@ -41,7 +41,7 @@ public class QuestLogData {
 		trackedQuestKey = compound.getString("TrackedQuestID");
 	}
 	public void setData(EntityPlayer player){
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
 		for(Quest quest : PlayerQuestController.getActiveQuests(player))
         {

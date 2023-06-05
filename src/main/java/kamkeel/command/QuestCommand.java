@@ -40,7 +40,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         
-        List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
@@ -80,7 +80,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         
-        List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
@@ -123,7 +123,7 @@ public class QuestCommand extends CommandKamkeelBase {
         	sendError(sender, "QuestID must be an integer: " + args[1]);
             return;
         }
-        List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
@@ -154,7 +154,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         
-        List<PlayerData> data = PlayerDataController.instance.getPlayersData(sender, playername);
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, String.format("Unknown player '%s'", playername));
             return;
