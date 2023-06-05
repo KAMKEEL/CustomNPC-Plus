@@ -183,30 +183,29 @@ public class PlayerDataController {
 			filename = "noplayername";
 		filename += ".dat";
 		try {
-			File file = new File(saveDir, filename);
-			if(file.exists()){
-				NBTTagCompound comp = CompressedStreamTools.readCompressed(new FileInputStream(file));
-				file.delete();
-				file = new File(saveDir, filename+"_old");
-				if(file.exists())
-					file.delete();
+			Path filePath = saveDir.toPath().resolve(filename);
+			if (Files.exists(filePath)) {
+				NBTTagCompound comp = CompressedStreamTools.readCompressed(Files.newInputStream(filePath));
+				Files.deleteIfExists(filePath);
+				Path oldFilePath = saveDir.toPath().resolve(filename + "_old");
+				Files.deleteIfExists(oldFilePath);
 				return comp;
 			}
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
 		try {
-			File file = new File(saveDir, filename+"_old");
-			if(file.exists()){
-				return CompressedStreamTools.readCompressed(new FileInputStream(file));
+			Path oldFilePath = saveDir.toPath().resolve(filename + "_old");
+			if (Files.exists(oldFilePath)) {
+				return CompressedStreamTools.readCompressed(Files.newInputStream(oldFilePath));
 			}
-
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
 
 		return new NBTTagCompound();
 	}
+
 
 	public NBTTagCompound loadPlayerData(String player){
 		File saveDir = getSaveDir();
@@ -237,7 +236,7 @@ public class PlayerDataController {
 
 	public NBTTagCompound loadNBTData(File file){
 		try {
-			return CompressedStreamTools.readCompressed(new FileInputStream(file));
+			return CompressedStreamTools.readCompressed(Files.newInputStream(file.toPath()));
 		} catch (Exception e) {
 			LogWriter.error("Error loading: " + file.getName(), e);
 		}
@@ -502,7 +501,7 @@ public class PlayerDataController {
 									File newFile = new File(saveDir, filename + "_new" + fileType);
 									File oldFile = new File(saveDir, filename + fileType);
 									if(type){
-										CompressedStreamTools.writeCompressed(compound, new FileOutputStream(newFile));
+										CompressedStreamTools.writeCompressed(compound, Files.newOutputStream(newFile.toPath()));
 									} else {
 										NBTJsonUtil.SaveFile(newFile, compound);
 									}
