@@ -265,19 +265,19 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			OverlayCustom overlayCustom = new OverlayCustom(Minecraft.getMinecraft());
 			overlayCustom.setOverlayData(Server.readNBT(buffer));
 
-			Client.customOverlays.put(overlayCustom.overlay.getID(),overlayCustom);
+			ClientCacheHandler.customOverlays.put(overlayCustom.overlay.getID(),overlayCustom);
 		}
 		else if(type == EnumPacketClient.SCRIPT_OVERLAY_CLOSE){
 			int id = buffer.readInt();
-			Client.customOverlays.remove(id);
+			ClientCacheHandler.customOverlays.remove(id);
 		}
 		else if(type == EnumPacketClient.OVERLAY_QUEST_TRACKING){
 			try {
 				NBTTagCompound compound = Server.readNBT(buffer);
-				Client.questTrackingOverlay = new OverlayQuestTracking(Minecraft.getMinecraft());
-				Client.questTrackingOverlay.setOverlayData(compound);
+				ClientCacheHandler.questTrackingOverlay = new OverlayQuestTracking(Minecraft.getMinecraft());
+				ClientCacheHandler.questTrackingOverlay.setOverlayData(compound);
 			} catch (IOException e) {
-				Client.questTrackingOverlay = null;
+				ClientCacheHandler.questTrackingOverlay = null;
 			}
 		}
 		else if(type == EnumPacketClient.SWING_PLAYER_ARM){
@@ -307,7 +307,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					data.readFromNBT(compound);
 					data.animation = new Animation();
 					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
-					Client.playerAnimations.put(sendingPlayer.getUniqueID(), data);
+					ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), data);
 				}
 			}
 		}

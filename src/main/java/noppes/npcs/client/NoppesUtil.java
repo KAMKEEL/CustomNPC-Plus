@@ -12,7 +12,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.world.World;
-import noppes.npcs.AnimationData;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.fx.CustomFX;
@@ -73,8 +72,8 @@ public class NoppesUtil {
 		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
 		HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
 		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
-		if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-			oldOverlays = Client.skinOverlays.get(player.getUniqueID());
+		if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
+			oldOverlays = ClientCacheHandler.skinOverlays.get(player.getUniqueID());
 		}
 
 		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
@@ -85,7 +84,7 @@ public class NoppesUtil {
 			}
 			skinOverlays.put(tagID,overlay);
 		}
-		Client.skinOverlays.put(player.getUniqueID(), skinOverlays);
+		ClientCacheHandler.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}
 
 	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){
