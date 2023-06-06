@@ -2,13 +2,8 @@ package kamkeel.command;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.*;
 
 import java.util.Collection;
