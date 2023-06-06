@@ -19,6 +19,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
@@ -122,6 +123,13 @@ public abstract class AbstractCommandHelper extends CommandHelper {
         for (CommandHelper cur : commands.values()) {
             help(cur.commandHelper.name, cur.commandHelper.desc, "");
         }
+        sendMsg(String.format("\u00A74noppes cmds are no longer supported |\u00A76 use /kamkeel"));
+        sendMsg(String.format("\u00A77All bugs and issues will not be patched or maintained"));
+    }
+
+    public void sendMsg(String msg) {
+        ICommandSender sender = (ICommandSender) pcParam;
+        sender.addChatMessage(new ChatComponentText(msg));
     }
 
     public Helper currentHelper;
