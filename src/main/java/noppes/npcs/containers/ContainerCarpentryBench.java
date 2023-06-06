@@ -67,7 +67,7 @@ public class ContainerCarpentryBench extends Container
     public void onCraftMatrixChanged(IInventory par1IInventory)
     {
     	if(!this.worldObj.isRemote){
-    		RecipeCarpentry recipe = RecipeController.instance.findMatchingRecipe(this.craftMatrix);
+    		RecipeCarpentry recipe = RecipeController.Instance.findMatchingRecipe(this.craftMatrix);
     		
     		ItemStack item = null;
     		if(recipe != null && recipe.availability.isAvailable(player)){

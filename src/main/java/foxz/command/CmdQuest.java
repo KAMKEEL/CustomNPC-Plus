@@ -46,7 +46,7 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
@@ -86,7 +86,7 @@ public class CmdQuest extends ChMcLogger{
             return false;
         }
         
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
@@ -117,7 +117,7 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
@@ -148,7 +148,7 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;

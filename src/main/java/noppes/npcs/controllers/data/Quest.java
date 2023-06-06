@@ -127,7 +127,7 @@ public class Quest implements ICompatibilty, IQuest {
 	}
 	public Quest getNextQuest()
 	{
-		return QuestController.instance == null?null:QuestController.instance.quests.get(nextQuestid);
+		return QuestController.Instance == null?null:QuestController.Instance.quests.get(nextQuestid);
 	}
 
 	public boolean instantComplete(EntityPlayer player, QuestData data) {
@@ -193,7 +193,7 @@ public class Quest implements ICompatibilty, IQuest {
 	}
 
 	public void save() {
-		QuestController.instance.saveQuest(this.category.id, this);
+		QuestController.Instance.saveQuest(this.category.id, this);
 	}
 
 	public void setName(String name) {

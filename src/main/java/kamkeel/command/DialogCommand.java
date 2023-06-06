@@ -104,7 +104,7 @@ public class DialogCommand extends CommandKamkeelBase {
             sendError(sender, "DialogID must be an integer: " + args[1]);
             return;
         }
-        Dialog dialog = DialogController.instance.dialogs.get(diagid);
+        Dialog dialog = DialogController.Instance.dialogs.get(diagid);
         if(dialog == null){
             sendError(sender, "Unknown dialog id: " + args[1]);
             return;

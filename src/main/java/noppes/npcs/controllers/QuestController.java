@@ -21,13 +21,13 @@ public class QuestController implements IQuestHandler {
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
 
-	public static QuestController instance;
+	public static QuestController Instance;
 
 	private int lastUsedCatID = 0;
 	private int lastUsedQuestID = 0;
 	
 	public QuestController(){
-		instance = this;
+		Instance = this;
 	}
 	
 	public void load(){

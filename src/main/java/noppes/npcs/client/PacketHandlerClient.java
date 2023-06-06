@@ -97,7 +97,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
             RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
 		}
 		else if(type == EnumPacketClient.SYNCRECIPES_CARPENTRYBENCH){
-            RecipeController.instance.anvilRecipes = RecipeController.syncRecipes;
+            RecipeController.Instance.anvilRecipes = RecipeController.syncRecipes;
             RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
 		}
 		else if(type == EnumPacketClient.DIALOG){

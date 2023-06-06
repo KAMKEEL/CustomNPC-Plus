@@ -3,7 +3,6 @@ package noppes.npcs;
 import com.google.common.collect.Sets;
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
@@ -38,7 +37,7 @@ public class NPCSpawning {
     private static boolean liquidSpawn;
 
     public static void findChunksForSpawning(WorldServer world){
-    	if(SpawnController.instance.data.isEmpty() || world.getWorldInfo().getWorldTotalTime() % 400L != 0L)
+    	if(SpawnController.Instance.data.isEmpty() || world.getWorldInfo().getWorldTotalTime() % 400L != 0L)
     		return;
     	eligibleChunksForSpawning.clear();
         for (int i = 0; i < world.playerEntities.size(); ++i){
@@ -80,7 +79,7 @@ public class NPCSpawning {
                 z += world.rand.nextInt(b1) - world.rand.nextInt(b1);
 
     			String name = world.getBiomeGenForCoords(x, z).biomeName;
-    			SpawnData data = SpawnController.instance.getRandomSpawnData(name, world.provider.dimensionId);
+    			SpawnData data = SpawnController.Instance.getRandomSpawnData(name, world.provider.dimensionId);
                 if (data == null || !canCreatureTypeSpawnAtLocation(data, world, x, y, z) || world.getClosestPlayer(x, y, z, 24.0D) != null)
                 	continue;
                 
@@ -111,7 +110,7 @@ public class NPCSpawning {
     public static void performWorldGenSpawning(World world, int x, int z, Random rand){
         BiomeGenBase biome = world.getBiomeGenForCoords(x + 8, z + 8);
     	while (rand.nextFloat() < biome.getSpawningChance()){
-    		SpawnData data = SpawnController.instance.getRandomSpawnData(biome.biomeName, world.provider.dimensionId);
+    		SpawnData data = SpawnController.Instance.getRandomSpawnData(biome.biomeName, world.provider.dimensionId);
     		if(data == null)
     			continue;
     		

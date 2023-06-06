@@ -262,7 +262,7 @@ public class NoppesUtilPlayer {
 	}
 
 	public static void dialogSelected(int dialogId, int optionId, EntityPlayerMP player, EntityNPCInterface npc) {
-		Dialog dialog = DialogController.instance.dialogs.get(dialogId);
+		Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
 		if(dialog == null)
 			return;
 		DialogOption option = dialog.options.get(optionId);
@@ -328,7 +328,7 @@ public class NoppesUtilPlayer {
 			String categoryName = splitString[0];
 			String questName = splitString[1];
 
-			for (QuestCategory category : QuestController.instance.categories.values()) {
+			for (QuestCategory category : QuestController.Instance.categories.values()) {
 				if (category.title.equals(categoryName)) {
 					for (Quest quest : category.quests.values()) {
 						if (quest.title.equals(questName)) {

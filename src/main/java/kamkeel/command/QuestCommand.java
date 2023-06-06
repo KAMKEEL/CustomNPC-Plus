@@ -47,7 +47,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
         	sendError(sender, "Unknown QuestID: " + questid);
             return;
@@ -86,7 +86,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
         	sendError(sender, "Unknown QuestID: " + questid);
             return;
@@ -128,7 +128,7 @@ public class QuestCommand extends CommandKamkeelBase {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
         	sendError(sender, "Unknown QuestID: " + questid);
             return;
@@ -160,7 +160,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
         	sendError(sender, String.format("Unknown QuestID"));
             return;
@@ -180,7 +180,7 @@ public class QuestCommand extends CommandKamkeelBase {
     )      
     public void reload(ICommandSender sender, String args[]){
     	new QuestController();
-        QuestController.instance.load();
+        QuestController.Instance.load();
         sendResult(sender, "Quests Reloaded");
     }
 }

@@ -254,8 +254,8 @@ public class NoppesUtil {
 	}
 	
 	public static void openDialog(NBTTagCompound compound, EntityNPCInterface npc, EntityPlayer player){
-		if(DialogController.instance == null)
-			DialogController.instance = new DialogController();
+		if(DialogController.Instance == null)
+			DialogController.Instance = new DialogController();
 		Dialog dialog = new Dialog();
 		dialog.readNBT(compound);
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;

@@ -5,7 +5,6 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
@@ -13,16 +12,16 @@ import java.util.*;
 
 public class AnimationController implements IAnimationHandler {
     public HashMap<String, Animation> animations;
-    public static AnimationController instance;
+    public static AnimationController Instance;
 
     public AnimationController() {
-        instance = this;
+        Instance = this;
         animations = new HashMap<>();
         load();
     }
 
     public static AnimationController getInstance(){
-        return instance;
+        return Instance;
     }
 
     public void load(){

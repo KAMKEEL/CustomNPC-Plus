@@ -76,7 +76,7 @@ public class CustomNpcsPermissions{
 	
 	public static boolean hasPermission(EntityPlayer player, Permission permission){
 		if(player != null){
-			if(Developer.instance.hasUniversal(player.getUniqueID())){
+			if(Developer.Instance.hasUniversal(player.getUniqueID())){
 				return true;
 			}
 			if(permission != null){
@@ -89,7 +89,7 @@ public class CustomNpcsPermissions{
 	}
 
 	public static boolean hasCustomPermission(EntityPlayer player, String permission){
-		if(Developer.instance.hasUniversal(player.getUniqueID())){
+		if(Developer.Instance.hasUniversal(player.getUniqueID())){
 			return true;
 		}
 		if(Instance.bukkit != null){

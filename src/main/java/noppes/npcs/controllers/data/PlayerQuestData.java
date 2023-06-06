@@ -57,7 +57,7 @@ public class PlayerQuestData implements IPlayerQuestData {
             {
                 NBTTagCompound nbttagcompound = list2.getCompoundTagAt(i);
                 int id = nbttagcompound.getInteger("Quest");
-                Quest quest = QuestController.instance.quests.get(id);
+                Quest quest = QuestController.Instance.quests.get(id);
                 if(quest == null)
                 	continue;
                 QuestData data = new QuestData(quest);
@@ -67,7 +67,7 @@ public class PlayerQuestData implements IPlayerQuestData {
             this.activeQuests = activeQuests;
         }
 
-		this.trackedQuest = QuestController.instance.get(mainCompound.getInteger("TrackedQuestID"));
+		this.trackedQuest = QuestController.Instance.get(mainCompound.getInteger("TrackedQuestID"));
 	}
 
 	public void saveNBTData(NBTTagCompound maincompound) {
@@ -162,7 +162,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 	}
 
 	public void startQuest(int id) {
-		Quest quest = QuestController.instance.quests.get(id);
+		Quest quest = QuestController.Instance.quests.get(id);
 		if (quest == null)
 			return;
 		if(activeQuests.containsKey(id))
@@ -174,7 +174,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 	}
 
 	public void finishQuest(int id) {
-		Quest quest = QuestController.instance.quests.get(id);
+		Quest quest = QuestController.Instance.quests.get(id);
 		if (quest == null)
 			return;
 
@@ -185,14 +185,14 @@ public class PlayerQuestData implements IPlayerQuestData {
 	}
 
 	public void stopQuest(int id) {
-		Quest quest = QuestController.instance.quests.get(id);
+		Quest quest = QuestController.Instance.quests.get(id);
 		if (quest == null)
 			return;
 		activeQuests.remove(id);
 	}
 
 	public void removeQuest(int id) {
-		Quest quest = QuestController.instance.quests.get(id);
+		Quest quest = QuestController.Instance.quests.get(id);
 		if (quest == null)
 			return;
 		activeQuests.remove(id);
@@ -211,7 +211,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 		List<IQuest> quests = new ArrayList<>();
 
 		for (int id : activeQuests.keySet()) {
-			IQuest quest = (IQuest) QuestController.instance.quests.get(id);
+			IQuest quest = (IQuest) QuestController.Instance.quests.get(id);
 			if (quest != null) {
 				quests.add(quest);
 			}
@@ -224,7 +224,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 		List<IQuest> quests = new ArrayList<>();
 
 		for (int id : finishedQuests.keySet()) {
-			IQuest quest = (IQuest) QuestController.instance.quests.get(id);
+			IQuest quest = (IQuest) QuestController.Instance.quests.get(id);
 			if (quest != null) {
 				quests.add(quest);
 			}
@@ -241,7 +241,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 	}
 
 	public void setLastCompletedTime(int id,long time) {
-		Quest quest = QuestController.instance.quests.get(id);
+		Quest quest = QuestController.Instance.quests.get(id);
 		if (quest == null)
 			return;
 		this.finishedQuests.put(id,time);

@@ -109,7 +109,7 @@ public class CmdDialog extends ChMcLogger {
             sendmessage("DialogID must be an integer: " + args[1]);
             return;
         }
-        Dialog dialog = DialogController.instance.dialogs.get(diagid);
+        Dialog dialog = DialogController.Instance.dialogs.get(diagid);
         if(dialog == null){
             sendmessage("Unknown dialog id: " + args[1]);
             return;

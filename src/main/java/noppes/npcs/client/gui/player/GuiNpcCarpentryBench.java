@@ -38,7 +38,7 @@ public class GuiNpcCarpentryBench extends GuiContainerNPCInterface
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
-    	button.enabled = RecipeController.instance != null && !RecipeController.instance.anvilRecipes.isEmpty();
+    	button.enabled = RecipeController.Instance != null && !RecipeController.Instance.anvilRecipes.isEmpty();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);
         int l = (width - xSize) / 2;

@@ -46,11 +46,11 @@ public class JobChunkLoader extends JobInterface{
 		
 		//unload after 10 min
 		if(System.currentTimeMillis() > playerLastSeen + 600000){
-			ChunkController.instance.deleteNPC(npc);
+			ChunkController.Instance.deleteNPC(npc);
 			chunks.clear();
 			return false;
 		}
-		Ticket ticket = ChunkController.instance.getTicket(npc);
+		Ticket ticket = ChunkController.Instance.getTicket(npc);
 		if(ticket == null) //Only null when too many active chunkloaders already
 			return false;
 		double x = npc.posX / 16;
@@ -79,7 +79,7 @@ public class JobChunkLoader extends JobInterface{
 
 	@Override
 	public void reset() {
-		ChunkController.instance.deleteNPC(npc);
+		ChunkController.Instance.deleteNPC(npc);
 		chunks.clear();
 		playerLastSeen = 0;
 	}

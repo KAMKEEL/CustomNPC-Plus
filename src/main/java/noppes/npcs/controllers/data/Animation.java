@@ -152,7 +152,7 @@ public class Animation implements IAnimation {
 	}
 
 	public IAnimation save() {
-		return AnimationController.instance.saveAnimation(this);
+		return AnimationController.Instance.saveAnimation(this);
 	}
 
 	public void readFromNBT(NBTTagCompound compound){

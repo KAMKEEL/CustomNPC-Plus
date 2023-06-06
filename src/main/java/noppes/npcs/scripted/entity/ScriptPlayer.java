@@ -179,7 +179,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void showDialog(int id){
-		Dialog dialog = (Dialog) DialogController.instance.get(id);
+		Dialog dialog = (Dialog) DialogController.Instance.get(id);
 		if(dialog == null)
 			return;
 
@@ -250,7 +250,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void startQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
@@ -267,7 +267,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void finishQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
@@ -283,7 +283,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void stopQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
@@ -295,7 +295,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void removeQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
@@ -728,7 +728,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		while(var3.hasNext()) {
 			int id = (Integer)var3.next();
-			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			IQuest quest = (IQuest)QuestController.Instance.quests.get(id);
 			if (quest != null) {
 				quests.add(quest);
 			}
@@ -777,7 +777,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		while(var3.hasNext()) {
 			int id = (Integer)var3.next();
-			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			IQuest quest = (IQuest)QuestController.Instance.quests.get(id);
 			if (quest != null) {
 				quests.add(quest);
 			}

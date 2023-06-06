@@ -325,7 +325,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public void save() {
-		DialogController.instance.saveDialog(this.category.id, this);
+		DialogController.Instance.saveDialog(this.category.id, this);
 	}
 
 	public void setName(String name) {
@@ -354,7 +354,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public Quest getQuest() {
-		return QuestController.instance == null ? null : (Quest)QuestController.instance.quests.get(this.quest);
+		return QuestController.Instance == null ? null : (Quest)QuestController.Instance.quests.get(this.quest);
 	}
 
 	public String getCommand() {

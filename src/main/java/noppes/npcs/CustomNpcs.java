@@ -188,7 +188,7 @@ public class CustomNpcs {
 
     @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
-        ChunkController.instance.clear();
+        ChunkController.Instance.clear();
         new QuestController();
         new PlayerDataController();
         new FactionController();
@@ -224,10 +224,10 @@ public class CustomNpcs {
     //Loading items in the about to start event was corrupting items with a damage value
     @EventHandler
     public void started(FMLServerStartedEvent event) {
-        RecipeController.instance.load();
+        RecipeController.Instance.load();
         new DialogController();
         new BankController();
-        QuestController.instance.load();
+        QuestController.Instance.load();
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();

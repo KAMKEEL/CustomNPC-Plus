@@ -348,19 +348,19 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.DialogCategoriesGet){
-			NoppesUtilServer.sendScrollData(player, DialogController.instance.getScroll());
+			NoppesUtilServer.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogsGetFromDialog){
-			Dialog dialog = DialogController.instance.dialogs.get(buffer.readInt());
+			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
 			if(dialog == null)
 				return;
 			NoppesUtilServer.sendDialogData(player,dialog.category);
 		}
 		else if(type == EnumPacketServer.DialogsGet){
-			NoppesUtilServer.sendDialogData(player,DialogController.instance.categories.get(buffer.readInt()));
+			NoppesUtilServer.sendDialogData(player,DialogController.Instance.categories.get(buffer.readInt()));
 		}
 		else if(type == EnumPacketServer.QuestsGetFromQuest){
-			Quest quest = QuestController.instance.quests.get(buffer.readInt());
+			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
 			if(quest == null)
 				return;
 			NoppesUtilServer.sendQuestData(player,quest.category);
@@ -369,24 +369,24 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendQuestCategoryData(player);
 		}
 		else if(type == EnumPacketServer.QuestsGet){
-			QuestCategory category = QuestController.instance.categories.get(buffer.readInt());
+			QuestCategory category = QuestController.Instance.categories.get(buffer.readInt());
 			NoppesUtilServer.sendQuestData(player,category);
 		}
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
 		}
 		else if(type == EnumPacketServer.DialogGet){
-			Dialog dialog = DialogController.instance.dialogs.get(buffer.readInt());
+			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
 			if(dialog != null){
 				NBTTagCompound compound = dialog.writeToNBT(new NBTTagCompound());
-				Quest quest = QuestController.instance.quests.get(dialog.quest);
+				Quest quest = QuestController.Instance.quests.get(dialog.quest);
 				if(quest != null)
 					compound.setString("DialogQuestName", quest.title);
 				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 			}
 		}
 		else if(type == EnumPacketServer.QuestGet){
-			Quest quest = QuestController.instance.quests.get(buffer.readInt());
+			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
 			if(quest != null){
 				NBTTagCompound compound = new NBTTagCompound();
 				if(quest.hasNewQuest())
@@ -526,24 +526,24 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendRecipeData(player,buffer.readInt());
 		}
 		else if(type == EnumPacketServer.RecipeGet){
-			RecipeCarpentry recipe = RecipeController.instance.getRecipe(buffer.readInt());
+			RecipeCarpentry recipe = RecipeController.Instance.getRecipe(buffer.readInt());
 			NoppesUtilServer.setRecipeGui(player,recipe);
 		}
 		else if(type == EnumPacketServer.RecipeRemove){
-			RecipeCarpentry recipe = RecipeController.instance.delete(buffer.readInt());
+			RecipeCarpentry recipe = RecipeController.Instance.delete(buffer.readInt());
 			NoppesUtilServer.sendRecipeData(player, recipe.isGlobal?3:4);
 			NoppesUtilServer.setRecipeGui(player,new RecipeCarpentry(""));
 		}
 		else if(type == EnumPacketServer.RecipeSave){
-			RecipeCarpentry recipe = RecipeController.instance.saveRecipe(Server.readNBT(buffer));
+			RecipeCarpentry recipe = RecipeController.Instance.saveRecipe(Server.readNBT(buffer));
 			NoppesUtilServer.sendRecipeData(player, recipe.isGlobal?3:4);
 			NoppesUtilServer.setRecipeGui(player,recipe);
 		}
 		else if(type == EnumPacketServer.NaturalSpawnGetAll){
-			NoppesUtilServer.sendScrollData(player, SpawnController.instance.getScroll());
+			NoppesUtilServer.sendScrollData(player, SpawnController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.NaturalSpawnGet){
-			SpawnData spawn = SpawnController.instance.getSpawnData(buffer.readInt());
+			SpawnData spawn = SpawnController.Instance.getSpawnData(buffer.readInt());
 			if(spawn != null){
 				Server.sendData(player, EnumPacketClient.GUI_DATA, spawn.writeNBT(new NBTTagCompound()));
 			}
@@ -551,26 +551,26 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.NaturalSpawnSave){
 			SpawnData data = new SpawnData();
 			data.readNBT(Server.readNBT(buffer));
-			SpawnController.instance.saveSpawnData(data);
+			SpawnController.Instance.saveSpawnData(data);
 
-			NoppesUtilServer.sendScrollData(player, SpawnController.instance.getScroll());
+			NoppesUtilServer.sendScrollData(player, SpawnController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.NaturalSpawnRemove){
-			SpawnController.instance.removeSpawnData(buffer.readInt());
-			NoppesUtilServer.sendScrollData(player, SpawnController.instance.getScroll());
+			SpawnController.Instance.removeSpawnData(buffer.readInt());
+			NoppesUtilServer.sendScrollData(player, SpawnController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogCategorySave){
 			DialogCategory category = new DialogCategory();
 			category.readNBT(Server.readNBT(buffer));
-			DialogController.instance.saveCategory(category);
-			NoppesUtilServer.sendScrollData(player, DialogController.instance.getScroll());
+			DialogController.Instance.saveCategory(category);
+			NoppesUtilServer.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogCategoryRemove){
-			DialogController.instance.removeCategory(buffer.readInt());
-			NoppesUtilServer.sendScrollData(player, DialogController.instance.getScroll());
+			DialogController.Instance.removeCategory(buffer.readInt());
+			NoppesUtilServer.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogCategoryGet){
-			DialogCategory category = DialogController.instance.categories.get(buffer.readInt());
+			DialogCategory category = DialogController.Instance.categories.get(buffer.readInt());
 			if(category != null){
 				NBTTagCompound comp = category.writeNBT(new NBTTagCompound());
 				comp.removeTag("Dialogs");
@@ -581,7 +581,7 @@ public class PacketHandlerServer{
 			int category = buffer.readInt();
 			Dialog dialog = new Dialog();
 			dialog.readNBT(Server.readNBT(buffer));
-			DialogController.instance.saveDialog(category,dialog);
+			DialogController.Instance.saveDialog(category,dialog);
 			if(dialog.category != null)
 				NoppesUtilServer.sendDialogData(player,dialog.category);
 		}
@@ -593,9 +593,9 @@ public class PacketHandlerServer{
 			player.openGui(CustomNpcs.instance, gui , player.worldObj, 0, 0, 0);
 		}
 		else if(type == EnumPacketServer.DialogRemove){
-			Dialog dialog = DialogController.instance.dialogs.get(buffer.readInt());
+			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
 			if(dialog != null && dialog.category != null){
-				DialogController.instance.removeDialog(dialog);
+				DialogController.Instance.removeDialog(dialog);
 				NoppesUtilServer.sendDialogData(player,dialog.category);
 			}
 		}
@@ -616,7 +616,7 @@ public class PacketHandlerServer{
 			npc.dialogs.remove(buffer.readInt());
 		}
 		else if(type == EnumPacketServer.QuestCategoryGet){
-			QuestCategory category = QuestController.instance.categories.get(buffer.readInt());
+			QuestCategory category = QuestController.Instance.categories.get(buffer.readInt());
 			if(category != null){
 				NBTTagCompound comp = category.writeNBT(new NBTTagCompound());
 				comp.removeTag("Dialogs");
@@ -626,25 +626,25 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.QuestCategorySave){
 			QuestCategory category = new QuestCategory();
 			category.readNBT(Server.readNBT(buffer));
-			QuestController.instance.saveCategory(category);
+			QuestController.Instance.saveCategory(category);
 			NoppesUtilServer.sendQuestCategoryData(player);
 		}
 		else if(type == EnumPacketServer.QuestCategoryRemove){
-			QuestController.instance.removeCategory(buffer.readInt());
+			QuestController.Instance.removeCategory(buffer.readInt());
 			NoppesUtilServer.sendQuestCategoryData(player);
 		}
 		else if(type == EnumPacketServer.QuestSave){
 			int category = buffer.readInt();
 			Quest quest = new Quest();
 			quest.readNBT(Server.readNBT(buffer));
-			QuestController.instance.saveQuest(category, quest);
+			QuestController.Instance.saveQuest(category, quest);
 			if(quest.category != null)
 				NoppesUtilServer.sendQuestData(player,quest.category);
 		}
 		else if(type == EnumPacketServer.QuestDialogGetTitle){
-			Dialog quest = DialogController.instance.dialogs.get(buffer.readInt());
-			Dialog quest2 = DialogController.instance.dialogs.get(buffer.readInt());
-			Dialog quest3 = DialogController.instance.dialogs.get(buffer.readInt());
+			Dialog quest = DialogController.Instance.dialogs.get(buffer.readInt());
+			Dialog quest2 = DialogController.Instance.dialogs.get(buffer.readInt());
+			Dialog quest3 = DialogController.Instance.dialogs.get(buffer.readInt());
 			NBTTagCompound compound = new NBTTagCompound();
 			if(quest != null)
 				compound.setString("1", quest.title);
@@ -655,9 +655,9 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.QuestRemove){
-			Quest quest = QuestController.instance.quests.get(buffer.readInt());
+			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
 			if(quest != null){
-				QuestController.instance.removeQuest(quest);
+				QuestController.Instance.removeQuest(quest);
 				NoppesUtilServer.sendQuestData(player,quest.category);
 			}
 		}
@@ -893,41 +893,41 @@ public class PacketHandlerServer{
 			}
 		}
 		else if(type == EnumPacketServer.AnimationListGet) {
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
 		}
 		else if(type == EnumPacketServer.AnimationGet) {
 			String animationName = Server.readString(buffer);
-			Animation animation = (Animation) AnimationController.instance.get(animationName);
+			Animation animation = (Animation) AnimationController.Instance.get(animationName);
 			if (animation != null) {
 				Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
 			}
 		}
 		else if (type == EnumPacketServer.AnimationAdd) {
 			String name = "Animation";
-			if (AnimationController.instance.has(name)) {
+			if (AnimationController.Instance.has(name)) {
 				name += "_";
 				int i = 1;
-				while (AnimationController.instance.has(name + i)) {
+				while (AnimationController.Instance.has(name + i)) {
 					i++;
 				}
 				name += i;
 			}
 			Animation animation = new Animation(name);
 			animation.save();
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
 		}
 		else if (type == EnumPacketServer.AnimationDelete) {
 			String animationName = Server.readString(buffer);
-			AnimationController.instance.delete(animationName);
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+			AnimationController.Instance.delete(animationName);
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
 		}
 		else if (type == EnumPacketServer.AnimationSave) {
 			String prevName = Server.readString(buffer);
-			AnimationController.instance.delete(prevName);
+			AnimationController.Instance.delete(prevName);
 			Animation animation = new Animation();
 			animation.readFromNBT(Server.readNBT(buffer));
 			animation.save();
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.instance.animations.keySet()));
+			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
 		}
 		else
 			blockPackets(type, buffer, player);

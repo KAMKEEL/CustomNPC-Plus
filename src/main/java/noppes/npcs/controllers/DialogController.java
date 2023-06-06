@@ -22,13 +22,13 @@ import java.util.*;
 public class DialogController implements IDialogHandler {
 	public HashMap<Integer,DialogCategory> categories = new HashMap<Integer, DialogCategory>();
 	public HashMap<Integer,Dialog> dialogs = new HashMap<Integer, Dialog>();
-	public static DialogController instance;
+	public static DialogController Instance;
 
 	private int lastUsedDialogID = 0;
 	private int lastUsedCatID = 0;
 	
 	public DialogController(){
-		instance = this;
+		Instance = this;
 		load();
 	}
 	

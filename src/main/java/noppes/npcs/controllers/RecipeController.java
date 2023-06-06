@@ -22,7 +22,7 @@ public class RecipeController implements IRecipeHandler {
 	private static Collection<RecipeCarpentry> prevRecipes;
 	public HashMap<Integer,RecipeCarpentry> globalRecipes = new HashMap<Integer, RecipeCarpentry>();
 	public HashMap<Integer,RecipeCarpentry> anvilRecipes = new HashMap<Integer, RecipeCarpentry>();
-	public static RecipeController instance;
+	public static RecipeController Instance;
 
 	public static final int version = 1;
 	public int nextId = 1;
@@ -30,7 +30,7 @@ public class RecipeController implements IRecipeHandler {
 	public static HashMap<Integer,RecipeCarpentry> syncRecipes = new HashMap<Integer, RecipeCarpentry>();
 	
 	public RecipeController(){
-		instance = this;
+		Instance = this;
 	}
 	public void load(){
 		loadCategories();
@@ -210,9 +210,9 @@ public class RecipeController implements IRecipeHandler {
 	public void addRecipe(RecipeCarpentry recipeAnvil) {
 		recipeAnvil.id = getUniqueId();
 		if(!recipeAnvil.isGlobal)
-			RecipeController.instance.anvilRecipes.put(recipeAnvil.id, recipeAnvil);
+			RecipeController.Instance.anvilRecipes.put(recipeAnvil.id, recipeAnvil);
 		else{
-			RecipeController.instance.globalRecipes.put(recipeAnvil.id, recipeAnvil);
+			RecipeController.Instance.globalRecipes.put(recipeAnvil.id, recipeAnvil);
 		}
 	}
 

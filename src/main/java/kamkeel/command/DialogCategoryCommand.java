@@ -32,7 +32,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         }
 
         String catName = String.join(" ", args).toLowerCase();
-        final Collection<DialogCategory> dialogCats = DialogController.instance.categories.values();
+        final Collection<DialogCategory> dialogCats = DialogController.Instance.categories.values();
         int count = 0;
         for(DialogCategory cat : dialogCats){
             if(cat.getName().toLowerCase().contains(catName)){
@@ -67,7 +67,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             return;
         }
         
-        DialogCategory dialogCategory = DialogController.instance.categories.get(dialogCatId);
+        DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
         if (dialogCategory == null){
         	sendError(sender, "Unknown DialogCatID: " + dialogCatId);
             return;
@@ -108,7 +108,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
-        DialogCategory dialogCategory = DialogController.instance.categories.get(dialogCatId);
+        DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
         if (dialogCategory == null){
             sendError(sender, "Unknown DialogCatID: " + dialogCatId);
             return;

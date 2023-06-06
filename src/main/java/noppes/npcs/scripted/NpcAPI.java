@@ -147,23 +147,23 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IRecipeHandler getRecipes() {
         this.checkWorld();
-        return RecipeController.instance;
+        return RecipeController.Instance;
     }
 
     public IQuestHandler getQuests() {
         this.checkWorld();
-        return QuestController.instance;
+        return QuestController.Instance;
     }
 
     public IDialogHandler getDialogs() {
-        return DialogController.instance;
+        return DialogController.Instance;
     }
 
     public ICloneHandler getClones() {
         return ServerCloneController.Instance;
     }
 
-    public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.instance; }
+    public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.Instance; }
 
     public ITransportHandler getLocations() {
         return TransportController.getInstance();
@@ -171,7 +171,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IAnimationHandler getAnimations() {
         this.checkWorld();
-        return AnimationController.instance;
+        return AnimationController.Instance;
     }
 
     @Override
@@ -220,7 +220,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public INpc[] getChunkLoadingNPCs() {
         ArrayList<INpc> list = new ArrayList<>();
-        Set<Entity> npcSet = ChunkController.instance.tickets.keySet();
+        Set<Entity> npcSet = ChunkController.Instance.tickets.keySet();
         for (Entity entity : npcSet) {
             if (entity instanceof EntityNPCInterface) {
                 list.add((INpc) NpcAPI.Instance().getIEntity(entity));

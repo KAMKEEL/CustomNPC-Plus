@@ -48,7 +48,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 	public Vector<String> getQuestLogStatus(EntityPlayer player) {
 		Vector<String> vec = new Vector<String>();
 		for(int dialogId : dialogs.values()){
-			Dialog dialog = DialogController.instance.dialogs.get(dialogId);
+			Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
 			if(dialog == null)
 				continue;
 			String title = dialog.title;
@@ -67,7 +67,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
 		for(int i = 0; i < 3; ++i) {
 			if (this.dialogs.containsKey(i)) {
-				Dialog dialog = (Dialog)DialogController.instance.dialogs.get(this.dialogs.get(i));
+				Dialog dialog = (Dialog)DialogController.Instance.dialogs.get(this.dialogs.get(i));
 				if (dialog != null) {
 					list.add(new noppes.npcs.quests.QuestDialog.QuestDialogObjective(this, player, dialog));
 				}

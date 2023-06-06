@@ -39,7 +39,7 @@ public class DialogOption {
 	public boolean hasDialog(){
 		if(dialogId <= 0)
 			return false;
-		if(!DialogController.instance.hasDialog(dialogId)){
+		if(!DialogController.Instance.hasDialog(dialogId)){
 			dialogId = -1;
 			return false;
 		}
@@ -49,7 +49,7 @@ public class DialogOption {
 	public Dialog getDialog() {
 		if(!hasDialog())
 			return null;
-		return DialogController.instance.dialogs.get(dialogId);
+		return DialogController.Instance.dialogs.get(dialogId);
 	}
 
 	public boolean isAvailable(EntityPlayer player) {

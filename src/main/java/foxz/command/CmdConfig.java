@@ -3,7 +3,6 @@ package foxz.command;
 import java.util.Arrays;
 import java.util.Set;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -161,7 +160,7 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean chunkloaders(String[] args){
     	if(args.length == 0){
-    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + ConfigMain.ChunkLoaders);
+    		sendmessage("ChunkLoaders: " + ChunkController.Instance.size() + "/" + ConfigMain.ChunkLoaders);
     	}
     	else{
     		try{
@@ -176,12 +175,12 @@ public class CmdConfig extends ChMcLogger {
 			if(ConfigMain.config.hasChanged()){
 				ConfigMain.config.save();
 			}
-    		int size = ChunkController.instance.size();
+    		int size = ChunkController.Instance.size();
 			if(size > ConfigMain.ChunkLoaders){
-				ChunkController.instance.unload(size - ConfigMain.ChunkLoaders);
+				ChunkController.Instance.unload(size - ConfigMain.ChunkLoaders);
 				sendmessage(size - ConfigMain.ChunkLoaders + " chunksloaders unloaded");
 			}
-    		sendmessage("ChunkLoaders: " + ChunkController.instance.size() + "/" + ConfigMain.ChunkLoaders);
+    		sendmessage("ChunkLoaders: " + ChunkController.Instance.size() + "/" + ConfigMain.ChunkLoaders);
     	}
         return true;
     }

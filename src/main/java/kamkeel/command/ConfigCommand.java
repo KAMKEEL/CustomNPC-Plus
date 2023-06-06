@@ -150,7 +150,7 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void chunkloaders(ICommandSender sender, String[] args) throws CommandException{
     	if(args.length == 0){
-    		sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
+    		sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.Instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     	else{
     		try{
@@ -165,12 +165,12 @@ public class ConfigCommand extends CommandKamkeelBase {
 				ConfigMain.config.save();
 			}
 
-			int size = ChunkController.instance.size();
+			int size = ChunkController.Instance.size();
 			if(size > ConfigMain.ChunkLoaders){
-				ChunkController.instance.unload(size - ConfigMain.ChunkLoaders);
+				ChunkController.Instance.unload(size - ConfigMain.ChunkLoaders);
 				sendResult(sender, size - ConfigMain.ChunkLoaders + " chunksloaders unloaded");
 			}
-			sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
+			sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.Instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     }
 
