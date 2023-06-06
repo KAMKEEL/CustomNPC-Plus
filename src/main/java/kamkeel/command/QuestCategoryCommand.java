@@ -81,6 +81,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
+        int count = 0;
         for(PlayerData playerdata : data){
             for(Quest quest : questCategory.quests.values()){
                 if(playerdata.questData.activeQuests.containsKey(quest.id)){
@@ -96,10 +97,12 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
                     Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
                 }
+                count++;
             }
 
             playerdata.save();
             sendResult(sender, String.format("Completed Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
+            sendResult(sender, String.format("Completed a total of \u00A7b%d \u00A77quests", count));
         }
     }
 
@@ -131,14 +134,17 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
+        int count = 0;
         for(PlayerData playerdata : data){
             for(Quest quest : questCategory.quests.values()){
                 playerdata.questData.activeQuests.remove(quest.id);
                 playerdata.questData.finishedQuests.remove(quest.id);
+                count++;
             }
 
             playerdata.save();
             sendResult(sender, String.format("Cleared Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
+            sendResult(sender, String.format("Cleared a total of \u00A7b%d \u00A77quests", count));
         }
     }
 }
