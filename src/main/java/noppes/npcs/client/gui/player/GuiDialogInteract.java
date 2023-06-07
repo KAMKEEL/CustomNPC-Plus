@@ -499,13 +499,30 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 	private void drawDialogString(String text, int left, int count, boolean mainDialogText, TextBlockClient block){
 		int lineOffset = dialog.renderGradual ? (currentBlock < lineBlocks.size() ? lineBlocks.get(currentBlock).lines.size() : lineBlocks.get(lineBlocks.size()-1).lines.size()) - currentLine : 0;
+
 		int height = count - totalRows + lineOffset;
 		int screenPos = optionStart;
 		int y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
+		if (!dialog.bottomAligned) {
+			height = count - totalRows + lineOffset + 1;
+			screenPos = optionStart - dialog.textHeight + ClientProxy.Font.height() + (totalRows - lineOffset);
+
+			int scrollToOffset = 0;
+			if (totalRows * ClientProxy.Font.height() > dialog.textHeight) {
+				scrollToOffset = totalRows - lineBlocks.get(lineBlocks.size() - 1).lines.size() + (int) Math.floor(lineBlocks.size() / 2f);
+			}
+			y = ((count - scrollToOffset) * ClientProxy.Font.height()) + screenPos + scrollY + height;
+		}
 
 		if (block.titlePos == 0 || mainDialogText) {
-			if (y < screenPos - dialog.textHeight || y > screenPos - ClientProxy.Font.height()) {
-				return;
+			if (!dialog.bottomAligned) {
+				if (y < optionStart - dialog.textHeight || y > optionStart - ClientProxy.Font.height()/2f) {
+					return;
+				}
+			} else {
+				if (y < screenPos - dialog.textHeight || y > screenPos - ClientProxy.Font.height()) {
+					return;
+				}
 			}
 		}
 
@@ -567,11 +584,22 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			textSoundEnabled = !textSoundEnabled;
 		}
 
-		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < (totalRows - 2) * ClientProxy.Font.height()) {//Page up
-			scrollY += ClientProxy.Font.height() * 2;
-		}
-		if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && scrollY > 0) {//Page down
-			scrollY -= ClientProxy.Font.height() * 2;
+		if (!dialog.bottomAligned && totalRows * ClientProxy.Font.height() > dialog.textHeight) {
+			if ((i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201) && scrollY < totalRows * ClientProxy.Font.height()) {//Page up
+				scrollY += ClientProxy.Font.height() * 2;
+			}
+
+			int latestBlockSize = lineBlocks.get(lineBlocks.size() - 1).lines.size();
+			if ((i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209) && scrollY > -(latestBlockSize - 2) * ClientProxy.Font.height()) {//Page down
+				scrollY -= ClientProxy.Font.height() * 2;
+			}
+		} else {
+			if ((i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201) && scrollY < (totalRows - 2) * ClientProxy.Font.height()) {//Page up
+				scrollY += ClientProxy.Font.height() * 2;
+			}
+			if ((i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209) && scrollY > 0) {//Page down
+				scrollY -= ClientProxy.Font.height() * 2;
+			}
 		}
 
     	if(i == 28){
