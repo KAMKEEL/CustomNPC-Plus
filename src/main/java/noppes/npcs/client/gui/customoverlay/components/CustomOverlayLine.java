@@ -52,7 +52,7 @@ public class CustomOverlayLine extends Gui implements IOverlayComponent {
             float blue = (color & 255) / 255f;
 
             GL11.glTranslatef(this.alignment%3*((float)(OverlayCustom.scaledWidth)/2), (float) (Math.floor((float)(alignment/3))*((float)(OverlayCustom.scaledHeight)/2)),0.0F);//alignment%3 * width/2  Math.floor(alignment/3) * height/2
-            GL11.glTranslatef(this.x1,this.y1,0.0F);
+            GL11.glTranslatef(this.x1,this.y1, (float) this.id);
 
             GL11.glRotated(-Math.toDegrees(Math.atan2(x2-x1,y2-y1)),0.0F,0.0F,1.0F);
             GL11.glRotated(rotation,0.0D,0.0D,1.0D);

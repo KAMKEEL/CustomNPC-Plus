@@ -152,7 +152,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
             green = (color >> 8  & 255) / 255f;
             blue = (color & 255) / 255f;
 
-            GL11.glTranslatef(this.x,this.y,0.0F);
+            GL11.glTranslatef(this.x,this.y, (float) this.id);
             GL11.glRotated(rotation,0.0D,0.0D,1.0D);
             GL11.glScalef(this.scale, this.scale, this.scale);
             this.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);
