@@ -38,7 +38,9 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean disableEsc = false;
 	public boolean darkenScreen = true;
 	public boolean showOptionLine = true;
-	public boolean bottomAligned = false;
+
+	//0 - Top, 1 - Bottom, 2 (Not implemented yet) - Center
+	public byte alignment = 0;
 
 	public boolean renderGradual = false;
 	public boolean showPreviousBlocks = true;
@@ -97,7 +99,7 @@ public class Dialog implements ICompatibilty, IDialog {
 			darkenScreen = true;
 		}
 
-		bottomAligned = compound.getBoolean("DialogScrollUpwards");
+		alignment = compound.getByte("DialogAlignment");
 
 
 		NBTTagList options = compound.getTagList("Options", 10);
@@ -263,6 +265,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.renderGradual = renderGradual;
 		dialog.showPreviousBlocks = showPreviousBlocks;
 		dialog.showOptionLine = showOptionLine;
+		dialog.alignment = alignment;
 		dialog.textSound = textSound;
 		dialog.textPitch = textPitch;
 		dialog.textWidth = textWidth;
