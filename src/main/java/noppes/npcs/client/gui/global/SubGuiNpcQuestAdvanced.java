@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
 import noppes.npcs.client.gui.SubGuiNpcCommand;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
@@ -54,7 +55,7 @@ public class SubGuiNpcQuestAdvanced extends SubGuiInterface implements ITextfiel
         }
         
         if(button.id == 11 && quest.id >= 0){
-			this.setSubGui(new GuiNPCQuestSelection(getParent(), quest.nextQuestid));
+			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, getParent(),  quest.nextQuestid));
         }
         
         if(button.id == 12 && quest.id >= 0){

@@ -50,7 +50,8 @@ public class GuiNPCSoundsMenu extends GuiNPCInterface2 implements ITextfieldList
 			npc.advanced.disablePitch =((GuiNpcButton)button).getValue() == 0;
 		else{
 	    	selectedField = getTextField(button.id);
-	    	setSubGui(gui = new GuiNpcSoundSelection(this, selectedField.getText()));
+			gui = new GuiNpcSoundSelection(this, selectedField.getText());
+			NoppesUtil.openGUI(player, gui);
 		}
     	
     }

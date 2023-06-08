@@ -50,7 +50,8 @@ public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData
     {
     	GuiNpcButton button = (GuiNpcButton) guibutton;
     	field = getTextField(button.id + 8);
-    	setSubGui(gui = new GuiNpcSoundSelection(this, field.getText()));
+		gui = new GuiNpcSoundSelection(this, field.getText());
+		NoppesUtil.openGUI(player, gui);
     }
 
 	@Override

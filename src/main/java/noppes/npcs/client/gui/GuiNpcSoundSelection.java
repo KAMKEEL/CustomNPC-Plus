@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -15,12 +16,12 @@ import org.lwjgl.Sys;
 
 import java.util.*;
 
-public class GuiNpcSoundSelection extends SubGuiInterface {
+public class GuiNpcSoundSelection extends GuiNPCInterface {
 
 	public GuiNPCStringSlot slot;
 	public String domain;
 	private final GuiScreen parent;
-
+	public GuiSelectionListener listener;
 	
 	private String up = "..<" + StatCollector.translateToLocal("gui.up") + ">..";
 	
@@ -41,6 +42,8 @@ public class GuiNpcSoundSelection extends SubGuiInterface {
     	}
     	drawDefaultBackground = false;
 		this.parent = parent;
+		if(parent instanceof GuiSelectionListener)
+			listener = (GuiSelectionListener) parent;
     }
 
     public void initGui()
@@ -88,7 +91,6 @@ public class GuiNpcSoundSelection extends SubGuiInterface {
 			initGui();
 		}
 		else{
-			System.out.println("OK");
     		if(parent instanceof GuiNPCInterface){
     			((GuiNPCInterface)parent).elementClicked();
     		}
@@ -96,6 +98,7 @@ public class GuiNpcSoundSelection extends SubGuiInterface {
     			((GuiNPCInterface2)parent).elementClicked();
     		}
 			close();
+			NoppesUtil.openGUI(player, parent);
 		}
 	}
 
@@ -107,7 +110,8 @@ public class GuiNpcSoundSelection extends SubGuiInterface {
         	MusicController.Instance.playSound(getSelected(), (float)player.posX, (float)player.posY, (float)player.posZ);
         }
         if(guibutton.id == 2){
-			displayGuiScreen(parent);
+			close();
+			NoppesUtil.openGUI(player, parent);
         }
         if(guibutton.id == 3){
     		if(slot.selected == null || slot.selected.equals(up))

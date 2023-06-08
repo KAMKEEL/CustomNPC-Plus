@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.roles;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.util.*;
@@ -76,7 +77,7 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
     		setSubGui(new SubGuiNpcConversationLine(line.text, line.sound));
     	}
     	if(button.id == 51){
-			this.setSubGui(questSelection = new GuiNPCQuestSelection(this, job.quest));
+			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this,  job.quest));
     	}
     	if(button.id == 52){
     		job.quest = -1;

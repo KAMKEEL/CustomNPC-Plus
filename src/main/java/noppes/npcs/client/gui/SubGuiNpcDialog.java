@@ -38,21 +38,21 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		addLabel(new GuiNpcLabel(0,"ID", guiLeft + 178, guiTop + 4));
 		addLabel(new GuiNpcLabel(2,	dialog.id + "", guiLeft + 178, guiTop + 14));
 
-
 		addLabel(new GuiNpcLabel(3, "dialog.dialogtext", guiLeft + 4, guiTop + 30));
 		addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 25, 50, 20, "selectServer.edit"));
-
-		addLabel(new GuiNpcLabel(4, "availability.options", guiLeft + 4, guiTop + 51));
-		addButton(new GuiNpcButton(4, guiLeft + 120, guiTop + 46, 50, 20, "selectServer.edit"));
-
-		addLabel(new GuiNpcLabel(5, "faction.options", guiLeft + 4, guiTop + 72));
-		addButton(new GuiNpcButton(5, guiLeft + 120, guiTop + 67, 50, 20, "selectServer.edit"));
 
 		addLabel(new GuiNpcLabel(6, "dialog.options", guiLeft + 4, guiTop + 93));
 		addButton(new GuiNpcButton(6, guiLeft + 120, guiTop + 89, 50, 20, "selectServer.edit"));
 
 		addLabel(new GuiNpcLabel(11, "dialog.visualOption", guiLeft + 4, guiTop + 115));
 		addButton(new GuiNpcButton(11, guiLeft + 120, guiTop + 110, 50, 20, "selectServer.edit"));
+		
+		addLabel(new GuiNpcLabel(4, "availability.options", guiLeft + 4, guiTop + 51));
+		addButton(new GuiNpcButton(4, guiLeft + 120, guiTop + 46, 50, 20, "selectServer.edit"));
+
+		addLabel(new GuiNpcLabel(5, "faction.options", guiLeft + 4, guiTop + 72));
+		addButton(new GuiNpcButton(5, guiLeft + 120, guiTop + 67, 50, 20, "selectServer.edit"));
+
 
 		addButton(new GuiNpcButton(7, guiLeft + 4, guiTop + 134, 144, 20, "availability.selectquest"));
 		addButton(new GuiNpcButton(8, guiLeft + 150, guiTop + 134, 20, 20, "X"));
@@ -85,7 +85,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			setSubGui(new SubGuiNpcDialogOptions(dialog));
 		}
 		if(id == 7 && dialog.id >= 0){
-			setSubGui(new GuiNPCQuestSelection(this, dialog.quest));
+			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this,  dialog.quest));
 		}
 		if(id == 8 && dialog.id >= 0){
 			dialog.quest = -1;
@@ -93,7 +93,8 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			initGui();
 		}
 		if(id == 9 && dialog.id >= 0){
-			setSubGui(gui = new GuiNpcSoundSelection(this, getTextField(2).getText()));
+			gui = new GuiNpcSoundSelection(this, getTextField(2).getText());
+			NoppesUtil.openGUI(player, gui);
 		}
 		if(id == 10){
 			setSubGui(new SubGuiNpcDialogExtra(dialog));

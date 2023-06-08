@@ -115,8 +115,9 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
 		int id = guibutton.id;
         if(id == 7)
         {
-        	setSubGui(gui = new GuiNpcSoundSelection(parent, getTextField(7).getText()));
-        }
+			gui = new GuiNpcSoundSelection(parent, getTextField(7).getText());
+			NoppesUtil.openGUI(player, gui);
+		}
         if(id == 66)
         {
         	close();

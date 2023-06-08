@@ -44,9 +44,11 @@ public class GuiNPCDialogSelection extends GuiNPCInterface implements IScrollDat
     {
         super.initGui();
         Vector<String> list = new Vector<String>();
+
         slot = new GuiNPCStringSlot(list,this,false,18);
         slot.registerScrollButtons(4, 5);
-        
+
+
     	this.addButton(new GuiNpcButton(2, width / 2 -100, height - 41,98, 20, "gui.back"));
     	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 41,98, 20, "mco.template.button.select"));
     }

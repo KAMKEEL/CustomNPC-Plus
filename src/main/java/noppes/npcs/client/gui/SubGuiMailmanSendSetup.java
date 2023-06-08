@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.player.GuiMailmanWrite;
 import noppes.npcs.client.gui.util.*;
@@ -33,7 +34,6 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
 
 		addButton(new GuiNpcButton(2, guiLeft + 29, guiTop + 100, "mailbox.write"));
 
-		
 		addLabel(new GuiNpcLabel(3, "quest.quest", guiLeft + 13, guiTop + 135));
 		String title = mail.questTitle;
 		if(title.isEmpty())
@@ -62,14 +62,15 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
 			close();
 		}
 		if(id == 2){
-			GuiMailmanWrite.parent = parent;
+			GuiMailmanWrite.parent = getParent();
 			GuiMailmanWrite.mail = mail;
 
     		Client.sendData(EnumPacketServer.MailOpenSetup, mail.writeNBT());
 		}
     	if(id == 3){
-			this.setSubGui(questSelection = new GuiNPCQuestSelection(getParent(), mail.questId));
+			questSelection = new GuiNPCQuestSelection(npc, getParent(), mail.questId);
 			questSelection.listener = this;
+			NoppesUtil.openGUI(player, questSelection);
     	}
     	if(id == 4){
     		mail.questId = -1;
