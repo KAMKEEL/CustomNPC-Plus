@@ -12,7 +12,6 @@ import noppes.npcs.controllers.data.Quest;
 
 public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSelectionListener, IGuiData {
 	private Availability availabitily;
-	private boolean selectFaction = false;
 	private int slot = 0;
 	
     public SubGuiNpcAvailabilityQuest(Availability availabitily){

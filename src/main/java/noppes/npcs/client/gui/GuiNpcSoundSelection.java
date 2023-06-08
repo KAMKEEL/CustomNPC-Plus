@@ -11,13 +11,15 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.Sys;
 
 import java.util.*;
 
 public class GuiNpcSoundSelection extends SubGuiInterface {
 
 	public GuiNPCStringSlot slot;
-	private String domain;
+	public String domain;
+	private final GuiScreen parent;
 
 	
 	private String up = "..<" + StatCollector.translateToLocal("gui.up") + ">..";
@@ -86,13 +88,14 @@ public class GuiNpcSoundSelection extends SubGuiInterface {
 			initGui();
 		}
 		else{
+			System.out.println("OK");
     		if(parent instanceof GuiNPCInterface){
     			((GuiNPCInterface)parent).elementClicked();
     		}
-    		else if(parent instanceof GuiNPCInterface2){
+    		else if(this.parent instanceof GuiNPCInterface2){
     			((GuiNPCInterface2)parent).elementClicked();
     		}
-			displayGuiScreen(parent);
+			close();
 		}
 	}
 
@@ -118,7 +121,13 @@ public class GuiNpcSoundSelection extends SubGuiInterface {
 	public void save() {
 		
 	}
-	
+	public void close() {
+		this.save();
+		super.close();
+	}
+
+
+
 	public String getSelected(){
 		if(slot.selected == null || slot.selected.isEmpty())
 			return "";

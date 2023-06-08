@@ -16,6 +16,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 	public int dialogCategoryID;
 	public Dialog dialog;
 	private final GuiNPCManageDialogs parent;
+	private GuiNpcSoundSelection gui;
 
 	public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId)
 	{
@@ -92,7 +93,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			initGui();
 		}
 		if(id == 9 && dialog.id >= 0){
-			setSubGui(new GuiNpcSoundSelection(this, getTextField(2).getText()));
+			setSubGui(gui = new GuiNpcSoundSelection(this, getTextField(2).getText()));
 		}
 		if(id == 10){
 			setSubGui(new SubGuiNpcDialogExtra(dialog));
@@ -136,6 +137,12 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			SubGuiNpcTextArea gui = (SubGuiNpcTextArea) subgui;
 			dialog.text = gui.text;
 		}
+	}
+
+	@Override
+	public void elementClicked(){
+		getTextField(2).setText(gui.getSelected());
+		unFocused(getTextField(2));
 	}
 
 	@Override
