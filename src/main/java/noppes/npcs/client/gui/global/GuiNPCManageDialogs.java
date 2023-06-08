@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
@@ -11,18 +10,28 @@ import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener,ITextfieldListener, IGuiData
+public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener, IGuiData
 {
-	private GuiCustomScroll scroll;
-	private HashMap<String,Integer> data = new HashMap<String,Integer>();
-	private Dialog dialog = new Dialog();
-	public DialogCategory category = new DialogCategory();
-	private boolean categorySelection = true;
+	private GuiCustomScroll catScroll;
+	public GuiCustomScroll dialogScroll;
 
-	private GuiNpcSoundSelection gui;
+	private String prevCatName = "";
+	private String prevDialogName = "";
+
+	public DialogCategory category = new DialogCategory();
+	public Dialog dialog = new Dialog();
+	public String dialogQuestName = "";
+
+	private HashMap<String,Integer> catData = new HashMap<String,Integer>();
+	public HashMap<String,Integer> dialogData = new HashMap<String,Integer>();
+
+	private String catSearch = "";
+	private String diagSearch = "";
 	
     public GuiNPCManageDialogs(EntityNPCInterface npc)
     {
@@ -33,229 +42,254 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
     public void initGui()
     {
         super.initGui();
-       	this.addButton(new GuiNpcButton(0,guiLeft + 358, guiTop + 8, 58, 20,categorySelection?"dialog.dialogs":"gui.categories"));
-        
-       	this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
-    	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
-    	
-        if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0);
-	        scroll.setSize(143, 208);
-        }
-        scroll.guiLeft = guiLeft + 214;
-        scroll.guiTop = guiTop + 4;
-        this.addScroll(scroll);
-        
-        if(categorySelection && category.id >= 0)
-        	categoryGuiInit();
-        if(!categorySelection && dialog.id >= 0)
-        	dialogGuiInit();
-    }
 
-	private void dialogGuiInit() {
-		addLabel(new GuiNpcLabel(1,"gui.title", guiLeft + 4, guiTop + 8));
-		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 36, guiTop + 3, 140, 20, dialog.title));
+		if(catScroll == null){
+			catScroll = new GuiCustomScroll(this,0);
+			catScroll.setSize(143, 185);
+		}
+		catScroll.guiLeft = guiLeft + 64;
+		catScroll.guiTop = guiTop + 4;
+		this.addScroll(catScroll);
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 64, guiTop + 4 + 3 + 185, 143, 20, catSearch));
 
-		addLabel(new GuiNpcLabel(0,"ID", guiLeft + 178, guiTop + 4));
-		addLabel(new GuiNpcLabel(2,	dialog.id + "", guiLeft + 178, guiTop + 14));
-		
-		
-		addLabel(new GuiNpcLabel(3, "dialog.dialogtext", guiLeft + 4, guiTop + 30));
-    	addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 25, 50, 20, "selectServer.edit"));
-    	
-		addLabel(new GuiNpcLabel(4, "availability.options", guiLeft + 4, guiTop + 51));
-		addButton(new GuiNpcButton(4, guiLeft + 120, guiTop + 46, 50, 20, "selectServer.edit"));
-    	
-		addLabel(new GuiNpcLabel(5, "faction.options", guiLeft + 4, guiTop + 72));
-		addButton(new GuiNpcButton(5, guiLeft + 120, guiTop + 67, 50, 20, "selectServer.edit"));
+		this.addButton(new GuiNpcButton(44,guiLeft + 3, guiTop + 8, 58, 20, "gui.categories"));
+		getButton(44).setEnabled(false);
+		this.addButton(new GuiNpcButton(4,guiLeft + 3, guiTop + 38, 58, 20, "gui.add"));
+		this.addButton(new GuiNpcButton(5,guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
+		this.addButton(new GuiNpcButton(6,guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
 
-		addLabel(new GuiNpcLabel(6, "dialog.options", guiLeft + 4, guiTop + 93));
-		addButton(new GuiNpcButton(6, guiLeft + 120, guiTop + 89, 50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(11, "dialog.visualOption", guiLeft + 4, guiTop + 115));
-		addButton(new GuiNpcButton(11, guiLeft + 120, guiTop + 110, 50, 20, "selectServer.edit"));
+		if(dialogScroll == null){
+			dialogScroll = new GuiCustomScroll(this,1);
+			dialogScroll.setSize(143, 185);
+		}
+		dialogScroll.guiLeft = guiLeft + 212;
+		dialogScroll.guiTop = guiTop + 4;
+		this.addScroll(dialogScroll);
+		addTextField(new GuiNpcTextField(66, this, fontRendererObj, guiLeft + 212, guiTop + 4 + 3 + 185, 143, 20, diagSearch));
 
-		addButton(new GuiNpcButton(7, guiLeft + 4, guiTop + 134, 144, 20, "availability.selectquest"));
-		addButton(new GuiNpcButton(8, guiLeft + 150, guiTop + 134, 20, 20, "X"));
+		this.addButton(new GuiNpcButton(33,guiLeft + 358, guiTop + 8, 58, 20, "dialog.dialogs"));
+		getButton(33).setEnabled(false);
+		this.addButton(new GuiNpcButton(0,guiLeft + 358, guiTop + 94, 58, 20, "gui.edit"));
+		this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
+		this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
+		this.addButton(new GuiNpcButton(3,guiLeft + 358, guiTop + 117, 58, 20, "gui.copy"));
 
-		addLabel(new GuiNpcLabel(9, "gui.selectSound", guiLeft + 4, guiTop + 158));
-		addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 4, guiTop + 168, 144, 20, dialog.sound));
-		addButton(new GuiNpcButton(9, guiLeft + 150, guiTop + 168, 60, 20, "mco.template.button.select"));
-
-		addButton(new GuiNpcButton(10, guiLeft + 4, guiTop + 192, 120, 20, "gui.showmore"));
-	}
-
-	private void categoryGuiInit() {
-        addTextField(new GuiNpcTextField(0,this, this.fontRendererObj, guiLeft+8, guiTop + 8, 160, 16, category.title));
+		updateButtons();
 	}
 
 	@Override
-	public void elementClicked() {
-		getTextField(2).setText(gui.getSelected());
-		unFocused(getTextField(2));
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(catSearch.equals(getTextField(55).getText()))
+					return;
+				catSearch = getTextField(55).getText().toLowerCase();
+				catScroll.setList(getCatSearch());
+			}
+		}
+		if(getTextField(66) != null){
+			if(getTextField(66).isFocused()){
+				if(diagSearch.equals(getTextField(66).getText()))
+					return;
+				diagSearch = getTextField(66).getText().toLowerCase();
+				dialogScroll.setList(getDiagSearch());
+			}
+		}
+	}
+
+	public void resetDiagList(){
+		if(dialogScroll != null){
+			diagSearch = "";
+			if(getTextField(66) != null){
+				getTextField(66).setText("");
+			}
+			dialogScroll.setList(getDiagSearch());
+		}
+	}
+
+	private List<String> getCatSearch(){
+		if(catSearch.isEmpty()){
+			return new ArrayList<String>(this.catData.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.catData.keySet()){
+			if(name.toLowerCase().contains(catSearch))
+				list.add(name);
+		}
+		return list;
+	}
+
+	private List<String> getDiagSearch(){
+		if(category != null){
+			if(category.id < 0){
+				return new ArrayList<String>();
+			}
+		}
+		else {
+			return new ArrayList<String>();
+		}
+
+		if(diagSearch.isEmpty()){
+			return new ArrayList<String>(this.dialogData.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.dialogData.keySet()){
+			if(name.toLowerCase().contains(diagSearch))
+				list.add(name);
+		}
+		return list;
 	}
 	
 	public void buttonEvent(GuiButton guibutton)
     {
 		int id = guibutton.id;
-        if(id == 0){
-        	save();
-        	if(categorySelection){
-        		if(category.id < 0)
-        			return;
-            	dialog = new Dialog();
-        		Client.sendData(EnumPacketServer.DialogsGet, category.id);
-        	}
-        	else if(!categorySelection){
-            	dialog = new Dialog();
-            	category = new DialogCategory();
-        		Client.sendData(EnumPacketServer.DialogCategoriesGet);
-        	}
-        	categorySelection = !categorySelection;
-        	getButton(0).setEnabled(false);
-    		scroll.clear();
-    		data.clear();
+		// Edit Cat
+        if(id == 6){
+        	saveType(false);
+			if(category != null && category.id > -1){
+				setSubGui(new SubGuiEditText(category.title));
+			}
+			else {
+				getCategory(false);
+			}
         }
-        if(id == 1){
-        	save();
-        	String name = "New";
-        	while(data.containsKey(name))
-        		name += "_";
-        	if(categorySelection){
-        		DialogCategory category = new DialogCategory();
-        		category.title = name;
-        		Client.sendData(EnumPacketServer.DialogCategorySave, category.writeNBT(new NBTTagCompound()));
+		// Add Cat
+		if(id == 4){
+			saveType(false);
+			String name = "New";
+			while(catData.containsKey(name))
+				name += "_";
+
+			if(catScroll != null){
+				setPrevCatName(name);
+			}
+			DialogCategory category = new DialogCategory();
+			category.title = name;
+			Client.sendData(EnumPacketServer.DialogCategorySave, category.writeNBT(new NBTTagCompound()));
+		}
+		// Remove Cat
+		if(id == 5){
+			saveType(false);
+        	if(catData.containsKey(catScroll.getSelected())) {
+				Client.sendData(EnumPacketServer.DialogCategoryRemove, category.id);
+				clearCategory();
         	}
-        	else{
-        		Dialog dialog = new Dialog();
-        		dialog.title = name;
-        		Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()));
-        	}
-        }
-        if(id == 2){
-        	if(data.containsKey(scroll.getSelected())) {
-				if(categorySelection){
-					Client.sendData(EnumPacketServer.DialogCategoryRemove, category.id);
-					category = new DialogCategory();
+		}
+		if(category != null && category.id >= 0){
+			// Add Dialog
+			if(id == 1){
+				saveType(true);
+				String name = "New";
+				while(dialogData.containsKey(name))
+					name += "_";
+
+				if(dialogScroll != null){
+					setPrevDialogName(name);
 				}
-				else{
-					Client.sendData(EnumPacketServer.DialogRemove, dialog.id);
+				Dialog dialog = new Dialog();
+				dialog.title = name;
+				Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()), true);
+			}
+			// Remove Dialog
+			if(id == 2) {
+				saveType(true);
+				if (dialogData.containsKey(dialogScroll.getSelected())) {
+					Client.sendData(EnumPacketServer.DialogRemove, dialog.id, true);
 					dialog = new Dialog();
+					dialogData.clear();
 				}
-        		scroll.clear();
-        	}
+			}
+			// Edit Dialog
+			if(id == 0) {
+				saveType(true);
+				if (dialogData.containsKey(dialogScroll.getSelected()) && dialog != null && dialog.id >= 0) {
+					setSubGui(new SubGuiNpcDialog(this, dialog, category.id));
+				}
+			}
         }
-        if(id == 3 && dialog.id >= 0){
-        	setSubGui(new SubGuiNpcTextArea(dialog.text));
-        }
-        if(id == 4 && dialog.id >= 0){
-        	setSubGui(new SubGuiNpcAvailability(dialog.availability));
-        }
-        if(id == 5 && dialog.id >= 0){
-        	setSubGui(new SubGuiNpcFactionOptions(dialog.factionOptions));
-        }
-        if(id == 6 && dialog.id >= 0){
-        	setSubGui(new SubGuiNpcDialogOptions(dialog));
-        }
-        if(id == 7 && dialog.id >= 0){
-			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this, dialog.quest));
-        }
-        if(id == 8 && dialog.id >= 0){
-        	dialog.quest = -1;
-        	initGui();
-        }
-        if(id == 9 && dialog.id >= 0){
-        	NoppesUtil.openGUI(player, gui = new GuiNpcSoundSelection(npc, this, getTextField(2).getText()));
-        }
-        if(id == 10){
-        	setSubGui(new SubGuiNpcDialogExtra(dialog, this));
-        }
-		if(id == 11){
-			setSubGui(new SubGuiNpcDialogVisual(dialog, this));
-		}
+		updateButtons();
     }
-	
-	@Override
-	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		if(guiNpcTextField.id == 0) {
-			if(category.id < 0)
-				guiNpcTextField.setText("");
-			else{
-				String name = guiNpcTextField.getText();
-				if(name.isEmpty() || data.containsKey(name)){
-					guiNpcTextField.setText(category.title);
-				}
-				else if(categorySelection && category.id >= 0){
-					String old = category.title;
-					data.remove(category.title);
-					category.title = name;
-					data.put(category.title, category.id);
-					scroll.replace(old,category.title);
-				}
+
+	public void updateButtons(){
+		boolean enabled = category != null;
+		if(enabled){
+			if(!(category.id >= 0)){
+				enabled = false;
 			}
 		}
-		if(guiNpcTextField.id == 1) {
-			if(dialog.id < 0)
-				guiNpcTextField.setText("");
-			else{
-				String name = guiNpcTextField.getText();
-				if(name.isEmpty() || data.containsKey(name)){
-					guiNpcTextField.setText(dialog.title);
-				}
-				else if(!categorySelection && dialog.id >= 0){
-					String old = dialog.title;
-					data.remove(old);
-					dialog.title = name;
-					data.put(dialog.title, dialog.id);
-					scroll.replace(old,dialog.title);
-				}
+
+		boolean diagEnabled = dialogData != null;
+		if(diagEnabled){
+			if(!(dialog.id >= 0)){
+				diagEnabled = false;
 			}
 		}
-		if(guiNpcTextField.id == 2) {
-			dialog.sound = guiNpcTextField.getText();
-		}
-		
+		getButton(6).setEnabled(enabled);
+
+		getButton(1).setEnabled(enabled);
+		getButton(2).setEnabled(enabled);
+
+		getButton(0).setEnabled(enabled && diagEnabled);
+		getButton(3).setEnabled(enabled && diagEnabled);
 	}
 
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
-		if(categorySelection){
-			category.readNBT(compound);
-			setSelected(category.title);
-			initGui();
-		}
-		else{
+		if(compound.hasKey("DialogTitle")){
 			dialog.readNBT(compound);
-			setSelected(dialog.title);
-			initGui();
-			if(compound.hasKey("DialogQuestName"))
-				getButton(7).setDisplayText(compound.getString("DialogQuestName"));
+			if(compound.hasKey("DialogQuestName")){
+				dialogQuestName = compound.getString("DialogQuestName");
+			}
+			else {
+				dialogQuestName = "";
+			}
+			setPrevDialogName(dialog.title);
 		}
+		else {
+			category.readNBT(compound);
+			setPrevCatName(category.title);
+			Client.sendData(EnumPacketServer.DialogsGet, category.id, true);
+			resetDiagList();
+		}
+		initGui();
 	}
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui){
-		if(subgui instanceof SubGuiNpcTextArea){
-			SubGuiNpcTextArea gui = (SubGuiNpcTextArea) subgui;
-			dialog.text = gui.text;
+		if(subgui instanceof SubGuiEditText){
+			if(!((SubGuiEditText)subgui).cancelled){
+				if(category != null && category.id > -1){
+					String name = ((SubGuiEditText)subgui).text;
+					if(name != null && !name.equalsIgnoreCase(category.title)){
+						if(!(name.isEmpty() || catData.containsKey(name))){
+							String old = category.title;
+							catData.remove(category.title);
+							category.title = name;
+							catData.put(category.title, category.id);
+							catScroll.replace(old,category.title);
+						}
+						saveType(false);
+					}
+				}
+			}
+			clearCategory();
+		}
+		if(subgui instanceof SubGuiNpcDialog){
+			saveType(true);
 		}
 	}
 
-	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
-		getButton(0).setEnabled(true);
-		String name = scroll.getSelected();
-		this.data = data;
-		scroll.setList(list);
-		
-		if(name != null)
-			scroll.setSelected(name);
-		initGui();
+	public void setPrevCatName(String selectedCat){
+		prevCatName = selectedCat;
+		this.catScroll.setSelected(prevCatName);
 	}
-    
-	@Override
-	public void setSelected(String selected) {
-		
+
+	public void setPrevDialogName(String selectedCat){
+		prevDialogName = selectedCat;
+		this.dialogScroll.setSelected(prevDialogName);
 	}
 
 	@Override
@@ -268,26 +302,96 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
 		{
-			save();
-			String selected = scroll.getSelected();
-			if(categorySelection){
-				category = new DialogCategory();
-				Client.sendData(EnumPacketServer.DialogCategoryGet, data.get(selected));
-			}
-			else{
-				dialog = new Dialog();
-				Client.sendData(EnumPacketServer.DialogGet, data.get(selected));
-			}
-			
+			saveType(false);
+			getCategory(false);
+		}
+		if(guiCustomScroll.id == 1)
+		{
+			saveType(false);
+			getDialog(false);
 		}
 	}
-	
-	public void save() {
-    	GuiNpcTextField.unfocus();
-		if(!categorySelection && dialog.id >= 0)
-			Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()));
-		else if(categorySelection && category.id >= 0)
-			Client.sendData(EnumPacketServer.DialogCategorySave, category.writeNBT(new NBTTagCompound()));
+
+	public void getCategory(boolean override){
+		if(catScroll.selected != -1){
+			String selected = catScroll.getSelected();
+			if(!selected.equals(prevCatName) || override){
+				category = new DialogCategory();
+				Client.sendData(EnumPacketServer.DialogCategoryGet, catData.get(selected));
+				setPrevCatName(selected);
+			}
+		}
 	}
 
+	public void getDialog(boolean override){
+		if(dialogScroll.selected != -1){
+			String selected = dialogScroll.getSelected();
+			if(!selected.equals(prevDialogName) || override){
+				dialog = new Dialog();
+				Client.sendData(EnumPacketServer.DialogGet, dialogData.get(selected));
+				setPrevDialogName(selected);
+			}
+		}
+	}
+
+	public void clearCategory(){
+		catScroll.setList(getCatSearch());
+		catScroll.selected = -1;
+		prevCatName = "";
+		category = new DialogCategory();
+		this.dialogData.clear();
+		resetDiagList();
+	}
+
+	public void saveType(boolean saveDiag){
+		if(saveDiag){
+			if(dialogScroll.selected != -1 && dialog.id >= 0){
+				if(catScroll.selected != -1 && category.id >= 0){
+					Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()), true);
+				}
+			}
+		}
+		else{
+			if(catScroll.selected != -1 && category.id >= 0)
+				Client.sendData(EnumPacketServer.DialogCategorySave, category.writeNBT(new NBTTagCompound()));
+		}
+	}
+
+	public void save() {}
+
+	@Override
+	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+		String name = catScroll.getSelected();
+		this.catData = data;
+		catScroll.setList(getCatSearch());
+		if(name != null){
+			catScroll.setSelected(name);
+			getCategory(false);
+		} else {
+			catScroll.setSelected(prevCatName);
+			getCategory(true);
+		}
+		initGui();
+	}
+
+	@Override
+	public void setSelected(String selected) {}
+
+	@Override
+	public void setScrollGroup(Vector<String> list, HashMap<String, Integer> data) {
+		String name = dialogScroll.getSelected();
+		this.dialogData = data;
+		dialogScroll.setList(getDiagSearch());
+		if(name != null){
+			dialogScroll.setSelected(name);
+			getDialog(false);
+		} else {
+			dialogScroll.setSelected(prevDialogName);
+			getDialog(true);
+		}
+		initGui();
+	}
+
+	@Override
+	public void setSelectedGroup(String selected) {}
 }

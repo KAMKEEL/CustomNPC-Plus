@@ -357,7 +357,14 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendDialogData(player,dialog.category);
 		}
 		else if(type == EnumPacketServer.DialogsGet){
-			NoppesUtilServer.sendDialogData(player,DialogController.Instance.categories.get(buffer.readInt()));
+			int catID = buffer.readInt();
+			boolean sendGroup = buffer.readBoolean();
+			if(sendGroup){
+				NoppesUtilServer.sendDialogGroup(player,DialogController.Instance.categories.get(catID));
+			}
+			else {
+				NoppesUtilServer.sendDialogData(player,DialogController.Instance.categories.get(catID));
+			}
 		}
 		else if(type == EnumPacketServer.QuestsGetFromQuest){
 			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
@@ -581,9 +588,16 @@ public class PacketHandlerServer{
 			int category = buffer.readInt();
 			Dialog dialog = new Dialog();
 			dialog.readNBT(Server.readNBT(buffer));
+			boolean sendGroup = buffer.readBoolean();
 			DialogController.Instance.saveDialog(category,dialog);
-			if(dialog.category != null)
-				NoppesUtilServer.sendDialogData(player,dialog.category);
+			if(dialog.category != null){
+				if(sendGroup){
+					NoppesUtilServer.sendDialogGroup(player,dialog.category);
+				}
+				else {
+					NoppesUtilServer.sendDialogData(player,dialog.category);
+				}
+			}
 		}
 		else if(type == EnumPacketServer.QuestOpenGui){
 			Quest quest = new Quest();
@@ -593,10 +607,17 @@ public class PacketHandlerServer{
 			player.openGui(CustomNpcs.instance, gui , player.worldObj, 0, 0, 0);
 		}
 		else if(type == EnumPacketServer.DialogRemove){
-			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
+			int diagId = buffer.readInt();
+			boolean sendGroup = buffer.readBoolean();
+			Dialog dialog = DialogController.Instance.dialogs.get(diagId);
 			if(dialog != null && dialog.category != null){
 				DialogController.Instance.removeDialog(dialog);
-				NoppesUtilServer.sendDialogData(player,dialog.category);
+				if(sendGroup){
+					NoppesUtilServer.sendDialogGroup(player,dialog.category);
+				}
+				else {
+					NoppesUtilServer.sendDialogData(player,dialog.category);
+				}
 			}
 		}
 		else if(type == EnumPacketServer.DialogNpcGet){

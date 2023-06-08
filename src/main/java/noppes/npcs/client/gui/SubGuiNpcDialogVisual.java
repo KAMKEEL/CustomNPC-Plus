@@ -17,7 +17,6 @@ import java.util.Collections;
 
 public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiListener, ITextfieldListener, ICustomScrollListener {
     private final Dialog dialog;
-    public GuiScreen parent2;
 
     private GuiMenuTopButton[] topButtons;
     private int activeMenu = 1;
@@ -27,8 +26,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     private int lastColorClicked = -1;
     private int changedId = -1;
 
-    public SubGuiNpcDialogVisual(Dialog dialog, GuiScreen parent) {
-        this.parent2 = parent;
+    public SubGuiNpcDialogVisual(Dialog dialog) {
         this.dialog = dialog;
         setBackground("menubg.png");
         xSize = 256;
@@ -269,8 +267,6 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         int id = button.id;
         if(id == 0){
             close();
-            if(parent2 != null)
-                NoppesUtil.openGUI(player, parent2);
             return;
         }
         save();
@@ -417,7 +413,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     public void save() {
         GuiNpcTextField.unfocus();
         if(dialog.id >= 0)
-            Client.sendData(EnumPacketServer.DialogSave, ((GuiNPCManageDialogs)parent2).category.id, dialog.writeToNBT(new NBTTagCompound()));
+            Client.sendData(EnumPacketServer.DialogSave, ((SubGuiNpcDialog)parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
     }
 
     private DialogImage getSelectedImage() {

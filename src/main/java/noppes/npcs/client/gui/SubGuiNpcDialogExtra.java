@@ -10,12 +10,9 @@ import noppes.npcs.controllers.data.PlayerMail;
 public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiListener
 {
 	private Dialog dialog;
-	private int slot = 0;
-	public GuiScreen parent2;
-	
-    public SubGuiNpcDialogExtra(Dialog dialog, GuiScreen parent)
+
+    public SubGuiNpcDialogExtra(Dialog dialog)
     {
-    	this.parent2 = parent;
     	this.dialog = dialog;
 		setBackground("menubg.png");
 		xSize = 256;
@@ -64,8 +61,6 @@ public class SubGuiNpcDialogExtra extends SubGuiInterface implements ISubGuiList
         if(button.id == 66)
         {
     		close();
-        	if(parent2 != null)
-        		NoppesUtil.openGUI(player, parent2);
         }
     }
 

@@ -168,6 +168,12 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		else if(type == EnumPacketClient.SCROLL_DATA_PART){
 			NoppesUtil.addScrollData(buffer);
 		}
+		else if(type == EnumPacketClient.SCROLL_GROUP){
+			NoppesUtil.setScrollGroup(buffer);
+		}
+		else if(type == EnumPacketClient.SCROLL_GROUP_PART){
+			NoppesUtil.addScrollGroup(buffer);
+		}
 		else if(type == EnumPacketClient.SCROLL_SELECTED){
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 			if(gui == null || !(gui instanceof IScrollData))

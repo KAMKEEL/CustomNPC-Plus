@@ -571,6 +571,18 @@ public class NoppesUtilServer {
 		Server.sendData(player, EnumPacketClient.SCROLL_DATA, send);
 	}
 
+	public static void sendScrollGroup(EntityPlayerMP player, Map<String,Integer> map){
+		Map<String, Integer> send = new HashMap<String, Integer>();
+		for(String key : map.keySet()){
+			send.put(key, map.get(key));
+			if(send.size() == 100){
+				Server.sendData(player, EnumPacketClient.SCROLL_GROUP_PART, send);
+				send = new HashMap<String, Integer>();
+			}
+		}
+		Server.sendData(player, EnumPacketClient.SCROLL_GROUP, send);
+	}
+
 	public static void sendDialogData(EntityPlayerMP player, DialogCategory category) {
 		if(category == null)
 			return;
@@ -579,6 +591,27 @@ public class NoppesUtilServer {
 			map.put(dialog.title, dialog.id);
 		}
 		sendScrollData(player, map);
+	}
+
+	public static void sendDialogGroup(EntityPlayerMP player, DialogCategory category) {
+		if(category == null)
+			return;
+		HashMap<String,Integer> map = new HashMap<String,Integer>();
+		for(Dialog dialog : category.dialogs.values()){
+			map.put(dialog.title, dialog.id);
+		}
+
+		Map<String, Integer> send = new HashMap<String, Integer>();
+		for(String key : map.keySet()){
+			send.put(key, map.get(key));
+			if(send.size() == 100){
+				Server.sendData(player, EnumPacketClient.SCROLL_GROUP_PART, send);
+				send = new HashMap<String, Integer>();
+			}
+		}
+		Server.sendData(player, EnumPacketClient.SCROLL_GROUP, send);
+
+		sendScrollGroup(player, map);
 	}
 
 	public static void sendQuestData(EntityPlayerMP player, QuestCategory category) {
