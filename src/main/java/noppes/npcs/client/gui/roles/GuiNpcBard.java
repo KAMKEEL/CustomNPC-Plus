@@ -64,8 +64,8 @@ public class GuiNpcBard extends GuiNPCInterface2
     	GuiNpcButton button = (GuiNpcButton) guibutton;
         if(button.id == 0)
         {
-        	gui = new GuiNpcSoundSelection(npc, this, job.song);
-        	NoppesUtil.openGUI(player, gui);
+
+        	setSubGui(gui = new GuiNpcSoundSelection(this, job.song));
         	job.song = "";
         	MusicController.Instance.stopMusic();
         }

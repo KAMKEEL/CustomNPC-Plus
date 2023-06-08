@@ -14,19 +14,18 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
 
-public class GuiNpcSoundSelection extends GuiNPCInterface{
+public class GuiNpcSoundSelection extends SubGuiInterface {
 
 	public GuiNPCStringSlot slot;
 	private String domain;
-	private GuiScreen parent;
+
 	
 	private String up = "..<" + StatCollector.translateToLocal("gui.up") + ">..";
 	
 	private HashMap<String,List<String>> domains = new HashMap<String,List<String>>();
 		
-    public GuiNpcSoundSelection(EntityNPCInterface npc, GuiScreen parent, String sound)
+    public GuiNpcSoundSelection(GuiScreen parent, String sound)
     {
-    	super(npc);
     	SoundHandler handler = Minecraft.getMinecraft().getSoundHandler();
     	SoundRegistry registry = ObfuscationReflectionHelper.getPrivateValue(SoundHandler.class, handler, 4);
     	
@@ -39,7 +38,7 @@ public class GuiNpcSoundSelection extends GuiNPCInterface{
     		domains.put(location.getResourceDomain(), list);
     	}
     	drawDefaultBackground = false;
-    	this.parent = parent;
+		this.parent = parent;
     }
 
     public void initGui()

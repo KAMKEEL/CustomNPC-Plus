@@ -12,7 +12,6 @@ import java.util.Vector;
 public class GuiNPCQuestSelection extends SubGuiInterface implements IScrollData
 {
 	private GuiNPCStringSlot slot;
-	private final GuiScreen parent;
 	private HashMap<String,Integer> data;
 	private boolean selectCategory = true;
 	public GuiSelectionListener listener;
@@ -22,7 +21,6 @@ public class GuiNPCQuestSelection extends SubGuiInterface implements IScrollData
     {
     	drawDefaultBackground = false;
 		title = "Select Quest Category";
-    	this.parent = parent;
     	data = new HashMap<String, Integer>();
     	this.quest = quest;
     	

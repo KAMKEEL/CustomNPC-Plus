@@ -44,7 +44,7 @@ public class SubGuiNpcConversationLine extends SubGuiInterface implements ITextf
 	protected void actionPerformed(GuiButton guibutton){
 		int id = guibutton.id;
         if(id == 1){
-        	NoppesUtil.openGUI(player, gui = new GuiNpcSoundSelection(npc, parent, sound));
+        	setSubGui(gui = new GuiNpcSoundSelection(parent, sound));
         }
         if(id == 2){
         	sound = "";

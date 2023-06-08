@@ -84,14 +84,15 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			setSubGui(new SubGuiNpcDialogOptions(dialog));
 		}
 		if(id == 7 && dialog.id >= 0){
-			this.setSubGui(new GuiNPCQuestSelection(this, dialog.quest));
+			setSubGui(new GuiNPCQuestSelection(this, dialog.quest));
 		}
 		if(id == 8 && dialog.id >= 0){
 			dialog.quest = -1;
+			parent.dialogQuestName = "";
 			initGui();
 		}
 		if(id == 9 && dialog.id >= 0){
-			NoppesUtil.openGUI(player, new GuiNpcSoundSelection(npc, this, getTextField(2).getText()));
+			setSubGui(new GuiNpcSoundSelection(this, getTextField(2).getText()));
 		}
 		if(id == 10){
 			setSubGui(new SubGuiNpcDialogExtra(dialog));
