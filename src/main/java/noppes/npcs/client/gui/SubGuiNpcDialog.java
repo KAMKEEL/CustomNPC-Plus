@@ -1,25 +1,14 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNpcSoundSelection;
-import noppes.npcs.client.gui.SubGuiEditText;
-import noppes.npcs.client.gui.SubGuiNpcTextArea;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.data.DialogCategory;
-import noppes.npcs.entity.EntityNPCInterface;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
 
 public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener, GuiSelectionListener,ITextfieldListener
 {
@@ -95,7 +84,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			setSubGui(new SubGuiNpcDialogOptions(dialog));
 		}
 		if(id == 7 && dialog.id >= 0){
-			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this, dialog.quest));
+			this.setSubGui(new GuiNPCQuestSelection(this, dialog.quest));
 		}
 		if(id == 8 && dialog.id >= 0){
 			dialog.quest = -1;
@@ -151,6 +140,8 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 	@Override
 	public void selected(int ob, String name) {
 		dialog.quest = ob;
+		parent.dialogQuestName = name;
+		initGui();
 		Client.sendData(EnumPacketServer.DialogSave, this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
 	}
 

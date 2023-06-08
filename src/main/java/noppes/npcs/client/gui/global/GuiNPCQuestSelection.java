@@ -3,26 +3,23 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
 import java.util.Vector;
 
-public class GuiNPCQuestSelection extends GuiNPCInterface implements IScrollData
+public class GuiNPCQuestSelection extends SubGuiInterface implements IScrollData
 {
 	private GuiNPCStringSlot slot;
-	private GuiScreen parent;
+	private final GuiScreen parent;
 	private HashMap<String,Integer> data;
 	private boolean selectCategory = true;
 	public GuiSelectionListener listener;
 	private int quest;
 	
-    public GuiNPCQuestSelection(EntityNPCInterface npc,GuiScreen parent,int quest)
+    public GuiNPCQuestSelection(GuiScreen parent, int quest)
     {
-    	super(npc);
     	drawDefaultBackground = false;
 		title = "Select Quest Category";
     	this.parent = parent;
@@ -67,7 +64,6 @@ public class GuiNPCQuestSelection extends GuiNPCInterface implements IScrollData
         {
         	if(selectCategory){
             	close();
-            	NoppesUtil.openGUI(player, parent);
         	}else{
     			title = "Select Dialog Category";
         		selectCategory = true;
@@ -95,10 +91,16 @@ public class GuiNPCQuestSelection extends GuiNPCInterface implements IScrollData
 		else{
 			quest = data.get(slot.selected);
 			close();
-			NoppesUtil.openGUI(player, parent);
 		}
 		
 	}
+
+	@Override
+	public void close() {
+		this.save();
+		super.close();
+	}
+
 	public void save() {
 		if(quest >= 0){
 			if(listener != null){

@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.player.GuiMailmanWrite;
 import noppes.npcs.client.gui.util.*;
@@ -69,7 +68,7 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
     		Client.sendData(EnumPacketServer.MailOpenSetup, mail.writeNBT());
 		}
     	if(id == 3){
-			NoppesUtil.openGUI(player, questSelection = new GuiNPCQuestSelection(npc, getParent(), mail.questId));
+			this.setSubGui(questSelection = new GuiNPCQuestSelection(getParent(), mail.questId));
 			questSelection.listener = this;
     	}
     	if(id == 4){
