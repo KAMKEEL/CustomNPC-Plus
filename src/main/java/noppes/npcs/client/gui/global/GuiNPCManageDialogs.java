@@ -209,6 +209,24 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 					setSubGui(new SubGuiNpcDialog(this, dialog, category.id));
 				}
 			}
+			// Clone Dialog
+			if(id == 3) {
+				saveType(true);
+				if (dialogData.containsKey(dialogScroll.getSelected()) && dialog != null && dialog.id >= 0) {
+					String name = dialog.title;
+					while(dialogData.containsKey(name))
+						name += "_";
+
+					if(dialogScroll != null){
+						setPrevDialogName(name);
+					}
+
+					Dialog dialog = new Dialog();
+					dialog.readNBTPartial(this.dialog.writeToNBT(new NBTTagCompound()));
+					dialog.title = name;
+					Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()), true);
+				}
+			}
         }
 		updateButtons();
     }
