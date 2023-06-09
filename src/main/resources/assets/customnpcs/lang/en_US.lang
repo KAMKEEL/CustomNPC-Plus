@@ -175,7 +175,7 @@ mailbox.write=Write Message
 mailbox.succes=Succesfully sent your mail to %s
 mailbox.errorUsername=Unknown username
 mailbox.errorSubject=Subject cant be empty
-mailbox.setup=Setup mail
+mailbox.setup=Setup Mail
 
 display.model=Model
 display.show=Show

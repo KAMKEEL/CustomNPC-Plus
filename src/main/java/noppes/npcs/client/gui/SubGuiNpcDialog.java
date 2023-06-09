@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.PlayerMail;
 
 public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener, GuiSelectionListener,ITextfieldListener
 {
@@ -33,40 +34,49 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
         super.initGui();
 
 		addLabel(new GuiNpcLabel(1,"gui.title", guiLeft + 4, guiTop + 8));
-		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 36, guiTop + 3, 140, 20, dialog.title));
+		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 36, guiTop + 3, 200, 20, dialog.title));
 
-		addLabel(new GuiNpcLabel(0,"ID", guiLeft + 178, guiTop + 4));
-		addLabel(new GuiNpcLabel(2,	dialog.id + "", guiLeft + 178, guiTop + 14));
+		addLabel(new GuiNpcLabel(0,"ID", guiLeft + 238, guiTop + 4));
+		addLabel(new GuiNpcLabel(2,	dialog.id + "", guiLeft + 238, guiTop + 14));
 
-		addLabel(new GuiNpcLabel(3, "dialog.dialogtext", guiLeft + 4, guiTop + 30));
-		addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 25, 50, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(3, "dialog.dialogtext", guiLeft + 7, guiTop + 33));
+		addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 28, 50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(6, "dialog.options", guiLeft + 4, guiTop + 93));
-		addButton(new GuiNpcButton(6, guiLeft + 120, guiTop + 89, 50, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(6, "dialog.options", guiLeft + 7, guiTop + 57));
+		addButton(new GuiNpcButton(6, guiLeft + 120, guiTop + 52, 50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(11, "dialog.visualOption", guiLeft + 4, guiTop + 115));
-		addButton(new GuiNpcButton(11, guiLeft + 120, guiTop + 110, 50, 20, "selectServer.edit"));
-		
-		addLabel(new GuiNpcLabel(4, "availability.options", guiLeft + 4, guiTop + 51));
-		addButton(new GuiNpcButton(4, guiLeft + 120, guiTop + 46, 50, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(11, "dialog.visualOption", guiLeft + 7, guiTop + 81));
+		addButton(new GuiNpcButton(11, guiLeft + 120, guiTop + 76, 50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(5, "faction.options", guiLeft + 4, guiTop + 72));
-		addButton(new GuiNpcButton(5, guiLeft + 120, guiTop + 67, 50, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(9, "gui.selectSound", guiLeft + 7, guiTop + 105));
+		addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 90, guiTop + 100, 194, 20, dialog.sound));
+		addButton(new GuiNpcButton(9, guiLeft + 293, guiTop + 100, 60, 20, "mco.template.button.select"));
 
+		addLabel(new GuiNpcLabel(4, "availability.options", guiLeft + 180, guiTop + 33));
+		addButton(new GuiNpcButton(4, guiLeft + 303, guiTop + 28, 50, 20, "selectServer.edit"));
 
-		addButton(new GuiNpcButton(7, guiLeft + 4, guiTop + 134, 144, 20, "availability.selectquest"));
-		addButton(new GuiNpcButton(8, guiLeft + 150, guiTop + 134, 20, 20, "X"));
+		addLabel(new GuiNpcLabel(5, "faction.options", guiLeft + 180, guiTop + 57));
+		addButton(new GuiNpcButton(5, guiLeft + 303, guiTop + 52, 50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(9, "gui.selectSound", guiLeft + 4, guiTop + 158));
-		addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 4, guiTop + 168, 144, 20, dialog.sound));
-		addButton(new GuiNpcButton(9, guiLeft + 150, guiTop + 168, 60, 20, "mco.template.button.select"));
+		addButton(new GuiNpcButton(7, guiLeft + 4, guiTop + 130, 144, 20, "availability.selectquest"));
+		addButton(new GuiNpcButton(8, guiLeft + 150, guiTop + 130, 20, 20, "X"));
 
-		addButton(new GuiNpcButton(10, guiLeft + 4, guiTop + 192, 120, 20, "gui.showmore"));
+		addButton(new GuiNpcButton(13, guiLeft + 4, guiTop + 154, 144, 20, "mailbox.setup"));
+		addButton(new GuiNpcButton(14, guiLeft + 150, guiTop + 154, 20, 20, "X"));
 
-		addButton(new GuiNpcButton(14, guiLeft + 130, guiTop + 192, 50, 20, "gui.done"));
+		addButton(new GuiNpcButton(10, guiLeft + 303, guiTop + 130, 50, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(10, "advMode.command", guiLeft + 180, guiTop + 130 + 5));
+
+		addButton(new GuiNpcButtonYesNo(15, guiLeft + 303, guiTop + 154, dialog.disableEsc));
+		addLabel(new GuiNpcLabel(15, "dialog.disableEsc", guiLeft + 180, guiTop + 154 + 5));
+
+		addButton(new GuiNpcButton(16, guiLeft + 303, guiTop + 192, 50, 20, "gui.done"));
 
 		if(!parent.dialogQuestName.equals(""))
 			getButton(7).setDisplayText(parent.dialogQuestName);
+
+		if(!dialog.mail.subject.isEmpty())
+			getButton(13).setDisplayText(dialog.mail.subject);
 	}
 	
 	public void buttonEvent(GuiButton guibutton)
@@ -97,12 +107,24 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			NoppesUtil.openGUI(player, gui);
 		}
 		if(id == 10){
-			setSubGui(new SubGuiNpcDialogExtra(dialog));
+			setSubGui(new SubGuiNpcCommand(dialog.command));
 		}
 		if(id == 11){
 			setSubGui(new SubGuiNpcDialogVisual(dialog));
 		}
+		if(id == 13){
+			setSubGui(new SubGuiMailmanSendSetup(dialog.mail, getParent()));
+		}
 		if(id == 14){
+			dialog.mail = new PlayerMail();
+			initGui();
+		}
+		if(id == 15){
+			if(guibutton instanceof GuiNpcButton){
+				dialog.disableEsc = ((GuiNpcButton) guibutton).getValue() == 1;
+			}
+		}
+		if(id == 16){
 			close();
 		}
 	}
@@ -137,6 +159,9 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		if(subgui instanceof SubGuiNpcTextArea){
 			SubGuiNpcTextArea gui = (SubGuiNpcTextArea) subgui;
 			dialog.text = gui.text;
+		}
+		if(subgui instanceof SubGuiNpcCommand){
+			dialog.command = ((SubGuiNpcCommand) subgui).command;
 		}
 	}
 
