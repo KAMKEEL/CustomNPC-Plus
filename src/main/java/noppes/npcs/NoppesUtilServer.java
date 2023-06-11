@@ -601,16 +601,6 @@ public class NoppesUtilServer {
 			map.put(dialog.title, dialog.id);
 		}
 
-		Map<String, Integer> send = new HashMap<String, Integer>();
-		for(String key : map.keySet()){
-			send.put(key, map.get(key));
-			if(send.size() == 100){
-				Server.sendData(player, EnumPacketClient.SCROLL_GROUP_PART, send);
-				send = new HashMap<String, Integer>();
-			}
-		}
-		Server.sendData(player, EnumPacketClient.SCROLL_GROUP, send);
-
 		sendScrollGroup(player, map);
 	}
 
@@ -622,6 +612,17 @@ public class NoppesUtilServer {
 			map.put(quest.title, quest.id);
 		}
 		sendScrollData(player, map);
+	}
+
+	public static void sendQuestGroup(EntityPlayerMP player, QuestCategory category) {
+		if(category == null)
+			return;
+		HashMap<String,Integer> map = new HashMap<String,Integer>();
+		for(Quest quest : category.quests.values()){
+			map.put(quest.title, quest.id);
+		}
+
+		sendScrollGroup(player, map);
 	}
 
 	public static void sendTransportCategoryData(EntityPlayerMP player) {

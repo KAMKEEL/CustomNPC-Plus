@@ -377,7 +377,13 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.QuestsGet){
 			QuestCategory category = QuestController.Instance.categories.get(buffer.readInt());
-			NoppesUtilServer.sendQuestData(player,category);
+			boolean sendGroup = buffer.readBoolean();
+			if(sendGroup){
+				NoppesUtilServer.sendQuestGroup(player,category);
+			}
+			else {
+				NoppesUtilServer.sendQuestData(player,category);
+			}
 		}
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
@@ -658,9 +664,16 @@ public class PacketHandlerServer{
 			int category = buffer.readInt();
 			Quest quest = new Quest();
 			quest.readNBT(Server.readNBT(buffer));
+			boolean sendGroup = buffer.readBoolean();
 			QuestController.Instance.saveQuest(category, quest);
-			if(quest.category != null)
-				NoppesUtilServer.sendQuestData(player,quest.category);
+			if(quest.category != null){
+				if(sendGroup){
+					NoppesUtilServer.sendQuestGroup(player, quest.category);
+				}
+				else {
+					NoppesUtilServer.sendQuestData(player, quest.category);
+				}
+			}
 		}
 		else if(type == EnumPacketServer.QuestDialogGetTitle){
 			Dialog quest = DialogController.Instance.dialogs.get(buffer.readInt());
@@ -677,9 +690,15 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.QuestRemove){
 			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
+			boolean sendGroup = buffer.readBoolean();
 			if(quest != null){
 				QuestController.Instance.removeQuest(quest);
-				NoppesUtilServer.sendQuestData(player,quest.category);
+				if(sendGroup){
+					NoppesUtilServer.sendQuestGroup(player,quest.category);
+				}
+				else {
+					NoppesUtilServer.sendQuestData(player,quest.category);
+				}
 			}
 		}
 		else if(type == EnumPacketServer.TransportCategoriesGet){

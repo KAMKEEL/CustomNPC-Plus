@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener, IGuiData
+public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener,ICustomScrollListener, IGuiData
 {
 	private GuiCustomScroll catScroll;
 	public GuiCustomScroll dialogScroll;
@@ -310,12 +310,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		this.dialogScroll.setSelected(prevDialogName);
 	}
 
-	@Override
-	public void selected(int ob, String name) {
-		dialog.quest = ob;
-		Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()));
-		Client.sendData(EnumPacketServer.DialogGet, dialog.id);
-	}
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
