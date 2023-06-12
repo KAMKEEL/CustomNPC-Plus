@@ -199,6 +199,9 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 			SubGuiNpcCommand sub = (SubGuiNpcCommand) subgui;
 			quest.command = sub.command;
 		}
+		else if(subgui instanceof SubGuiMailmanSendSetup){
+			initGui();
+		}
 	}
 
 	@Override

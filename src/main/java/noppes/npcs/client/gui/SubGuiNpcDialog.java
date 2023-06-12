@@ -6,7 +6,6 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
-import noppes.npcs.client.gui.global.SubGuiNPCQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
@@ -18,7 +17,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 	public int dialogCategoryID;
 	public Dialog dialog;
 	private final GuiNPCManageDialogs parent;
-	private SubGuiNpcSoundSelection gui;
+	private GuiNpcSoundSelection gui;
 	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId)
@@ -107,7 +106,9 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			initGui();
 		}
 		if(id == 9 && dialog.id >= 0){
-			setSubGui(gui = new SubGuiNpcSoundSelection(this, getTextField(2).getText()));
+			gui = new GuiNpcSoundSelection(getParent(), getTextField(2).getText());
+			gui.listener = this;
+			NoppesUtil.openGUI(player, gui);
 		}
 		if(id == 10){
 			setSubGui(new SubGuiNpcCommand(dialog.command));
@@ -162,8 +163,11 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			SubGuiNpcTextArea gui = (SubGuiNpcTextArea) subgui;
 			dialog.text = gui.text;
 		}
-		if(subgui instanceof SubGuiNpcCommand){
+		else if(subgui instanceof SubGuiNpcCommand){
 			dialog.command = ((SubGuiNpcCommand) subgui).command;
+		}
+		else if(subgui instanceof SubGuiMailmanSendSetup){
+			initGui();
 		}
 	}
 
