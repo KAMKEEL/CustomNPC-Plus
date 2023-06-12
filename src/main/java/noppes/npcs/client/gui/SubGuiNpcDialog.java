@@ -6,6 +6,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
+import noppes.npcs.client.gui.global.SubGuiNPCQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
@@ -17,7 +18,8 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 	public int dialogCategoryID;
 	public Dialog dialog;
 	private final GuiNPCManageDialogs parent;
-	private GuiNpcSoundSelection gui;
+	private SubGuiNpcSoundSelection gui;
+	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId)
 	{
@@ -95,7 +97,9 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			setSubGui(new SubGuiNpcDialogOptions(dialog));
 		}
 		if(id == 7 && dialog.id >= 0){
-			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this,  dialog.quest));
+			questSelection = new GuiNPCQuestSelection(npc, getParent(), dialog.quest);
+			questSelection.listener = this;
+			NoppesUtil.openGUI(player, questSelection);
 		}
 		if(id == 8 && dialog.id >= 0){
 			dialog.quest = -1;
@@ -103,8 +107,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			initGui();
 		}
 		if(id == 9 && dialog.id >= 0){
-			gui = new GuiNpcSoundSelection(this, getTextField(2).getText());
-			NoppesUtil.openGUI(player, gui);
+			setSubGui(gui = new SubGuiNpcSoundSelection(this, getTextField(2).getText()));
 		}
 		if(id == 10){
 			setSubGui(new SubGuiNpcCommand(dialog.command));
@@ -128,7 +131,6 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			close();
 		}
 	}
-
 
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {

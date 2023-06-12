@@ -21,6 +21,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 	public Quest quest;
 	private final GuiNPCManageQuest parent;
 	private boolean questlogTA = false;
+	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcQuest(GuiNPCManageQuest parent, Quest quest, int catId)
 	{
@@ -41,7 +42,6 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 
 		addLabel(new GuiNpcLabel(0,"ID", guiLeft + 238, guiTop + 4));
 		addLabel(new GuiNpcLabel(2,	quest.id + "", guiLeft + 238, guiTop + 14));
-		
 
 		addLabel(new GuiNpcLabel(3, "quest.completedtext", guiLeft + 7, guiTop + 33));
 		addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 28, 50, 20, "selectServer.edit"));
@@ -152,7 +152,9 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 			initGui();
 		}
 		if(button.id == 15 && quest.id >= 0){
-			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this,  quest.nextQuestid));
+			questSelection = new GuiNPCQuestSelection(npc, getParent(), quest.nextQuestid);
+			questSelection.listener = this;
+			NoppesUtil.openGUI(player, questSelection);
 		}
 		if(button.id == 16){
 			close();
@@ -203,6 +205,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 	public void selected(int id, String name) {
 		quest.nextQuestid = id;
 		quest.nextQuestTitle = name;
+		parent.nextQuestName = name;
 		initGui();
 		Client.sendData(EnumPacketServer.QuestSave, this.questCategoryID, quest.writeToNBT(new NBTTagCompound()));
 	}
