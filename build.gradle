@@ -34,7 +34,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.8.5"
+version = "1.9-beta1"
 group= "com.kamkeel.customnpc-plus" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
