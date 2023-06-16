@@ -501,15 +501,17 @@ public class NoppesUtilServer {
             if(file.exists())
             	file.delete();
             if(pl != null){
+				PlayerDataController.Instance.removePlayerDataCache(pl.getUniqueID().toString());
+
+				PlayerDataController.Instance.nameUUIDs.remove(name);
+				PlayerDataController.Instance.savePlayerDataMap();
+
             	playerdata.setNBT(new NBTTagCompound());
                 sendPlayerData(type, player, name);
                 playerdata.save();
+
                 return;
             }
-			else {
-				PlayerDataController.Instance.nameUUIDs.remove(name);
-				PlayerDataController.Instance.savePlayerDataMap();
-			}
         }
         if(type == EnumPlayerData.Quest){
         	PlayerQuestData data = playerdata.questData;

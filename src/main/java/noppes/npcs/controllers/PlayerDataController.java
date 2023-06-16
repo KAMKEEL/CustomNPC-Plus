@@ -260,6 +260,12 @@ public class PlayerDataController {
 		}
 	}
 
+	public void removePlayerDataCache(final String uuid) {
+		synchronized (playerDataCache) {
+			playerDataCache.remove(uuid);
+		}
+	}
+
 	public void clearCache() {
 		synchronized (playerDataCache) {
 			playerDataCache.clear();
