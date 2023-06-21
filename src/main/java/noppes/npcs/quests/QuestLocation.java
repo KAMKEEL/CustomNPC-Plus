@@ -53,7 +53,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 	@Override
 	public Vector<String> getQuestLogStatus(EntityPlayer player) {
 		Vector<String> vec = new Vector<String>();
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return vec;
@@ -160,7 +160,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= 1) {
-				PlayerData data = PlayerDataController.instance.getPlayerData(player);
+				PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 				QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
 				boolean completed = questData.extraData.getBoolean	(this.nbtName);
 				if ((!completed || progress != 1) && (completed || progress != 0)) {
@@ -178,7 +178,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		}
 
 		public boolean isCompleted() {
-			PlayerData data = PlayerDataController.instance.getPlayerData(player);
+			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 			QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
 			return questData.extraData.getBoolean(this.nbtName);
 		}

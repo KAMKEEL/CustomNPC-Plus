@@ -31,7 +31,7 @@ public class ContainerNPCBankInterface extends ContainerNpcInterface
         
         NpcMiscInventory items = new NpcMiscInventory(54);
         if(!player.worldObj.isRemote){
-    		data = PlayerDataController.instance.getBankData(player,bankid);
+    		data = PlayerDataController.Instance.getBankData(player,bankid);
         	items = data.getBankOrDefault(bankid).itemSlots.get(slot);
         }
         

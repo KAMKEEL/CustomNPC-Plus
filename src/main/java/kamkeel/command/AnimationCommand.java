@@ -39,7 +39,7 @@ public class AnimationCommand extends CommandKamkeelBase {
 	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         String playername = args[0];
 
-        data = PlayerDataController.instance.getPlayersData(sender, playername);
+        data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             throw new CommandException("Unknown player: " + playername);
         }

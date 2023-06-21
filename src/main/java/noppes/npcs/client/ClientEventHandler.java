@@ -2,6 +2,7 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
@@ -65,12 +66,12 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onOverlayRender(RenderGameOverlayEvent.Post event){
         if(event.type == RenderGameOverlayEvent.ElementType.ALL) {
-            for (OverlayCustom overlayCustom : Client.customOverlays.values()) {
+            for (OverlayCustom overlayCustom : ClientCacheHandler.customOverlays.values()) {
                 overlayCustom.renderGameOverlay(event.partialTicks);
             }
 
-            if (Client.questTrackingOverlay != null) {
-                Client.questTrackingOverlay.renderGameOverlay(event.partialTicks);
+            if (ClientCacheHandler.questTrackingOverlay != null) {
+                ClientCacheHandler.questTrackingOverlay.renderGameOverlay(event.partialTicks);
             }
         }
     }
@@ -90,8 +91,8 @@ public class ClientEventHandler {
         if (event.entity instanceof EntityNPCInterface) {
             data = ClientEventHandler.renderingNpc.display.animationData;
         } else if (event.entity instanceof EntityPlayer) {
-            if (Client.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = Client.playerAnimations.get(event.entity.getUniqueID());
+            if (ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
+                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
             }
 
             for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
@@ -123,8 +124,8 @@ public class ClientEventHandler {
             AnimationData data = null;
             if (event.entity instanceof EntityNPCInterface) {
                 data = ((EntityNPCInterface) event.entity).display.animationData;
-            } else if (event.entity instanceof EntityPlayer && Client.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = Client.playerAnimations.get(event.entity.getUniqueID());
+            } else if (event.entity instanceof EntityPlayer && ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
+                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
             }
 
             if (data != null && data.isActive()) {
@@ -199,6 +200,6 @@ public class ClientEventHandler {
     }
 
     public static boolean hasOverlays(EntityPlayer player) {
-        return Client.skinOverlays.containsKey(player.getUniqueID()) && Client.skinOverlays.get(player.getUniqueID()).values().size() > 0;
+        return ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID()) && ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values().size() > 0;
     }
 }

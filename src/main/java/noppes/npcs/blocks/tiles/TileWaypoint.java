@@ -44,7 +44,7 @@ public class TileWaypoint extends TileEntity {
 		if(toCheck.isEmpty())
 			return;
 		for(EntityPlayer player : toCheck){
-			PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 			PlayerQuestData questData = playerData.questData;
 
 			ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());

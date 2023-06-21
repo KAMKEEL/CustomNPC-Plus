@@ -9,15 +9,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.client.renderer.ImageData;
-import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.util.CacheHashMap;
-import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -29,12 +25,12 @@ import java.util.zip.GZIPInputStream;
 import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
 
 public class PlayerDataController {
-	public static PlayerDataController instance;
-	public static HashMap<String, String> nameUUIDs;
-	private static final CacheHashMap<String, CacheHashMap.CachedObject<PlayerData>> playerDataCache = new CacheHashMap<>(60 * 60 * 1000);
+	public static PlayerDataController Instance;
+	public HashMap<String, String> nameUUIDs;
+	private final CacheHashMap<String, CacheHashMap.CachedObject<PlayerData>> playerDataCache = new CacheHashMap<>(60 * 60 * 1000);
 
 	public PlayerDataController(){
-		instance = this;
+		Instance = this;
 		File dir = getSaveDir();
 
 		LogWriter.info("Loading PlayerData...");
@@ -249,18 +245,24 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public static void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
+	public void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
 		synchronized (playerDataCache) {
 			playerDataCache.put(uuid, new CacheHashMap.CachedObject<>(playerCompound));
 		}
 	}
 
-	public static PlayerData getPlayerDataCache(final String uuid) {
+	public PlayerData getPlayerDataCache(final String uuid) {
 		synchronized (playerDataCache) {
 			if (!playerDataCache.containsKey(uuid)) {
 				return null;
 			}
 			return playerDataCache.get(uuid).getObject();
+		}
+	}
+
+	public void clearCache() {
+		synchronized (playerDataCache) {
+			playerDataCache.clear();
 		}
 	}
 
@@ -305,13 +307,13 @@ public class PlayerDataController {
 			for(String name : nameUUIDs.keySet()){
 				if(name.equalsIgnoreCase(username)){
 					data = new PlayerData();
-					data.setNBT(PlayerDataController.instance.loadPlayerData(nameUUIDs.get(name)));
+					data.setNBT(PlayerDataController.Instance.loadPlayerData(nameUUIDs.get(name)));
 					break;
 				}
 			}
 		}
 		else
-			data = PlayerDataController.instance.getPlayerData(player);
+			data = PlayerDataController.Instance.getPlayerData(player);
 
 		return data;
 	}
@@ -329,13 +331,13 @@ public class PlayerDataController {
 		ArrayList<PlayerData> list = new ArrayList<PlayerData>();
 		EntityPlayerMP[] players = PlayerSelector.matchPlayers(sender, username);
 		if(players == null || players.length == 0){
-			PlayerData data = PlayerDataController.instance.getDataFromUsername(username);
+			PlayerData data = PlayerDataController.Instance.getDataFromUsername(username);
 			if(data != null)
 				list.add(data);
 		}
 		else{
 			for(EntityPlayer player : players){
-				list.add(PlayerDataController.instance.getPlayerData(player));
+				list.add(PlayerDataController.Instance.getPlayerData(player));
 			}
 		}
 
@@ -468,7 +470,7 @@ public class PlayerDataController {
 					}
 					int tenPercent = (int) ((double) length * 0.1);
 					int progress = 0;
-					File saveDir = PlayerDataController.instance.getNewSaveDir();
+					File saveDir = PlayerDataController.Instance.getNewSaveDir();
 					if(saveDir == null){
 						if(sender != null){
 							sender.addChatMessage(new ChatComponentText("playerdata_new folder already exists please delete it or rename it"));

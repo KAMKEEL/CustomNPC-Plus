@@ -7,11 +7,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.AnimationData;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
-import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
@@ -21,7 +19,6 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -219,11 +216,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		} else {
 			filename = uuid + ".json";
 		}
-		PlayerDataController.instance.putPlayerMap(playername, uuid);
-		PlayerDataController.putPlayerDataCache(uuid, this);
+		PlayerDataController.Instance.putPlayerMap(playername, uuid);
+		PlayerDataController.Instance.putPlayerDataCache(uuid, this);
 		CustomNPCsThreader.playerDataThread.execute(() -> {
 			try {
-				File saveDir = PlayerDataController.instance.getSaveDir();
+				File saveDir = PlayerDataController.Instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");
 				File file1 = new File(saveDir, filename);
 				if(ConfigMain.DatFormat){
@@ -242,9 +239,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	}
 
 	public void load() {
-		NBTTagCompound data = PlayerDataController.instance.loadPlayerData(player.getPersistentID().toString());
+		NBTTagCompound data = PlayerDataController.Instance.loadPlayerData(player.getPersistentID().toString());
 		if(data.hasNoTags()){
-			data = PlayerDataController.instance.loadPlayerDataOld(player.getCommandSenderName());
+			data = PlayerDataController.Instance.loadPlayerDataOld(player.getCommandSenderName());
 		}
 		setNBT(data);
 	}

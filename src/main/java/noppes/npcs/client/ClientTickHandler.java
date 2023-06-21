@@ -3,9 +3,11 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
@@ -30,6 +32,10 @@ public class ClientTickHandler{
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onClientTick(TickEvent.ClientTickEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
+		if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
+			ClientCacheHandler.clearCache();
+			this.prevWorld = mc.theWorld;
+		}
 		if(event.phase == Phase.END) {
 			if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {
 				renderCNPCPlayer.itemRenderer.updateEquippedItem();

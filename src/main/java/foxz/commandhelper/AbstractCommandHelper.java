@@ -220,13 +220,13 @@ public abstract class AbstractCommandHelper extends CommandHelper {
     	ArrayList<PlayerData> list = new ArrayList<PlayerData>();
     	EntityPlayerMP[] players = PlayerSelector.matchPlayers(pcParam, username);
     	if(players == null || players.length == 0){
-    		PlayerData data = PlayerDataController.instance.getDataFromUsername(username);
+    		PlayerData data = PlayerDataController.Instance.getDataFromUsername(username);
     		if(data != null)
     			list.add(data);
     	}
     	else{
             for(EntityPlayer player : players){
-    	        list.add(PlayerDataController.instance.getPlayerData(player));   
+    	        list.add(PlayerDataController.Instance.getPlayerData(player));
             }
     	}
     	

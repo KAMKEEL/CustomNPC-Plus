@@ -1,7 +1,6 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
@@ -21,7 +20,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
-import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -92,7 +90,7 @@ public class ServerEventsHandler {
 			NBTTagCompound compound = new NBTTagCompound();
 			if(!event.target.writeToNBTOptional(compound))
 				return;
-			PlayerData data = PlayerDataController.instance.getPlayerData(event.entityPlayer);
+			PlayerData data = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
 			ServerCloneController.Instance.cleanTags(compound);
 			if(!Server.sendDataChecked((EntityPlayerMP)event.entityPlayer, EnumPacketClient.CLONE, compound))
 				event.entityPlayer.addChatMessage(new ChatComponentText("Entity too big to clone"));
@@ -277,7 +275,7 @@ public class ServerEventsHandler {
 			}
 		}
 		if(event.entityLiving instanceof EntityPlayer){
-			PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer)event.entityLiving);
+			PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer)event.entityLiving);
 			data.save();
 		}
 	}
@@ -295,7 +293,7 @@ public class ServerEventsHandler {
 	}
 
 	private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
 		boolean checkCompletion = false;
 		String entityName = EntityList.getEntityString(entity);
@@ -354,7 +352,7 @@ public class ServerEventsHandler {
 	public void pickUp(EntityItemPickupEvent event){
 		if(event.entityPlayer.worldObj.isRemote)
 			return;
-		PlayerData playerData = PlayerDataController.instance.getPlayerData(event.entityPlayer);
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
 		PlayerQuestData questData = playerData.questData;
 		QuestItem.pickedUp = event.item.getEntityItem();
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
@@ -362,7 +360,7 @@ public class ServerEventsHandler {
 
 	@SubscribeEvent
 	public void world(PlayerEvent.SaveToFile event){
-		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
+		PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entity);
 		data.save();
 	}
 
@@ -370,7 +368,7 @@ public class ServerEventsHandler {
 	public void world(EntityJoinWorldEvent event){
 		if(event.world.isRemote || !(event.entity instanceof EntityPlayer))
 			return;
-		PlayerData data = PlayerDataController.instance.getPlayerData((EntityPlayer) event.entity);
+		PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entity);
 		data.updateCompanion(event.world);
 	}
 

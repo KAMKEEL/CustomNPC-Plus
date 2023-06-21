@@ -17,7 +17,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderPlayerEvent;
-import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
@@ -106,8 +106,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (!p_77036_1_.isInvisible())
         {
-            if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-                for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+            if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
+                for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
                     if (overlayData.texture.isEmpty())
                         continue;
 
@@ -271,8 +271,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
             gender = (float) RenderPlayerJBRA.getMethod("genGet").invoke(null);
         } catch (Exception ignored) {}
 
-        if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-            for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+        if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
+            for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
                 if (overlayData.texture.isEmpty())
                     continue;
 
@@ -398,8 +398,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
         } catch (Exception ignored) {}
 
         try {
-            if (Client.skinOverlays.containsKey(player.getUniqueID())) {
-                for (SkinOverlay overlayData : Client.skinOverlays.get(player.getUniqueID()).values()) {
+            if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
+                for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
                     if (overlayData.texture.isEmpty())
                         continue;
 

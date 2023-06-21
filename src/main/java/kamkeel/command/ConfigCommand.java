@@ -217,7 +217,7 @@ public class ConfigCommand extends CommandKamkeelBase {
 			}
 
 			sendResult(sender, "Started Conversion Process for PlayerData");
-			PlayerDataController.instance.convertPlayerFiles(send, convertToDat);
+			PlayerDataController.Instance.convertPlayerFiles(send, convertToDat);
 		}
 	}
     
