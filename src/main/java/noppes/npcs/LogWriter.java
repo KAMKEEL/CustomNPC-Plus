@@ -76,7 +76,7 @@ public class LogWriter {
 			logger.setUseParentHandlers(false);
 			Handler consoleHandler = new ConsoleHandler();
 			consoleHandler.setFormatter(handler.getFormatter());
-			consoleHandler.setLevel(Level.ALL);
+			consoleHandler.setLevel(Level.FINEST);
 			logger.addHandler(consoleHandler);
 			logger.setLevel(Level.ALL);
 			info(new Date().toString());
