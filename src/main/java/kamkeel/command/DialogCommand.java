@@ -246,8 +246,8 @@ public class DialogCommand extends CommandKamkeelBase {
         }
 
         sendResult(sender, "--------------------");
-        sendResult(sender, String.format("%d: \u00A7a'%s'", dialog.id, dialog.title));
-        sendResult(sender, String.format("Category: \u00A7b'%s'", dialog.category.getName()));
+        sendResult(sender, String.format("\u00A7e%d\u00A77: \u00A7a%s", dialog.id, dialog.title));
+        sendResult(sender, String.format("Category: \u00A7b%s", dialog.category.getName()));
         sendResult(sender, "--------------------");
     }
 }

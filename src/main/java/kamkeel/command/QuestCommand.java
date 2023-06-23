@@ -266,16 +266,16 @@ public class QuestCommand extends CommandKamkeelBase {
         }
 
         sendResult(sender, "--------------------");
-        sendResult(sender, String.format("%d: \u00A7a'%s'", quest.id, quest.title));
-        sendResult(sender, String.format("Category: \u00A7b'%s'", quest.category.getName()));
-        sendResult(sender, String.format("Type: \u00A76'%s'", quest.type.toString()));
-        sendResult(sender, String.format("Repeatable: \u00A76'%s'", quest.repeat.toString()));
-        sendResult(sender, String.format("Complete: \u00A76'%s'", quest.completion.toString()));
+        sendResult(sender, String.format("\u00A7e%d\u00A77: \u00A7a%s", quest.id, quest.title));
+        sendResult(sender, String.format("Category: \u00A7b%s", quest.category.getName()));
+        sendResult(sender, String.format("Type: \u00A76%s", quest.type.toString()));
+        sendResult(sender, String.format("Repeatable: \u00A76%s", quest.repeat.toString()));
+        sendResult(sender, String.format("Complete: \u00A76%s", quest.completion.toString()));
         if(quest.completion == EnumQuestCompletion.Npc){
-            sendResult(sender, String.format("NPC: \u00A76'%s'", quest.completerNpc));
+            sendResult(sender, String.format("NPC: \u00A76%s", quest.completerNpc));
         }
         if(quest.nextQuestid != -1){
-            sendResult(sender, String.format("Next Quest ID: '%s'", quest.nextQuestid));
+            sendResult(sender, String.format("Next Quest ID: \u00A7c%d", quest.nextQuestid));
         }
         sendResult(sender, "--------------------");
     }
