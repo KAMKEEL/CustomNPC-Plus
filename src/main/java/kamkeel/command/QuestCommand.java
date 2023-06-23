@@ -1,5 +1,6 @@
 package kamkeel.command;
 
+import java.util.Collection;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
@@ -12,6 +13,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.QuestData;
 
 public class QuestCommand extends CommandKamkeelBase {
@@ -171,6 +173,30 @@ public class QuestCommand extends CommandKamkeelBase {
 	        playerdata.questData.finishedQuests.remove(questid);
             playerdata.save();
             sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
+        }
+    }
+
+    @SubCommand(
+            desc = "Find quest id number by its name",
+            usage = "<quest name>"
+    )
+    public void id(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide a name for the quest");
+            return;
+        }
+
+        String catName = String.join(" ", args).toLowerCase();
+        final Collection<Quest> quests = QuestController.instance.quests.values();
+        int count = 0;
+        for(Quest quest : quests){
+            if(quest.getName().toLowerCase().contains(catName)){
+                sendResult(sender, String.format("Quest \u00A7e%d\u00A77 - \u00A7c'%s'", quest.id, quest.getName()));
+                count++;
+            }
+        }
+        if(count == 0){
+            sendResult(sender, String.format("No Quest found with name: \u00A7c'%s'", catName));
         }
     }
     

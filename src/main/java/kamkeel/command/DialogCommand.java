@@ -1,5 +1,6 @@
 package kamkeel.command;
 
+import java.util.Collection;
 import java.util.List;
 
 import net.minecraft.command.CommandBase;
@@ -11,9 +12,11 @@ import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.DialogController;
 
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityDialogNpc;
 
 public class DialogCommand extends CommandKamkeelBase {
@@ -119,5 +122,29 @@ public class DialogCommand extends CommandKamkeelBase {
     	npc.dialogs.put(0, option);
     	NoppesUtilServer.openDialog(player, npc, dialog, 0);
         sendResult(sender, String.format("Displayed Dialog \u00A7e%d\u00A77 to Player '\u00A7b%s\u00A77'", diagid, player.getCommandSenderName()));
+    }
+
+    @SubCommand(
+            desc = "Find dialog id number by its name",
+            usage = "<dialog name>"
+    )
+    public void id(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide a name for the dialog");
+            return;
+        }
+
+        String dialogName = String.join(" ", args).toLowerCase();
+        final Collection<Dialog> quests = DialogController.instance.dialogs.values();
+        int count = 0;
+        for(Dialog dialog : quests){
+            if(dialog.getName().toLowerCase().contains(dialogName)){
+                sendResult(sender, String.format("Dialog \u00A7e%d\u00A77 - \u00A7c'%s'", dialog.id, dialog.getName()));
+                count++;
+            }
+        }
+        if(count == 0){
+            sendResult(sender, String.format("No Dialog found with name: \u00A7c'%s'", dialogName));
+        }
     }
 }
