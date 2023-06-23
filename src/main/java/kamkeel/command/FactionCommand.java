@@ -43,7 +43,7 @@ public class FactionCommand extends CommandKamkeelBase {
         String playername = args[0];
         String factionname = args[1];
 
-        data = PlayerDataController.instance.getPlayersData(sender, playername);
+        data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;

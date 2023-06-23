@@ -59,6 +59,10 @@ public class ScriptGui implements ICustomGui {
         return new ArrayList<>(this.components.values());
     }
 
+    public void clear() {
+        this.components.clear();
+    }
+
     public List<IItemSlot> getSlots() {
         return this.slots;
     }

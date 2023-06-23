@@ -56,11 +56,11 @@ public abstract class CommandKamkeelBase extends CommandBase{
 		return !subcommands.isEmpty();
 	}
 
-	protected void sendMessage(ICommandSender sender, String message, Object... obs) {
+	protected static void sendMessage(ICommandSender sender, String message, Object... obs) {
 		sender.addChatMessage(new ChatComponentTranslation(message, obs));
 	}
 
-	protected void sendResult(ICommandSender sender, String message, Object... obs) {
+	protected static void sendResult(ICommandSender sender, String message, Object... obs) {
 		sender.addChatMessage(new ChatComponentTranslation("\u00A76[\u00A7eCNPC+\u00A76]\u00A77 " + message, obs));
 	}
 

@@ -5,8 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import noppes.npcs.AnimationData;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.ClientEventHandler;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
@@ -23,8 +22,8 @@ public class MixinRenderPlayer {
     @Inject(method = "renderLivingAt", at = @At(value = "TAIL"))
     protected void modelDataRotations(AbstractClientPlayer p_77039_1_, double p_77039_2_, double p_77039_4_, double p_77039_6_, CallbackInfo callbackInfo)
     {
-        if (Client.playerAnimations.containsKey(p_77039_1_.getUniqueID())) {
-            AnimationData animData = Client.playerAnimations.get(p_77039_1_.getUniqueID());
+        if (ClientCacheHandler.playerAnimations.containsKey(p_77039_1_.getUniqueID())) {
+            AnimationData animData = ClientCacheHandler.playerAnimations.get(p_77039_1_.getUniqueID());
             if (animData != null && animData.isActive()) {
                 Frame frame = (Frame) animData.animation.currentFrame();
                 if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {

@@ -47,7 +47,7 @@ public class FactionOptions {
 		if(factionId < 0 && faction2Id < 0)
 			return;
 
-		PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;
+		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		if(factionId >= 0 && factionPoints > 0)
 			addPoints(player, data, factionId, decreaseFactionPoints, factionPoints);
 		if(faction2Id >= 0 && faction2Points> 0)

@@ -19,17 +19,21 @@ public class CommandKamkeel extends CommandBase{
 	
 	public Map<String, CommandKamkeelBase> map = new HashMap<String, CommandKamkeelBase>();
 	public HelpCommand help = new HelpCommand(this);
-	
+	public String[] alias = {"kam"};
+
 	public CommandKamkeel(){
 		registerCommand(help);
 		registerCommand(new ScriptCommand());
 		registerCommand(new SlayCommand());
 		registerCommand(new QuestCommand());
+		registerCommand(new QuestCategoryCommand());
 		registerCommand(new DialogCommand());
+		registerCommand(new DialogCategoryCommand());
 		registerCommand(new FactionCommand());
 		registerCommand(new NpcCommand());
 		registerCommand(new CloneCommand());
 		registerCommand(new ConfigCommand());
+		registerCommand(new AnimationCommand());
 	}
 	
 	public void registerCommand(CommandKamkeelBase command){
@@ -42,6 +46,12 @@ public class CommandKamkeel extends CommandBase{
 	@Override
 	public String getCommandName() {
 		return "kamkeel";
+	}
+
+	@Override
+	public List getCommandAliases()
+	{
+		return Arrays.asList(alias);
 	}
 
 	@Override

@@ -36,24 +36,24 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     {
         super.initGui();        
         scroll = new GuiCustomScroll(this,0);
-        scroll.setSize(190, 175);
+        scroll.setSize(303, 175);
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 16;
         addScroll(scroll);
         
         addLabel(new GuiNpcLabel(0,"All Players", guiLeft + 10, guiTop + 6));
 
-        this.addButton(new GuiNpcButton(0, guiLeft + 200, guiTop + 10,98, 20, "selectWorld.deleteButton"));
-    	this.addButton(new GuiNpcButton(1, guiLeft + 200, guiTop + 32,98, 20, "Players"));
-    	this.addButton(new GuiNpcButton(2, guiLeft + 200, guiTop + 54,98, 20, "Quest Data"));
-    	this.addButton(new GuiNpcButton(3, guiLeft + 200, guiTop + 76,98, 20, "Dialog Data"));
-    	this.addButton(new GuiNpcButton(4, guiLeft + 200, guiTop + 98,98, 20, "Transport Data"));
-    	this.addButton(new GuiNpcButton(5, guiLeft + 200, guiTop + 120,98, 20, "Bank Data"));
-    	this.addButton(new GuiNpcButton(6, guiLeft + 200, guiTop + 142,98, 20, "Faction Data"));
+        this.addButton(new GuiNpcButton(0, guiLeft + 313, guiTop + 10,98, 20, "selectWorld.deleteButton"));
+    	this.addButton(new GuiNpcButton(1, guiLeft + 313, guiTop + 32,98, 20, "Players"));
+    	this.addButton(new GuiNpcButton(2, guiLeft + 313, guiTop + 54,98, 20, "Quest Data"));
+    	this.addButton(new GuiNpcButton(3, guiLeft + 313, guiTop + 76,98, 20, "Dialog Data"));
+    	this.addButton(new GuiNpcButton(4, guiLeft + 313, guiTop + 98,98, 20, "Transport Data"));
+    	this.addButton(new GuiNpcButton(5, guiLeft + 313, guiTop + 120,98, 20, "Bank Data"));
+    	this.addButton(new GuiNpcButton(6, guiLeft + 313, guiTop + 142,98, 20, "Faction Data"));
 
-		this.addButton(new GuiNpcButton(7, guiLeft + 200, guiTop + 193,98, 20, "Regen PlayerMap"));
+		this.addButton(new GuiNpcButton(7, guiLeft + 313, guiTop + 193,98, 20, "Regen PlayerMap"));
 
-    	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 193, 190, 20, search));
+    	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 193, 303, 20, search));
     	getTextField(0).enabled = selection == EnumPlayerData.Players;
     	
         initButtons();

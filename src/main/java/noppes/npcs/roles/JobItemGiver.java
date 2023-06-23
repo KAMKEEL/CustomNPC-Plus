@@ -93,7 +93,7 @@ public class JobItemGiver extends JobInterface{
 	}
     
 	public boolean giveItems(EntityPlayer player){
-		PlayerItemGiverData data = PlayerDataController.instance.getPlayerData(player).itemgiverData;
+		PlayerItemGiverData data = PlayerDataController.Instance.getPlayerData(player).itemgiverData;
 		if(!canPlayerInteract(data)){
 			return false;
 		}

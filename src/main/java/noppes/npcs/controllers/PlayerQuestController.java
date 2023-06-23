@@ -21,22 +21,22 @@ import java.util.Vector;
 public class PlayerQuestController {
 
 	public static boolean hasActiveQuests(EntityPlayer player){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return !data.activeQuests.isEmpty();
 	}
 	
 	public static boolean isQuestActive(EntityPlayer player, int quest){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.activeQuests.containsKey(quest);
 	}
 	
 	public static boolean isQuestFinished(EntityPlayer player, int questid){
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.finishedQuests.containsKey(questid);
 	}
 
 	public static void addActiveQuest(QuestData questData, EntityPlayer player) {
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		if(canQuestBeAccepted(questData.quest, player)){
 			if (EventHooks.onQuestStarted(player, questData.quest)) {
 				return;
@@ -58,7 +58,7 @@ public class PlayerQuestController {
 	}
 	
 	public static void setQuestFinished(Quest quest, EntityPlayer player){
-		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData data = playerdata.questData;
 		QuestData questData = data.activeQuests.get(quest.id);
 		data.activeQuests.remove(quest.id);
@@ -83,7 +83,7 @@ public class PlayerQuestController {
 		if(quest == null)
 			return false;
 
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		if(data.activeQuests.containsKey(quest.id))
 			return false;
 		
@@ -111,7 +111,7 @@ public class PlayerQuestController {
 	public static Vector<Quest> getActiveQuests(EntityPlayer player)
 	{
 		Vector<Quest> quests = new Vector<Quest>();
-		PlayerQuestData data = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		for(QuestData questdata: data.activeQuests.values()){
 			if(questdata.quest == null)
 				continue;

@@ -12,13 +12,13 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 
 public class GlobalDataController {
-	public static GlobalDataController instance;
+	public static GlobalDataController Instance;
 	
 	private int itemGiverId = 0;
 	public HashMap<Integer, JobItemGiver> itemGivers = new HashMap<>();
 	
 	public GlobalDataController(){
-		instance = this;
+		Instance = this;
 		load();
 	}
 	

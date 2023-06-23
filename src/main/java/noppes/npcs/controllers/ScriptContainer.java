@@ -150,8 +150,10 @@ public class ScriptContainer {
         if(errored || !hasCode() || unknownFunctions.contains(type) || !ConfigScript.ScriptingEnabled)
             return;
 
+        this.setEngine(handler.getLanguage());
         if(engine == null)
             return;
+
         if(ScriptController.Instance.lastLoaded > this.lastCreated){
             this.lastCreated = ScriptController.Instance.lastLoaded;
             evaluated = false;
@@ -232,14 +234,13 @@ public class ScriptContainer {
     }
 
     public void setEngine(String scriptLanguage) {
-        if(currentScriptLanguage != null && currentScriptLanguage.equals(scriptLanguage))
-            return;
-        if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
-            System.setProperty("nashorn.args", "--language=es6");
+        if (!Objects.equals(scriptLanguage, this.currentScriptLanguage)) {
+            this.currentScriptLanguage = scriptLanguage;
+            if (ConfigScript.ScriptingECMA6 && scriptLanguage.equals("ECMAScript")) {
+                System.setProperty("nashorn.args", "--language=es6");
+            }
+            this.engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
+            this.evaluated = false;
         }
-        this.engine = ScriptController.Instance.getEngineByName(scriptLanguage.toLowerCase());
-
-        currentScriptLanguage = scriptLanguage;
-        evaluated = false;
     }
 }

@@ -20,6 +20,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.BossStatus;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
@@ -343,10 +344,10 @@ public class RenderNPCInterface extends RenderLiving{
 					}
 					if (npc.display.skinType == 2) {
 						npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-						loadSkin(null, npc.textureLocation, npc.display.url, false);
+						ClientCacheHandler.getNPCTexture(npc.display.url, false, npc.textureLocation);
 					} else {
 						npc.textureLocation = new ResourceLocation("skins64/" + sb.toString());
-						loadSkin(null, npc.textureLocation, npc.display.url, true);
+						ClientCacheHandler.getNPCTexture(npc.display.url, true, npc.textureLocation);
 					}
 					LastTextureTick = 0;
 				} catch(Exception ignored){}
@@ -399,13 +400,6 @@ public class RenderNPCInterface extends RenderLiving{
 				inputstream.close();
 			}
 		}
-	}
-
-	// 64x64 Skin is True
-	private void loadSkin(File file, ResourceLocation resource, String par1Str, boolean version){
-		TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-		ITextureObject object = new ImageDownloadAlt(file, par1Str, SkinManager.field_152793_a, new ImageBufferDownloadAlt(version));
-		texturemanager.loadTexture(resource, object);
 	}
 
 }

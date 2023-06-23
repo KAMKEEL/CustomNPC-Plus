@@ -80,7 +80,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	@Override
 	public Vector<String> getQuestLogStatus(EntityPlayer player) {
 		Vector<String> vec = new Vector<String>();
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.activeQuests.get(questId);
 		if(data == null)
 			return vec;
@@ -143,7 +143,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		}
 
 		public int getProgress() {
-			PlayerData data = PlayerDataController.instance.getPlayerData(player);
+			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 			PlayerQuestData playerdata = data.questData;
 			QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
 			if(questdata != null){
@@ -155,7 +155,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= this.amount) {
-				PlayerData data = PlayerDataController.instance.getPlayerData(player);
+				PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 				PlayerQuestData playerdata = data.questData;
 				QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
 				if(questdata != null){

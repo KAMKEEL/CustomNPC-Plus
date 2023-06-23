@@ -90,7 +90,7 @@ public class ContainerMail extends ContainerNpcInterface{
     public void onContainerClosed(EntityPlayer player){
         super.onContainerClosed(player);
         if(!canEdit && !player.worldObj.isRemote){
-			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
+			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();

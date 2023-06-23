@@ -82,7 +82,7 @@ public class SpawnData extends WeightedRandom.Item implements INaturalSpawn {
 
 		Set<Map.Entry<Integer,NBTTagCompound>> entries = this.spawnCompounds.entrySet();
 		for (Map.Entry<Integer,NBTTagCompound> entry : entries) {
-			compound.setTag("SpawnCompound"+entry.getKey(),entry.getValue());
+			compound.setTag("SpawnCompound" + entry.getKey(), entry.getValue() != null ? entry.getValue() : new NBTTagCompound());
 		}
 
 		compound.setBoolean("AnimalSpawning", animalSpawning);

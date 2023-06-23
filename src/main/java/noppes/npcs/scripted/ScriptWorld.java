@@ -3,7 +3,6 @@ package noppes.npcs.scripted;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
 import net.minecraft.block.BlockLiquid;
-import net.minecraft.block.material.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,7 +19,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
@@ -35,7 +33,6 @@ import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.scoreboard.IScoreboard;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -524,7 +521,7 @@ public class ScriptWorld implements IWorld {
 		return this.isBreakCancelled(pos.getX(),pos.getY(),pos.getZ());
 	}
 
-	public MovingObjectPosition func_147447_a(Vec3 startVec, Vec3 endVec, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision)
+	public MovingObjectPosition rayCast(Vec3 startVec, Vec3 endVec, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision)
 	{
 		if (!Double.isNaN(startVec.xCoord) && !Double.isNaN(startVec.yCoord) && !Double.isNaN(startVec.zCoord))
 		{
@@ -745,7 +742,7 @@ public class ScriptWorld implements IWorld {
 			return endPos;
 		}
 
-		MovingObjectPosition mob = this.func_147447_a(startVec,endVec,stopOnBlock,stopOnLiquid,stopOnCollision);
+		MovingObjectPosition mob = this.rayCast(startVec,endVec,stopOnBlock,stopOnLiquid,stopOnCollision);
 		return mob != null ? NpcAPI.Instance().getIPos(mob.blockX,mob.blockY,mob.blockZ) : endPos;
 	}
 
@@ -809,40 +806,249 @@ public class ScriptWorld implements IWorld {
 	public IEntity[] rayCastEntities(double[] startPos, double[] lookVector,
 										  int maxDistance, double offset, double range,
 										  boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
-		ArrayList<IEntity> entities = new ArrayList<>();
+		return rayCastEntities(null,startPos,lookVector,maxDistance,offset,range,stopOnBlock,stopOnLiquid,stopOnCollision);
+	}
 
-		Vec3 currentPos = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]); int rep = 0;
-		currentPos = currentPos.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
-
-		while (rep++ < maxDistance + 10) {
-			currentPos = currentPos.addVector(lookVector[0], lookVector[1], lookVector[2]);
-			IPos pos = NpcAPI.Instance().getIPos(currentPos.xCoord, currentPos.yCoord, currentPos.zCoord);
-			IBlock block = getBlock(pos);
-
-			if (block != null && stopOnBlock) {
-				if ((!stopOnLiquid || block.getMCBlock() instanceof BlockLiquid)
-						&& (!stopOnCollision || block.canCollide()))
-					return entities.toArray(new IEntity[0]);
-			}
-
-			IEntity[] entitiesNear = getEntitiesNear(pos,range);
-			for (IEntity entity : entitiesNear) {
-				if (!entities.contains(entity)) {
-					entities.add(entity);
-				}
-			}
-
-			double distance = Math.pow(
-					Math.pow(currentPos.xCoord-startPos[0],2)
-							+Math.pow(currentPos.yCoord-startPos[1],2)
-							+Math.pow(currentPos.zCoord-startPos[2],2)
-					, 0.5);
-			if (distance > maxDistance) {
-				break;
-			}
+	public IEntity[] rayCastEntities(IEntity[] ignoreEntities, double[] startPos, double[] lookVector,
+									 int maxDistance, double offset, double range,
+									 boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision) {
+		if (ignoreEntities == null) {
+			ignoreEntities = new IEntity[0];
 		}
 
+		Vec3 startVec = Vec3.createVectorHelper(startPos[0], startPos[1], startPos[2]);
+		Vec3 endVec = startVec.addVector(lookVector[0]*maxDistance,lookVector[1]*maxDistance,lookVector[2]*maxDistance);
+		startVec = startVec.addVector(lookVector[0]*offset, lookVector[1]*offset, lookVector[2]*offset);
+
+		LinkedHashSet<IEntity> ignoredEntitiesSet = new LinkedHashSet<>();
+		Collections.addAll(ignoredEntitiesSet, ignoreEntities);
+
+		Set<IEntity<?>> entities = this.rayCastEntities(ignoredEntitiesSet,startVec,endVec,range,stopOnBlock,stopOnLiquid,stopOnCollision);
 		return entities.toArray(new IEntity[0]);
+	}
+
+	public Set<IEntity<?>> rayCastEntities(LinkedHashSet<IEntity> ignoredEntitiesSet, Vec3 startVec, Vec3 endVec, double range, boolean stopOnBlock, boolean stopOnLiquid, boolean stopOnCollision)
+	{
+		LinkedHashSet<IEntity<?>> entities = new LinkedHashSet<>();
+
+		if (!Double.isNaN(startVec.xCoord) && !Double.isNaN(startVec.yCoord) && !Double.isNaN(startVec.zCoord))
+		{
+			if (!Double.isNaN(endVec.xCoord) && !Double.isNaN(endVec.yCoord) && !Double.isNaN(endVec.zCoord))
+			{
+				int endX = MathHelper.floor_double(endVec.xCoord);
+				int endY = MathHelper.floor_double(endVec.yCoord);
+				int endZ = MathHelper.floor_double(endVec.zCoord);
+				int l = MathHelper.floor_double(startVec.xCoord);
+				int i1 = MathHelper.floor_double(startVec.yCoord);
+				int j1 = MathHelper.floor_double(startVec.zCoord);
+				Block block = this.world.getBlock(l, i1, j1);
+				int k1 = this.world.getBlockMetadata(l, i1, j1);
+
+				IEntity<?>[] surrounding = this.getEntitiesNear(l,i1,j1,range);
+				for (IEntity<?> entity : surrounding) {
+					if (!ignoredEntitiesSet.contains(entity)) {
+						entities.add(entity);
+					}
+				}
+
+				if (block.canCollideCheck(k1, false))
+				{
+					MovingObjectPosition movingobjectposition = block.collisionRayTrace(this.world, l, i1, j1, startVec, endVec);
+
+					if (movingobjectposition != null)
+					{
+						return entities;
+					}
+				}
+
+				k1 = 200;
+
+				while (k1-- >= 0)
+				{
+					if (Double.isNaN(startVec.xCoord) || Double.isNaN(startVec.yCoord) || Double.isNaN(startVec.zCoord))
+					{
+						return entities;
+					}
+
+					if (l == endX && i1 == endY && j1 == endZ)
+					{
+						return entities;
+					}
+
+					boolean flag6 = true;
+					boolean flag3 = true;
+					boolean flag4 = true;
+					double d0 = 999.0D;
+					double d1 = 999.0D;
+					double d2 = 999.0D;
+
+					if (endX > l)
+					{
+						d0 = (double)l + 1.0D;
+					}
+					else if (endX < l)
+					{
+						d0 = (double)l + 0.0D;
+					}
+					else
+					{
+						flag6 = false;
+					}
+
+					if (endY > i1)
+					{
+						d1 = (double)i1 + 1.0D;
+					}
+					else if (endY < i1)
+					{
+						d1 = (double)i1 + 0.0D;
+					}
+					else
+					{
+						flag3 = false;
+					}
+
+					if (endZ > j1)
+					{
+						d2 = (double)j1 + 1.0D;
+					}
+					else if (endZ < j1)
+					{
+						d2 = (double)j1 + 0.0D;
+					}
+					else
+					{
+						flag4 = false;
+					}
+
+					double d3 = 999.0D;
+					double d4 = 999.0D;
+					double d5 = 999.0D;
+					double d6 = endVec.xCoord - startVec.xCoord;
+					double d7 = endVec.yCoord - startVec.yCoord;
+					double d8 = endVec.zCoord - startVec.zCoord;
+
+					if (flag6)
+					{
+						d3 = (d0 - startVec.xCoord) / d6;
+					}
+
+					if (flag3)
+					{
+						d4 = (d1 - startVec.yCoord) / d7;
+					}
+
+					if (flag4)
+					{
+						d5 = (d2 - startVec.zCoord) / d8;
+					}
+
+					byte b0;
+
+					if (d3 < d4 && d3 < d5)
+					{
+						if (endX > l)
+						{
+							b0 = 4;
+						}
+						else
+						{
+							b0 = 5;
+						}
+
+						startVec.xCoord = d0;
+						startVec.yCoord += d7 * d3;
+						startVec.zCoord += d8 * d3;
+					}
+					else if (d4 < d5)
+					{
+						if (endY > i1)
+						{
+							b0 = 0;
+						}
+						else
+						{
+							b0 = 1;
+						}
+
+						startVec.xCoord += d6 * d4;
+						startVec.yCoord = d1;
+						startVec.zCoord += d8 * d4;
+					}
+					else
+					{
+						if (endZ > j1)
+						{
+							b0 = 2;
+						}
+						else
+						{
+							b0 = 3;
+						}
+
+						startVec.xCoord += d6 * d5;
+						startVec.yCoord += d7 * d5;
+						startVec.zCoord = d2;
+					}
+
+					Vec3 vec32 = Vec3.createVectorHelper(startVec.xCoord, startVec.yCoord, startVec.zCoord);
+					l = (int)(vec32.xCoord = (double)MathHelper.floor_double(startVec.xCoord));
+
+					if (b0 == 5)
+					{
+						--l;
+						++vec32.xCoord;
+					}
+
+					i1 = (int)(vec32.yCoord = (double)MathHelper.floor_double(startVec.yCoord));
+
+					if (b0 == 1)
+					{
+						--i1;
+						++vec32.yCoord;
+					}
+
+					j1 = (int)(vec32.zCoord = (double)MathHelper.floor_double(startVec.zCoord));
+
+					if (b0 == 3)
+					{
+						--j1;
+						++vec32.zCoord;
+					}
+
+					Block block1 = this.world.getBlock(l, i1, j1);
+					int l1 = this.world.getBlockMetadata(l, i1, j1);
+
+					IEntity<?>[] surroundingEntities = this.getEntitiesNear(l,i1,j1,range);
+					for (IEntity<?> entity : surroundingEntities) {
+						if (!ignoredEntitiesSet.contains(entity)) {
+							entities.add(entity);
+						}
+					}
+
+					MovingObjectPosition movingobjectposition1 = block1.collisionRayTrace(this.world, l, i1, j1, startVec, endVec);
+					if (movingobjectposition1 != null)
+					{
+						if (block1.canCollideCheck(l1, false) && stopOnBlock ||
+								block1.getMaterial().isLiquid() && stopOnLiquid ||
+								!(block1 instanceof BlockAir) && block1.getCollisionBoundingBoxFromPool(this.world,l,i1,j1) == null && !stopOnCollision)
+						{
+							return entities;
+						}
+					}
+				}
+
+				return entities;
+			}
+			else
+			{
+				return entities;
+			}
+		}
+		else
+		{
+			return entities;
+		}
 	}
 
 	public IEntity[] rayCastEntities(IPos startPos, IPos lookVector,

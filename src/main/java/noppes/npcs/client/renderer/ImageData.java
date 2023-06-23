@@ -1,8 +1,10 @@
-package noppes.npcs.client.renderer.customitem;
+package noppes.npcs.client.renderer;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
@@ -35,6 +37,15 @@ public class ImageData {
         }
     }
 
+    // For NPC Skins Only
+    public ImageData(String directory, boolean x64, ResourceLocation resource) {
+        this.location = resource;
+        this.isUrl = true;
+        TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
+        this.imageDownloadAlt = new ImageDownloadAlt(null, directory, SkinManager.field_152793_a, new ImageBufferDownloadAlt(x64));
+        texturemanager.loadTexture(this.location, this.imageDownloadAlt);
+    }
+
     public boolean imageLoaded() {
         if (!this.gotWidthHeight) {
             try {
@@ -46,6 +57,10 @@ public class ImageData {
             } catch (Exception ignored) {}
         }
         return !this.invalid && this.location != null && this.gotWidthHeight;
+    }
+
+    public boolean invalid() {
+        return this.invalid;
     }
 
     public void bindTexture() {

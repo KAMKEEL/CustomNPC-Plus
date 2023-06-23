@@ -1,13 +1,12 @@
 package noppes.npcs.mixin;
 
-import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import noppes.npcs.AnimationData;
-import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Frame;
@@ -110,14 +109,20 @@ public abstract class MixinModelRenderer {
                 if (ClientEventHandler.renderingPlayer != null) {
                     ClientEventHandler.playerModel = ((ModelRenderer) (Object) this).baseModel;
                 }
-                if (ClientEventHandler.renderingPlayer != null && Client.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
-                    animData = Client.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
-                    EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
-                    EnumAnimationPart pivotEqualPart = null;
-                    if (mainPartType == null) {
-                        pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
+                if (ClientEventHandler.renderingPlayer != null && ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
+                    animData = ClientCacheHandler.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
+
+                    EnumAnimationPart mainPartType = null;
+                    try{
+                        EnumAnimationPart pivotEqualPart = null;
+                        mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
+                        if (mainPartType == null) {
+                            pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
+                        }
+                        partType = mainPartType != null ? mainPartType : pivotEqualPart;
                     }
-                    partType = mainPartType != null ? mainPartType : pivotEqualPart;
+                    catch (Exception ignored){}
+
                     if (partType != null && animData != null) {
                         if (!ClientEventHandler.originalValues.containsKey((ModelRenderer) (Object) this)) {
                             FramePart part = new FramePart();

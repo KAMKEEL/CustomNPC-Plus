@@ -70,7 +70,7 @@ public class RoleCompanion extends RoleInterface {
 		}
 		else if(prev != owner && owner != null){
 			ownerName = owner.getDisplayName();
-			PlayerData data = PlayerDataController.instance.getPlayerData(owner);
+			PlayerData data = PlayerDataController.Instance.getPlayerData(owner);
 			if(data.companionID != companionID){
 				npc.isDead = true;
 			}
@@ -523,7 +523,7 @@ public class RoleCompanion extends RoleInterface {
 	public void setSelfsuficient(boolean bo){
 		if(owner == null || jobInterface != null && bo == jobInterface.isSelfSufficient())
 			return;
-		PlayerData data = PlayerDataController.instance.getPlayerData(owner);
+		PlayerData data = PlayerDataController.Instance.getPlayerData(owner);
 		if(!bo && data.hasCompanion())
 			return;
 		data.setCompanion(bo?null:npc);

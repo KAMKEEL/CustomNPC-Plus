@@ -61,6 +61,7 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
+import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
@@ -70,6 +71,7 @@ import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
+    private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60*1000);
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
@@ -79,6 +81,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public static void clearCache() {
         worldCache.clear();
+        scriptItemCache.clear();
     }
 
     public void registerICommand(ICommand command) {
@@ -285,6 +288,10 @@ public class NpcAPI extends AbstractNpcAPI {
         return this.getIPos((int)x,(int)y,(int)z);
     }
 
+    public IPos getIPos(long serializedPos) {
+        return this.getIPos(BlockPos.fromLong(serializedPos));
+    }
+
     public IPos[] getAllInBox(IPos from, IPos to, boolean sortByDistance) {
         ArrayList<IPos> list = new ArrayList<>();
         if (from != null && to != null) {
@@ -361,16 +368,26 @@ public class NpcAPI extends AbstractNpcAPI {
         if(itemstack == null)
             return null;
 
-        if (itemstack.getItem() instanceof ItemScripted) {
-            return new ScriptCustomItem(itemstack);
-        } else if(itemstack.getItem() instanceof ItemArmor) {
-            return new ScriptItemArmor(itemstack);
-        } else if(itemstack.getItem() instanceof ItemBook) {
-            return new ScriptItemBook(itemstack);
-        } else if(itemstack.getItem() instanceof ItemBlock) {
-            return new ScriptItemBlock(itemstack);
-        } else {
-            return new ScriptItemStack(itemstack);
+        synchronized (scriptItemCache) {
+            ScriptItemStack scriptStack;
+            if (scriptItemCache.containsKey(itemstack)) {
+                scriptStack = scriptItemCache.get(itemstack).getObject();
+            } else {
+                if (itemstack.getItem() instanceof ItemScripted) {
+                    scriptStack = new ScriptCustomItem(itemstack);
+                } else if (itemstack.getItem() instanceof ItemArmor) {
+                    scriptStack = new ScriptItemArmor(itemstack);
+                } else if (itemstack.getItem() instanceof ItemBook) {
+                    scriptStack = new ScriptItemBook(itemstack);
+                } else if (itemstack.getItem() instanceof ItemBlock) {
+                    scriptStack = new ScriptItemBlock(itemstack);
+                } else {
+                    scriptStack = new ScriptItemStack(itemstack);
+                }
+                scriptItemCache.put(itemstack, new CacheHashMap.CachedObject<>(scriptStack));
+            }
+
+            return scriptStack;
         }
     }
 

@@ -173,7 +173,7 @@ public class PacketHandlerPlayer{
 				return;
 			int slot = buffer.readInt();
 			int bankId = buffer.readInt();
-			BankData data = PlayerDataController.instance.getBankData(player,bankId).getBankOrDefault(bankId);
+			BankData data = PlayerDataController.Instance.getBankData(player,bankId).getBankOrDefault(bankId);
 			data.openBankGui(player, npc, bankId, slot);
 		}
 		else if(type == EnumPlayerPacket.Dialog){
@@ -183,25 +183,25 @@ public class PacketHandlerPlayer{
 			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
 		}
 		else if(type == EnumPlayerPacket.CheckQuestCompletion){
-			PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
-			PlayerQuestData questData = PlayerDataController.instance.getPlayerData(player).questData;
+			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+			PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
 			questData.checkQuestCompletion(playerData, null);
 		}
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);
 		}
 		else if(type == EnumPlayerPacket.FactionsGet){
-			PlayerFactionData data = PlayerDataController.instance.getPlayerData(player).factionData;	
+			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 			Server.sendData(player, EnumPacketClient.GUI_DATA, data.getPlayerGuiData());
 		}
 		else if(type == EnumPlayerPacket.MailGet){
-			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
+			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			Server.sendData(player, EnumPacketClient.GUI_DATA, data.saveNBTData(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.MailDelete){
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
-			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
+			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
@@ -215,7 +215,7 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.MailSend){
 			if(!(player.openContainer instanceof ContainerMail))
 				return;
-			String username = PlayerDataController.instance.hasPlayer(Server.readString(buffer));
+			String username = PlayerDataController.Instance.hasPlayer(Server.readString(buffer));
 			if(username.isEmpty()){
 				NoppesUtilServer.sendGuiError(player, 0);
 				return;
@@ -234,7 +234,7 @@ public class PacketHandlerPlayer{
 				NoppesUtilServer.sendGuiError(player, 1);
 				return;
 			}
-			PlayerDataController.instance.addPlayerMessage(username, mail);
+			PlayerDataController.Instance.addPlayerMessage(username, mail);
 			
 			NBTTagCompound comp = new NBTTagCompound();
 			comp.setString("username", username);
@@ -244,7 +244,7 @@ public class PacketHandlerPlayer{
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
 			player.closeContainer();
-			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
+			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
@@ -259,7 +259,7 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.MailRead){
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
-			PlayerMailData data = PlayerDataController.instance.getPlayerData(player).mailData;
+			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){

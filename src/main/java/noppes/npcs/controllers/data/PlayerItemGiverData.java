@@ -62,7 +62,7 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 
 	public IJobItemGiver[] getItemGivers() {
 		ArrayList<IJobItemGiver> list = new ArrayList<>();
-		for (JobItemGiver jobItemGiver : GlobalDataController.instance.itemGivers.values()) {
+		for (JobItemGiver jobItemGiver : GlobalDataController.Instance.itemGivers.values()) {
 			if (jobItemGiver.npc != null) {
 				list.add(new ScriptJobItemGiver(jobItemGiver.npc));
 			} else {

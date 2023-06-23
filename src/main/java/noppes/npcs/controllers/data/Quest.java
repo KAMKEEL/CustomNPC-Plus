@@ -144,7 +144,7 @@ public class Quest implements ICompatibilty, IQuest {
 	}
 
 	public long getTimeUntilRepeat(EntityPlayer player) {
-		long questTime = PlayerDataController.instance.getPlayerData(player).getQuestData().getLastCompletedTime(this.id);
+		long questTime = PlayerDataController.Instance.getPlayerData(player).getQuestData().getLastCompletedTime(this.id);
 
 		switch (repeat) {
 			case MCDAILY:

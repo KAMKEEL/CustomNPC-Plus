@@ -1,6 +1,5 @@
 package noppes.npcs;
 
-import foxz.utils.Utils;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
@@ -25,6 +24,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPlayerData;
@@ -52,13 +52,13 @@ public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
 
     public static void setEditingNpc(EntityPlayer player, EntityNPCInterface npc){
-    	PlayerData data = PlayerDataController.instance.getPlayerData(player);
+    	PlayerData data = PlayerDataController.Instance.getPlayerData(player);
     	data.editingNpc = npc;
     	if(npc != null)
     		Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.EDIT_NPC, npc.getEntityId());
     }
     public static EntityNPCInterface getEditingNpc(EntityPlayer player){
-    	PlayerData data = PlayerDataController.instance.getPlayerData(player);
+    	PlayerData data = PlayerDataController.Instance.getPlayerData(player);
     	return data.editingNpc;
     }
 
@@ -185,8 +185,8 @@ public class NoppesUtilServer {
             runCommand(player, npc.getCommandSenderName(), dialog.command);
         }
         if(dialog.mail.isValid())
-        	PlayerDataController.instance.addPlayerMessage(player.getCommandSenderName(), dialog.mail);
-        PlayerDialogData data = PlayerDataController.instance.getPlayerData(player).dialogData;
+        	PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), dialog.mail);
+        PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
         if(!data.dialogsRead.contains(dialog.id))
         	data.dialogsRead.add(dialog.id);
 		setEditingNpc(player, npc);
@@ -309,7 +309,7 @@ public class NoppesUtilServer {
 	        		list.add(loc.name);
 	        	}
 	        }
-	        PlayerTransportData playerdata = PlayerDataController.instance.getPlayerData(player).transportData;
+	        PlayerTransportData playerdata = PlayerDataController.Instance.getPlayerData(player).transportData;
 	        for(int i : playerdata.transports){
 	        	TransportLocation loc = TransportController.getInstance().getTransport(i);
 	        	if(loc != null && location.category.locations.containsKey(loc.id)){
@@ -410,7 +410,7 @@ public class NoppesUtilServer {
 		Map<String,Integer> map = new HashMap<String,Integer>();
         
 		if(type == EnumPlayerData.Players){
-			for(String username : PlayerDataController.instance.nameUUIDs.keySet()){
+			for(String username : PlayerDataController.Instance.nameUUIDs.keySet()){
 				map.put(username, 0);
 			}
 			for(String username : MinecraftServer.getServer().getConfigurationManager().getAllUsernames()){
@@ -418,7 +418,7 @@ public class NoppesUtilServer {
 			}
 		}
 		else{
-			PlayerData playerdata = PlayerDataController.instance.getDataFromUsername(name);
+			PlayerData playerdata = PlayerDataController.Instance.getDataFromUsername(name);
 			if(type == EnumPlayerData.Dialog){
 				PlayerDialogData data = playerdata.dialogData;
 				
@@ -488,24 +488,30 @@ public class NoppesUtilServer {
         EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(name);
 		PlayerData playerdata = null;
 		if(pl == null)
-			playerdata = PlayerDataController.instance.getDataFromUsername(name);
+			playerdata = PlayerDataController.Instance.getDataFromUsername(name);
 		else
-			playerdata = PlayerDataController.instance.getPlayerData(pl);
+			playerdata = PlayerDataController.Instance.getPlayerData(pl);
 
         if(type == EnumPlayerData.Players){
-            File file = new File(PlayerDataController.instance.getSaveDir(), playerdata.uuid + ".json");
+			String fileType = ".json";
+			if(ConfigMain.DatFormat){
+				fileType = ".dat";
+			}
+            File file = new File(PlayerDataController.Instance.getSaveDir(), playerdata.uuid + fileType);
             if(file.exists())
             	file.delete();
             if(pl != null){
+				PlayerDataController.Instance.removePlayerDataCache(pl.getUniqueID().toString());
+
+				PlayerDataController.Instance.nameUUIDs.remove(name);
+				PlayerDataController.Instance.savePlayerDataMap();
+
             	playerdata.setNBT(new NBTTagCompound());
                 sendPlayerData(type, player, name);
                 playerdata.save();
+
                 return;
             }
-			else {
-				PlayerDataController.instance.nameUUIDs.remove(name);
-				PlayerDataController.instance.savePlayerDataMap();
-			}
         }
         if(type == EnumPlayerData.Quest){
         	PlayerQuestData data = playerdata.questData;
@@ -538,7 +544,7 @@ public class NoppesUtilServer {
 	}
 
 	public static void regenPlayerData(EntityPlayerMP player) throws IOException {
-		PlayerDataController.instance.generatePlayerMap(player);
+		PlayerDataController.Instance.generatePlayerMap(player);
 	}
 	
 	public static void sendRecipeData(EntityPlayerMP player, int size) {
@@ -814,7 +820,7 @@ public class NoppesUtilServer {
 	}
 
 	public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {
-		PlayerData playerdata = PlayerDataController.instance.getPlayerData(player);
+		PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
 		boolean isGUIOpen = buffer.readBoolean();
 		playerdata.setGUIOpen(isGUIOpen);
 	}

@@ -370,7 +370,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		addInteract(player);
 
 		Dialog dialog = getDialog(player);
-		PlayerQuestData playerdata = PlayerDataController.instance.getPlayerData(player).questData;
+		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.getQuestCompletion(player, this);
 		if (data != null){
 			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);

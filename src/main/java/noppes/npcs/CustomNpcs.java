@@ -32,11 +32,9 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Set;
-import java.util.UUID;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.8.4")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.8.6")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -206,6 +204,7 @@ public class CustomNpcs {
         ScriptController.Instance.loadPlayerScripts();
         ScriptController.HasStart = false;
         NpcAPI.clearCache();
+        PlayerDataController.Instance.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
         for(String name : names){
@@ -237,7 +236,7 @@ public class CustomNpcs {
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){
         ServerCloneController.Instance = null;
-        GlobalDataController.instance.saveData();
+        GlobalDataController.Instance.saveData();
         ScriptController.Instance.saveForgeScripts();
         ScriptController.Instance.savePlayerScripts();
         ScriptController.Instance.saveGlobalNpcScripts();

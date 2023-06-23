@@ -34,7 +34,7 @@ public class RolePostman extends RoleInterface{
 		recentlyChecked.addAll(toCheck);
 		
 		for(EntityPlayer player : toCheck){
-			if(PlayerDataController.instance.hasMail(player))
+			if(PlayerDataController.Instance.hasMail(player))
 				player.addChatMessage(new ChatComponentTranslation("You've got mail"));			
 		}
 		return false;

@@ -895,4 +895,8 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	public IWorld getWorld() {
 		return NpcAPI.Instance().getIWorld(entity.worldObj);
 	}
+
+	public boolean equals(Object object) {
+		return object instanceof IEntity && ((IEntity<?>)object).getMCEntity().equals(this.entity);
+	}
 }

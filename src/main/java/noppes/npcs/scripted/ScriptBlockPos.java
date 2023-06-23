@@ -120,7 +120,8 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos fromLong(long serialized) {
-        return NpcAPI.Instance().getIPos(BlockPos.fromLong(serialized));
+        this.blockPos = BlockPos.fromLong(serialized);
+        return this;
     }
 
     public IPos normalize() {
@@ -153,5 +154,9 @@ public class ScriptBlockPos implements IPos {
 
     public String toString() {
         return "(" + this.getX() + ", " + this.getY() + ", " + this.getZ() + ")";
+    }
+
+    public boolean equals(Object object) {
+        return object instanceof IPos && ((IPos) object).toLong() == this.toLong();
     }
 }

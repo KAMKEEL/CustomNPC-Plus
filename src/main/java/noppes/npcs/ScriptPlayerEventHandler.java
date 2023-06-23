@@ -25,7 +25,6 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
@@ -64,19 +63,19 @@ public class ScriptPlayerEventHandler {
                 }
             }
 
-            if (PlayerDataController.instance != null) {
-                PlayerData playerData = PlayerDataController.instance.getPlayerData(player);
+            if (PlayerDataController.Instance != null) {
+                PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
                 if (playerData.timers.size() > 0) {
                     playerData.timers.update();
                 }
 
                 if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId())) {
-                    PlayerDataController.instance.getPlayerData(player).questData.untrackQuest();
+                    PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
                 }
 
-                if (player.ticksExisted % 20 == 0 && !PlayerDataController.instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
-                    PlayerDataController.instance.getPlayerData(player).skinOverlays.updateClient();
+                if (player.ticksExisted % 20 == 0 && !PlayerDataController.Instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
+                    PlayerDataController.Instance.getPlayerData(player).skinOverlays.updateClient();
                 }
 
                 if (player.ticksExisted % (TrackedQuestUpdateFrequency * 20) == 0) {
@@ -476,12 +475,12 @@ public class ScriptPlayerEventHandler {
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
 
-            Quest quest = (Quest) PlayerDataController.instance.getPlayerData(event.player).questData.getTrackedQuest();
+            Quest quest = (Quest) PlayerDataController.Instance.getPlayerData(event.player).questData.getTrackedQuest();
             if (quest != null) {
                 NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
             }
 
-            PlayerDataController.instance.getPlayerData(event.player).skinOverlays.updateClient();
+            PlayerDataController.Instance.getPlayerData(event.player).skinOverlays.updateClient();
         }
     }
 

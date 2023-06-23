@@ -9,10 +9,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
 import noppes.npcs.api.gui.ICustomGuiComponent;
-import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
-import noppes.npcs.client.renderer.customitem.ImageData;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
 import org.lwjgl.opengl.GL11;
 
@@ -50,7 +50,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
         this.textureX = textureX;
         this.textureY = textureY;
         if (texture != null && !texture.isEmpty()) {
-            this.imageData = Client.getImageData(texture);
+            this.imageData = ClientCacheHandler.getImageData(texture);
         }
     }
 
