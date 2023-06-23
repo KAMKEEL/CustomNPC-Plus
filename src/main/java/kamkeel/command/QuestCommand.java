@@ -178,7 +178,7 @@ public class QuestCommand extends CommandKamkeelBase {
 
     @SubCommand(
             desc = "Find quest id number by its name",
-            usage = "<quest name>"
+            usage = "<questName>"
     )
     public void id(ICommandSender sender, String args[]) throws CommandException {
         if(args.length == 0){
@@ -198,6 +198,46 @@ public class QuestCommand extends CommandKamkeelBase {
         if(count == 0){
             sendResult(sender, String.format("No Quest found with name: \u00A7c'%s'", catName));
         }
+    }
+
+    @SubCommand(
+            desc = "Find prerequisite quests for an id",
+            usage = "<questId>"
+    )
+    public void prereq(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide an id for the quest");
+            return;
+        }
+
+        int questid;
+        try {
+            questid = Integer.parseInt(args[0]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
+        }
+
+        Quest quest = QuestController.instance.quests.get(questid);
+        if (quest == null){
+            sendError(sender, "Unknown QuestID");
+            return;
+        }
+        final Collection<Quest> quests = QuestController.instance.quests.values();
+        sendResult(sender, "Prerequisites:");
+        sendResult(sender, "--------------------");
+        boolean foundOne = false;
+        for(Quest allQuest : quests){
+            if(allQuest.nextQuestid == questid){
+                foundOne = true;
+                sendResult(sender, String.format("Quest %d: \u00A7a'%s'", allQuest.id, allQuest.title));
+            }
+        }
+
+        if(!foundOne){
+            sendResult(sender, String.format("No Prerequisites found for Quest \u00A7c%d", questid));
+        }
+        sendResult(sender, "--------------------");
     }
     
     @SubCommand(
