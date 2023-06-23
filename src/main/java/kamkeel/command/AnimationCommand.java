@@ -95,7 +95,7 @@ public class AnimationCommand extends CommandKamkeelBase {
     )
     public void reload(ICommandSender sender, String args[]){
         new AnimationController();
-        AnimationController.instance.load();
+        AnimationController.Instance.load();
         sendResult(sender, "Animations Reloaded");
     }
 }

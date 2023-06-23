@@ -135,7 +135,7 @@ public class DialogCommand extends CommandKamkeelBase {
         }
 
         String dialogName = String.join(" ", args).toLowerCase();
-        final Collection<Dialog> quests = DialogController.instance.dialogs.values();
+        final Collection<Dialog> quests = DialogController.Instance.dialogs.values();
         int count = 0;
         for(Dialog dialog : quests){
             if(dialog.getName().toLowerCase().contains(dialogName)){
@@ -165,7 +165,7 @@ public class DialogCommand extends CommandKamkeelBase {
             sendError(sender, "DialogID must be an integer: " + args[0]);
             return;
         }
-        Dialog dialog = DialogController.instance.dialogs.get(diagid);
+        Dialog dialog = DialogController.Instance.dialogs.get(diagid);
         if(dialog == null){
             sendError(sender, "Unknown dialog id: " + args[0]);
             return;
@@ -239,7 +239,7 @@ public class DialogCommand extends CommandKamkeelBase {
             sendError(sender, "DialogID must be an integer: " + args[0]);
             return;
         }
-        Dialog dialog = DialogController.instance.dialogs.get(diagid);
+        Dialog dialog = DialogController.Instance.dialogs.get(diagid);
         if(dialog == null){
             sendError(sender, "Unknown dialog id: " + args[0]);
             return;
