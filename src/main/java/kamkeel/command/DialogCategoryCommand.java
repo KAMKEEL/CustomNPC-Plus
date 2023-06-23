@@ -66,7 +66,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
-        
+
         DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
         if (dialogCategory == null){
         	sendError(sender, "Unknown DialogCatID: " + dialogCatId);

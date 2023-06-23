@@ -1,5 +1,6 @@
 package kamkeel.command;
 
+import java.util.Collection;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
@@ -7,11 +8,13 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.QuestData;
 
 public class QuestCommand extends CommandKamkeelBase {
@@ -172,6 +175,109 @@ public class QuestCommand extends CommandKamkeelBase {
             playerdata.save();
             sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
+    }
+
+    @SubCommand(
+            desc = "Find quest id number by its name",
+            usage = "<questName>"
+    )
+    public void id(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide a name for the quest");
+            return;
+        }
+
+        String catName = String.join(" ", args).toLowerCase();
+        final Collection<Quest> quests = QuestController.instance.quests.values();
+        int count = 0;
+        for(Quest quest : quests){
+            if(quest.getName().toLowerCase().contains(catName)){
+                sendResult(sender, String.format("Quest \u00A7e%d\u00A77 - \u00A7c'%s'", quest.id, quest.getName()));
+                count++;
+            }
+        }
+        if(count == 0){
+            sendResult(sender, String.format("No Quest found with name: \u00A7c'%s'", catName));
+        }
+    }
+
+    @SubCommand(
+            desc = "Find prerequisite quests for an id",
+            usage = "<questId>"
+    )
+    public void prereq(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide an id for the quest");
+            return;
+        }
+
+        int questid;
+        try {
+            questid = Integer.parseInt(args[0]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
+        }
+
+        Quest quest = QuestController.instance.quests.get(questid);
+        if (quest == null){
+            sendError(sender, "Unknown QuestID");
+            return;
+        }
+        final Collection<Quest> quests = QuestController.instance.quests.values();
+        sendResult(sender, "Prerequisites:");
+        sendResult(sender, "--------------------");
+        boolean foundOne = false;
+        for(Quest allQuest : quests){
+            if(allQuest.nextQuestid == questid){
+                foundOne = true;
+                sendResult(sender, String.format("Quest %d: \u00A7a'%s'", allQuest.id, allQuest.title));
+            }
+        }
+
+        if(!foundOne){
+            sendResult(sender, String.format("No Prerequisites found for Quest \u00A7c%d", questid));
+        }
+        sendResult(sender, "--------------------");
+    }
+
+    @SubCommand(
+            desc = "Quick info on a quest",
+            usage = "<questId>"
+    )
+    public void info(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide an id for the quest");
+            return;
+        }
+
+        int questid;
+        try {
+            questid = Integer.parseInt(args[0]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
+        }
+
+        Quest quest = QuestController.instance.quests.get(questid);
+        if (quest == null){
+            sendError(sender, "Unknown QuestID");
+            return;
+        }
+
+        sendResult(sender, "--------------------");
+        sendResult(sender, String.format("\u00A7e%d\u00A77: \u00A7a%s", quest.id, quest.title));
+        sendResult(sender, String.format("Category: \u00A7b%s", quest.category.getName()));
+        sendResult(sender, String.format("Type: \u00A76%s", quest.type.toString()));
+        sendResult(sender, String.format("Repeatable: \u00A76%s", quest.repeat.toString()));
+        sendResult(sender, String.format("Complete: \u00A76%s", quest.completion.toString()));
+        if(quest.completion == EnumQuestCompletion.Npc){
+            sendResult(sender, String.format("NPC: \u00A76%s", quest.completerNpc));
+        }
+        if(quest.nextQuestid != -1){
+            sendResult(sender, String.format("Next Quest ID: \u00A7c%d", quest.nextQuestid));
+        }
+        sendResult(sender, "--------------------");
     }
     
     @SubCommand(

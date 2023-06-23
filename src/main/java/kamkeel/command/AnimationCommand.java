@@ -4,6 +4,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.PlayerData;
 
@@ -49,42 +50,52 @@ public class AnimationCommand extends CommandKamkeelBase {
         data.get(0).save();
 	}
 
-    @SubCommand(desc = "enable animation")
-    public void on(ICommandSender sender, String[] args) throws CommandException {
-        data.get(0).animationData.setEnabled(true);
-        sendMessage(sender, String.format("Animations enabled for Player %s", data.get(0).player.getCommandSenderName()));
-
-    }
+//    @SubCommand(desc = "enable animation")
+//    public void on(ICommandSender sender, String[] args) throws CommandException {
+//        data.get(0).animationData.setEnabled(true);
+//        sendMessage(sender, String.format("Animations enabled for Player %s", data.get(0).player.getCommandSenderName()));
+//
+//    }
+//
+//    @SubCommand(
+//            desc = "Set animation",
+//            usage = "<animation>"
+//    )
+//    public void set(ICommandSender sender, String[] args) throws CommandException {
+//        if(args.length != 1){
+//            throw new CommandException("Please include the animation name:" + "<player> set <animation name>");
+//        }
+//        String animationName = args[0];
+//        selectedAnimation = AnimationController.getInstance().getAnimationFromName(animationName);
+//        if (selectedAnimation == null) {
+//            throw new CommandException("Unknown animation: " + animationName);
+//        }
+//
+//        data.get(0).animationData.setAnimation(selectedAnimation);
+//        sendMessage(sender, String.format("Animation %s set for Player %s", selectedAnimation.getName(), data.get(0).player.getCommandSenderName()));
+//    }
+//
+//    @SubCommand(desc = "disable animation")
+//    public void off(ICommandSender sender, String[] args) throws CommandException {
+//        data.get(0).animationData.setEnabled(false);
+//        sendMessage(sender, String.format("Animations disabled for Player %s", data.get(0).player.getCommandSenderName()));
+//    }
+//
+//    @SubCommand(desc = "play animation")
+//    public void clear(ICommandSender sender, String[] args) throws CommandException {
+//        data.get(0).animationData.setEnabled(false);
+//        data.get(0).animationData.setAnimation(null);
+//        sendMessage(sender, String.format("Animations cleared for Player %s", data.get(0).player.getCommandSenderName()));
+//
+//    }
 
     @SubCommand(
-            desc = "Set animation",
-            usage = "<animation>"
+            desc="reload animations from disk",
+            permission = 4
     )
-    public void set(ICommandSender sender, String[] args) throws CommandException {
-        if(args.length != 1){
-            throw new CommandException("Please include the animation name:" + "<player> set <animation name>");
-        }
-        String animationName = args[0];
-        selectedAnimation = AnimationController.getInstance().getAnimationFromName(animationName);
-        if (selectedAnimation == null) {
-            throw new CommandException("Unknown animation: " + animationName);
-        }
-
-        data.get(0).animationData.setAnimation(selectedAnimation);
-        sendMessage(sender, String.format("Animation %s set for Player %s", selectedAnimation.getName(), data.get(0).player.getCommandSenderName()));
-    }
-
-    @SubCommand(desc = "disable animation")
-    public void off(ICommandSender sender, String[] args) throws CommandException {
-        data.get(0).animationData.setEnabled(false);
-        sendMessage(sender, String.format("Animations disabled for Player %s", data.get(0).player.getCommandSenderName()));
-    }
-
-    @SubCommand(desc = "play animation")
-    public void clear(ICommandSender sender, String[] args) throws CommandException {
-        data.get(0).animationData.setEnabled(false);
-        data.get(0).animationData.setAnimation(null);
-        sendMessage(sender, String.format("Animations cleared for Player %s", data.get(0).player.getCommandSenderName()));
-
+    public void reload(ICommandSender sender, String args[]){
+        new AnimationController();
+        AnimationController.instance.load();
+        sendResult(sender, "Animations Reloaded");
     }
 }
