@@ -55,10 +55,10 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
 
     
     @SubCommand(
-            desc = "Complete a quest category for a player",
+            desc = "Finish a quest category for a player",
             usage = "<player> <questcatid>"
     )
-    public void complete(ICommandSender sender, String args[]) throws CommandException{
+    public void finish(ICommandSender sender, String args[]) throws CommandException{
         String playername=args[0];
         int questcatid;
         try {
@@ -106,12 +106,102 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
     }
 
-    
     @SubCommand(
-            desc = "Clear a quest category from a player",
+            desc = "Stop a quest category for a players active quests",
             usage = "<player> <questcatid>"
     )
-    public void clear(ICommandSender sender, String args[]) throws CommandException{
+    public void stop(ICommandSender sender, String args[]) throws CommandException{
+        String playername=args[0];
+        int questcatid;
+        try {
+            questcatid = Integer.parseInt(args[1]);
+        }
+        catch (NumberFormatException ex) {
+            sendError(sender, "QuestCatID must be an integer: " + args[1]);
+            return;
+        }
+
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
+        if (data.isEmpty()) {
+            sendError(sender, String.format("Unknown player '%s'", playername));
+            return;
+        }
+
+        QuestCategory questCategory = QuestController.instance.categories.get(questcatid);
+        if (questCategory == null){
+            sendError(sender, "Unknown QuestCatID: " + questcatid);
+            return;
+        }
+
+        int count = 0;
+        for(PlayerData playerdata : data){
+            for(Quest quest : questCategory.quests.values()){
+                if(playerdata.questData.activeQuests.containsKey(quest.id)){
+                    playerdata.questData.activeQuests.remove(quest.id);
+                    count++;
+                }
+            }
+
+            playerdata.save();
+            sendResult(sender, String.format("Stopped Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
+            sendResult(sender, String.format("Stopped a total of \u00A7b%d \u00A77quests", count));
+        }
+    }
+
+    @SubCommand(
+            desc = "Start a quest category for a player",
+            usage = "<player> <questcatid>"
+    )
+    public void start(ICommandSender sender, String args[]) throws CommandException{
+        String playername=args[0];
+        int questcatid;
+        try {
+            questcatid = Integer.parseInt(args[1]);
+        }
+        catch (NumberFormatException ex) {
+            sendError(sender, "QuestCatID must be an integer: " + args[1]);
+            return;
+        }
+
+        List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
+        if (data.isEmpty()) {
+            sendError(sender, String.format("Unknown player '%s'", playername));
+            return;
+        }
+
+        QuestCategory questCategory = QuestController.instance.categories.get(questcatid);
+        if (questCategory == null){
+            sendError(sender, "Unknown QuestCatID: " + questcatid);
+            return;
+        }
+
+        int count = 0;
+        for(PlayerData playerdata : data){
+            for(Quest quest : questCategory.quests.values()){
+                if(!playerdata.questData.activeQuests.containsKey(quest.id)){
+                    QuestData questData = new QuestData(quest);
+                    playerdata.questData.activeQuests.put(quest.id, questData);
+                    count++;
+
+                    if(playerdata.player != null && questData.sendAlerts){
+                        Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
+                        Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+                    }
+                }
+            }
+
+            playerdata.save();
+            sendResult(sender, String.format("Started Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
+            sendResult(sender, String.format("Started a total of \u00A7b%d \u00A77quests", count));
+        }
+    }
+
+    
+    @SubCommand(
+            desc = "Remove a quest cat from active/finished",
+            usage = "<player> <questcatid>"
+    )
+    public void remove(ICommandSender sender, String args[]) throws CommandException{
         String playername=args[0];
         int questcatid;
         try {
