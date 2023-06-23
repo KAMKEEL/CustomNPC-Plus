@@ -11,6 +11,7 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.constants.EnumAvailabilityDialog;
 import noppes.npcs.constants.EnumAvailabilityQuest;
+import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.controllers.DialogController;
 
 import noppes.npcs.controllers.PlayerDataController;
@@ -161,12 +162,12 @@ public class DialogCommand extends CommandKamkeelBase {
         try {
             diagid = Integer.parseInt(args[0]);
         } catch (NumberFormatException ex) {
-            sendError(sender, "DialogID must be an integer: " + args[1]);
+            sendError(sender, "DialogID must be an integer: " + args[0]);
             return;
         }
         Dialog dialog = DialogController.instance.dialogs.get(diagid);
         if(dialog == null){
-            sendError(sender, "Unknown dialog id: " + args[1]);
+            sendError(sender, "Unknown dialog id: " + args[0]);
             return;
         }
 
@@ -219,5 +220,34 @@ public class DialogCommand extends CommandKamkeelBase {
             }
             sendResult(sender, "--------------------");
         }
+    }
+
+    @SubCommand(
+            desc = "Quick info on a dialog",
+            usage = "<dialogId>"
+    )
+    public void info(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide an id for the quest");
+            return;
+        }
+
+        int diagid;
+        try {
+            diagid = Integer.parseInt(args[0]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "DialogID must be an integer: " + args[0]);
+            return;
+        }
+        Dialog dialog = DialogController.instance.dialogs.get(diagid);
+        if(dialog == null){
+            sendError(sender, "Unknown dialog id: " + args[0]);
+            return;
+        }
+
+        sendResult(sender, "--------------------");
+        sendResult(sender, String.format("%d: \u00A7a'%s'", dialog.id, dialog.title));
+        sendResult(sender, String.format("Category: \u00A7b'%s'", dialog.category.getName()));
+        sendResult(sender, "--------------------");
     }
 }

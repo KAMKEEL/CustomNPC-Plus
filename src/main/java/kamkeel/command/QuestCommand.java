@@ -8,6 +8,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
@@ -236,6 +237,45 @@ public class QuestCommand extends CommandKamkeelBase {
 
         if(!foundOne){
             sendResult(sender, String.format("No Prerequisites found for Quest \u00A7c%d", questid));
+        }
+        sendResult(sender, "--------------------");
+    }
+
+    @SubCommand(
+            desc = "Quick info on a quest",
+            usage = "<questId>"
+    )
+    public void info(ICommandSender sender, String args[]) throws CommandException {
+        if(args.length == 0){
+            sendError(sender, "Please provide an id for the quest");
+            return;
+        }
+
+        int questid;
+        try {
+            questid = Integer.parseInt(args[0]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
+        }
+
+        Quest quest = QuestController.instance.quests.get(questid);
+        if (quest == null){
+            sendError(sender, "Unknown QuestID");
+            return;
+        }
+
+        sendResult(sender, "--------------------");
+        sendResult(sender, String.format("%d: \u00A7a'%s'", quest.id, quest.title));
+        sendResult(sender, String.format("Category: \u00A7b'%s'", quest.category.getName()));
+        sendResult(sender, String.format("Type: \u00A76'%s'", quest.type.toString()));
+        sendResult(sender, String.format("Repeatable: \u00A76'%s'", quest.repeat.toString()));
+        sendResult(sender, String.format("Complete: \u00A76'%s'", quest.completion.toString()));
+        if(quest.completion == EnumQuestCompletion.Npc){
+            sendResult(sender, String.format("NPC: \u00A76'%s'", quest.completerNpc));
+        }
+        if(quest.nextQuestid != -1){
+            sendResult(sender, String.format("Next Quest ID: '%s'", quest.nextQuestid));
         }
         sendResult(sender, "--------------------");
     }
