@@ -17,6 +17,7 @@ import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
@@ -24,16 +25,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScriptController {
 
 	public static ScriptController Instance;
 	public static boolean HasStart = false;
 	private final ScriptEngineManager manager;
+	private ScriptEngineFactory nashornFactory;
 	public Map<String, String> languages = new HashMap<String, String>();
 	public Map<String, String> scripts = new HashMap<String, String>();
 	public long lastLoaded = 0;
@@ -60,6 +59,11 @@ public class ScriptController {
 		for(ScriptEngineFactory fac : manager.getEngineFactories()){
 			if(fac.getExtensions().isEmpty())
 				continue;
+
+			if (fac.getEngineName().equals("Oracle Nashorn")) {
+				this.nashornFactory = fac;
+			}
+
 			ScriptEngine scriptEngine = fac.getScriptEngine();
 			try {
 				scriptEngine.put("$RunTest",null);
@@ -236,8 +240,17 @@ public class ScriptController {
 		}
 	}
 
+	private static final List<String> nashornNames = immutableList("nashorn", "Nashorn", "js", "JS", "JavaScript", "javascript", "ECMAScript", "ecmascript");
 	public ScriptEngine getEngineByName(String language) {
+		if (nashornNames.contains(language) && this.nashornFactory != null) {
+			ScriptEngine scriptEngine = this.nashornFactory.getScriptEngine();
+			scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
+			return scriptEngine;
+		}
 		return manager.getEngineByName(language);
+	}
+	private static List<String> immutableList(String... elements) {
+		return Collections.unmodifiableList(Arrays.asList(elements));
 	}
 
 	public NBTTagList nbtLanguages() {
