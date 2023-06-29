@@ -6,10 +6,12 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
 import noppes.npcs.client.ClientCacheHandler;
@@ -27,7 +29,6 @@ public class CustomItemRenderer implements IItemRenderer {
     private static final ResourceLocation enchant = new ResourceLocation("textures/misc/enchanted_item_glint.png");
     private final Random random = new Random();
 
-    private int entityRenderTicks = 1;
     private int item3dRenderTicks = 1;
 
     @Override
@@ -37,7 +38,7 @@ public class CustomItemRenderer implements IItemRenderer {
 
     @Override
     public boolean shouldUseRenderHelper(ItemRenderType type, ItemStack item, ItemRendererHelper helper) {
-        return false;
+        return helper == ItemRendererHelper.ENTITY_ROTATION || helper == ItemRendererHelper.ENTITY_BOBBING;
     }
 
     @Override
@@ -58,19 +59,35 @@ public class CustomItemRenderer implements IItemRenderer {
 
         if (type == ItemRenderType.ENTITY) {
             GL11.glPushMatrix();
+            EntityItem entityItem = (EntityItem) data[1];
+            if (!entityItem.ignoreFrustumCheck) {
+                entityItem.ignoreFrustumCheck = true;
 
-            float bobbingY = ((float)(Math.sin((float)this.entityRenderTicks /40.0F) + 1)/6.0F);
-            GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY,1)-1) * (1.0F/4), 0.0F);
+                float entityXZSize = (float) Math.sqrt(Math.pow(scriptCustomItem.scaleX,2) + Math.pow(scriptCustomItem.scaleZ,2));
+                this.setEntitySize(entityItem, entityXZSize * 0.25F, scriptCustomItem.scaleY * 0.25F);
+
+                double XSize = entityItem.boundingBox.maxX - entityItem.boundingBox.minX;
+                double YSize = entityItem.boundingBox.maxY - entityItem.boundingBox.minY;
+                double ZSize = entityItem.boundingBox.maxZ - entityItem.boundingBox.minZ;
+                entityItem.boundingBox.maxX = entityItem.boundingBox.minX + XSize * scriptCustomItem.scaleX;
+                entityItem.boundingBox.maxY = entityItem.boundingBox.minY + YSize * scriptCustomItem.scaleY;
+                entityItem.boundingBox.maxZ = entityItem.boundingBox.minZ + ZSize * scriptCustomItem.scaleZ;
+            }
+
+            float entityRenderTicks = Minecraft.getMinecraft().timer.renderPartialTicks;
+            float bobbing = MathHelper.sin(((float)entityItem.age + entityRenderTicks) / 10.0F + entityItem.hoverStart) * 0.1F + 0.1F;
 
             GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
             GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
             GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
 
-            GL11.glRotatef(scriptCustomItem.rotationXRate * entityRenderTicks%360, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.rotationYRate * entityRenderTicks%360, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks%360, 0, 0, 1);
+            GL11.glRotatef(scriptCustomItem.rotationXRate * entityRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.rotationYRate * entityRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks %360, 0, 0, 1);
 
-            GL11.glTranslatef(0.0F, bobbingY, 0.0F);
+            GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+            GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY,1)-1) * (1.0F/4), 0.0F);
+            GL11.glTranslatef(0.0F, -bobbing, 0.0F);
 
             int color = scriptCustomItem.getColor();
             float itemRed = (color >> 16 & 255) / 255f;
@@ -78,7 +95,6 @@ public class CustomItemRenderer implements IItemRenderer {
             float itemBlue = (color & 255) / 255f;
             GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
 
-            EntityItem entityItem = (EntityItem) data[1];
             renderEntityCustomItem(scriptCustomItem, itemStack, entityItem);
 
             GL11.glPopMatrix();
@@ -118,10 +134,54 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glPopMatrix();
     }
 
-    public void renderEntityCustomItem(ScriptCustomItem scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
-        if (!Minecraft.getMinecraft().isGamePaused()) {
-            this.entityRenderTicks++;
+    private void setEntitySize(EntityItem entityItem, float p_70105_1_, float p_70105_2_)
+    {
+        float f2;
+
+        if (p_70105_1_ != entityItem.width || p_70105_2_ != entityItem.height)
+        {
+            f2 = entityItem.width;
+            entityItem.width = p_70105_1_;
+            entityItem.height = p_70105_2_;
+            entityItem.boundingBox.maxX = entityItem.boundingBox.minX + (double)entityItem.width;
+            entityItem.boundingBox.maxZ = entityItem.boundingBox.minZ + (double)entityItem.width;
+            entityItem.boundingBox.maxY = entityItem.boundingBox.minY + (double)entityItem.height;
+
+            if (entityItem.width > f2 && !entityItem.firstUpdate && !entityItem.worldObj.isRemote)
+            {
+                entityItem.moveEntity((double)(f2 - entityItem.width), 0.0D, (double)(f2 - entityItem.width));
+            }
         }
+
+        f2 = p_70105_1_ % 2.0F;
+
+        if ((double)f2 < 0.375D)
+        {
+            entityItem.myEntitySize = Entity.EnumEntitySize.SIZE_1;
+        }
+        else if ((double)f2 < 0.75D)
+        {
+            entityItem.myEntitySize = Entity.EnumEntitySize.SIZE_2;
+        }
+        else if ((double)f2 < 1.0D)
+        {
+            entityItem.myEntitySize = Entity.EnumEntitySize.SIZE_3;
+        }
+        else if ((double)f2 < 1.375D)
+        {
+            entityItem.myEntitySize = Entity.EnumEntitySize.SIZE_4;
+        }
+        else if ((double)f2 < 1.75D)
+        {
+            entityItem.myEntitySize = Entity.EnumEntitySize.SIZE_5;
+        }
+        else
+        {
+            entityItem.myEntitySize = Entity.EnumEntitySize.SIZE_6;
+        }
+    }
+
+    public void renderEntityCustomItem(ScriptCustomItem scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
         int pass = 0;
 
         GL11.glPushMatrix();
@@ -145,10 +205,6 @@ public class CustomItemRenderer implements IItemRenderer {
                 if (renderInFrame)
                 {
                     GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-                }
-                else
-                {
-                    GL11.glRotatef((((float)entityItem.age) / 20.0F + entityItem.hoverStart) * (180F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
                 }
 
                 float f9 = 0.0625F;
@@ -243,7 +299,6 @@ public class CustomItemRenderer implements IItemRenderer {
                 for (int l = 0; l < b0; ++l)
                 {
                     GL11.glPushMatrix();
-                    GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
 
                     if (l > 0)
                     {
