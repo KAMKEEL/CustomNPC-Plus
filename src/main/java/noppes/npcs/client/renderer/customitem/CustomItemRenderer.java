@@ -85,9 +85,11 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glRotatef(scriptCustomItem.rotationYRate * entityRenderTicks %360, 0, 1, 0);
             GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks %360, 0, 0, 1);
 
-            GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
-            GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY,1)-1) * (1.0F/4), 0.0F);
-            GL11.glTranslatef(0.0F, -bobbing, 0.0F);
+            if (!renderInFrame) {
+                GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+                GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY, 1) - 1) * (1.0F / 4), 0.0F);
+                GL11.glTranslatef(0.0F, -bobbing, 0.0F);
+            }
 
             int color = scriptCustomItem.getColor();
             float itemRed = (color >> 16 & 255) / 255f;
@@ -201,11 +203,6 @@ public class CustomItemRenderer implements IItemRenderer {
             if (RenderManager.instance.options.fancyGraphics)
             {
                 GL11.glPushMatrix();
-
-                if (renderInFrame)
-                {
-                    GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-                }
 
                 float f9 = 0.0625F;
                 f10 = 0.021875F;
