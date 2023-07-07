@@ -363,7 +363,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 
 	public void setMotion(IPos pos) {
-		this.setMotion(pos.getX(),pos.getY(),pos.getZ());
+		this.setMotion(pos.getXD(),pos.getYD(),pos.getZD());
 	}
 
 	public IPos getMotion() {
@@ -413,7 +413,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	}
 
 	public void setPos(IPos pos) {
-		this.entity.setPosition((double)((float)pos.getX() + 0.5F), (double)pos.getY(), (double)((float)pos.getZ() + 0.5F));
+		this.entity.setPosition(pos.getXD(), pos.getYD(), pos.getZD());
 	}
 
 	public void setPosition(IPos pos) {
@@ -776,14 +776,14 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 		entity.velocityChanged = true;
 	}
 
-	public void knockback(int xpower, int ypower, int zpower, float direction){
+	public void knockback(double xpower, double ypower, double zpower, float direction){
 		float v = direction * (float)Math.PI / 180.0F;
-		entity.addVelocity(-MathHelper.sin(v) * (float)xpower, ypower, MathHelper.cos(v) * (float)zpower);
+		entity.addVelocity(-MathHelper.sin(v) * xpower, ypower, MathHelper.cos(v) * zpower);
 		entity.velocityChanged = true;
 	}
 
 	public void knockback(IPos pos, float direction){
-		this.knockback(pos.getX(),pos.getY(),pos.getZ(),direction);
+		this.knockback(pos.getXD(),pos.getYD(),pos.getZD(),direction);
 	}
 
 	public void setImmune(int ticks) {

@@ -87,7 +87,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void setPosition(IPos pos) {
-		this.setPosition(pos.getX(),pos.getY(),pos.getZ());
+		this.setPosition(pos.getXD(),pos.getYD(),pos.getZD());
 	}
 	public void setPos(IPos pos) {
 		this.setPosition(pos);
@@ -110,13 +110,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void setPosition(IPos pos, int dimensionId) {
-		this.setPosition(pos.getX(),pos.getY(),pos.getZ(), dimensionId);
+		this.setPosition(pos.getXD(),pos.getYD(),pos.getZD(), dimensionId);
 	}
 	public void setPos(IPos pos, int dimensionId) {
 		this.setPosition(pos,dimensionId);
 	}
 	public void setPosition(IPos pos, IWorld world) {
-		this.setPosition(pos.getX(),pos.getY(),pos.getZ(),world.getDimensionID());
+		this.setPosition(pos.getXD(),pos.getYD(),pos.getZD(),world.getDimensionID());
 	}
 	public void setPos(IPos pos, IWorld world) {
 		this.setPosition(pos,world.getDimensionID());

@@ -276,16 +276,16 @@ public class NpcAPI extends AbstractNpcAPI {
         return new ScriptBlockPos(pos);
     }
 
-    public IPos getIPos(int x, int y, int z) {
-        return new ScriptBlockPos(new BlockPos(x,y,z));
+    public IPos getIPos(double x, double y, double z) {
+        return this.getIPos(new BlockPos(x,y,z));
     }
 
-    public IPos getIPos(double x, double y, double z) {
-        return this.getIPos((int)x,(int)y,(int)z);
+    public IPos getIPos(int x, int y, int z) {
+        return this.getIPos((double) x, (double) y, (double) z);
     }
 
     public IPos getIPos(float x, float y, float z) {
-        return this.getIPos((int)x,(int)y,(int)z);
+        return this.getIPos((double) x, (double) y, (double) z);
     }
 
     public IPos getIPos(long serializedPos) {

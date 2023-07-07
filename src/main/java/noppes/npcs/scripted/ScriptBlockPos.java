@@ -29,11 +29,23 @@ public class ScriptBlockPos implements IPos {
         return this.blockPos.getZ();
     }
 
+    public double getXD() {
+        return this.blockPos.getXD();
+    }
+
+    public double getYD() {
+        return this.blockPos.getYD();
+    }
+
+    public double getZD() {
+        return this.blockPos.getZD();
+    }
+
     public IPos up() {
         return NpcAPI.Instance().getIPos(this.blockPos.up());
     }
 
-    public IPos up(int n) {
+    public IPos up(double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.up(n));
     }
 
@@ -41,7 +53,7 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.down());
     }
 
-    public IPos down(int n) {
+    public IPos down(double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.down(n));
     }
 
@@ -49,7 +61,7 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.north());
     }
 
-    public IPos north(int n) {
+    public IPos north(double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.north(n));
     }
 
@@ -57,7 +69,7 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.east());
     }
 
-    public IPos east(int n) {
+    public IPos east(double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.east(n));
     }
 
@@ -65,7 +77,7 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.south());
     }
 
-    public IPos south(int n) {
+    public IPos south(double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.south(n));
     }
 
@@ -73,11 +85,11 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.west());
     }
 
-    public IPos west(int n) {
+    public IPos west(double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.west(n));
     }
 
-    public IPos add(int x, int y, int z) {
+    public IPos add(double x, double y, double z) {
         return NpcAPI.Instance().getIPos(this.blockPos.add(x, y, z));
     }
 
@@ -85,33 +97,33 @@ public class ScriptBlockPos implements IPos {
         return NpcAPI.Instance().getIPos(this.blockPos.add(this.blockPos));
     }
 
-    public IPos subtract(int x, int y, int z) {
+    public IPos subtract(double x, double y, double z) {
         return NpcAPI.Instance().getIPos(this.blockPos.add(-x, -y, -z));
     }
 
     public IPos subtract(IPos pos) {
-        return NpcAPI.Instance().getIPos(this.blockPos.add(-pos.getX(), -pos.getY(), -pos.getZ()));
+        return NpcAPI.Instance().getIPos(this.blockPos.add(-pos.getXD(), -pos.getYD(), -pos.getZD()));
     }
 
     public IPos offset(int direction) {
         return NpcAPI.Instance().getIPos(this.blockPos.offset(EnumFacing.values()[direction]));
     }
 
-    public IPos offset(int direction, int n) {
+    public IPos offset(int direction, double n) {
         return NpcAPI.Instance().getIPos(this.blockPos.offset(EnumFacing.values()[direction], n));
     }
 
-    public IPos crossProduct(int x, int y, int z) {
+    public IPos crossProduct(double x, double y, double z) {
         return this.crossProduct(NpcAPI.Instance().getIPos(x,y,z));
     }
 
     public IPos crossProduct(IPos pos) {
-        return NpcAPI.Instance().getIPos(this.blockPos.crossProduct(new Vec3i(-pos.getX(), -pos.getY(), -pos.getZ())));
+        return NpcAPI.Instance().getIPos(this.blockPos.crossProduct(new Vec3i(-pos.getXD(), -pos.getYD(), -pos.getZD())));
     }
 
-    public IPos divide(float scalar) {
+    public IPos divide(double scalar) {
         return NpcAPI.Instance().getIPos(
-        getX()/scalar , getY()/scalar, getZ()/scalar
+        getXD()/scalar , getYD()/scalar, getZD()/scalar
         );
     }
 
@@ -125,26 +137,26 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos normalize() {
-        double d = Math.sqrt((double)(this.blockPos.getX() * this.blockPos.getX() + this.blockPos.getY() * this.blockPos.getY() + this.blockPos.getZ() * this.blockPos.getZ()));
-        return NpcAPI.Instance().getIPos((double)this.getX() / d, (double)this.getY() / d, (double)this.getZ() / d);
+        double d = Math.sqrt(this.blockPos.getXD() * this.blockPos.getXD() + this.blockPos.getYD() * this.blockPos.getYD() + this.blockPos.getZD() * this.blockPos.getZD());
+        return NpcAPI.Instance().getIPos(this.getXD() / d, this.getYD() / d, this.getZD() / d);
     }
 
     public double[] normalizeDouble() {
-        double d = Math.sqrt((double)(this.blockPos.getX() * this.blockPos.getX() + this.blockPos.getY() * this.blockPos.getY() + this.blockPos.getZ() * this.blockPos.getZ()));
-        return new double[]{(double)this.getX() / d, (double)this.getY() / d, (double)this.getZ() / d};
+        double d = Math.sqrt(this.blockPos.getXD() * this.blockPos.getXD() + this.blockPos.getYD() * this.blockPos.getYD() + this.blockPos.getZD() * this.blockPos.getZD());
+        return new double[]{this.getXD() / d, this.getYD() / d, this.getZD() / d};
     }
 
     public double distanceTo(IPos pos) {
-        double d0 = (double)(this.getX() - pos.getX());
-        double d1 = (double)(this.getY() - pos.getY());
-        double d2 = (double)(this.getZ() - pos.getZ());
+        double d0 = this.getXD() - pos.getXD();
+        double d1 = this.getYD() - pos.getYD();
+        double d2 = this.getZD() - pos.getZD();
         return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
     }
 
     public double distanceTo(double x, double y, double z) {
-        double d0 = (double)(this.getX() - x);
-        double d1 = (double)(this.getY() - y);
-        double d2 = (double)(this.getZ() - z);
+        double d0 = this.getXD() - x;
+        double d1 = this.getYD() - y;
+        double d2 = this.getZD() - z;
         return Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2);
     }
 
@@ -153,7 +165,10 @@ public class ScriptBlockPos implements IPos {
     }
 
     public String toString() {
-        return "(" + this.getX() + ", " + this.getY() + ", " + this.getZ() + ")";
+        double xd = Math.floor(this.getXD() * 1000)/1000.0D;
+        double yd = Math.floor(this.getYD() * 1000)/1000.0D;
+        double zd = Math.floor(this.getZD() * 1000)/1000.0D;
+        return "(" + xd + ", " + yd + ", " + zd + ")";
     }
 
     public boolean equals(Object object) {
