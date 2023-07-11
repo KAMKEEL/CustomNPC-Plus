@@ -280,6 +280,17 @@ public class ServerEventsHandler {
 		}
 	}
 
+	@SubscribeEvent
+	public void onPlayerClone(PlayerEvent.Clone event) {
+		if (event.entity.worldObj.isRemote)
+			return;
+
+		NBTTagCompound storedData = event.original.getEntityData().getCompoundTag("CNPCStoredData");
+		if (!storedData.hasNoTags()) {
+			event.entityPlayer.getEntityData().setTag("CNPCStoredData", storedData);
+		}
+	}
+
 	private void doExcalibur(EntityPlayer player, EntityLivingBase entity) {
 		ItemStack item = player.getCurrentEquippedItem();
 		if(item == null || item.getItem() != CustomItems.excalibur)
