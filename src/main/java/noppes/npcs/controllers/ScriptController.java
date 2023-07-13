@@ -56,13 +56,15 @@ public class ScriptController {
 		Instance = this;
 		manager = new ScriptEngineManager();
 		LogWriter.info("Script Engines Available:");
+
+		ScriptEngine engine = manager.getEngineByName("nashorn");
+		if (engine != null) {
+			this.nashornFactory = engine.getFactory();
+		}
+
 		for(ScriptEngineFactory fac : manager.getEngineFactories()){
 			if(fac.getExtensions().isEmpty())
 				continue;
-
-			if (fac.getEngineName().equals("Oracle Nashorn")) {
-				this.nashornFactory = fac;
-			}
 
 			ScriptEngine scriptEngine = fac.getScriptEngine();
 			try {
