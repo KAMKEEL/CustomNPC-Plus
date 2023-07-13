@@ -29,7 +29,7 @@ import noppes.npcs.scripted.entity.ScriptNpc;
 import javax.script.ScriptEngine;
 import java.util.*;
 
-public class DataScript implements IScriptHandler {
+public class DataScript implements INpcScriptHandler {
 	public List<ScriptContainer> eventScripts = new ArrayList<>();
 
 	private HashMap<EnumScriptType,ScriptContainer> scripts = new HashMap<>();
@@ -234,6 +234,14 @@ public class DataScript implements IScriptHandler {
 	@Override
 	public void callScript(EnumScriptType type, Event event) {
 		callScript(type, event, "$$IGNORED$$", null);
+	}
+
+	@Override
+	public void callScript(String hookName, Event event) {
+		try {
+			EnumScriptType enumScriptType = EnumScriptType.valueOf(hookName);
+			this.callScript(enumScriptType, event);
+		} catch (IllegalArgumentException ignored) {}
 	}
 
 	public boolean isClient() {

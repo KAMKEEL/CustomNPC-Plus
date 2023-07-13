@@ -17,7 +17,7 @@ import noppes.npcs.controllers.ScriptController;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class ForgeDataScript implements IScriptHandler {
+public class ForgeDataScript implements INpcScriptHandler {
     private List<ScriptContainer> scripts = new ArrayList();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
@@ -60,7 +60,7 @@ public class ForgeDataScript implements IScriptHandler {
 
     @Override
     public void callScript(EnumScriptType var1, Event var2) {
-        callScript(var1.function, var2);
+        this.callScript(var1.function, var2);
     }
 
     public void callScript(String type, Event event) {

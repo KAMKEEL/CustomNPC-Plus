@@ -147,7 +147,7 @@ public class ScriptContainer {
     }
 
     public void run(String type, Object event) {
-        if(errored || !hasCode() || unknownFunctions.contains(type) || !ConfigScript.ScriptingEnabled)
+        if(!ConfigScript.ScriptingEnabled || errored || !hasCode() || unknownFunctions.contains(type))
             return;
 
         this.setEngine(handler.getLanguage());

@@ -13,17 +13,17 @@ import java.util.List;
 import java.util.Map;
 
 public interface IScriptHandler {
-    void callScript(EnumScriptType var1, Event var2);
+    void callScript(String hookName, Event event);
 
     boolean isClient();
 
     boolean getEnabled();
 
-    void setEnabled(boolean var1);
+    void setEnabled(boolean enabled);
 
     String getLanguage();
 
-    void setLanguage(String var1);
+    void setLanguage(String language);
 
     void setScripts(List<ScriptContainer> list);
 
