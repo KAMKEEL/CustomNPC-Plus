@@ -193,7 +193,7 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) {
+	public static void getScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setBoolean("ScriptEnabled", data.getEnabled());
 		compound.setString("ScriptLanguage", data.getLanguage());
@@ -211,7 +211,7 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+	public static void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		int tab = buffer.readInt();
 		int totalScripts = buffer.readInt();
 		if (totalScripts == 0) {
@@ -245,9 +245,9 @@ public class PacketHandlerServer{
 	private void npcEventScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
 		DataScript data = npc.script;
 		if(type == EnumPacketServer.EventScriptDataGet) {
-			this.getScripts(data,buffer,player);
+			getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.EventScriptDataSave) {
-			this.saveScripts(data,buffer,player);
+			saveScripts(data,buffer,player);
 			npc.updateAI = true;
 			npc.script.hasInited = false;
 			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
@@ -259,9 +259,9 @@ public class PacketHandlerServer{
 	private void playerScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		PlayerDataScript data = ScriptController.Instance.playerScripts;
 		if(type == EnumPacketServer.ScriptPlayerGet) {
-			this.getScripts(data,buffer,player);
+			getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
-			this.saveScripts(data,buffer,player);
+			saveScripts(data,buffer,player);
 			ScriptController.Instance.lastPlayerUpdate = System.currentTimeMillis();
 		}
 	}
@@ -269,9 +269,9 @@ public class PacketHandlerServer{
 	private void forgeScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		ForgeDataScript data = ScriptController.Instance.forgeScripts;
 		if (type == EnumPacketServer.ScriptForgeGet) {
-			this.getScripts(data,buffer,player);
+			getScripts(data,buffer,player);
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
-			this.saveScripts(data,buffer,player);
+			saveScripts(data,buffer,player);
 			ScriptController.Instance.lastForgeUpdate = System.currentTimeMillis();
 		}
 	}
@@ -279,9 +279,9 @@ public class PacketHandlerServer{
 	private void npcGlobalScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
 		GlobalNPCDataScript data = ScriptController.Instance.globalNpcScripts;
 		if(type == EnumPacketServer.ScriptGlobalNPCGet) {
-			this.getScripts(data,buffer,player);
+			getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptGlobalNPCSave) {
-			this.saveScripts(data,buffer,player);
+			saveScripts(data,buffer,player);
 			ScriptController.Instance.lastGlobalNpcUpdate = System.currentTimeMillis();
 		}
 	}
