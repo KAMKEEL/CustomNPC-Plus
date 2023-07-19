@@ -3,7 +3,7 @@ package noppes.npcs.entity.data;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.world.World;
-import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class ModelData extends ModelDataShared{

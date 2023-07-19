@@ -10,7 +10,7 @@ import noppes.npcs.constants.EnumCompanionJobs;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobGuard;
 import noppes.npcs.roles.RoleCompanion;

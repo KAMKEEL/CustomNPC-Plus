@@ -1,4 +1,4 @@
-package noppes.npcs.controllers;
+package noppes.npcs.compat;
 
 import cpw.mods.fml.common.Loader;
 import net.minecraft.client.Minecraft;

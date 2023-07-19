@@ -1,11 +1,13 @@
 package noppes.npcs.scripted.entity;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.entity.IDBCPlayer;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.compat.DBCHelper;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -786,4 +788,67 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         }
         return "";
     }
+
+    public int calcDexResistance(int damage, int percentPierce){
+        if(!DBCHelper.Enabled){
+            return 0;
+        }
+
+        NBTTagCompound nbt  = player.getEntityData().getCompoundTag("PlayerPersisted");
+        if(nbt != null){
+            byte st = nbt.getByte("jrmcState");
+            byte st2 = nbt.getByte("jrmcState2");
+            byte rc = nbt.getByte("jrmcRace");
+            byte cls = nbt.getByte("jrmcClass");
+            String sklx = nbt.getString("jrmcSSltX");
+            byte rls = nbt.getByte("jrmcRelease");
+            int resrv = nbt.getInteger("jrmcArcRsrv");
+
+            String statusEffects = nbt.getString("jrmcStatusEff");
+            boolean mj = DBCHelper.StatusEffects(12 ,statusEffects);
+            boolean mc = DBCHelper.StatusEffects(13 ,statusEffects);
+            boolean lg = DBCHelper.StatusEffects(14 ,statusEffects);
+            boolean mn = DBCHelper.StatusEffects(19 ,statusEffects);
+
+            byte pwr = nbt.getByte("jrmcPwrtyp");
+            String[] ps = DBCHelper.PlayerSkills(player);
+            boolean c = DBCHelper.StatusEffects(10 ,statusEffects) || DBCHelper.StatusEffects(11 ,statusEffects);
+            int dex = DBCHelper.TransPwrMod(getStats(player), 1, st, st2, rc, sklx, rls, resrv, lg, mj, mc, mn, pwr, ps, c);
+
+            int def = (int) (DBCHelper.StatMethod(1, 1, dex, rc, cls, 0.0F) * rls * 0.01D * JRMCoreH.weightPerc(1, player));
+
+            boolean block = ExtendedPlayer.get(player).getBlocking() != 0;
+
+            if (!block) {
+                def /= (100 / JRMCoreConfig.cStatPasDef);
+            }
+
+            int dmg = damage - def;
+
+            if (dmg <= 0) {
+                dmg = (int) (damage * percentPierce);
+            }
+
+            int hp = nbt.getInteger("jrmcBdy") - (dmg / 2);
+
+            if (hp < 0) {
+                hp = 0;
+            }
+
+            nbt.setInteger("jrmcBdy", hp);
+        }
+    }
+
+    private int[] getStats(EntityPlayer player) {
+        NBTTagCompound nbt  = player.getEntityData().getCompoundTag("PlayerPersisted");
+        int[] stats = new int[6];
+        String[] attr = { "jrmcStrI", "jrmcDexI", "jrmcCnsI", "jrmcWilI", "jrmcIntI", "jrmcCncI" };
+
+        for (int i = 0; i < attr.length; i++) {
+            stats[i] = nbt.getInteger(attr[i]);
+        }
+
+        return stats;
+    }
+
 }

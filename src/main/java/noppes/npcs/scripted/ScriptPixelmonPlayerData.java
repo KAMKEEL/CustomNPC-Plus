@@ -4,7 +4,7 @@ import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.IPixelmonPlayerData;
-import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.scripted.entity.ScriptPixelmon;
 
 public class ScriptPixelmonPlayerData implements IPixelmonPlayerData {
