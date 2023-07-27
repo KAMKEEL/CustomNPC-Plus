@@ -2,7 +2,7 @@ package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.AnimationData;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAnimationPart;

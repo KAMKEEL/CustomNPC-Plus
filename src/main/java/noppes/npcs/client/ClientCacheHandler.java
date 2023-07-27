@@ -1,7 +1,7 @@
 package noppes.npcs.client;
 
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.AnimationData;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.ImageData;

@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.RenderPlayer;
-import noppes.npcs.AnimationData;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Frame;

@@ -2,7 +2,6 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
@@ -12,7 +11,7 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import noppes.npcs.AnimationData;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;

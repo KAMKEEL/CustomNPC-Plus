@@ -1,8 +1,10 @@
-package noppes.npcs;
+package noppes.npcs.controllers.data;
 
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.DataDisplay;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.constants.EnumPacketClient;

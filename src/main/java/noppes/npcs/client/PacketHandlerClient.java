@@ -32,6 +32,7 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;

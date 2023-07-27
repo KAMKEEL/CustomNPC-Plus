@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
-import noppes.npcs.AnimationData;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;

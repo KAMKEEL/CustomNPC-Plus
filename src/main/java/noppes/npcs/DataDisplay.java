@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
