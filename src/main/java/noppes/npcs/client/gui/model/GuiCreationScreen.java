@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.*;
 
 import java.lang.reflect.Method;

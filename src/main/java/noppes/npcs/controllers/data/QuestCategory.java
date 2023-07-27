@@ -61,4 +61,9 @@ public class QuestCategory implements IQuestCategory {
         quest.category = this;
         return quest;
     }
+
+    @Override
+    public int getId() {
+        return this.id;
+    }
 }

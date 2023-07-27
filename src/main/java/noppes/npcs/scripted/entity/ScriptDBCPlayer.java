@@ -372,6 +372,15 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcBdy");
     }
 
+    public void setHP(int hp){
+        setBody(hp);
+    }
+    public int getHP()
+    {
+        return getBody();
+    }
+
+
     public void setStamina(int stamina){
         player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcStamina",stamina);
     }
