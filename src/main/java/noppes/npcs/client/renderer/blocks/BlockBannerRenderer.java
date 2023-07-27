@@ -59,7 +59,8 @@ public class BlockBannerRenderer extends BlockRendererInterface{
 	}
     public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon)
     {
-        if (iicon.getItemSpriteNumber() == 0 && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(iicon.getItem()).getRenderType()))
+        boolean isBlock = RenderBlocks.renderItemIn3d(Block.getBlockFromItem(iicon.getItem()).getRenderType());
+        if (iicon.getItemSpriteNumber() == 0 && isBlock)
         	return;
         GL11.glPushMatrix();
         bindTexture(TextureMap.locationItemsTexture);
