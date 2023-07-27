@@ -258,7 +258,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                         if (bonus.length() == 0) {
                             bonus = bonusID + ";" + bonusValueString;
                         } else {
-                            bonus = bonus + "|" + bonusID + ";" + bonusValueString;
+                            bonus = bonus + (bonus.charAt(bonus.length() - 1) == '|' ? "" : "|") + bonusID + ";" + bonusValueString;
                         }
                     } else {
                         if (bonus.length() == 0) {
