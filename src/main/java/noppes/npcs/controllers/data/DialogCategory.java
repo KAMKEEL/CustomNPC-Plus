@@ -61,4 +61,9 @@ public class DialogCategory implements IDialogCategory {
 		dialog.category = this;
 		return dialog;
 	}
+
+	@Override
+	public int getId() {
+		return this.id;
+	}
 }
