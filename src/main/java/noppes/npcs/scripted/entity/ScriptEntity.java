@@ -15,6 +15,8 @@ import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
@@ -427,7 +429,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	public void setDimension(int dimensionId) {
 		IWorld world = NpcAPI.Instance().getIWorld(dimensionId);
 		if (world != null) {
-			World mcWorld = world.getMCWorld();
+			WorldServer mcWorld = world.getMCWorld();
 			if (this.entity.riddenByEntity != null)
 			{
 				this.entity.riddenByEntity.mountEntity((Entity)null);
@@ -436,9 +438,23 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 			{
 				this.entity.mountEntity((Entity)null);
 			}
+			WorldServer prevWorld = ((WorldServer)this.entity.worldObj);
+			prevWorld.unloadEntities(new ArrayList<Entity>(Collections.singleton(this.entity)));
+			prevWorld.resetUpdateEntityTick();
+			prevWorld.onEntityRemoved(this.entity);
+
 			this.entity.worldObj = mcWorld;
 			this.entity.dimension = dimensionId;
 			mcWorld.addLoadedEntities(new ArrayList<Entity>(Collections.singleton(this.entity)));
+			mcWorld.resetUpdateEntityTick();
+
+			mcWorld.updateEntityWithOptionalForce(this.entity, false);
+			if (this.entity instanceof EntityNPCInterface) {
+				((EntityNPCInterface) this.entity).updateClient();
+			}
+
+			mcWorld.spawnEntityInWorld(this.entity);
+			this.entity.velocityChanged = true;
 		}
 	}
 
