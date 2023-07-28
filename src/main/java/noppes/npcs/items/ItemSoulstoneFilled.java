@@ -76,6 +76,7 @@ public class ItemSoulstoneFilled extends Item {
     	if(entity == null)
     		return false;
     	entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
+		entity.dimension = world.provider.dimensionId;
 		if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 			LogWriter.script(String.format("[%s] %s PLACED ENTITY %s", "SOULSTONE", player.getCommandSenderName(), entity));
 		}
