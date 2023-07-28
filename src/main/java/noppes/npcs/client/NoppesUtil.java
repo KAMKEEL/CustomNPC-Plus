@@ -110,6 +110,7 @@ public class NoppesUtil {
 			entity = worldObj.getEntityByID(compound.getInteger("EntityID"));
 			if (entity != null)
 				worldObj = entity.worldObj;
+			else return;
 		}
 
 		CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
