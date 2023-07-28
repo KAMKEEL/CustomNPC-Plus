@@ -1,12 +1,13 @@
 package noppes.npcs.roles;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.NoppesUtilServer;
+import net.minecraft.world.World;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -339,22 +340,37 @@ public class JobSpawner extends JobInterface{
 	private EntityLivingBase spawnEntity(NBTTagCompound compound){
 		if(compound == null || !compound.hasKey("id"))
 			return null;
-		double x = npc.posX + xOffset - 0.5 + npc.getRNG().nextFloat();
-		double y = npc.posY + yOffset;
-		double z = npc.posZ + zOffset - 0.5 + npc.getRNG().nextFloat();
-		Entity entity = NoppesUtilServer.spawnClone(compound, MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), npc.worldObj);
-		if(entity == null || !(entity instanceof EntityLivingBase))
+		double x = this.npc.posX + xOffset - 0.5 + this.npc.getRNG().nextFloat();
+		double y = this.npc.posY + yOffset;
+		double z = this.npc.posZ + zOffset - 0.5 + this.npc.getRNG().nextFloat();
+
+		World world = this.npc.getEntityWorld();
+		Entity entity = EntityList.createEntityFromNBT(compound, world);
+		if(!(entity instanceof EntityLivingBase))
 			return null;
 		EntityLivingBase living = (EntityLivingBase) entity;
 		living.getEntityData().setString("NpcSpawnerId", id);
 		living.getEntityData().setInteger("NpcSpawnerNr", number);
-		setTarget(living, npc.getAttackTarget());
-		living.setPosition(x, y, z);
+		setTarget(living, this.npc.getAttackTarget());
+		entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
+
 		if(living instanceof EntityNPCInterface){
 			EntityNPCInterface snpc = (EntityNPCInterface) living;
+			snpc.ai.startPos = new int[]{(int) x, (int) snpc.getStartYPos(), (int) z};
 			snpc.stats.spawnCycle = 3;
 			snpc.ai.returnToStart = false;
+			snpc.setPosition((float)x + 0.5F, snpc.getStartYPos(), (float)z + 0.5F);
+			snpc.reset();
 		}
+
+
+		int i = MathHelper.floor_double(entity.posX / 16.0D);
+		int j = MathHelper.floor_double(entity.posZ / 16.0D);
+		entity.dimension = world.provider.dimensionId;
+		world.getChunkFromChunkCoords(i, j).addEntity(entity);
+		world.loadedEntityList.add(entity);
+		world.onEntityAdded(entity);
+
 		spawned.add(living);
 		return living;
 	}
