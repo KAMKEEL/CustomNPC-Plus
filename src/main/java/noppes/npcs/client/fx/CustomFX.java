@@ -3,6 +3,7 @@ package noppes.npcs.client.fx;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -93,6 +94,10 @@ public class CustomFX extends EntityFX {
     }
 
     public static CustomFX fromScriptedParticle(ScriptParticle particle, World worldObj, Entity entity) {
+        EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
+        if (entity == player) {
+            particle.y -= player.yOffset;
+        }
         CustomFX customFX = new CustomFX(worldObj, entity, particle.directory, particle.x, particle.y, particle.z, particle.motionX, particle.motionY, particle.motionZ);
 
         customFX.HEXColor = particle.HEXColor;
