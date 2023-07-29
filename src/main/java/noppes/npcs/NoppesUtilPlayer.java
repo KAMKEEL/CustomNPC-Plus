@@ -347,7 +347,12 @@ public class NoppesUtilPlayer {
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
 			compound.setString("CategoryName", trackedQuest.getCategory().getName());
-			compound.setString("TurnInNPC", trackedQuest.getNpcName());
+			if(trackedQuest.completion == EnumQuestCompletion.Instant){
+				compound.setBoolean("Instant", true);
+			}
+			else {
+				compound.setString("TurnInNPC", trackedQuest.getNpcName());
+			}
 			NBTTagList nbtTagList = new NBTTagList();
 			for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
 				nbtTagList.appendTag(new NBTTagString(objective.getText()));

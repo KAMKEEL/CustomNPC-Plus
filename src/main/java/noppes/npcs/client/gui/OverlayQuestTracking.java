@@ -143,9 +143,15 @@ public class OverlayQuestTracking extends Gui {
             objectiveLines.add(objective);
         }
 
-        String npcName = compound.getString("TurnInNPC");
-        if (!npcName.isEmpty()) {
-            turnInText.add("Complete with " + npcName);
+        boolean instantComplete = compound.getBoolean("Instant");
+        if(instantComplete){
+            turnInText.add("Completed automatically");
+        }
+        else {
+            String npcName = compound.getString("TurnInNPC");
+            if (!npcName.isEmpty()) {
+                turnInText.add("Complete with " + npcName);
+            }
         }
 
         this.initOverlay();
