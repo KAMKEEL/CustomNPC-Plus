@@ -783,6 +783,8 @@ public class NoppesUtilServer {
 		if(entity == null){
 			return null;
 		}
+
+		entity.dimension = worldObj.provider.dimensionId;
 		int i = MathHelper.floor_double(entity.posX / 16.0D);
 		int j = MathHelper.floor_double(entity.posZ / 16.0D);
 		if (!entity.forceSpawn && !worldObj.checkChunksExist(
