@@ -100,7 +100,9 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBodywear = (new ModelScaleRenderer(this, 16, 32));
 		this.bipedBodywear.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1 + 0.5F);
 		this.bipedBody.addChild(this.bipedBodywear);
-		// this.bipedBodywear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
+
+		bodywear = new ModelBodywear(this, 64, 64);
+		this.bipedBody.addChild(bodywear);
 
 		// Steve 64x64 Model or Alex 64x64 Model
 		if (alex){
@@ -171,8 +173,6 @@ public class ModelMPM extends ModelNPCMale{
 
 		headwear = new ModelHeadwear(this);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 64);
-		bodywear = new ModelBodywear(this);
-		this.bipedBody.addChild(bodywear);
 
 		this.bipedBody.addChild(breasts = new ModelBreasts(this, 64, 64));
 		if(!isArmor){
@@ -265,6 +265,9 @@ public class ModelMPM extends ModelNPCMale{
 		// Body
 		this.bipedBodywear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedBody.addChild(this.bipedBodywear);
+
+		bodywear = new ModelBodywear(this, 0, 0);
+		this.bipedBody.addChild(bodywear);
 
 		// Arms
 		this.bipedRightArmWear = (new ModelScaleRenderer(this, 0, 0));
@@ -778,8 +781,8 @@ public class ModelMPM extends ModelNPCMale{
 		((ModelScaleRenderer)this.bipedBody).isHidden = entity.modelData.hideBody == 1;
 
 		// Hide Bodywear
-		((ModelScaleRenderer)this.bipedBodywear).isHidden = entity.modelData.bodywear != 1;
-		((ModelScaleRenderer)this.bodywear).isHidden = entity.modelData.bodywear != 2;
+		this.bipedBodywear.isHidden = entity.modelData.bodywear != 1;
+		this.bodywear.isHidden = entity.modelData.bodywear != 2;
 
 		((ModelScaleRenderer)this.bipedBody).setConfig(body,x,y,z);
 		((ModelScaleRenderer)this.bipedBody).render(f);
