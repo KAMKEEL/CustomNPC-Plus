@@ -98,7 +98,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             addButton(new GuiNpcButton(10, guiLeft + 70, y += 22, 50, 20, new String[]{"gui.text", "gui.option", "display.fixed"}, dialog.titlePos));
             addLabel(new GuiNpcLabel(10, "dialog.titlePos", guiLeft + 4, y + 5));
 
-            addButton(new GuiNpcButton(24, guiLeft + 192, y, 50, 20, new String[]{"display.top", "display.bottom"}, dialog.alignment));
+            addButton(new GuiNpcButton(24, guiLeft + 192, y, 50, 20, new String[]{"display.bottom", "display.top"}, dialog.alignment));
             addLabel(new GuiNpcLabel(27, "display.alignment", guiLeft + 126, y + 5));
 
             addTextField(new GuiNpcTextField(11, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
