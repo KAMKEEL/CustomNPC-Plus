@@ -102,7 +102,8 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
     		setSubGui(new GuiNpcMobSpawnerSelector());
     	}    
     	if(button.id >= 20 && button.id < 26){
-			job.setJobCompound(button.id - 19, null); 
+			int removeID = button.id - 19;
+			job.setJobCompound(removeID, null);
 			Client.sendData(EnumPacketServer.JobSpawnerRemove, button.id - 19);
     	}
     	if(button.id == 26){
@@ -152,6 +153,7 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 		if(textfield.id == 9){
 			job.zOffset = textfield.getInteger();
 		}
+		save();
 	}
 
 	@Override
