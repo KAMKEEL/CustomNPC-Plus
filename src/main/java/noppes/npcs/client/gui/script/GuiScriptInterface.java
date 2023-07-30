@@ -94,9 +94,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             hookLabel.color = 0xaaaaaa;
             addLabel(hookLabel);
 
-            ScriptContainer var7 = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + yoffset, this.guiTop + yoffset, this.xSize - 110 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
-            this.addTextField(left);
+            ScriptContainer container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+            GuiScriptTextArea ta = new GuiScriptTextArea(this,2, guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2, container == null?"":container.script);
+            ta.enableCodeHighlighting();
+            ta.setListener(this);
+
+            this.addTextField(ta);
+
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
@@ -107,8 +111,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             scroll.setSize(100, (int)((double)this.ySize * 0.54D) - yoffset * 2);
             scroll.guiLeft = left1;
             scroll.guiTop = this.guiTop + 88 + yoffset;
-            if(var7 != null) {
-                scroll.setList(var7.scripts);
+            if(container != null) {
+                scroll.setList(container.scripts);
             }
 
             this.addScroll(scroll);

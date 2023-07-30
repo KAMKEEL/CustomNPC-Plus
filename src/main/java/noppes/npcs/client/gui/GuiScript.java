@@ -20,7 +20,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
 
-public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCallback, ICustomScrollListener, IJTextAreaListener {
+public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCallback, ICustomScrollListener, IJTextAreaListener, ITextChangeListener {
 	public boolean showScript = false;
 	private int activeTab = 0;
 	public DataScript script;
@@ -80,7 +80,10 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
 			ScriptContainer container = script.getNPCScript(activeTab);
 
-			addTextField(new GuiNpcTextArea(2, this, guiLeft + 74, guiTop + 4, 239, 208, container == null?"":container.script));
+			GuiScriptTextArea ta = new GuiScriptTextArea(this,2, guiLeft + 74, guiTop + 4, 239, 208, container == null?"":container.script);
+			ta.enableCodeHighlighting();
+			ta.setListener(this);
+			this.addTextField(ta);
 
 			addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
 			addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
@@ -266,6 +269,12 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			activeTab = scroll.selected;
 			initGui();
 		}
+	}
+
+	public void textUpdate(String text) {
+		ScriptContainer container = script.getNPCScript(activeTab);
+		if(container != null)
+			container.script = text;
 	}
 
 	@Override
