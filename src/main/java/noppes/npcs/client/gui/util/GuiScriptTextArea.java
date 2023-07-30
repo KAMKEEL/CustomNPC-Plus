@@ -11,9 +11,12 @@ import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.TextContainer.LineData;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import sun.font.TrueTypeFont;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -42,11 +45,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private int cursorPosition;
     private int scrolledLine = 0;
     private boolean enableCodeHighlighting = false;
-    private static final char colorChar = '\uffff';
     public List<GuiScriptTextArea.UndoData> undoList = new ArrayList();
     public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
     public boolean undoing = false;
     private long lastClicked = 0L;
+    // private static TrueTypeFont font = new TrueTypeFont(new Font("Arial Unicode MS", Font.PLAIN, ConfigClient.FontSize), 1);
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
         super(id, guiScreen, x, y, width, height, null);
@@ -309,6 +312,47 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             endSelection = cursorPosition = startSelection;
             return true;
         }
+        if(isKeyComboCtrlBackspace(i)){
+            String s = getSelectionBeforeText();
+            if(startSelection > 0 && startSelection == endSelection){
+                int nearestCondition = cursorPosition;
+                int g;
+                boolean cursorInWhitespace = Character.isWhitespace(s.charAt(cursorPosition - 1));
+                if(cursorInWhitespace){
+                    // Find the nearest word if we are starting in whitespace
+                    for (g = cursorPosition - 1; g >= 0; g--) {
+                        char currentChar = s.charAt(g);
+                        if (!Character.isWhitespace(currentChar)) {
+                            nearestCondition = g;
+                            break;
+                        }
+                        if(g == 0){
+                            nearestCondition = 0;
+                        }
+                    }
+                }
+                else {
+                    // Find the nearest blank space or new line
+                    for (g = cursorPosition - 1; g >= 0; g--) {
+                        char currentChar = s.charAt(g);
+                        if (Character.isWhitespace(currentChar)  || currentChar == '\n') {
+                            nearestCondition = g;
+                            break;
+                        }
+                        if(g == 0){
+                            nearestCondition = 0;
+                        }
+                    }
+                }
+
+                // Remove all text to the left up to the nearest boundary
+                s = s.substring(0, nearestCondition);
+                startSelection -= (cursorPosition - nearestCondition);
+            }
+            setText(s + getSelectionAfterText());
+            endSelection = cursorPosition = startSelection;
+            return true;
+        }
         if(i == Keyboard.KEY_BACK){
             String s = getSelectionBeforeText();
             if(startSelection > 0 && startSelection == endSelection){
@@ -387,6 +431,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private boolean isKeyComboCtrlX(int keyID)
     {
         return keyID == 45 && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
+    }
+
+    private boolean isKeyComboCtrlBackspace(int keyID)
+    {
+        return keyID == Keyboard.KEY_BACK && isCtrlKeyDown() && !isShiftKeyDown() && !isAltKeyDown();
     }
 
     private boolean isKeyComboCtrlV(int keyID)

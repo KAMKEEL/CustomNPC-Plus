@@ -544,7 +544,7 @@ public class ClientProxy extends CommonProxy {
 
 		public FontContainer(String fontType, int fontSize) {
 			textFont = new StringCache();
-			textFont.setDefaultFont("Arial", fontSize, true);
+			textFont.setDefaultFont("Arial Unicode MS", fontSize, true);
 			useCustomFont = !fontType.equalsIgnoreCase("minecraft");
 			try {
 				if(!useCustomFont || fontType.isEmpty() || fontType.equalsIgnoreCase("default"))
@@ -552,7 +552,7 @@ public class ClientProxy extends CommonProxy {
 				else
 					textFont.setDefaultFont(fontType, fontSize, true);
 			} catch (Exception e) {
-				LogWriter.info("Failed loading font so using Arial");
+				LogWriter.info("Failed loading font so using Arial Unicode MS");
 			}
 		}
 
