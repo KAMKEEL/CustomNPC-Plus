@@ -88,7 +88,17 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
         
     	y += 23; 
         addLabel(new GuiNpcLabel(10, "spawner.type", guiLeft + 4, y + 5));
-        addButton(new GuiNpcButton(10, guiLeft + 80, y, 100, 20, new String[]{"spawner.one", "spawner.all", "spawner.random"}, job.spawnType));
+        addButton(new GuiNpcButton(10, guiLeft + 80, y, 100, 20, new String[]{"spawner.one", "spawner.all", "spawner.random", "spawner.summoner"}, job.spawnType));
+
+		if(job.spawnType == 3){
+			job.doesntDie = true;
+			getButton(26).setEnabled(false);
+			getButton(26).setDisplay(1);
+
+			job.despawnOnTargetLost = false;
+			getButton(11).setEnabled(false);
+			getButton(11).setDisplay(0);
+		}
     }
 
 	@Override
@@ -111,6 +121,19 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
     	}
     	if(button.id == 10){
     		job.spawnType = button.getValue();
+			if(job.spawnType == 3){
+				job.doesntDie = true;
+				getButton(26).setEnabled(false);
+				getButton(26).setDisplay(1);
+
+				job.despawnOnTargetLost = false;
+				getButton(11).setEnabled(false);
+				getButton(11).setDisplay(0);
+			}
+			else {
+				getButton(26).setEnabled(true);
+				getButton(11).setEnabled(true);
+			}
     	}
     	if(button.id == 11){
     		job.despawnOnTargetLost = button.getValue() == 1;

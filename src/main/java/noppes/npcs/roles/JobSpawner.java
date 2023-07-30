@@ -22,13 +22,6 @@ public class JobSpawner extends JobInterface{
 	public NBTTagCompound compound3;
 	public NBTTagCompound compound2;
 	public NBTTagCompound compound1;
-
-	public String title1;
-	public String title2;
-	public String title3;
-	public String title4;
-	public String title5;
-	public String title6;
 	
 	private int number = 0;
 	
@@ -38,7 +31,9 @@ public class JobSpawner extends JobInterface{
 	
 	private String id = RandomStringUtils.random(8, true, true);
 	public boolean doesntDie = false;
-	
+	public boolean spawnsDieSummonerDies = false;
+
+	// 0 - One By One, 1 - All at Once, 2 - Random, 3 - When Summoner Dies
 	public int spawnType = 0;
 	
 	public int xOffset = 0;
@@ -287,7 +282,7 @@ public class JobSpawner extends JobInterface{
 	public boolean aiShouldExecute() {
 		if(isEmpty() || npc.isKilled())
 			return false;
-		
+
 		target = getTarget();
 		if(npc.getRNG().nextInt(30) == 1){
 			if(spawned.isEmpty())
@@ -326,6 +321,15 @@ public class JobSpawner extends JobInterface{
 	}
 	@Override
 	public void killed() {
+		if(spawnType == 3){
+			spawnEntity(compound1);
+			spawnEntity(compound2);
+			spawnEntity(compound3);
+			spawnEntity(compound4);
+			spawnEntity(compound5);
+			spawnEntity(compound6);
+			number = 6;
+		}
 		reset();
 	}
 	
