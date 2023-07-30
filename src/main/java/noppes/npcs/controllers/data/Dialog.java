@@ -40,7 +40,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean showOptionLine = true;
 
 	//0 - Top, 1 - Bottom, 2 (Not implemented yet) - Center
-	public byte alignment = 0;
+	public byte alignment = 1;
 
 	public boolean renderGradual = false;
 	public boolean showPreviousBlocks = true;
@@ -186,7 +186,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setBoolean("DialogDisableEsc", disableEsc);
 
 		compound.setBoolean("DialogDarkScreen", darkenScreen);
-		
+		compound.setByte("DialogAlignment", alignment);
+
 		if(sound != null && !sound.isEmpty())
 			compound.setString("DialogSound", sound);
 
