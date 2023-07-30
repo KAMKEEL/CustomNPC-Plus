@@ -39,7 +39,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean darkenScreen = true;
 	public boolean showOptionLine = true;
 
-	//0 - Bottom, 1 - Top, 2 (Not implemented yet) - Center
+	//0 - Bottom, 1 - Top, 2 - Center [Unimplemented]
 	public byte alignment = 0;
 
 	public boolean renderGradual = false;
