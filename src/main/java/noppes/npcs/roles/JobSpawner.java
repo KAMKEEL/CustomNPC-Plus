@@ -30,8 +30,10 @@ public class JobSpawner extends JobInterface{
 	private Map<String,Long> cooldown = new HashMap<String,Long>();
 	
 	private String id = RandomStringUtils.random(8, true, true);
+
 	public boolean doesntDie = false;
-	public boolean spawnsDieSummonerDies = false;
+	public boolean despawnOnSummonerDeath = false;
+	public boolean despawnOnTargetLost = true;
 
 	// 0 - One By One, 1 - All at Once, 2 - Random, 3 - When Summoner Dies
 	public int spawnType = 0;
@@ -42,7 +44,6 @@ public class JobSpawner extends JobInterface{
 	
 	private EntityLivingBase target;
 	
-	public boolean despawnOnTargetLost = true;
 
 	public JobSpawner(EntityNPCInterface npc) {
 		super(npc);
@@ -65,6 +66,7 @@ public class JobSpawner extends JobInterface{
 		compound.setInteger("SpawnerZOffset", zOffset);
 		
 		compound.setBoolean("DespawnOnTargetLost", despawnOnTargetLost);
+		compound.setBoolean("DespawnOnSummmoner", despawnOnSummonerDeath);
 		return compound;
 	}
 
@@ -109,6 +111,7 @@ public class JobSpawner extends JobInterface{
 		zOffset = compound.getInteger("SpawnerZOffset");
 		
 		despawnOnTargetLost = compound.getBoolean("DespawnOnTargetLost");
+		despawnOnSummonerDeath = compound.getBoolean("DespawnOnSummmoner");
 	}
 
 
@@ -212,7 +215,7 @@ public class JobSpawner extends JobInterface{
 	
 	public boolean shouldDelete(EntityLivingBase entity){
 		return npc.getDistanceToEntity(entity) > 60 || entity.isDead || entity.getHealth() <= 0 || 
-				PixelmonHelper.Enabled  && hasPixelmon() && !PixelmonHelper.isBattling(entity) || despawnOnTargetLost && target == null;
+				PixelmonHelper.Enabled  && hasPixelmon() && !PixelmonHelper.isBattling(entity) || (despawnOnSummonerDeath && npc.isDead) || despawnOnTargetLost && target == null;
 	}
 	
 	private EntityLivingBase getTarget() {
