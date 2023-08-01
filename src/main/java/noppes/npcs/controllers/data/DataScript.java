@@ -116,9 +116,12 @@ public class DataScript implements INpcScriptHandler {
 		NBTTagList list = new NBTTagList();
 		for (Map.Entry<EnumScriptType,ScriptContainer> entry : scripts.entrySet()) {
 			NBTTagCompound tagCompound = new NBTTagCompound();
-			tagCompound.setInteger("Type", entry.getKey().ordinal());
-			entry.getValue().writeToNBT(tagCompound);
-			list.appendTag(tagCompound);
+			ScriptContainer container = entry.getValue();
+			if (container.hasCode()) {
+				tagCompound.setInteger("Type", entry.getKey().ordinal());
+				container.writeToNBT(tagCompound);
+				list.appendTag(tagCompound);
+			}
 		}
 		return list;
 	}
