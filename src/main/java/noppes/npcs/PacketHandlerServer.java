@@ -879,6 +879,9 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.JobSpawnerRemove){
 			if(npc.advanced.job != EnumJobType.Spawner)
 				return;
+			JobSpawner job = (JobSpawner) npc.jobInterface;
+			job.setJobCompound(buffer.readInt(), null);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, job.getTitles());
 		}
 		else if(type == EnumPacketServer.RoleSave){
 			npc.roleInterface.readFromNBT(Server.readNBT(buffer));

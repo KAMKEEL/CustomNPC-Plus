@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -22,13 +23,6 @@ public class JobSpawner extends JobInterface{
 	public NBTTagCompound compound3;
 	public NBTTagCompound compound2;
 	public NBTTagCompound compound1;
-
-	public String title1;
-	public String title2;
-	public String title3;
-	public String title4;
-	public String title5;
-	public String title6;
 	
 	private int number = 0;
 	
@@ -37,8 +31,12 @@ public class JobSpawner extends JobInterface{
 	private Map<String,Long> cooldown = new HashMap<String,Long>();
 	
 	private String id = RandomStringUtils.random(8, true, true);
+
 	public boolean doesntDie = false;
-	
+	public boolean despawnOnSummonerDeath = false;
+	public boolean despawnOnTargetLost = true;
+
+	// 0 - One By One, 1 - All at Once, 2 - Random, 3 - When Summoner Dies
 	public int spawnType = 0;
 	
 	public int xOffset = 0;
@@ -47,7 +45,6 @@ public class JobSpawner extends JobInterface{
 	
 	private EntityLivingBase target;
 	
-	public boolean despawnOnTargetLost = true;
 
 	public JobSpawner(EntityNPCInterface npc) {
 		super(npc);
@@ -70,6 +67,7 @@ public class JobSpawner extends JobInterface{
 		compound.setInteger("SpawnerZOffset", zOffset);
 		
 		compound.setBoolean("DespawnOnTargetLost", despawnOnTargetLost);
+		compound.setBoolean("DespawnOnSummmoner", despawnOnSummonerDeath);
 		return compound;
 	}
 
@@ -114,6 +112,7 @@ public class JobSpawner extends JobInterface{
 		zOffset = compound.getInteger("SpawnerZOffset");
 		
 		despawnOnTargetLost = compound.getBoolean("DespawnOnTargetLost");
+		despawnOnSummonerDeath = compound.getBoolean("DespawnOnSummmoner");
 	}
 
 
@@ -217,7 +216,7 @@ public class JobSpawner extends JobInterface{
 	
 	public boolean shouldDelete(EntityLivingBase entity){
 		return npc.getDistanceToEntity(entity) > 60 || entity.isDead || entity.getHealth() <= 0 || 
-				PixelmonHelper.Enabled  && hasPixelmon() && !PixelmonHelper.isBattling(entity) || despawnOnTargetLost && target == null;
+				PixelmonHelper.Enabled  && hasPixelmon() && !PixelmonHelper.isBattling(entity) || (despawnOnSummonerDeath && npc.isDead) || despawnOnTargetLost && target == null;
 	}
 	
 	private EntityLivingBase getTarget() {
@@ -287,7 +286,7 @@ public class JobSpawner extends JobInterface{
 	public boolean aiShouldExecute() {
 		if(isEmpty() || npc.isKilled())
 			return false;
-		
+
 		target = getTarget();
 		if(npc.getRNG().nextInt(30) == 1){
 			if(spawned.isEmpty())
@@ -326,6 +325,15 @@ public class JobSpawner extends JobInterface{
 	}
 	@Override
 	public void killed() {
+		if(spawnType == 3){
+			spawnEntity(compound1);
+			spawnEntity(compound2);
+			spawnEntity(compound3);
+			spawnEntity(compound4);
+			spawnEntity(compound5);
+			spawnEntity(compound6);
+			number = 6;
+		}
 		reset();
 	}
 	
@@ -343,36 +351,43 @@ public class JobSpawner extends JobInterface{
 		double x = this.npc.posX + xOffset - 0.5 + this.npc.getRNG().nextFloat();
 		double y = this.npc.posY + yOffset;
 		double z = this.npc.posZ + zOffset - 0.5 + this.npc.getRNG().nextFloat();
-
-		World world = this.npc.getEntityWorld();
-		Entity entity = EntityList.createEntityFromNBT(compound, world);
-		if(!(entity instanceof EntityLivingBase))
+		Entity entity = NoppesUtilServer.getEntityFromNBT(compound, MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), npc.worldObj);
+		if(entity == null){
 			return null;
-		EntityLivingBase living = (EntityLivingBase) entity;
-		living.getEntityData().setString("NpcSpawnerId", id);
-		living.getEntityData().setInteger("NpcSpawnerNr", number);
-		setTarget(living, this.npc.getAttackTarget());
-		entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
-
-		if(living instanceof EntityNPCInterface){
-			EntityNPCInterface snpc = (EntityNPCInterface) living;
-			snpc.ai.startPos = new int[]{(int) x, (int) snpc.getStartYPos(), (int) z};
-			snpc.stats.spawnCycle = 3;
-			snpc.ai.returnToStart = false;
-			snpc.setPosition((float)x + 0.5F, snpc.getStartYPos(), (float)z + 0.5F);
-			snpc.reset();
 		}
+		entity.dimension = npc.worldObj.provider.dimensionId;
+		if (!entity.forceSpawn && !npc.worldObj.checkChunksExist(
+				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ
+		)) {
+			return null;
+		}
+		else {
+			if (!(entity instanceof EntityLivingBase))
+				return null;
 
+			EntityLivingBase living = (EntityLivingBase) entity;
+			living.getEntityData().setString("NpcSpawnerId", id);
+			living.getEntityData().setInteger("NpcSpawnerNr", number);
+			setTarget(living, this.npc.getAttackTarget());
+			living.setPosition(x + 0.5, y + 1 + 0.2F, z + 0.5);
 
-		int i = MathHelper.floor_double(entity.posX / 16.0D);
-		int j = MathHelper.floor_double(entity.posZ / 16.0D);
-		entity.dimension = world.provider.dimensionId;
-		world.getChunkFromChunkCoords(i, j).addEntity(entity);
-		world.loadedEntityList.add(entity);
-		world.onEntityAdded(entity);
+			if (living instanceof EntityNPCInterface) {
+				EntityNPCInterface snpc = (EntityNPCInterface) living;
+				snpc.stats.spawnCycle = 3;
+				snpc.ai.returnToStart = false;
+				snpc.stats.canDespawn = true;
+				snpc.stats.playerSetCanDespawn = true;
+			}
 
-		spawned.add(living);
-		return living;
+			int i = MathHelper.floor_double(living.posX / 16.0D);
+			int j = MathHelper.floor_double(living.posZ / 16.0D);
+
+			npc.worldObj.getChunkFromChunkCoords(i, j).addEntity(living);
+			npc.worldObj.loadedEntityList.add(living);
+			npc.worldObj.onEntityAdded(living);
+			spawned.add(living);
+			return living;
+		}
 	}
 
 	public NBTTagCompound getCompound(int i) {

@@ -39,7 +39,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean darkenScreen = true;
 	public boolean showOptionLine = true;
 
-	//0 - Top, 1 - Bottom, 2 (Not implemented yet) - Center
+	//0 - Bottom, 1 - Top, 2 - Center [Unimplemented]
 	public byte alignment = 0;
 
 	public boolean renderGradual = false;
@@ -186,7 +186,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setBoolean("DialogDisableEsc", disableEsc);
 
 		compound.setBoolean("DialogDarkScreen", darkenScreen);
-		
+		compound.setByte("DialogAlignment", alignment);
+
 		if(sound != null && !sound.isEmpty())
 			compound.setString("DialogSound", sound);
 

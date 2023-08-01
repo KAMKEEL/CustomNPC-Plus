@@ -503,7 +503,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		int height = count - totalRows + lineOffset;
 		int screenPos = optionStart;
 		int y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
-		if (dialog.alignment == 0) {
+		if (dialog.alignment == 1) {
 			height = count - totalRows + lineOffset + 1;
 			screenPos = optionStart - dialog.textHeight + ClientProxy.Font.height() + (totalRows - lineOffset);
 
@@ -515,7 +515,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		}
 
 		if (block.titlePos == 0 || mainDialogText) {
-			if (dialog.alignment == 0) {
+			if (dialog.alignment == 1) {
 				if (y < optionStart - dialog.textHeight || y > optionStart - ClientProxy.Font.height()/2f) {
 					return;
 				}
@@ -584,7 +584,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			textSoundEnabled = !textSoundEnabled;
 		}
 
-		if (dialog.alignment == 0 && totalRows * ClientProxy.Font.height() > dialog.textHeight) {
+		if (dialog.alignment == 1 && totalRows * ClientProxy.Font.height() > dialog.textHeight) {
 			if ((i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201) && scrollY < totalRows * ClientProxy.Font.height()) {//Page up
 				scrollY += ClientProxy.Font.height() * 2;
 			}

@@ -23,6 +23,8 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 	public String title4 = "gui.selectnpc";
 	public String title5 = "gui.selectnpc";
 	public String title6 = "gui.selectnpc";
+	public String title7 = "gui.selectnpc";
+	public String title8 = "gui.selectnpc";
 	
     public GuiNpcSpawner(EntityNPCInterface npc)
     {
@@ -36,59 +38,83 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 
     	int y = guiTop + 6;
 
-    	this.addButton(new GuiNpcButton(20, guiLeft + 25, y,20,20, "X"));
+    	this.addButton(new GuiNpcButton(20, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(0, "1:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(0, guiLeft + 50, y, title1));
+    	this.addButton(new GuiNpcButton(0, guiLeft + 45, y, 140, 20, title1));
 
-    	y += 23; 
-    	this.addButton(new GuiNpcButton(21, guiLeft + 25, y,20,20, "X"));
+		addLabel(new GuiNpcLabel(6, "spawner.diesafter", guiLeft + 4 + 190, y + 5));
+		this.addButton(new GuiNpcButton(26, guiLeft + 370, y,40,20, new String[]{"gui.yes","gui.no"}, job.doesntDie?1:0));
+
+		y += 23;
+    	this.addButton(new GuiNpcButton(21, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(1, "2:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(1, guiLeft + 50, y, title2));
+    	this.addButton(new GuiNpcButton(1, guiLeft + 45, y, 140, 20, title2));
 
-    	y += 23; 
-    	this.addButton(new GuiNpcButton(22, guiLeft + 25, y,20,20, "X"));
+		addLabel(new GuiNpcLabel(11, "spawner.despawn", guiLeft + 4 + 190, y + 5));
+		this.addButton(new GuiNpcButton(11, guiLeft + 370, y,40,20, new String[]{"gui.no","gui.yes"}, job.despawnOnTargetLost?1:0));
+
+		y += 23;
+    	this.addButton(new GuiNpcButton(22, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(2, "3:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(2, guiLeft + 50, y, title3));
+    	this.addButton(new GuiNpcButton(2, guiLeft + 45, y, 140, 20, title3));
 
-    	y += 23; 
-    	this.addButton(new GuiNpcButton(23, guiLeft + 25, y,20,20, "X"));
+		addLabel(new GuiNpcLabel(27, "spawner.despawnsummon", guiLeft + 4 + 190, y + 5));
+		this.addButton(new GuiNpcButton(27, guiLeft + 370, y,40,20, new String[]{"gui.no","gui.yes"}, job.despawnOnSummonerDeath ?0:1));
+
+		y += 23;
+    	this.addButton(new GuiNpcButton(23, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(3, "4:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(3, guiLeft + 50, y, title4));
+    	this.addButton(new GuiNpcButton(3, guiLeft + 45, y, 140, 20, title4));
 
     	y += 23; 
-    	this.addButton(new GuiNpcButton(24, guiLeft + 25, y,20,20, "X"));
+    	this.addButton(new GuiNpcButton(24, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(4, "5:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(4, guiLeft + 50, y, title5));
+    	this.addButton(new GuiNpcButton(4, guiLeft + 45, y, 140, 20, title5));
 
     	y += 23; 
-    	this.addButton(new GuiNpcButton(25, guiLeft + 25, y,20,20, "X"));
+    	this.addButton(new GuiNpcButton(25, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(5, "6:", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(5, guiLeft + 50, y, title6));
+    	this.addButton(new GuiNpcButton(5, guiLeft + 45, y, 140, 20, title6));
 
-    	y += 23; 
-        addLabel(new GuiNpcLabel(6, "spawner.diesafter", guiLeft + 4, y + 5));
-    	this.addButton(new GuiNpcButton(26, guiLeft + 115, y,40,20, new String[]{"gui.yes","gui.no"}, job.doesntDie?1:0));
+    	y += 23;
+    	y += 23;
 
-        addLabel(new GuiNpcLabel(11, "spawner.despawn", guiLeft + 170, y + 5));
-    	this.addButton(new GuiNpcButton(11, guiLeft + 335, y,40,20, new String[]{"gui.no","gui.yes"}, job.despawnOnTargetLost?1:0));
-
-    	y += 23; 
-        addLabel(new GuiNpcLabel(7,StatCollector.translateToLocal("spawner.posoffset")+" X:", guiLeft + 4, y + 5));
-    	addTextField(new GuiNpcTextField(7,this, fontRendererObj, guiLeft + 99, y, 24, 20, job.xOffset + ""));
+        addLabel(new GuiNpcLabel(7,StatCollector.translateToLocal("spawner.posoffset")+" X:", guiLeft + 4 + 190, y + 5));
+    	addTextField(new GuiNpcTextField(7,this, fontRendererObj, guiLeft + 99 + 190, y, 24, 20, job.xOffset + ""));
     	getTextField(7).integersOnly = true;
         getTextField(7).setMinMaxDefault(-9, 9, 0);
-        addLabel(new GuiNpcLabel(8,"Y:", guiLeft + 125, y + 5));
-    	addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 135, y, 24, 20, job.yOffset + ""));
+		addLabel(new GuiNpcLabel(8,"Y:", guiLeft + 125 + 190, y + 5));
+    	addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 135 + 190, y, 24, 20, job.yOffset + ""));
     	getTextField(8).integersOnly = true;
         getTextField(8).setMinMaxDefault(-9, 9, 0);
-        addLabel(new GuiNpcLabel(9,"Z:", guiLeft + 161, y + 5));
-    	addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 171, y, 24, 20, job.zOffset + ""));
+        addLabel(new GuiNpcLabel(9,"Z:", guiLeft + 161 + 190, y + 5));
+    	addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 171 + 190, y, 24, 20, job.zOffset + ""));
     	getTextField(9).integersOnly = true;
         getTextField(9).setMinMaxDefault(-9, 9, 0);  
         
     	y += 23; 
-        addLabel(new GuiNpcLabel(10, "spawner.type", guiLeft + 4, y + 5));
-        addButton(new GuiNpcButton(10, guiLeft + 80, y, 100, 20, new String[]{"spawner.one", "spawner.all", "spawner.random"}, job.spawnType));
+        addLabel(new GuiNpcLabel(10, "spawner.type", guiLeft + 4 + 190, y + 5));
+        addButton(new GuiNpcButton(10, guiLeft + 80 + 190, y, 100, 20, new String[]{"spawner.one", "spawner.all", "spawner.random", "spawner.summoner"}, job.spawnType));
+
+		if(job.despawnOnSummonerDeath){
+			job.doesntDie = true;
+			getButton(26).setEnabled(false);
+			getButton(26).setDisplay(1);
+		}
+
+		if(job.spawnType == 3){
+			job.doesntDie = true;
+			getButton(26).setEnabled(false);
+			getButton(26).setDisplay(1);
+
+			job.despawnOnTargetLost = false;
+			getButton(11).setEnabled(false);
+			getButton(11).setDisplay(0);
+
+			job.despawnOnSummonerDeath = false;
+			getButton(27).setEnabled(false);
+			getButton(27).setDisplay(0);
+		}
     }
 
 	@Override
@@ -102,14 +128,48 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
     		setSubGui(new GuiNpcMobSpawnerSelector());
     	}    
     	if(button.id >= 20 && button.id < 26){
-			job.setJobCompound(button.id - 19, null); 
+			int removeID = button.id - 19;
+			job.setJobCompound(removeID, null);
 			Client.sendData(EnumPacketServer.JobSpawnerRemove, button.id - 19);
     	}
     	if(button.id == 26){
     		job.doesntDie = button.getValue() == 1;
     	}
+		if(button.id == 27){
+			job.despawnOnSummonerDeath = button.getValue() == 1;
+			if(job.despawnOnSummonerDeath){
+				job.doesntDie = true;
+				getButton(26).setEnabled(false);
+				getButton(26).setDisplay(1);
+			}
+			else {
+				if(job.spawnType != 3){
+					getButton(26).setEnabled(true);
+				}
+			}
+		}
     	if(button.id == 10){
     		job.spawnType = button.getValue();
+			if(job.spawnType == 3){
+				job.doesntDie = true;
+				getButton(26).setEnabled(false);
+				getButton(26).setDisplay(1);
+
+				job.despawnOnTargetLost = false;
+				getButton(11).setEnabled(false);
+				getButton(11).setDisplay(0);
+
+				job.despawnOnSummonerDeath = false;
+				getButton(27).setEnabled(false);
+				getButton(27).setDisplay(0);
+			}
+			else {
+				if(!job.despawnOnSummonerDeath){
+					getButton(26).setEnabled(true);
+				}
+				getButton(11).setEnabled(true);
+				getButton(27).setEnabled(true);
+			}
     	}
     	if(button.id == 11){
     		job.despawnOnTargetLost = button.getValue() == 1;
@@ -152,6 +212,7 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 		if(textfield.id == 9){
 			job.zOffset = textfield.getInteger();
 		}
+		save();
 	}
 
 	@Override
