@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
@@ -189,6 +190,13 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glPushMatrix();
             ClientCacheHandler.getImageData(scriptCustomItem.texture).bindTexture();
 
+            if (renderInFrame)
+            {
+                GL11.glTranslatef(0.0F, -0.05F, 0.0F);
+                GL11.glScalef(1.025641F,1.025641F,1.025641F);
+                GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            }
+
             Tessellator tessellator = Tessellator.instance;
 
             float f14 = 0.0F;
@@ -233,6 +241,10 @@ public class CustomItemRenderer implements IItemRenderer {
                 {
                     // Makes items offset when in 3D, like when in 2D, looks much better. Considered a vanilla bug...
                     GL11.glTranslatef(0f, 0f, f9 + f10);
+                    /*if (renderInFrame) {
+                        GL11.glTranslatef(0.5F, 0.0F, 0.0F);
+                        GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
+                    }*/
 
                     ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.texture);
                     ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
