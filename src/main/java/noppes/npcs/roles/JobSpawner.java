@@ -8,6 +8,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -350,36 +351,41 @@ public class JobSpawner extends JobInterface{
 		double x = this.npc.posX + xOffset - 0.5 + this.npc.getRNG().nextFloat();
 		double y = this.npc.posY + yOffset;
 		double z = this.npc.posZ + zOffset - 0.5 + this.npc.getRNG().nextFloat();
-
-		World world = this.npc.getEntityWorld();
-		Entity entity = EntityList.createEntityFromNBT(compound, world);
-		if(!(entity instanceof EntityLivingBase))
+		Entity entity = NoppesUtilServer.getEntityFromNBT(compound, MathHelper.floor_double(x), MathHelper.floor_double(y), MathHelper.floor_double(z), npc.worldObj);
+		if(entity == null){
 			return null;
-		EntityLivingBase living = (EntityLivingBase) entity;
-		living.getEntityData().setString("NpcSpawnerId", id);
-		living.getEntityData().setInteger("NpcSpawnerNr", number);
-		setTarget(living, this.npc.getAttackTarget());
-		entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
-
-		if(living instanceof EntityNPCInterface){
-			EntityNPCInterface snpc = (EntityNPCInterface) living;
-			snpc.ai.startPos = new int[]{(int) x, (int) snpc.getStartYPos(), (int) z};
-			snpc.stats.spawnCycle = 3;
-			snpc.ai.returnToStart = false;
-			snpc.setPosition((float)x + 0.5F, snpc.getStartYPos(), (float)z + 0.5F);
-			snpc.reset();
 		}
+		entity.dimension = npc.worldObj.provider.dimensionId;
+		if (!entity.forceSpawn && !npc.worldObj.checkChunksExist(
+				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ
+		)) {
+			return null;
+		}
+		else {
+			if (!(entity instanceof EntityLivingBase))
+				return null;
 
+			EntityLivingBase living = (EntityLivingBase) entity;
+			living.getEntityData().setString("NpcSpawnerId", id);
+			living.getEntityData().setInteger("NpcSpawnerNr", number);
+			setTarget(living, this.npc.getAttackTarget());
+			living.setPosition(x + 0.5, y + 1 + 0.2F, z + 0.5);
 
-		int i = MathHelper.floor_double(entity.posX / 16.0D);
-		int j = MathHelper.floor_double(entity.posZ / 16.0D);
-		entity.dimension = world.provider.dimensionId;
-		world.getChunkFromChunkCoords(i, j).addEntity(entity);
-		world.loadedEntityList.add(entity);
-		world.onEntityAdded(entity);
+			if (living instanceof EntityNPCInterface) {
+				EntityNPCInterface snpc = (EntityNPCInterface) living;
+				snpc.stats.spawnCycle = 3;
+				snpc.ai.returnToStart = false;
+			}
 
-		spawned.add(living);
-		return living;
+			int i = MathHelper.floor_double(living.posX / 16.0D);
+			int j = MathHelper.floor_double(living.posZ / 16.0D);
+
+			npc.worldObj.getChunkFromChunkCoords(i, j).addEntity(living);
+			npc.worldObj.loadedEntityList.add(living);
+			npc.worldObj.onEntityAdded(living);
+			spawned.add(living);
+			return living;
+		}
 	}
 
 	public NBTTagCompound getCompound(int i) {
