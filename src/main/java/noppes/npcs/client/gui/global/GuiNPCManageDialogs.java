@@ -75,6 +75,13 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
 		this.addButton(new GuiNpcButton(3,guiLeft + 358, guiTop + 117, 58, 20, "gui.copy"));
 
+		if(dialog != null) {
+			if(dialog.id != -1){
+				addLabel(new GuiNpcLabel(0, "ID:", guiLeft + 358, guiTop + 4 + 3 + 185));
+				addLabel(new GuiNpcLabel(1, dialog.id + "", guiLeft + 358, guiTop + 4 + 3 + 195));
+			}
+		}
+
 		updateButtons();
 	}
 
