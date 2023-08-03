@@ -13,7 +13,9 @@ import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IScrollData, IGuiData, ICustomScrollListener,ITextfieldListener{
@@ -22,6 +24,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 	private ContainerManageRecipes container;
 	private String selected = null;
 	private ResourceLocation slot;
+	private String search = "";
 	
     public GuiNpcManageRecipes(EntityNPCInterface npc,ContainerManageRecipes container){
     	super(npc,container);
@@ -43,15 +46,15 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         scroll.guiLeft = guiLeft + 172;
         scroll.guiTop = guiTop + 8;
         addScroll(scroll);
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 172, guiTop + 8 + 3 + 180, 130, 20, search));
         
-    	this.addButton(new GuiNpcButton(0,guiLeft + 306, guiTop + 10, 84, 20, "menu.global"));
-    	this.addButton(new GuiNpcButton(1,guiLeft + 306, guiTop + 32, 84, 20, "tile.npcCarpentyBench.name"));
+    	this.addButton(new GuiNpcButton(0,guiLeft + 306, guiTop + 10, 94, 30, "menu.global"));
+    	this.addButton(new GuiNpcButton(1,guiLeft + 306, guiTop + 32, 94, 20, "tile.npcCarpentyBench.name"));
     	this.getButton(0).setEnabled(container.width == 4);
     	this.getButton(1).setEnabled(container.width == 3);
 
-    	this.addButton(new GuiNpcButton(3,guiLeft + 306, guiTop + 60, 84, 20, "gui.add"));
-    	this.addButton(new GuiNpcButton(4,guiLeft + 306, guiTop + 82, 84, 20, "gui.remove"));
-    	
+    	this.addButton(new GuiNpcButton(3,guiLeft + 306, guiTop + 60, 94, 20, "gui.add"));
+    	this.addButton(new GuiNpcButton(4,guiLeft + 306, guiTop + 82, 94, 20, "gui.remove"));
 
     	this.addLabel(new GuiNpcLabel(0, "gui.ignoreDamage", guiLeft + 86, guiTop + 32));
     	this.addButton(new GuiNpcButtonYesNo(5,guiLeft + 114, guiTop + 40, 50, 20, container.recipe.ignoreDamage));
@@ -99,6 +102,33 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         	container.recipe.ignoreNBT = button.getValue() == 1;
         }
     }
+
+	@Override
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(search.equals(getTextField(55).getText()))
+					return;
+				search = getTextField(55).getText().toLowerCase();
+				scroll.setList(getSearchList());
+			}
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(this.data.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.data.keySet()){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
+	}
+
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		RecipeCarpentry recipe = RecipeCarpentry.read(compound);
@@ -129,7 +159,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scroll.getSelected();
 		this.data = data;
-		scroll.setList(list);
+		scroll.setList(getSearchList());
 
 		this.getTextField(0).enabled = name != null;
 		this.getButton(5).setEnabled(name != null);

@@ -10,10 +10,7 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Vector;
+import java.util.*;
 
 public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener
 {
@@ -21,6 +18,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private Faction faction = new Faction();
 	private String selected = null;
+	private String search = "";
 	
     public GuiNPCManageFactions(EntityNPCInterface npc)
     {
@@ -37,13 +35,14 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
         
     	if(scrollFactions == null){
 	        scrollFactions = new GuiCustomScroll(this,0);
-	        scrollFactions.setSize(143, 208);
+	        scrollFactions.setSize(143, 185);
     	}
         scrollFactions.guiLeft = guiLeft + 220;
         scrollFactions.guiTop = guiTop + 4;
     	addScroll(scrollFactions);
-        
-    	if (faction.id == -1)
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 4 + 3 + 185, 143, 20, search));
+
+		if (faction.id == -1)
     		return;
            	
     	this.addTextField(new GuiNpcTextField(0, this, guiLeft + 40, guiTop + 4, 136, 20, faction.name));
@@ -70,7 +69,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
     	addLabel(new GuiNpcLabel(4,"faction.attacked", guiLeft + 8, guiTop + 97));
        	this.addButton(new GuiNpcButton(4,guiLeft + 100, guiTop + 92, 45, 20, new String[]{"gui.no","gui.yes"},faction.getsAttacked?1:0));
     	
-    	addLabel(new GuiNpcLabel(6,"faction.hostiles", guiLeft + 8, guiTop + 145));
+    	addLabel(new GuiNpcLabel(6,"faction.hostiles", guiLeft + 8, guiTop + 120));
     	
 		ArrayList<String> hostileList = new ArrayList<String>(scrollFactions.getList());
 		hostileList.remove(faction.name);
@@ -82,9 +81,9 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 		}
 		
     	GuiCustomScroll scrollHostileFactions = new GuiCustomScroll(this,1,true);
-        scrollHostileFactions.setSize(163, 58);
+        scrollHostileFactions.setSize(163, 78);
         scrollHostileFactions.guiLeft = guiLeft + 4;
-        scrollHostileFactions.guiTop = guiTop + 154;
+        scrollHostileFactions.guiTop = guiTop + 134;
 		scrollHostileFactions.setList(hostileList);
 		scrollHostileFactions.setSelectedList(set);
         addScroll(scrollHostileFactions);
@@ -134,13 +133,38 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 		setSelected(faction.name);
 		initGui();
 	}
-	
+
+	@Override
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(search.equals(getTextField(55).getText()))
+					return;
+				search = getTextField(55).getText().toLowerCase();
+				scrollFactions.setList(getSearchList());
+			}
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(this.data.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.data.keySet()){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
+	}
 
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scrollFactions.getSelected();
 		this.data = data;
-		scrollFactions.setList(list);
+		scrollFactions.setList(getSearchList());
 		
 		if(name != null)
 			scrollFactions.setSelected(name);
