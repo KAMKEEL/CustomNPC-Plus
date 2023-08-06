@@ -420,7 +420,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface implements IScroll
             initGui();
         } else if (data.isActive()) {
             Frame currentFrame = (Frame) data.animation.currentFrame();
-            long time = mc.theWorld.getWorldTime();
+            long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
                 if (currentFrame != null && !currentFrame.renderTicks) {
                     data.animation.increaseTime();
