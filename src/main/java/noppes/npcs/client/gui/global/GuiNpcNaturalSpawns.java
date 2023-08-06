@@ -20,6 +20,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	private GuiCustomScroll scrollNaturalSpawns;
 	private final GuiCustomScroll spawnEntryScroll = new GuiCustomScroll(this, 20, false);
 	private HashMap<String, Integer> data = new HashMap<String, Integer>();
+	private String search = "";
 
 	private SpawnData spawn = new SpawnData();
 	
@@ -33,11 +34,12 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 		super.initGui();
         if(this.scrollNaturalSpawns == null){
 			this.scrollNaturalSpawns = new GuiCustomScroll(this,0);
-			this.scrollNaturalSpawns.setSize(143, 208);
+			this.scrollNaturalSpawns.setSize(143, 185);
         }
 		this.scrollNaturalSpawns.guiLeft = guiLeft + 214;
 		this.scrollNaturalSpawns.guiTop = guiTop + 4;
         this.addScroll(this.scrollNaturalSpawns);
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 214, guiTop + 4 + 3 + 185, 143, 20, search));
 
        	this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
@@ -83,6 +85,33 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			addButton(new GuiNpcButton(26, guiLeft + 92, y, 100, 20, this.getTitle(this.spawn.spawnCompounds.get(selected))));
 		}
 	}
+
+	@Override
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(search.equals(getTextField(55).getText()))
+					return;
+				search = getTextField(55).getText().toLowerCase();
+				scrollNaturalSpawns.setList(getSearchList());
+			}
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(this.data.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.data.keySet()){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
+	}
+
     private String getTitle(NBTTagCompound compound) {
 		if(compound != null && compound.hasKey("ClonedName"))
 			return compound.getString("ClonedName");
@@ -182,7 +211,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scrollNaturalSpawns.getSelected();
 		this.data = data;
-		scrollNaturalSpawns.setList(list);
+		scrollNaturalSpawns.setList(getSearchList());
 		
 		if(name != null)
 			scrollNaturalSpawns.setSelected(name);

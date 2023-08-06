@@ -150,13 +150,15 @@ spawner.mobspawner=Spawner
 spawner.mount=Mount by
 spawner.mountplayer=Player mounts
 
-spawner.diesafter=Dies after spawns die
 spawner.posoffset=Position Offset
 spawner.type=Spawn Type
 spawner.all=All
 spawner.random=Random
 spawner.one=One by One
-spawner.despawn=Despawn Spawns On Target Lost
+spawner.summoner=Summoner Dies
+spawner.diesafter=Summoner Dies when Spawns Die
+spawner.despawn=Clear Spawns On Target Lost
+spawner.despawnsummon=Clear Spawns On Summoner Death
 
 mailbox.name=Mailbox
 mailbox.sender=Sender

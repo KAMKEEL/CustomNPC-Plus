@@ -5,9 +5,6 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.*;
-import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
-import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
-import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.data.Quest;
@@ -43,6 +40,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 	{
 		super(npc);
 		Instance = this;
+		quest = new Quest();
 		Client.sendData(EnumPacketServer.QuestCategoriesGet);
 	}
 
@@ -81,6 +79,13 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
 		this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
 		this.addButton(new GuiNpcButton(3,guiLeft + 358, guiTop + 117, 58, 20, "gui.copy"));
+
+		if(quest != null) {
+			if(quest.id != -1){
+				addLabel(new GuiNpcLabel(0, "ID:", guiLeft + 358, guiTop + 4 + 3 + 185));
+				addLabel(new GuiNpcLabel(1, quest.id + "", guiLeft + 358, guiTop + 4 + 3 + 195));
+			}
+		}
 
 		updateButtons();
 	}
