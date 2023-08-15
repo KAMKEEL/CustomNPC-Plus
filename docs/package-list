@@ -1,5 +1,6 @@
 noppes.npcs.api
 noppes.npcs.api.entity
+noppes.npcs.api.entity.data
 noppes.npcs.api.event
 noppes.npcs.api.gui
 noppes.npcs.api.handler
