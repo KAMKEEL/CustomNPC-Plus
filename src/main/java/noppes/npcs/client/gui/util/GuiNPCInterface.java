@@ -47,6 +47,8 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public float bgScaleY = 1;
 	public float bgScaleZ = 1;
 
+	public int mouseWheel;
+
     public GuiNPCInterface(EntityNPCInterface npc)
     {
     	this.player = Minecraft.getMinecraft().thePlayer;
@@ -211,6 +213,8 @@ public abstract class GuiNPCInterface extends GuiScreen
 
     @Override
     public void drawScreen(int i, int j, float f){
+		this.mouseWheel = Mouse.getDWheel();
+
     	if(AWTWindow != null){
     		if(!AWTWindow.isVisible()){
     			AWTWindow.dispose();
@@ -248,7 +252,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     		tf.drawTextBox(i, j);
     	}
         for(GuiCustomScroll scroll : scrolls.values())
-            scroll.drawScreen(i, j, f, hasSubGui()?0:Mouse.getDWheel());
+            scroll.drawScreen(i, j, f, hasSubGui()?0:this.mouseWheel);
         for(GuiScreen gui : extra.values())
         	gui.drawScreen(i, j, f);
         super.drawScreen(i, j, f);

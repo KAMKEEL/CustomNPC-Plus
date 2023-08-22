@@ -16,6 +16,7 @@ import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabQuests;
 import tconstruct.client.tabs.TabRegistry;
@@ -38,6 +39,9 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
     private String trackedQuestKeyOnOpen;
 
 	private Minecraft mc = Minecraft.getMinecraft();
+
+    private float sideButtonScroll = 0;
+    private float destSideButtonScroll = 0;
 
 	public GuiQuestLog(EntityPlayer player) {
 		super();
@@ -135,8 +139,18 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         	fontRendererObj.drawString(StatCollector.translateToLocal("quest.noquests"),guiLeft + 84,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
         	return;
         }
-        for(GuiMenuSideButton button: sideButtons.values().toArray(new GuiMenuSideButton[sideButtons.size()])){
-        	button.drawButton(mc, i, j);
+
+        this.destSideButtonScroll += Math.signum(this.mouseWheel) * 22;
+        this.sideButtonScroll = this.sideButtonScroll * (1.0F - 0.2F) + (this.destSideButtonScroll * 0.2F);
+
+        for(Map.Entry<Integer,GuiMenuSideButton> entry : this.sideButtons.entrySet()){
+            int buttonNumber = entry.getKey();
+            GuiMenuSideButton button = entry.getValue();
+
+            button.yPosition = (int) (this.guiTop +2 + buttonNumber*21 + this.sideButtonScroll);
+            if (button.yPosition >= this.guiTop + 2 && button.yPosition < this.guiTop + 22 * 8 + 2) {
+                button.drawButton(mc, i, j);
+            }
         }
     	fontRendererObj.drawString(data.selectedCategory,guiLeft + 5,guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
 
