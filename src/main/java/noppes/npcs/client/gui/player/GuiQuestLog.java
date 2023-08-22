@@ -29,6 +29,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
     private EntityPlayer player;
     private GuiCustomScroll scroll;
 	private HashMap<Integer,GuiMenuSideButton> sideButtons = new HashMap<Integer,GuiMenuSideButton>();
+    private HashMap<Integer,GuiNpcButton> otherButtons = new HashMap<Integer,GuiNpcButton>();
 	private QuestLogData data = new QuestLogData();
 	private boolean noQuests = false;
 	private boolean questDetails = true;
@@ -68,7 +69,8 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         	if(data.selectedCategory.isEmpty())
         		data.selectedCategory = category;
         	sideButtons.put(i, new GuiMenuSideButton(i,guiLeft - 69, this.guiTop +2 + i*21, 70,22, category));
-        	i++;
+            otherButtons.put(i, new GuiNpcButton(i,guiLeft - 69, this.guiTop +2 + i*21, 70,22, category));
+            i++;
         }
         sideButtons.get(categories.indexOf(data.selectedCategory)).active = true;
 
