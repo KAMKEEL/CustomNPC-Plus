@@ -16,6 +16,7 @@ import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
+import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabQuests;
@@ -140,7 +141,8 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         	return;
         }
 
-        this.destSideButtonScroll = Math.max(0, this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22);
+        int maxScroll = (Math.max(0, this.sideButtons.size() - 8) + 8) * 22;
+        this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, 0, maxScroll);
         this.sideButtonScroll = this.sideButtonScroll * (1.0F - 0.2F) + (this.destSideButtonScroll * 0.2F);
 
         for(Map.Entry<Integer,GuiMenuSideButton> entry : this.sideButtons.entrySet()){
