@@ -141,8 +141,8 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         	return;
         }
 
-        int maxScroll = (Math.max(0, this.sideButtons.size() - 8) + 8) * 22;
-        this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, 0, maxScroll);
+        int maxScroll = Math.max(0, this.sideButtons.size() - 10) * 22;
+        this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, -maxScroll, 0);
         this.sideButtonScroll = this.sideButtonScroll * (1.0F - 0.2F) + (this.destSideButtonScroll * 0.2F);
 
         for(Map.Entry<Integer,GuiMenuSideButton> entry : this.sideButtons.entrySet()){
@@ -150,7 +150,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
             GuiMenuSideButton button = entry.getValue();
 
             button.yPosition = (int) (this.guiTop +2 + buttonNumber*21 + this.sideButtonScroll);
-            if (button.yPosition >= this.guiTop + 2 && button.yPosition < this.guiTop + 22 * 8 + 2) {
+            if (button.yPosition >= this.guiTop && button.yPosition < this.guiTop + 22 * 8) {
                 button.drawButton(mc, i, j);
             }
         }
