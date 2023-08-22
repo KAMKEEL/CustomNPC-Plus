@@ -140,7 +140,7 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         	return;
         }
 
-        this.destSideButtonScroll = Math.max(0, this.destSideButtonScroll + Math.signum(this.mouseWheel) * 22);
+        this.destSideButtonScroll = Math.max(0, this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22);
         this.sideButtonScroll = this.sideButtonScroll * (1.0F - 0.2F) + (this.destSideButtonScroll * 0.2F);
 
         for(Map.Entry<Integer,GuiMenuSideButton> entry : this.sideButtons.entrySet()){
