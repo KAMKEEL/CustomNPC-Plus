@@ -15,8 +15,10 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
-public class DataInventory implements IInventory{
+public class DataInventory implements IInventory {
+	public static Random random = new Random();
 	public HashMap<Integer,ItemStack> items = new HashMap<Integer,ItemStack>();
 	public HashMap<Integer,Double> dropchance = new HashMap<Integer,Double>();
 	public HashMap<Integer,ItemStack> weapons = new HashMap<Integer, ItemStack>();
@@ -102,10 +104,12 @@ public class DataInventory implements IInventory{
 			if(item == null)
 				continue;
 			double dchance = 100;
+			double chance = random.nextDouble() * 100;
 			if(dropchance.containsKey(i))
 				dchance = dropchance.get(i);
-			double chance = Math.random()*100 + dchance;
-			if(chance >= 100){
+
+			// double chance = Math.random()*100 + dchance;
+			if(chance < dchance){
 				EntityItem e = getEntityItem(item.copy());
 				if(e != null)
 					list.add(e);
