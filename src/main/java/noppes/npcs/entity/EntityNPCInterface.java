@@ -138,6 +138,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setFaction(faction.id);
 			setSize(1, 1);
 			this.updateTasks();
+			this.func_110163_bv();
 
 			if (!this.isRemote() && this.wrappedNPC == null) {
 				this.wrappedNPC = new ScriptNpc<>(this);
@@ -978,6 +979,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
 
 		this.updateTasks();
+		this.func_110163_bv();
 	}
 
 
