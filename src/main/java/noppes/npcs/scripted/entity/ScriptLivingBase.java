@@ -237,7 +237,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	}
 	
 	/**
-	 * Works the same as the <a href="http://minecraft.gamepedia.com/Commands#effect">/effect command</a>
+	 * Works the same as the <a href="http://minecraft.wiki/w/Commands">/effect command</a>
 	 * @param effect
 	 * @param duration The duration in seconds
 	 * @param strength The amplifier of the potion effect
