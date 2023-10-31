@@ -35,6 +35,10 @@ public class Quest implements ICompatibilty, IQuest {
 	public String nextQuestTitle = "";
 	public PlayerMail mail = new PlayerMail();
 	public String command = "";
+
+	public boolean allowParty = false;
+	public byte partyRequirements = 0; // 0 - Only Party Leaders, 1 - Everyone
+	public byte rewardControl = 0;  // 0 - Only Party Leaders, 1 - Everyone
 	
 	public QuestInterface questInterface = new QuestItem();
 	
@@ -272,5 +276,29 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public IQuestInterface getQuestInterface(){
 		return this.questInterface;
+	}
+
+	public boolean isAllowParty() {
+		return allowParty;
+	}
+
+	public void setAllowParty(boolean allowParty) {
+		this.allowParty = allowParty;
+	}
+
+	public byte getPartyRequirements() {
+		return partyRequirements;
+	}
+
+	public void setPartyRequirements(byte partyRequirements) {
+		this.partyRequirements = partyRequirements;
+	}
+
+	public byte getRewardControl() {
+		return rewardControl;
+	}
+
+	public void setRewardControl(byte rewardControl) {
+		this.rewardControl = rewardControl;
 	}
 }
