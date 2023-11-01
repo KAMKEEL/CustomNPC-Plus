@@ -11,14 +11,16 @@ import noppes.npcs.controllers.QuestController;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 
 public class Party {
 
+    private final UUID partyUUID = UUID.randomUUID();
     private UUID partyLeader;
 
-    private Collection<UUID> partyMembers;
+    private final HashMap<UUID, String> partyMembers = new HashMap<>();
+    private final ArrayList<UUID> partyOrder = new ArrayList<>();
+
     private int currentQuestID = -1;
 
     public UUID getPartyLeader() {
@@ -37,12 +39,14 @@ public class Party {
         this.currentQuestID = currentQuestID;
     }
 
-    public void addPlayer(EntityPlayer player) {
-        partyMembers.add(player.getUniqueID());
-    }
+    public boolean addPlayer(EntityPlayer player) {
+        if(partyMembers.containsKey(player.getUniqueID())){
+            return false;
+        }
 
-    public void addPlayer(UUID player) {
-        partyMembers.add(player);
+        partyMembers.put(player.getUniqueID(), player.getCommandSenderName());
+        partyOrder.add(player.getUniqueID());
+        return true;
     }
 
     public boolean removePlayer(String playerName) {
@@ -50,15 +54,70 @@ public class Party {
         if (uuid == null){
             return false;
         }
-        return partyMembers.remove(uuid);
+
+        if(partyMembers.containsKey(uuid)){
+            partyMembers.remove(uuid);
+            partyOrder.remove(uuid);
+
+            if(uuid.equals(partyLeader)){
+                if(partyMembers.size() > 0){
+                    partyLeader = partyOrder.get(0);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     public boolean removePlayer(UUID player) {
-        return partyMembers.remove(player);
+        if(partyMembers.containsKey(player)){
+            partyMembers.remove(player);
+            partyOrder.remove(player);
+
+            if(player.equals(partyLeader)){
+                if(partyMembers.size() > 0){
+                    partyLeader = partyOrder.get(0);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     public boolean hasPlayer(UUID player) {
-        return partyMembers.contains(player);
+        return partyMembers.containsKey(player);
+    }
+
+    public boolean hasPlayer(String playerName) {
+        UUID uuid = getUUID(playerName);
+        if (uuid == null){
+            return false;
+        }
+        return partyMembers.containsKey(uuid);
+    }
+
+    public boolean setLeader(UUID uuid){
+        if(partyLeader.equals(uuid)){
+            return false;
+        }
+
+        if(!partyMembers.containsKey(uuid)){
+            return false;
+        }
+
+        // Remove New Leader
+        partyOrder.remove(uuid);
+        
+        // Add New Leader to Front
+        partyOrder.add(0, uuid);
+
+        // Set New Leader
+        partyLeader = uuid;
+        return true;
     }
 
     // To Be Called DURING Invite, Leave, Quest Switch, Leader Switch, etc.
