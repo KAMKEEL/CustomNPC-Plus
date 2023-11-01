@@ -63,6 +63,9 @@ public class ConfigMain
     public static Property DatFormatProperty;
     public static boolean DatFormat = false;
 
+    public static Property DefaultMaxPartySizetProperty;
+    public static int DefaultMaxPartySize = 4;
+
     /**
      *  General NPC Properties
      **/
@@ -148,6 +151,9 @@ public class ConfigMain
 
             DatFormatProperty = config.get(GENERAL, "Dat Format for PlayerData", false, "You need to use '/kamkeel config playerdata' to convert existing playerdata to new format.");
             DatFormat = DatFormatProperty.getBoolean(false);
+
+            DefaultMaxPartySizetProperty = config.get(GENERAL, "Default Max Party Size", 4, "When creating a new Quest sets the default max party size");
+            DefaultMaxPartySize = DefaultMaxPartySizetProperty.getInt(4);
 
             // NPC
             NpcNavRangeProperty = config.get(NPC, "NPC Navigation Range", 32, "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.");

@@ -10,6 +10,7 @@ import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
 import noppes.npcs.api.handler.data.IQuestInterface;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
@@ -39,6 +40,7 @@ public class Quest implements ICompatibilty, IQuest {
 	public boolean allowParty = false;
 	public byte partyRequirements = 0; // 0 - Only Party Leaders, 1 - Everyone
 	public byte rewardControl = 0;  // 0 - Only Party Leaders, 1 - Everyone
+	public int maxPartySize = 4;
 	
 	public QuestInterface questInterface = new QuestItem();
 	
@@ -80,6 +82,29 @@ public class Quest implements ICompatibilty, IQuest {
 		factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
 		
 		mail.readNBT(compound.getCompoundTag("QuestMail"));
+
+		// Party Management
+		allowParty = compound.getBoolean("AllowParty");
+		if(allowParty){
+			partyRequirements = compound.getByte("PartyRequirements");
+			rewardControl = compound.getByte("RewardControl");
+			maxPartySize = compound.getInteger("MaxPartySize");
+		}
+		else {
+			if(compound.hasKey("PartyRequirements")){
+				compound.removeTag("PartyRequirements");
+			}
+			if(compound.hasKey("RewardControl")){
+				compound.removeTag("RewardControl");
+			}
+			if(compound.hasKey("MaxPartySize")){
+				compound.removeTag("MaxPartySize");
+			}
+
+			partyRequirements = 0;
+			rewardControl = 0;
+			maxPartySize = ConfigMain.DefaultMaxPartySize;
+		}
 	}
 
 	public void setType(EnumQuestType questType) {
@@ -121,7 +146,24 @@ public class Quest implements ICompatibilty, IQuest {
 		this.questInterface.writeEntityToNBT(compound);
 		compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
 		compound.setTag("QuestMail", mail.writeNBT());
-		
+
+		compound.setBoolean("AllowParty", allowParty);
+		if(allowParty){
+			compound.setByte("PartyRequirements", partyRequirements);
+			compound.setByte("RewardControl", rewardControl);
+			compound.setInteger("MaxPartySize", maxPartySize);
+		}
+		else {
+			if(compound.hasKey("PartyRequirements")){
+				compound.removeTag("PartyRequirements");
+			}
+			if(compound.hasKey("RewardControl")){
+				compound.removeTag("RewardControl");
+			}
+			if(compound.hasKey("MaxPartySize")){
+				compound.removeTag("MaxPartySize");
+			}
+		}
 		return compound;
 	}
 	
@@ -300,5 +342,15 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public void setRewardControl(byte rewardControl) {
 		this.rewardControl = rewardControl;
+	}
+
+	@Override
+	public int getMaxPartySize() {
+		return maxPartySize;
+	}
+
+	@Override
+	public void setMaxPartySize(int newSize) {
+		maxPartySize = newSize;
 	}
 }
