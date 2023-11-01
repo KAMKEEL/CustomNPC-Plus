@@ -23,6 +23,7 @@ import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.UUID;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerDialogData dialogData = new PlayerDialogData(this);
@@ -39,6 +40,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public EntityNPCInterface editingNpc;
 	public NBTTagCompound cloned;
+	public UUID partyUUID = null;
 	
 	public EntityPlayer player;
 
