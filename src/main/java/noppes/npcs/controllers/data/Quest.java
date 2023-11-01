@@ -39,7 +39,7 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public boolean allowParty = false;
 	public byte partyRequirements = 0; // 0 - Only Party Leaders, 1 - Everyone
-	public byte rewardControl = 0;  // 0 - Only Party Leaders, 1 - Everyone
+	public byte rewardControl = 0;  // 0 - Only Party Leaders, 1 - Everyone, 2 - Completer
 	public int maxPartySize = 4;
 	
 	public QuestInterface questInterface = new QuestItem();
