@@ -179,8 +179,15 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 		public boolean isCompleted() {
 			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-			QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
-			return questData.extraData.getBoolean(this.nbtName);
+			PlayerQuestData playerQuestData = data.questData;
+			if(playerQuestData != null){
+				QuestData questData = playerQuestData.activeQuests.get(this.parent.questId);
+				if(questData != null){
+					return questData.extraData.getBoolean(this.nbtName);
+				}
+			}
+
+			return false;
 		}
 
 		public String getText() {
