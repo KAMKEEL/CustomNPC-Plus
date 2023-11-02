@@ -10,15 +10,18 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 
 public class Animation implements IAnimation {
+
+	public int id = -1; // Only for internal usage, does not save
 
 	public ArrayList<Frame> frames = new ArrayList<>();
 	public int currentFrame = 0;
 	public int currentFrameTime = 0;
 
-	public String name;
+	public String name = "";
 	public float speed = 1.0F;
 	public byte smooth = 0;
 	public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
@@ -33,14 +36,17 @@ public class Animation implements IAnimation {
 
 	public Animation(){}
 
-	public Animation(String name){
+	public Animation(int id, String name){
 		this.name = name;
+		this.id = id;
 	}
 
-	public Animation(String name, float speed, byte smooth){
+	public Animation(int id, String name, float speed, byte smooth){
 		this.name = name;
 		this.speed = speed;
 		this.smooth = smooth;
+
+		this.id = id;
 	}
 
 	public IFrame currentFrame() {
@@ -155,7 +161,18 @@ public class Animation implements IAnimation {
 		return AnimationController.Instance.saveAnimation(this);
 	}
 
+	@Override
+	public int getID() {
+		return id;
+	}
+
+	@Override
+	public void setID(int newID) {
+		id = newID;
+	}
+
 	public void readFromNBT(NBTTagCompound compound){
+		id = compound.getInteger("ID");
 		name = compound.getString("Name");
 		speed = compound.getFloat("Speed");
 		smooth = compound.getByte("Smooth");
@@ -181,6 +198,7 @@ public class Animation implements IAnimation {
 
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
+		compound.setInteger("ID", id);
 		compound.setString("Name", name);
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);

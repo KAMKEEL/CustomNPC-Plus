@@ -87,6 +87,14 @@ public class NoppesUtilServer {
 		sendScrollData(player, map);
 	}
 
+	public static void sendAnimationDataAll(EntityPlayerMP player) {
+		Map<String,Integer> map = new HashMap<String,Integer>();
+		for(Animation animation : AnimationController.getInstance().animations.values()){
+			map.put(animation.name, animation.id);
+		}
+		sendScrollData(player, map);
+	}
+
 	public static void sendTagDataAll(EntityPlayerMP player) {
 		Map<String,Integer> map = new HashMap<String,Integer>();
 		for(Tag tag : TagController.getInstance().tags.values()){

@@ -935,42 +935,26 @@ public class PacketHandlerServer{
 				//NoppesUtilServer.sendRoleData(player, npc);
 			}
 		}
-		else if(type == EnumPacketServer.AnimationListGet) {
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
+		else if(type == EnumPacketServer.AnimationsGet){
+			NoppesUtilServer.sendAnimationDataAll(player);
 		}
-		else if(type == EnumPacketServer.AnimationGet) {
-			String animationName = Server.readString(buffer);
-			Animation animation = (Animation) AnimationController.Instance.get(animationName);
-			if (animation != null) {
-				Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
-			}
+		else if(type == EnumPacketServer.AnimationGet){
+			Animation animation = (Animation) AnimationController.getInstance().get(buffer.readInt());
+			NBTTagCompound compound = animation.writeToNBT();
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
-		else if (type == EnumPacketServer.AnimationAdd) {
-			String name = "Animation";
-			if (AnimationController.Instance.has(name)) {
-				name += "_";
-				int i = 1;
-				while (AnimationController.Instance.has(name + i)) {
-					i++;
-				}
-				name += i;
-			}
-			Animation animation = new Animation(name);
-			animation.save();
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
+		else if(type == EnumPacketServer.AnimationRemove){
+			AnimationController.getInstance().delete(buffer.readInt());
+			NoppesUtilServer.sendAnimationDataAll(player);
+			NBTTagCompound compound = (new Animation()).writeToNBT();
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
-		else if (type == EnumPacketServer.AnimationDelete) {
-			String animationName = Server.readString(buffer);
-			AnimationController.Instance.delete(animationName);
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
-		}
-		else if (type == EnumPacketServer.AnimationSave) {
-			String prevName = Server.readString(buffer);
-			AnimationController.Instance.delete(prevName);
+		else if(type == EnumPacketServer.AnimationSave){
 			Animation animation = new Animation();
 			animation.readFromNBT(Server.readNBT(buffer));
-			animation.save();
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, new ArrayList<>(AnimationController.Instance.animations.keySet()));
+			AnimationController.getInstance().saveAnimation(animation);
+			NoppesUtilServer.sendAnimationDataAll(player);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
 		}
 		else
 			blockPackets(type, buffer, player);

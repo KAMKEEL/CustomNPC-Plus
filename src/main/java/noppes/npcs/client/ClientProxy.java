@@ -260,7 +260,8 @@ public class ClientProxy extends CommonProxy {
 				animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
 			}
 			return new GuiNPCManageAnimations(animNpc);
-		} else if (gui == EnumGuiType.ManageLinked)
+		}
+		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);
 
 		else if (gui == EnumGuiType.ManageTransport)

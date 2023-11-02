@@ -83,7 +83,7 @@ public enum EnumPacketServer {
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),  
 	DialogNpcGet,
 
-	AnimationListGet, AnimationGet, AnimationAdd, AnimationDelete, AnimationSave,
+	AnimationsGet, AnimationGet, AnimationRemove, AnimationSave,
 
 	RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, QuestLogToServer,
 

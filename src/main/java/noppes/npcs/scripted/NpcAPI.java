@@ -606,11 +606,11 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IAnimation createAnimation(String name) {
-        return new Animation(name);
+        return new Animation(-1, name);
     }
 
     public IAnimation createAnimation(String name, float speed, byte smooth) {
-        return new Animation(name, speed, smooth);
+        return new Animation(-1, name, speed, smooth);
     }
 
     public IFrame createFrame(int duration) {
