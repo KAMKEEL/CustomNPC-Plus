@@ -31,6 +31,7 @@ public class CommandKamkeel extends CommandBase{
 		registerCommand(new CloneCommand());
 		registerCommand(new ConfigCommand());
 		registerCommand(new AnimationCommand());
+		registerCommand(new OverlayCommand());
 	}
 	
 	public void registerCommand(CommandKamkeelBase command){
