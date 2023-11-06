@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public class Animation implements IAnimation {
 
-	public int id = -1; // Only for internal usage, does not save
+	public int id = -1; // Only for internal usage
 
 	public ArrayList<Frame> frames = new ArrayList<>();
 	public int currentFrame = 0;
