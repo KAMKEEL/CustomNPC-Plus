@@ -44,12 +44,16 @@ public class RenderCNPCPlayer extends RenderPlayer {
     }
 
     private boolean preRenderOverlay(SkinOverlay overlayData, EntityPlayer player) {
-        if (overlayData.location.getResourcePath().isEmpty())
+        if (overlayData.texture.isEmpty())
+            return false;
+
+        ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+        if (!imageData.imageLoaded())
             return false;
 
         try {
-            this.bindTexture(overlayData.location);
-        } catch (Exception exception) {
+            imageData.bindTexture();
+        } catch (Exception e) {
             return false;
         }
 
@@ -108,17 +112,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
         {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
+                    if (((SkinOverlay)overlayData).texture.isEmpty())
                         continue;
 
-                    if (overlayData.location == null) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    } else {
-                        String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
-                        if (!str.equals(overlayData.texture)) {
-                            overlayData.location = new ResourceLocation(overlayData.texture);
-                        }
-                    }
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                    if (!imageData.imageLoaded())
+                        continue;
 
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
@@ -273,17 +272,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
             for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                if (overlayData.texture.isEmpty())
+                if (((SkinOverlay)overlayData).texture.isEmpty())
                     continue;
 
-                if (overlayData.location == null) {
-                    overlayData.location = new ResourceLocation(overlayData.texture);
-                } else {
-                    String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
-                    if (!str.equals(overlayData.texture)) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    }
-                }
+                ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                if (!imageData.imageLoaded())
+                    continue;
 
                 if (!this.preRenderOverlay(overlayData, player))
                     continue;
@@ -400,17 +394,16 @@ public class RenderCNPCPlayer extends RenderPlayer {
         try {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
+                    if (((SkinOverlay)overlayData).texture.isEmpty())
                         continue;
 
-                    if (overlayData.location == null) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    } else {
-                        String str = overlayData.location.getResourceDomain() + ":" + overlayData.location.getResourcePath();
-                        if (!str.equals(overlayData.texture)) {
-                            overlayData.location = new ResourceLocation(overlayData.texture);
-                        }
-                    }
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                    if (!imageData.imageLoaded())
+                        continue;
+
+                    try {
+                        imageData.bindTexture();
+                    } catch (Exception e) { continue; }
 
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;

@@ -11,11 +11,13 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.*;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
 import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -376,21 +378,15 @@ public class ModelMPM extends ModelNPCMale{
 				if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 					for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 						try {
-							if (((SkinOverlay)overlayData).getLocation() == null) {
-								((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
-							} else {
-								String str = ((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourceDomain()+":"+((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourcePath();
-								if (!str.equals(overlayData.getTexture())) {
-									((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
-								}
-							}
+							if (((SkinOverlay)overlayData).texture.isEmpty())
+								continue;
 
-							if (overlayData.getTexture().isEmpty() || ((SkinOverlay)overlayData).getLocation() == null
-									|| ((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
+							ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+							if (!imageData.imageLoaded())
 								continue;
 
 							try {
-								RenderNPCInterface.staticRenderManager.renderEngine.bindTexture(((SkinOverlay)overlayData).getLocation());
+								imageData.renderEngineBind();
 							} catch (Exception e) { continue; }
 
 							// Overlay & Glow

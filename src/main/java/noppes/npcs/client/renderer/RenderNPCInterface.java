@@ -226,21 +226,15 @@ public class RenderNPCInterface extends RenderLiving{
 		if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 			for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 				try {
-					if (((SkinOverlay)overlayData).getLocation() == null) {
-						((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
-					} else {
-						String str = ((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourceDomain()+":"+((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourcePath();
-						if (!str.equals(overlayData.getTexture())) {
-							((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
-						}
-					}
+					if (((SkinOverlay)overlayData).texture.isEmpty())
+						continue;
 
-					if (overlayData.getTexture().isEmpty() || ((SkinOverlay)overlayData).getLocation() == null
-							|| ((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
+					ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+					if (!imageData.imageLoaded())
 						continue;
 
 					try {
-						this.bindTexture(((SkinOverlay)overlayData).getLocation());
+						imageData.bindTexture();
 					} catch (Exception e) { continue; }
 
 					// Overlay & Glow

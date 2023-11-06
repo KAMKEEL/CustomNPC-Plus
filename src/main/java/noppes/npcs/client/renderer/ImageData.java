@@ -74,6 +74,17 @@ public class ImageData {
         }
     }
 
+    public void renderEngineBind() {
+        ResourceLocation location = this.getLocation();
+        if (location != null && !this.invalid) {
+            try {
+                RenderNPCInterface.staticRenderManager.renderEngine.bindTexture(location);
+            } catch (Exception exception) {
+                this.invalid = true;
+            }
+        }
+    }
+
     private ResourceLocation getLocation() {
         return this.isUrl && this.imageDownloadAlt.getBufferedImage() == null ? null : this.location;
     }
