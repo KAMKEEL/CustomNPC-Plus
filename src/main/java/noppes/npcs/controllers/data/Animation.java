@@ -172,7 +172,13 @@ public class Animation implements IAnimation {
 	}
 
 	public void readFromNBT(NBTTagCompound compound){
-		id = compound.getInteger("ID");
+		if(compound.hasKey("ID")){
+			id = compound.getInteger("ID");
+		}
+		else {
+			id = AnimationController.Instance.getUnusedId();
+		}
+
 		name = compound.getString("Name");
 		speed = compound.getFloat("Speed");
 		smooth = compound.getByte("Smooth");
