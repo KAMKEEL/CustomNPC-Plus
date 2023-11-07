@@ -89,16 +89,13 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     {
     	super.keyTyped(c, i);
 
-    	if(selection != EnumPlayerData.Players)
-    		return;
-    	
-    	if(search.equals(getTextField(0).getText()))
-    		return;
-    	search = getTextField(0).getText().toLowerCase();
-    	scroll.setList(getSearchList());
+		if(search.equals(getTextField(0).getText()))
+			return;
+		search = getTextField(0).getText().toLowerCase();
+		scroll.setList(getSearchList());
     }
     private List<String> getSearchList(){
-    	if(search.isEmpty() || selection != EnumPlayerData.Players)
+    	if(search.isEmpty())
     		return new ArrayList<String>(this.data.keySet());
     	List<String> list = new ArrayList<String>();
     	for(String name : data.keySet()){
@@ -111,28 +108,35 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	protected void actionPerformed(GuiButton guibutton)
     {
 		int id = guibutton.id;
-        if(id == 0)
-        {
-        	if(selected != null){
-        		if(selection == EnumPlayerData.Players)
-        			Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,selected);
-        		else
-        			Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,data.get(selected));
-        		data.clear();
-        	}
-        	selected = null;
-        }
-        if(id >= 1 && id <= 6)
-        {
-        	if(selectedPlayer == null && id != 1)
-        		return;
-        	selection = EnumPlayerData.values()[id - 1];
-        	initButtons();
-        	scroll.clear();
-        	data.clear();
-        	Client.sendData(EnumPacketServer.PlayerDataGet, selection, selectedPlayer);
-        	selected = null;
-        }
+		if(id < 7){
+			GuiNpcTextField tf = getTextField(0);
+			if(tf != null){
+				tf.setText("");
+			}
+			search = "";
+			if(id == 0)
+			{
+				if(selected != null){
+					if(selection == EnumPlayerData.Players)
+						Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,selected);
+					else
+						Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,data.get(selected));
+					data.clear();
+				}
+				selected = null;
+			}
+			if(id >= 1 && id <= 6)
+			{
+				if(selectedPlayer == null && id != 1)
+					return;
+				selection = EnumPlayerData.values()[id - 1];
+				initButtons();
+				scroll.clear();
+				data.clear();
+				Client.sendData(EnumPacketServer.PlayerDataGet, selection, selectedPlayer);
+				selected = null;
+			}
+		}
 		if(id == 7){
 			displayGuiScreen(new GuiYesNo(this, "Warning", "Do not operate on PlayerData as its regenerating", 1));
 		}
