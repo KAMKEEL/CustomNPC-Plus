@@ -81,7 +81,7 @@ public class OverlayCommand extends CommandKamkeelBase {
                 sendResult(sender, String.format("Overlay removed to Player '\u00A7b%s\u00A77' on ID \u00A7d%d", playerdata.playername, overlayID));
             }
             else {
-                sendResult(sender, String.format("No overlay found for Player '\u00A7b%s\u00A77' on ID \u00A7d%d", playerdata.playername, overlayID));
+                sendError(sender, String.format("No overlay found for Player '\u00A7b%s\u00A74' on ID \u00A7d%d", playerdata.playername, overlayID));
             }
             return;
         }
