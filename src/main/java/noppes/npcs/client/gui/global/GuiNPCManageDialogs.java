@@ -43,6 +43,14 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
     {
         super.initGui();
 
+		if(catScroll == null){
+			catScroll = new GuiCustomScroll(this,0, 0);
+			catScroll.setSize(143, 185);
+		}
+		catScroll.guiLeft = guiLeft + 64;
+		catScroll.guiTop = guiTop + 4;
+		this.addScroll(catScroll);
+
 		if(dialogScroll == null){
 			dialogScroll = new GuiCustomScroll(this,1, 0);
 			dialogScroll.setSize(143, 185);
@@ -51,13 +59,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		dialogScroll.guiTop = guiTop + 4;
 		this.addScroll(dialogScroll);
 
-		if(catScroll == null){
-			catScroll = new GuiCustomScroll(this,0, 0);
-			catScroll.setSize(143, 185);
-		}
-		catScroll.guiLeft = guiLeft + 64;
-		catScroll.guiTop = guiTop + 4;
-		this.addScroll(catScroll);
 		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 64, guiTop + 4 + 3 + 185, 143, 20, catSearch));
 
 		this.addButton(new GuiNpcButton(44,guiLeft + 3, guiTop + 8, 58, 20, "gui.categories"));

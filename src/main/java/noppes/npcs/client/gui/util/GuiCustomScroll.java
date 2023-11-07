@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util;
 
+import kamkeel.util.TextSplitter;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.RenderHelper;
@@ -100,20 +101,28 @@ public class GuiCustomScroll extends GuiScreen
         GL11.glTranslatef(guiLeft, guiTop, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         
-        if(selectable){
+        if(selectable)
             hover = getMouseOver(i,j);
-            if(oldHover != hover){
-                oldHover = hover;
-                hoverCount = 0;
-            }
-            else {
-                if(hoverCount < 110)
-                    hoverCount++;
-            }
-        }
 
         drawItems();
-        
+
+        if(oldHover != hover){
+            oldHover = hover;
+            hoverCount = 0;
+        }
+        else {
+            if(hoverCount < 110)
+                hoverCount++;
+        }
+
+        if(hover != -1 && hoverableText && hoverCount > 100){
+            String displayString = StatCollector.translateToLocal(list.get(hover));
+            GL11.glColor4f(1, 1, 1, 1);
+            List<String> lines = TextSplitter.splitText(displayString, 30);
+            super.drawHoveringText(lines, i-guiLeft, j-guiTop, this.fontRendererObj);
+            GL11.glDisable(GL11.GL_LIGHTING);
+        }
+
         GL11.glPopMatrix();
         if(scrollHeight < ySize - 8){
         	i -= guiLeft;
@@ -144,6 +153,37 @@ public class GuiCustomScroll extends GuiScreen
                     scrollY = 0;
             } 
         }
+    }
+
+    public void drawHover(int i, int j, float f, int mouseScrolled){
+        if(!visible)
+            return;
+
+        if(!hoverableText)
+            return;
+
+        GL11.glPushMatrix();
+        GL11.glTranslatef(guiLeft, guiTop, 0.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+        if(oldHover != hover){
+            oldHover = hover;
+            hoverCount = 0;
+        }
+        else {
+            if(hoverCount < 110)
+                hoverCount++;
+        }
+
+        if(hover != -1 && hoverableText && hoverCount > 100){
+            String displayString = StatCollector.translateToLocal(list.get(hover));
+            GL11.glColor4f(1, 1, 1, 1);
+            List<String> lines = TextSplitter.splitText(displayString, 30);
+            super.drawHoveringText(lines, i-guiLeft, j-guiTop, this.fontRendererObj);
+            GL11.glDisable(GL11.GL_LIGHTING);
+        }
+
+        GL11.glPopMatrix();
     }
 
     public boolean mouseInOption(int i, int j, int k)
@@ -187,15 +227,6 @@ public class GuiCustomScroll extends GuiScreen
             	}
             	else if(i == hover){
                     fontRendererObj.drawString(text, j , k, 0x00ff00);
-                    if(hoverableText && hoverCount > 100){
-                        GL11.glColor4f(1, 1, 1, 1);
-                        List<String> lines = new ArrayList<String>();
-                        lines.add(displayString);
-                        GL11.glTranslatef(j + 2, k + 2, 30);
-                        super.drawHoveringText(Arrays.asList(displayString), 0, 0, this.fontRendererObj);
-                        GL11.glTranslatef(-j - 2, -(k + 2), 30);
-                        GL11.glDisable(GL11.GL_LIGHTING);
-                    }
                 }
             	else
             		fontRendererObj.drawString(text, j , k, 0xffffff);

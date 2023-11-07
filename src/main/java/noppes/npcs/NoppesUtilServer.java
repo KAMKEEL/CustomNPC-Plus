@@ -444,13 +444,13 @@ public class NoppesUtilServer {
 		        	Quest quest = QuestController.Instance.quests.get(questId);
 		        	if(quest == null)
 		        		continue;
-		        	map.put(quest.category.title + ": " + quest.title + "(Active quest)",questId);
+		        	map.put(quest.category.title + ": " + quest.title + " (Active)",questId);
 		        }
 		        for(int questId : data.finishedQuests.keySet()){
 		        	Quest quest = QuestController.Instance.quests.get(questId);
 		        	if(quest == null)
 		        		continue;
-		        	map.put(quest.category.title + ": " + quest.title + "(Finished quest)",questId);
+		        	map.put(quest.category.title + ": " + quest.title + " (Finished)",questId);
 		        }
 			}
 			else if(type == EnumPlayerData.Transport){

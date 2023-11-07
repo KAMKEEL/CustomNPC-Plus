@@ -252,15 +252,14 @@ public abstract class GuiNPCInterface extends GuiScreen
     		tf.drawTextBox(i, j);
     	}
         for(GuiCustomScroll scroll : scrolls.values())
-			if(!scroll.hoverableText){
-				scroll.drawScreen(i, j, f, hasSubGui()?0:this.mouseWheel);
-			}
+			scroll.drawScreen(i, j, f, hasSubGui()?0:this.mouseWheel);
+
         for(GuiScreen gui : extra.values())
         	gui.drawScreen(i, j, f);
         super.drawScreen(i, j, f);
 		for(GuiCustomScroll scroll : scrolls.values())
 			if(scroll.hoverableText){
-				scroll.drawScreen(i, j, f, hasSubGui()?0:this.mouseWheel);
+				scroll.drawHover(i, j, f, hasSubGui()?0:this.mouseWheel);
 			}
         if(subgui != null)
     		subgui.drawScreen(i,j,f);
