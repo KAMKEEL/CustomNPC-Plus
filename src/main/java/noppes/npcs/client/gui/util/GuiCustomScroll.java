@@ -67,7 +67,6 @@ public class GuiCustomScroll extends GuiScreen
     public GuiCustomScroll(GuiScreen parent, int id, int allowHover)
     {
         this(parent,id);
-        this.multipleSelection = multipleSelection;
         this.hoverableText = true;
     }
 
