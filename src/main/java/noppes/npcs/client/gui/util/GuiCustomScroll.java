@@ -270,7 +270,8 @@ public class GuiCustomScroll extends GuiScreen
 
     public void setList(List<String> list){
 		isSorted = true;
-		Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        list.removeAll(Collections.singleton(null));
+        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
 		this.list = list;
 		setSize(xSize,ySize);
 	}
