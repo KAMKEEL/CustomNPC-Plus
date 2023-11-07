@@ -41,7 +41,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         super.initGui();
         
         if(scroll == null)
-        	scroll = new GuiCustomScroll(this,0);
+        	scroll = new GuiCustomScroll(this,0,0);
         scroll.setSize(130, 180);
         scroll.guiLeft = guiLeft + 172;
         scroll.guiTop = guiTop + 8;

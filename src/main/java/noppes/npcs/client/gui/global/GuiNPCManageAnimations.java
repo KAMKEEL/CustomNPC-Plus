@@ -35,7 +35,7 @@ public class GuiNPCManageAnimations extends GuiNPCInterface2 implements IScrollD
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
         
     	if(scrollAnimations == null){
-	        scrollAnimations = new GuiCustomScroll(this,0);
+	        scrollAnimations = new GuiCustomScroll(this,0, 0);
 			scrollAnimations.setSize(143, 185);
     	}
         scrollAnimations.guiLeft = guiLeft + 220;

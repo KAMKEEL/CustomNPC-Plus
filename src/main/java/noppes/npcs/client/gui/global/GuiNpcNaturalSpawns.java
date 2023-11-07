@@ -33,7 +33,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	public void initGui(){
 		super.initGui();
         if(this.scrollNaturalSpawns == null){
-			this.scrollNaturalSpawns = new GuiCustomScroll(this,0);
+			this.scrollNaturalSpawns = new GuiCustomScroll(this,0,0);
 			this.scrollNaturalSpawns.setSize(143, 185);
         }
 		this.scrollNaturalSpawns.guiLeft = guiLeft + 214;

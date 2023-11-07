@@ -36,7 +36,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
         
     	if(scrollTags == null){
-	        scrollTags = new GuiCustomScroll(this,0);
+	        scrollTags = new GuiCustomScroll(this,0, 0);
 			scrollTags.setSize(143, 185);
     	}
         scrollTags.guiLeft = guiLeft + 220;

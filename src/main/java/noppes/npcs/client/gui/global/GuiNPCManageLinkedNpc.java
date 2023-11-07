@@ -34,7 +34,7 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
     	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
     	
         if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0);
+	        scroll = new GuiCustomScroll(this,0,0);
 	        scroll.setSize(143, 185);
         }
         scroll.guiLeft = guiLeft + 214;

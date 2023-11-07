@@ -29,7 +29,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     {
         super.initGui();
         if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0);
+	        scroll = new GuiCustomScroll(this,0, 0);
 	        scroll.setSize(165, 208);
         }
         scroll.guiLeft = guiLeft + 4;

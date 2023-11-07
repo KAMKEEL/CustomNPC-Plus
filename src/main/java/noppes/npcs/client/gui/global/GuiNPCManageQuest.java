@@ -48,8 +48,16 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 	{
 		super.initGui();
 
+		if(questScroll == null){
+			questScroll = new GuiCustomScroll(this,1, 0);
+			questScroll.setSize(143, 185);
+		}
+		questScroll.guiLeft = guiLeft + 212;
+		questScroll.guiTop = guiTop + 4;
+		this.addScroll(questScroll);
+
 		if(catScroll == null){
-			catScroll = new GuiCustomScroll(this,0);
+			catScroll = new GuiCustomScroll(this,0, 0);
 			catScroll.setSize(143, 185);
 		}
 		catScroll.guiLeft = guiLeft + 64;
@@ -63,14 +71,6 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		this.addButton(new GuiNpcButton(5,guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
 		this.addButton(new GuiNpcButton(6,guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
 
-
-		if(questScroll == null){
-			questScroll = new GuiCustomScroll(this,1);
-			questScroll.setSize(143, 185);
-		}
-		questScroll.guiLeft = guiLeft + 212;
-		questScroll.guiTop = guiTop + 4;
-		this.addScroll(questScroll);
 		addTextField(new GuiNpcTextField(66, this, fontRendererObj, guiLeft + 212, guiTop + 4 + 3 + 185, 143, 20, questSearch));
 
 		this.addButton(new GuiNpcButton(33,guiLeft + 358, guiTop + 8, 58, 20, "quest.quests"));

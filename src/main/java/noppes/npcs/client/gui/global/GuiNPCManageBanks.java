@@ -41,7 +41,7 @@ public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScr
        	this.addButton(new GuiNpcButton(6,guiLeft + 340, guiTop + 10, 45, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(7,guiLeft + 340, guiTop + 32, 45, 20, "gui.remove"));
     	if(scroll == null)
-    		scroll = new GuiCustomScroll(this,0);
+    		scroll = new GuiCustomScroll(this,0,0);
     	scroll.setSize(160, 180);
     	scroll.guiLeft = guiLeft + 174;
     	scroll.guiTop = guiTop + 8;

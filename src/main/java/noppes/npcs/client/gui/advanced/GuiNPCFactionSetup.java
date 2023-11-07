@@ -36,7 +36,7 @@ public class GuiNPCFactionSetup extends GuiNPCInterface2 implements IScrollData,
         addButton(new GuiNpcButton(12, guiLeft + 90, guiTop + 64, 80, 20, "faction.points"));
         
         if(scrollFactions == null){
-	        scrollFactions = new GuiCustomScroll(this,0);
+	        scrollFactions = new GuiCustomScroll(this,0,0);
 	        scrollFactions.setSize(180, 200);
         }
         scrollFactions.guiLeft = guiLeft + 200;

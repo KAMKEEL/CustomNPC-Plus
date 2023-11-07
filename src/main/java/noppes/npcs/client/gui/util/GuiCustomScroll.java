@@ -1,12 +1,17 @@
 package noppes.npcs.client.gui.util;
 
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.util.*;
+
+import static noppes.npcs.client.gui.util.GuiHoverText.buttonTextures;
 
 public class GuiCustomScroll extends GuiScreen
 {
@@ -21,6 +26,9 @@ public class GuiCustomScroll extends GuiScreen
     public int selected;
     protected HashSet<String> selectedList;
     protected int hover;
+    protected int oldHover;
+    private int hoverCount = 0;
+    protected boolean hoverableText = false;
     private int listHeight;
     protected int scrollY;
     protected int maxScrollY;
@@ -55,6 +63,14 @@ public class GuiCustomScroll extends GuiScreen
     	this(parent,id);
     	this.multipleSelection = multipleSelection;
     }
+
+    public GuiCustomScroll(GuiScreen parent, int id, int allowHover)
+    {
+        this(parent,id);
+        this.multipleSelection = multipleSelection;
+        this.hoverableText = true;
+    }
+
     public void setSize(int x, int y){
     	ySize = y;
     	xSize = x;
@@ -85,9 +101,17 @@ public class GuiCustomScroll extends GuiScreen
         GL11.glTranslatef(guiLeft, guiTop, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         
-        if(selectable)
-        	hover = getMouseOver(i,j);
-        	
+        if(selectable){
+            hover = getMouseOver(i,j);
+            if(oldHover != hover){
+                oldHover = hover;
+                hoverCount = 0;
+            }
+            else {
+                hoverCount++;
+            }
+        }
+
         drawItems();
         
         GL11.glPopMatrix();
@@ -161,14 +185,25 @@ public class GuiCustomScroll extends GuiScreen
             		drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k + 10 , 0xffffffff);
             		fontRendererObj.drawString(text, j , k, 0xffffff);
             	}
-            	else if(i == hover)
-            		fontRendererObj.drawString(text, j , k, 0x00ff00);
+            	else if(i == hover){
+                    fontRendererObj.drawString(text, j , k, 0x00ff00);
+                    if(hoverableText && hoverCount > 100){
+                        GL11.glColor4f(1, 1, 1, 1);
+                        List<String> lines = new ArrayList<String>();
+                        lines.add(displayString);
+                        GL11.glTranslatef(j + 2, k + 2, 30);
+                        super.drawHoveringText(Arrays.asList(displayString), 0, 0, this.fontRendererObj);
+                        GL11.glTranslatef(-j - 2, -(k + 2), 30);
+                        GL11.glDisable(GL11.GL_LIGHTING);
+                    }
+                }
             	else
             		fontRendererObj.drawString(text, j , k, 0xffffff);
             }
         }
 
     }
+
     public String getSelected(){
     	if(selected == -1 || selected >= list.size() )
     		return null;

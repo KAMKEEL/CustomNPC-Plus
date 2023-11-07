@@ -34,7 +34,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
         
     	if(scrollFactions == null){
-	        scrollFactions = new GuiCustomScroll(this,0);
+	        scrollFactions = new GuiCustomScroll(this,0, 0);
 	        scrollFactions.setSize(143, 185);
     	}
         scrollFactions.guiLeft = guiLeft + 220;

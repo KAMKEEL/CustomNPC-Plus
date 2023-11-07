@@ -35,7 +35,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     public void initGui()
     {
         super.initGui();        
-        scroll = new GuiCustomScroll(this,0);
+        scroll = new GuiCustomScroll(this,0, 0);
         scroll.setSize(303, 175);
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 16;
