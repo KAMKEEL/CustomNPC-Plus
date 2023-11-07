@@ -108,7 +108,8 @@ public class GuiCustomScroll extends GuiScreen
                 hoverCount = 0;
             }
             else {
-                hoverCount++;
+                if(hoverCount < 110)
+                    hoverCount++;
             }
         }
 
