@@ -11,6 +11,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
@@ -1260,7 +1261,13 @@ public class ScriptWorld implements IWorld {
 	public String[] getStoredDataKeys() {
 		NBTTagCompound compound = ScriptController.Instance.compound;
 		if (compound != null) {
-			return (String[]) compound.func_150296_c().toArray();
+			Set keySet = compound.func_150296_c();
+			List<String> list = new ArrayList<>();
+			for(Object o : keySet){
+				list.add((String) o);
+			}
+			String[] array = list.toArray(new String[list.size()]);
+			return array;
 		}
 		return new String[0];
 	}
