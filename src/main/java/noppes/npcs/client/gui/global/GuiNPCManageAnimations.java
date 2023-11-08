@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Animation;
@@ -23,6 +24,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private Animation animation = new Animation();
 	public boolean playingAnimation = false;
+	private long prevTick;
 	private String selected = null;
 	private String search = "";
 
@@ -32,6 +34,9 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 		this.xOffset = -148 + 70;
 		this.yOffset = -170 + 137;
     	Client.sendData(EnumPacketServer.AnimationsGet);
+
+		AnimationData data = npc.display.animationData;
+		data.setEnabled(true);
     }
 
     public void initGui()
@@ -48,13 +53,13 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         scrollAnimations.guiLeft = guiLeft + 220;
         scrollAnimations.guiTop = guiTop + 4;
     	addScroll(scrollAnimations);
-		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 4 + 3 + 185, 143, 20, search));
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 192, 143, 20, search));
 
 		if (animation.id == -1)
     		return;
 
-		addLabel(new GuiNpcLabel(10,"ID", guiLeft + 368, guiTop + 54));
-		addLabel(new GuiNpcLabel(11, animation.id + "", guiLeft + 368, guiTop + 64));
+		addLabel(new GuiNpcLabel(10,"ID", guiLeft + 368, guiTop + 192));
+		addLabel(new GuiNpcLabel(11, animation.id + "", guiLeft + 368, guiTop + 192 + 10));
 
 		AnimationData data = npc.display.animationData;
 		if (!playingAnimation) {
@@ -64,28 +69,55 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 			data.animation.loop = 0;
 		}
 
+		if (animation != null) {
+			this.addButton(new GuiNpcButton(100, guiLeft + 10, guiTop + 192, 45, 20, "gui.edit"));
+		}
+
 		String animTexture = "customnpcs:textures/gui/animation.png";
-		if (data.animation != null && data.animation.frames.size() > 0) {
+		int playButtonOffsetX = 140;
+		if (animation != null && !animation.frames.isEmpty()) {
 			if (!this.playingAnimation || data.animation.paused) {//Play
-				this.addLabel(new GuiNpcLabel(90, data.animation.paused ? "animation.paused" : "animation.stopped", guiLeft - 15, guiTop + 206, 0xFFFFFF));
+				this.addLabel(new GuiNpcLabel(90, data.animation.paused ? "animation.paused" : "animation.stopped", guiLeft + playButtonOffsetX - 15, guiTop + 198));
 				if (data.animation.paused) {
-					this.addLabel(new GuiNpcLabel(94, "", guiLeft + 21, guiTop + 206, 0xFFFFFF));
+					this.addLabel(new GuiNpcLabel(94, "", guiLeft + playButtonOffsetX + 21, guiTop + 198));
 				}
-				this.addButton(new GuiTexturedButton(91, "", guiLeft + 35, guiTop + 200, 11, 20, animTexture, 18, 71));
+				this.addButton(new GuiTexturedButton(91, "", guiLeft + playButtonOffsetX + 35, guiTop + 192, 11, 20, animTexture, 18, 71));
 			} else {//Pause
-				this.addLabel(new GuiNpcLabel(90, "animation.playing", guiLeft - 15, guiTop + 206, 0xFFFFFF));
-				this.addLabel(new GuiNpcLabel(94, "", guiLeft + 20, guiTop + 206, 0xFFFFFF));
-				this.addButton(new GuiTexturedButton(92, "", guiLeft + 35, guiTop + 200, 14, 20, animTexture, 0, 71));
+				this.addLabel(new GuiNpcLabel(90, "animation.playing", guiLeft + playButtonOffsetX - 15, guiTop + 198));
+				this.addLabel(new GuiNpcLabel(94, "", guiLeft + playButtonOffsetX + 20, guiTop + 198));
+				this.addButton(new GuiTexturedButton(92, "", guiLeft + playButtonOffsetX + 35, guiTop + 192, 14, 20, animTexture, 0, 71));
 			}
 			if (this.playingAnimation) {//Stop
-				this.addButton(new GuiTexturedButton(93, "", guiLeft + 55, guiTop + 200, 14, 20, animTexture, 33, 71));
+				this.addButton(new GuiTexturedButton(93, "", guiLeft + playButtonOffsetX + 55, guiTop + 192, 14, 20, animTexture, 33, 71));
 			}
 		}
     }
 
 	@Override
-	public void drawScreen(int i, int j, float f) {
-		super.drawScreen(i, j, f);
+	public void drawScreen(int par1, int par2, float par3)
+	{
+		super.drawScreen(par1,par2,par3);
+		AnimationData data = npc.display.animationData;
+		if (!data.isActive() && this.playingAnimation) {
+			this.playingAnimation = false;
+			initGui();
+		} else if (data.isActive()) {
+			Frame currentFrame = (Frame) data.animation.currentFrame();
+			long time = mc.theWorld.getTotalWorldTime();
+			if (time != prevTick) {
+				if (currentFrame != null && !currentFrame.renderTicks) {
+					data.animation.increaseTime();
+				}
+				GuiNpcLabel label = this.getLabel(94);
+				if (label != null) {
+					label.label += ".";
+					if (label.label.length()%4 == 0) {
+						label.label = "";
+					}
+				}
+			}
+			prevTick = time;
+		}
 	}
 
 	@Override
@@ -117,6 +149,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     @Override
 	protected void actionPerformed(GuiButton guibutton){
 		GuiNpcButton button = (GuiNpcButton) guibutton;
+
         if(button.id == 0){
         	save();
         	String name = "New";
@@ -130,12 +163,10 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         		Client.sendData(EnumPacketServer.AnimationRemove, data.get(selected));
         		scrollAnimations.clear();
         		animation = new Animation();
-        		initGui();
         	}
         }
 
 		AnimationData data = npc.display.animationData;
-
 		if (guibutton.id == 91) {
 			if (!this.playingAnimation || !data.isActive()) {
 				animation.currentFrame = 0;
@@ -156,6 +187,12 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 			this.playingAnimation = false;
 			data.animation.paused = false;
 		}
+
+		if (guibutton.id == 100) {
+			NoppesUtil.openGUI(player, new GuiNPCEditAnimation(this, this.animation, npc));
+		}
+
+		initGui();
     }
 
 	@Override
@@ -163,10 +200,11 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 		this.animation = new Animation();
 		animation.readFromNBT(compound);
 		setSelected(animation.name);
+		npc.display.animationData.animation = animation;
 		this.playingAnimation = false;
+		npc.display.animationData.animation.paused = false;
 		initGui();
 	}
-	
 
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
