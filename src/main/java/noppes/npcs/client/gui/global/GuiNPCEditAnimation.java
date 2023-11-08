@@ -27,8 +27,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     public boolean playingAnimation = false;
     private Frame prevFrame;
     private GuiScreen parent;
-
-    private String prevSelected = "";
     private long prevTick;
 
     public GuiNPCEditAnimation(GuiScreen parent, Animation animation, EntityNPCInterface npc) {
@@ -453,7 +451,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     @Override
     public void close() {
         if (animation != null) {
-            Client.sendData(EnumPacketServer.AnimationSave, prevSelected, animation.writeToNBT());
+            Client.sendData(EnumPacketServer.AnimationSave, animation.id, animation.writeToNBT());
         }
         displayGuiScreen(parent);
     }
