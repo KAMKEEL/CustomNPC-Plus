@@ -1,5 +1,9 @@
 package noppes.npcs.controllers;
 
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAnimationHandler;
@@ -7,18 +11,23 @@ import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.TagMap;
 import noppes.npcs.util.NBTJsonUtil;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 public class AnimationController implements IAnimationHandler {
     public HashMap<Integer, Animation> animations;
+    private HashMap<Integer, String> bootOrder;
+
     public static AnimationController Instance;
     private int lastUsedID = 0;
 
     public AnimationController() {
         Instance = this;
+        bootOrder = new HashMap<>();
         animations = new HashMap<>();
         load();
     }
@@ -29,6 +38,7 @@ public class AnimationController implements IAnimationHandler {
 
     public void load(){
         LogWriter.info("Loading animations...");
+        readAnimationMap();
         loadAnimations();
         LogWriter.info("Done loading animations.");
     }
@@ -45,14 +55,37 @@ public class AnimationController implements IAnimationHandler {
                     continue;
                 try {
                     Animation animation = new Animation();
-                    animation.name = file.getName().substring(0, file.getName().length() - 5);
                     animation.readFromNBT(NBTJsonUtil.LoadFile(file));
+                    animation.name = file.getName().substring(0, file.getName().length() - 5);
+
+                    if(animation.id == -1){
+                        animation.id = getUnusedId();
+                    }
+
+                    int originalID = animation.id;
+                    int setID = animation.id;
+                    while (bootOrder.containsKey(setID) || animations.containsKey(setID)){
+                        if(bootOrder.containsKey(setID))
+                            if(bootOrder.get(setID).equals(animation.name))
+                                break;
+
+                        setID++;
+                    }
+
+                    animation.id = setID;
+                    if(originalID != setID){
+                        LogWriter.info("Found Animation ID Mismatch: " + animation.name + ", New ID: " + setID);
+                        animation.save();
+                    }
+
                     animations.put(animation.id, animation);
                 } catch(Exception e) {
                     LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
                 }
             }
         }
+
+        saveAnimationMap();
     }
 
     private File getDir() {
@@ -86,6 +119,8 @@ public class AnimationController implements IAnimationHandler {
 
         animations.remove(animation.getID());
         animations.put(animation.getID(), (Animation) animation);
+
+        saveAnimationMap();
 
         // Save Animation File
         File dir = this.getDir();
@@ -129,6 +164,8 @@ public class AnimationController implements IAnimationHandler {
                         break;
                     }
                 }
+
+                saveAnimationMap();
             }
         }
     }
@@ -148,6 +185,8 @@ public class AnimationController implements IAnimationHandler {
                     break;
                 }
             }
+
+            saveAnimationMap();
         }
     }
 
@@ -187,4 +226,103 @@ public class AnimationController implements IAnimationHandler {
         return names;
     }
 
+
+    ////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+    // ANIMATION MAP
+
+    public File getMapDir(){
+        File dir = CustomNpcs.getWorldSaveDirectory();
+        if(!dir.exists())
+            dir.mkdir();
+        return dir;
+    }
+
+    public void readAnimationMap(){
+        bootOrder.clear();
+
+        try {
+            File file = new File(getMapDir(), "animations.dat");
+            if(file.exists()){
+                loadAnimationMapFile(file);
+            }
+        } catch (Exception e) {
+            try {
+                File file = new File(getMapDir(), "animations.dat_old");
+                if(file.exists()){
+                    loadAnimationMapFile(file);
+                }
+            } catch (Exception ignored) {}
+        }
+    }
+
+    public NBTTagCompound writeMapNBT(){
+        NBTTagCompound nbt = new NBTTagCompound();
+        NBTTagList animationList = new NBTTagList();
+        for(Integer key: animations.keySet()){
+            Animation animation = animations.get(key);
+            if(!animation.getName().isEmpty()){
+                NBTTagCompound animationCompound = new NBTTagCompound();
+                animationCompound.setString("Name", animation.getName());
+                animationCompound.setInteger("ID", key);
+
+                animationList.appendTag(animationCompound);
+            }
+        }
+        nbt.setTag("Animations", animationList);
+        return nbt;
+    }
+
+    public void readMapNBT(NBTTagCompound compound){
+        NBTTagList list = compound.getTagList("Animations", 10);
+        if(list != null){
+            for(int i = 0; i < list.tagCount(); i++)
+            {
+                NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
+                String animationName = nbttagcompound.getString("Name");
+                Integer key = nbttagcompound.getInteger("ID");
+                bootOrder.put(key, animationName);
+            }
+        }
+    }
+
+    private void loadAnimationMapFile(File file) throws IOException {
+        DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
+        readAnimationMap(var1);
+        var1.close();
+    }
+
+    public void readAnimationMap(DataInputStream stream) throws IOException{
+        NBTTagCompound nbtCompound = CompressedStreamTools.read(stream);
+        this.readMapNBT(nbtCompound);
+    }
+
+    public void saveAnimationMap(){
+        try {
+            File saveDir = getMapDir();
+            File file = new File(saveDir, "animations.dat_new");
+            File file1 = new File(saveDir, "animations.dat_old");
+            File file2 = new File(saveDir, "animations.dat");
+            CompressedStreamTools.writeCompressed(this.writeMapNBT(), new FileOutputStream(file));
+            if(file1.exists())
+            {
+                file1.delete();
+            }
+            file2.renameTo(file1);
+            if(file2.exists())
+            {
+                file2.delete();
+            }
+            file.renameTo(file2);
+            if(file.exists())
+            {
+                file.delete();
+            }
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    ////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////
 }
