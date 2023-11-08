@@ -45,15 +45,20 @@ public abstract class GuiNPCInterface2 extends GuiNPCInterface
     {
     	if(drawDefaultBackground)
     		drawDefaultBackground(); //drawDefaultBackground
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.renderEngine.bindTexture(background);
-        drawTexturedModalRect(guiLeft, guiTop, 0, 0, 200, 220);
-        drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 230, 220);
+        drawBackground();
         menu.drawElements(getFontRenderer(), i, j, mc, f);
         
         boolean bo = drawDefaultBackground;
         drawDefaultBackground = false;
         super.drawScreen(i, j, f);
         drawDefaultBackground = bo;
+    }
+
+    @Override
+    protected void drawBackground() {
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        mc.renderEngine.bindTexture(background);
+        drawTexturedModalRect(guiLeft, guiTop, 0, 0, 200, 220);
+        drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 230, 220);
     }
 }

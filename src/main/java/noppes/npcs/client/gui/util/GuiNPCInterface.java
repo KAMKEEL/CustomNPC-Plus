@@ -231,18 +231,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     		drawDefaultBackground();
 
     	if(background != null && mc.renderEngine != null){
-    		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-    		GL11.glPushMatrix();
-    		GL11.glTranslatef(guiLeft, guiTop, 0);
-    		GL11.glScalef(bgScale*bgScaleX, bgScale*bgScaleY, bgScale*bgScaleZ);
-    		mc.renderEngine.bindTexture(background);
-    		if(xSize > 256){
-    			drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
-    			drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
-    		}
-    		else
-        		drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
-    		GL11.glPopMatrix();
+    		drawBackground();
     	}
     	
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
@@ -264,6 +253,22 @@ public abstract class GuiNPCInterface extends GuiScreen
         if(subgui != null)
     		subgui.drawScreen(i,j,f);
     }
+
+	protected void drawBackground() {
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+		GL11.glPushMatrix();
+		GL11.glTranslatef(guiLeft, guiTop, 0);
+		GL11.glScalef(bgScale*bgScaleX, bgScale*bgScaleY, bgScale*bgScaleZ);
+		mc.renderEngine.bindTexture(background);
+		if(xSize > 256){
+			drawTexturedModalRect(0, 0, 0, 0, 250, ySize);
+			drawTexturedModalRect(250, 0, 256 - (xSize - 250), 0, xSize - 250, ySize);
+		}
+		else
+			drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
+		GL11.glPopMatrix();
+	}
+
 	public FontRenderer getFontRenderer() {
 		return this.fontRendererObj;
 	}
