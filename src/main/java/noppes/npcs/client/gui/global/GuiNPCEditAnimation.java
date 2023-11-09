@@ -167,7 +167,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         //
         //speed - textfield
         this.addLabel(new GuiNpcLabel(31, "stats.speed", guiLeft + animationX, guiTop + animationY + 24, 0xFFFFFF));
-        this.addTextField(new GuiNpcTextField(31, this, guiLeft + animationX + 40, guiTop + animationY + 22, 30, 15, animation.speed + ""));
+        this.addTextField(new GuiNpcTextField(31, this, guiLeft + animationX + 88, guiTop + animationY + 22, 30, 15, animation.speed + ""));
         this.getTextField(31).floatsOnly = true;
         this.getTextField(31).setMinMaxDefaultFloat(0,Float.MAX_VALUE,1.0F);
         //
@@ -193,7 +193,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             //
             //duration - textfield
             this.addLabel(new GuiNpcLabel(51, "animation.duration", guiLeft + frameX, guiTop + frameY + 15, 0xFFFFFF));
-            this.addTextField(new GuiNpcTextField(51, this, guiLeft + frameX + 60, guiTop + frameY + 11, 30, 15, editingFrame.duration + ""));
+            this.addTextField(new GuiNpcTextField(51, this, guiLeft + frameX + 88, guiTop + frameY + 11, 30, 15, editingFrame.duration + ""));
             this.getTextField(51).integersOnly = true;
             this.getTextField(51).setMinMaxDefaultFloat(0, Integer.MAX_VALUE, 10);
 
