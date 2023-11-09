@@ -15,6 +15,7 @@ import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.ValueUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,13 +32,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     private long prevTick;
     private static int partEditMode;
 
-    private GuiNpcSlider rotationXSlider;
-    private GuiNpcSlider rotationYSlider;
-    private GuiNpcSlider rotationZSlider;
-
-    private GuiNpcSlider pivotXSlider;
-    private GuiNpcSlider pivotYSlider;
-    private GuiNpcSlider pivotZSlider;
+    private GuiNpcSlider[] rotationSliders = new GuiNpcSlider[3];
+    private GuiNpcSlider[] pivotSliders = new GuiNpcSlider[3];
 
     public GuiNPCEditAnimation(GuiScreen parent, Animation animation, EntityNPCInterface npc) {
         super((EntityCustomNpc) npc);
@@ -49,6 +45,13 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         AnimationData data = npc.display.animationData;
         data.animation = animation;
         data.setEnabled(true);
+
+        int bodyPartX = 280;
+        int bodyPartY = -5;
+        for (int i = 0; i < 3; i++) {
+            this.rotationSliders[i] = new GuiNpcSlider(this, 90 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 85 + 20 * i, 0.5F);
+            this.pivotSliders[i] = new GuiNpcSlider(this, 95 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 150 + 20 * i, 0.5F);
+        }
     }
 
     @Override
@@ -238,44 +241,25 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 this.addButton(new GuiNpcButton(68, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 55, 60, 20, new String[] {"Sliders","Manual"}, partEditMode));
 
                 if (partEditMode == 0) {
-                    if (this.rotationXSlider == null || this.rotationYSlider == null || this.rotationZSlider == null) {
-                        this.rotationXSlider = new GuiNpcSlider(this, 90, guiLeft + bodyPartX, guiTop + bodyPartY + 85, 0.5F);
-                        this.rotationYSlider = new GuiNpcSlider(this, 91, guiLeft + bodyPartX, guiTop + bodyPartY + 105, 0.5F);
-                        this.rotationZSlider = new GuiNpcSlider(this, 92, guiLeft + bodyPartX, guiTop + bodyPartY + 125, 0.5F);
-                    } else {
-                        this.rotationXSlider.yPosition = guiTop + bodyPartY + 85;
-                        this.rotationYSlider.yPosition = guiTop + bodyPartY + 105;
-                        this.rotationZSlider.yPosition = guiTop + bodyPartY + 125;
-                    }
-                    this.rotationXSlider.xPosition = this.rotationYSlider.xPosition = this.rotationZSlider.xPosition = guiLeft + bodyPartX + 40;
                     this.addLabel(new GuiNpcLabel(90, "Rot. X", guiLeft + bodyPartX, guiTop + bodyPartY + 92, 0xFFFFFF));
-                    this.addSlider(this.rotationXSlider);
                     this.addLabel(new GuiNpcLabel(91, "Rot. Y", guiLeft + bodyPartX, guiTop + bodyPartY + 112, 0xFFFFFF));
-                    this.addSlider(this.rotationYSlider);
                     this.addLabel(new GuiNpcLabel(92, "Rot. Z", guiLeft + bodyPartX, guiTop + bodyPartY + 132, 0xFFFFFF));
-                    this.addSlider(this.rotationZSlider);
 
-                    if (this.pivotXSlider == null || this.pivotYSlider == null || this.pivotZSlider == null) {
-                        this.pivotXSlider = new GuiNpcSlider(this, 95, guiLeft + bodyPartX, guiTop + bodyPartY + 150, 0.5F);
-                        this.pivotYSlider = new GuiNpcSlider(this, 96, guiLeft + bodyPartX, guiTop + bodyPartY + 170, 0.5F);
-                        this.pivotZSlider = new GuiNpcSlider(this, 97, guiLeft + bodyPartX, guiTop + bodyPartY + 190, 0.5F);
-                    } else {
-                        this.pivotXSlider.yPosition = guiTop + bodyPartY + 150;
-                        this.pivotYSlider.yPosition = guiTop + bodyPartY + 170;
-                        this.pivotZSlider.yPosition = guiTop + bodyPartY + 190;
-                    }
-                    this.pivotXSlider.xPosition = this.pivotYSlider.xPosition = this.pivotZSlider.xPosition = guiLeft + bodyPartX + 40;
                     this.addLabel(new GuiNpcLabel(95, "Pivot X", guiLeft + bodyPartX, guiTop + bodyPartY + 157, 0xFFFFFF));
-                    this.addSlider(this.pivotXSlider);
                     this.addLabel(new GuiNpcLabel(96, "Pivot Y", guiLeft + bodyPartX, guiTop + bodyPartY + 177, 0xFFFFFF));
-                    this.addSlider(this.pivotYSlider);
                     this.addLabel(new GuiNpcLabel(97, "Pivot Z", guiLeft + bodyPartX, guiTop + bodyPartY + 197, 0xFFFFFF));
-                    this.addSlider(this.pivotZSlider);
 
-                    this.pivotXSlider.width = this.pivotYSlider.width = this.pivotZSlider.width =
-                            this.rotationXSlider.width = this.rotationYSlider.width = this.rotationZSlider.width = 80;
-                    this.pivotXSlider.height = this.pivotYSlider.height = this.pivotZSlider.height =
-                        this.rotationXSlider.height = this.rotationYSlider.height = this.rotationZSlider.height = 20;
+                    for (int i = 0; i < 3; i++) {
+                        this.rotationSliders[i].width = this.pivotSliders[i].width = 80;
+                        this.rotationSliders[i].height = this.pivotSliders[i].height = 20;
+
+                        this.rotationSliders[i].xPosition = this.pivotSliders[i].xPosition = guiLeft + bodyPartX + 40;
+                        this.rotationSliders[i].yPosition = guiTop + bodyPartY + 85 + 20 * i;
+                        this.pivotSliders[i].yPosition = guiTop + bodyPartY + 150 + 20 * i;
+
+                        this.addSlider(this.rotationSliders[i]);
+                        this.addSlider(this.pivotSliders[i]);
+                    }
                 } else {
                     //
                     //rotation - 3 textfields
@@ -325,6 +309,18 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         } else {
             this.addLabel(new GuiNpcLabel(50, "animation.addFrame", guiLeft + 270, guiTop + 100, 0xFFFFFF));
+        }
+    }
+
+    private void updateSliders() {
+        FramePart part = this.editingPart();
+        if (part == null) return;
+
+        float[] rotations = part.getRotations();
+        float[] pivots = part.getPivots();
+        for (int i = 0; i < 3; i++) {
+            this.rotationSliders[i].sliderValue = ((rotations[i] / 360.0F) + 1) / 2.0F;
+            this.pivotSliders[i].sliderValue = (((ValueUtil.clamp(pivots[i], -100, 100)) / 100.0F) + 1) / 2.0F;
         }
     }
 
@@ -380,9 +376,13 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 editingFrame.addPart(framePart);
             }
             this.editingPart = enumPart;
+            this.updateSliders();
         } else if (guibutton.id == 67 && editingFrame != null) {
             editingFrame.removePart(this.editingPart.name());
         } else if (guibutton.id == 68 && editingFrame != null) {
+            if (partEditMode == 1) {
+                this.updateSliders();
+            }
             partEditMode++;
             partEditMode %= 2;
         }  else if (guibutton.id == 83 && editingFrame != null && part != null) {
@@ -468,8 +468,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             frame.duration = textfield.getInteger();
         } else if (textfield.id >= 70 && textfield.id <= 73 && part != null) {
             part.rotation[textfield.id-70] = textfield.getFloat();
+            this.updateSliders();
         } else if (textfield.id >= 80 && textfield.id <= 83 && part != null) {
             part.pivot[textfield.id-80] = textfield.getFloat();
+            this.updateSliders();
         }
     }
 
