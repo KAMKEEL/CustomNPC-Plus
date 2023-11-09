@@ -21,6 +21,7 @@ public class GuiNpcMenu implements GuiYesNoCallback{
 
 	private int activeMenu;
 	private EntityNPCInterface npc;
+	public boolean saveNPC = true;
 
 	public GuiNpcMenu(GuiScreen parent, int activeMenu, EntityNPCInterface npc) {
 		this.parent = parent;
@@ -109,7 +110,8 @@ public class GuiNpcMenu implements GuiYesNoCallback{
 			((GuiNPCInterface2)parent).close();
 		if(npc != null){
 			npc.reset();
-			Client.sendData(EnumPacketServer.NpcMenuClose);
+			if(saveNPC)
+				Client.sendData(EnumPacketServer.NpcMenuClose);
 		}
 	} 
 

@@ -28,9 +28,10 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 	private String selected = null;
 	private String search = "";
 
-    public GuiNPCManageAnimations(EntityNPCInterface npc)
+    public GuiNPCManageAnimations(EntityNPCInterface npc, boolean save)
     {
     	super(npc);
+		this.setSave(save);
 		this.xOffset = -148 + 70;
 		this.yOffset = -170 + 137;
     	Client.sendData(EnumPacketServer.AnimationsGet);

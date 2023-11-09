@@ -158,4 +158,10 @@ public class GuiModelInterface2 extends GuiNPCInterface2{
 		// TODO Auto-generated method stub
 		
 	}
+
+    public void setSave(boolean saveNPC){
+        if(this.getMenu() != null){
+            this.getMenu().saveNPC = saveNPC;
+        }
+    }
 }

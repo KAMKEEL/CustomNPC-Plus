@@ -61,4 +61,8 @@ public abstract class GuiNPCInterface2 extends GuiNPCInterface
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 200, 220);
         drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 230, 220);
     }
+
+    protected GuiNpcMenu getMenu(){
+        return this.menu;
+    }
 }
