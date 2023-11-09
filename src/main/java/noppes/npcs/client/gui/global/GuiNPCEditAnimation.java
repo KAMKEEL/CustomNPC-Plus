@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener {
+public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener, ISliderListener {
     private final Animation animation;
 
     private EnumAnimationPart editingPart = EnumAnimationPart.HEAD;
@@ -29,6 +29,15 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     private Frame prevFrame;
     private GuiScreen parent;
     private long prevTick;
+    private static int partEditMode;
+
+    private GuiNpcSlider rotationXSlider;
+    private GuiNpcSlider rotationYSlider;
+    private GuiNpcSlider rotationZSlider;
+
+    private GuiNpcSlider pivotXSlider;
+    private GuiNpcSlider pivotYSlider;
+    private GuiNpcSlider pivotZSlider;
 
     public GuiNPCEditAnimation(GuiScreen parent, Animation animation, EntityNPCInterface npc) {
         super((EntityCustomNpc) npc);
@@ -120,18 +129,18 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         String animTexture = "customnpcs:textures/gui/animation.png";
         if (data.animation != null && data.animation.frames.size() > 0) {
             if (!this.playingAnimation || data.animation.paused) {//Play
-                this.addLabel(new GuiNpcLabel(90, data.animation.paused ? "animation.paused" : "animation.stopped", guiLeft + playPauseX - 15, guiTop + playPauseY + 206, 0xFFFFFF));
+                this.addLabel(new GuiNpcLabel(210, data.animation.paused ? "animation.paused" : "animation.stopped", guiLeft + playPauseX - 15, guiTop + playPauseY + 206, 0xFFFFFF));
                 if (data.animation.paused) {
-                    this.addLabel(new GuiNpcLabel(94, "", guiLeft + playPauseX + 21, guiTop + playPauseY + 206, 0xFFFFFF));
+                    this.addLabel(new GuiNpcLabel(211, "", guiLeft + playPauseX + 21, guiTop + playPauseY + 206, 0xFFFFFF));
                 }
-                this.addButton(new GuiTexturedButton(91, "", guiLeft + playPauseX + 35, guiTop + playPauseY + 200, 11, 20, animTexture, 18, 71));
+                this.addButton(new GuiTexturedButton(200, "", guiLeft + playPauseX + 35, guiTop + playPauseY + 200, 11, 20, animTexture, 18, 71));
             } else {//Pause
-                this.addLabel(new GuiNpcLabel(90, "animation.playing", guiLeft + playPauseX - 15, guiTop + playPauseY + 206, 0xFFFFFF));
-                this.addLabel(new GuiNpcLabel(94, "", guiLeft + playPauseX + 20, guiTop + playPauseY + 206, 0xFFFFFF));
-                this.addButton(new GuiTexturedButton(92, "", guiLeft + playPauseX + 35, guiTop + playPauseY + 200, 14, 20, animTexture, 0, 71));
+                this.addLabel(new GuiNpcLabel(212, "animation.playing", guiLeft + playPauseX - 15, guiTop + playPauseY + 206, 0xFFFFFF));
+                this.addLabel(new GuiNpcLabel(213, "", guiLeft + playPauseX + 20, guiTop + playPauseY + 206, 0xFFFFFF));
+                this.addButton(new GuiTexturedButton(201, "", guiLeft + playPauseX + 35, guiTop + playPauseY + 200, 14, 20, animTexture, 0, 71));
             }
             if (this.playingAnimation) {//Stop
-                this.addButton(new GuiTexturedButton(93, "", guiLeft + playPauseX + 55, guiTop + playPauseY + 200, 14, 20, animTexture, 33, 71));
+                this.addButton(new GuiTexturedButton(202, "", guiLeft + playPauseX + 55, guiTop + playPauseY + 200, 14, 20, animTexture, 33, 71));
             }
         }
 
@@ -223,47 +232,91 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
             if (editingPart != null) {
                 //remove part button
-                this.addLabel(new GuiNpcLabel(67, editingPart.part.name(), guiLeft + bodyPartX + 50, guiTop + bodyPartY + 40, 0xFFFFFF));
-                this.addButton(new GuiNpcButton(67, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 55, 60, 20, "gui.remove"));
-                //
-                //rotation - 3 textfields
-                this.addLabel(new GuiNpcLabel(70, "animation.rotations", guiLeft + bodyPartX, guiTop + bodyPartY + 85, 0xFFFFFF));
-                this.addTextField(new GuiNpcTextField(70, this, guiLeft + bodyPartX, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[0] + ""));
-                this.getTextField(70).floatsOnly = true;
-                this.getTextField(70).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(71, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[1] + ""));
-                this.getTextField(71).floatsOnly = true;
-                this.getTextField(71).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(72, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[2] + ""));
-                this.getTextField(72).floatsOnly = true;
-                this.getTextField(72).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                //
-                //pivot - 3 textfields
-                this.addLabel(new GuiNpcLabel(80, "animation.pivots", guiLeft + bodyPartX, guiTop + bodyPartY + 117, 0xFFFFFF));
-                this.addTextField(new GuiNpcTextField(80, this, guiLeft + bodyPartX, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[0] + ""));
-                this.getTextField(80).floatsOnly = true;
-                this.getTextField(80).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(81, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[1] + ""));
-                this.getTextField(81).floatsOnly = true;
-                this.getTextField(81).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(82, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[2] + ""));
-                this.getTextField(82).floatsOnly = true;
-                this.getTextField(82).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                //
-                //customized - button, enables all the following options.
-                this.addLabel(new GuiNpcLabel(83, "animation.customized", guiLeft + bodyPartX, guiTop + bodyPartY + 154, 0xFFFFFF));
-                this.addButton(new GuiNpcButton(83, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 148, 30, 20, new String[]{"gui.yes", "gui.no"}, editingPart.isCustomized() ? 0 : 1));
-                if (editingPart.isCustomized()) {
+                this.addLabel(new GuiNpcLabel(67, editingPart.part.name(), guiLeft + bodyPartX + 65, guiTop + bodyPartY + 20, 0xFFFFFF));
+                this.addButton(new GuiNpcButton(67, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 35, 60, 20, "gui.remove"));
+
+                this.addButton(new GuiNpcButton(68, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 55, 60, 20, new String[] {"Sliders","Manual"}, partEditMode));
+
+                if (partEditMode == 0) {
+                    if (this.rotationXSlider == null || this.rotationYSlider == null || this.rotationZSlider == null) {
+                        this.rotationXSlider = new GuiNpcSlider(this, 90, guiLeft + bodyPartX, guiTop + bodyPartY + 85, 0.5F);
+                        this.rotationYSlider = new GuiNpcSlider(this, 91, guiLeft + bodyPartX, guiTop + bodyPartY + 105, 0.5F);
+                        this.rotationZSlider = new GuiNpcSlider(this, 92, guiLeft + bodyPartX, guiTop + bodyPartY + 125, 0.5F);
+                    } else {
+                        this.rotationXSlider.yPosition = guiTop + bodyPartY + 85;
+                        this.rotationYSlider.yPosition = guiTop + bodyPartY + 105;
+                        this.rotationZSlider.yPosition = guiTop + bodyPartY + 125;
+                    }
+                    this.rotationXSlider.xPosition = this.rotationYSlider.xPosition = this.rotationZSlider.xPosition = guiLeft + bodyPartX + 40;
+                    this.addLabel(new GuiNpcLabel(90, "Rot. X", guiLeft + bodyPartX, guiTop + bodyPartY + 92, 0xFFFFFF));
+                    this.addSlider(this.rotationXSlider);
+                    this.addLabel(new GuiNpcLabel(91, "Rot. Y", guiLeft + bodyPartX, guiTop + bodyPartY + 112, 0xFFFFFF));
+                    this.addSlider(this.rotationYSlider);
+                    this.addLabel(new GuiNpcLabel(92, "Rot. Z", guiLeft + bodyPartX, guiTop + bodyPartY + 132, 0xFFFFFF));
+                    this.addSlider(this.rotationZSlider);
+
+                    if (this.pivotXSlider == null || this.pivotYSlider == null || this.pivotZSlider == null) {
+                        this.pivotXSlider = new GuiNpcSlider(this, 95, guiLeft + bodyPartX, guiTop + bodyPartY + 150, 0.5F);
+                        this.pivotYSlider = new GuiNpcSlider(this, 96, guiLeft + bodyPartX, guiTop + bodyPartY + 170, 0.5F);
+                        this.pivotZSlider = new GuiNpcSlider(this, 97, guiLeft + bodyPartX, guiTop + bodyPartY + 190, 0.5F);
+                    } else {
+                        this.pivotXSlider.yPosition = guiTop + bodyPartY + 150;
+                        this.pivotYSlider.yPosition = guiTop + bodyPartY + 170;
+                        this.pivotZSlider.yPosition = guiTop + bodyPartY + 190;
+                    }
+                    this.pivotXSlider.xPosition = this.pivotYSlider.xPosition = this.pivotZSlider.xPosition = guiLeft + bodyPartX + 40;
+                    this.addLabel(new GuiNpcLabel(95, "Pivot X", guiLeft + bodyPartX, guiTop + bodyPartY + 157, 0xFFFFFF));
+                    this.addSlider(this.pivotXSlider);
+                    this.addLabel(new GuiNpcLabel(96, "Pivot Y", guiLeft + bodyPartX, guiTop + bodyPartY + 177, 0xFFFFFF));
+                    this.addSlider(this.pivotYSlider);
+                    this.addLabel(new GuiNpcLabel(97, "Pivot Z", guiLeft + bodyPartX, guiTop + bodyPartY + 197, 0xFFFFFF));
+                    this.addSlider(this.pivotZSlider);
+
+                    this.pivotXSlider.width = this.pivotYSlider.width = this.pivotZSlider.width =
+                            this.rotationXSlider.width = this.rotationYSlider.width = this.rotationZSlider.width = 80;
+                    this.pivotXSlider.height = this.pivotYSlider.height = this.pivotZSlider.height =
+                        this.rotationXSlider.height = this.rotationYSlider.height = this.rotationZSlider.height = 20;
+                } else {
                     //
-                    //speed - textfield
-                    this.addLabel(new GuiNpcLabel(84, "stats.speed", guiLeft + bodyPartX, guiTop + bodyPartY + 174, 0xFFFFFF));
-                    this.addTextField(new GuiNpcTextField(84, this, guiLeft + bodyPartX + 60, guiTop + bodyPartY + 170, 30, 15, editingPart.speed + ""));
-                    this.getTextField(84).floatsOnly = true;
-                    this.getTextField(84).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1.0F);
+                    //rotation - 3 textfields
+                    this.addLabel(new GuiNpcLabel(70, "animation.rotations", guiLeft + bodyPartX, guiTop + bodyPartY + 85, 0xFFFFFF));
+                    this.addTextField(new GuiNpcTextField(70, this, guiLeft + bodyPartX, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[0] + ""));
+                    this.getTextField(70).floatsOnly = true;
+                    this.getTextField(70).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                    this.addTextField(new GuiNpcTextField(71, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[1] + ""));
+                    this.getTextField(71).floatsOnly = true;
+                    this.getTextField(71).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                    this.addTextField(new GuiNpcTextField(72, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[2] + ""));
+                    this.getTextField(72).floatsOnly = true;
+                    this.getTextField(72).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
                     //
-                    //smooth - button
-                    this.addLabel(new GuiNpcLabel(85, "animation.smoothing", guiLeft + bodyPartX, guiTop + bodyPartY + 194, 0xFFFFFF));
-                    this.addButton(new GuiNpcButton(85, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 190, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingPart.smooth));
+                    //pivot - 3 textfields
+                    this.addLabel(new GuiNpcLabel(80, "animation.pivots", guiLeft + bodyPartX, guiTop + bodyPartY + 117, 0xFFFFFF));
+                    this.addTextField(new GuiNpcTextField(80, this, guiLeft + bodyPartX, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[0] + ""));
+                    this.getTextField(80).floatsOnly = true;
+                    this.getTextField(80).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                    this.addTextField(new GuiNpcTextField(81, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[1] + ""));
+                    this.getTextField(81).floatsOnly = true;
+                    this.getTextField(81).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                    this.addTextField(new GuiNpcTextField(82, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[2] + ""));
+                    this.getTextField(82).floatsOnly = true;
+                    this.getTextField(82).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                    //
+                    //customized - button, enables all the following options.
+                    this.addLabel(new GuiNpcLabel(83, "animation.customized", guiLeft + bodyPartX, guiTop + bodyPartY + 154, 0xFFFFFF));
+                    this.addButton(new GuiNpcButton(83, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 148, 30, 20, new String[]{"gui.yes", "gui.no"}, editingPart.isCustomized() ? 0 : 1));
+                    if (editingPart.isCustomized()) {
+                        //
+                        //speed - textfield
+                        this.addLabel(new GuiNpcLabel(84, "stats.speed", guiLeft + bodyPartX, guiTop + bodyPartY + 174, 0xFFFFFF));
+                        this.addTextField(new GuiNpcTextField(84, this, guiLeft + bodyPartX + 60, guiTop + bodyPartY + 170, 30, 15, editingPart.speed + ""));
+                        this.getTextField(84).floatsOnly = true;
+                        this.getTextField(84).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1.0F);
+                        //
+                        //smooth - button
+                        this.addLabel(new GuiNpcLabel(85, "animation.smoothing", guiLeft + bodyPartX, guiTop + bodyPartY + 194, 0xFFFFFF));
+                        this.addButton(new GuiNpcButton(85, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 190, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingPart.smooth));
+                    }
                 }
             }
 
@@ -295,7 +348,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         super.actionPerformed(guibutton);
         Frame editingFrame = this.editingFrame();
         FramePart part = this.editingPart();
-        int value = ((GuiNpcButton)guibutton).getValue();
+        int value = guibutton instanceof GuiNpcButton ? ((GuiNpcButton)guibutton).getValue() : 0;
         AnimationData data = npc.display.animationData;
 
         if (guibutton.id == 11) {
@@ -329,7 +382,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.editingPart = enumPart;
         } else if (guibutton.id == 67 && editingFrame != null) {
             editingFrame.removePart(this.editingPart.name());
-        } else if (guibutton.id == 83 && editingFrame != null && part != null) {
+        } else if (guibutton.id == 68 && editingFrame != null) {
+            partEditMode++;
+            partEditMode %= 2;
+        }  else if (guibutton.id == 83 && editingFrame != null && part != null) {
             part.setCustomized(!part.isCustomized());
         } else if (guibutton.id == 32) {
             animation.smooth = (byte) value;
@@ -337,7 +393,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             part.smooth = (byte) value;
         } else if (guibutton.id == 33) {
             animation.loop++;
-        } else if (guibutton.id == 91) {
+        } else if (guibutton.id == 200) {
             if (!this.playingAnimation || !data.isActive()) {
                 animation.currentFrame = 0;
                 animation.currentFrameTime = 0;
@@ -351,9 +407,9 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.playingAnimation = true;
             data.animation = animation;
             data.animation.paused = false;
-        } else if (guibutton.id == 92) {
+        } else if (guibutton.id == 201) {
             data.animation.paused = true;
-        } else if (guibutton.id == 93) {
+        } else if (guibutton.id == 202) {
             this.playingAnimation = false;
             data.animation.paused = false;
         } else if (guibutton.id == 34) {
@@ -427,5 +483,30 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         } else {
             closeSubGui(this.getSubGui());
         }
+    }
+
+    @Override
+    public void mouseDragged(GuiNpcSlider guiNpcSlider) {
+        FramePart part = this.editingPart();
+        if (part == null) {
+            return;
+        }
+        int id = guiNpcSlider.id;
+        if (id >= 90 && id < 93) {
+            part.rotation[id - 90] = 360.0F * 2.0F * (guiNpcSlider.sliderValue - 0.5F);
+        }
+        if (id >= 95 && id < 98) {
+            part.pivot[id - 95] = 100.0F * (guiNpcSlider.sliderValue - 0.5F);
+        }
+    }
+
+    @Override
+    public void mousePressed(GuiNpcSlider guiNpcSlider) {
+
+    }
+
+    @Override
+    public void mouseReleased(GuiNpcSlider guiNpcSlider) {
+
     }
 }
