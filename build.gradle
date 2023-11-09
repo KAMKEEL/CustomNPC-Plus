@@ -13,11 +13,13 @@ buildscript {
             name = "jitpack"
             url = "https://jitpack.io"
         }
+        maven {
+            name = "gt"
+            url = "https://gregtech.mechaenetia.com/"
+        }
     }
     dependencies {
-        classpath ('com.anatawa12.forge:ForgeGradle:1.2-1.0.+') {
-            changing = true
-        }
+        classpath 'com.github.GTNewHorizons:ForgeGradle:1.2.11'
     }
 }
 

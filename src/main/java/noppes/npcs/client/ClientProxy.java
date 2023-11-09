@@ -250,16 +250,19 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.ManageAnimations) {
 			EntityCustomNpc animNpc;
+			boolean save;
 			if (npc != null) {
 				animNpc = new EntityCustomNpc(npc.worldObj);
 				animNpc.copyDataFrom(npc, true);
 				animNpc.display.showName = 1;
 				animNpc.display.showBossBar = 0;
+				save = true;
 			} else {
 				animNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
 				animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+				save = false;
 			}
-			return new GuiNPCManageAnimations(animNpc);
+			return new GuiNPCManageAnimations(animNpc, save);
 		}
 		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);
