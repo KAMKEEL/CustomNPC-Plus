@@ -148,17 +148,17 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         //
         //speed - textfield
         this.addLabel(new GuiNpcLabel(31, "stats.speed", guiLeft + animationX, guiTop + animationY + 24, 0xFFFFFF));
-        this.addTextField(new GuiNpcTextField(32, this, guiLeft + animationX + 40, guiTop + animationY + 22, 30, 15, animation.speed + ""));
-        this.getTextField(32).floatsOnly = true;
-        this.getTextField(32).setMinMaxDefaultFloat(0,Float.MAX_VALUE,1.0F);
+        this.addTextField(new GuiNpcTextField(31, this, guiLeft + animationX + 40, guiTop + animationY + 22, 30, 15, animation.speed + ""));
+        this.getTextField(31).floatsOnly = true;
+        this.getTextField(31).setMinMaxDefaultFloat(0,Float.MAX_VALUE,1.0F);
         //
         //smooth - button
-        this.addLabel(new GuiNpcLabel(33, "animation.smoothing", guiLeft + animationX, guiTop + animationY + 46, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(34, guiLeft + animationX + 55, guiTop + animationY + 40, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, animation.smooth));
+        this.addLabel(new GuiNpcLabel(32, "animation.smoothing", guiLeft + animationX, guiTop + animationY + 46, 0xFFFFFF));
+        this.addButton(new GuiNpcButton(32, guiLeft + animationX + 55, guiTop + animationY + 40, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, animation.smooth));
         //
         //loop - button
-        this.addLabel(new GuiNpcLabel(35, "animation.loopStart", guiLeft + animationX, guiTop + animationY + 66, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(36, guiLeft + animationX + 55, guiTop + animationY + 60, 75, 20, animation.loop == -1 ? "No Looping" : "Frame " + animation.loop));
+        this.addLabel(new GuiNpcLabel(33, "animation.loopStart", guiLeft + animationX, guiTop + animationY + 66, 0xFFFFFF));
+        this.addButton(new GuiNpcButton(33, guiLeft + animationX + 55, guiTop + animationY + 60, 75, 20, animation.loop == -1 ? "No Looping" : "Frame " + animation.loop));
 
         //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -172,9 +172,9 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             //
             //duration - textfield
             this.addLabel(new GuiNpcLabel(51, "animation.duration", guiLeft + frameX, guiTop + frameY + 15, 0xFFFFFF));
-            this.addTextField(new GuiNpcTextField(52, this, guiLeft + frameX + 60, guiTop + frameY + 11, 30, 15, editingFrame.duration + ""));
-            this.getTextField(52).integersOnly = true;
-            this.getTextField(52).setMinMaxDefaultFloat(0, Integer.MAX_VALUE, 10);
+            this.addTextField(new GuiNpcTextField(51, this, guiLeft + frameX + 60, guiTop + frameY + 11, 30, 15, editingFrame.duration + ""));
+            this.getTextField(51).integersOnly = true;
+            this.getTextField(51).setMinMaxDefaultFloat(0, Integer.MAX_VALUE, 10);
 
             int bodyPartX = 280;
             int bodyPartY = -5;
@@ -218,46 +218,46 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             if (editingPart != null) {
                 //remove part button
                 this.addLabel(new GuiNpcLabel(67, editingPart.part.name(), guiLeft + bodyPartX + 50, guiTop + bodyPartY + 40, 0xFFFFFF));
-                this.addButton(new GuiNpcButton(68, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 55, 60, 20, "gui.remove"));
+                this.addButton(new GuiNpcButton(67, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 55, 60, 20, "gui.remove"));
                 //
                 //rotation - 3 textfields
                 this.addLabel(new GuiNpcLabel(70, "animation.rotations", guiLeft + bodyPartX, guiTop + bodyPartY + 85, 0xFFFFFF));
-                this.addTextField(new GuiNpcTextField(71, this, guiLeft + bodyPartX, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[0] + ""));
+                this.addTextField(new GuiNpcTextField(70, this, guiLeft + bodyPartX, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[0] + ""));
+                this.getTextField(70).floatsOnly = true;
+                this.getTextField(70).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                this.addTextField(new GuiNpcTextField(71, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[1] + ""));
                 this.getTextField(71).floatsOnly = true;
                 this.getTextField(71).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(72, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[1] + ""));
+                this.addTextField(new GuiNpcTextField(72, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[2] + ""));
                 this.getTextField(72).floatsOnly = true;
                 this.getTextField(72).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(73, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 97, 35, 15, editingPart.rotation[2] + ""));
-                this.getTextField(73).floatsOnly = true;
-                this.getTextField(73).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
                 //
                 //pivot - 3 textfields
                 this.addLabel(new GuiNpcLabel(80, "animation.pivots", guiLeft + bodyPartX, guiTop + bodyPartY + 117, 0xFFFFFF));
-                this.addTextField(new GuiNpcTextField(81, this, guiLeft + bodyPartX, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[0] + ""));
+                this.addTextField(new GuiNpcTextField(80, this, guiLeft + bodyPartX, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[0] + ""));
+                this.getTextField(80).floatsOnly = true;
+                this.getTextField(80).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
+                this.addTextField(new GuiNpcTextField(81, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[1] + ""));
                 this.getTextField(81).floatsOnly = true;
                 this.getTextField(81).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(82, this, guiLeft + bodyPartX + 40, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[1] + ""));
+                this.addTextField(new GuiNpcTextField(82, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[2] + ""));
                 this.getTextField(82).floatsOnly = true;
                 this.getTextField(82).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
-                this.addTextField(new GuiNpcTextField(83, this, guiLeft + bodyPartX + 80, guiTop + bodyPartY + 129, 35, 15, editingPart.pivot[2] + ""));
-                this.getTextField(83).floatsOnly = true;
-                this.getTextField(83).setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0);
                 //
                 //customized - button, enables all the following options.
-                this.addLabel(new GuiNpcLabel(84, "animation.customized", guiLeft + bodyPartX, guiTop + bodyPartY + 154, 0xFFFFFF));
-                this.addButton(new GuiNpcButton(85, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 148, 30, 20, new String[]{"gui.yes", "gui.no"}, editingPart.isCustomized() ? 0 : 1));
+                this.addLabel(new GuiNpcLabel(83, "animation.customized", guiLeft + bodyPartX, guiTop + bodyPartY + 154, 0xFFFFFF));
+                this.addButton(new GuiNpcButton(83, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 148, 30, 20, new String[]{"gui.yes", "gui.no"}, editingPart.isCustomized() ? 0 : 1));
                 if (editingPart.isCustomized()) {
                     //
                     //speed - textfield
-                    this.addLabel(new GuiNpcLabel(86, "stats.speed", guiLeft + bodyPartX, guiTop + bodyPartY + 174, 0xFFFFFF));
-                    this.addTextField(new GuiNpcTextField(87, this, guiLeft + bodyPartX + 60, guiTop + bodyPartY + 170, 30, 15, editingPart.speed + ""));
-                    this.getTextField(87).floatsOnly = true;
-                    this.getTextField(87).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1.0F);
+                    this.addLabel(new GuiNpcLabel(84, "stats.speed", guiLeft + bodyPartX, guiTop + bodyPartY + 174, 0xFFFFFF));
+                    this.addTextField(new GuiNpcTextField(84, this, guiLeft + bodyPartX + 60, guiTop + bodyPartY + 170, 30, 15, editingPart.speed + ""));
+                    this.getTextField(84).floatsOnly = true;
+                    this.getTextField(84).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1.0F);
                     //
                     //smooth - button
-                    this.addLabel(new GuiNpcLabel(88, "animation.smoothing", guiLeft + bodyPartX, guiTop + bodyPartY + 194, 0xFFFFFF));
-                    this.addButton(new GuiNpcButton(89, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 190, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingPart.smooth));
+                    this.addLabel(new GuiNpcLabel(85, "animation.smoothing", guiLeft + bodyPartX, guiTop + bodyPartY + 194, 0xFFFFFF));
+                    this.addButton(new GuiNpcButton(85, guiLeft + bodyPartX + 55, guiTop + bodyPartY + 190, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingPart.smooth));
                 }
             }
 
@@ -321,15 +321,15 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 editingFrame.addPart(framePart);
             }
             this.editingPart = enumPart;
-        } else if (guibutton.id == 68 && editingFrame != null) {
+        } else if (guibutton.id == 67 && editingFrame != null) {
             editingFrame.removePart(this.editingPart.name());
-        } else if (guibutton.id == 85 && editingFrame != null && part != null) {
+        } else if (guibutton.id == 83 && editingFrame != null && part != null) {
             part.setCustomized(!part.isCustomized());
-        } else if (guibutton.id == 34) {
+        } else if (guibutton.id == 32) {
             animation.smooth = (byte) value;
-        } else if (guibutton.id == 89 && part != null) {
+        } else if (guibutton.id == 85 && part != null) {
             part.smooth = (byte) value;
-        } else if (guibutton.id == 36) {
+        } else if (guibutton.id == 33) {
             animation.loop++;
         } else if (guibutton.id == 91) {
             if (!this.playingAnimation || !data.isActive()) {
@@ -394,16 +394,16 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             animation.frames.remove(frameIndex);
             animation.frames.add(textfield.getInteger(),frame);
             frameIndex = textfield.getInteger();
-        } else if (textfield.id == 32) {
+        } else if (textfield.id == 31) {
             animation.speed = textfield.getFloat();
-        } else if (textfield.id == 87 && part != null) {
+        } else if (textfield.id == 84 && part != null) {
             part.speed = textfield.getFloat();
-        } else if (textfield.id == 52 && frame != null) {
+        } else if (textfield.id == 51 && frame != null) {
             frame.duration = textfield.getInteger();
-        } else if (textfield.id >= 71 && textfield.id <= 73 && part != null) {
-            part.rotation[textfield.id-71] = textfield.getFloat();
-        } else if (textfield.id >= 81 && textfield.id <= 83 && part != null) {
-            part.pivot[textfield.id-81] = textfield.getFloat();
+        } else if (textfield.id >= 70 && textfield.id <= 73 && part != null) {
+            part.rotation[textfield.id-70] = textfield.getFloat();
+        } else if (textfield.id >= 80 && textfield.id <= 83 && part != null) {
+            part.pivot[textfield.id-80] = textfield.getFloat();
         }
     }
 
