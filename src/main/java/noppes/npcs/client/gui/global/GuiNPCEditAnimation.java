@@ -257,6 +257,13 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                             this.rotationSliders[i].width = 110;
                             this.rotationSliders[i].height= 20;
                             this.rotationSliders[i].xPosition = guiLeft + bodyPartX + 10;
+
+                            int yOffset = 20;
+                            if(i != 0)
+                                yOffset += 3;
+                            yOffset *= i;
+                            this.rotationSliders[i].yPosition = guiTop + bodyPartY + 105 + yOffset;
+
                             this.addSlider(this.rotationSliders[i]);
                         }
 
@@ -269,6 +276,12 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                             this.pivotSliders[i].width = 110;
                             this.pivotSliders[i].height = 20;
                             this.pivotSliders[i].xPosition = guiLeft + bodyPartX + 10;
+
+                            int yOffset = 20;
+                            if(i != 0)
+                                yOffset += 3;
+                            yOffset *= i;
+                            this.pivotSliders[i].yPosition = guiTop + bodyPartY + 105 + yOffset;
                             this.addSlider(this.pivotSliders[i]);
                         }
 
