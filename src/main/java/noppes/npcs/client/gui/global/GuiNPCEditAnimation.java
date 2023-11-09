@@ -50,12 +50,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         int bodyPartX = 280;
         int bodyPartY = -5;
         for (int i = 0; i < 3; i++) {
-            int yOffset = 20;
-            if(i != 0)
-                yOffset += 3;
-            yOffset *= i;
-            this.rotationSliders[i] = new GuiNpcSlider(this, 90 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 115 + yOffset, 0.5F);
-            this.pivotSliders[i] = new GuiNpcSlider(this, 95 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 115 + yOffset, 0.5F);
+            this.rotationSliders[i] = new GuiNpcSlider(this, 90 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 115 + (20 * i), 0.5F);
+            this.pivotSliders[i] = new GuiNpcSlider(this, 95 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 115 + (20 * i), 0.5F);
         }
     }
 
