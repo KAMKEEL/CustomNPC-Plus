@@ -234,7 +234,6 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
 		{
-			save();
 			selected = scrollAnimations.getSelected();
 			Client.sendData(EnumPacketServer.AnimationGet, data.get(selected));
 		}

@@ -477,7 +477,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     public void close() {
         if (!this.hasSubGui()) {
             if (animation != null) {
-                Client.sendData(EnumPacketServer.AnimationSave, animation.id, animation.writeToNBT());
+                Client.sendData(EnumPacketServer.AnimationSave, animation.writeToNBT());
             }
             displayGuiScreen(parent);
         } else {
