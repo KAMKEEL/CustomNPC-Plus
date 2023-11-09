@@ -3,6 +3,8 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.client.gui.SubGuiAnimationFrame;
+import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
@@ -160,6 +162,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         this.addLabel(new GuiNpcLabel(33, "animation.loopStart", guiLeft + animationX, guiTop + animationY + 66, 0xFFFFFF));
         this.addButton(new GuiNpcButton(33, guiLeft + animationX + 55, guiTop + animationY + 60, 75, 20, animation.loop == -1 ? "No Looping" : "Frame " + animation.loop));
 
+        this.addButton(new GuiNpcButton(34,guiLeft + animationX, guiTop + animationY + 80, 120, 20, "animation.animationOptions"));
+
         //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -168,13 +172,15 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             int frameX = animationX;
             int frameY = playPauseY + 100;
 
-            this.addLabel(new GuiNpcLabel(50, "animation.frame", guiLeft + frameX + 40, guiTop + frameY, 0xFFFFFF));
+            this.addLabel(new GuiNpcLabel(50, "animation.frame", guiLeft + frameX + 50, guiTop + frameY, 0xFFFFFF));
             //
             //duration - textfield
             this.addLabel(new GuiNpcLabel(51, "animation.duration", guiLeft + frameX, guiTop + frameY + 15, 0xFFFFFF));
             this.addTextField(new GuiNpcTextField(51, this, guiLeft + frameX + 60, guiTop + frameY + 11, 30, 15, editingFrame.duration + ""));
             this.getTextField(51).integersOnly = true;
             this.getTextField(51).setMinMaxDefaultFloat(0, Integer.MAX_VALUE, 10);
+
+            this.addButton(new GuiNpcButton(52,guiLeft + frameX, guiTop + frameY + 29, 120, 20, "animation.frameOptions"));
 
             int bodyPartX = 280;
             int bodyPartY = -5;
@@ -350,6 +356,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         } else if (guibutton.id == 93) {
             this.playingAnimation = false;
             data.animation.paused = false;
+        } else if (guibutton.id == 34) {
+            setSubGui(new SubGuiAnimationOptions(this.animation));
+        } else if (guibutton.id == 52) {
+            setSubGui(new SubGuiAnimationFrame(editingFrame));
         }
 
         initGui();
@@ -409,9 +419,13 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     @Override
     public void close() {
-        if (animation != null) {
-            Client.sendData(EnumPacketServer.AnimationSave, animation.id, animation.writeToNBT());
+        if (!this.hasSubGui()) {
+            if (animation != null) {
+                Client.sendData(EnumPacketServer.AnimationSave, animation.id, animation.writeToNBT());
+            }
+            displayGuiScreen(parent);
+        } else {
+            closeSubGui(this.getSubGui());
         }
-        displayGuiScreen(parent);
     }
 }

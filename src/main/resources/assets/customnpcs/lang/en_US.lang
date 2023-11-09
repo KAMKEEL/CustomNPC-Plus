@@ -1087,6 +1087,8 @@ animation.addFrame=Add a frame to continue!
 animation.playing=Playing
 animation.paused=Paused
 animation.stopped=Stopped
+animation.animationOptions=Animation Options
+animation.frameOptions=Frame Options
 
 guard.creepers=Attack Creepers
 guard.animals=Attack Animals

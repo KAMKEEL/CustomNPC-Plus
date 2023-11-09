@@ -9,6 +9,7 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
     
     public SubGuiAnimationFrame(Frame editingFrame) {
         this.editingFrame = editingFrame;
+        setBackground("smallbg.png");
     }
     
     @Override
@@ -16,23 +17,23 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
         super.initGui();
         //
         //customized - button, enables all the following options.
-        this.addLabel(new GuiNpcLabel(10, "animation.customized", guiLeft, guiTop + 44, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(10, guiLeft + 60, guiTop + 38, 30, 20, new String[]{"gui.yes", "gui.no"}, editingFrame.isCustomized() ? 0 : 1));
+        this.addLabel(new GuiNpcLabel(10, "animation.customized", guiLeft + 5, guiTop + 16));
+        this.addButton(new GuiNpcButton(10, guiLeft + 65, guiTop + 10, 30, 20, new String[]{"gui.yes", "gui.no"}, editingFrame.isCustomized() ? 0 : 1));
         if (editingFrame.isCustomized()) {
             //
             //speed - textfield
-            this.addLabel(new GuiNpcLabel(11, "stats.speed", guiLeft, guiTop + 64, 0xFFFFFF));
-            this.addTextField(new GuiNpcTextField(11, this, guiLeft + 60, guiTop + 60, 30, 15, editingFrame.speed + ""));
+            this.addLabel(new GuiNpcLabel(11, "stats.speed", guiLeft + 5, guiTop + 36));
+            this.addTextField(new GuiNpcTextField(11, this, guiLeft + 65, guiTop + 32, 30, 15, editingFrame.speed + ""));
             this.getTextField(11).floatsOnly = true;
             this.getTextField(11).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1.0F);
             //
             //smooth - button
-            this.addLabel(new GuiNpcLabel(12, "animation.smoothing", guiLeft, guiTop + 84, 0xFFFFFF));
-            this.addButton(new GuiNpcButton(12, guiLeft + 55, guiTop + 78, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingFrame.smooth));
+            this.addLabel(new GuiNpcLabel(12, "animation.smoothing", guiLeft + 5, guiTop + 58));
+            this.addButton(new GuiNpcButton(12, guiLeft + 65, guiTop + 52, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingFrame.smooth));
             //
             //ticks - button
-            this.addLabel(new GuiNpcLabel(13, "animation.tickType", guiLeft, guiTop + 104, 0xFFFFFF));
-            this.addButton(new GuiNpcButton(13, guiLeft + 55, guiTop + 98, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, editingFrame.renderTicks ? 0 : 1));
+            this.addLabel(new GuiNpcLabel(13, "animation.tickType", guiLeft + 5, guiTop + 78));
+            this.addButton(new GuiNpcButton(13, guiLeft + 65, guiTop + 72, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, editingFrame.renderTicks ? 0 : 1));
         }
     }
 
@@ -48,6 +49,8 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
         } else if (guibutton.id == 13 && editingFrame != null) {
             editingFrame.renderTicks = value == 0;
         }
+
+        initGui();
     }
 
     @Override

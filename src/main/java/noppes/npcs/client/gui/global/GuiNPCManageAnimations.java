@@ -68,6 +68,13 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 			data.animation.smooth = animation.smooth;
 			data.animation.renderTicks = animation.renderTicks;
 			data.animation.loop = 0;
+
+			if (this.animation.frames.size() > 0) {
+				Frame firstFrame = new Frame();
+				firstFrame.parent = data.animation;
+				firstFrame.readFromNBT(this.animation.frames.get(0).writeToNBT());
+				data.animation.addFrame(firstFrame);
+			}
 		}
 
 		if (animation != null) {

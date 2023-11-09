@@ -11,6 +11,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
 
     public SubGuiAnimationOptions(Animation animation) {
         this.animation = animation;
+        setBackground("smallbg.png");
     }
 
     @Override
@@ -18,20 +19,20 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         super.initGui();
         //
         //ticks - button
-        this.addLabel(new GuiNpcLabel(10, "animation.tickType", guiLeft, guiTop + 86, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(10, guiLeft + 55, guiTop + 80, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, animation.renderTicks ? 0 : 1));
+        this.addLabel(new GuiNpcLabel(10, "animation.tickType", guiLeft + 5, guiTop + 16));
+        this.addButton(new GuiNpcButton(10, guiLeft + 60, guiTop + 10, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, animation.renderTicks ? 0 : 1));
         //
         //whileStanding - button
-        this.addLabel(new GuiNpcLabel(11, "animation.whileStanding", guiLeft, guiTop + 106, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(11, guiLeft + 75, guiTop + 100, 30, 20, new String[]{"gui.yes", "gui.no"}, animation.whileStanding ? 0 : 1));
+        this.addLabel(new GuiNpcLabel(11, "animation.whileStanding", guiLeft + 5, guiTop + 36));
+        this.addButton(new GuiNpcButton(11, guiLeft + 80, guiTop + 30, 30, 20, new String[]{"gui.yes", "gui.no"}, animation.whileStanding ? 0 : 1));
         //
         //whileAttacking - button
-        this.addLabel(new GuiNpcLabel(12, "animation.whileAttacking", guiLeft, guiTop + 126, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(12, guiLeft + 75, guiTop + 120, 30, 20, new String[]{"gui.yes", "gui.no"}, animation.whileAttacking ? 0 : 1));
+        this.addLabel(new GuiNpcLabel(12, "animation.whileAttacking", guiLeft + 5, guiTop + 56));
+        this.addButton(new GuiNpcButton(12, guiLeft + 80, guiTop + 50, 30, 20, new String[]{"gui.yes", "gui.no"}, animation.whileAttacking ? 0 : 1));
         //
         //whileMoving - button
-        this.addLabel(new GuiNpcLabel(13, "animation.whileMoving", guiLeft, guiTop + 146, 0xFFFFFF));
-        this.addButton(new GuiNpcButton(13, guiLeft + 75, guiTop + 140, 30, 20, new String[]{"gui.yes", "gui.no"}, animation.whileMoving ? 0 : 1));
+        this.addLabel(new GuiNpcLabel(13, "animation.whileMoving", guiLeft + 5, guiTop + 76));
+        this.addButton(new GuiNpcButton(13, guiLeft + 80, guiTop + 70, 30, 20, new String[]{"gui.yes", "gui.no"}, animation.whileMoving ? 0 : 1));
     }
 
     @Override
@@ -48,5 +49,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         } else if (guibutton.id == 13) {
             animation.whileMoving = value == 0;
         }
+
+        initGui();
     }
 }
