@@ -82,7 +82,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 
 		if(quest != null) {
 			if(quest.id != -1){
-				addLabel(new GuiNpcLabel(0, "ID:", guiLeft + 358, guiTop + 4 + 3 + 185));
+				addLabel(new GuiNpcLabel(0, "ID", guiLeft + 358, guiTop + 4 + 3 + 185));
 				addLabel(new GuiNpcLabel(1, quest.id + "", guiLeft + 358, guiTop + 4 + 3 + 195));
 			}
 		}

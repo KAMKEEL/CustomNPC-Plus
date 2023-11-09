@@ -78,7 +78,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 
 		if(dialog != null) {
 			if(dialog.id != -1){
-				addLabel(new GuiNpcLabel(0, "ID:", guiLeft + 358, guiTop + 4 + 3 + 185));
+				addLabel(new GuiNpcLabel(0, "ID", guiLeft + 358, guiTop + 4 + 3 + 185));
 				addLabel(new GuiNpcLabel(1, dialog.id + "", guiLeft + 358, guiTop + 4 + 3 + 195));
 			}
 		}
