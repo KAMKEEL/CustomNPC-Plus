@@ -341,12 +341,12 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         }
 
         this.addSlider(this.frameSlider);
-        this.frameSlider.xPosition = guiLeft + 130;
-        this.frameSlider.yPosition = guiTop + playPauseY + 177;
-        this.frameSlider.width = 125;
+        this.frameSlider.xPosition = guiLeft + 62;
+        this.frameSlider.yPosition = guiTop + playPauseY + 197;
+        this.frameSlider.width = 63;
 
-        for (int i = 0; i < 47; i++) {
-            this.addButton(new GuiTexturedButton(300 + i, "", guiLeft - 15 + i * 7, guiTop + playPauseY + 200, 6, 20, animTexture, 0, 71));
+        for (int i = 0; i < 25; i++) {
+            this.addButton(new GuiTexturedButton(300 + i, "", guiLeft + 130 + i * 7, guiTop + playPauseY + 200, 6, 20, animTexture, 0, 71));
             GuiTexturedButton button = (GuiTexturedButton) getButton(300 + i);
             if (i == this.frameIndex) {
                 button.yPosition -= 5;
