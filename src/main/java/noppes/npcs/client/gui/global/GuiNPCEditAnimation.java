@@ -28,15 +28,15 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     private int frameIndex = 0;
     public boolean playingAnimation = false;
     private Frame prevFrame;
-    private GuiScreen parent;
+    private final GuiScreen parent;
     private long prevTick;
     private static int partEditMode;
     private static int sliderSelection = 0;
 
-    private GuiNpcSlider[] rotationSliders = new GuiNpcSlider[3];
-    private GuiNpcSlider[] pivotSliders = new GuiNpcSlider[3];
+    private final GuiNpcSlider[] rotationSliders = new GuiNpcSlider[3];
+    private final GuiNpcSlider[] pivotSliders = new GuiNpcSlider[3];
 
-    private GuiNpcSlider frameSlider;
+    private final GuiNpcSlider frameSlider;
 
     public GuiNPCEditAnimation(GuiScreen parent, Animation animation, EntityNPCInterface npc) {
         super((EntityCustomNpc) npc);
@@ -66,6 +66,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         if (animation == null) return;
 
         frameIndex = !animation.frames.isEmpty() ? frameIndex % animation.frames.size() : 0;
+        this.updateSliders();
 
         Frame editingFrame = this.editingFrame();
         if (editingFrame != null) {
@@ -346,14 +347,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         this.frameSlider.width = 63;
 
         for (int i = 0; i < 25; i++) {
-            this.addButton(new GuiTexturedButton(300 + i, "", guiLeft + 130 + i * 7, guiTop + playPauseY + 200, 6, 20, animTexture, 0, 71));
-            GuiTexturedButton button = (GuiTexturedButton) getButton(300 + i);
-            if (i == this.frameIndex) {
-                button.yPosition -= 5;
-                button.color = 0x00FF00;
-            } else if (i >= this.animation.frames.size()) {
-                button.color = 0x0;
-            }
+            this.addButton(new GuiTexturedButton(300 + i, "", guiLeft + 130 + i * 7, guiTop + 207, 6, 20, animTexture, 0, 71));
         }
     }
 
@@ -478,6 +472,20 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             setSubGui(new SubGuiAnimationFrame(editingFrame));
         }
 
+        if (guibutton.id >= 300 && guibutton.id < 325 && (!this.playingAnimation || this.animation.paused)) {
+            int frameClicked = guibutton.id - 300;
+            if (frameClicked < this.animation.frames.size()) {
+                this.frameIndex = frameClicked;
+            }
+            if (this.playingAnimation) {
+                this.animation.currentFrame = this.frameIndex;
+                this.animation.setPausedValues();
+                initGui();
+                this.animation.setPausedValues();
+                return;
+            }
+        }
+
         initGui();
     }
 
@@ -496,7 +504,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 if (currentFrame != null && !currentFrame.renderTicks) {
                     data.animation.increaseTime();
                 }
-                GuiNpcLabel label = this.getLabel(94);
+                GuiNpcLabel label = this.getLabel(213);
                 if (label != null) {
                     label.label += ".";
                     if (label.label.length()%4 == 0) {
@@ -505,6 +513,20 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 }
             }
             prevTick = time;
+        }
+
+        for (int i = 0; i < 25; i++) {
+            if (getButton(300 + i) != null) {
+                GuiTexturedButton button = (GuiTexturedButton) getButton(300 + i);
+                if (i >= this.animation.frames.size()) {
+                    button.color = 0x0;
+                } else {
+                    if (i == this.frameIndex) {
+                        button.color = 0x00FF00;
+                    }
+                    button.yPosition = i == this.animation.currentFrame && this.playingAnimation ? guiTop + 200 : guiTop + 207;
+                }
+            }
         }
     }
 
@@ -550,7 +572,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     @Override
     public void mouseDragged(GuiNpcSlider guiNpcSlider) {
         FramePart part = this.editingPart();
-        if (part == null) {
+        if (part == null || this.mc == null) {
             return;
         }
         int id = guiNpcSlider.id;

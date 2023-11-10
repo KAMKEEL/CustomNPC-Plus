@@ -251,4 +251,15 @@ public class Animation implements IAnimation {
 			}
 		}
 	}
+
+	@SideOnly(Side.CLIENT)
+	public void setPausedValues() {
+		this.currentFrameTime = 0;
+		Frame frame = (Frame) this.currentFrame();
+		for (EnumAnimationPart part : EnumAnimationPart.values()) {
+			if (frame.frameParts.containsKey(part)) {
+				frame.frameParts.get(part).setPausedValues();
+			}
+		}
+	}
 }
