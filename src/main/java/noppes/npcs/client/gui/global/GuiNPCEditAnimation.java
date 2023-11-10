@@ -120,6 +120,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             animation.loop = -1;
         }
 
+        if (this.playingAnimation) {
+            this.animation.currentFrame = this.frameIndex;
+            this.animation.setPausedValues();
+        }
 
         this.addLabel(new GuiNpcLabel(10, "animation.frames", guiLeft + 40, guiTop + 176 - 10, 0xFFFFFF));
         this.addButton(new GuiNpcButton(11, guiLeft - 10, guiTop + 189 - 10, 45, 20, "gui.add"));
@@ -477,13 +481,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             if (frameClicked < this.animation.frames.size()) {
                 this.frameIndex = frameClicked;
             }
-            if (this.playingAnimation) {
-                this.animation.currentFrame = this.frameIndex;
-                this.animation.setPausedValues();
-                initGui();
-                this.animation.setPausedValues();
-                return;
-            }
         }
 
         initGui();
@@ -521,9 +518,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 if (i >= this.animation.frames.size()) {
                     button.color = 0x0;
                 } else {
-                    if (i == this.frameIndex) {
-                        button.color = 0x00FF00;
-                    }
+                    button.color = i == this.frameIndex ? 0x00FF00 : 0xFFFFFF;
                     button.yPosition = i == this.animation.currentFrame && this.playingAnimation ? guiTop + 200 : guiTop + 207;
                 }
             }
