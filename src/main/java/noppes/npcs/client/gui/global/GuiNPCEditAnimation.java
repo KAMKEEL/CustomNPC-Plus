@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
+import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
@@ -19,7 +20,7 @@ import noppes.npcs.util.ValueUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener, ISliderListener {
+public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener, ISliderListener, ISubGuiListener {
     private final Animation animation;
 
     private EnumAnimationPart editingPart = EnumAnimationPart.HEAD;
@@ -202,7 +203,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.getTextField(51).integersOnly = true;
             this.getTextField(51).setMinMaxDefaultFloat(0, Integer.MAX_VALUE, 10);
 
-            this.addButton(new GuiNpcButton(52,guiLeft + frameX, guiTop + frameY + 31 , 120, 20, "animation.frameOptions"));
+            this.addButton(new GuiNpcButton(52,guiLeft + frameX, guiTop + frameY + 31 , 80, 20, "animation.frameOptions"));
+            this.addButton(new GuiNpcButton(53,guiLeft + frameX + getButton(52).width + 5, guiTop + frameY + 31 , 35, 20, "gui.color"));
 
             int bodyPartX = 280;
             int bodyPartY = -5;
@@ -472,8 +474,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             data.animation.paused = false;
         } else if (guibutton.id == 34) {
             setSubGui(new SubGuiAnimationOptions(this.animation));
-        } else if (guibutton.id == 52) {
+        } else if (guibutton.id == 52 && editingFrame != null) {
             setSubGui(new SubGuiAnimationFrame(editingFrame));
+        } else if (guibutton.id == 53 && editingFrame != null) {
+            setSubGui(new SubGuiColorSelector(editingFrame.getColorMarker()));
         }
 
         if (guibutton.id >= 300 && guibutton.id < 325) {
@@ -519,8 +523,9 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 int sliderFrame = i + this.frameOffset;
                 if (sliderFrame >= this.animation.frames.size()) {
                     button.color = 0x0;
+                    button.alpha = 0.3F;
                 } else {
-                    button.color = sliderFrame == this.frameIndex ? 0x00FF00 : 0xFFFFFF;
+                    button.color = this.animation.frames.get(sliderFrame).getColorMarker();
                     if ((sliderFrame == this.animation.currentFrame && this.playingAnimation) || sliderFrame == this.frameIndex) {
                         button.yPosition = guiTop + (sliderFrame == this.frameIndex ? 205 : 200);
                     } else {
@@ -604,5 +609,13 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     @Override
     public void mouseReleased(GuiNpcSlider guiNpcSlider) {
 
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        Frame editingFrame = this.editingFrame();
+        if (subgui instanceof SubGuiColorSelector && editingFrame != null) {
+            editingFrame.setColorMarker(((SubGuiColorSelector) subgui).color);
+        }
     }
 }

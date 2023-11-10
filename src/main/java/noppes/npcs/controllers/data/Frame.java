@@ -20,6 +20,8 @@ public class Frame implements IFrame {
 	public byte smooth = 0;
 	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
 
+	private int colorMarker = 0xFFFFFF;
+
 	public Frame(){}
 
 	public Frame(int duration) {
@@ -110,8 +112,19 @@ public class Frame implements IFrame {
 		return this.renderTicks;
 	}
 
+	public int getColorMarker() {
+		return this.colorMarker;
+	}
+
+	public void setColorMarker(int color) {
+		this.colorMarker = color;
+	}
+
 	public void readFromNBT(NBTTagCompound compound){
 		duration = compound.getInteger("Duration");
+		if (compound.hasKey("ColorMarker")) {
+			this.setColorMarker(compound.getInteger("ColorMarker"));
+		}
 
 		// Customized = TRUE if Speed or Smooth Exist
 		if(compound.hasKey("Speed")){
@@ -151,6 +164,8 @@ public class Frame implements IFrame {
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setInteger("Duration", duration);
+		compound.setInteger("ColorMarker", this.colorMarker);
+
 		if(customized){
 			compound.setFloat("Speed", speed);
 			compound.setByte("Smooth", smooth);
