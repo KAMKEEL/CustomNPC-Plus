@@ -148,7 +148,7 @@ public class GuiTexturedButton extends GuiNpcButton {
             v2 = v1 + (float)height/(float)totalHeight;
         }
 
-        GL11.glTranslatef(x + this.xPosition - u1 * totalWidth * this.scale, y + this.yPosition - v1 * totalHeight * this.scale, (float)this.id);
+        GL11.glTranslatef(x + this.xPosition - u1 * totalWidth * this.scale, y + this.yPosition - v1 * totalHeight * this.scale, this.zLevel);
 
         GL11.glScalef(this.scale,this.scale,1.0F);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
