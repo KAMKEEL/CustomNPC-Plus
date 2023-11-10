@@ -400,16 +400,20 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         if (guibutton.id == 11) {
             if (frameIndex < animation.frames.size() - 1) {
                 animation.frames.add(frameIndex + 1, new Frame(10));
+                this.frameIndex = frameIndex + 1;
             } else {
                 animation.frames.add(new Frame(10));
+                this.frameIndex = frameIndex + 1;
             }
         } else if (guibutton.id == 12) {
             animation.frames.remove(frameIndex);
         } else if (guibutton.id == 13 && editingFrame != null) {
             if (frameIndex < animation.frames.size() - 1) {
                 animation.frames.add(frameIndex + 1, editingFrame.copy());
+                this.frameIndex = frameIndex + 1;
             } else {
                 animation.frames.add(editingFrame.copy());
+                this.frameIndex = frameIndex + 1;
             }
         } else if (guibutton.id == 14) {
             frameIndex--;
