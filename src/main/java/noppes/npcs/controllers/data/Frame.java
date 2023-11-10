@@ -193,6 +193,7 @@ public class Frame implements IFrame {
 		frame.speed = this.speed;
 		frame.smooth = this.smooth;
 		frame.renderTicks = this.renderTicks;
+		frame.colorMarker = this.colorMarker;
 		return frame;
 	}
 }
