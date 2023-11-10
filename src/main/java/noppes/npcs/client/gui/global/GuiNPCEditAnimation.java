@@ -2,7 +2,6 @@ package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.controllers.data.AnimationData;
@@ -19,7 +18,6 @@ import noppes.npcs.util.ValueUtil;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 
 public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener, ISliderListener {
     private final Animation animation;
@@ -122,7 +120,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
         if (this.playingAnimation) {
             this.animation.currentFrame = this.frameIndex;
-            this.animation.setPausedValues();
+            this.animation.jumpToCurrentFrame();
         }
 
         this.addLabel(new GuiNpcLabel(10, "animation.frames", guiLeft + 40, guiTop + 176 - 10, 0xFFFFFF));
@@ -476,7 +474,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             setSubGui(new SubGuiAnimationFrame(editingFrame));
         }
 
-        if (guibutton.id >= 300 && guibutton.id < 325 && (!this.playingAnimation || this.animation.paused)) {
+        if (guibutton.id >= 300 && guibutton.id < 325) {
             int frameClicked = guibutton.id - 300;
             if (frameClicked < this.animation.frames.size()) {
                 this.frameIndex = frameClicked;

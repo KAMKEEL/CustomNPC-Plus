@@ -223,7 +223,7 @@ public class FramePart implements IFramePart {
 	}
 
 	@SideOnly(Side.CLIENT)
-	public void setPausedValues() {
+	public void jumpToCurrentFrame() {
 		this.partialRotationTick = ClientEventHandler.partialRenderTick;
 		this.partialPivotTick = ClientEventHandler.partialRenderTick;
 

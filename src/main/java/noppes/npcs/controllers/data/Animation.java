@@ -10,7 +10,6 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 
 public class Animation implements IAnimation {
@@ -253,12 +252,12 @@ public class Animation implements IAnimation {
 	}
 
 	@SideOnly(Side.CLIENT)
-	public void setPausedValues() {
+	public void jumpToCurrentFrame() {
 		this.currentFrameTime = 0;
 		Frame frame = (Frame) this.currentFrame();
 		for (EnumAnimationPart part : EnumAnimationPart.values()) {
 			if (frame.frameParts.containsKey(part)) {
-				frame.frameParts.get(part).setPausedValues();
+				frame.frameParts.get(part).jumpToCurrentFrame();
 			}
 		}
 	}
