@@ -38,6 +38,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     private final GuiNpcSlider frameSlider;
     private int frameOffset;
     private final int visibleFrames = 25;
+    private boolean overrideFrame = false;
 
     public GuiNPCEditAnimation(GuiScreen parent, Animation animation, EntityNPCInterface npc) {
         super((EntityCustomNpc) npc);
@@ -121,9 +122,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             animation.loop = -1;
         }
 
-        if (this.playingAnimation) {
+        if (!this.playingAnimation || overrideFrame) {
             this.animation.currentFrame = this.frameIndex;
             this.animation.jumpToCurrentFrame();
+            overrideFrame = false;
         }
 
         this.addLabel(new GuiNpcLabel(10, "animation.frames", guiLeft + 40, guiTop + 176 - 10, 0xFFFFFF));
@@ -417,12 +419,14 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.frameIndex = frameIndex + 1;
             updateFrameSlider();
         } else if (guibutton.id == 14) {
+            overrideFrame = true;
             frameIndex--;
             if (frameIndex == -1) {
                 frameIndex = animation.frames.size() - 1;
             }
         } else if (guibutton.id == 16) {
             frameIndex++;
+            overrideFrame = true;
         } else if (guibutton.id >= 60 && guibutton.id <= 66) {//Animation part buttons
             EnumAnimationPart enumPart = EnumAnimationPart.values()[guibutton.id-60];
             if (editingFrame != null && !editingFrame.frameParts.containsKey(enumPart)) {
@@ -489,6 +493,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             int frameClicked = guibutton.id - 300;
             if (frameClicked < this.animation.frames.size()) {
                 this.frameIndex = frameClicked + this.frameOffset;
+                overrideFrame = true;
             }
         }
 
@@ -558,6 +563,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             animation.frames.remove(frameIndex);
             animation.frames.add(textfield.getInteger(),frame);
             frameIndex = textfield.getInteger();
+            overrideFrame = true;
+            initGui();
         } else if (textfield.id == 31) {
             animation.speed = textfield.getFloat();
         } else if (textfield.id == 84 && part != null) {
