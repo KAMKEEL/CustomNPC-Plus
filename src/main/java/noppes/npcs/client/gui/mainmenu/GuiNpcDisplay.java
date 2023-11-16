@@ -124,12 +124,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 				display.texture = textfield.getText();
 		}
 		else if(textfield.id == 8){
-			npc.textureCloakLocation = null;
 			display.cloakTexture = textfield.getText();
 		}
 		else if(textfield.id == 9){
-			//npc.textureGlowLocation = null;
-			//display.glowTexture = textfield.getText();
 			if (!textfield.getText().isEmpty()) {
 				npc.display.skinOverlayData.overlayList.put(0,new SkinOverlay(textfield.getText()));
 			} else {

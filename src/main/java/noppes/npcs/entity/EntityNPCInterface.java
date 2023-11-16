@@ -104,7 +104,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public List<EntityLivingBase> interactingEntities = new ArrayList<EntityLivingBase>();
 
 	public ResourceLocation textureLocation = null;
-	public ResourceLocation textureCloakLocation = null;
 
 	public EnumAnimation currentAnimation = EnumAnimation.NONE;
 

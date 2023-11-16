@@ -934,10 +934,15 @@ public class ModelMPM extends ModelNPCMale{
 	public void renderCloak(EntityCustomNpc npc, float f){
 		if (!npc.display.cloakTexture.isEmpty() && !isArmor)
 		{
-			if(npc.textureCloakLocation == null){
-				npc.textureCloakLocation = new ResourceLocation(npc.display.cloakTexture);
+			ImageData imageData = ClientCacheHandler.getImageData(npc.display.cloakTexture);
+			if (!imageData.imageLoaded())
+				return;
+
+			try {
+				imageData.bindTexture();
+			} catch (Exception e) { return;
 			}
-			bindTexture((ResourceLocation) npc.textureCloakLocation);
+
 			GL11.glPushMatrix();
 			GL11.glTranslatef(0.0F, 0.0F, 0.125F);
 			double d = (npc.field_20066_r + (npc.field_20063_u - npc.field_20066_r) * (double)f) - (npc.prevPosX + (npc.posX - npc.prevPosX) * (double)f);

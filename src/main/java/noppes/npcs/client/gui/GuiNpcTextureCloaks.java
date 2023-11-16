@@ -74,7 +74,6 @@ public class GuiNpcTextureCloaks extends GuiNpcSelectionInterface
     public void elementClicked(){
     	if(dataTextures.contains(slot.selected) && slot.selected != null){
     		npc.display.cloakTexture = assets.getAsset(slot.selected);
-    		npc.textureCloakLocation = null;
     	}
     }
     

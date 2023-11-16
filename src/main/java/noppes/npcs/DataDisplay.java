@@ -195,7 +195,6 @@ public class DataDisplay {
 
 		if(prevSkinType != skinType || !texture.equals(prevTexture))
 			npc.textureLocation = null;
-		npc.textureCloakLocation = null;
 		npc.updateHitbox();
 	}
 	

@@ -89,7 +89,6 @@ public class EntityUtil {
 			EntityNPCInterface target = (EntityNPCInterface) entity;
 
 			target.textureLocation = npc.textureLocation;
-			target.textureCloakLocation = npc.textureCloakLocation;
 			target.display = npc.display;
 			target.inventory = npc.inventory;
 			
