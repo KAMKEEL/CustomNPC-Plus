@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.model;
+package noppes.npcs.client.gui.model.custom;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -11,16 +11,15 @@ import software.bernie.geckolib3.file.AnimationFile;
 import software.bernie.geckolib3.resource.GeckoLibCache;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Vector;
 import java.util.function.Consumer;
 
-public class GuiGeckoAnimationSelection extends GuiNPCInterface {
+public class GuiCustomAnimationSelection extends GuiNPCInterface {
     public GuiNPCStringSlot slot;
     public GuiScreen parent;
     public Consumer<String> action;
 
-    public GuiGeckoAnimationSelection(EntityNPCInterface npc, GuiScreen parent, Consumer<String> action){
+    public GuiCustomAnimationSelection(EntityNPCInterface npc, GuiScreen parent, Consumer<String> action){
         super(npc);
         drawDefaultBackground = false;
         title = "";

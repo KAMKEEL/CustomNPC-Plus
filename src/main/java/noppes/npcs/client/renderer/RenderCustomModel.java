@@ -3,8 +3,8 @@ package noppes.npcs.client.renderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.IItemRenderer;
-import noppes.npcs.client.model.ModelGeckolib;
-import noppes.npcs.entity.EntityGeckoModel;
+import noppes.npcs.client.model.ModelCustom;
+import noppes.npcs.entity.EntityCustomModel;
 import org.lwjgl.opengl.GL11;
 import software.bernie.geckolib3.geo.render.built.GeoBone;
 import software.bernie.geckolib3.geo.render.built.GeoModel;
@@ -12,12 +12,12 @@ import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
 import java.util.ArrayList;
 
-public class RenderGeckolib extends GeoEntityRenderer<EntityGeckoModel> {
+public class RenderCustomModel extends GeoEntityRenderer<EntityCustomModel> {
 
-    public RenderGeckolib() {
-        super(new ModelGeckolib());
+    public RenderCustomModel() {
+        super(new ModelCustom());
     }
-    public void renderAfter(GeoModel model, EntityGeckoModel animatable, float ticks, float red, float green, float blue, float alpha) {
+    public void renderAfter(GeoModel model, EntityCustomModel animatable, float ticks, float red, float green, float blue, float alpha) {
         super.renderAfter(model, animatable, ticks, red, green, blue, alpha);
         if (model.getBone("held_item").isPresent() && animatable.getHeldItem() != null) {
             GeoBone bone = model.getBone("held_item").get();
@@ -34,7 +34,7 @@ public class RenderGeckolib extends GeoEntityRenderer<EntityGeckoModel> {
         return (GeoBone[])bones.toArray(new GeoBone[0]);
     }
 
-    public void renderItem(EntityGeckoModel animatable, GeoBone locator, float ticks) {
+    public void renderItem(EntityCustomModel animatable, GeoBone locator, float ticks) {
         GL11.glPushMatrix();
         float scale = 0.5F;
         GL11.glScaled(scale, scale, scale);
@@ -59,7 +59,7 @@ public class RenderGeckolib extends GeoEntityRenderer<EntityGeckoModel> {
         GL11.glPopMatrix();
     }
 
-    public boolean isBoneRenderOverriden(EntityGeckoModel entity, GeoBone bone) {
+    public boolean isBoneRenderOverriden(EntityCustomModel entity, GeoBone bone) {
         return bone.name.equals("held_item");
     }
 }

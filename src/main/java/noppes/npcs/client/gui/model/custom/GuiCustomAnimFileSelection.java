@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.model;
+package noppes.npcs.client.gui.model.custom;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -9,14 +9,13 @@ import noppes.npcs.entity.EntityNPCInterface;
 import software.bernie.geckolib3.resource.GeckoLibCache;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Vector;
 
-public class GuiGeckoModelSelection extends GuiNPCInterface {
+public class GuiCustomAnimFileSelection extends GuiNPCInterface {
     public GuiNPCStringSlot slot;
     public GuiScreen parent;
 
-    public GuiGeckoModelSelection(EntityNPCInterface npc, GuiScreen parent){
+    public GuiCustomAnimFileSelection(EntityNPCInterface npc, GuiScreen parent){
         super(npc);
         drawDefaultBackground = false;
         title = "";
@@ -26,10 +25,10 @@ public class GuiGeckoModelSelection extends GuiNPCInterface {
     @Override
     public void initGui(){
         super.initGui();
-        String ss = "Selecting geckolib model:";
+        String ss = "Selecting geckolib animation file:";
         addLabel(new GuiNpcLabel(0,ss, width / 2 - (this.fontRendererObj.getStringWidth(ss)/2), 20, 0xffffff));
         Vector<String> list = new Vector<String>();
-        for(ResourceLocation resLoc : GeckoLibCache.getInstance().getGeoModels().keySet()){
+        for(ResourceLocation resLoc : GeckoLibCache.getInstance().getAnimations().keySet()){
             list.add(resLoc.toString());
         }
         Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
@@ -52,7 +51,7 @@ public class GuiGeckoModelSelection extends GuiNPCInterface {
 
     @Override
     public void doubleClicked(){
-        npc.display.model=slot.selected;
+        npc.display.animFile=slot.selected;
         close();
         NoppesUtil.openGUI(player, parent);
     }

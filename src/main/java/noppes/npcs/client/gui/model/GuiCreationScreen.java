@@ -15,6 +15,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.model.custom.GuiCustomAnimFileSelection;
+import noppes.npcs.client.gui.model.custom.GuiCustomAnimationSelection;
+import noppes.npcs.client.gui.model.custom.GuiCustomModelSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.compat.PixelmonHelper;
@@ -325,15 +328,15 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		}
 
 		if(button.id == 202){
-			NoppesUtil.openGUI(player, new GuiGeckoModelSelection(npc, this));
+			NoppesUtil.openGUI(player, new GuiCustomModelSelection(npc, this));
 		}
 
 		if(button.id == 203){
-			NoppesUtil.openGUI(player, new GuiGeckoAnimFileSelection(npc, this));
+			NoppesUtil.openGUI(player, new GuiCustomAnimFileSelection(npc, this));
 		}
 
 		if(button.id == 204){
-			NoppesUtil.openGUI(player, new GuiGeckoAnimationSelection(npc, this, (name)-> npc.display.idleAnim=name));
+			NoppesUtil.openGUI(player, new GuiCustomAnimationSelection(npc, this, (name)-> npc.display.idleAnim=name));
 		}
 	}
 

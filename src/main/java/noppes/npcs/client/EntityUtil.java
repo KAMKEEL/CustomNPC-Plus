@@ -5,7 +5,7 @@ import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.entity.EntityGeckoModel;
+import noppes.npcs.entity.EntityCustomModel;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityUtil {
@@ -86,11 +86,11 @@ public class EntityUtil {
 			entity.setCurrentItemOrArmor(i, copied.getEquipmentInSlot(i));
 		}
 
-		if(entity instanceof EntityGeckoModel && copied instanceof EntityNPCInterface){
-			((EntityGeckoModel) entity).textureResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.texture);
-			((EntityGeckoModel) entity).modelResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.model);
-			((EntityGeckoModel) entity).animResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.animFile);
-			((EntityGeckoModel) entity).idleAnim=((EntityNPCInterface) copied).display.idleAnim;
+		if(entity instanceof EntityCustomModel && copied instanceof EntityNPCInterface){
+			((EntityCustomModel) entity).textureResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.texture);
+			((EntityCustomModel) entity).modelResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.model);
+			((EntityCustomModel) entity).animResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.animFile);
+			((EntityCustomModel) entity).idleAnim=((EntityNPCInterface) copied).display.idleAnim;
 		}
 
 		if(copied instanceof EntityNPCInterface && entity instanceof EntityNPCInterface){

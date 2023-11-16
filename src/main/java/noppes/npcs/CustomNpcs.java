@@ -156,7 +156,7 @@ public class CustomNpcs {
         registerNpc(EntityNPCEnderman.class, "npcEnderman");
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
-        registerCustomModel(EntityGeckoModel.class, "CustomModel");
+        registerCustomModel(EntityCustomModel.class, "CustomModel");
 
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);

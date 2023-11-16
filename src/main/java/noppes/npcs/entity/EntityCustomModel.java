@@ -16,7 +16,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import java.util.Objects;
 
-public class EntityGeckoModel extends EntityCreature implements IAnimatable, IAnimationTickable {
+public class EntityCustomModel extends EntityCreature implements IAnimatable, IAnimationTickable {
     private AnimationFactory factory = new AnimationFactory(this);
     public ResourceLocation modelResLoc=new ResourceLocation("geckolib3", "geo/npc.geo.json");
     public ResourceLocation animResLoc=new ResourceLocation("custom", "geo_npc.animation.json");
@@ -46,7 +46,7 @@ public class EntityGeckoModel extends EntityCreature implements IAnimatable, IAn
         return PlayState.CONTINUE;
     }
 
-    public EntityGeckoModel(World worldIn) {
+    public EntityCustomModel(World worldIn) {
         super(worldIn);
         this.ignoreFrustumCheck = true;
         this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
