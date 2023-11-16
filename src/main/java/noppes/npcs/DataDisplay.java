@@ -37,6 +37,13 @@ public class DataDisplay {
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 
+	public String model = "geckolib3:geo/npc.geo.json";
+	public String animFile = "custom:geo_npc.animation.json";
+	public String idleAnim = "";
+	public String walkAnim = "";
+	public String attackAnim = "";
+	public String hurtAnim = "";
+
 	public DataSkinOverlays skinOverlayData;
 	public long overlayRenderTicks = 0;
 
@@ -45,7 +52,7 @@ public class DataDisplay {
 	public String glowTexture = "";
 
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
-	
+
 	public int modelSize = 5;
 
 	public int showName = 0;
@@ -53,7 +60,7 @@ public class DataDisplay {
 	public int modelType = 0;
 
 	public boolean disableLivingAnimation = false;
-	
+
 	public byte showBossBar = 0;
 
 	public ArrayList<UUID> invisibleToList = new ArrayList<>();
@@ -80,6 +87,15 @@ public class DataDisplay {
 		nbttagcompound.setString("Title", title);
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
+
+		// Custom Model
+		nbttagcompound.setString("Model", model);
+		nbttagcompound.setString("AnimFile", animFile);
+		nbttagcompound.setString("IdleAnim", idleAnim);
+		nbttagcompound.setString("WalkAnim", walkAnim);
+		nbttagcompound.setString("AttackAnim", attackAnim);
+		nbttagcompound.setString("HurtAnim", hurtAnim);
+
 		nbttagcompound.setString("CloakTexture", cloakTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
 		nbttagcompound.setString("GlowTexture", glowTexture);
@@ -94,7 +110,7 @@ public class DataDisplay {
             NBTUtil.func_152460_a(nbttagcompound1, this.playerProfile);
             nbttagcompound.setTag("SkinUsername", nbttagcompound1);
         }
-		
+
 		nbttagcompound.setInteger("Size", modelSize);
 		nbttagcompound.setInteger("modelType", modelType);
 
@@ -121,12 +137,12 @@ public class DataDisplay {
 		setMarkovGender(nbttagcompound.getInteger("MarkovGender"));
 
 		title = nbttagcompound.getString("Title");
-		
+
 		url = nbttagcompound.getString("SkinUrl");
 
 		int prevSkinType = skinType;
 		skinType = nbttagcompound.getByte("UsingSkinUrl");
-		
+
 		this.playerProfile = null;
 		if(skinType == 1){
 	        if (nbttagcompound.hasKey("SkinUsername", 10)){
@@ -139,8 +155,18 @@ public class DataDisplay {
 		}
 
         String prevTexture = texture;
-        
+
 		texture = nbttagcompound.getString("Texture");
+
+		// Custom Model
+		model = nbttagcompound.getString("Model");
+		animFile = nbttagcompound.getString("AnimFile");
+		idleAnim = nbttagcompound.getString("IdleAnim");
+		walkAnim = nbttagcompound.getString("WalkAnim");
+		hurtAnim = nbttagcompound.getString("HurtAnim");
+		attackAnim = nbttagcompound.getString("AttackAnim");
+
+
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
 
@@ -169,7 +195,7 @@ public class DataDisplay {
 			modelSize = ConfigMain.NpcSizeLimit;
 
 		modelType = nbttagcompound.getInteger("modelType");
-		
+
 		showName = nbttagcompound.getInteger("ShowName");
 		visible = nbttagcompound.getInteger("NpcVisible");
 
@@ -197,7 +223,7 @@ public class DataDisplay {
 			npc.textureLocation = null;
 		npc.updateHitbox();
 	}
-	
+
     public void loadProfile(){
         if (this.playerProfile != null && !StringUtils.isNullOrEmpty(this.playerProfile.getName()) && MinecraftServer.getServer() != null){
             if (!this.playerProfile.isComplete() || !this.playerProfile.getProperties().containsKey("textures")){
@@ -215,7 +241,7 @@ public class DataDisplay {
             }
         }
     }
-	
+
 	public boolean showName() {
 		if(npc.isKilled())
 			return false;

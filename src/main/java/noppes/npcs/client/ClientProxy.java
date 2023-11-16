@@ -53,7 +53,6 @@ import noppes.npcs.client.renderer.blocks.*;
 import noppes.npcs.client.renderer.customitem.CustomItemRenderer;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
@@ -88,6 +87,7 @@ public class ClientProxy extends CommonProxy {
 		new ScriptSoundController();
 
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcPony.class, new RenderNPCPony());
+		RenderingRegistry.registerEntityRenderingHandler(EntityGeckoModel.class, new RenderGeckolib());
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcCrystal.class, new RenderNpcCrystal(new ModelNpcCrystal(0.5F)));
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcDragon.class, new RenderNpcDragon(new ModelNpcDragon(0.0F), 0.5F));
 		RenderingRegistry.registerEntityRenderingHandler(EntityNpcSlime.class, new RenderNpcSlime(new ModelNpcSlime(16), new ModelNpcSlime(0), 0.25F));
@@ -548,7 +548,7 @@ public class ClientProxy extends CommonProxy {
 
 		public FontContainer(String fontType, int fontSize) {
 			textFont = new StringCache();
-			textFont.setDefaultFont("Arial Unicode MS", fontSize, true);
+			textFont.setDefaultFont("Arial", fontSize, true);
 			useCustomFont = !fontType.equalsIgnoreCase("minecraft");
 			try {
 				if(!useCustomFont || fontType.isEmpty() || fontType.equalsIgnoreCase("default"))
@@ -556,7 +556,7 @@ public class ClientProxy extends CommonProxy {
 				else
 					textFont.setDefaultFont(fontType, fontSize, true);
 			} catch (Exception e) {
-				LogWriter.info("Failed loading font so using Arial Unicode MS");
+				LogWriter.info("Failed loading font so using Arial");
 			}
 		}
 

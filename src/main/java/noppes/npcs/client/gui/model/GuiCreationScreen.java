@@ -14,6 +14,7 @@ import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.compat.PixelmonHelper;
@@ -42,8 +43,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		for(Object name : mapping.keySet()){
 			Class<?> c = (Class<?>) mapping.get(name);
 			try {
-				if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[] {World.class}) != null && !Modifier.isAbstract(c.getModifiers())){
-					if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity)
+				if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers())){					if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity)
 						data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
 				}
 			} catch (SecurityException e) {
@@ -165,6 +165,13 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			i++;
 			addLabel(new GuiNpcLabel(201, "Breed", guiLeft, y + 5 + i * 22, 0xFFFFFF));
 			addButton(new GuiNpcButton(201, guiLeft + 80, y + i * 22, 50, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}, breed));
+		}
+
+		if(EntityList.getEntityString(entity).equals("customnpcs.CustomModel") || EntityList.getEntityString(entity).equals("CustomModel")){
+			this.addButton(new GuiNpcButton(202, guiLeft, y + i * 22, 120, 20, "Select model"));
+			this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+20, 120, 20, "Select animation file"));
+			this.addButton(new GuiNpcButton(204, guiLeft, y + i * 22+40, 120, 20, "Select idle animation"));
+			//this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+60, 120, 20, "Select animation file"));
 		}
 	}
 	private boolean isIgnored(String tag){
@@ -315,6 +322,18 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				playerdata.clearEntity();
 				updateTexture();
 			} catch (Exception ignored) {}
+		}
+
+		if(button.id == 202){
+			NoppesUtil.openGUI(player, new GuiGeckoModelSelection(npc, this));
+		}
+
+		if(button.id == 203){
+			NoppesUtil.openGUI(player, new GuiGeckoAnimFileSelection(npc, this));
+		}
+
+		if(button.id == 204){
+			NoppesUtil.openGUI(player, new GuiGeckoAnimationSelection(npc, this, (name)-> npc.display.idleAnim=name));
 		}
 	}
 

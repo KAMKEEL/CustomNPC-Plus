@@ -4,6 +4,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+import noppes.npcs.entity.EntityGeckoModel;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityUtil {
@@ -83,7 +85,14 @@ public class EntityUtil {
 		for(int i = 0; i < 5; i++){
 			entity.setCurrentItemOrArmor(i, copied.getEquipmentInSlot(i));
 		}
-		
+
+		if(entity instanceof EntityGeckoModel && copied instanceof EntityNPCInterface){
+			((EntityGeckoModel) entity).textureResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.texture);
+			((EntityGeckoModel) entity).modelResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.model);
+			((EntityGeckoModel) entity).animResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.animFile);
+			((EntityGeckoModel) entity).idleAnim=((EntityNPCInterface) copied).display.idleAnim;
+		}
+
 		if(copied instanceof EntityNPCInterface && entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) copied;
 			EntityNPCInterface target = (EntityNPCInterface) entity;

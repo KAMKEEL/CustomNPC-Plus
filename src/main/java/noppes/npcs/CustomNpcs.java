@@ -156,6 +156,7 @@ public class CustomNpcs {
         registerNpc(EntityNPCEnderman.class, "npcEnderman");
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
+        registerCustomModel(EntityGeckoModel.class, "CustomModel");
 
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
@@ -251,6 +252,11 @@ public class CustomNpcs {
 
     private void registerNpc(Class<? extends Entity> cl, String name) {
         EntityRegistry.registerModEntity(cl, name, NewEntityStartId++, this, 64, 3, true);
+        EntityList.stringToClassMapping.put(name, cl);
+    }
+
+    private void registerCustomModel(Class<? extends Entity> cl, String name) {
+        EntityRegistry.registerModEntity(cl, name, NewEntityStartId++, this, 64, 10, false);
         EntityList.stringToClassMapping.put(name, cl);
     }
 
