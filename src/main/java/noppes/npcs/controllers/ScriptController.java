@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
@@ -55,6 +56,8 @@ public class ScriptController {
 		loaded = false;
 		Instance = this;
 		manager = new ScriptEngineManager();
+		if(!ConfigScript.ScriptingEnabled)
+			return;
 		LogWriter.info("Script Engines Available:");
 
 		ScriptEngine engine = manager.getEngineByName("nashorn");
