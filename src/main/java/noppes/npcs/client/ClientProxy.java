@@ -303,7 +303,7 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.PlayerTransporter)
 			return new GuiTransportSelection(npc);
 
-		else if (gui == EnumGuiType.Script && ConfigScript.ScriptingEnabled)
+		else if (gui == EnumGuiType.Script)
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)
