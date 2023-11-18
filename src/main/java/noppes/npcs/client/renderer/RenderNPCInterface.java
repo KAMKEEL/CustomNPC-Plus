@@ -220,6 +220,7 @@ public class RenderNPCInterface extends RenderLiving{
 
 	private void renderGeoModel(EntityNPCInterface npc, float rot, float partial)
 	{
+		((ModelMPM) mainModel).entity.renderYawOffset = ((ModelMPM) mainModel).entity.prevRenderYawOffset = 0;
 		if (!npc.isInvisible())
 		{
 			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
