@@ -73,10 +73,16 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 	protected void actionPerformed(GuiButton guibutton){
 		GuiNpcButton button = (GuiNpcButton) guibutton;
         if(button.id == 0){
+			getTextField(55).setText("");
+			search = "";
+			scroll.clear();
         	save();
         	NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes,3,0,0);
         }
         if(button.id == 1){
+			getTextField(55).setText("");
+			search = "";
+			scroll.clear();
         	save();
         	NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes,4,0,0);
         }
@@ -193,14 +199,16 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		String name = guiNpcTextField.getText();
-		if(!name.isEmpty() && !data.containsKey(name)){
-			String old = container.recipe.name;
-			data.remove(container.recipe.name);
-			container.recipe.name = name;
-			data.put(container.recipe.name, container.recipe.id);
-			selected = name;
-			scroll.replace(old,container.recipe.name);
+		if(guiNpcTextField.id == 0){
+			String name = guiNpcTextField.getText();
+			if(!name.isEmpty() && !data.containsKey(name)){
+				String old = container.recipe.name;
+				data.remove(container.recipe.name);
+				container.recipe.name = name;
+				data.put(container.recipe.name, container.recipe.id);
+				selected = name;
+				scroll.replace(old,container.recipe.name);
+			}
 		}
 	}
 }
