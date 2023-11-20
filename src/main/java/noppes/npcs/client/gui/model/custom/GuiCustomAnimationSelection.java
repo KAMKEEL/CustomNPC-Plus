@@ -14,16 +14,17 @@ import java.util.Collections;
 import java.util.Vector;
 import java.util.function.Consumer;
 
-public class GuiCustomAnimationSelection extends GuiNPCInterface {
+public class GuiCustomAnimationSelection extends SubGuiInterface {
     public GuiNPCStringSlot slot;
     public GuiScreen parent;
     public Consumer<String> action;
+    public String animFile;
 
-    public GuiCustomAnimationSelection(EntityNPCInterface npc, GuiScreen parent, Consumer<String> action){
-        super(npc);
+    public GuiCustomAnimationSelection(EntityNPCInterface npc, GuiScreen parent, String animFile, Consumer<String> action){
         drawDefaultBackground = false;
         title = "";
         this.parent = parent;
+        this.animFile=animFile;
         this.action=action;
     }
 
@@ -33,7 +34,7 @@ public class GuiCustomAnimationSelection extends GuiNPCInterface {
         String ss = "Selecting geckolib animation:";
         addLabel(new GuiNpcLabel(0,ss, width / 2 - (this.fontRendererObj.getStringWidth(ss)/2), 20, 0xffffff));
         Vector<String> list = new Vector<String>();
-        AnimationFile file = GeckoLibCache.getInstance().getAnimations().get(new ResourceLocation(npc.display.animFile));
+        AnimationFile file = GeckoLibCache.getInstance().getAnimations().get(new ResourceLocation(animFile));
         if(file!=null) {
             for (Animation anim : file.getAllAnimations()) {
                 list.add(anim.animationName);
@@ -44,6 +45,7 @@ public class GuiCustomAnimationSelection extends GuiNPCInterface {
         slot.registerScrollButtons(4, 5);
 
         this.addButton(new GuiNpcButton(2, width / 2 - 100, height - 44,98, 20, "gui.back"));
+        this.addButton(new GuiNpcButton(3, width / 2 + 100, height - 44,98, 20, "Remove animation"));
     }
 
     @Override
@@ -59,10 +61,8 @@ public class GuiCustomAnimationSelection extends GuiNPCInterface {
 
     @Override
     public void doubleClicked(){
-        //npc.display.animFile=slot.selected;
         action.accept(slot.selected);
         close();
-        NoppesUtil.openGUI(player, parent);
     }
 
     @Override
@@ -70,7 +70,10 @@ public class GuiCustomAnimationSelection extends GuiNPCInterface {
         int id = guibutton.id;
         if(id == 2){
             close();
-            NoppesUtil.openGUI(player, parent);
+        }
+        if(id == 3){
+            action.accept("");
+            close();
         }
     }
 

@@ -25,21 +25,33 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public String walkAnim = "";
     public String hurtAnim = "";
     public String attackAnim = "";
+    public String dialogAnim = "";
+    public boolean markDialogControllerAsReloading = false;
     private <E extends IAnimatable> PlayState predicateMovement(AnimationEvent<E> event) {
         if(!event.isMoving()){
             if(!Objects.equals(idleAnim, "")) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation(idleAnim, true));
+            }else{
+                return PlayState.STOP;
             }
         }else{
             if(!Objects.equals(idleAnim, "")) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation(walkAnim, true));
+            }else{
+                return PlayState.STOP;
             }
         }
-        //event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.bat.fly", true));
+        return PlayState.CONTINUE;
+    }
+    private <E extends IAnimatable> PlayState predicateDialog(AnimationEvent<E> event) {
+        if(!Objects.equals(dialogAnim, "")) {
+            event.getController().setAnimation(new AnimationBuilder().addAnimation(dialogAnim, false));
+        }else{
+            return PlayState.STOP;
+        }
         return PlayState.CONTINUE;
     }
     private <E extends IAnimatable> PlayState predicateAttack(AnimationEvent<E> event) {
-        //event.getController().setAnimation(new AnimationBuilder().addAnimation("animation.bat.fly", true));
         return PlayState.CONTINUE;
     }
     private <E extends IAnimatable> PlayState predicateManual(AnimationEvent<E> event) {
@@ -57,6 +69,7 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public void registerControllers(AnimationData data) {
         data.addAnimationController(new AnimationController<>(this, "movement", 10, this::predicateMovement));
         data.addAnimationController(new AnimationController<>(this, "attack", 10, this::predicateAttack));
+        data.addAnimationController(new AnimationController<>(this, "dialog", 10, this::predicateDialog));
         data.addAnimationController(new AnimationController<>(this, "manual", 10, this::predicateManual));
     }
 

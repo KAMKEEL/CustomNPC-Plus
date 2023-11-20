@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
+import noppes.npcs.client.gui.model.custom.GuiCustomAnimFileSelection;
+import noppes.npcs.client.gui.model.custom.GuiCustomAnimationSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketServer;
@@ -43,7 +43,8 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         GuiMenuTopButton general =  new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
         GuiMenuTopButton spacing =  new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
         GuiMenuTopButton images =  new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
-        topButtons = new GuiMenuTopButton[]{general,images,spacing,close};
+        GuiMenuTopButton animation =  new GuiMenuTopButton(4, images.xPosition + images.getWidth(), guiTop - 17, "Animation");
+        topButtons = new GuiMenuTopButton[]{general,images,spacing,close,animation};
         for(GuiMenuTopButton button : topButtons) {
             button.active = button.id == activeMenu;
             addButton(button);
@@ -243,6 +244,15 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getButton(24).setVisible(dialogImage.imageType == 0);
                 getLabel(21).enabled = dialogImage.imageType == 0;
             }
+        } else if (activeMenu == 4) {
+            addButton(new GuiNpcButtonYesNo(10, guiLeft + 120, y += 22, dialog.useAnimation));
+            addLabel(new GuiNpcLabel(10, "dialog.useAnim", guiLeft + 4, y + 5));
+            addButton(new GuiNpcButton(11, guiLeft + 4, y + 25, 120, 20, "Select animation file"));
+            getButton(11).setVisible(dialog.useAnimation);
+            getButton(11).setEnabled(dialog.useAnimation);
+            addButton(new GuiNpcButton(12, guiLeft + 4, y + 45, 120, 20, "Select dialog animation"));
+            getButton(12).setVisible(!dialog.animationFileResLoc.isEmpty());
+            getButton(12).setEnabled(!dialog.animationFileResLoc.isEmpty());
         }
     }
 
@@ -380,15 +390,30 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 }
             }
         }
+        if (activeMenu == 4) {
+            if (button.id == 10) {
+                dialog.useAnimation = button.getValue() == 1;
+            }
+            if (button.id == 11) {
+                setSubGui(new GuiCustomAnimFileSelection(npc, this, (name)->{
+                    dialog.animationFileResLoc = name;
+                    initGui();
+                }));
+            }
+            if (button.id == 12) {
+                setSubGui(new GuiCustomAnimationSelection(npc, this,dialog.animationFileResLoc,
+                        (name)-> dialog.animationName = name));
+            }
+        }
 
         initGui();
     }
 
     @Override
     public void drawScreen(int i, int j, float f){
-        super.drawScreen(i,j,f);
         for(GuiMenuTopButton button: topButtons)
             button.drawButton(mc, i, j);
+        super.drawScreen(i,j,f);
     }
 
 

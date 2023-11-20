@@ -10,16 +10,17 @@ import software.bernie.geckolib3.resource.GeckoLibCache;
 
 import java.util.Collections;
 import java.util.Vector;
+import java.util.function.Consumer;
 
-public class GuiCustomAnimFileSelection extends GuiNPCInterface {
+public class GuiCustomAnimFileSelection extends SubGuiInterface {
     public GuiNPCStringSlot slot;
     public GuiScreen parent;
-
-    public GuiCustomAnimFileSelection(EntityNPCInterface npc, GuiScreen parent){
-        super(npc);
+    public Consumer<String> action;
+    public GuiCustomAnimFileSelection(EntityNPCInterface npc, GuiScreen parent, Consumer<String> action){
         drawDefaultBackground = false;
         title = "";
         this.parent = parent;
+        this.action=action;
     }
 
     @Override
@@ -51,9 +52,8 @@ public class GuiCustomAnimFileSelection extends GuiNPCInterface {
 
     @Override
     public void doubleClicked(){
-        npc.display.animFile=slot.selected;
+        action.accept(slot.selected);
         close();
-        NoppesUtil.openGUI(player, parent);
     }
 
     @Override
@@ -61,7 +61,6 @@ public class GuiCustomAnimFileSelection extends GuiNPCInterface {
         int id = guibutton.id;
         if(id == 2){
             close();
-            NoppesUtil.openGUI(player, parent);
         }
     }
 

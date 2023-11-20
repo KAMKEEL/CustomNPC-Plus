@@ -332,11 +332,11 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		}
 
 		if(button.id == 203){
-			NoppesUtil.openGUI(player, new GuiCustomAnimFileSelection(npc, this));
+			setSubGui(new GuiCustomAnimFileSelection(npc, this, (name)-> npc.display.animFile=name));
 		}
 
 		if(button.id == 204){
-			NoppesUtil.openGUI(player, new GuiCustomAnimationSelection(npc, this, (name)-> npc.display.idleAnim=name));
+			setSubGui(new GuiCustomAnimationSelection(npc, this,npc.display.animFile, (name)-> npc.display.idleAnim=name));
 		}
 	}
 

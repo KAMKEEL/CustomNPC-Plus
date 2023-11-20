@@ -62,6 +62,10 @@ public class Dialog implements ICompatibilty, IDialog {
 	public int npcOffsetX, npcOffsetY;
 
 	public HashMap<Integer, IDialogImage> dialogImages = new HashMap<>();
+	public boolean useAnimation = false;
+	public String animationFileResLoc = "";
+	public String animationName = "";
+	public int animationLoopType;
 	
 	public boolean hasDialogs(EntityPlayer player) {
 		for(DialogOption option: options.values())
@@ -165,6 +169,11 @@ public class Dialog implements ICompatibilty, IDialog {
 		if (!compound.hasKey("TitleColor"))
 			titleColor = 0xe0e0e0;
 
+		useAnimation = compound.getBoolean("UseAnimation");
+		animationFileResLoc = compound.getString("AnimationPath");
+		animationName = compound.getString("AnimationName");
+		animationLoopType = compound.getInteger("AnimationLoopType");
+
     	availability.readFromNBT(compound);
     	factionOptions.readFromNBT(compound);
 	}
@@ -226,6 +235,11 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setInteger("NPCOffsetX", npcOffsetX);
 		compound.setInteger("NPCOffsetY", npcOffsetY);
 
+		compound.setBoolean("UseAnimation",useAnimation);
+		compound.setString("AnimationPath", animationFileResLoc);
+		compound.setString("AnimationName", animationName);
+		compound.setInteger("AnimationLoopType", animationLoopType);
+
 		NBTTagList images = new NBTTagList();
 		for (IDialogImage dialogImage : dialogImages.values()) {
 			NBTTagCompound imageCompound = ((DialogImage) dialogImage).writeToNBT(new NBTTagCompound());
@@ -284,6 +298,10 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.npcOffsetX = npcOffsetX;
 		dialog.npcOffsetY = npcOffsetY;
 		dialog.dialogImages = dialogImages;
+		dialog.useAnimation = useAnimation;
+		dialog.animationFileResLoc = animationFileResLoc;
+		dialog.animationName = animationName;
+		dialog.animationLoopType = animationLoopType;
 		
 		for(int slot : options.keySet()){
 			DialogOption option = options.get(slot);
