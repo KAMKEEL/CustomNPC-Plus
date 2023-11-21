@@ -170,9 +170,11 @@ public class Dialog implements ICompatibilty, IDialog {
 			titleColor = 0xe0e0e0;
 
 		useAnimation = compound.getBoolean("UseAnimation");
-		animationFileResLoc = compound.getString("AnimationPath");
-		animationName = compound.getString("AnimationName");
-		animationLoopType = compound.getInteger("AnimationLoopType");
+		if(useAnimation) {
+			animationFileResLoc = compound.getString("AnimationPath");
+			animationName = compound.getString("AnimationName");
+			animationLoopType = compound.getInteger("AnimationLoopType");
+		}
 
     	availability.readFromNBT(compound);
     	factionOptions.readFromNBT(compound);
@@ -235,10 +237,12 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setInteger("NPCOffsetX", npcOffsetX);
 		compound.setInteger("NPCOffsetY", npcOffsetY);
 
-		compound.setBoolean("UseAnimation",useAnimation);
-		compound.setString("AnimationPath", animationFileResLoc);
-		compound.setString("AnimationName", animationName);
-		compound.setInteger("AnimationLoopType", animationLoopType);
+		if(useAnimation) {
+			compound.setBoolean("UseAnimation", useAnimation);
+			compound.setString("AnimationPath", animationFileResLoc);
+			compound.setString("AnimationName", animationName);
+			compound.setInteger("AnimationLoopType", animationLoopType);
+		}
 
 		NBTTagList images = new NBTTagList();
 		for (IDialogImage dialogImage : dialogImages.values()) {

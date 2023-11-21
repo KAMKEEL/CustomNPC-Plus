@@ -333,8 +333,10 @@ public class RenderNPCInterface extends RenderLiving{
 
 	@Override
 	public ResourceLocation getEntityTexture(Entity entity) {
+		return getNpcTexture((EntityNPCInterface) entity);
+	}
 
-		EntityNPCInterface npc = (EntityNPCInterface) entity;
+	public static ResourceLocation getNpcTexture(EntityNPCInterface npc){
 		if (npc.textureLocation == null) {
 			if (npc.display.skinType == 0) {
 				if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
@@ -380,7 +382,7 @@ public class RenderNPCInterface extends RenderLiving{
 		return npc.textureLocation;
 	}
 
-	private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
+	private static ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
 		InputStream inputstream = null;
 
 		try {
