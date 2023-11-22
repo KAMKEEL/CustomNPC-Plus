@@ -22,6 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
+import noppes.npcs.client.gui.player.moderndialog.BlurEventHandler;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
@@ -131,6 +132,11 @@ public class CustomNpcs {
         FMLCommonHandler.instance().bus().register(scriptItemEventHandler);
 
         FMLCommonHandler.instance().bus().register(new ServerTickHandler());
+
+        BlurEventHandler blurEventHandler = new BlurEventHandler();
+        MinecraftForge.EVENT_BUS.register(blurEventHandler);
+        FMLCommonHandler.instance().bus().register(blurEventHandler);
+
 
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");
         registerNpc(EntityNPCVillager.class, "npcvillager");

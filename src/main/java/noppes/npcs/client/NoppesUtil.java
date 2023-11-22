@@ -17,6 +17,7 @@ import noppes.npcs.Server;
 import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
+import noppes.npcs.client.gui.player.moderndialog.GuiModernDialogInteract;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
@@ -298,8 +299,12 @@ public class NoppesUtil {
 		Dialog dialog = new Dialog();
 		dialog.readNBT(compound);
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-		if(gui == null || !(gui instanceof GuiDialogInteract))
-			CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+		if(gui == null || !(gui instanceof GuiDialogInteract) || ClientConfig.useCustomGUIDesign)
+			if(ClientConfig.useCustomGUIDesign){
+				CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, dialog));
+			}else {
+				CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+			}
 		else{
 			GuiDialogInteract dia = (GuiDialogInteract) gui;
 			dia.appendDialog(dialog);
