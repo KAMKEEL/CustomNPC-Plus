@@ -18,6 +18,7 @@ import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.player.moderndialog.GuiModernDialogInteract;
+import noppes.npcs.client.gui.player.moderndialog.GuiModernQuestDialog;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;

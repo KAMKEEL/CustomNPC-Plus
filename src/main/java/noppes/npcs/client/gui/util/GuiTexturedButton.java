@@ -167,7 +167,12 @@ public class GuiTexturedButton extends GuiNpcButton {
     @Override
     public boolean mousePressed(Minecraft minecraft, int i, int j)
     {
-        return super.mousePressed(minecraft,i,j) || this.field_146123_n;
+        boolean bo = this.enabled && this.visible && i >= this.xPosition && j >= this.yPosition
+                && i < this.xPosition + this.width*scale && j < this.yPosition + this.height*scale;
+        if(bo && display != null && display.length != 0){
+            setDisplay((getValue()+1) % display.length);
+        }
+        return bo;
     }
 
     public void getWidthHeight() throws IOException {

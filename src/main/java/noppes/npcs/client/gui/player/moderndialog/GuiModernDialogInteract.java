@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.handler.data.IDialogImage;
 import noppes.npcs.client.ClientProxy;
@@ -96,7 +97,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         GL11.glColor4f(1, 1, 1, 1);
-
+        this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x66000000);
         if (!dialog.hideNPC) {
             drawNpc(npc, -210+dialog.npcOffsetX, 350+dialog.npcOffsetY, 9.5F*dialog.npcScale, -20);
         }
@@ -254,7 +255,6 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
     }
 
     public void drawWorldBackground(int p_238651_2_) {
-        this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x66000000);
     }
 
     public void drawString(FontRenderer fontRendererIn, String text, int x, int y, int color) {
@@ -324,7 +324,12 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             optionId = selected;
         else if (!options.isEmpty())
             optionId = options.get(selected);
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog, dialog.id, optionId);
+        if(getQuestByOptionId(optionId)==null){
+            NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog, dialog.id, optionId);
+        }else{
+            CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc,getQuestByOptionId(optionId),dialog,optionId));
+        }
+
         if (dialog == null || !dialog.hasOtherOptions() || options.isEmpty()) {
             closed();
             close();

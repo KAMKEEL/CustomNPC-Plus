@@ -15,7 +15,7 @@ public class BlurEventHandler {
     public void onGuiChange(GuiOpenEvent event) {
         if (Minecraft.getMinecraft().theWorld != null) {
             EntityRenderer er = Minecraft.getMinecraft().entityRenderer;
-            if (er.getShaderGroup() == null && (event.gui instanceof GuiModernDialogInteract)){// || event.getGui() instanceof GuiQuestDialog)) {
+            if (er.getShaderGroup() == null && (event.gui instanceof GuiModernDialogInteract) || (event.gui instanceof GuiModernQuestDialog)) {
                 loadEffect(er,new ResourceLocation("customnpcs", "shaders/post/blur.json"));
             } else if (er.getShaderGroup()!=null && !(event.gui instanceof GuiModernDialogInteract)) {
                 er.deactivateShader();
