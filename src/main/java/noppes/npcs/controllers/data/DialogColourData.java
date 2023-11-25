@@ -7,9 +7,9 @@ public class DialogColourData {
     private int lineColour1 = 0xff8d3800;
     private int lineColour2 = 0xfffea53b;
     private int lineColour3 = 0xff8d3800;
-    private int slotColour = 0xffc75200;
-    private int buttonAcceptColour = 0xff8d3800;
-    private int buttonRejectColour = 0xff8d3800;
+    private int slotColour = 0xfff96605;
+    private int buttonAcceptColour = 0xfff96605;
+    private int buttonRejectColour = 0xfff96605;
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setBoolean("EnableColourSettings", enableColourSettings);
         if(enableColourSettings){
