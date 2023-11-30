@@ -94,9 +94,9 @@ public class DataDisplay {
 
 		nbttagcompound = animationData.writeToNBT(nbttagcompound);
 
-		if(npc instanceof EntityCustomNpc && ((EntityCustomNpc)npc).modelData.getEntity(npc) instanceof EntityCustomModel) {
-			nbttagcompound = customModelData.writeToNBT(nbttagcompound);
-		}
+		if(npc instanceof EntityCustomNpc)
+			if(((EntityCustomNpc)npc).modelData.getEntity(npc) != null && ((EntityCustomNpc)npc).modelData.getEntity(npc) instanceof EntityCustomModel)
+				nbttagcompound = customModelData.writeToNBT(nbttagcompound);
 
 		if (this.playerProfile != null)
         {
