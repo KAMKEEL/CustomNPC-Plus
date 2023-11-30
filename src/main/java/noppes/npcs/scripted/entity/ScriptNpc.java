@@ -10,6 +10,7 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.data.IModelData;
 import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IAnimationData;
+import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
@@ -17,6 +18,7 @@ import noppes.npcs.api.roles.IRole;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -326,7 +328,29 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return;
 		npc.say((EntityPlayer) player.getMCEntity(), new Line(message));
 	}
-	
+
+	public IDialog getDialog(int slot) {
+		return NpcAPI.Instance().getDialogs().get(this.getDialogId(slot));
+	}
+
+	public int getDialogId(int slot) {
+		if (npc.dialogs.containsKey(slot)) {
+			DialogOption option = npc.dialogs.get(slot);
+			if (option.hasDialog()) {
+				return option.dialogId;
+			}
+		}
+		return -1;
+	}
+
+	public void setDialog(int slot, IDialog dialog) {
+		this.setDialog(slot, dialog.getId());
+	}
+
+	public void setDialog(int slot, int dialogId) {
+		NoppesUtilServer.setNpcDialog(slot,dialogId, this.npc);
+	}
+
 	/**
 	 * Kill the npc, doesnt't despawn it
 	 */
