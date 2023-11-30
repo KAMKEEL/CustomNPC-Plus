@@ -104,7 +104,9 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         GL11.glColor4f(1, 1, 1, 1);
         this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x66000000);
         if (!prevDialog.hideNPC) {
-            drawNpc(npc, -210+prevDialog.npcOffsetX, 350+prevDialog.npcOffsetY, 9.5F*prevDialog.npcScale, -20);
+            float scaleHeight = height/509f;
+            float scaleWidth = width/960f;
+            drawNpc(npc, -210+prevDialog.npcOffsetX+(int)(300*(1-scaleWidth)), 350+prevDialog.npcOffsetY-(int)(100*(1-scaleHeight)), 9.5F*prevDialog.npcScale*scaleHeight, -20);
         }
         setOptionOffset();
 
@@ -192,7 +194,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             activeQuests.remove(quest.id);
         int questLineCount = getLineCount(quest.logText, 180);
         int objectivesLineCount = getLineCount(objectiveString.toString(),180);
-        int topToTextBottom = 40 + 38+questLineCount*ClientProxy.Font.height()+20;
+        int topToTextBottom = (int)(height*0.08) + 38+questLineCount*ClientProxy.Font.height()+20;
         int topToObjectivesBottom = topToTextBottom+19+objectivesLineCount*ClientProxy.Font.height()+14;
         int rewardCount = 0;
 
@@ -207,16 +209,16 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         int topToExpBottom = topToRewardsBottom+(quest.rewardExp==0?0:(12));
         int topToFactionBottom = topToExpBottom + (facIDs.size() * 15);
         int questBlockHeight = topToFactionBottom+28;
-        drawGradientRect( 675, 40, 675+260, questBlockHeight, 0x99000000, 0x99000000);
+        drawGradientRect( width-285, (int)(height*0.08), width-285+260, questBlockHeight, 0x99000000, 0x99000000);
         GL11.glScalef(1.5f, 1.5f, 1);
-        drawString(fontRendererObj, quest.getName(), (int) (692 / 1.5), (int) (50 / 1.5), -1);
+        drawString(fontRendererObj, quest.getName(), (int) ((width-268) / 1.5), (int) ((height*0.095) / 1.5), -1);
         GL11.glScalef(1 / 1.5f, 1 / 1.5f, 1);
-        drawLine(686,66,675+260-11);
-        drawTextBlock(quest.logText, 715, 80, 180,0xb8b8b8);
-        drawString(fontRendererObj, translate("questgui.objectives"),690, topToTextBottom, -1);
-        drawLeftAllignedTextBlock(objectiveString.toString(), 705, topToTextBottom+12, 180,0xb8b8b8);
+        drawLine(width-274,(int)(height*0.13),width-285+260-11);
+        drawTextBlock(quest.logText, width-245, (int)(height*0.157), 180,0xb8b8b8);
+        drawString(fontRendererObj, translate("questgui.objectives"),width-270, topToTextBottom, -1);
+        drawLeftAllignedTextBlock(objectiveString.toString(), width-255, topToTextBottom+12, 180,0xb8b8b8);
         if(rewardCount!=0)
-            drawString(fontRendererObj, translate("questgui.rewards"),690, topToObjectivesBottom, -1);
+            drawString(fontRendererObj, translate("questgui.rewards"),width-270, topToObjectivesBottom, -1);
         for(int i=0;i<quest.rewardItems.getSizeInventory();i++){
             ItemStack rewardStack = quest.rewardItems.getStackInSlot(i);
             if(rewardStack==null) continue;
@@ -224,15 +226,15 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             GL11.glDisable(GL11.GL_LIGHTING);
             int color = prevDialog.colourData.getSlotColour();
             GL11.glColor4f((color >> 16 & 0xff) / 255f, (color >> 8 & 0xff) / 255f, (color & 0xff) / 255f, 1);
-            drawTexturedModalRect(690+26*i, topToObjectivesBottom+16, 0, 27, 24, 24);
+            drawTexturedModalRect(width-270+26*i, topToObjectivesBottom+16, 0, 27, 24, 24);
 
-            itemRender.renderItemAndEffectIntoGUI(fontRendererObj,Minecraft.getMinecraft().renderEngine, rewardStack, 694+26*i, topToObjectivesBottom+20);
-            itemRender.renderItemOverlayIntoGUI(fontRendererObj,Minecraft.getMinecraft().renderEngine, rewardStack, 694+26*i, topToObjectivesBottom+20, ""+rewardStack.stackSize);
+            itemRender.renderItemAndEffectIntoGUI(fontRendererObj,Minecraft.getMinecraft().renderEngine, rewardStack, width-266+26*i, topToObjectivesBottom+20);
+            itemRender.renderItemOverlayIntoGUI(fontRendererObj,Minecraft.getMinecraft().renderEngine, rewardStack, width-266+26*i, topToObjectivesBottom+20, ""+rewardStack.stackSize);
         }
         GL11.glDisable(GL11.GL_LIGHTING);
         if(quest.rewardExp!=0) {
-            drawString(fontRendererObj, translate("questgui.experience"), 690, topToRewardsBottom, 0xb8b8b8);
-            int expPosX = 690+ClientProxy.Font.width(translate("questgui.experience"));
+            drawString(fontRendererObj, translate("questgui.experience"), width-270, topToRewardsBottom, 0xb8b8b8);
+            int expPosX = width-270+ClientProxy.Font.width(translate("questgui.experience"));
             drawString(fontRendererObj, ""+quest.rewardExp, expPosX, topToRewardsBottom, -1);
             int expSymbolPosX = expPosX+ClientProxy.Font.width(""+quest.rewardExp+"  ");
             Minecraft.getMinecraft().getTextureManager().bindTexture(decomposed);
@@ -244,7 +246,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             String fac1Color = (quest.factionOptions.decreaseFactionPoints) ? "§c-" : "§a+";
             int fac1Point = quest.factionOptions.factionPoints;
             int facIDIndex = facIDs.indexOf(fac1ID);
-            drawString(fontRendererObj, fac1Name + " " + fac1Color + fac1Point, 690, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
+            drawString(fontRendererObj, fac1Name + " " + fac1Color + fac1Point, width-270, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
         }
         int fac2ID =  quest.factionOptions.faction2Id;
         if (fac2ID != -1) {
@@ -252,8 +254,10 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             String fac2Color = (quest.factionOptions.decreaseFaction2Points) ? "§c-" : "§a+";
             int fac2Point = quest.factionOptions.faction2Points;
             int facIDIndex = facIDs.indexOf(fac2ID);
-            drawString(fontRendererObj, fac2Name + " " + fac2Color + fac2Point, 690, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
+            drawString(fontRendererObj, fac2Name + " " + fac2Color + fac2Point, width-270, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
         }
+        this.buttons.get(0).xPosition=width-240;
+        this.buttons.get(1).xPosition=width-148;
         this.buttons.get(0).yPosition=topToFactionBottom;
         this.buttons.get(1).yPosition=topToFactionBottom;
         ((GuiTexturedButton)this.buttons.get(0)).scale=0.5f;
@@ -262,8 +266,6 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         ((GuiTexturedButton)this.buttons.get(1)).color=prevDialog.colourData.getButtonAcceptColour();
         super.drawScreen(mouseX, mouseY, partialTicks);
         GL11.glColor4f(1,1,1,1);
-//        drawString(fontRendererObj, translate(), 744, topToFactionBottom+6, -1);
-//        drawString(fontRendererObj, translate(), 835, topToFactionBottom+6, -1);
         GL11.glPopMatrix();
         GL11.glPopMatrix();
     }

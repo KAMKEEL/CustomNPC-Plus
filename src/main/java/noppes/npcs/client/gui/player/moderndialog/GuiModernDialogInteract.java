@@ -90,16 +90,18 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
     }
 
     public void drawLine(int x, int y, int width) {
-        drawRect(x, y, width, y + 1,0xff000000+ dialog.colourData.getLineColour1());//0xff8d3800);//
-        drawRect(x, y + 1, width, y + 2, 0xff000000+ dialog.colourData.getLineColour2()); //0xfffea53b);//
-        drawRect(x, y + 2, width, y + 3, 0xff000000+ dialog.colourData.getLineColour3()); //0xff8d3800);
+        drawRect(x, y, width, y + 1,0xff000000+ dialog.colourData.getLineColour1());
+        drawRect(x, y + 1, width, y + 2, 0xff000000+ dialog.colourData.getLineColour2());
+        drawRect(x, y + 2, width, y + 3, 0xff000000+ dialog.colourData.getLineColour3());
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         GL11.glColor4f(1, 1, 1, 1);
         this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x66000000);
         if (!dialog.hideNPC) {
-            drawNpc(npc, -210+dialog.npcOffsetX, 350+dialog.npcOffsetY, 9.5F*dialog.npcScale, -20);
+            float scaleHeight = height/509f;
+            float scaleWidth = width/960f;
+            drawNpc(npc, -210+dialog.npcOffsetX+(int)(300*(1-scaleWidth)), 350+dialog.npcOffsetY-(int)(100*(1-scaleHeight)), 9.5F*dialog.npcScale*scaleHeight, -20);
         }
         super.drawScreen(mouseX, mouseY, partialTicks);
         setOptionOffset();
@@ -174,22 +176,22 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
         drawTextBlock(dialog.text, (width - textBlockWidth) / 2, height - textPartHeight + 23 + 3 + gap, textBlockWidth);
         selected = -1;
         for (int i = 0; i < this.options.size(); i++) {
-            int optionHeight = 220 + i * (13 + 6);
+            int optionHeight = height/2-30 + i * (13 + 6);
             int optionNum = options.get(i);
             DialogOption option = dialog.options.get(optionNum);
-            if (mouseX >= 723 && mouseX <= 946 && mouseY >= optionHeight && mouseY <= optionHeight + 13) {
+            if (mouseX >= width-237 && mouseX <= width-14 && mouseY >= optionHeight && mouseY <= optionHeight + 13) {
                 selected = i;
             }
             GL11.glEnable(GL11.GL_BLEND);
             Minecraft.getMinecraft().getTextureManager().bindTexture(decomposed);
-            drawTexturedModalRect(723, optionHeight, 0, i == selected ? 13 : 0, 223, 13);
+            drawTexturedModalRect(width-233, optionHeight, 0, i == selected ? 13 : 0, 223, 13);
             GL11.glDisable(GL11.GL_BLEND);
             if (getQuestByOptionId(optionNum) != null) {
-                drawString(fontRendererObj, "!", 727, optionHeight + 3, 0x76e85b);
+                drawString(fontRendererObj, "!", width-229, optionHeight + 3, 0x76e85b);
             } else {
-                drawString(fontRendererObj, ">", 727, optionHeight + 3, -1);
+                drawString(fontRendererObj, ">", width-229, optionHeight + 3, -1);
             }
-            drawString(fontRendererObj, option.title, 735, optionHeight + 3, option.optionColor);
+            drawString(fontRendererObj, option.title, width-221, optionHeight + 3, option.optionColor);
         }
         GL11.glPopMatrix();
         GL11.glPopMatrix();
@@ -216,9 +218,8 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             scale = 2.0F / entity.height;
         }
         float f7 = (float) (guiLeft + x);
-        float f8 = (float) (guiTop + y) - 50.0F * scale * zoomed;
         entity.renderYawOffset = 0.0F;
-        entity.rotationYaw = (float) Math.atan((double) (f7 / 80.0F)) * 40.0F + (float) rotation;
+        entity.rotationYaw = (float) Math.atan((f7 / 80.0F)) * 40.0F + (float) rotation;
         entity.rotationPitch = 0;
         entity.rotationYawHead = 0.0F;
         entity.prevRotationYawHead = 0.0F;
