@@ -43,7 +43,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         GuiMenuTopButton general =  new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
         GuiMenuTopButton spacing =  new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
         GuiMenuTopButton images =  new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
-        GuiMenuTopButton animation =  new GuiMenuTopButton(4, images.xPosition + images.getWidth(), guiTop - 17, "Animation");
+        GuiMenuTopButton animation =  new GuiMenuTopButton(4, images.xPosition + images.getWidth(), guiTop - 17, "Advanced");
         topButtons = new GuiMenuTopButton[]{general,images,spacing,close,animation};
         for(GuiMenuTopButton button : topButtons) {
             button.active = button.id == activeMenu;
