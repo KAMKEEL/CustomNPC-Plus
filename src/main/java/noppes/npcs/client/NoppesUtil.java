@@ -303,9 +303,11 @@ public class NoppesUtil {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 		if(npc instanceof EntityCustomNpc){
 			EntityLivingBase entity = ((EntityCustomNpc)npc).modelData.getEntity(npc);
-			if(entity instanceof EntityCustomModel &&
-					((EntityCustomModel) entity).animResLoc.toString().equals(dialog.animationFileResLoc)){
-				((EntityCustomModel) entity).dialogAnim = dialog.animationName;
+			if(entity != null){
+				if(entity instanceof EntityCustomModel &&
+						((EntityCustomModel) entity).animResLoc.toString().equals(dialog.animationFileResLoc)){
+					((EntityCustomModel) entity).dialogAnim = dialog.animationName;
+				}
 			}
 		}
 		if(gui == null || !(gui instanceof GuiDialogInteract))
