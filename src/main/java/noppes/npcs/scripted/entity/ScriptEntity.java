@@ -915,4 +915,9 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	public boolean equals(Object object) {
 		return object instanceof IEntity && ((IEntity<?>)object).getMCEntity().equals(this.entity);
 	}
+
+	public void updateEntity() {
+		IWorld world = NpcAPI.Instance().getIWorld(entity.worldObj);
+		entity.dimension = world.getDimensionID();
+	}
 }
