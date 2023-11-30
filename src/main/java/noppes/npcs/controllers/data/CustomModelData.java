@@ -2,7 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-public class GeoNPCData {
+public class CustomModelData {
     private String model = "geckolib3:geo/npc.geo.json";
     private String animFile = "custom:geo_npc.animation.json";
     private String idleAnim = "";

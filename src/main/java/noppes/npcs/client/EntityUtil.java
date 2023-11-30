@@ -89,9 +89,9 @@ public class EntityUtil {
 
 		if(entity instanceof EntityCustomModel && copied instanceof EntityNPCInterface){
 			((EntityCustomModel) entity).textureResLoc= RenderNPCInterface.getNpcTexture((EntityNPCInterface) copied);
-			((EntityCustomModel) entity).modelResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.geoNPCData.getModel());
-			((EntityCustomModel) entity).animResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.geoNPCData.getAnimFile());
-			((EntityCustomModel) entity).idleAnim=((EntityNPCInterface) copied).display.geoNPCData.getIdleAnim();
+			((EntityCustomModel) entity).modelResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.customModelData.getModel());
+			((EntityCustomModel) entity).animResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.customModelData.getAnimFile());
+			((EntityCustomModel) entity).idleAnim=((EntityNPCInterface) copied).display.customModelData.getIdleAnim();
 		}
 
 		if(copied instanceof EntityNPCInterface && entity instanceof EntityNPCInterface){

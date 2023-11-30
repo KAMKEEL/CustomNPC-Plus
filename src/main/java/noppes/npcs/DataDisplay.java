@@ -3,7 +3,6 @@ package noppes.npcs;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -12,7 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.GeoNPCData;
+import noppes.npcs.controllers.data.CustomModelData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomModel;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -45,7 +44,7 @@ public class DataDisplay {
 	public long overlayRenderTicks = 0;
 
 	public AnimationData animationData;
-	public GeoNPCData geoNPCData;
+	public CustomModelData customModelData;
 
 	public String glowTexture = "";
 
@@ -72,7 +71,7 @@ public class DataDisplay {
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
 		animationData = new AnimationData(this);
-		geoNPCData = new GeoNPCData();
+		customModelData = new CustomModelData();
 	}
 
 	public String getRandomName() {
@@ -96,7 +95,7 @@ public class DataDisplay {
 		nbttagcompound = animationData.writeToNBT(nbttagcompound);
 
 		if(npc instanceof EntityCustomNpc && ((EntityCustomNpc)npc).modelData.getEntity(npc) instanceof EntityCustomModel) {
-			nbttagcompound = geoNPCData.writeToNBT(nbttagcompound);
+			nbttagcompound = customModelData.writeToNBT(nbttagcompound);
 		}
 
 		if (this.playerProfile != null)
@@ -176,7 +175,7 @@ public class DataDisplay {
 
 		animationData.readFromNBT(nbttagcompound);
 
-		geoNPCData.readFromNBT(nbttagcompound);
+		customModelData.readFromNBT(nbttagcompound);
 
 		modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		if(modelSize > ConfigMain.NpcSizeLimit)
