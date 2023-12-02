@@ -3,6 +3,7 @@ package noppes.npcs.entity;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import software.bernie.geckolib3.core.IAnimatable;
@@ -26,6 +27,7 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public String hurtAnim = "";
     public String attackAnim = "";
     public String dialogAnim = "";
+    public ItemStack leftHeldItem;
     public boolean markDialogControllerAsReloading = false;
     private <E extends IAnimatable> PlayState predicateMovement(AnimationEvent<E> event) {
         if(!event.isMoving()){

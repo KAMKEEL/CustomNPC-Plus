@@ -92,6 +92,7 @@ public class EntityUtil {
 			((EntityCustomModel) entity).modelResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.customModelData.getModel());
 			((EntityCustomModel) entity).animResLoc=new ResourceLocation(((EntityNPCInterface) copied).display.customModelData.getAnimFile());
 			((EntityCustomModel) entity).idleAnim=((EntityNPCInterface) copied).display.customModelData.getIdleAnim();
+			((EntityCustomModel) entity).leftHeldItem=((EntityNPCInterface) copied).inventory.getOffHand();
 		}
 
 		if(copied instanceof EntityNPCInterface && entity instanceof EntityNPCInterface){
