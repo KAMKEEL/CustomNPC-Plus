@@ -15,6 +15,7 @@ import net.minecraft.util.Util;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
+import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
@@ -22,17 +23,18 @@ import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.IScrollGroup;
+import noppes.npcs.constants.EnumDialogAnimationType;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityCustomModel;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
+import software.bernie.geckolib3.resource.GeckoLibCache;
 
 import java.io.File;
 import java.io.IOException;
@@ -304,10 +306,25 @@ public class NoppesUtil {
 		if(npc instanceof EntityCustomNpc){
 			EntityLivingBase entity = ((EntityCustomNpc)npc).modelData.getEntity(npc);
 			if(entity != null){
-				if(entity instanceof EntityCustomModel &&
-						((EntityCustomModel) entity).animResLoc.toString().equals(dialog.animationFileResLoc)){
-					((EntityCustomModel) entity).dialogAnim = dialog.animationName;
+				if(entity instanceof EntityCustomModel){
+                    if(dialog.animationType!=EnumDialogAnimationType.None){
+                        if(dialog.animationType!=EnumDialogAnimationType.Custom){
+                            ((EntityCustomModel) entity).dialogAnim = dialog.animationType.name();
+                        }else if(((EntityCustomModel) entity).animResLoc.toString().equals(dialog.animationFileResLoc) &&
+                                GeckoLibCache.getInstance().getAnimations().get(new ResourceLocation(dialog.animationFileResLoc))
+                                        .getAnimation(dialog.animationName)!=null){
+                            ((EntityCustomModel) entity).dialogAnim = dialog.animationName;
+                        }
+                    }
 				}
+			} else {
+                AnimationData data = npc.display.animationData;
+                if(dialog.animationType!= EnumDialogAnimationType.None && dialog.animationType!= EnumDialogAnimationType.Custom){
+					data.allowAnimation=true;
+					data.setEnabled(true);
+					data.animation= (Animation) AnimationController.Instance.get(dialog.animationType.name());
+					data.updateClient();
+                }
 			}
 		}
 		if(gui == null || !(gui instanceof GuiDialogInteract))

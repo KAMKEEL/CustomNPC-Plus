@@ -8,6 +8,7 @@ import noppes.npcs.client.gui.model.custom.GuiCustomAnimFileSelection;
 import noppes.npcs.client.gui.model.custom.GuiCustomAnimationSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumDialogAnimationType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogImage;
@@ -245,11 +246,15 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getLabel(21).enabled = dialogImage.imageType == 0;
             }
         } else if (activeMenu == 4) {
-            addButton(new GuiNpcButtonYesNo(10, guiLeft + 120, y += 22, dialog.useAnimation));
+            String[] values = new String[EnumDialogAnimationType.values().length];
+            for(int i = 0;i<values.length;i++){
+                values[i]=EnumDialogAnimationType.values()[i].name();
+            }
+            addButton(new GuiButtonBiDirectional(10, guiLeft + 120, y += 22,120,20, values,dialog.animationType.ordinal()));
             addLabel(new GuiNpcLabel(10, "dialog.useAnim", guiLeft + 4, y + 5));
             addButton(new GuiNpcButton(11, guiLeft + 4, y + 25, 120, 20, "Select animation file"));
-            getButton(11).setVisible(dialog.useAnimation);
-            getButton(11).setEnabled(dialog.useAnimation);
+            getButton(11).setVisible(dialog.animationType==EnumDialogAnimationType.Custom);
+            getButton(11).setEnabled(dialog.animationType==EnumDialogAnimationType.Custom);
             addButton(new GuiNpcButton(12, guiLeft + 4, y + 45, 120, 20, "Select dialog animation"));
             getButton(12).setVisible(!dialog.animationFileResLoc.isEmpty());
             getButton(12).setEnabled(!dialog.animationFileResLoc.isEmpty());
@@ -392,7 +397,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         }
         if (activeMenu == 4) {
             if (button.id == 10) {
-                dialog.useAnimation = button.getValue() == 1;
+                dialog.animationType = EnumDialogAnimationType.values()[button.getValue()];
             }
             if (button.id == 11) {
                 setSubGui(new GuiCustomAnimFileSelection(npc, this, (name)->{

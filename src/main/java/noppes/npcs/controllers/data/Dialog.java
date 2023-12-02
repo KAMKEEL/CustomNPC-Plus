@@ -7,6 +7,7 @@ import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.api.handler.data.*;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumDialogAnimationType;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
@@ -62,7 +63,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	public int npcOffsetX, npcOffsetY;
 
 	public HashMap<Integer, IDialogImage> dialogImages = new HashMap<>();
-	public boolean useAnimation = false;
+	public EnumDialogAnimationType animationType = EnumDialogAnimationType.None;
 	public String animationFileResLoc = "";
 	public String animationName = "";
 	public int animationLoopType;
@@ -168,9 +169,9 @@ public class Dialog implements ICompatibilty, IDialog {
 			color = 0xe0e0e0;
 		if (!compound.hasKey("TitleColor"))
 			titleColor = 0xe0e0e0;
-
-		useAnimation = compound.getBoolean("UseAnimation");
-		if(useAnimation) {
+		String animType = compound.getString("AnimationType");
+		animationType = animType.isEmpty() ?EnumDialogAnimationType.None:EnumDialogAnimationType.valueOf(animType);
+		if(animationType==EnumDialogAnimationType.Custom) {
 			animationFileResLoc = compound.getString("AnimationPath");
 			animationName = compound.getString("AnimationName");
 			animationLoopType = compound.getInteger("AnimationLoopType");
@@ -237,8 +238,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setInteger("NPCOffsetX", npcOffsetX);
 		compound.setInteger("NPCOffsetY", npcOffsetY);
 
-		if(useAnimation) {
-			compound.setBoolean("UseAnimation", useAnimation);
+		compound.setString("AnimationType",animationType.name());
+		if(animationType==EnumDialogAnimationType.Custom) {
 			compound.setString("AnimationPath", animationFileResLoc);
 			compound.setString("AnimationName", animationName);
 			compound.setInteger("AnimationLoopType", animationLoopType);
@@ -302,7 +303,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.npcOffsetX = npcOffsetX;
 		dialog.npcOffsetY = npcOffsetY;
 		dialog.dialogImages = dialogImages;
-		dialog.useAnimation = useAnimation;
+		dialog.animationType = animationType;
 		dialog.animationFileResLoc = animationFileResLoc;
 		dialog.animationName = animationName;
 		dialog.animationLoopType = animationLoopType;
