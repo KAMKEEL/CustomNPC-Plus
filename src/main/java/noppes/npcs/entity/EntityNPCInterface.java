@@ -46,6 +46,7 @@ import noppes.npcs.ai.target.EntityAIClosestTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtByTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtTarget;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.config.ConfigMain;
@@ -914,28 +915,28 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return chateventPlayer;
 	}
 
-	public void saySurrounding(Line line) {
-		if (line == null || line.text == null || getFakePlayer() == null)
+	public void saySurrounding(ILine line) {
+		if (line == null || line.getText() == null || getFakePlayer() == null)
 			return;
-		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.text, new ChatComponentTranslation(line.text.replace("%", "%%")));
+		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.getText(), new ChatComponentTranslation(line.getText().replace("%", "%%")));
 		if (MinecraftForge.EVENT_BUS.post(event) || event.component == null){
 			return;
 		}
-		line.text = event.component.getUnformattedText().replace("%%", "%");
+		line.setText(event.component.getUnformattedText().replace("%%", "%"));
 		List<EntityPlayer> inRange = worldObj.getEntitiesWithinAABB(
 				EntityPlayer.class, this.boundingBox.expand(20D, 20D, 20D));
 		for (EntityPlayer player : inRange)
 			say(player, line);
 	}
 
-	public void say(EntityPlayer player, Line line) {
-		if (line == null || !this.canSee(player) || line.text == null)
+	public void say(EntityPlayer player, ILine line) {
+		if (line == null || !this.canSee(player) || line.getText() == null)
 			return;
 
-		if(!line.sound.isEmpty()){
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.sound, (float)posX, (float)posY, (float)posZ);
+		if(!line.getSound().isEmpty()){
+			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.getSound(), (float)posX, (float)posY, (float)posZ);
 		}
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.text, !line.hideText);
+		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.getText(), !line.hideText());
 	}
 	public boolean getAlwaysRenderNameTagForRender(){
 		return true;

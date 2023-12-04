@@ -161,23 +161,23 @@ public class DataAdvanced {
 	}
 
     public Line getInteractLine() {
-        return interactLines.getLine(!orderedLines);
+        return (Line) interactLines.getLine(!orderedLines);
     }
 
     public Line getAttackLine() {
-        return attackLines.getLine(!orderedLines);
+        return (Line) attackLines.getLine(!orderedLines);
     }
 
     public Line getKilledLine() {
-        return killedLines.getLine(!orderedLines);
+        return (Line) killedLines.getLine(!orderedLines);
     }
 
     public Line getKillLine() {
-        return killLines.getLine(!orderedLines);
+        return (Line) killLines.getLine(!orderedLines);
     }
 
     public Line getWorldLine() {
-        return worldLines.getLine(!orderedLines);
+        return (Line) worldLines.getLine(!orderedLines);
     }
 
     public void setRole(int i) {

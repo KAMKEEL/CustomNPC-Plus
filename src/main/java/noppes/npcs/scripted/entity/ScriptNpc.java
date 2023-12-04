@@ -12,6 +12,7 @@ import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.handler.data.ILines;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.roles.IRole;
@@ -349,6 +350,26 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void setDialog(int slot, int dialogId) {
 		NoppesUtilServer.setNpcDialog(slot,dialogId, this.npc);
+	}
+
+	public ILines getInteractLines() {
+		return this.npc.advanced.interactLines;
+	}
+
+	public ILines getWorldLines() {
+		return this.npc.advanced.worldLines;
+	}
+
+	public ILines getAttackLines() {
+		return this.npc.advanced.attackLines;
+	}
+
+	public ILines getKilledLines() {
+		return this.npc.advanced.killedLines;
+	}
+
+	public ILines getKillLines() {
+		return this.npc.advanced.killLines;
 	}
 
 	/**
