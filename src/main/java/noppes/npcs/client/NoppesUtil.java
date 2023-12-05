@@ -302,7 +302,11 @@ public class NoppesUtil {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 		if(gui == null || !(gui instanceof GuiDialogInteract) || ClientConfig.useCustomGUIDesign)
 			if(ClientConfig.useCustomGUIDesign){
-				CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, dialog));
+				if(dialog.hasQuest()){
+					CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, dialog.getQuest(),dialog, -2));
+				}else{
+					CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, dialog));
+				}
 			}else {
 				CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
 			}

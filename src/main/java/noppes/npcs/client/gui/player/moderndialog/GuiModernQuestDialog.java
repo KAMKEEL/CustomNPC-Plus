@@ -12,15 +12,18 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.handler.data.IDialogImage;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.client.ClientConfig;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.player.GuiDialogImage;
+import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiTexturedButton;
@@ -339,45 +342,18 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             closed();
             close();
         }else if(button.id==1){
-            NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog,prevDialog.id, optionId);
+            if(optionId!=-2){
+                NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog,prevDialog.id, optionId);
+            }else{
+                if(ClientConfig.useCustomGUIDesign){
+                    CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, prevDialog));
+                }else {
+                    CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, prevDialog));
+                }
+            }
+
         }
     }
-//    @Override
-//    public void keyTyped(char c, int i) {
-//        if (i == mc.gameSettings.keyBindForward.getKeyCode() || i == Keyboard.KEY_UP) {
-//                selected++;
-//        }
-//        if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == Keyboard.KEY_DOWN) {
-//                selected--;
-//        }
-//
-//        if (i == mc.gameSettings.keyBindForward.getKeyCode() || i == Keyboard.KEY_LEFT) {
-//            textSpeed--;
-//            if (textSpeed < 1) {
-//                textSpeed = 1;
-//            }
-//        }
-//        if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == Keyboard.KEY_RIGHT) {
-//            textSpeed++;
-//        }
-//
-//        if (i == mc.gameSettings.keyBindJump.getKeyCode() || i == Keyboard.KEY_SPACE) {
-//            textSoundEnabled = !textSoundEnabled;
-//        }
-//
-//        if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201 && scrollY < (totalRows - 2) * ClientProxy.Font.height()) {//Page up
-//            scrollY += ClientProxy.Font.height() * 2;
-//        }
-//        if (i == mc.gameSettings.keyBindBack.getKeyCode() || i == 209 && scrollY > 0) {//Page down
-//            scrollY -= ClientProxy.Font.height() * 2;
-//        }
-//        if ((i == 1 || isInventoryKey(i))) {
-//            //NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog, dialog.id, -1);
-//            closed();
-//            close();
-//        }
-//        super.keyTyped(c, i);
-//    }
 
     private void closed() {
         grabMouse(false);
