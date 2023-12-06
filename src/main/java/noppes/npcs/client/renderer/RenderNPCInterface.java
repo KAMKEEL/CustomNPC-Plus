@@ -247,7 +247,9 @@ public class RenderNPCInterface extends RenderLiving{
 			GL11.glRotatef(180, 1,0,0);
 			GL11.glTranslated(0, -1.5,0);
 			renderGeoModel(npc, npc.rotationYaw, Minecraft.getMinecraft().timer.renderPartialTicks);
+			npc.ignoreFrustumCheck = true; //TODO a switch in the settings for it
 		} else if (this.getEntityTexture(entityliving) != null) {
+			npc.ignoreFrustumCheck = false;
 			super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		}
 
