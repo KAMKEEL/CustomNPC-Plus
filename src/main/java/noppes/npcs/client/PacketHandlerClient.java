@@ -27,6 +27,7 @@ import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
@@ -34,8 +35,11 @@ import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.entity.EntityCustomModel;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import software.bernie.geckolib3.core.IAnimatable;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -357,6 +361,15 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.STOP_SOUNDS) {
 			ScriptSoundController.Instance.stopAllSounds();
+		}
+		else if(type == EnumPacketClient.SYNC_MANUAL_ANIMATIONS) {
+			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
+			if(!(entity instanceof EntityCustomNpc)) return;
+			EntityCustomNpc npc = (EntityCustomNpc) entity;
+			if(npc.modelData==null || !(npc.modelData.getEntity(npc) instanceof EntityCustomModel)) return;
+			EntityCustomModel entityCustomModel = (EntityCustomModel) npc.modelData.getEntity(npc);
+			entityCustomModel.manualAnim = Server.readAnimBuilder(buffer);
+			entityCustomModel.manualController.markNeedsReload();
 		}
 	}
 }

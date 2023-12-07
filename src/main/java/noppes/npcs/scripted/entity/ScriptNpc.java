@@ -1,7 +1,10 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITimers;
 import noppes.npcs.api.entity.ICustomNpc;
@@ -25,6 +28,7 @@ import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.scripted.roles.*;
 import noppes.npcs.util.ValueUtil;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -1227,4 +1231,13 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void updateClient() { this.npc.updateClient(); }
 
 	public void updateAI() { this.npc.updateTasks(); }
+
+	public void syncAnimationsFor(IPlayer<EntityPlayerMP> player, AnimationBuilder builder) {
+		Server.sendData(player.getMCEntity(), EnumPacketClient.SYNC_MANUAL_ANIMATIONS, npc.getEntityId(), builder);
+	}
+	public void syncAnimationsForAll(AnimationBuilder builder) {
+		for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList) {
+			Server.sendData((EntityPlayerMP) obj, EnumPacketClient.SYNC_MANUAL_ANIMATIONS, npc.getEntityId(), builder);
+		}
+	}
 }

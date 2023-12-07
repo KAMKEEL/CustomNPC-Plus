@@ -66,6 +66,7 @@ import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.LRUHashMap;
 import noppes.npcs.util.NBTJsonUtil;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
 
 import java.io.File;
 import java.util.*;
@@ -672,5 +673,9 @@ public class NpcAPI extends AbstractNpcAPI {
         part.setSpeed(speed);
         part.setSmooth(smooth);
         return part;
+    }
+
+    public AnimationBuilder createAnimBuilder(){
+        return new AnimationBuilder();
     }
 }

@@ -28,8 +28,8 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public String hurtAnim = "";
     public String attackAnim = "";
     public String dialogAnim = "";
+    public AnimationBuilder manualAnim = new AnimationBuilder();
     public ItemStack leftHeldItem;
-    public boolean markDialogControllerAsReloading = false;
     public AnimationController<EntityCustomModel> dialogController;
     public AnimationController<EntityCustomModel> manualController;
     private <E extends IAnimatable> PlayState predicateMovement(AnimationEvent<E> event) {
@@ -66,6 +66,7 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
         return PlayState.CONTINUE;
     }
     private <E extends IAnimatable> PlayState predicateManual(AnimationEvent<E> event) {
+        event.getController().setAnimation(manualAnim);
         return PlayState.CONTINUE;
     }
 
