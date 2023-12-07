@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import software.bernie.geckolib3.core.AnimationState;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.IAnimationTickable;
 import software.bernie.geckolib3.core.PlayState;
@@ -29,7 +30,15 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public String dialogAnim = "";
     public ItemStack leftHeldItem;
     public boolean markDialogControllerAsReloading = false;
+    public AnimationController<EntityCustomModel> dialogController;
+    public AnimationController<EntityCustomModel> manualController;
     private <E extends IAnimatable> PlayState predicateMovement(AnimationEvent<E> event) {
+        if(dialogController!=null && dialogController.getAnimationState()!= AnimationState.Stopped){
+            return PlayState.STOP;
+        }
+        if(manualController!=null && manualController.getAnimationState()!= AnimationState.Stopped){
+            return PlayState.STOP;
+        }
         if(!event.isMoving()){
             if(!Objects.equals(idleAnim, "")) {
                 event.getController().setAnimation(new AnimationBuilder().addAnimation(idleAnim, true));
@@ -71,8 +80,10 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public void registerControllers(AnimationData data) {
         data.addAnimationController(new AnimationController<>(this, "movement", 10, this::predicateMovement));
         data.addAnimationController(new AnimationController<>(this, "attack", 10, this::predicateAttack));
-        data.addAnimationController(new AnimationController<>(this, "dialog", 10, this::predicateDialog));
-        data.addAnimationController(new AnimationController<>(this, "manual", 10, this::predicateManual));
+        dialogController = new AnimationController<>(this, "dialog", 10, this::predicateDialog);
+        data.addAnimationController(dialogController);
+        manualController = new AnimationController<>(this, "manual", 10, this::predicateManual);
+        data.addAnimationController(manualController);
     }
 
     @Override
