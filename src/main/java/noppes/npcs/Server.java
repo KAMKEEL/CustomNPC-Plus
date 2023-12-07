@@ -10,10 +10,14 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.util.CustomNPCsThreader;
+import software.bernie.geckolib3.core.builder.AnimationBuilder;
+import software.bernie.geckolib3.core.builder.ILoopType;
+import software.bernie.geckolib3.core.builder.RawAnimation;
 
 import java.io.IOException;
 import java.util.List;
@@ -98,6 +102,8 @@ public class Server {
 				buffer.writeDouble((Double) ob);
 			else if(ob instanceof NBTTagCompound)
 				writeNBT(buffer, (NBTTagCompound) ob);
+			else if(ob instanceof AnimationBuilder)
+				writeAnimBuilder(buffer, (AnimationBuilder) ob);
 		}
 		if(buffer.array().length >= 32767){
 			LogWriter.error("Packet " + enu + " was too big to be send");
@@ -116,6 +122,35 @@ public class Server {
 		byte[] bytes = new byte[buffer.readShort()];
 		buffer.readBytes(bytes);
 		return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
+	}
+
+	public static void writeAnimBuilder(ByteBuf buffer, AnimationBuilder builder) throws IOException {
+		NBTTagCompound compound = new NBTTagCompound();
+		NBTTagList animList = new NBTTagList();
+		for(RawAnimation anim: builder.getRawAnimationList()){
+			NBTTagCompound animTag = new NBTTagCompound();
+			animTag.setString("name", anim.animationName);
+			if(anim.loopType!=null) {
+				animTag.setInteger("loop", ((ILoopType.EDefaultLoopTypes) anim.loopType).ordinal());
+			}else{
+				animTag.setInteger("loop",1);
+			}
+			animList.appendTag(animTag);
+		}
+		compound.setTag("anims",animList);
+		writeNBT(buffer,compound);
+	}
+
+	public static AnimationBuilder readAnimBuilder(ByteBuf buffer) throws IOException {
+		AnimationBuilder builder = new AnimationBuilder();
+		NBTTagCompound compound = readNBT(buffer);
+		NBTTagList animList = compound.getTagList("anims",10);
+		for(int i=0;i<animList.tagCount();i++){
+			NBTTagCompound animTag = animList.getCompoundTagAt(i);
+			builder.addAnimation(animTag.getString("name"),
+					ILoopType.EDefaultLoopTypes.values()[animTag.getInteger("loop")]);
+		}
+		return builder;
 	}
 	
 	public static void writeString(ByteBuf buffer, String s){
