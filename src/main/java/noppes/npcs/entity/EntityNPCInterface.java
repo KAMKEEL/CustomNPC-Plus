@@ -1546,6 +1546,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		compound.setInteger("StandingState", ai.standingType.ordinal());
 		compound.setInteger("MovingState", ai.movingType.ordinal());
 		compound.setInteger("Orientation", ai.orientation);
+		compound.setFloat("OffsetY",ai.bodyOffsetY);
 		compound.setInteger("Role", advanced.role.ordinal());
 		compound.setInteger("Job", advanced.job.ordinal());
 		if(advanced.job == EnumJobType.Bard){
@@ -1578,6 +1579,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		ai.movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		ai.orientation = compound.getInteger("Orientation");
+		ai.bodyOffsetY=compound.getFloat("OffsetY");
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
 		inventory.setArmor(NBTTags.getItemStackList(compound.getTagList("Armor", 10)));
