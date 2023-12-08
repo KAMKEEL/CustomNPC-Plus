@@ -436,7 +436,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.inventory.setOffHand(null);
 		else
 			npc.inventory.setOffHand(item.getMCItemStack());
-		npc.script.clientNeedsUpdate = true;
+		//npc.script.clientNeedsUpdate = true;
 	}
 	
 	/**

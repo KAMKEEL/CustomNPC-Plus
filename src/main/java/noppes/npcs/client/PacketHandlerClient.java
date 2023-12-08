@@ -358,5 +358,14 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		else if(type == EnumPacketClient.STOP_SOUNDS) {
 			ScriptSoundController.Instance.stopAllSounds();
 		}
+		else if(type == EnumPacketClient.SYNC_WEAPON) {
+			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
+			if(!(entity instanceof EntityNPCInterface))
+				return;
+			EntityNPCInterface npc = (EntityNPCInterface) entity;
+			int weaponSlotIndex = buffer.readInt();
+			ItemStack stack = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
+			npc.inventory.weapons.put(weaponSlotIndex,stack);
+		}
 	}
 }

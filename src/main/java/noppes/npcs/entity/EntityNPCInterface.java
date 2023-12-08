@@ -23,9 +23,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S04PacketEntityEquipment;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -196,6 +198,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if (!isRemote()) {
 			if (this.ticksExisted % 10 == 0) {
 				EventHooks.onNPCUpdate(this);
+			}
+			for(int i=1;i<3;i++){
+				ItemStack itemstack = inventory.prevWeapons.get(i);
+				ItemStack itemstack1 = inventory.weapons.get(i);
+				if (!ItemStack.areItemStacksEqual(itemstack1, itemstack))
+				{
+					NBTTagCompound itemNBT = new NBTTagCompound();
+					if(itemstack1!=null){
+						itemstack1.writeToNBT(itemNBT);
+					}
+					for(Object obj: MinecraftServer.getServer().getConfigurationManager().playerEntityList){
+						Server.sendData((EntityPlayerMP) obj, EnumPacketClient.SYNC_WEAPON, getEntityId(), i, itemNBT);
+					}
+					inventory.prevWeapons.put(i,itemstack1 == null ? null : itemstack1.copy());
+				}
 			}
 			this.timers.update();
 		}
