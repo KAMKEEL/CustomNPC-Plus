@@ -133,10 +133,6 @@ public class CustomNpcs {
 
         FMLCommonHandler.instance().bus().register(new ServerTickHandler());
 
-        BlurEventHandler blurEventHandler = new BlurEventHandler();
-        MinecraftForge.EVENT_BUS.register(blurEventHandler);
-        FMLCommonHandler.instance().bus().register(blurEventHandler);
-
 
         registerNpc(EntityNPCHumanMale.class, "npchumanmale");
         registerNpc(EntityNPCVillager.class, "npcvillager");

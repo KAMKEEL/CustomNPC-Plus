@@ -42,6 +42,7 @@ import noppes.npcs.client.gui.player.*;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionStats;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
+import noppes.npcs.client.gui.player.moderndialog.BlurEventHandler;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
 import noppes.npcs.client.gui.GuiNpcRemoteEditor;
 import noppes.npcs.client.gui.roles.*;
@@ -102,6 +103,10 @@ public class ClientProxy extends CommonProxy {
 		ClientRegistry.bindTileEntitySpecialRenderer(TileBlockAnvil.class, new BlockCarpentryBenchRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
 		RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
+
+		BlurEventHandler blurEventHandler = new BlurEventHandler();
+		MinecraftForge.EVENT_BUS.register(blurEventHandler);
+		FMLCommonHandler.instance().bus().register(blurEventHandler);
 
 		if(!ConfigMain.DisableExtraBlock){
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
