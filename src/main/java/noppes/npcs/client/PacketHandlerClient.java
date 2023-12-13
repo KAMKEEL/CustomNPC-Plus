@@ -30,6 +30,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
@@ -299,23 +300,36 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.UPDATE_ANIMATIONS) {
 			NBTTagCompound compound = Server.readNBT(buffer);
+			AnimationData animationData = null;
 			if (compound.hasKey("EntityId")) {
 				Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
 				if (entity instanceof EntityNPCInterface) {
-					AnimationData data = ((EntityNPCInterface) entity).display.animationData;
-					data.readFromNBT(compound);
-					data.animation = new Animation();
-					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
+					animationData = ((EntityNPCInterface) entity).display.animationData;
 				}
 			} else {
 				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
 				if (sendingPlayer != null) {
-					AnimationData data = new AnimationData(sendingPlayer);
-					data.readFromNBT(compound);
-					data.animation = new Animation();
-					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
-					ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), data);
+					ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), new AnimationData(sendingPlayer));
+					animationData = ClientCacheHandler.playerAnimations.get(sendingPlayer.getUniqueID());
 				}
+			}
+
+			if (animationData != null) {
+				animationData.readFromNBT(compound);
+				int animationId;
+				if (compound.hasKey("AnimationID")) {
+					animationId = compound.getInteger("AnimationID");
+				} else {
+					Animation animation = new Animation();
+					animation.readFromNBT(compound.getCompoundTag("Animation"));
+					ClientCacheHandler.animationCache.put(animation.getID(), animation);
+					animationId = animation.getID();
+				}
+
+				Animation animation = new Animation();
+				animation.readFromNBT(ClientCacheHandler.animationCache.get(animationId).writeToNBT());
+				animationData.animation = animation;
+				Client.sendData(EnumPacketServer.CacheAnimation, animationId);
 			}
 		}
 		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {

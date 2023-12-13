@@ -108,6 +108,9 @@ public class PacketHandlerServer{
 				}
 				compound.setTag("TagNames",tagList);
 				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			} else if (type == EnumPacketServer.CacheAnimation) {
+				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
+				return;
 			}
 
 			if(type.needsNpc && npc == null){
