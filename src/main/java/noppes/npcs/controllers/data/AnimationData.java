@@ -14,6 +14,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -27,11 +28,25 @@ public class AnimationData implements IAnimationData {
 
     private final HashSet<Integer> cachedAnimationIDs = new HashSet<>();
 
+    //Client-side values
+    public EntityLivingBase animationEntity;
+    public int finishedTime = -1;
+    public int finishedFrame = -1;
+
     public AnimationData(Object parent){
         this.parent = parent;
+        if (parent instanceof DataDisplay) {
+            this.animationEntity = ((DataDisplay) parent).npc;
+        } else if (parent instanceof EntityPlayer) {
+            this.animationEntity = (EntityLivingBase) parent;
+        }
     }
 
     public void updateClient() {
+        this.updateClient(new EntityPlayer[0]);
+    }
+
+    public void updateClient(EntityPlayer... excludedPlayers) {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
@@ -39,6 +54,8 @@ public class AnimationData implements IAnimationData {
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(
                     sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
                     sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));
+
+            entities.removeIf(player -> Arrays.stream(excludedPlayers).anyMatch(exp -> player == exp));
 
             NBTTagCompound animationNBT = null;
             for (EntityPlayer player : entities) {
@@ -110,11 +127,16 @@ public class AnimationData implements IAnimationData {
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        this.allowAnimation = compound.getBoolean("AllowAnimation");
+        this.setEnabled(compound.getBoolean("AllowAnimation"));
     }
 
     public void setEnabled(boolean enabled) {
-        this.allowAnimation = enabled;
+        if (this.allowAnimation != enabled) {
+            this.allowAnimation = enabled;
+            if (this.parent instanceof EntityPlayer) {
+                this.finishedTime = enabled ? -1 : ((EntityPlayer) this.parent).getAge();
+            }
+        }
     }
 
     public boolean enabled() {

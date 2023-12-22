@@ -309,7 +309,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			} else {
 				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
 				if (sendingPlayer != null) {
-					ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), new AnimationData(sendingPlayer));
+					if (!ClientCacheHandler.playerAnimations.containsKey(sendingPlayer.getUniqueID())) {
+						ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), new AnimationData(sendingPlayer));
+					}
 					animationData = ClientCacheHandler.playerAnimations.get(sendingPlayer.getUniqueID());
 				}
 			}
@@ -326,10 +328,13 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					animationId = animation.getID();
 				}
 
-				Animation animation = new Animation();
-				animation.readFromNBT(ClientCacheHandler.animationCache.get(animationId).writeToNBT());
-				animationData.animation = animation;
-				Client.sendData(EnumPacketServer.CacheAnimation, animationId);
+				if (animationData.allowAnimation) {
+					Animation animation = new Animation();
+					animation.readFromNBT(ClientCacheHandler.animationCache.get(animationId).writeToNBT());
+					animationData.animation = animation;
+					animation.parent = animationData;
+					Client.sendData(EnumPacketServer.CacheAnimation, animationId);
+				}
 			}
 		}
 		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {
