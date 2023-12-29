@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.GuiNpcTextureCloaks;
 import noppes.npcs.client.gui.GuiNpcTextureOverlays;
 import noppes.npcs.client.gui.SubGuiNpcName;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
+import noppes.npcs.client.gui.model.custom.SubGuiModelAnimation;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketServer;
@@ -87,14 +88,22 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		addLabel(new GuiNpcLabel(6,"Collides With Entities", guiLeft + 185, y + 5));
 		this.addButton(new GuiNpcButton(6, guiLeft + 300, y, 100, 20, new String[]{"gui.yes","gui.no","Only CNPCs","Only Players","CNPCs & Players"}, display.collidesWith));
 
+
 		y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
 
+		addLabel(new GuiNpcLabel(12,"Model Animation", guiLeft + 185, y + 5));
+		this.addButton(new GuiNpcButton(12, guiLeft + 300, y, 100, 20, "selectServer.edit"));
+		if (!npc.display.hasCustomModel()) {
+			this.getLabel(12).enabled=false;
+			this.getButton(12).setVisible(false);
+			this.getButton(12).setEnabled(false);
+		}
+
     	y+=23;
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
-
 	}
 
 	@Override
@@ -183,6 +192,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			npc.display.skinOverlayData.overlayList.get(0).setGlow(button.getValue() == 0);
 			npc.display.skinOverlayData.overlayList.get(0).setBlend(button.getValue() == 0);
 			initGui();
+		}
+		else if(button.id == 12){
+			setSubGui(new SubGuiModelAnimation(npc));
 		}
 		else if(button.id == 14){
 			String name = display.getRandomName();

@@ -39,24 +39,20 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
         if(manualController!=null && manualController.getAnimationState()!= AnimationState.Stopped){
             return PlayState.STOP;
         }
-        if(!event.isMoving()){
-            if(!Objects.equals(idleAnim, "")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation(idleAnim, true));
+        if(!event.isMoving() || walkAnim.isEmpty()){
+            if(!idleAnim.isEmpty()) {
+                event.getController().setAnimation(new AnimationBuilder().loop(idleAnim));
             }else{
                 return PlayState.STOP;
             }
         }else{
-            if(!Objects.equals(idleAnim, "")) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation(walkAnim, true));
-            }else{
-                return PlayState.STOP;
-            }
+            event.getController().setAnimation(new AnimationBuilder().loop(walkAnim));
         }
         return PlayState.CONTINUE;
     }
     private <E extends IAnimatable> PlayState predicateDialog(AnimationEvent<E> event) {
         if(!Objects.equals(dialogAnim, "")) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation(dialogAnim, false));
+            event.getController().setAnimation(new AnimationBuilder().playOnce(dialogAnim));
         }else{
             return PlayState.STOP;
         }

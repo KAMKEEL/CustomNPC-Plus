@@ -2,19 +2,22 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.model.custom.GuiCustomAnimFileSelection;
-import noppes.npcs.client.gui.model.custom.GuiCustomAnimationSelection;
+import noppes.npcs.client.gui.model.custom.GuiStringSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumDialogAnimationType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogImage;
+import noppes.npcs.util.AnimationFileUtil;
+import software.bernie.geckolib3.resource.GeckoLibCache;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Vector;
 
 public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiListener, ITextfieldListener, ICustomScrollListener {
     private final Dialog dialog;
@@ -35,18 +38,17 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         closeOnEsc = true;
     }
 
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
         int y = guiTop - 10;
 
-        GuiMenuTopButton close = new GuiMenuTopButton(0,guiLeft + xSize - 22, guiTop - 17, "X");
-        GuiMenuTopButton general =  new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
-        GuiMenuTopButton spacing =  new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
-        GuiMenuTopButton images =  new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
-        GuiMenuTopButton animation =  new GuiMenuTopButton(4, images.xPosition + images.getWidth(), guiTop - 17, "Advanced");
-        topButtons = new GuiMenuTopButton[]{general,images,spacing,close,animation};
-        for(GuiMenuTopButton button : topButtons) {
+        GuiMenuTopButton close = new GuiMenuTopButton(0, guiLeft + xSize - 22, guiTop - 17, "X");
+        GuiMenuTopButton general = new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
+        GuiMenuTopButton spacing = new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
+        GuiMenuTopButton images = new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
+        GuiMenuTopButton animation = new GuiMenuTopButton(4, images.xPosition + images.getWidth(), guiTop - 17, "Advanced");
+        topButtons = new GuiMenuTopButton[]{general, images, spacing, close, animation};
+        for (GuiMenuTopButton button : topButtons) {
             button.active = button.id == activeMenu;
             addButton(button);
         }
@@ -206,15 +208,13 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getTextField(17).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
                 String color = Integer.toHexString(dialogImage.color);
-                while(color.length() < 6)
-                    color = 0 + color;
+                while (color.length() < 6) color = 0 + color;
                 addButton(new GuiNpcButton(18, guiLeft + 35, y += 25, 60, 20, color));
                 addLabel(new GuiNpcLabel(15, "gui.color", guiLeft + 4, y + 5));
                 getButton(18).setTextColor(dialogImage.color);
 
                 String selectedColor = Integer.toHexString(dialogImage.selectedColor);
-                while (selectedColor.length() < 6)
-                    selectedColor = 0 + selectedColor;
+                while (selectedColor.length() < 6) selectedColor = 0 + selectedColor;
                 addButton(new GuiNpcButton(19, guiLeft + 180, y, 60, 20, selectedColor));
                 addLabel(new GuiNpcLabel(16, "dialog.selectedColor", guiLeft + 100, y + 5));
                 getButton(19).setTextColor(dialogImage.selectedColor);
@@ -235,11 +235,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 addButton(new GuiNpcButton(23, guiLeft + 35, y += 25, 60, 20, new String[]{"gui.screen", "gui.text", "gui.option"}, dialogImage.imageType));
                 addLabel(new GuiNpcLabel(20, "gui.type", guiLeft + 4, y + 5));
 
-                addButton(new GuiNpcButton(24, guiLeft + 160, y, 60, 20,
-                        new String[]{"display.topLeft", "display.topCenter", "display.topRight",
-                                     "display.left", "display.center", "display.right",
-                                     "display.botLeft", "display.botCenter", "display.botRight"},
-                        dialogImage.alignment));
+                addButton(new GuiNpcButton(24, guiLeft + 160, y, 60, 20, new String[]{"display.topLeft", "display.topCenter", "display.topRight", "display.left", "display.center", "display.right", "display.botLeft", "display.botCenter", "display.botRight"}, dialogImage.alignment));
                 addLabel(new GuiNpcLabel(21, "display.alignment", guiLeft + 110, y + 5));
                 getButton(24).setEnabled(dialogImage.imageType == 0);
                 getButton(24).setVisible(dialogImage.imageType == 0);
@@ -247,14 +243,14 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
             }
         } else if (activeMenu == 4) {
             String[] values = new String[EnumDialogAnimationType.values().length];
-            for(int i = 0;i<values.length;i++){
-                values[i]=EnumDialogAnimationType.values()[i].name();
+            for (int i = 0; i < values.length; i++) {
+                values[i] = EnumDialogAnimationType.values()[i].name();
             }
-            addButton(new GuiButtonBiDirectional(10, guiLeft + 120, y += 22,120,20, values,dialog.animationType.ordinal()));
+            addButton(new GuiButtonBiDirectional(10, guiLeft + 120, y += 22, 120, 20, values, dialog.animationType.ordinal()));
             addLabel(new GuiNpcLabel(10, "dialog.useAnim", guiLeft + 4, y + 5));
             addButton(new GuiNpcButton(11, guiLeft + 4, y + 25, 120, 20, "Select animation file"));
-            getButton(11).setVisible(dialog.animationType==EnumDialogAnimationType.Custom);
-            getButton(11).setEnabled(dialog.animationType==EnumDialogAnimationType.Custom);
+            getButton(11).setVisible(dialog.animationType == EnumDialogAnimationType.Custom);
+            getButton(11).setEnabled(dialog.animationType == EnumDialogAnimationType.Custom);
             addButton(new GuiNpcButton(12, guiLeft + 4, y + 45, 120, 20, "Select dialog animation"));
             getButton(12).setVisible(!dialog.animationFileResLoc.isEmpty());
             getButton(12).setEnabled(!dialog.animationFileResLoc.isEmpty());
@@ -283,7 +279,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         NoppesUtil.clickSound();
 
         int id = button.id;
-        if(id == 0){
+        if (id == 0) {
             close();
             return;
         }
@@ -294,7 +290,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
 
         if (guibutton instanceof GuiMenuTopButton) {
@@ -400,14 +396,16 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 dialog.animationType = EnumDialogAnimationType.values()[button.getValue()];
             }
             if (button.id == 11) {
-                setSubGui(new GuiCustomAnimFileSelection(npc, this, (name)->{
+                setSubGui(new GuiStringSelection(this, "Selecting geckolib animation file:",
+                        AnimationFileUtil.getAnimationFileList(), (name) -> {
                     dialog.animationFileResLoc = name;
                     initGui();
                 }));
             }
             if (button.id == 12) {
-                setSubGui(new GuiCustomAnimationSelection(npc, this,dialog.animationFileResLoc,
-                        (name)-> dialog.animationName = name));
+                setSubGui(new GuiStringSelection(this, "Selecting dialog animation:",
+                        AnimationFileUtil.getAnimationList(dialog.animationFileResLoc),
+                        (name) -> dialog.animationName = name));
             }
         }
 
@@ -415,15 +413,15 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     }
 
     @Override
-    public void drawScreen(int i, int j, float f){
-        for(GuiMenuTopButton button: topButtons)
+    public void drawScreen(int i, int j, float f) {
+        for (GuiMenuTopButton button : topButtons)
             button.drawButton(mc, i, j);
-        super.drawScreen(i,j,f);
+        super.drawScreen(i, j, f);
     }
 
 
     @Override
-    public void subGuiClosed(SubGuiInterface subgui){
+    public void subGuiClosed(SubGuiInterface subgui) {
         if (activeMenu == 1) {
             if (lastColorClicked == 0) {
                 dialog.color = ((SubGuiColorSelector) subgui).color;
@@ -448,8 +446,8 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     public void save() {
         GuiNpcTextField.unfocus();
-        if(dialog.id >= 0)
-            Client.sendData(EnumPacketServer.DialogSave, ((SubGuiNpcDialog)parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
+        if (dialog.id >= 0)
+            Client.sendData(EnumPacketServer.DialogSave, ((SubGuiNpcDialog) parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
     }
 
     private DialogImage getSelectedImage() {
@@ -575,7 +573,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-        if(guiCustomScroll.id == 0 && imageScroll != null) {
+        if (guiCustomScroll.id == 0 && imageScroll != null) {
             selected = guiCustomScroll.selected;
             initGui();
         }

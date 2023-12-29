@@ -12,16 +12,15 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.model.custom.GuiCustomAnimFileSelection;
-import noppes.npcs.client.gui.model.custom.GuiCustomAnimationSelection;
-import noppes.npcs.client.gui.model.custom.GuiCustomModelSelection;
+import noppes.npcs.client.gui.model.custom.GuiStringSelection;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.compat.PixelmonHelper;
+import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.*;
+import software.bernie.geckolib3.resource.GeckoLibCache;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -171,10 +170,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		}
 
 		if(EntityList.getEntityString(entity).equals("customnpcs.CustomModel") || EntityList.getEntityString(entity).equals("CustomModel")){
-			this.addButton(new GuiNpcButton(202, guiLeft, y + i * 22, 120, 20, "Select model"));
-			this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+20, 120, 20, "Select animation file"));
-			this.addButton(new GuiNpcButton(204, guiLeft, y + i * 22+40, 120, 20, "Select idle animation"));
-			//this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+60, 120, 20, "Select animation file"));
+			this.addButton(new GuiNpcButton(202, guiLeft-60, y + i * 22, 180, 20, npc.display.customModelData.getModel()));
 		}
 	}
 	private boolean isIgnored(String tag){
@@ -328,15 +324,14 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		}
 
 		if(button.id == 202){
-			NoppesUtil.openGUI(player, new GuiCustomModelSelection(npc, this));
-		}
-
-		if(button.id == 203){
-			setSubGui(new GuiCustomAnimFileSelection(npc, this, (name)-> npc.display.customModelData.setAnimFile(name)));
-		}
-
-		if(button.id == 204){
-			setSubGui(new GuiCustomAnimationSelection(npc, this,npc.display.customModelData.getAnimFile(), (name)-> npc.display.customModelData.setIdleAnim(name)));
+			Vector<String> list = new Vector<String>();
+			for(ResourceLocation resLoc : GeckoLibCache.getInstance().getGeoModels().keySet()){
+				list.add(resLoc.toString());
+			}
+			setSubGui(new GuiStringSelection(this,"Selecting geckolib model:", list, name -> {
+                npc.display.customModelData.setModel(name);
+                getButton(202).setDisplayText(name);
+            }));
 		}
 	}
 
