@@ -17,53 +17,62 @@ import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 
 import java.util.Objects;
+import java.util.PriorityQueue;
 
 public class EntityCustomModel extends EntityCreature implements IAnimatable, IAnimationTickable {
     private AnimationFactory factory = new AnimationFactory(this);
-    public ResourceLocation modelResLoc=new ResourceLocation("geckolib3", "geo/npc.geo.json");
-    public ResourceLocation animResLoc=new ResourceLocation("custom", "geo_npc.animation.json");
+    public ResourceLocation modelResLoc = new ResourceLocation("geckolib3", "geo/npc.geo.json");
+    public ResourceLocation animResLoc = new ResourceLocation("custom", "geo_npc.animation.json");
     public ResourceLocation textureResLoc = new ResourceLocation("geckolib3", "textures/model/entity/geo_npc.png");
     public String idleAnim = "";
     public String walkAnim = "";
     public String hurtAnim = "";
     public String attackAnim = "";
-    public String dialogAnim = "";
-    public AnimationBuilder manualAnim = new AnimationBuilder();
+    public AnimationBuilder dialogAnim = null;
+    public AnimationBuilder manualAnim = null;
     public ItemStack leftHeldItem;
-    public AnimationController<EntityCustomModel> dialogController;
-    public AnimationController<EntityCustomModel> manualController;
+
     private <E extends IAnimatable> PlayState predicateMovement(AnimationEvent<E> event) {
-        if(dialogController!=null && dialogController.getAnimationState()!= AnimationState.Stopped){
-            return PlayState.STOP;
+        if (manualAnim != null) {
+            if (event.getController().getAnimationState() == AnimationState.Stopped) {
+                manualAnim = null;
+            } else {
+                if (event.getController().currentAnimationBuilder != manualAnim) {
+                    event.getController().markNeedsReload();
+                }
+                event.getController().setAnimation(manualAnim);
+                return PlayState.CONTINUE;
+            }
         }
-        if(manualController!=null && manualController.getAnimationState()!= AnimationState.Stopped){
-            return PlayState.STOP;
+        if (dialogAnim != null) {
+            if (event.getController().getAnimationState() == AnimationState.Stopped) {
+                dialogAnim = null;
+            } else {
+                if (event.getController().currentAnimationBuilder != dialogAnim) {
+                    event.getController().markNeedsReload();
+                }
+                event.getController().setAnimation(dialogAnim);
+                return PlayState.CONTINUE;
+            }
         }
-        if(!event.isMoving() || walkAnim.isEmpty()){
-            if(!idleAnim.isEmpty()) {
+        if (!event.isMoving() || walkAnim.isEmpty()) {
+            if (!idleAnim.isEmpty()) {
                 event.getController().setAnimation(new AnimationBuilder().loop(idleAnim));
-            }else{
+            } else {
                 return PlayState.STOP;
             }
-        }else{
+        } else {
             event.getController().setAnimation(new AnimationBuilder().loop(walkAnim));
         }
         return PlayState.CONTINUE;
     }
-    private <E extends IAnimatable> PlayState predicateDialog(AnimationEvent<E> event) {
-        if(!Objects.equals(dialogAnim, "")) {
-            event.getController().setAnimation(new AnimationBuilder().playOnce(dialogAnim));
-        }else{
-            return PlayState.STOP;
-        }
-        return PlayState.CONTINUE;
-    }
+
     private <E extends IAnimatable> PlayState predicateAttack(AnimationEvent<E> event) {
         return PlayState.CONTINUE;
     }
-    private <E extends IAnimatable> PlayState predicateManual(AnimationEvent<E> event) {
-        event.getController().setAnimation(manualAnim);
-        return PlayState.CONTINUE;
+
+    public void setDialogAnim(String name) {
+        dialogAnim = new AnimationBuilder().playOnce(name);
     }
 
     public EntityCustomModel(World worldIn) {
@@ -77,10 +86,6 @@ public class EntityCustomModel extends EntityCreature implements IAnimatable, IA
     public void registerControllers(AnimationData data) {
         data.addAnimationController(new AnimationController<>(this, "movement", 10, this::predicateMovement));
         data.addAnimationController(new AnimationController<>(this, "attack", 10, this::predicateAttack));
-        dialogController = new AnimationController<>(this, "dialog", 10, this::predicateDialog);
-        data.addAnimationController(dialogController);
-        manualController = new AnimationController<>(this, "manual", 10, this::predicateManual);
-        data.addAnimationController(manualController);
     }
 
     @Override

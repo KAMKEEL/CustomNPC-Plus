@@ -369,7 +369,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			if(npc.modelData==null || !(npc.modelData.getEntity(npc) instanceof EntityCustomModel)) return;
 			EntityCustomModel entityCustomModel = (EntityCustomModel) npc.modelData.getEntity(npc);
 			entityCustomModel.manualAnim = Server.readAnimBuilder(buffer);
-			entityCustomModel.manualController.markNeedsReload();
 		}
 	}
 }

@@ -309,11 +309,11 @@ public class NoppesUtil {
 				if(entity instanceof EntityCustomModel){
                     if(dialog.animationType!=EnumDialogAnimationType.None){
                         if(dialog.animationType!=EnumDialogAnimationType.Custom){
-                            ((EntityCustomModel) entity).dialogAnim = dialog.animationType.name();
+                            ((EntityCustomModel) entity).setDialogAnim(dialog.animationType.name());
                         }else if(((EntityCustomModel) entity).animResLoc.toString().equals(dialog.animationFileResLoc) &&
                                 GeckoLibCache.getInstance().getAnimations().get(new ResourceLocation(dialog.animationFileResLoc))
                                         .getAnimation(dialog.animationName)!=null){
-                            ((EntityCustomModel) entity).dialogAnim = dialog.animationName;
+                            ((EntityCustomModel) entity).setDialogAnim(dialog.animationName);
                         }
                     }
 				}
