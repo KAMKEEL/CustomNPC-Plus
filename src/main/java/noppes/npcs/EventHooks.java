@@ -262,6 +262,12 @@ public class EventHooks {
                 script.run(EnumScriptType.PROJECTILE_TICK, event);
             }
         }
+
+        EntityLivingBase thrower = projectile.getThrower();
+        if(thrower instanceof EntityNPCInterface){
+            ((EntityNPCInterface) thrower).script.callScript(EnumScriptType.PROJECTILE_TICK, event);
+        }
+
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -272,6 +278,12 @@ public class EventHooks {
                 script.run(EnumScriptType.PROJECTILE_IMPACT, event);
             }
         }
+
+        EntityLivingBase thrower = projectile.getThrower();
+        if(thrower instanceof EntityNPCInterface){
+            ((EntityNPCInterface) thrower).script.callScript(EnumScriptType.PROJECTILE_IMPACT, event);
+        }
+
         NpcAPI.EVENT_BUS.post(event);
     }
 

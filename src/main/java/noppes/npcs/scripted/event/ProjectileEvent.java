@@ -1,18 +1,33 @@
 package noppes.npcs.scripted.event;
 
+import noppes.npcs.api.IBlock;
+import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IProjectile;
+import noppes.npcs.api.event.IProjectileEvent;
 
-public class ProjectileEvent extends CustomNPCsEvent {
+public class ProjectileEvent extends CustomNPCsEvent implements IProjectileEvent {
     public IProjectile projectile;
+    public IEntity source;
 
     public ProjectileEvent(IProjectile projectile) {
         this.projectile = projectile;
+        this.source = projectile.getThrower();
+    }
+
+    @Override
+    public IProjectile getProjectile() {
+        return projectile;
+    }
+
+    @Override
+    public IEntity getSource() {
+        return source;
     }
 
     /**
      * projectileTick
      */
-    public static class UpdateEvent extends ProjectileEvent {
+    public static class UpdateEvent extends ProjectileEvent implements IProjectileEvent.UpdateEvent{
         public UpdateEvent(IProjectile projectile) {
             super(projectile);
         }
@@ -21,7 +36,7 @@ public class ProjectileEvent extends CustomNPCsEvent {
     /**
      * projectileImpact
      */
-    public static class ImpactEvent extends ProjectileEvent {
+    public static class ImpactEvent extends ProjectileEvent implements IProjectileEvent.ImpactEvent {
         /**
          * 0:entity, 1:block
          */
@@ -32,6 +47,25 @@ public class ProjectileEvent extends CustomNPCsEvent {
             super(projectile);
             this.type = type;
             this.target = target;
+        }
+
+        @Override
+        public int getType() {
+            return type;
+        }
+
+        @Override
+        public IEntity getEntity() {
+            if(type == 0)
+                return (IEntity) target;
+            return null;
+        }
+
+        @Override
+        public IBlock getBlock() {
+            if(type == 1)
+                return (IBlock) target;
+            return null;
         }
     }
 }

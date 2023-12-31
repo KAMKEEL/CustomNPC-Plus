@@ -29,6 +29,7 @@ import noppes.npcs.DataStats;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
@@ -449,7 +450,8 @@ public class EntityProjectile extends EntityThrowable {
 		if (!this.worldObj.isRemote) {
 			ProjectileEvent.ImpactEvent event;
 			if (movingobjectposition.entityHit != null) {
-				event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 0, movingobjectposition.entityHit);
+				IEntity target = NpcAPI.Instance().getIEntity(movingobjectposition.entityHit);
+				event = new ProjectileEvent.ImpactEvent((IProjectile) NpcAPI.Instance().getIEntity(this), 0, target);
 			} else {
 				IPos pos = NpcAPI.Instance().getIPos(movingobjectposition.blockX, movingobjectposition.blockY, movingobjectposition.blockZ);
 				IWorld world = NpcAPI.Instance().getIWorld(this.worldObj);
