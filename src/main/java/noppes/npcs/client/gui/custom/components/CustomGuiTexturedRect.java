@@ -80,7 +80,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             float blue = (color & 255) / 255f;
             GL11.glColor4f(red, green, blue, this.alpha);
 
-            GL11.glTranslatef(GuiCustom.guiLeft + this.x - u1 * totalWidth, GuiCustom.guiTop + this.y - v1 * totalHeight, (float) this.id);
+            GL11.glTranslatef(GuiCustom.guiLeft + this.x, GuiCustom.guiTop + this.y, (float) this.id);
             GL11.glRotatef(this.rotation, 0.0F, 0.0F, 1.0F);
             GL11.glScalef(this.scale, this.scale, this.scale);
 
