@@ -39,10 +39,9 @@ public class ContainerCustomGui extends Container {
             this.addPlayerInventory(player, this.customGui.getPlayerInvX(), this.customGui.getPlayerInvY());
         }
 
-        Iterator var3 = this.customGui.getSlots().iterator();
-
-        while(var3.hasNext()) {
-            IItemSlot slot = (IItemSlot)var3.next();
+        slotCount=0;
+        inventorySlots.clear();
+        for (IItemSlot slot : this.customGui.getSlots()) {
             if (slot.hasStack()) {
                 this.addSlot(player, slot.getPosX(), slot.getPosY(), slot, slot.getStack().getMCItemStack(), player.worldObj.isRemote);
             } else {

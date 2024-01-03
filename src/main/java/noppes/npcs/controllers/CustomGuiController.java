@@ -32,6 +32,7 @@ public class CustomGuiController {
 
     public static boolean updateGui(IPlayer player, ScriptGui gui) {
         if (((EntityPlayerMP)player.getMCEntity()).openContainer instanceof ContainerCustomGui) {
+            ((ContainerCustomGui)((EntityPlayerMP)player.getMCEntity()).openContainer).setGui(gui, (EntityPlayer)player.getMCEntity());
             Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.GUI_DATA, new Object[]{gui.toNBT()});
             return true;
         } else {
