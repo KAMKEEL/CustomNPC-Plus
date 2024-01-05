@@ -3,11 +3,9 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
@@ -24,6 +22,8 @@ import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
 public class ClientTickHandler{
 	private World prevWorld;
+	private int prevWidth = 0;
+	private int prevHeight = 0;
 	private boolean otherContainer = false;
 	private int buttonPressed = -1;
 	private long buttonTime = 0L;
@@ -57,6 +57,11 @@ public class ClientTickHandler{
 			MusicController.Instance.stopMusic();
 		}
 		ScriptSoundController.Instance.onUpdate();
+		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
+			prevWidth = mc.displayWidth;
+			prevHeight = mc.displayHeight;
+			NoppesUtilPlayer.sendData(EnumPlayerPacket.ScreenSize,mc.displayWidth,mc.displayHeight);
+		}
 	}
 
 	@SubscribeEvent
