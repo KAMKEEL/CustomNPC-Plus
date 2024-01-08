@@ -2,10 +2,14 @@ package noppes.npcs.client.gui.player;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.CustomItems;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
@@ -19,6 +23,7 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import tconstruct.client.tabs.InventoryTabQuests;
 import tconstruct.client.tabs.TabRegistry;
 
@@ -35,6 +40,9 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 	private QuestLogData data = new QuestLogData();
 	private boolean noQuests = false;
 	private boolean questDetails = true;
+
+    private GuiMenuSideButton questsButton;
+    private GuiMenuSideButton partyButton;
 
     private HashMap<String,String> questAlertsOnOpen;
     private String trackedQuestKeyOnOpen;
@@ -78,6 +86,17 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
             i++;
         }
         sideButtons.get(categories.indexOf(data.selectedCategory)).active = true;
+
+        this.questsButton = new GuiMenuSideButton(100,guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
+        this.questsButton.rightSided = true;
+        this.questsButton.active = true;
+        this.questsButton.renderStack = new ItemStack(CustomItems.letter);
+        addButton(this.questsButton);
+
+        this.partyButton = new GuiMenuSideButton(101,guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
+        this.partyButton.rightSided = true;
+        this.partyButton.renderStack = new ItemStack(CustomItems.bag);
+        addButton(this.partyButton);
 
         if(scroll == null)
         	scroll = new GuiCustomScroll(this,0);

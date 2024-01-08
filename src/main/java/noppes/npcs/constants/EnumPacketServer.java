@@ -95,6 +95,8 @@ public enum EnumPacketServer {
 
 	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
 
+	CreateParty,
+
     ServerUpdateSkinOverlays;
 
 	public CustomNpcsPermissions.Permission permission = null;
