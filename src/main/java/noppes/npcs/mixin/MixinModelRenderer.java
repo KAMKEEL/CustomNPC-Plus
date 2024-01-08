@@ -155,7 +155,7 @@ public abstract class MixinModelRenderer {
                                     part.prevRotations[2] = part.prevRotations[2] * (1.0F - speed) + (this.rotateAngleZ * speed);
                                 }
 
-                                if (animDataActive || (ClientEventHandler.renderingPlayer.getAge() - animData.finishedTime < 20)) {
+                                if (animDataActive || (partType != EnumAnimationPart.HEAD && ClientEventHandler.renderingPlayer.getAge() - animData.finishedTime < 20)) {
                                     this.rotationPointX = originalPart.pivot[0] + part.prevPivots[0];
                                     this.rotationPointY = originalPart.pivot[1] + part.prevPivots[1];
                                     this.rotationPointZ = originalPart.pivot[2] + part.prevPivots[2];
