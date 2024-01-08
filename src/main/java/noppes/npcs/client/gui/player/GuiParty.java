@@ -1,15 +1,18 @@
 package noppes.npcs.client.gui.player;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.CustomItems;
 import noppes.npcs.client.gui.util.*;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabQuests;
 import tconstruct.client.tabs.TabRegistry;
 
-public class GuiParty extends GuiNPCInterface implements IGuiData {
+public class GuiParty extends GuiNPCInterface implements ITopButtonListener,ICustomScrollListener,  IGuiData {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
 
@@ -23,14 +26,32 @@ public class GuiParty extends GuiNPCInterface implements IGuiData {
 
     public void initGui(){
         super.initGui();
+        guiTop +=10;
 
         TabRegistry.addTabsToList(buttonList);
         TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabQuests.class);
+
+        GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
+        questsButton.rightSided = true;
+        questsButton.renderStack = new ItemStack(CustomItems.letter);
+        addButton(questsButton);
+
+        GuiMenuSideButton partyButton = new GuiMenuSideButton(101, guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
+        partyButton.rightSided = true;
+        partyButton.active = true;
+        partyButton.renderStack = new ItemStack(CustomItems.bag);
+        addButton(partyButton);
     }
 
     @Override
     protected void actionPerformed(GuiButton guibutton){
         initGui();
+
+
+        if (guibutton.id == 100) {
+            Minecraft mc = Minecraft.getMinecraft();
+            mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+        }
     }
 
     @Override
@@ -75,4 +96,8 @@ public class GuiParty extends GuiNPCInterface implements IGuiData {
 
     }
 
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+
+    }
 }

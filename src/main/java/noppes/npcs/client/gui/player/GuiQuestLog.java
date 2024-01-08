@@ -41,9 +41,6 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 	private boolean noQuests = false;
 	private boolean questDetails = true;
 
-    private GuiMenuSideButton questsButton;
-    private GuiMenuSideButton partyButton;
-
     private HashMap<String,String> questAlertsOnOpen;
     private String trackedQuestKeyOnOpen;
 
@@ -87,16 +84,16 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         }
         sideButtons.get(categories.indexOf(data.selectedCategory)).active = true;
 
-        this.questsButton = new GuiMenuSideButton(100,guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
-        this.questsButton.rightSided = true;
-        this.questsButton.active = true;
-        this.questsButton.renderStack = new ItemStack(CustomItems.letter);
-        addButton(this.questsButton);
+        GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
+        questsButton.rightSided = true;
+        questsButton.active = true;
+        questsButton.renderStack = new ItemStack(CustomItems.letter);
+        addButton(questsButton);
 
-        this.partyButton = new GuiMenuSideButton(101,guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
-        this.partyButton.rightSided = true;
-        this.partyButton.renderStack = new ItemStack(CustomItems.bag);
-        addButton(this.partyButton);
+        GuiMenuSideButton partyButton = new GuiMenuSideButton(101, guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
+        partyButton.rightSided = true;
+        partyButton.renderStack = new ItemStack(CustomItems.bag);
+        addButton(partyButton);
 
         if(scroll == null)
         	scroll = new GuiCustomScroll(this,0);
@@ -143,6 +140,11 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
             data.toggleQuestAlerts();
         }
         initGui();
+
+        if (guibutton.id == 101) {
+            Minecraft mc = Minecraft.getMinecraft();
+            mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+        }
     }
     @Override
     public void drawScreen(int i, int j, float f){
