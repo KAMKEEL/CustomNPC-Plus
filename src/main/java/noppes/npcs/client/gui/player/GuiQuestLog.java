@@ -67,6 +67,17 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
 
         noQuests = false;
 
+        GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
+        questsButton.rightSided = true;
+        questsButton.active = true;
+        questsButton.renderStack = new ItemStack(CustomItems.letter);
+        addButton(questsButton);
+
+        GuiMenuSideButton partyButton = new GuiMenuSideButton(101, guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
+        partyButton.rightSided = true;
+        partyButton.renderStack = new ItemStack(CustomItems.bag);
+        addButton(partyButton);
+
         if(data.categories.isEmpty()){
         	noQuests = true;
         	return;
@@ -83,17 +94,6 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
             i++;
         }
         sideButtons.get(categories.indexOf(data.selectedCategory)).active = true;
-
-        GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
-        questsButton.rightSided = true;
-        questsButton.active = true;
-        questsButton.renderStack = new ItemStack(CustomItems.letter);
-        addButton(questsButton);
-
-        GuiMenuSideButton partyButton = new GuiMenuSideButton(101, guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
-        partyButton.rightSided = true;
-        partyButton.renderStack = new ItemStack(CustomItems.bag);
-        addButton(partyButton);
 
         if(scroll == null)
         	scroll = new GuiCustomScroll(this,0);

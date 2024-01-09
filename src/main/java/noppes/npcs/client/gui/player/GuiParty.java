@@ -6,7 +6,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.CustomItems;
+import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabQuests;
@@ -16,12 +18,17 @@ public class GuiParty extends GuiNPCInterface implements ITopButtonListener,ICus
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
 
+    private boolean receivedData;
+    private long renderTicks;
+
     public GuiParty(EntityPlayer player) {
         super();
         this.player = player;
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
+
+        //TODO: Send initial data packet
     }
 
     public void initGui(){
@@ -47,7 +54,6 @@ public class GuiParty extends GuiNPCInterface implements ITopButtonListener,ICus
     protected void actionPerformed(GuiButton guibutton){
         initGui();
 
-
         if (guibutton.id == 100) {
             Minecraft mc = Minecraft.getMinecraft();
             mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
@@ -56,12 +62,23 @@ public class GuiParty extends GuiNPCInterface implements ITopButtonListener,ICus
 
     @Override
     public void drawScreen(int i, int j, float f){
+        renderTicks++;
+
         drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
         drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
         super.drawScreen(i, j, f);
+
+        if(!receivedData){
+            String periods = "";
+            for (int k = 0; k < (renderTicks/10)%4; k++) {
+                periods += ".";
+            }
+            fontRendererObj.drawString(StatCollector.translateToLocal("gui.loading") + periods,guiLeft + xSize/2,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+            return;
+        }
     }
 
     @Override
@@ -82,6 +99,7 @@ public class GuiParty extends GuiNPCInterface implements ITopButtonListener,ICus
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
+        this.receivedData = true;
         initGui();
     }
 
