@@ -49,8 +49,8 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 		TabRegistry.addTabsToList(buttonList);
 		TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
-        this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, guiLeft + xSize - 43, guiTop + 180, true));
-        this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, guiLeft + 20, guiTop + 180, false));
+        this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, (guiLeft + (xSize + 35) / 2) + 25, guiTop + 170, true));
+        this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, (guiLeft + (xSize + 35) / 2) - 40, guiTop + 170, false));
         updateButtons();
     }
 
@@ -75,43 +75,60 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
     }
 
 	private void renderScreen(){
-        int size = 5;
-        if(playerFactions.size() % 5 != 0 && page == pages)
-        	size = playerFactions.size() % 5;
-        
+        int size = 10;
+        if(playerFactions.size() % 10 != 0 && page == pages)
+        	size = playerFactions.size() % 10;
+
+		int hLine = 5;
+		if(size < 5){
+			hLine = size;
+		}
+
+		int count = -1;
         for(int id = 0 ; id < size; id++){
-        	drawHorizontalLine(guiLeft + 2, guiLeft + xSize, guiTop + 14 + id * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-        	
-        	Faction faction = playerFactions.get((page - 1) * 5 + id);
-        	String name = faction.name;
-        	String points = " : " + faction.defaultPoints;
-            
-            String standing = StatCollector.translateToLocal("faction.friendly");
-            int color = 0x00FF00;
-            if(faction.defaultPoints < faction.neutralPoints){
-            	standing = StatCollector.translateToLocal("faction.unfriendly");
-            	color = 0xFF0000;
-            	points += "/" + faction.neutralPoints;
-            }
-            else if(faction.defaultPoints < faction.friendlyPoints){
-            	standing = StatCollector.translateToLocal("faction.neutral");
-            	color = 0xF2FF00;
-            	points += "/" + faction.friendlyPoints;
-            }
-            else{
-            	points += "/-";
-            }
+			count++;
 
-            fontRendererObj.drawString(name, guiLeft + (xSize - fontRendererObj.getStringWidth(name)) / 2, guiTop + 19 + id * 30, faction.color);
+			Faction faction = playerFactions.get((page - 1) * 10 + id);
+			String name = faction.name;
+			String points = " : " + faction.defaultPoints;
 
-            fontRendererObj.drawString(standing, width / 2 - fontRendererObj.getStringWidth(standing) - 1, guiTop + 33 + id * 30, color);
-            fontRendererObj.drawString(points, width / 2, guiTop + 33 + id * 30, CustomNpcResourceListener.DefaultTextColor);
-        }    
-    	drawHorizontalLine(guiLeft + 2, guiLeft + xSize, guiTop + 14 + size * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor); 
-        
+			String standing = StatCollector.translateToLocal("faction.friendly");
+			int color = 0x00FF00;
+			if(faction.defaultPoints < faction.neutralPoints){
+				standing = StatCollector.translateToLocal("faction.unfriendly");
+				color = 0xFF0000;
+				points += "/" + faction.neutralPoints;
+			}
+			else if(faction.defaultPoints < faction.friendlyPoints){
+				standing = StatCollector.translateToLocal("faction.neutral");
+				color = 0xF2FF00;
+				points += "/" + faction.friendlyPoints;
+			}
+			else{
+				points += "/-";
+			}
+
+			drawVerticalLine(guiLeft + (xSize + 45) / 2, (guiTop + ySize - 15), guiTop + 13, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+			if(count < 5){
+				drawHorizontalLine(guiLeft + 2, guiLeft + xSize + 35, guiTop + 14 + count * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+				fontRendererObj.drawString(name, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(name)) / 4, guiTop + 19 + count * 30, faction.color);
+
+				fontRendererObj.drawString(standing,  (guiLeft + (xSize + 45) / 4) - fontRendererObj.getStringWidth(standing), guiTop + 33 + count * 30, color);
+				fontRendererObj.drawString(points, (guiLeft + (xSize + 45) / 4), guiTop + 33 + count * 30, CustomNpcResourceListener.DefaultTextColor);
+			}
+			else {
+				fontRendererObj.drawString(name, guiLeft + 3*(xSize + 45 - fontRendererObj.getStringWidth(name)) / 4, guiTop + 19 + (count - 5) * 30, faction.color);
+
+				fontRendererObj.drawString(standing, (guiLeft + 3*(xSize + 45) / 4) - fontRendererObj.getStringWidth(standing) - 10, guiTop + 33 + (count - 5) * 30, color);
+				fontRendererObj.drawString(points, (guiLeft + 3*(xSize + 45) / 4) - 10, guiTop + 33 + (count - 5) * 30, CustomNpcResourceListener.DefaultTextColor);
+			}
+
+			drawHorizontalLine(guiLeft + 2, guiLeft + xSize + 35, guiTop + 14 + hLine * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+		}
+
         if(pages > 1){
         	String s = page +"/" + pages;
-        	fontRendererObj.drawString(s, guiLeft + (xSize - fontRendererObj.getStringWidth(s)) / 2, guiTop + 203, CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString(s, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(s)) / 2, guiTop + 175, CustomNpcResourceListener.DefaultTextColor);
         }
     }
     
@@ -183,7 +200,7 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 			}
 		}
 		
-		pages = (playerFactions.size() - 1) / 5 ;
+		pages = (playerFactions.size() - 1) / 10 ;
 		pages++;
 		
 		page = 1;
