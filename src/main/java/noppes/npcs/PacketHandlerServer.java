@@ -111,6 +111,26 @@ public class PacketHandlerServer{
 			} else if (type == EnumPacketServer.CacheAnimation) {
 				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
 				return;
+			} else if (type == EnumPacketServer.GetPartyData || type == EnumPacketServer.CreateParty) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				if (type == EnumPacketServer.CreateParty) {
+					Party party = PartyController.Instance().createParty();
+					party.addPlayer(player);
+					party.setLeader(player);
+				}
+
+				NBTTagCompound compound = new NBTTagCompound();
+				if (playerData.partyUUID != null) {
+					Party party = PartyController.Instance().getParty(playerData.partyUUID);
+					compound = party.writeToNBT();
+
+					Quest quest = (Quest) QuestController.Instance.get(party.getCurrentQuestID());
+					if (quest != null) {
+						compound.setString("QuestName", quest.getName());
+						compound.setString("QuestCategory", quest.getCategory().getName());
+					}
+				}
+				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 			}
 
 			if(type.needsNpc && npc == null){

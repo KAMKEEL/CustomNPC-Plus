@@ -2,7 +2,13 @@ package noppes.npcs.controllers.data;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.controllers.PlayerDataController;
@@ -14,8 +20,7 @@ import java.net.URL;
 import java.util.*;
 
 public class Party {
-
-    private final UUID partyUUID = UUID.randomUUID();
+    private final UUID partyUUID;
     private UUID partyLeader;
 
     private final HashMap<UUID, String> partyMembers = new HashMap<>();
@@ -23,12 +28,21 @@ public class Party {
 
     private int currentQuestID = -1;
 
-    public UUID getPartyLeader() {
-        return partyLeader;
+    private boolean friendlyFire;
+
+    //Client-sided
+    private String partyLeaderName;
+
+    public Party() {
+        this.partyUUID = UUID.randomUUID();
     }
 
-    public void setPartyLeader(UUID partyLeader) {
-        this.partyLeader = partyLeader;
+    public Party(UUID uuid) {
+        this.partyUUID = uuid;
+    }
+
+    public UUID getPartyUUID() {
+        return this.partyUUID;
     }
 
     public int getCurrentQuestID() {
@@ -43,6 +57,9 @@ public class Party {
         if(partyMembers.containsKey(player.getUniqueID())){
             return false;
         }
+
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        playerData.partyUUID = this.partyUUID;
 
         partyMembers.put(player.getUniqueID(), player.getCommandSenderName());
         partyOrder.add(player.getUniqueID());
@@ -71,12 +88,13 @@ public class Party {
         return false;
     }
 
-    public boolean removePlayer(UUID player) {
-        if(partyMembers.containsKey(player)){
-            partyMembers.remove(player);
-            partyOrder.remove(player);
+    public boolean removePlayer(EntityPlayer player) {
+        UUID uuid = player.getUniqueID();
+        if(partyMembers.containsKey(uuid)){
+            partyMembers.remove(uuid);
+            partyOrder.remove(uuid);
 
-            if(player.equals(partyLeader)){
+            if(uuid.equals(partyLeader)){
                 if(partyMembers.size() > 0){
                     partyLeader = partyOrder.get(0);
                 }
@@ -88,8 +106,8 @@ public class Party {
         return false;
     }
 
-    public boolean hasPlayer(UUID player) {
-        return partyMembers.containsKey(player);
+    public boolean hasPlayer(EntityPlayer player) {
+        return partyMembers.containsKey(player.getUniqueID());
     }
 
     public boolean hasPlayer(String playerName) {
@@ -100,8 +118,18 @@ public class Party {
         return partyMembers.containsKey(uuid);
     }
 
-    public boolean setLeader(UUID uuid){
-        if(partyLeader.equals(uuid)){
+    public EntityPlayer getPartyLeader() {
+        return NoppesUtilServer.getPlayer(this.partyLeader);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public String getPartyLeaderName() {
+        return this.partyLeaderName;
+    }
+
+    public boolean setLeader(EntityPlayer player){
+        UUID uuid = player.getUniqueID();
+        if(partyLeader != null && partyLeader.equals(uuid)){
             return false;
         }
 
@@ -118,6 +146,10 @@ public class Party {
         // Set New Leader
         partyLeader = uuid;
         return true;
+    }
+
+    public Collection<String> getPlayerNames() {
+        return this.partyMembers.values();
     }
 
     // To Be Called DURING Invite, Leave, Quest Switch, Leader Switch, etc.
@@ -154,6 +186,14 @@ public class Party {
         }
     }
 
+    public void toggleFriendlyFire() {
+        this.friendlyFire = !this.friendlyFire;
+    }
+
+    public boolean friendlyFire() {
+        return this.friendlyFire;
+    }
+
     public static UUID getUUID(String name) {
         UUID uuid = null;
         try {
@@ -168,4 +208,35 @@ public class Party {
         return uuid;
     }
 
+    public void readFromNBT(NBTTagCompound compound) {
+        this.partyLeaderName = compound.getString("PartyLeader");
+        this.currentQuestID = compound.getInteger("PartyQuestID");
+
+        NBTTagList list = compound.getTagList("PartyMembers", 10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            NBTTagCompound tagCompound = list.getCompoundTagAt(i);
+            UUID uuid = UUID.fromString(tagCompound.getString("UUID"));
+            String playerName = tagCompound.getString("PlayerName");
+            this.partyOrder.add(uuid);
+            this.partyMembers.put(uuid, playerName);
+        }
+    }
+
+    public NBTTagCompound writeToNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+
+        compound.setString("PartyUUID", this.partyUUID.toString());
+        compound.setInteger("PartyQuestID", this.currentQuestID);
+        compound.setString("PartyLeader", getPartyLeader().getCommandSenderName());
+        NBTTagList list = new NBTTagList();
+        for (UUID uuid : this.partyOrder) {
+            NBTTagCompound uuidCompound = new NBTTagCompound();
+            uuidCompound.setString("UUID", uuid.toString());
+            uuidCompound.setString("PlayerName", this.partyMembers.get(uuid));
+            list.appendTag(uuidCompound);
+        }
+        compound.setTag("PartyMembers", list);
+
+        return compound;
+    }
 }
