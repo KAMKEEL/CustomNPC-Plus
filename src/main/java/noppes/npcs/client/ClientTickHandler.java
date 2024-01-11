@@ -82,7 +82,7 @@ public class ClientTickHandler{
 
 	@SubscribeEvent
 	public void onKey(InputEvent.KeyInputEvent event){
-		if(ClientProxy.QuestLog.isPressed()){
+		if(ClientProxy.CNPCButton.isPressed()){
 			Minecraft mc = Minecraft.getMinecraft();
 			if(mc.currentScreen == null)
 				NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
