@@ -1,5 +1,6 @@
-package noppes.npcs.client.gui.player;
+package noppes.npcs.client.gui.player.inventory;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -8,54 +9,46 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiButtonNextPage;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.PlayerFactionData;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabFactions;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
 import java.util.ArrayList;
 
-public class GuiFaction extends GuiNPCInterface implements IGuiData{
+public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 
-	private int xSize;
-	private int ySize;
-    private int guiLeft;
-    private int guiTop;
+	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     
     private ArrayList<Faction> playerFactions = new ArrayList<Faction>();
+	private Minecraft mc = Minecraft.getMinecraft();
 
 	private int page = 0;
 	private int pages = 1;
 
 	private GuiButtonNextPage buttonNextPage;
 	private GuiButtonNextPage buttonPreviousPage;
-	private ResourceLocation indicator;
 
 	public GuiFaction() {
 		super();
-        xSize = 200;
-        ySize = 195;
+		xSize = 280;
+		ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
+		activeTab = 2;
         NoppesUtilPlayer.sendData(EnumPlayerPacket.FactionsGet);
-        indicator = getResource("standardbg.png");
 	}
 
 	@Override
     public void initGui()
     {
-        super.initGui();
-        guiLeft = (width - xSize) / 2;
-        guiTop = (height - ySize) / 2 + 12;
-
-
-		TabRegistry.updateTabValues(guiLeft, guiTop + 8, InventoryTabFactions.class);
+		super.initGui();
 		TabRegistry.addTabsToList(buttonList);
-        
+		TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
+
         this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, guiLeft + xSize - 43, guiTop + 180, true));
         this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, guiLeft + 20, guiTop + 180, false));
         updateButtons();
@@ -66,9 +59,9 @@ public class GuiFaction extends GuiNPCInterface implements IGuiData{
     {
     	drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.renderEngine.bindTexture(indicator);
-        drawTexturedModalRect(guiLeft, guiTop + 8, 0, 0, xSize, ySize);
-        drawTexturedModalRect(guiLeft + 4, guiTop + 8, 56, 0, 200, ySize);
+		mc.renderEngine.bindTexture(resource);
+		drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
+		drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
         
         if(playerFactions.isEmpty()){
         	String noFaction = StatCollector.translateToLocal("faction.nostanding");
@@ -124,6 +117,21 @@ public class GuiFaction extends GuiNPCInterface implements IGuiData{
     
     @Override
 	protected void actionPerformed(GuiButton guibutton){
+		if (guibutton.id >= 100) {
+			if (guibutton.id == 100 && activeTab != 0) {
+				activeTab = 0;
+				mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+			}
+			if (guibutton.id == 101 && activeTab != 1) {
+				activeTab = 1;
+				mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+			}
+			if (guibutton.id == 102 && activeTab != 2) {
+				activeTab = 2;
+				mc.displayGuiScreen(new GuiFaction());
+			}
+		}
+
     	if(!(guibutton instanceof GuiButtonNextPage))
     		return;
 		int id = guibutton.id;

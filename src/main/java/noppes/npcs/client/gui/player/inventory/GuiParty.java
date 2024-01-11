@@ -1,13 +1,11 @@
-package noppes.npcs.client.gui.player;
+package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.CustomItems;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
@@ -15,14 +13,15 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Party;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabQuests;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
 import java.util.UUID;
 
-public class GuiParty extends GuiNPCInterface implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData {
+public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
+    private Minecraft mc = Minecraft.getMinecraft();
 
     private boolean receivedData;
     private long renderTicks;
@@ -33,29 +32,15 @@ public class GuiParty extends GuiNPCInterface implements ITextfieldListener, ITo
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
-
+        activeTab = 1;
         Client.sendData(EnumPacketServer.GetPartyData);
     }
 
     public void initGui(){
-        Party party = ClientCacheHandler.party;
-
         super.initGui();
-        guiTop +=10;
-
+        Party party = ClientCacheHandler.party;
         TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabQuests.class);
-
-        GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
-        questsButton.rightSided = true;
-        questsButton.renderStack = new ItemStack(CustomItems.letter);
-        addButton(questsButton);
-
-        GuiMenuSideButton partyButton = new GuiMenuSideButton(101, guiLeft + xSize + 37, this.guiTop + 3 + 21, 22, 22, "");
-        partyButton.rightSided = true;
-        partyButton.active = true;
-        partyButton.renderStack = new ItemStack(CustomItems.bag);
-        addButton(partyButton);
+        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         if (receivedData) {
             if (party == null) {
@@ -142,12 +127,18 @@ public class GuiParty extends GuiNPCInterface implements ITextfieldListener, ITo
                 receivedData = false;
                 break;
         }
-
         initGui();
-
-        if (guibutton.id == 100) {
-            Minecraft mc = Minecraft.getMinecraft();
+        if (guibutton.id == 100 && activeTab != 0) {
+            activeTab = 0;
             mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+        }
+        if (guibutton.id == 101 && activeTab != 1) {
+            activeTab = 1;
+            mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+        }
+        if (guibutton.id == 102 && activeTab != 2) {
+            activeTab = 2;
+            mc.displayGuiScreen(new GuiFaction());
         }
     }
 

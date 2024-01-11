@@ -1,16 +1,17 @@
 package tconstruct.client.tabs;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
-import noppes.npcs.client.gui.player.GuiFaction;
+import noppes.npcs.client.gui.player.inventory.GuiQuestLog;
 
-public class InventoryTabFactions extends AbstractTab {
-	public InventoryTabFactions() {
-		super(0, 0, 0, new ItemStack(CustomItems.wallBanner, 1, 1));
-		if(CustomItems.wallBanner == null)
-			renderStack = new ItemStack(Blocks.tnt);
+public class InventoryTabCustomNpc extends AbstractTab {
+	public InventoryTabCustomNpc() {
+		super(0, 0, 0, new ItemStack(CustomItems.letter));
+
+		if(CustomItems.letter == null)
+			renderStack = new ItemStack(Items.book);
 	}
 
 	@Override
@@ -24,7 +25,7 @@ public class InventoryTabFactions extends AbstractTab {
 					e.printStackTrace();
 				}
 				Minecraft mc = Minecraft.getMinecraft();
-				mc.displayGuiScreen(new GuiFaction());
+				mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
 			}
 		};
 		t.start();
