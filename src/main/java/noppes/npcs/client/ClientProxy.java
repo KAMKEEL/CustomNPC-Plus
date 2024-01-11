@@ -73,7 +73,7 @@ import java.io.IOException;
 import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
-	public static KeyBinding CNPCButton;
+	public static KeyBinding QuestLog;
 
 	public static FontContainer Font;
 
@@ -127,9 +127,9 @@ public class ClientProxy extends CommonProxy {
 		}
 		Minecraft mc = Minecraft.getMinecraft();
 
-		CNPCButton = new KeyBinding("CustomNPC+", Keyboard.KEY_L, "key.categories.gameplay");
+		QuestLog = new KeyBinding("Quest Log", Keyboard.KEY_L, "key.categories.gameplay");
 
-		ClientRegistry.registerKeyBinding(CNPCButton);
+		ClientRegistry.registerKeyBinding(QuestLog);
 		mc.gameSettings.loadOptions();
 
 		new PresetController(CustomNpcs.Dir);
