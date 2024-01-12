@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData {
@@ -78,6 +79,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 playerScroll.setSize(150, 160);
                 playerScroll.guiLeft = guiLeft + 5;
                 playerScroll.guiTop = guiTop + 5;
+                playerScroll.setList(new ArrayList<>(party.getPlayerNames()));
                 this.addScroll(playerScroll);
 
                 //set leader button
@@ -124,6 +126,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         switch (guibutton.id) {
             case 200:
                 Client.sendData(EnumPacketServer.CreateParty);
+                receivedData = false;
+                break;
+            case 335:
+                Client.sendData(EnumPacketServer.DisbandParty);
                 receivedData = false;
                 break;
         }
@@ -193,6 +199,8 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 party = ClientCacheHandler.party;
             }
             party.readFromNBT(compound);
+        } else if (compound.hasKey("Disband")) {
+            ClientCacheHandler.party = null;
         }
 
         initGui();

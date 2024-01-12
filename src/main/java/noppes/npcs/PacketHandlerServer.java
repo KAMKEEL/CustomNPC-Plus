@@ -131,6 +131,15 @@ public class PacketHandlerServer{
 					}
 				}
 				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			} else if (type == EnumPacketServer.DisbandParty) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				if (playerData.partyUUID != null) {
+					PartyController.Instance().disbandParty(playerData.partyUUID);
+				}
+
+				NBTTagCompound compound = new NBTTagCompound();
+				compound.setBoolean("Disband", true);
+				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 			}
 
 			if(type.needsNpc && npc == null){

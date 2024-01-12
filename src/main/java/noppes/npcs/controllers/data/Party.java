@@ -152,6 +152,10 @@ public class Party {
         return this.partyMembers.values();
     }
 
+    public Collection<UUID> getPlayerUUIDs() {
+        return this.partyMembers.keySet();
+    }
+
     // To Be Called DURING Invite, Leave, Quest Switch, Leader Switch, etc.
     public static boolean validateQuest(int questID, Collection<EntityPlayer> players){
         IQuest quest = QuestController.Instance.get(questID);

@@ -1,6 +1,9 @@
 package noppes.npcs.controllers;
 
+import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -30,7 +33,15 @@ public class PartyController {
         return this.parties.get(partyUUID);
     }
 
-    public void deleteParty(UUID partyUUID) {
-        this.parties.remove(partyUUID);
+    public void disbandParty(UUID partyUUID) {
+        Party party = this.parties.get(partyUUID);
+        if (party != null) {
+            for (UUID uuid: party.getPlayerUUIDs()) {
+                EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
+                PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                playerData.partyUUID = null;
+            }
+            this.parties.remove(partyUUID);
+        }
     }
 }
