@@ -82,6 +82,8 @@ public class ModelTail extends ModelScaleRenderer {
 	
 	public void setRotationAngles(float par1, float par2, float par3,
 			float par4, float par5, float par6, Entity entity) {
+		if(this.entity==null) return;
+
 		rotateAngleY = MathHelper.cos(par1 * 0.6662F) * 0.3f * par2;
         rotateAngleX = MathHelper.sin(par3 * 0.067F) * 0.05F;
         

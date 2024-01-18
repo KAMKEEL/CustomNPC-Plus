@@ -63,7 +63,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     }
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
-        boolean hovered = mouseX >= this.x + GuiCustom.guiLeft && mouseY >= this.y + GuiCustom.guiTop && mouseX < this.x + GuiCustom.guiLeft + this.width && mouseY < this.y + GuiCustom.guiTop + this.height;
+        boolean hovered = mouseX >= this.x + GuiCustom.guiLeft && mouseY >= this.y + GuiCustom.guiTop && mouseX < this.x + GuiCustom.guiLeft + this.width*scale && mouseY < this.y + GuiCustom.guiTop + this.height*scale;
 
         if (this.imageData != null && this.imageData.imageLoaded()) {
             int totalWidth = this.imageData.getTotalWidth();
@@ -80,7 +80,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             float blue = (color & 255) / 255f;
             GL11.glColor4f(red, green, blue, this.alpha);
 
-            GL11.glTranslatef(GuiCustom.guiLeft + this.x - u1 * totalWidth, GuiCustom.guiTop + this.y - v1 * totalHeight, (float) this.id);
+            GL11.glTranslatef(GuiCustom.guiLeft + this.x, GuiCustom.guiTop + this.y, (float) this.id);
             GL11.glRotatef(this.rotation, 0.0F, 0.0F, 1.0F);
             GL11.glScalef(this.scale, this.scale, this.scale);
 

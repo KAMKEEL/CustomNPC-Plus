@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ClientEventHandler;
@@ -123,7 +124,9 @@ public abstract class MixinModelRenderer {
                     }
                     catch (Exception ignored){}
 
-                    if (partType != null && animData != null) {
+                    if (partType != null && animData != null && animData.animation != null) {
+                        boolean animDataActive = animData.isActive();
+
                         if (!ClientEventHandler.originalValues.containsKey((ModelRenderer) (Object) this)) {
                             FramePart part = new FramePart();
                             part.pivot = new float[]{prevPointX, prevPointY, prevPointZ};
@@ -131,23 +134,38 @@ public abstract class MixinModelRenderer {
                             ClientEventHandler.originalValues.put((ModelRenderer) (Object) this, part);
                         }
                         FramePart originalPart = ClientEventHandler.originalValues.get((ModelRenderer) (Object) this);
-                        if (animData.isActive()) {
-                            Frame frame = (Frame) animData.animation.currentFrame();
-                            if (frame.frameParts.containsKey(partType)) {
-                                FramePart part = frame.frameParts.get(partType);
-                                if (partType == mainPartType) {
+                        Frame frame = (Frame) animData.animation.currentFrame();
+                        if (!animDataActive && animData.finishedFrame >= 0 && animData.finishedFrame < animData.animation.frames.size()) {
+                            frame = animData.animation.frames.get(animData.finishedFrame);
+                        }
+
+                        if (frame != null && frame.frameParts.containsKey(partType)) {
+                            FramePart part = frame.frameParts.get(partType);
+                            if (partType == mainPartType) {
+                                if (animDataActive) {
                                     part.interpolateAngles();
                                     part.interpolateOffset();
+                                } else {
+                                    float speed = 0.4F;
+                                    part.prevPivots[0] = part.prevPivots[0] * (1.0F - speed);
+                                    part.prevPivots[1] = part.prevPivots[1] * (1.0F - speed);
+                                    part.prevPivots[2] = part.prevPivots[2] * (1.0F - speed);
+                                    part.prevRotations[0] = part.prevRotations[0] * (1.0F - speed) + (this.rotateAngleX * speed);
+                                    part.prevRotations[1] = part.prevRotations[1] * (1.0F - speed) + (this.rotateAngleY * speed);
+                                    part.prevRotations[2] = part.prevRotations[2] * (1.0F - speed) + (this.rotateAngleZ * speed);
+                                }
+
+                                if (animDataActive || (partType != EnumAnimationPart.HEAD && ClientEventHandler.renderingPlayer.getAge() - animData.finishedTime < 20)) {
                                     this.rotationPointX = originalPart.pivot[0] + part.prevPivots[0];
                                     this.rotationPointY = originalPart.pivot[1] + part.prevPivots[1];
                                     this.rotationPointZ = originalPart.pivot[2] + part.prevPivots[2];
                                     this.rotateAngleX = part.prevRotations[0];
                                     this.rotateAngleY = part.prevRotations[1];
                                     this.rotateAngleZ = part.prevRotations[2];
-                                } else {
-                                    currentPart = part;
-                                    this.rotateAngleZ += part.prevRotations[2];
                                 }
+                            } else {
+                                currentPart = part;
+                                this.rotateAngleZ += part.prevRotations[2];
                             }
                         }
                     }

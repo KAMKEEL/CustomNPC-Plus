@@ -28,17 +28,18 @@ import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 
@@ -299,22 +300,56 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.UPDATE_ANIMATIONS) {
 			NBTTagCompound compound = Server.readNBT(buffer);
+			AnimationData animationData = null;
 			if (compound.hasKey("EntityId")) {
 				Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
 				if (entity instanceof EntityNPCInterface) {
-					AnimationData data = ((EntityNPCInterface) entity).display.animationData;
-					data.readFromNBT(compound);
-					data.animation = new Animation();
-					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
+					animationData = ((EntityNPCInterface) entity).display.animationData;
 				}
 			} else {
 				EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(Server.readString(buffer));
 				if (sendingPlayer != null) {
-					AnimationData data = new AnimationData(sendingPlayer);
-					data.readFromNBT(compound);
-					data.animation = new Animation();
-					data.animation.readFromNBT(compound.getCompoundTag("Animation"));
-					ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), data);
+					if (!ClientCacheHandler.playerAnimations.containsKey(sendingPlayer.getUniqueID())) {
+						ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), new AnimationData(sendingPlayer));
+					}
+					animationData = ClientCacheHandler.playerAnimations.get(sendingPlayer.getUniqueID());
+				}
+			}
+
+			if (animationData != null) {
+				animationData.readFromNBT(compound);
+				int animationId;
+				if (compound.hasKey("AnimationID")) {
+					animationId = compound.getInteger("AnimationID");
+				} else {
+					Animation animation = new Animation();
+					animation.readFromNBT(compound.getCompoundTag("Animation"));
+					ClientCacheHandler.animationCache.put(animation.getID(), animation);
+					animationId = animation.getID();
+				}
+
+				if (animationData.allowAnimation) {
+					Animation animation = new Animation();
+					animation.readFromNBT(ClientCacheHandler.animationCache.get(animationId).writeToNBT());
+					if (animationData.animation != null && animation.frames.size() > 0) {
+						Frame frame = (Frame) animationData.animation.currentFrame();
+						if (frame != null) {
+							Frame firstFrame = animation.frames.get(0);
+							for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
+								if (firstFrame.frameParts.containsKey(entry.getKey())) {
+									FramePart prevFramePart = entry.getValue();
+									FramePart newFramePart = firstFrame.frameParts.get(entry.getKey());
+									for (int i = 0; i < 3; i++) {
+										newFramePart.prevPivots[i] = prevFramePart.prevPivots[i];
+										newFramePart.prevRotations[i] = prevFramePart.prevRotations[i];
+									}
+								}
+							}
+						}
+					}
+					animationData.animation = animation;
+					animation.parent = animationData;
+					Client.sendData(EnumPacketServer.CacheAnimation, animationId);
 				}
 			}
 		}
@@ -357,6 +392,15 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.STOP_SOUNDS) {
 			ScriptSoundController.Instance.stopAllSounds();
+		}
+		else if(type == EnumPacketClient.SYNC_WEAPON) {
+			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
+			if(!(entity instanceof EntityNPCInterface))
+				return;
+			EntityNPCInterface npc = (EntityNPCInterface) entity;
+			int weaponSlotIndex = buffer.readInt();
+			ItemStack stack = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
+			npc.inventory.weapons.put(weaponSlotIndex,stack);
 		}
 	}
 }

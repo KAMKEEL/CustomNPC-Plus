@@ -23,9 +23,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S04PacketEntityEquipment;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -46,6 +48,7 @@ import noppes.npcs.ai.target.EntityAIClosestTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtByTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtTarget;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.config.ConfigMain;
@@ -196,6 +199,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if (!isRemote()) {
 			if (this.ticksExisted % 10 == 0) {
 				EventHooks.onNPCUpdate(this);
+			}
+			for(int i=1;i<3;i++){
+				ItemStack itemstack = inventory.prevWeapons.get(i);
+				ItemStack itemstack1 = inventory.weapons.get(i);
+				if (!ItemStack.areItemStacksEqual(itemstack1, itemstack))
+				{
+					NBTTagCompound itemNBT = new NBTTagCompound();
+					if(itemstack1!=null){
+						itemstack1.writeToNBT(itemNBT);
+					}
+					for(Object obj: MinecraftServer.getServer().getConfigurationManager().playerEntityList){
+						Server.sendData((EntityPlayerMP) obj, EnumPacketClient.SYNC_WEAPON, getEntityId(), i, itemNBT);
+					}
+					inventory.prevWeapons.put(i,itemstack1 == null ? null : itemstack1.copy());
+				}
 			}
 			this.timers.update();
 		}
@@ -914,28 +932,28 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return chateventPlayer;
 	}
 
-	public void saySurrounding(Line line) {
-		if (line == null || line.text == null || getFakePlayer() == null)
+	public void saySurrounding(ILine line) {
+		if (line == null || line.getText() == null || getFakePlayer() == null)
 			return;
-		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.text, new ChatComponentTranslation(line.text.replace("%", "%%")));
+		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.getText(), new ChatComponentTranslation(line.getText().replace("%", "%%")));
 		if (MinecraftForge.EVENT_BUS.post(event) || event.component == null){
 			return;
 		}
-		line.text = event.component.getUnformattedText().replace("%%", "%");
+		line.setText(event.component.getUnformattedText().replace("%%", "%"));
 		List<EntityPlayer> inRange = worldObj.getEntitiesWithinAABB(
 				EntityPlayer.class, this.boundingBox.expand(20D, 20D, 20D));
 		for (EntityPlayer player : inRange)
 			say(player, line);
 	}
 
-	public void say(EntityPlayer player, Line line) {
-		if (line == null || !this.canSee(player) || line.text == null)
+	public void say(EntityPlayer player, ILine line) {
+		if (line == null || !this.canSee(player) || line.getText() == null)
 			return;
 
-		if(!line.sound.isEmpty()){
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.sound, (float)posX, (float)posY, (float)posZ);
+		if(!line.getSound().isEmpty()){
+			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.getSound(), (float)posX, (float)posY, (float)posZ);
 		}
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.text, !line.hideText);
+		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.getText(), !line.hideText());
 	}
 	public boolean getAlwaysRenderNameTagForRender(){
 		return true;
@@ -1546,6 +1564,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		compound.setInteger("StandingState", ai.standingType.ordinal());
 		compound.setInteger("MovingState", ai.movingType.ordinal());
 		compound.setInteger("Orientation", ai.orientation);
+		compound.setFloat("OffsetY",ai.bodyOffsetY);
 		compound.setInteger("Role", advanced.role.ordinal());
 		compound.setInteger("Job", advanced.job.ordinal());
 		if(advanced.job == EnumJobType.Bard){
@@ -1578,6 +1597,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		ai.movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		ai.orientation = compound.getInteger("Orientation");
+		ai.bodyOffsetY=compound.getFloat("OffsetY");
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
 		inventory.setArmor(NBTTags.getItemStackList(compound.getTagList("Armor", 10)));

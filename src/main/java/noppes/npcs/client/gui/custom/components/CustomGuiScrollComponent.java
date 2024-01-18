@@ -85,7 +85,7 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
     }
 
     public ICustomGuiComponent toComponent() {
-        ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.width, this.height, (String[])this.getList().toArray(new String[0]));
+        ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.xSize, this.ySize, (String[])this.getList().toArray(new String[0]));
         component.setHoverText(this.hoverText);
         component.setColor(color);
         component.setAlpha(alpha);

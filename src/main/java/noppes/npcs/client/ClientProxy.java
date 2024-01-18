@@ -62,8 +62,7 @@ import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
-import tconstruct.client.tabs.InventoryTabFactions;
-import tconstruct.client.tabs.InventoryTabQuests;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.InventoryTabVanilla;
 import tconstruct.client.tabs.TabRegistry;
 
@@ -152,8 +151,7 @@ public class ClientProxy extends CommonProxy {
 			if (TabRegistry.getTabList().size() < 2){
 				TabRegistry.registerTab(new InventoryTabVanilla());
 			}
-			TabRegistry.registerTab(new InventoryTabFactions());
-			TabRegistry.registerTab(new InventoryTabQuests());
+			TabRegistry.registerTab(new InventoryTabCustomNpc());
 		}
 	}
 

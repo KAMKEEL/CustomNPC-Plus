@@ -271,38 +271,42 @@ public class PacketHandlerPlayer{
 				}
 			}
 		}
-		else if(type == EnumPlayerPacket.SignSave){
+		else if(type == EnumPlayerPacket.SignSave) {
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
-			TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-			if(tile == null || !(tile instanceof TileBigSign))
-				return;
-			TileBigSign sign = (TileBigSign) tile;
-			if(sign.canEdit){
-				sign.setText(Server.readString(buffer));
-				sign.canEdit = false;
-				player.worldObj.markBlockForUpdate(x, y, z);
+			if (player.worldObj.blockExists(x, y, z)) {
+				TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+				if (!(tile instanceof TileBigSign))
+					return;
+				TileBigSign sign = (TileBigSign) tile;
+				if (sign.canEdit) {
+					sign.setText(Server.readString(buffer));
+					sign.canEdit = false;
+					player.worldObj.markBlockForUpdate(x, y, z);
+				}
 			}
 		}
-		else if(type == EnumPlayerPacket.SaveBook){
+		else if(type == EnumPlayerPacket.SaveBook) {
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
-			TileEntity tileentity = player.worldObj.getTileEntity(x, y, z);
-			if(!(tileentity instanceof TileBook))
-				return;
-			TileBook tile = (TileBook) tileentity;
-			if(tile.book.getItem() == Items.written_book)
-				return;
-			boolean sign = buffer.readBoolean();
-			ItemStack book = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
-			if(book == null)
-				return;
-			if(book.getItem() == Items.writable_book && !sign && ItemWritableBook.func_150930_a(book.getTagCompound())){
-				tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
-			}
-			if(book.getItem() == Items.written_book && sign && ItemEditableBook.validBookTagContents(book.getTagCompound())){
-				tile.book.setTagInfo("author", new NBTTagString(player.getCommandSenderName()));
-				tile.book.setTagInfo("title", new NBTTagString(book.getTagCompound().getString("title")));
-                tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
-                tile.book.func_150996_a(Items.written_book);
+			if (player.worldObj.blockExists(x, y, z)) {
+				TileEntity tileentity = player.worldObj.getTileEntity(x, y, z);
+				if (!(tileentity instanceof TileBook))
+					return;
+				TileBook tile = (TileBook) tileentity;
+				if (tile.book.getItem() == Items.written_book)
+					return;
+				boolean sign = buffer.readBoolean();
+				ItemStack book = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
+				if (book == null)
+					return;
+				if (book.getItem() == Items.writable_book && !sign && ItemWritableBook.func_150930_a(book.getTagCompound())) {
+					tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
+				}
+				if (book.getItem() == Items.written_book && sign && ItemEditableBook.validBookTagContents(book.getTagCompound())) {
+					tile.book.setTagInfo("author", new NBTTagString(player.getCommandSenderName()));
+					tile.book.setTagInfo("title", new NBTTagString(book.getTagCompound().getString("title")));
+					tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
+					tile.book.func_150996_a(Items.written_book);
+				}
 			}
 		}
 	}

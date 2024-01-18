@@ -2,20 +2,27 @@ package noppes.npcs.client.gui.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 public class GuiMenuSideButton extends GuiNpcButton{
 	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/menusidebutton.png");
+    public static final ResourceLocation resource2 = new ResourceLocation("customnpcs","textures/gui/menusidebutton2.png");
 
     public boolean active;
+    public boolean rightSided;
+    public ItemStack renderStack;
 
-    public GuiMenuSideButton(int i, int j, int k, String s){
-        this(i, j, k, 200, 20, s);
+    public GuiMenuSideButton(int id, int x, int y, String s){
+        this(id, x, y, 200, 20, s);
     }
 
-    public GuiMenuSideButton(int i, int j, int k, int l, int i1, String s){
-    	super(i, j, k, l, i1, s);
+    public GuiMenuSideButton(int id, int x, int y, int width, int height, String s){
+    	super(id, x, y, width, height, s);
         active = false;
     }
 
@@ -23,7 +30,7 @@ public class GuiMenuSideButton extends GuiNpcButton{
     public int getHoverState(boolean flag){
         if (active)
             return 0;
-        return 1;
+        return super.getHoverState(flag);
     }
 
     @Override
@@ -32,13 +39,38 @@ public class GuiMenuSideButton extends GuiNpcButton{
             return;
         }
         FontRenderer fontrenderer = minecraft.fontRenderer;
-        minecraft.renderEngine.bindTexture(resource);
+
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         int width = this.width + (active?2:0);
         field_146123_n = i >= xPosition && j >= yPosition && i < xPosition + width && j < yPosition + height;
         int k = getHoverState(field_146123_n);
-        drawTexturedModalRect(xPosition, yPosition, 0,  k * 22, width, height);
+
+        if (this.rightSided) {
+            minecraft.renderEngine.bindTexture(resource2);
+            drawTexturedModalRect(xPosition, yPosition, 197 - width,  k * 22, width, height);
+        } else {
+            minecraft.renderEngine.bindTexture(resource);
+            drawTexturedModalRect(xPosition, yPosition, 0,  k * 22, width, height);
+        }
         mouseDragged(minecraft, i, j);
+
+        if (this.renderStack != null) {
+            RenderHelper.enableGUIStandardItemLighting();
+            this.zLevel = 100.0F;
+            RenderItem itemRenderer = RenderItem.getInstance();
+            itemRenderer.zLevel = 100.0F;
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            itemRenderer.renderItemAndEffectIntoGUI(minecraft.fontRenderer,
+                    minecraft.renderEngine, this.renderStack, xPosition + 2, yPosition + height/2 - 8);
+            itemRenderer.renderItemOverlayIntoGUI(minecraft.fontRenderer,
+                    minecraft.renderEngine, this.renderStack, xPosition + 2, yPosition + height/2 - 8);
+            GL11.glDisable(GL11.GL_LIGHTING);
+            GL11.glEnable(GL11.GL_BLEND);
+            itemRenderer.zLevel = 0.0F;
+            this.zLevel = 0.0F;
+            RenderHelper.disableStandardItemLighting();
+        }
         
         String text = "";
         float maxWidth = width * 0.75f;

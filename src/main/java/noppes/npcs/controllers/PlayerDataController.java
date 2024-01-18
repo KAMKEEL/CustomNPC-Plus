@@ -281,6 +281,17 @@ public class PlayerDataController {
 		return data;
 	}
 
+	public ArrayList<PlayerData> getAllPlayerData() {
+		ArrayList<PlayerData> playerDataList = new ArrayList<>();
+		List<?> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (Object o : list) {
+			if (o instanceof EntityPlayer) {
+				playerDataList.add(this.getPlayerData((EntityPlayer)o));
+			}
+		}
+		return playerDataList;
+	}
+
 	public PlayerData getPlayerData(EntityPlayer player){
 		PlayerData data = getPlayerDataCache(player.getUniqueID().toString());
 		if(data != null){

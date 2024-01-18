@@ -127,6 +127,7 @@ gui.reset=Reset
 gui.filters=Filters
 gui.selectAll=Select All
 gui.deselectAll=Deselect All
+gui.loading=Loading
 
 scale.shared=Shared
 filter.contains=Contains
