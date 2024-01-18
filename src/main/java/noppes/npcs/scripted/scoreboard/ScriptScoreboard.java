@@ -63,7 +63,7 @@ public class ScriptScoreboard implements IScoreboard {
 	/**
 	 * @version 1.8
 	 * @param objective Scoreboard objective name (1-16 chars)
-	 * @param criteria The criteria see http://minecraft.gamepedia.com/Scoreboard#Objectives
+	 * @param criteria The criteria see http://minecraft.wiki/w/Scoreboard#Objectives
 	 * @return Returns the created ScoreboardObjective, returns null if it failed to create
 	 */
 	public IScoreboardObjective addObjective(String objective, String criteria){

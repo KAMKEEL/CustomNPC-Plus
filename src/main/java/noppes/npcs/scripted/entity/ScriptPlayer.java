@@ -629,7 +629,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	/**
-	 * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements
+	 * @param achievement The achievement id. For a complete list see http://minecraft.wiki/w/Achievements
 	 * @return Returns whether or not the player has this achievement
 	 */
 	public boolean hasAchievement(String achievement){
