@@ -18,6 +18,7 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScreenSize;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -51,6 +52,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public int companionID = 0;
 
 	public boolean isGUIOpen = false;
+
+	public ScreenSize screenSize = new ScreenSize(-1,-1);
 
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
@@ -134,6 +137,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public boolean getGUIOpen() {
 		return this.isGUIOpen;
+	}
+
+	public ScreenSize getScreenSize(){
+		return screenSize;
+	}
+
+	public void setScreenSize(ScreenSize size){
+		screenSize = size;
 	}
 
 	public boolean hasCompanion(){

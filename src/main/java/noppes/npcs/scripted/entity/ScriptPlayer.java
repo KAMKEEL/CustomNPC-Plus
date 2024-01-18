@@ -679,6 +679,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return PlayerDataController.Instance.getPlayerData(player).timers;
 	}
 
+	@Override
+	public IScreenSize getScreenSize() {
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+		return data.getScreenSize() ;
+	}
+
 	public void updatePlayerInventory() {
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);

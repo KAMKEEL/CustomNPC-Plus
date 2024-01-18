@@ -22,6 +22,8 @@ import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
 public class ClientTickHandler{
 	private World prevWorld;
+	private int prevWidth = 0;
+	private int prevHeight = 0;
 	private boolean otherContainer = false;
 	private int buttonPressed = -1;
 	private long buttonTime = 0L;
@@ -55,6 +57,11 @@ public class ClientTickHandler{
 			MusicController.Instance.stopMusic();
 		}
 		ScriptSoundController.Instance.onUpdate();
+		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
+			prevWidth = mc.displayWidth;
+			prevHeight = mc.displayHeight;
+			NoppesUtilPlayer.sendData(EnumPlayerPacket.ScreenSize,mc.displayWidth,mc.displayHeight);
+		}
 	}
 
 	@SubscribeEvent

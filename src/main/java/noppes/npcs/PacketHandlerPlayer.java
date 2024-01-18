@@ -309,5 +309,9 @@ public class PacketHandlerPlayer{
 				}
 			}
 		}
+		else if(type == EnumPlayerPacket.ScreenSize){
+			int width = buffer.readInt(), height = buffer.readInt();
+			PlayerDataController.Instance.getPlayerData(player).screenSize.setSize(width,height);
+		}
 	}
 }
