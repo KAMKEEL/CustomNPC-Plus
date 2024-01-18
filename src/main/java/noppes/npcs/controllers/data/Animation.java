@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IAnimation;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 
 
 public class Animation implements IAnimation {
-
+	public AnimationData parent; //Client-sided only
 	public int id = -1; // Only for internal usage
 
 	public ArrayList<Frame> frames = new ArrayList<>();
@@ -229,6 +230,10 @@ public class Animation implements IAnimation {
 		if (paused)
 			return;
 
+		if (this.parent != null && this.currentFrame < this.frames.size()) {
+			this.parent.finishedFrame = this.currentFrame;
+		}
+
 		this.currentFrameTime++;
 		if (this.currentFrameTime == this.currentFrame().getDuration()) {
 			Frame prevFrame = (Frame) this.currentFrame();
@@ -247,6 +252,8 @@ public class Animation implements IAnimation {
 						nextFrame.frameParts.get(part).prevPivots = prevFrame.frameParts.get(part).prevPivots;
 					}
 				}
+			} else if (this.parent != null && this.currentFrame > this.loop) {
+				this.parent.finishedTime = this.parent.animationEntity.getAge();
 			}
 		}
 	}

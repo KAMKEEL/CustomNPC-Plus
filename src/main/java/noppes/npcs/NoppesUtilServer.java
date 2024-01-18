@@ -672,17 +672,20 @@ public class NoppesUtilServer {
 	}
 
 	public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {
-		EntityNPCInterface npc = getEditingNpc(player);
+		return setNpcDialog(slot, dialogId, getEditingNpc(player));
+	}
+
+	public static DialogOption setNpcDialog(int slot, int dialogId, EntityNPCInterface npc) {
 		if(npc == null)
 			return null;
 		if(!npc.dialogs.containsKey(slot))
 			npc.dialogs.put(slot, new DialogOption());
-		
+
 		DialogOption option = npc.dialogs.get(slot);
 		option.dialogId = dialogId;
 		if(option.hasDialog())
 			option.title = option.getDialog().title;
-		
+
 		return option;
 	}
 

@@ -12,7 +12,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.chunk.Chunk;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
 import noppes.npcs.constants.*;

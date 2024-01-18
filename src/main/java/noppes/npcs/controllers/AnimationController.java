@@ -3,15 +3,12 @@ package noppes.npcs.controllers;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.data.IAnimation;
-import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.data.TagMap;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -119,6 +116,10 @@ public class AnimationController implements IAnimationHandler {
 
         animations.remove(animation.getID());
         animations.put(animation.getID(), (Animation) animation);
+
+        for (PlayerData playerData : PlayerDataController.Instance.getAllPlayerData()) {
+            playerData.animationData.uncacheAnimation(animation.getID());
+        }
 
         saveAnimationMap();
 

@@ -79,6 +79,10 @@ public class ScriptProjectile<T extends EntityProjectile> extends ScriptEntity<T
         return type == EntityType.PROJECTILE || super.typeOf(type);
     }
 
+    public IEntity getThrower() {
+        return NpcAPI.Instance().getIEntity(entity.getThrower());
+    }
+
     public void enableEvents() {
         if(ScriptContainer.Current == null)
             throw new CustomNPCsException("Can only be called during scripts");

@@ -2,13 +2,15 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.api.handler.data.ILine;
+import noppes.npcs.api.handler.data.ILines;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class Lines {
+public class Lines implements ILines {
 	private static final Random random = new Random();
 	private int lastLine = -1;
 
@@ -49,7 +51,11 @@ public class Lines {
         lines = map;
 	}
 
-	public Line getLine(boolean isRandom) {
+	public ILine createLine(String text) {
+		return new Line(text);
+	}
+
+	public ILine getLine(boolean isRandom) {
 		if(lines.isEmpty())
 			return null;
 		if(isRandom){
@@ -66,7 +72,27 @@ public class Lines {
 		}
 	}
 
+	public ILine getLine(int lineIndex) {
+		return lines.get(lineIndex);
+	}
+
+	public void setLine(int lineIndex, ILine line) {
+		lines.put(lineIndex, (Line) line);
+	}
+
+	public void removeLine(int lineIndex) {
+		lines.remove(lineIndex);
+	}
+
+	public void clear() {
+		lines.clear();
+	}
+
 	public boolean isEmpty() {
 		return lines.isEmpty();
+	}
+
+	public Integer[] getKeys() {
+		return lines.keySet().toArray(new Integer[0]);
 	}
 }

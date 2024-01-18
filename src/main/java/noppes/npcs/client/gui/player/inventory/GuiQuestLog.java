@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.player;
+package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -17,14 +17,13 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.util.ValueUtil;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabQuests;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
-public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,ICustomScrollListener, IGuiData{
+public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,ICustomScrollListener, IGuiData{
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
 
@@ -51,14 +50,13 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
         ySize = 180;
         NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestLog);
         drawDefaultBackground = false;
+        activeTab = 0;
 	}
     public void initGui(){
         super.initGui();
     	sideButtons.clear();
-        guiTop +=10;
-
 		TabRegistry.addTabsToList(buttonList);
-		TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabQuests.class);
+		TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         noQuests = false;
 
@@ -124,6 +122,18 @@ public class GuiQuestLog extends GuiNPCInterface implements ITopButtonListener,I
             data.toggleQuestAlerts();
         }
         initGui();
+        if (guibutton.id == 100 && activeTab != 0) {
+            activeTab = 0;
+            mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+        }
+        if (guibutton.id == 101 && activeTab != 1) {
+            activeTab = 1;
+            mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+        }
+        if (guibutton.id == 102 && activeTab != 2) {
+            activeTab = 2;
+            mc.displayGuiScreen(new GuiFaction());
+        }
     }
     @Override
     public void drawScreen(int i, int j, float f){

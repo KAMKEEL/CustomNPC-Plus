@@ -108,7 +108,7 @@ public class ClientEventHandler {
             ClientEventHandler.playerModel = null;
         }
 
-        if (data != null && data.isActive()) {
+        if (data != null && data.isActive() && !Minecraft.getMinecraft().isGamePaused()) {
             Animation animation = data.animation;
             if (data.isActive() && animation.currentFrame().useRenderTicks()) {
                 animation.increaseTime();

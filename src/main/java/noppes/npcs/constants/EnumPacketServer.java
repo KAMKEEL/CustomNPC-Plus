@@ -91,9 +91,11 @@ public enum EnumPacketServer {
 	RemoteTpToNpc,QuestGet, QuestCategoryGet, 
 	SaveTileEntity,
 	NaturalSpawnGetAll, MailOpenSetup,
-	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen,
+	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen, CacheAnimation,
 
 	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
+
+	CreateParty, GetPartyData, DisbandParty,
 
     ServerUpdateSkinOverlays;
 
