@@ -220,7 +220,7 @@ public class EntityProjectile extends EntityThrowable {
     public void onUpdate()
     {
         super.onEntityUpdate();
-		if (ticksExisted == 400) {
+		if (ticksExisted >= 1200) {
 			this.setDead();
 		}
 		if(++ticksExisted % 10 == 0){
@@ -265,7 +265,7 @@ public class EntityProjectile extends EntityThrowable {
             {
                 ++this.ticksInGround;
 
-                if (this.ticksInGround == 1200)
+                if (this.ticksInGround >= 1200)
                 {
                     this.setDead();
                 }
@@ -284,7 +284,7 @@ public class EntityProjectile extends EntityThrowable {
         {
             ++this.ticksInAir;
 
-            if (this.ticksInAir == 1200)
+            if (this.ticksInAir >= 1200)
             {
                 this.setDead();
             }
