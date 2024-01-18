@@ -305,5 +305,9 @@ public class PacketHandlerPlayer{
                 tile.book.func_150996_a(Items.written_book);
 			}
 		}
+		else if(type == EnumPlayerPacket.ScreenSize){
+			int width = buffer.readInt(), height = buffer.readInt();
+			PlayerDataController.Instance.getPlayerData(player).screenSize.setSize(width,height);
+		}
 	}
 }
