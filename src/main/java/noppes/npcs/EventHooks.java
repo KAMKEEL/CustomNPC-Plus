@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
@@ -639,6 +640,110 @@ public class EventHooks {
     public static void onDialogClosed(DialogEvent.DialogClosed event){
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
         handler.callScript(EnumScriptType.DIALOG_CLOSE, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptBlockInteract(IScriptBlockHandler handler, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+        if(handler.isClient())
+            return false;
+        BlockEvent.InteractEvent event = new BlockEvent.InteractEvent(handler.getBlock(), player, side, hitX, hitY, hitZ);
+        handler.callScript(EnumScriptType.INTERACT, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockCollide(IScriptBlockHandler handler, Entity entityIn) {
+        if(handler.isClient())
+            return;
+        BlockEvent.CollidedEvent event = new BlockEvent.CollidedEvent(handler.getBlock(), entityIn);
+        handler.callScript(EnumScriptType.COLLIDE, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockRainFill(IScriptBlockHandler handler) {
+        if(handler.isClient())
+            return;
+        BlockEvent.RainFillEvent event = new BlockEvent.RainFillEvent(handler.getBlock());
+        handler.callScript(EnumScriptType.RAIN_FILLED, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static float onScriptBlockFallenUpon(IScriptBlockHandler handler, Entity entity, float distance) {
+        if(handler.isClient())
+            return distance;
+        BlockEvent.EntityFallenUponEvent event = new BlockEvent.EntityFallenUponEvent(handler.getBlock(), entity, distance);
+        handler.callScript(EnumScriptType.FALLEN_UPON, event);
+        if(NpcAPI.EVENT_BUS.post(event))
+            return 0;
+        return event.distanceFallen;
+    }
+
+    public static void onScriptBlockClicked(IScriptBlockHandler handler, EntityPlayer player) {
+        if(handler.isClient())
+            return;
+        BlockEvent.ClickedEvent event = new BlockEvent.ClickedEvent(handler.getBlock(), player);
+        handler.callScript(EnumScriptType.CLICKED, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockBreak(IScriptBlockHandler handler) {
+        if(handler.isClient())
+            return;
+        BlockEvent.BreakEvent event = new BlockEvent.BreakEvent(handler.getBlock());
+        handler.callScript(EnumScriptType.BROKEN, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptBlockHarvest(IScriptBlockHandler handler, EntityPlayer player) {
+        if(handler.isClient())
+            return false;
+        BlockEvent.HarvestedEvent event = new BlockEvent.HarvestedEvent(handler.getBlock(), player);
+        handler.callScript(EnumScriptType.HARVESTED, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onScriptBlockExploded(IScriptBlockHandler handler) {
+        if(handler.isClient())
+            return false;
+        BlockEvent.ExplodedEvent event = new BlockEvent.ExplodedEvent(handler.getBlock());
+        handler.callScript(EnumScriptType.EXPLODED, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockNeighborChanged(IScriptBlockHandler handler, int x, int y, int z) {
+        if(handler.isClient())
+            return;
+        BlockEvent.NeighborChangedEvent event = new BlockEvent.NeighborChangedEvent(handler.getBlock(), NpcAPI.Instance().getIPos(x,y,z));
+        handler.callScript(EnumScriptType.NEIGHBOR_CHANGED, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockRedstonePower(IScriptBlockHandler handler, int prevPower, int power) {
+        if(handler.isClient())
+            return;
+        BlockEvent.RedstoneEvent event = new BlockEvent.RedstoneEvent(handler.getBlock(), prevPower, power);
+        handler.callScript(EnumScriptType.REDSTONE, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockInit(IScriptBlockHandler handler) {
+        if(handler.isClient())
+            return;
+        BlockEvent.InitEvent event = new BlockEvent.InitEvent(handler.getBlock());
+        handler.callScript(EnumScriptType.INIT, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockUpdate(IScriptBlockHandler handler) {
+        if(handler.isClient())
+            return;
+        BlockEvent.UpdateEvent event = new BlockEvent.UpdateEvent(handler.getBlock());
+        handler.callScript(EnumScriptType.TICK, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onScriptBlockTimer(IScriptBlockHandler handler, int id) {
+        BlockEvent.TimerEvent event = new BlockEvent.TimerEvent(handler.getBlock(), id);
+        handler.callScript(EnumScriptType.TIMER, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 }
