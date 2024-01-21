@@ -51,48 +51,8 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
             GlStateManager.rotate(tile.rotationX, 1, 0, 0);
             GlStateManager.rotate(tile.rotationZ, 0, 0, 1);
             GlStateManager.scale(tile.scaleX, tile.scaleY, tile.scaleZ);
-            Block b = tile.blockModel;
-            if(b == null || b == Blocks.air){
-                GlStateManager.translate(0, 0.5, 0);
-                renderItem(te, tile.itemModel);
-            }
-            else if(b == CustomItems.scripted){
-                GlStateManager.translate(0, 0.5, 0);
-                renderItem(te, tile.itemModel);
-            }
-            else{
-                int meta = tile.itemModel.getItemDamage();
-                renderBlock(tile, b);
-
-                if(b.hasTileEntity(meta) && !tile.renderTileErrored){
-                    try{
-                        if(tile.renderTile == null){
-                            TileEntity entity = b.createTileEntity(te.getWorldObj(), meta);
-                            entity.zCoord=tile.zCoord;
-                            entity.yCoord=tile.yCoord;
-                            entity.xCoord=tile.xCoord;
-                            entity.setWorldObj(te.getWorldObj());
-                            ObfuscationReflectionHelper.setPrivateValue(TileEntity.class, entity, tile.itemModel.getItemDamage(), 5);
-                            ObfuscationReflectionHelper.setPrivateValue(TileEntity.class, entity, b, 6);
-                            tile.renderTile = entity;
-                            if(entity instanceof ITickable){
-                                tile.renderTileUpdate = (ITickable) entity;
-                            }
-                        }
-                        TileEntitySpecialRenderer renderer = TileEntityRendererDispatcher.instance.getSpecialRenderer(tile.renderTile);
-
-                        if(renderer != null){
-                            renderer.renderTileEntityAt(tile.renderTile, -0.5, 0, -0.5, partialTicks);
-
-                        }
-                        else
-                            tile.renderTileErrored = true;
-                    }
-                    catch(Exception e){
-                        tile.renderTileErrored = true;
-                    }
-                }
-            }
+            GlStateManager.translate(0, 0.5, 0);
+            renderItem(te, tile.itemModel);
         }
         GlStateManager.popMatrix();
 
@@ -193,7 +153,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
         GlStateManager.enableBlend();
         GlStateManager.disableCull();
         GlStateManager.translate(-0.5F, -0, 0.5F);
-        RenderBlocks.getInstance().renderStandardBlock(b, tile.xCoord, tile.yCoord, tile.zCoord);
+        renderBlocks.renderStandardBlock(b, tile.xCoord, tile.yCoord, tile.zCoord);
         if(b.getTickRandomly() && random.nextInt(12) == 1)
             b.randomDisplayTick(tile.getWorldObj(), tile.xCoord,tile.yCoord,tile.zCoord, random);
         GlStateManager.popMatrix();
