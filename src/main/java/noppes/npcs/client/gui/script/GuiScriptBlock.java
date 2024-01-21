@@ -24,7 +24,7 @@ public class GuiScriptBlock extends GuiScriptInterface {
         hookList.add("timer");
 
         this.handler = this.tileScripted = (TileScripted) player.worldObj.getTileEntity(x, y, z);
-        Client.sendData(EnumPacketServer.ScriptBlockDataGet);
+        Client.sendData(EnumPacketServer.ScriptBlockDataGet, tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord);
     }
 
     public void setGuiData(NBTTagCompound compound) {
