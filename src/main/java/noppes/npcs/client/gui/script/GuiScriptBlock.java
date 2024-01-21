@@ -11,15 +11,17 @@ public class GuiScriptBlock extends GuiScriptInterface {
     public GuiScriptBlock(int x, int y, int z) {
         hookList.add("init");
         hookList.add("tick");
-        hookList.add("tossed");
-        hookList.add("pickedUp");
-        hookList.add("spawn");
         hookList.add("interact");
-        hookList.add("attack");
-        hookList.add("startItem");
-        hookList.add("usingItem");
-        hookList.add("stopItem");
-        hookList.add("finishItem");
+        hookList.add("fallenUpon");
+        hookList.add("redstone");
+        hookList.add("broken");
+        hookList.add("exploded");
+        hookList.add("rainFilled");
+        hookList.add("neighborChanged");
+        hookList.add("clicked");
+        hookList.add("harvested");
+        hookList.add("collide");
+        hookList.add("timer");
 
         this.handler = this.tileScripted = (TileScripted) player.worldObj.getTileEntity(x, y, z);
         Client.sendData(EnumPacketServer.ScriptBlockDataGet);
