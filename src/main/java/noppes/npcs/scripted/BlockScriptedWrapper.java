@@ -19,7 +19,7 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
 
     public BlockScriptedWrapper(World world, Block block, int x, int y, int z) {
         super(world, block, new BlockPos(x,y,z));
-        tile = (TileScripted) super.tile;
+        tile = (TileScripted) super.tile.getMCTileEntity();
     }
 
     @Override
