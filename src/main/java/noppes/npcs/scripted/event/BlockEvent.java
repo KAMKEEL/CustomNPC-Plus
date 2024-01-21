@@ -8,6 +8,7 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IBlockEvent;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
 public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
@@ -42,6 +43,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         @Override
         public float getDistanceFallen() {
             return distanceFallen;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.FALLEN_UPON.function;
         }
     }
 
@@ -90,6 +96,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         public int getSide() {
             return side;
         }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.INTERACT.function;
+        }
     }
 
     /**
@@ -112,6 +123,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         public int getPower() {
             return power;
         }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.REDSTONE.function;
+        }
     }
 
 
@@ -121,6 +137,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     public static class BreakEvent extends BlockEvent implements IBlockEvent.BreakEvent{
         public BreakEvent(IBlock block) {
             super(block);
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.BROKEN.function;
         }
     }
 
@@ -132,6 +153,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         public ExplodedEvent(IBlock block) {
             super(block);
         }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.EXPLODED.function;
+        }
     }
 
     /**
@@ -140,6 +166,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     public static class RainFillEvent extends BlockEvent implements IBlockEvent.RainFillEvent{
         public RainFillEvent(IBlock block) {
             super(block);
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.RAIN_FILLED.function;
         }
     }
 
@@ -157,6 +188,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         public IPos getChangedPos() {
             return changedPos;
         }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.NEIGHBOR_CHANGED.function;
+        }
     }
 
     /**
@@ -166,6 +202,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         public InitEvent(IBlock block) {
             super(block);
         }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.INIT.function;
+        }
     }
 
     /**
@@ -174,6 +215,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     public static class UpdateEvent extends BlockEvent implements IBlockEvent.UpdateEvent{
         public UpdateEvent(IBlock block) {
             super(block);
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.TICK.function;
         }
     }
 
@@ -190,6 +236,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         @Override
         public IPlayer getPlayer() {
             return player;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.CLICKED.function;
         }
     }
 
@@ -208,6 +259,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         public IPlayer getPlayer() {
             return player;
         }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.HARVESTED.function;
+        }
     }
 
     /**
@@ -223,6 +279,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         @Override
         public IEntity getEntity() {
             return entity;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.COLLIDE.function;
         }
     }
 
@@ -240,6 +301,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
         @Override
         public int getId() {
             return id;
+        }
+
+        @Override
+        public String getHookName() {
+            return EnumScriptType.TIMER.function;
         }
     }
 }
