@@ -145,6 +145,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     @Override
     public void writeToNBT(NBTTagCompound compound){
+        super.writeToNBT(compound);
         getNBT(compound);
         getDisplayNBT(compound);
         timers.writeToNBT(compound);
