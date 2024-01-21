@@ -36,7 +36,15 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
             tile.setItemModel(null, null);
         else{
             Block block = Block.getBlockFromName(name);
-            tile.setItemModel(new ItemStack(Item.getItemFromBlock(block)), block);
+            if(block!=null) {
+                tile.setItemModel(new ItemStack(Item.getItemFromBlock(block)), block);
+            }else{
+                if(Item.itemRegistry.containsKey(name)) {
+                    tile.setItemModel(new ItemStack((Item) Item.itemRegistry.getObject(name)), null);
+                }else{
+                    tile.setItemModel(null, null);
+                }
+            }
         }
     }
 

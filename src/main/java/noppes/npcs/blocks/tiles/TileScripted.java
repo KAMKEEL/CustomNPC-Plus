@@ -106,7 +106,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     }
     public void setDisplayNBT(NBTTagCompound compound){
         itemModel = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("ScriptBlockModel"));
-        if(itemModel.stackSize == 0)
+        if(itemModel==null || itemModel.stackSize == 0)
             itemModel = new ItemStack(Item.getItemFromBlock(CustomItems.scripted));
         if(compound.hasKey("ScriptBlockModelBlock"))
             blockModel = Block.getBlockFromName(compound.getString("ScriptBlockModelBlock"));
@@ -215,6 +215,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             ticksExisted = 0;
             if(needsClientUpdate){
                 markDirty();
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
                 worldObj.notifyBlocksOfNeighborChange(xCoord,yCoord,zCoord,getBlockType(),3);
                 needsClientUpdate = false;
             }
