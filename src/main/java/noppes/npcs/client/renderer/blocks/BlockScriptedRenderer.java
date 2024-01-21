@@ -13,11 +13,15 @@ import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraftforge.client.ForgeHooksClient;
 import noppes.npcs.CustomItems;
+import noppes.npcs.blocks.BlockScripted;
 import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.blocks.tiles.TileScripted.TextPlane;
 import noppes.npcs.client.TextBlockClient;
@@ -27,7 +31,7 @@ import java.awt.*;
 import java.util.Random;
 
 public class BlockScriptedRenderer extends BlockRendererInterface{
-
+    private static final RenderBlocks renderBlocks = new RenderBlocks();
     private static final Random random = new Random();
 
     @Override
@@ -40,7 +44,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
         GlStateManager.translate(x + 0.5, y, z + 0.5);
         if(overrideModel()){
             GlStateManager.translate(0, 0.5, 0);
-            renderItem(new ItemStack(CustomItems.scripted));
+            renderItem(te, new ItemStack(CustomItems.scripted));
         }
         else{
             GlStateManager.rotate(tile.rotationY, 0, 1, 0);
@@ -50,11 +54,11 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
             Block b = tile.blockModel;
             if(b == null || b == Blocks.air){
                 GlStateManager.translate(0, 0.5, 0);
-                renderItem(tile.itemModel);
+                renderItem(te, tile.itemModel);
             }
             else if(b == CustomItems.scripted){
                 GlStateManager.translate(0, 0.5, 0);
-                renderItem(tile.itemModel);
+                renderItem(te, tile.itemModel);
             }
             else{
                 int meta = tile.itemModel.getItemDamage();
@@ -148,17 +152,36 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
         GlStateManager.popMatrix();
     }
 
-    private void renderItem(ItemStack stack){
-        IIcon icon = stack.getItem().getIcon(stack, 0);
-        if(icon != null) {
-            Color color = new Color(stack.getItem().getColorFromItemStack(stack, 0));
-            GL11.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
-            float f = icon.getMinU();
-            float f1 = icon.getMaxU();
-            float f2 = icon.getMinV();
-            float f3 = icon.getMaxV();
-            ItemRenderer.renderItemIn2D(Tessellator.instance, f1, f2, f, f3, icon.getIconWidth(), icon.getIconHeight(), 1F / 16F);
-            GL11.glColor3f(1F, 1F, 1F);
+    private void renderItem(TileEntity tile, ItemStack stack){
+        Minecraft mc = Minecraft.getMinecraft();
+        if(stack != null) {
+            mc.renderEngine.bindTexture(stack.getItem() instanceof ItemBlock ? TextureMap.locationBlocksTexture : TextureMap.locationItemsTexture);
+
+            GL11.glScalef(2F, 2F, 2F);
+            if(!ForgeHooksClient.renderEntityItem(new EntityItem(tile.getWorldObj(), tile.xCoord, tile.yCoord, tile.zCoord, stack), stack, 0F, 0F, tile.getWorldObj().rand, mc.renderEngine, renderBlocks, 1)) {
+                GL11.glScalef(0.5F, 0.5F, 0.5F);
+                if(stack.getItem() instanceof ItemBlock && (RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem()).getRenderType())
+                        || Block.getBlockFromItem(stack.getItem()) instanceof BlockScripted)) {
+                    renderBlocks.renderBlockAsItem(Block.getBlockFromItem(stack.getItem()), stack.getItemDamage(), 1F);
+                } else {
+                    int renderPass = 0;
+                    do {
+                        IIcon icon = stack.getItem().getIcon(stack, renderPass);
+                        if(icon != null) {
+                            Color color = new Color(stack.getItem().getColorFromItemStack(stack, renderPass));
+                            GL11.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
+                            float f = icon.getMinU();
+                            float f1 = icon.getMaxU();
+                            float f2 = icon.getMinV();
+                            float f3 = icon.getMaxV();
+                            GL11.glTranslatef(-0.5F, -0.5F, 0F);
+                            ItemRenderer.renderItemIn2D(Tessellator.instance, f1, f2, f, f3, icon.getIconWidth(), icon.getIconHeight(), 1F / 16F);
+                            GL11.glColor3f(1F, 1F, 1F);
+                        }
+                        renderPass++;
+                    } while(renderPass < stack.getItem().getRenderPasses(stack.getItemDamage()));
+                }
+            }
         }
     }
 

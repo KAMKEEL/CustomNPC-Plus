@@ -100,12 +100,20 @@ public class BlockScripted extends BlockContainer {
     }
 
     @Override
-    public boolean isOpaqueCube() {
+    public boolean canRenderInPass(int pass) {
         return false;
     }
 
     @Override
-    public boolean isNormalCube() {
+    public int getRenderType() {
+        return 0;
+    }
+    @Override
+    public boolean isOpaqueCube() {
+        return false;
+    }
+
+    public boolean renderAsNormalBlock() {
         return false;
     }
 
