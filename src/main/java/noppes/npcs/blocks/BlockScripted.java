@@ -42,7 +42,7 @@ public class BlockScripted extends BlockContainer {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
         if (tile != null && tile.isPassible)
             return AABB_EMPTY;
-        return AABB;
+        return AABB.getOffsetBoundingBox(x,y,z);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class BlockScripted extends BlockContainer {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
         if (tile != null && tile.isPassible)
             return AABB_EMPTY;
-        return AABB;
+        return AABB.getOffsetBoundingBox(x,y,z);
     }
 
     @Override
