@@ -243,7 +243,7 @@ public class CustomItems {
 		mailbox = new BlockMailbox().setBlockName("npcMailbox").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
 		waypoint = new BlockWaypoint().setBlockName("npcLocationBlock").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setBlockTextureName("customnpcs:npcWaypoint").setCreativeTab(tab);
 		border = new BlockBorder().setBlockName("npcBorder").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tab).setBlockTextureName("customnpcs:npcBorder");
-		scripted = new BlockScripted().setBlockName("npcScripted").setHardness(5.0F).setResistance(10.0F).setCreativeTab(tab).setBlockName("customnpcs:npcScripted");
+		scripted = new BlockScripted().setBlockName("npcScripted").setHardness(5.0F).setResistance(10.0F).setCreativeTab(tab).setBlockTextureName("customnpcs:npcScripted");
 
 		soulstoneEmpty = new ItemSoulstoneEmpty().setUnlocalizedName("npcSoulstoneEmpty").setTextureName("customnpcs:npcSoulstoneEmpty").setCreativeTab(tab);
 		soulstoneFull = new ItemSoulstoneFilled().setUnlocalizedName("npcSoulstoneFilled").setTextureName("customnpcs:npcSoulstoneFilled");
