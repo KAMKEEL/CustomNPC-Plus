@@ -49,6 +49,8 @@ public enum EnumPacketServer {
 
 	ScriptItemDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
 	ScriptItemDataGet(false),
+	ScriptBlockDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, false),
+	ScriptBlockDataGet(false),
 
 	LinkedGetAll, LinkedRemove(CustomNpcsPermissions.GLOBAL_LINKED), LinkedAdd(CustomNpcsPermissions.GLOBAL_LINKED),
 	ScriptDataSave(CustomNpcsPermissions.TOOL_SCRIPTER, true), ScriptDataGet(true),

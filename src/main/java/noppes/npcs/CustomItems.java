@@ -189,6 +189,7 @@ public class CustomItems {
 	public static Block lamp_unlit;
 	public static Block campfire_unlit;
 	public static Block candle_unlit;
+	public static Block scripted;
 	
 	public static Item crossbowBolt;
 
@@ -204,6 +205,7 @@ public class CustomItems {
 		GameRegistry.registerTileEntity(TileMailbox.class, "TileMailbox");
 		GameRegistry.registerTileEntity(TileWaypoint.class, "TileWaypoint");
 		GameRegistry.registerTileEntity(TileBanner.class, "TileNPCBanner");
+		GameRegistry.registerTileEntity(TileScripted.class, "TileNPCScripted");
 		
 		if(!ConfigMain.DisableExtraBlock){
 			GameRegistry.registerTileEntity(TileWallBanner.class, "TileNPCWallBanner");
@@ -241,6 +243,7 @@ public class CustomItems {
 		mailbox = new BlockMailbox().setBlockName("npcMailbox").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
 		waypoint = new BlockWaypoint().setBlockName("npcLocationBlock").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setBlockTextureName("customnpcs:npcWaypoint").setCreativeTab(tab);
 		border = new BlockBorder().setBlockName("npcBorder").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tab).setBlockTextureName("customnpcs:npcBorder");
+		scripted = new BlockScripted().setBlockName("npcScripted").setHardness(5.0F).setResistance(10.0F).setCreativeTab(tab).setBlockTextureName("customnpcs:npcScripted");
 
 		soulstoneEmpty = new ItemSoulstoneEmpty().setUnlocalizedName("npcSoulstoneEmpty").setTextureName("customnpcs:npcSoulstoneEmpty").setCreativeTab(tab);
 		soulstoneFull = new ItemSoulstoneFilled().setUnlocalizedName("npcSoulstoneFilled").setTextureName("customnpcs:npcSoulstoneFilled");
@@ -262,6 +265,7 @@ public class CustomItems {
 		GameRegistry.registerBlock(mailbox, ItemBlock.class, "npcMailbox");
 		GameRegistry.registerBlock(waypoint, "npcWaypoint");
 		GameRegistry.registerBlock(border, "npcBorder");
+		GameRegistry.registerBlock(scripted, "npcScripted");
 
 		Item.getItemFromBlock(mailbox).setHasSubtypes(true);
 		Item.getItemFromBlock(carpentyBench).setHasSubtypes(true);

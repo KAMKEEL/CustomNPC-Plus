@@ -45,6 +45,7 @@ import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
 import noppes.npcs.client.gui.GuiNpcRemoteEditor;
 import noppes.npcs.client.gui.roles.*;
+import noppes.npcs.client.gui.script.GuiScriptBlock;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
@@ -123,6 +124,7 @@ public class ClientProxy extends CommonProxy {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBeam.class, new BlockBeamRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBook.class, new BlockBookRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TilePedestal.class, new BlockPedestalRenderer());
+			ClientRegistry.bindTileEntitySpecialRenderer(TileScripted.class, new BlockScriptedRenderer());
 			RenderingRegistry.registerBlockHandler(new BlockBloodRenderer());
 		}
 		Minecraft mc = Minecraft.getMinecraft();
@@ -374,6 +376,9 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.CustomGui)
 			return new GuiCustom((ContainerCustomGui)container);
+
+		else if (gui == EnumGuiType.ScriptBlock)
+			return new GuiScriptBlock(x,y,z);
 
 		return null;
 	}
