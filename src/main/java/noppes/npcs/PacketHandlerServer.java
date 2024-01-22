@@ -22,11 +22,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
@@ -214,6 +216,8 @@ public class PacketHandlerServer{
 							forgeScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
 							itemScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptBlockDataGet || type == EnumPacketServer.ScriptBlockDataSave)
+							blockScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
 							getScriptsEnabled(type, buffer, player);
 						else if (item.getItem() == CustomItems.scripter)
@@ -404,6 +408,27 @@ public class PacketHandlerServer{
 			wrapper.saveScriptData();
 			wrapper.loaded = false;
 			player.sendContainerToPlayer(player.inventoryContainer);
+		}
+	}
+
+	private void blockScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		if (type == EnumPacketServer.ScriptBlockDataGet) {
+			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
+			if(!(tile instanceof TileScripted))
+				return;
+			NBTTagCompound compound = ((TileScripted) tile).getNBT(new NBTTagCompound());
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		} else if (type == EnumPacketServer.ScriptBlockDataSave) {
+			if (!player.capabilities.isCreativeMode) {
+				return;
+			}
+			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
+			if(!(tile instanceof TileScripted))
+				return;
+			TileScripted script = (TileScripted) tile;
+			script.setNBT(Server.readNBT(buffer));
+			script.lastInited = -1;
 		}
 	}
 
