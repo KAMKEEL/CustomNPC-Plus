@@ -21,6 +21,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
@@ -135,7 +136,20 @@ public class ServerEventsHandler {
 				}
 			}
 		}
+	}
 
+	@SubscribeEvent
+	public void invoke(LivingAttackEvent event) {
+		if(!(event.source != null && event.source.getEntity() instanceof EntityPlayer) || !(event.entityLiving instanceof EntityPlayer) || FMLCommonHandler.instance().getEffectiveSide().isClient())
+			return;
+
+		EntityPlayer sourcePlayer = (EntityPlayer) event.source.getEntity();
+
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(sourcePlayer);
+		PlayerData targetData = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
+		if (playerData.partyUUID != null && playerData.partyUUID.equals(targetData.partyUUID)) {
+			event.setCanceled(true);
+		}
 	}
 
 	@SubscribeEvent
