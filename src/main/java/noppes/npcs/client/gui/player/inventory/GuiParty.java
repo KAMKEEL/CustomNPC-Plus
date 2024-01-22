@@ -2,6 +2,8 @@ package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -9,6 +11,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.gui.SubGuiNpcTextArea;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Party;
@@ -17,9 +20,10 @@ import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.UUID;
 
-public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData {
+public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData, GuiYesNoCallback {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
     private Minecraft mc = Minecraft.getMinecraft();
@@ -48,13 +52,13 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 //
                 //create party button
                 //
-                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 20, "Create Party");
+                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 20, "party.createParty");
                 createPartyButton.width = 100;
                 this.addButton(createPartyButton);
 
-                this.addLabel(new GuiNpcLabel(201, "You're not in a party!", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 30));
-                this.addLabel(new GuiNpcLabel(202, "Either wait for an invite", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 20));
-                this.addLabel(new GuiNpcLabel(203, "or create one.", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 10));
+                this.addLabel(new GuiNpcLabel(201, "party.partyInfo1", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 30));
+                this.addLabel(new GuiNpcLabel(202, "party.partyInfo2", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 20));
+                this.addLabel(new GuiNpcLabel(203, "party.partyInfo3", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 10));
 
                 //party invites list
                 //
@@ -64,11 +68,11 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 inviteScroll.guiTop = guiTop + 5;
                 this.addScroll(inviteScroll);
 
-                GuiNpcButton acceptButton = new GuiNpcButton(215, guiLeft + 15, guiTop + ySize - 12, "Accept");
+                GuiNpcButton acceptButton = new GuiNpcButton(215, guiLeft + 15, guiTop + ySize - 12, "party.accept");
                 acceptButton.width = 60;
                 this.addButton(acceptButton);
 
-                GuiNpcButton ignoreButton = new GuiNpcButton(220, guiLeft + 80, guiTop + ySize - 12, "Ignore");
+                GuiNpcButton ignoreButton = new GuiNpcButton(220, guiLeft + 80, guiTop + ySize - 12, "party.ignore");
                 ignoreButton.width = 60;
                 this.addButton(ignoreButton);
             } else {
@@ -79,28 +83,39 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 playerScroll.setSize(150, 160);
                 playerScroll.guiLeft = guiLeft + 5;
                 playerScroll.guiTop = guiTop + 5;
-                playerScroll.setList(new ArrayList<>(party.getPlayerNames()));
+
+                ArrayList<String> arrayList = new ArrayList<>();
+                Collection<String> playerNames = party.getPlayerNames();
+                for (String s : playerNames) {
+                    if (party.getPartyLeaderName().equals(s)) {
+                        arrayList.add(s + " §e[" + StatCollector.translateToLocal("party.leader").toUpperCase() + "]");
+                    } else {
+                        arrayList.add(s);
+                    }
+                }
+
+                playerScroll.setList(arrayList);
                 this.addScroll(playerScroll);
 
                 //set leader button
                 //
-                GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 12, "Make Leader");
+                GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 12, "party.makeLeader");
                 leaderButton.width = 70;
                 this.addButton(leaderButton);
 
                 //kick player button
                 //
-                GuiNpcButton kickButton = new GuiNpcButton(315, guiLeft + 85, guiTop + ySize - 12, "Kick");
+                GuiNpcButton kickButton = new GuiNpcButton(315, guiLeft + 85, guiTop + ySize - 12, "party.kick");
                 kickButton.width = 70;
                 this.addButton(kickButton);
 
                 //toggle friendly fire
                 //
-                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, guiLeft + xSize/2 + 95, guiTop + ySize/2, new String[] {"On", "Off"}, 0); //party.friendlyFire() ? 0 : 1
+                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, guiLeft + xSize/2 + 95, guiTop + ySize/2, new String[] {"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
                 friendlyFireButton.width = 40;
                 this.addButton(friendlyFireButton);
 
-                GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, "Friendly Fire:", guiLeft + xSize/2 + 20, guiTop + ySize/2 + 5);
+                GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":", guiLeft + xSize/2 + 20, guiTop + ySize/2 + 5);
                 this.addLabel(friendlyFireLabel);
 
                 //send invite button (opens subgui)
@@ -108,13 +123,13 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, guiLeft + xSize/2 + 20, guiTop + ySize/2 + 40,100, 20, "");
                 this.addTextField(playerTextField);
 
-                GuiNpcButton inviteButton = new GuiNpcButton(330, guiLeft + xSize/2 + 125, guiTop + ySize/2 + 40, "Invite");
+                GuiNpcButton inviteButton = new GuiNpcButton(330, guiLeft + xSize/2 + 125, guiTop + ySize/2 + 40, "party.invite");
                 inviteButton.width = 50;
                 this.addButton(inviteButton);
 
                 //disband party
                 //
-                GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "Disband Party");
+                GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.disbandParty");
                 disbandButton.width = 100;
                 this.addButton(disbandButton);
             }
@@ -122,15 +137,34 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     }
 
     @Override
+    public void confirmClicked(boolean flag, int i) {
+        if (flag) {
+            switch (i) {
+                case 0:
+                    Client.sendData(EnumPacketServer.DisbandParty);
+                    receivedData = false;
+                    initGui();
+                    break;
+            }
+        }
+        displayGuiScreen(this);
+    }
+
+    @Override
     protected void actionPerformed(GuiButton guibutton){
+        Party party = ClientCacheHandler.party;
+
         switch (guibutton.id) {
             case 200:
                 Client.sendData(EnumPacketServer.CreateParty);
                 receivedData = false;
                 break;
+            case 320:
+                party.toggleFriendlyFire();
+                break;
             case 335:
-                Client.sendData(EnumPacketServer.DisbandParty);
-                receivedData = false;
+                GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.disbandConfirm"), 0);
+                displayGuiScreen(guiyesno);
                 break;
         }
         initGui();
