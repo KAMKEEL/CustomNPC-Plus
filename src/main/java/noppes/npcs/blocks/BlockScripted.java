@@ -207,10 +207,15 @@ public class BlockScripted extends BlockContainer {
     public void onNeighborChange(IBlockAccess world, int x, int y, int z, int tileX, int tileY, int tileZ) {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
         EventHooks.onScriptBlockNeighborChanged(tile, tileX, tileY, tileZ);
+    }
+
+    @Override
+    public void onNeighborBlockChange(World world, int x, int y, int z, Block block) {
+        TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
 
         int power = 0;
         for (EnumFacing enumfacing : EnumFacing.values()) {
-            int p = world.isBlockProvidingPowerTo(x + enumfacing.getFrontOffsetX(),
+            int p = world.getIndirectPowerLevelTo(x + enumfacing.getFrontOffsetX(),
                     y + enumfacing.getFrontOffsetZ(), z + enumfacing.getFrontOffsetZ(), enumfacing.ordinal());
             if (p > power)
                 power = p;
