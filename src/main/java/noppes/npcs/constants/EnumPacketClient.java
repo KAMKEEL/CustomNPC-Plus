@@ -4,6 +4,7 @@ noppes.npcs.constants;
 public enum EnumPacketClient {
 	CHAT,	
 	MESSAGE,
+	PARTY_MESSAGE,
 	SYNCRECIPES_ADD,
 	SYNCRECIPES_WORKBENCH,
 	DIALOG,

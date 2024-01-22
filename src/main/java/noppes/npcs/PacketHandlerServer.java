@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
@@ -123,12 +124,6 @@ public class PacketHandlerServer{
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
 					compound = party.writeToNBT();
-
-					Quest quest = (Quest) QuestController.Instance.get(party.getCurrentQuestID());
-					if (quest != null) {
-						compound.setString("QuestName", quest.getName());
-						compound.setString("QuestCategory", quest.getCategory().getName());
-					}
 				}
 				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 			} else if (type == EnumPacketServer.DisbandParty) {
@@ -140,6 +135,38 @@ public class PacketHandlerServer{
 				NBTTagCompound compound = new NBTTagCompound();
 				compound.setBoolean("Disband", true);
 				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			} else if (type == EnumPacketServer.KickPlayer) {
+				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+				if (kickPlayer != null) {
+					PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+					if (playerData.partyUUID != null) {
+						Party party = PartyController.Instance().getParty(playerData.partyUUID);
+						party.removePlayer(kickPlayer);
+						Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+					}
+				}
+			} else if (type == EnumPacketServer.SavePartyData) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				if (playerData.partyUUID != null) {
+					Party party = PartyController.Instance().getParty(playerData.partyUUID);
+					party.readClientNBT(Server.readNBT(buffer));
+				}
+			} else if (type == EnumPacketServer.SetPartyLeader) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				if (playerData.partyUUID != null) {
+					Party party = PartyController.Instance().getParty(playerData.partyUUID);
+					party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
+					Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+				}
+			} else if (type == EnumPacketServer.PartyInvite) {
+				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+				if (invitedPlayer != null) {
+					PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
+					PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
+					if (senderData.partyUUID != null && invitedData.partyUUID == null) {//only send invite if player is not in a party
+						invitedData.inviteToParty(PartyController.Instance().getParty(senderData.partyUUID));
+					}
+				}
 			}
 
 			if(type.needsNpc && npc == null){

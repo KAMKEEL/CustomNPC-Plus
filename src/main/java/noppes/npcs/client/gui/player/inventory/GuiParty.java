@@ -11,7 +11,6 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.gui.SubGuiNpcTextArea;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Party;
@@ -30,6 +29,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     private boolean receivedData;
     private long renderTicks;
+    private String selectedPlayer;
+
+    private boolean partyChanged = false;
+    private boolean isLeader;
 
     public GuiParty(EntityPlayer player) {
         super();
@@ -97,41 +100,49 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 playerScroll.setList(arrayList);
                 this.addScroll(playerScroll);
 
-                //set leader button
-                //
-                GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 12, "party.makeLeader");
-                leaderButton.width = 70;
-                this.addButton(leaderButton);
+                if (this.isLeader) {
+                    //set leader button
+                    //
+                    GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 12, "party.makeLeader");
+                    leaderButton.width = 70;
+                    this.addButton(leaderButton);
 
-                //kick player button
-                //
-                GuiNpcButton kickButton = new GuiNpcButton(315, guiLeft + 85, guiTop + ySize - 12, "party.kick");
-                kickButton.width = 70;
-                this.addButton(kickButton);
+                    //kick player button
+                    //
+                    GuiNpcButton kickButton = new GuiNpcButton(310, guiLeft + 85, guiTop + ySize - 12, "party.kick");
+                    kickButton.width = 70;
+                    this.addButton(kickButton);
 
-                //toggle friendly fire
-                //
-                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, guiLeft + xSize/2 + 95, guiTop + ySize/2, new String[] {"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
-                friendlyFireButton.width = 40;
-                this.addButton(friendlyFireButton);
+                    //toggle friendly fire
+                    //
+                    GuiNpcButton friendlyFireButton = new GuiNpcButton(320, guiLeft + xSize / 2 + 95, guiTop + ySize / 2, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
+                    friendlyFireButton.width = 40;
+                    this.addButton(friendlyFireButton);
 
-                GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":", guiLeft + xSize/2 + 20, guiTop + ySize/2 + 5);
-                this.addLabel(friendlyFireLabel);
+                    GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":", guiLeft + xSize / 2 + 20, guiTop + ySize / 2 + 5);
+                    this.addLabel(friendlyFireLabel);
 
-                //send invite button (opens subgui)
-                //
-                GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, guiLeft + xSize/2 + 20, guiTop + ySize/2 + 40,100, 20, "");
-                this.addTextField(playerTextField);
+                    //send invite button (opens subgui)
+                    //
+                    GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, guiLeft + xSize / 2 + 20, guiTop + ySize / 2 + 40, 100, 20, "");
+                    this.addTextField(playerTextField);
 
-                GuiNpcButton inviteButton = new GuiNpcButton(330, guiLeft + xSize/2 + 125, guiTop + ySize/2 + 40, "party.invite");
-                inviteButton.width = 50;
-                this.addButton(inviteButton);
+                    GuiNpcButton inviteButton = new GuiNpcButton(330, guiLeft + xSize / 2 + 125, guiTop + ySize / 2 + 40, "party.invite");
+                    inviteButton.width = 50;
+                    this.addButton(inviteButton);
 
-                //disband party
-                //
-                GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.disbandParty");
-                disbandButton.width = 100;
-                this.addButton(disbandButton);
+                    //disband party
+                    //
+                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.leaveParty");
+                    disbandButton.width = 100;
+                    this.addButton(disbandButton);
+                } else {
+                    //leave party
+                    //
+                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.disbandParty");
+                    disbandButton.width = 100;
+                    this.addButton(disbandButton);
+                }
             }
         }
     }
@@ -141,11 +152,20 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         if (flag) {
             switch (i) {
                 case 0:
+                    Client.sendData(EnumPacketServer.SetPartyLeader, this.selectedPlayer);
+                    break;
+                case 1:
+                    Client.sendData(EnumPacketServer.KickPlayer, this.selectedPlayer);
+                    break;
+                case 2:
                     Client.sendData(EnumPacketServer.DisbandParty);
-                    receivedData = false;
-                    initGui();
+                    break;
+                case 3:
+                    Client.sendData(EnumPacketServer.KickPlayer, this.player.getCommandSenderName());
                     break;
             }
+            receivedData = false;
+            initGui();
         }
         displayGuiScreen(this);
     }
@@ -159,12 +179,37 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 Client.sendData(EnumPacketServer.CreateParty);
                 receivedData = false;
                 break;
+            case 305:
+                if (!party.getPartyLeaderName().equals(this.selectedPlayer)) {
+                    GuiYesNo yesnoLeader = new GuiYesNo(this, StatCollector.translateToLocal("party.leaderConfirm"), this.selectedPlayer, 0);
+                    displayGuiScreen(yesnoLeader);
+                }
+                break;
+            case 310:
+                if (!party.getPartyLeaderName().equals(this.selectedPlayer)) {
+                    GuiYesNo yesnoKick = new GuiYesNo(this, StatCollector.translateToLocal("party.kickConfirm"), this.selectedPlayer, 1);
+                    displayGuiScreen(yesnoKick);
+                }
+                break;
             case 320:
                 party.toggleFriendlyFire();
+                this.partyChanged = true;
+                break;
+            case 330:
+                String inviteName = this.getTextField(325).getText();
+                if (!inviteName.isEmpty() && !party.getPlayerNames(true).contains(inviteName.toLowerCase())) {
+                    Client.sendData(EnumPacketServer.PartyInvite, inviteName);
+                    this.getTextField(325).setText("");
+                }
                 break;
             case 335:
-                GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.disbandConfirm"), 0);
-                displayGuiScreen(guiyesno);
+                if (this.isLeader) {
+                    GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.disbandConfirm"), 2);
+                    displayGuiScreen(yesnoDisband);
+                } else {
+                    GuiYesNo yesnoLeave = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.leaveConfirm"), 3);
+                    displayGuiScreen(yesnoLeave);
+                }
                 break;
         }
         initGui();
@@ -233,8 +278,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 party = ClientCacheHandler.party;
             }
             party.readFromNBT(compound);
+            this.isLeader = ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
         } else if (compound.hasKey("Disband")) {
             ClientCacheHandler.party = null;
+            this.isLeader = false;
         }
 
         initGui();
@@ -248,12 +295,14 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     @Override
     public void save() {
-
+        if (this.partyChanged) {
+            Client.sendData(EnumPacketServer.SavePartyData, ClientCacheHandler.party.writeClientNBT());
+        }
     }
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-
+        this.selectedPlayer = guiCustomScroll.getSelected();
     }
 
     @Override

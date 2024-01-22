@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -76,10 +77,10 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			
 			player.addChatMessage(new ChatComponentTranslation(message));
 		}
-		else if(type == EnumPacketClient.MESSAGE){
+		else if(type == EnumPacketClient.MESSAGE || type == EnumPacketClient.PARTY_MESSAGE){
 			String description = StatCollector.translateToLocal(Server.readString(buffer));
 			String message = Server.readString(buffer);
-			Achievement ach = new QuestAchievement(message, description);
+			Achievement ach = type == EnumPacketClient.MESSAGE ? new MessageAchievement(message, description) : new MessageAchievement(CustomItems.bag == null ? Items.paper : CustomItems.bag, message, description);
 			Minecraft.getMinecraft().guiAchievement.func_146256_a(ach);
 			ObfuscationReflectionHelper.setPrivateValue(GuiAchievement.class, Minecraft.getMinecraft().guiAchievement, ach.getDescription(), 4);
 		}

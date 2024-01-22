@@ -7,6 +7,8 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -40,5 +42,18 @@ public class ServerTickHandler {
 			serverName = e;
 		}
 		AnalyticsTracking.sendData(event.player, "join", serverName);
+
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+		if (playerData != null) {
+			playerData.onLogin();
+		}
+	}
+
+	@SubscribeEvent
+	public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+		if (playerData != null) {
+			playerData.onLogout();
+		}
 	}
 }
