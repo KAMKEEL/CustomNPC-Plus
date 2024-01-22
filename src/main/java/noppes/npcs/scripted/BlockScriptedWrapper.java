@@ -3,6 +3,9 @@ package noppes.npcs.scripted;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -13,6 +16,8 @@ import noppes.npcs.api.block.IBlockScripted;
 import noppes.npcs.api.block.ITextPlane;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.blocks.tiles.TileScripted;
+
+import java.util.Set;
 
 public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     private TileScripted tile;
@@ -201,6 +206,110 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     public void setTileEntity(ITileEntity tile){
         this.tile = (TileScripted) tile;
         super.setTileEntity(tile);
+    }
+
+    private NBTTagCompound getNBT(){
+        if(tile == null)
+            return null;
+        NBTTagCompound compound = tile.getTileData().getCompoundTag("CustomNPCsData");
+        if(compound.hasNoTags() && !tile.getTileData().hasKey("CustomNPCsData")){
+            tile.getTileData().setTag("CustomNPCsData", compound);
+        }
+        return compound;
+    }
+
+    @Override
+    public void setStoredData(String key, Object value) {
+        NBTTagCompound compound = getNBT();
+        if(compound == null)
+            return;
+        if(value instanceof Number)
+            compound.setDouble(key, ((Number) value).doubleValue());
+        else if(value instanceof String)
+            compound.setString(key, (String)value);
+    }
+
+    @Override
+    public Object getStoredData(String key) {
+        NBTTagCompound compound = getNBT();
+        if(compound == null)
+            return null;
+        if(!compound.hasKey(key))
+            return null;
+        NBTBase base = compound.getTag(key);
+        if(base instanceof NBTBase.NBTPrimitive)
+            return ((NBTBase.NBTPrimitive)base).func_150286_g();
+        return ((NBTTagString)base).func_150285_a_();
+    }
+
+    @Override
+    public void removeStoredData(String key) {
+        NBTTagCompound compound = getNBT();
+        if(compound == null)
+            return;
+        compound.removeTag(key);
+    }
+
+    @Override
+    public boolean hasStoredData(String key) {
+        NBTTagCompound compound = getNBT();
+        if(compound == null)
+            return false;
+        return compound.hasKey(key);
+    }
+
+    @Override
+    public void clearStoredData() {
+        if(tile == null)
+            return;
+        tile.getTileData().setTag("CustomNPCsData", new NBTTagCompound());
+    }
+
+    @Override
+    public String[] getStoredDataKeys() {
+        NBTTagCompound compound = getNBT();
+        if(compound == null)
+            return new String[0];
+        return ((Set<String>)compound.func_150296_c()).toArray(new String[0]);
+    }
+
+    @Override
+    public void removeTempData(String key) {
+        if(tile == null)
+            return;
+        tile.tempData.remove(key);
+    }
+
+    @Override
+    public void setTempData(String key, Object value) {
+        if(tile == null)
+            return;
+        tile.tempData.put(key, value);
+    }
+
+    @Override
+    public boolean hasTempData(String key) {
+        if(tile == null)
+            return false;
+        return tile.tempData.containsKey(key);
+    }
+
+    @Override
+    public Object getTempData(String key) {
+        if(tile == null)
+            return null;
+        return tile.tempData.get(key);
+    }
+    @Override
+    public void clearTempData() {
+        if(tile == null)
+            return;
+        tile.tempData.clear();
+    }
+
+    @Override
+    public String[] getTempDataKeys() {
+        return tile.tempData.keySet().toArray(new String[tile.tempData.size()]);
     }
 }
 

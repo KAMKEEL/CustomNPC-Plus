@@ -21,20 +21,20 @@ import noppes.npcs.api.block.ITextPlane;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.INpcScriptHandler;
 import noppes.npcs.controllers.data.IScriptBlockHandler;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.scripted.BlockScriptedWrapper;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public List<ScriptContainer> scripts = new ArrayList<>();
+
+    public Map<String,Object> tempData = new HashMap<>();
+
+    private NBTTagCompound customTileData;
 
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
@@ -89,6 +89,10 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         setNBT(compound);
         setDisplayNBT(compound);
         timers.readFromNBT(compound);
+        NBTTagCompound extraData = compound.getCompoundTag("ExtraData");
+        if(!extraData.hasNoTags()){
+            getTileData().setTag("CustomNPCsData", extraData);
+        }
     }
 
     public void setNBT(NBTTagCompound compound){
@@ -149,6 +153,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         getNBT(compound);
         getDisplayNBT(compound);
         timers.writeToNBT(compound);
+        compound.setTag("ExtraData",getTileData().getTag("CustomNPCsData"));
     }
 
     public NBTTagCompound getNBT(NBTTagCompound compound){
@@ -393,6 +398,15 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public AxisAlignedBB getRenderBoundingBox(){
         return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
                 .offset(xCoord,yCoord,zCoord);
+    }
+
+    public NBTTagCompound getTileData()
+    {
+        if (this.customTileData == null)
+        {
+            this.customTileData = new NBTTagCompound();
+        }
+        return this.customTileData;
     }
 
     public class TextPlane implements ITextPlane {
