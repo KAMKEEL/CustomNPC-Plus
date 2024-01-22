@@ -851,6 +851,10 @@ public class NoppesUtilServer {
         return null;
 	}
 
+	static public EntityPlayer getPlayerByName(String playername){
+		return MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
+	}
+
 	public static Entity GetDamageSourcee(DamageSource damagesource) {
 		Object entity = damagesource.getEntity();
 		if(entity == null) {

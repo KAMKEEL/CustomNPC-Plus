@@ -275,7 +275,7 @@ public class PacketHandlerPlayer{
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
 			if (player.worldObj.blockExists(x, y, z)) {
 				TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-				if (!(tile instanceof TileBigSign))
+				if(!(tile instanceof TileBigSign))
 					return;
 				TileBigSign sign = (TileBigSign) tile;
 				if (sign.canEdit) {

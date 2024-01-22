@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,7 +28,6 @@ public class Party {
     private final ArrayList<UUID> partyOrder = new ArrayList<>();
 
     private int currentQuestID = -1;
-
     private boolean friendlyFire;
 
     //Client-sided
@@ -66,29 +66,9 @@ public class Party {
         return true;
     }
 
-    public boolean removePlayer(String playerName) {
-        UUID uuid = getUUID(playerName);
-        if (uuid == null){
-            return false;
-        }
-
-        if(partyMembers.containsKey(uuid)){
-            partyMembers.remove(uuid);
-            partyOrder.remove(uuid);
-
-            if(uuid.equals(partyLeader)){
-                if(partyMembers.size() > 0){
-                    partyLeader = partyOrder.get(0);
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     public boolean removePlayer(EntityPlayer player) {
+        if (player == null) return false;
+
         UUID uuid = player.getUniqueID();
         if(partyMembers.containsKey(uuid)){
             partyMembers.remove(uuid);
@@ -100,10 +80,17 @@ public class Party {
                 }
             }
 
+            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            playerData.partyUUID = null;
+
             return true;
         }
 
         return false;
+    }
+
+    public boolean removePlayer(String playerName) {
+        return playerName != null && this.removePlayer(NoppesUtilServer.getPlayerByName(playerName));
     }
 
     public boolean hasPlayer(EntityPlayer player) {
@@ -122,9 +109,12 @@ public class Party {
         return NoppesUtilServer.getPlayer(this.partyLeader);
     }
 
-    @SideOnly(Side.CLIENT)
     public String getPartyLeaderName() {
-        return this.partyLeaderName;
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
+            return this.partyLeaderName;
+        } else {
+            return this.getPartyLeader().getCommandSenderName();
+        }
     }
 
     public boolean setLeader(EntityPlayer player){
@@ -149,7 +139,20 @@ public class Party {
     }
 
     public Collection<String> getPlayerNames() {
-        return this.partyMembers.values();
+        return this.getPlayerNames(false);
+    }
+
+    public Collection<String> getPlayerNames(boolean lowercase) {
+        Collection<String> names = this.partyMembers.values();
+        if (!lowercase) {
+            return names;
+        }
+
+        ArrayList<String> lowerNames = new ArrayList<>();
+        for (String s : names) {
+            lowerNames.add(s.toLowerCase());
+        }
+        return lowerNames;
     }
 
     public Collection<UUID> getPlayerUUIDs() {
@@ -215,6 +218,7 @@ public class Party {
     public void readFromNBT(NBTTagCompound compound) {
         this.partyLeaderName = compound.getString("PartyLeader");
         this.currentQuestID = compound.getInteger("PartyQuestID");
+        this.friendlyFire = compound.getBoolean("FriendlyFire");
 
         NBTTagList list = compound.getTagList("PartyMembers", 10);
         for (int i = 0; i < list.tagCount(); i++) {
@@ -231,7 +235,8 @@ public class Party {
 
         compound.setString("PartyUUID", this.partyUUID.toString());
         compound.setInteger("PartyQuestID", this.currentQuestID);
-        compound.setString("PartyLeader", getPartyLeader().getCommandSenderName());
+        compound.setBoolean("FriendlyFire", this.friendlyFire);
+
         NBTTagList list = new NBTTagList();
         for (UUID uuid : this.partyOrder) {
             NBTTagCompound uuidCompound = new NBTTagCompound();
@@ -241,6 +246,25 @@ public class Party {
         }
         compound.setTag("PartyMembers", list);
 
+        compound.setString("PartyLeader", getPartyLeader().getCommandSenderName());
+        Quest quest = (Quest) QuestController.Instance.get(this.getCurrentQuestID());
+        if (quest != null) {
+            compound.setString("QuestName", quest.getName());
+            compound.setString("QuestCategory", quest.getCategory().getName());
+        }
+
+        return compound;
+    }
+
+    public void readClientNBT(NBTTagCompound compound) {
+        this.currentQuestID = compound.getInteger("PartyQuestID");
+        this.friendlyFire = compound.getBoolean("FriendlyFire");
+    }
+
+    public NBTTagCompound writeClientNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("PartyQuestID", this.currentQuestID);
+        compound.setBoolean("FriendlyFire", this.friendlyFire);
         return compound;
     }
 }

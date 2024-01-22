@@ -22,11 +22,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
@@ -112,25 +114,12 @@ public class PacketHandlerServer{
 				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.GetPartyData || type == EnumPacketServer.CreateParty) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (type == EnumPacketServer.CreateParty) {
 					Party party = PartyController.Instance().createParty();
 					party.addPlayer(player);
 					party.setLeader(player);
 				}
-
-				NBTTagCompound compound = new NBTTagCompound();
-				if (playerData.partyUUID != null) {
-					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-					compound = party.writeToNBT();
-
-					Quest quest = (Quest) QuestController.Instance.get(party.getCurrentQuestID());
-					if (quest != null) {
-						compound.setString("QuestName", quest.getName());
-						compound.setString("QuestCategory", quest.getCategory().getName());
-					}
-				}
-				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+				sendPartyData(player);
 			} else if (type == EnumPacketServer.DisbandParty) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
@@ -140,6 +129,58 @@ public class PacketHandlerServer{
 				NBTTagCompound compound = new NBTTagCompound();
 				compound.setBoolean("Disband", true);
 				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			} else if (type == EnumPacketServer.KickPlayer) {
+				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+				if (kickPlayer != null) {
+					PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+					if (playerData.partyUUID != null) {
+						Party party = PartyController.Instance().getParty(playerData.partyUUID);
+						party.removePlayer(kickPlayer);
+						if (kickPlayer != player) {
+							sendPartyData(player);
+						} else {
+							sendInviteData((EntityPlayerMP) kickPlayer);
+						}
+					}
+				}
+			} else if (type == EnumPacketServer.SavePartyData) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				if (playerData.partyUUID != null) {
+					Party party = PartyController.Instance().getParty(playerData.partyUUID);
+					party.readClientNBT(Server.readNBT(buffer));
+				}
+			} else if (type == EnumPacketServer.SetPartyLeader) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				if (playerData.partyUUID != null) {
+					Party party = PartyController.Instance().getParty(playerData.partyUUID);
+					party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
+					Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+				}
+			} else if (type == EnumPacketServer.PartyInvite) {
+				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+				if (invitedPlayer != null) {
+					PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
+					PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
+					if (senderData.partyUUID != null && invitedData.partyUUID == null) {//only send invite if player is not in a party
+						invitedData.inviteToParty(PartyController.Instance().getParty(senderData.partyUUID));
+					}
+				}
+			} else if (type == EnumPacketServer.GetPartyInviteList) {
+				sendInviteData(player);
+			} else if (type == EnumPacketServer.AcceptInvite) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				String uuidString = Server.readString(buffer);
+				if (uuidString != null) {
+					UUID uuid = UUID.fromString(uuidString);
+					playerData.acceptInvite(uuid);
+				}
+			} else if (type == EnumPacketServer.IgnoreInvite) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				String uuidString = Server.readString(buffer);
+				if (uuidString != null) {
+					UUID uuid = UUID.fromString(uuidString);
+					playerData.ignoreInvite(uuid);
+				}
 			}
 
 			if(type.needsNpc && npc == null){
@@ -175,6 +216,8 @@ public class PacketHandlerServer{
 							forgeScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
 							itemScriptPackets(type, buffer, player);
+						else if (type == EnumPacketServer.ScriptBlockDataGet || type == EnumPacketServer.ScriptBlockDataSave)
+							blockScriptPackets(type, buffer, player);
 						else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
 							getScriptsEnabled(type, buffer, player);
 						else if (item.getItem() == CustomItems.scripter)
@@ -184,6 +227,35 @@ public class PacketHandlerServer{
 			}
 		} catch (Exception e) {
 			LogWriter.error("Error with EnumPacketServer." + type, e);
+		}
+	}
+
+	public static void sendPartyData(EntityPlayerMP player) {
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+
+		if (playerData.partyUUID != null) {
+			Party party = PartyController.Instance().getParty(playerData.partyUUID);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+		} else {
+			sendInviteData(player);
+		}
+	}
+
+	public static void sendInviteData(EntityPlayerMP player) {
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+		if (playerData.partyUUID == null) {
+			NBTTagCompound compound = new NBTTagCompound();
+			NBTTagList list = new NBTTagList();
+			HashSet<UUID> partyInvites = playerData.getPartyInvites();
+			for (UUID uuid : partyInvites) {
+				Party party = PartyController.Instance().getParty(uuid);
+				NBTTagCompound partyCompound = new NBTTagCompound();
+				partyCompound.setString("PartyLeader", party.getPartyLeaderName());
+				partyCompound.setString("PartyUUID", party.getPartyUUID().toString());
+				list.appendTag(partyCompound);
+			}
+			compound.setTag("PartyInvites", list);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 	}
 
@@ -336,6 +408,27 @@ public class PacketHandlerServer{
 			wrapper.saveScriptData();
 			wrapper.loaded = false;
 			player.sendContainerToPlayer(player.inventoryContainer);
+		}
+	}
+
+	private void blockScriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws Exception {
+		if (type == EnumPacketServer.ScriptBlockDataGet) {
+			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
+			if(!(tile instanceof TileScripted))
+				return;
+			NBTTagCompound compound = ((TileScripted) tile).getNBT(new NBTTagCompound());
+			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		} else if (type == EnumPacketServer.ScriptBlockDataSave) {
+			if (!player.capabilities.isCreativeMode) {
+				return;
+			}
+			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
+			if(!(tile instanceof TileScripted))
+				return;
+			TileScripted script = (TileScripted) tile;
+			script.setNBT(Server.readNBT(buffer));
+			script.lastInited = -1;
 		}
 	}
 
