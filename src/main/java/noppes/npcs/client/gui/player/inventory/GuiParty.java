@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
@@ -20,6 +21,7 @@ import tconstruct.client.tabs.TabRegistry;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData, GuiYesNoCallback {
@@ -29,10 +31,14 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     private boolean receivedData;
     private long renderTicks;
+
     private String selectedPlayer;
+    private String selectedInvite;
 
     private boolean partyChanged = false;
     private boolean isLeader;
+
+    private final HashMap<String, String> invites = new HashMap<>();
 
     public GuiParty(EntityPlayer player) {
         super();
@@ -46,6 +52,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     public void initGui(){
         super.initGui();
+        this.selectedInvite = this.selectedPlayer = null;
         Party party = ClientCacheHandler.party;
         TabRegistry.addTabsToList(buttonList);
         TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
@@ -69,6 +76,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 inviteScroll.setSize(150, 160);
                 inviteScroll.guiLeft = guiLeft + 5;
                 inviteScroll.guiTop = guiTop + 5;
+                inviteScroll.setList(new ArrayList<>(this.invites.keySet()));
                 this.addScroll(inviteScroll);
 
                 GuiNpcButton acceptButton = new GuiNpcButton(215, guiLeft + 15, guiTop + ySize - 12, "party.accept");
@@ -133,15 +141,15 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
                     //disband party
                     //
-                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.leaveParty");
+                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.disbandParty");
                     disbandButton.width = 100;
                     this.addButton(disbandButton);
                 } else {
                     //leave party
                     //
-                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.disbandParty");
-                    disbandButton.width = 100;
-                    this.addButton(disbandButton);
+                    GuiNpcButton leaveButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.leaveParty");
+                    leaveButton.width = 100;
+                    this.addButton(leaveButton);
                 }
             }
         }
@@ -178,6 +186,18 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             case 200:
                 Client.sendData(EnumPacketServer.CreateParty);
                 receivedData = false;
+                break;
+            case 215:
+                if (this.selectedInvite != null) {
+                    Client.sendData(EnumPacketServer.AcceptInvite, this.selectedInvite);
+                    receivedData = false;
+                }
+                break;
+            case 220:
+                if (this.selectedInvite != null) {
+                    Client.sendData(EnumPacketServer.IgnoreInvite, this.selectedInvite);
+                    receivedData = false;
+                }
                 break;
             case 305:
                 if (!party.getPartyLeaderName().equals(this.selectedPlayer)) {
@@ -282,6 +302,16 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         } else if (compound.hasKey("Disband")) {
             ClientCacheHandler.party = null;
             this.isLeader = false;
+        } else if (compound.hasKey("PartyInvites")) {
+            ClientCacheHandler.party = null;
+            this.invites.clear();
+            NBTTagList list = compound.getTagList("PartyInvites", 10);
+            for (int i = 0; i < list.tagCount(); i++) {
+                NBTTagCompound listCompound = list.getCompoundTagAt(i);
+                String inviteName = listCompound.getString("PartyLeader");
+                String partyUUID = listCompound.getString("PartyUUID");
+                this.invites.put(inviteName, partyUUID);
+            }
         }
 
         initGui();
@@ -302,7 +332,14 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-        this.selectedPlayer = guiCustomScroll.getSelected();
+        switch (guiCustomScroll.id) {
+            case 210:
+                this.selectedInvite = this.invites.get(guiCustomScroll.getSelected());
+                break;
+            case 300:
+                this.selectedPlayer = guiCustomScroll.getSelected();
+                break;
+        }
     }
 
     @Override

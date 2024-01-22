@@ -80,6 +80,9 @@ public class Party {
                 }
             }
 
+            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            playerData.partyUUID = null;
+
             return true;
         }
 
@@ -106,9 +109,12 @@ public class Party {
         return NoppesUtilServer.getPlayer(this.partyLeader);
     }
 
-    @SideOnly(Side.CLIENT)
     public String getPartyLeaderName() {
-        return this.partyLeaderName;
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
+            return this.partyLeaderName;
+        } else {
+            return this.getPartyLeader().getCommandSenderName();
+        }
     }
 
     public boolean setLeader(EntityPlayer player){

@@ -8,12 +8,14 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.LogWriter;
+import noppes.npcs.PacketHandlerServer;
 import noppes.npcs.Server;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -201,6 +203,26 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.PARTY_MESSAGE, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
 			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.CHAT, "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
 		}
+	}
+
+	public void ignoreInvite(UUID uuid) {
+		if (uuid != null) {
+			this.partyInvites.remove(uuid);
+			PacketHandlerServer.sendInviteData((EntityPlayerMP) player);
+		}
+	}
+
+	public void acceptInvite(UUID uuid) {
+		if (uuid != null) {
+			this.partyInvites.remove(uuid);
+			Party party = PartyController.Instance().getParty(uuid);
+			party.addPlayer(player);
+			PacketHandlerServer.sendPartyData((EntityPlayerMP) player);
+		}
+	}
+
+	public HashSet<UUID> getPartyInvites() {
+		return (HashSet<UUID>) this.partyInvites.clone();
 	}
 
 	public void setCompanion(ICustomNpc npc) {

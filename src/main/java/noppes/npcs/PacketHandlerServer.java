@@ -2,7 +2,6 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.network.ByteBufUtils;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
@@ -113,19 +112,12 @@ public class PacketHandlerServer{
 				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.GetPartyData || type == EnumPacketServer.CreateParty) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (type == EnumPacketServer.CreateParty) {
 					Party party = PartyController.Instance().createParty();
 					party.addPlayer(player);
 					party.setLeader(player);
 				}
-
-				NBTTagCompound compound = new NBTTagCompound();
-				if (playerData.partyUUID != null) {
-					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-					compound = party.writeToNBT();
-				}
-				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+				sendPartyData(player);
 			} else if (type == EnumPacketServer.DisbandParty) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
@@ -142,7 +134,11 @@ public class PacketHandlerServer{
 					if (playerData.partyUUID != null) {
 						Party party = PartyController.Instance().getParty(playerData.partyUUID);
 						party.removePlayer(kickPlayer);
-						Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+						if (kickPlayer != player) {
+							sendPartyData(player);
+						} else {
+							sendInviteData((EntityPlayerMP) kickPlayer);
+						}
 					}
 				}
 			} else if (type == EnumPacketServer.SavePartyData) {
@@ -166,6 +162,22 @@ public class PacketHandlerServer{
 					if (senderData.partyUUID != null && invitedData.partyUUID == null) {//only send invite if player is not in a party
 						invitedData.inviteToParty(PartyController.Instance().getParty(senderData.partyUUID));
 					}
+				}
+			} else if (type == EnumPacketServer.GetPartyInviteList) {
+				sendInviteData(player);
+			} else if (type == EnumPacketServer.AcceptInvite) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				String uuidString = Server.readString(buffer);
+				if (uuidString != null) {
+					UUID uuid = UUID.fromString(uuidString);
+					playerData.acceptInvite(uuid);
+				}
+			} else if (type == EnumPacketServer.IgnoreInvite) {
+				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+				String uuidString = Server.readString(buffer);
+				if (uuidString != null) {
+					UUID uuid = UUID.fromString(uuidString);
+					playerData.ignoreInvite(uuid);
 				}
 			}
 
@@ -211,6 +223,35 @@ public class PacketHandlerServer{
 			}
 		} catch (Exception e) {
 			LogWriter.error("Error with EnumPacketServer." + type, e);
+		}
+	}
+
+	public static void sendPartyData(EntityPlayerMP player) {
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+
+		if (playerData.partyUUID != null) {
+			Party party = PartyController.Instance().getParty(playerData.partyUUID);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+		} else {
+			sendInviteData(player);
+		}
+	}
+
+	public static void sendInviteData(EntityPlayerMP player) {
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+		if (playerData.partyUUID == null) {
+			NBTTagCompound compound = new NBTTagCompound();
+			NBTTagList list = new NBTTagList();
+			HashSet<UUID> partyInvites = playerData.getPartyInvites();
+			for (UUID uuid : partyInvites) {
+				Party party = PartyController.Instance().getParty(uuid);
+				NBTTagCompound partyCompound = new NBTTagCompound();
+				partyCompound.setString("PartyLeader", party.getPartyLeaderName());
+				partyCompound.setString("PartyUUID", party.getPartyUUID().toString());
+				list.appendTag(partyCompound);
+			}
+			compound.setTag("PartyInvites", list);
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 	}
 
