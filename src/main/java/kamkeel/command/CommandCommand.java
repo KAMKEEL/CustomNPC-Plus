@@ -19,24 +19,18 @@ public class CommandCommand extends CommandKamkeelBase {
 
     @Override
     public String getDescription() {
-        return "command CommandID [arg1 arg2 ... argn]";
+        return "command CommandName [arg1 arg2 ... argn]";
     }
 
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 1) {
-            sendError(sender, "You must specify the command id");
+            sendError(sender, "You must specify the command name");
             return;
         }
 
-        int commandId;
-        try {
-            commandId = Integer.parseInt(args[0]);
-        } catch (NumberFormatException ex) {
-            sendError(sender, "CommandID must be an integer: " + args[0]);
-            return;
-        }
+        String commandId = args[0];
 
         String[] commandArgs = new String[args.length - 1];
         System.arraycopy(args, 1, commandArgs, 0, args.length - 1);

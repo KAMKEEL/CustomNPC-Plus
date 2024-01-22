@@ -87,11 +87,11 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
         public IWorld world;
         public IPos pos;
         public String senderName;
-        public int id;
+        public String id;
         public String[] args;
         public String replyMessage = "";
 
-        public ScriptedCommandEvent(IWorld world, IPos pos, String senderName, int id, String[] args){
+        public ScriptedCommandEvent(IWorld world, IPos pos, String senderName, String id, String[] args){
             this.world = world;
             this.pos = pos;
             this.senderName = senderName;
@@ -124,7 +124,7 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
         }
 
         @Override
-        public int getId() {
+        public String getId() {
             return id;
         }
 
