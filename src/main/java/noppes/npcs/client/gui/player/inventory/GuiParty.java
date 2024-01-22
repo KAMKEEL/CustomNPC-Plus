@@ -188,27 +188,31 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 receivedData = false;
                 break;
             case 215:
-                if (this.selectedInvite != null) {
+                if (this.selectedInvite != null && !this.selectedInvite.isEmpty()) {
                     Client.sendData(EnumPacketServer.AcceptInvite, this.selectedInvite);
                     receivedData = false;
+                    return;
                 }
                 break;
             case 220:
-                if (this.selectedInvite != null) {
+                if (this.selectedInvite != null && !this.selectedInvite.isEmpty()) {
                     Client.sendData(EnumPacketServer.IgnoreInvite, this.selectedInvite);
                     receivedData = false;
+                    return;
                 }
                 break;
             case 305:
-                if (!party.getPartyLeaderName().equals(this.selectedPlayer)) {
+                if (this.selectedPlayer != null && !this.selectedPlayer.isEmpty() && !party.getPartyLeaderName().equals(this.selectedPlayer)) {
                     GuiYesNo yesnoLeader = new GuiYesNo(this, StatCollector.translateToLocal("party.leaderConfirm"), this.selectedPlayer, 0);
                     displayGuiScreen(yesnoLeader);
+                    return;
                 }
                 break;
             case 310:
-                if (!party.getPartyLeaderName().equals(this.selectedPlayer)) {
+                if (this.selectedPlayer != null && !this.selectedPlayer.isEmpty() && !party.getPartyLeaderName().equals(this.selectedPlayer)) {
                     GuiYesNo yesnoKick = new GuiYesNo(this, StatCollector.translateToLocal("party.kickConfirm"), this.selectedPlayer, 1);
                     displayGuiScreen(yesnoKick);
+                    return;
                 }
                 break;
             case 320:
@@ -289,21 +293,17 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     @Override
     public void setGuiData(NBTTagCompound compound) {
         this.receivedData = true;
+        ClientCacheHandler.party = null;
 
         if (compound.hasKey("PartyUUID")) {
-            Party party = ClientCacheHandler.party;
             UUID uuid = UUID.fromString(compound.getString("PartyUUID"));
-            if (party == null || !party.getPartyUUID().equals(uuid)) {
-                ClientCacheHandler.party = new Party(uuid);
-                party = ClientCacheHandler.party;
-            }
+            ClientCacheHandler.party = new Party(uuid);
+            Party party = ClientCacheHandler.party;
             party.readFromNBT(compound);
             this.isLeader = ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
         } else if (compound.hasKey("Disband")) {
-            ClientCacheHandler.party = null;
             this.isLeader = false;
         } else if (compound.hasKey("PartyInvites")) {
-            ClientCacheHandler.party = null;
             this.invites.clear();
             NBTTagList list = compound.getTagList("PartyInvites", 10);
             for (int i = 0; i < list.tagCount(); i++) {
@@ -337,7 +337,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 this.selectedInvite = this.invites.get(guiCustomScroll.getSelected());
                 break;
             case 300:
-                this.selectedPlayer = guiCustomScroll.getSelected();
+                this.selectedPlayer = guiCustomScroll.getSelected().replace(" §e[" + StatCollector.translateToLocal("party.leader").toUpperCase() + "]", "");
                 break;
         }
     }
