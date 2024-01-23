@@ -23,6 +23,7 @@ import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.IScrollGroup;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.DialogController;
@@ -300,21 +301,23 @@ public class NoppesUtil {
 		Dialog dialog = new Dialog();
 		dialog.readNBT(compound);
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-		if(gui == null || !(gui instanceof GuiDialogInteract) || ClientConfig.useCustomGUIDesign)
-			if(ClientConfig.useCustomGUIDesign){
-				if(dialog.hasQuest()){
-					CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, dialog.getQuest(),dialog, -2));
-				}else{
+		if(!(gui instanceof GuiDialogInteract)) {
+			if (ConfigClient.ModernGuiSystem) {
+				if (dialog.hasQuest()) {
+					CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, dialog.getQuest(), dialog, -2));
+				} else {
 					CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, dialog));
 				}
-			}else {
+			} else {
 				CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
 			}
-		else{
+		}
+		else {
 			GuiDialogInteract dia = (GuiDialogInteract) gui;
 			dia.appendDialog(dialog);
 		}
 	}
+
 	public static void saveRedstoneBlock(EntityPlayer player, NBTTagCompound compound){
 		int x = compound.getInteger("x");
 		int y = compound.getInteger("y");

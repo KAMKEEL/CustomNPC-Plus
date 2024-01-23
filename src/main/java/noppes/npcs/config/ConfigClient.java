@@ -39,6 +39,9 @@ public class ConfigClient
     public static Property FontSizeProperty;
     public static int FontSize = 18;
 
+    public static Property ModernGuiSystemProperty;
+    public static boolean ModernGuiSystem = true;
+
     /**
      *  Questing Properties
      **/
@@ -75,6 +78,9 @@ public class ConfigClient
 
             FontSizeProperty = config.get(VISUAL, "Font Size", 18, "Font size for custom fonts (doesn't work with minecrafts font)");
             FontSize = FontSizeProperty.getInt(18);
+
+            ModernGuiSystemProperty = config.get(VISUAL, "Modern GUI", true, "Enables the new CNPC+ Modern GUI for Dialog and Quest information");
+            ModernGuiSystem = ModernGuiSystemProperty.getBoolean(true);
 
             // Questing
             TrackingInfoAlignmentProperty = config.get(QUESTING, "Tracking Info Alignment", 3, "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8. Default: 3");

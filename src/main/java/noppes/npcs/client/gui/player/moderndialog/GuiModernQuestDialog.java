@@ -17,7 +17,6 @@ import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.handler.data.IDialogImage;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.client.ClientConfig;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.TextBlockClient;
@@ -28,6 +27,7 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiTexturedButton;
 import noppes.npcs.client.gui.util.IGuiClose;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.FactionController;
@@ -345,9 +345,10 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             if(optionId!=-2){
                 NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog,prevDialog.id, optionId);
             }else{
-                if(ClientConfig.useCustomGUIDesign){
+                if(ConfigClient.ModernGuiSystem) {
                     CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, prevDialog));
-                }else {
+                }
+                else {
                     CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, prevDialog));
                 }
             }
