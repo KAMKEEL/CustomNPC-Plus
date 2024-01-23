@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.model;
 
+import kamkeel.addon.GeckoAddonSupport;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -14,10 +15,6 @@ import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.model.custom.GuiCustomAnimFileSelection;
-import noppes.npcs.client.gui.model.custom.GuiCustomAnimationSelection;
-import noppes.npcs.client.gui.model.custom.GuiCustomModelSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.compat.PixelmonHelper;
@@ -26,6 +23,8 @@ import noppes.npcs.entity.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+
+import static kamkeel.addon.GeckoAddonSupport.openGeckoGui;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener{
 
@@ -170,7 +169,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			addButton(new GuiNpcButton(201, guiLeft + 80, y + i * 22, 50, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}, breed));
 		}
 
-		if(EntityList.getEntityString(entity).equals("customnpcs.CustomModel") || EntityList.getEntityString(entity).equals("CustomModel")){
+		if(EntityList.getEntityString(entity).equals("customnpcsgecko.CustomModel") || EntityList.getEntityString(entity).equals("CustomModel")){
 			this.addButton(new GuiNpcButton(202, guiLeft, y + i * 22, 120, 20, "Select model"));
 			this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+20, 120, 20, "Select animation file"));
 			this.addButton(new GuiNpcButton(204, guiLeft, y + i * 22+40, 120, 20, "Select idle animation"));
@@ -327,16 +326,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			} catch (Exception ignored) {}
 		}
 
-		if(button.id == 202){
-			NoppesUtil.openGUI(player, new GuiCustomModelSelection(npc, this));
-		}
-
-		if(button.id == 203){
-			NoppesUtil.openGUI(player, new GuiCustomAnimFileSelection(npc, this));
-		}
-
-		if(button.id == 204){
-			NoppesUtil.openGUI(player, new GuiCustomAnimationSelection(npc, this, (name)-> npc.display.idleAnim=name));
+		if(GeckoAddonSupport.supportEnabled){
+			openGeckoGui(this, button, player, npc);
 		}
 	}
 

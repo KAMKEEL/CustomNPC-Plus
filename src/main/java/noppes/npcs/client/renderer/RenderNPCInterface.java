@@ -2,6 +2,7 @@ package noppes.npcs.client.renderer;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+import kamkeel.addon.GeckoAddonSupport;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.FontRenderer;
@@ -29,7 +30,6 @@ import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
-import software.bernie.geckolib3.core.IAnimatable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -218,32 +218,9 @@ public class RenderNPCInterface extends RenderLiving{
 		super.doRender(entityliving, d, d1, d2, f, f1);
 	}
 
-	private void renderGeoModel(EntityNPCInterface npc, float rot, float partial)
-	{
-		((ModelMPM) mainModel).entity.renderYawOffset = ((ModelMPM) mainModel).entity.prevRenderYawOffset = 0;
-		if (!npc.isInvisible())
-		{
-			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
-		}
-		else if (!npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
-		{
-			GL11.glPushMatrix();
-			GL11.glColor4f(1.0F, 1.0F, 1.0F, 0.15F);
-			GL11.glDepthMask(false);
-			GL11.glEnable(GL11.GL_BLEND);
-			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
-			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
-			GL11.glDisable(GL11.GL_BLEND);
-			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-			GL11.glPopMatrix();
-			GL11.glDepthMask(true);
-		}
-	}
-
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-		if(mainModel instanceof ModelMPM && ((ModelMPM) mainModel).entity instanceof IAnimatable){
+		if(GeckoAddonSupport.geckoModelRender(mainModel)){
 			GL11.glRotatef(180, 1,0,0);
 			GL11.glTranslated(0, -1.5,0);
 			renderGeoModel(npc, npc.rotationYaw, Minecraft.getMinecraft().timer.renderPartialTicks);
@@ -318,6 +295,31 @@ public class RenderNPCInterface extends RenderLiving{
 			npc.display.overlayRenderTicks++;
 		}
 	}
+
+	private void renderGeoModel(EntityNPCInterface npc, float rot, float partial)
+	{
+		((ModelMPM) mainModel).entity.renderYawOffset = ((ModelMPM) mainModel).entity.prevRenderYawOffset = 0;
+		if (!npc.isInvisible())
+		{
+			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
+		}
+		else if (!npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
+		{
+			GL11.glPushMatrix();
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 0.15F);
+			GL11.glDepthMask(false);
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
+			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
+			GL11.glDisable(GL11.GL_BLEND);
+			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+			GL11.glPopMatrix();
+			GL11.glDepthMask(true);
+		}
+	}
+
+
 	@Override
 	protected float handleRotationFloat(EntityLivingBase par1EntityLiving, float par2){
 		EntityNPCInterface npc = (EntityNPCInterface) par1EntityLiving;

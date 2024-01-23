@@ -3,6 +3,8 @@ package noppes.npcs;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import kamkeel.addon.DataDisplaySupport;
+import kamkeel.addon.GeckoAddonSupport;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -16,9 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class DataDisplay {
 	public EntityNPCInterface npc;
@@ -37,12 +37,7 @@ public class DataDisplay {
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 
-	public String model = "geckolib3:geo/npc.geo.json";
-	public String animFile = "custom:geo_npc.animation.json";
-	public String idleAnim = "";
-	public String walkAnim = "";
-	public String attackAnim = "";
-	public String hurtAnim = "";
+	public HashMap<String, DataDisplaySupport> dataDisplaySupport;
 
 	public DataSkinOverlays skinOverlayData;
 	public long overlayRenderTicks = 0;
@@ -74,6 +69,9 @@ public class DataDisplay {
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
 		animationData = new AnimationData(this);
+		dataDisplaySupport = new HashMap<>();
+
+		GeckoAddonSupport.initGeckoData(dataDisplaySupport);
 	}
 
 	public String getRandomName() {
@@ -88,13 +86,9 @@ public class DataDisplay {
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
 
-		// Custom Model
-		nbttagcompound.setString("Model", model);
-		nbttagcompound.setString("AnimFile", animFile);
-		nbttagcompound.setString("IdleAnim", idleAnim);
-		nbttagcompound.setString("WalkAnim", walkAnim);
-		nbttagcompound.setString("AttackAnim", attackAnim);
-		nbttagcompound.setString("HurtAnim", hurtAnim);
+		for(DataDisplaySupport dataDisplaySupport : dataDisplaySupport.values()){
+			nbttagcompound = dataDisplaySupport.writeToNBT(nbttagcompound);
+		}
 
 		nbttagcompound.setString("CloakTexture", cloakTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
@@ -158,14 +152,9 @@ public class DataDisplay {
 
 		texture = nbttagcompound.getString("Texture");
 
-		// Custom Model
-		model = nbttagcompound.getString("Model");
-		animFile = nbttagcompound.getString("AnimFile");
-		idleAnim = nbttagcompound.getString("IdleAnim");
-		walkAnim = nbttagcompound.getString("WalkAnim");
-		hurtAnim = nbttagcompound.getString("HurtAnim");
-		attackAnim = nbttagcompound.getString("AttackAnim");
-
+		for(DataDisplaySupport dataDisplaySupport : dataDisplaySupport.values()){
+			dataDisplaySupport.readToNBT(nbttagcompound);
+		}
 
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
@@ -291,5 +280,4 @@ public class DataDisplay {
 			return;
 		this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
 	}
-
 }

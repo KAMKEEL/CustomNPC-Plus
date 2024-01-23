@@ -1,14 +1,13 @@
 package noppes.npcs;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.*;
 import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
+import kamkeel.addon.GeckoAddonSupport;
 import kamkeel.command.CommandKamkeel;
 import kamkeel.developer.Developer;
 import net.minecraft.block.Block;
@@ -33,9 +32,10 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9-beta4")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9-beta5")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -156,7 +156,6 @@ public class CustomNpcs {
         registerNpc(EntityNPCEnderman.class, "npcEnderman");
         registerNpc(EntityNPCGolem.class, "npcGolem");
         registerNpc(EntityCustomNpc.class, "CustomNpc");
-        registerCustomModel(EntityCustomModel.class, "CustomModel");
 
         registerNewEntity(EntityChairMount.class, "CustomNpcChairMount", 64, 10, false);
         registerNewEntity(EntityProjectile.class, "throwableitem", 64, 3, true);
@@ -186,6 +185,14 @@ public class CustomNpcs {
         MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
         MARKOV_GENERATOR[9] = new MarkovSpanish(3);
 
+    }
+
+    @EventHandler
+    public void load(FMLPostInitializationEvent ev) {
+        if(Loader.isModLoaded("customnpcsgecko")){
+            System.out.println("Enabling CNPC+ Gecko Addon");
+            GeckoAddonSupport.supportEnabled = true;
+        }
     }
 
     @EventHandler
@@ -255,15 +262,9 @@ public class CustomNpcs {
         EntityList.stringToClassMapping.put(name, cl);
     }
 
-    private void registerCustomModel(Class<? extends Entity> cl, String name) {
-        EntityRegistry.registerModEntity(cl, name, NewEntityStartId++, this, 64, 10, false);
-        EntityList.stringToClassMapping.put(name, cl);
-    }
-
     private void registerNewEntity(Class<? extends Entity> cl, String name, int range, int update, boolean velocity) {
         EntityRegistry.registerModEntity(cl, name, NewEntityStartId++, this, range, update, velocity);
     }
-
 
     public static File getWorldSaveDirectory() {
         MinecraftServer server = MinecraftServer.getServer();
