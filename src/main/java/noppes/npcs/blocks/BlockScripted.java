@@ -58,7 +58,7 @@ public class BlockScripted extends BlockContainer {
         if (world.isRemote)
             return true;
         ItemStack currentItem = player.inventory.getCurrentItem();
-        if (currentItem != null && (currentItem.getItem() == CustomItems.wand || currentItem.getItem() == CustomItems.scripter)) {
+        if (currentItem != null && (currentItem.getItem() == CustomItems.scripter)) {
             NoppesUtilServer.sendOpenGui(player, EnumGuiType.ScriptBlock, null, x, y, z);
             return true;
         }
