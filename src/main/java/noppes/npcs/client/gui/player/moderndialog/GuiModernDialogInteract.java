@@ -98,11 +98,6 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         GL11.glColor4f(1, 1, 1, 1);
         this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x66000000);
-        if (!dialog.hideNPC) {
-            float scaleHeight = height/509f;
-            float scaleWidth = width/960f;
-            drawNpc(npc, -210+dialog.npcOffsetX+(int)(300*(1-scaleWidth)), 350+dialog.npcOffsetY-(int)(100*(1-scaleHeight)), 9.5F*dialog.npcScale*scaleHeight, -20);
-        }
         super.drawScreen(mouseX, mouseY, partialTicks);
         setOptionOffset();
 
@@ -129,6 +124,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
+            GL11.glTranslatef(image.x,image.y,0.0f);
             GL11.glTranslatef(image.alignment % 3 * ((float) (scaledResolution.getScaledWidth()) / 2), (float) (Math.floor((float) (image.alignment / 3)) * ((float) (scaledResolution.getScaledHeight()) / 2)), 0.0F);
             image.onRender(mc);
 
@@ -154,6 +150,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
+            GL11.glTranslatef(image.x,image.y,0.0f);
             GL11.glTranslatef(guiLeft + dialog.textOffsetX, optionStart + dialog.textOffsetY - image.height * image.scale, 0.0F);
             image.onRender(mc);
 
@@ -162,6 +159,11 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             GL11.glEnable(GL11.GL_ALPHA_TEST);
         }
         GL11.glPopMatrix();
+        if (!dialog.hideNPC) {
+            float scaleHeight = height / 509f;
+            float scaleWidth = width / 960f;
+            drawNpc(npc, -210 + dialog.npcOffsetX + (int) (300 * (1 - scaleWidth)), 350 + dialog.npcOffsetY - (int) (100 * (1 - scaleHeight)), 9.5F * dialog.npcScale * scaleHeight, -20);
+        }
         int textBlockWidth = 700;
         int lineCount = getLineCount(dialog.text, textBlockWidth);
         int gap = Math.max(16, Math.min((int) (2.6f * (float) lineCount), 32));
