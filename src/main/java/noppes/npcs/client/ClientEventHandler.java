@@ -11,13 +11,16 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import noppes.npcs.config.ConfigMixin;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.opengl.GL11;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -196,6 +199,32 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onRenderHand(RenderHandEvent event) {
         partialHandTicks = event.partialTicks;
+
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (ConfigMixin.FirstPersonAnimationMixin && ClientCacheHandler.playerAnimations.containsKey(player.getUniqueID())) {
+            for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
+                ModelRenderer renderer = entry.getKey();
+                FramePart part = entry.getValue();
+                renderer.rotateAngleX = part.rotation[0];
+                renderer.rotateAngleY = part.rotation[1];
+                renderer.rotateAngleZ = part.rotation[2];
+                renderer.rotationPointX = part.pivot[0];
+                renderer.rotationPointY = part.pivot[1];
+                renderer.rotationPointZ = part.pivot[2];
+            }
+
+            AnimationData animData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
+            if (animData != null && animData.isActive()) {
+                Frame frame = (Frame) animData.animation.currentFrame();
+                for (EnumAnimationPart e : EnumAnimationPart.values()) {
+                    if (frame.frameParts.containsKey(e)) {
+                        FramePart part = frame.frameParts.get(e);
+                        part.interpolateOffset();
+                        part.interpolateAngles();
+                    }
+                }
+            }
+        }
     }
 
     public static boolean hasOverlays(EntityPlayer player) {
