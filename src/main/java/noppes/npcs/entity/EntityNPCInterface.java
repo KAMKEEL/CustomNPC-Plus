@@ -680,7 +680,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 
 		else if (this.ai.onAttack == 0) {
-			this.setCanLeap();
+			this.setLeapTask();
 			if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
 			{
 				System.out.println("checking this stuff");
@@ -767,8 +767,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	/*
 	 * Branch task function for leaping
 	 */
-	public void setCanLeap() {
-		if (this.ai.canLeap)
+	public void setLeapTask() {
+		if (this.ai.leapType == 1)
+			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAILeapAtTarget(this, 0.4F));
+		if (this.ai.leapType == 2)
 			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAIPounceTarget(this));
 	}
 

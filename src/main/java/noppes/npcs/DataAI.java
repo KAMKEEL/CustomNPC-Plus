@@ -26,7 +26,7 @@ public class DataAI {
 	public boolean avoidsSun = false;
 	public boolean returnToStart = true;
 	public boolean directLOS = true;
-	public boolean canLeap = false;
+	public int leapType = 0;
 	public boolean canSprint = false;
 	public boolean stopAndInteract = true;
 	public EnumNavType tacticalVariant = EnumNavType.Default;
@@ -72,7 +72,7 @@ public class DataAI {
 		doorInteract = compound.getInteger("DoorInteract");
 		findShelter = compound.getInteger("FindShelter");
 		directLOS = compound.getBoolean("DirectLOS");
-		canLeap = compound.getBoolean("CanLeap");
+		leapType = compound.getInteger("LeapType");
 		canSprint = compound.getBoolean("CanSprint");
 		canFireIndirect = compound.getInteger("FireIndirect");
 		useRangeMelee = compound.getInteger("RangeAndMelee");
@@ -140,7 +140,7 @@ public class DataAI {
 		compound.setInteger("DoorInteract", doorInteract);
 		compound.setInteger("FindShelter", findShelter);
 		compound.setBoolean("DirectLOS", directLOS);
-		compound.setBoolean("CanLeap", canLeap);
+		compound.setInteger("LeapType", leapType);
 		compound.setBoolean("CanSprint", canSprint);
 		compound.setInteger("FireIndirect", canFireIndirect);
 		compound.setInteger("RangeAndMelee", useRangeMelee);
