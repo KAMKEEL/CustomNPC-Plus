@@ -6,6 +6,7 @@ import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -198,9 +199,14 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderHand(RenderHandEvent event) {
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        Render playerRenderer = RenderManager.instance.getEntityRenderObject(player);
+        if (playerRenderer instanceof RendererLivingEntity) {
+            ClientEventHandler.renderer = (RendererLivingEntity) playerRenderer;
+        }
+        ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
         partialHandTicks = event.partialTicks;
 
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (ConfigMixin.FirstPersonAnimationMixin && ClientCacheHandler.playerAnimations.containsKey(player.getUniqueID())) {
             for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
                 ModelRenderer renderer = entry.getKey();
