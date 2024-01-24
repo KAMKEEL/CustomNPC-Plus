@@ -856,7 +856,7 @@ public class NoppesUtilServer {
 	}
 
 	public static Entity GetDamageSourcee(DamageSource damagesource) {
-		Object entity = damagesource.getEntity();
+		Entity entity = damagesource.getEntity();
 		if(entity == null) {
 			entity = damagesource.getSourceOfDamage();
 		}
@@ -867,7 +867,7 @@ public class NoppesUtilServer {
 			entity = ((EntityThrowable)entity).getThrower();
 		}
 
-		return (Entity)entity;
+		return entity;
 	}
 
 	public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {
