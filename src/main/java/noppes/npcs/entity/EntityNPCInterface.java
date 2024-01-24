@@ -683,7 +683,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			this.setLeapTask();
 			if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
 			{
-				System.out.println("checking this stuff");
 				switch(this.ai.tacticalVariant)
 				{
 					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.0D, this.ai.tacticalRadius)); break;
