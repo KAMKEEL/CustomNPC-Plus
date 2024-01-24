@@ -38,7 +38,10 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             double d5 = MathHelper.sqrt_double(d4);
             speed = Math.min(d5/5.0D,speed);
 
-            if (this.entity.hurtTime == 0 && d4 > 0.5D) {
+            // its here louis!
+            // This is the hurt time that stuns the NPC!!!!!!
+            // if (this.entity.hurtTime == 0 && d4 > 0.5D) {
+            if (d4 >= 0.5D) {
                 this.entity.motionX += (speed * (d0 / d5) - this.entity.motionX) * speed;
                 this.entity.motionZ += (speed * (d2 / d5) - this.entity.motionZ) * speed;
 
