@@ -62,7 +62,7 @@ public class MixinItemRenderer {
     private boolean mixin_renderFirstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model) {
         ModelRenderer[] parts = new ModelRenderer[]{model.bipedRightArm, model.bipedLeftArm, model.bipedRightLeg, model.bipedLeftLeg};
         EnumAnimationPart[] enumParts = new EnumAnimationPart[]{EnumAnimationPart.RIGHT_ARM, EnumAnimationPart.LEFT_ARM, EnumAnimationPart.RIGHT_LEG, EnumAnimationPart.LEFT_LEG};
-        Frame frame = null;
+        Frame frame;
 
         AnimationData animationData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
         if (animationData != null && animationData.isActive() && animationData.getAnimation() != null && animationData.getAnimation().currentFrame() != null) {
@@ -110,16 +110,53 @@ public class MixinItemRenderer {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         Minecraft.getMinecraft().getTextureManager().bindTexture(entityclientplayermp.getLocationSkin());
 
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0.1F, 0.4F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.3F);
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
-        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
-        model.bipedRightArm.render(0.0625F);
-        GL11.glPopMatrix();
+        if (frame.frameParts.containsKey(EnumAnimationPart.RIGHT_ARM)) {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(0.1F, 0.4F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.3F);
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
+            model.bipedRightArm.render(0.0625F);
+            GL11.glPopMatrix();
+        }
 
-        if (itemstack != null)
+
+        if (frame.frameParts.containsKey(EnumAnimationPart.LEFT_ARM)) {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(-0.1F, 0.4F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.3F);
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
+            model.bipedLeftArm.render(0.0625F);
+            GL11.glPopMatrix();
+        }
+
+
+        if (frame.frameParts.containsKey(EnumAnimationPart.RIGHT_LEG)) {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(0.025F, 0.6F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.4F);
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
+            model.bipedRightLeg.render(0.0625F);
+            GL11.glPopMatrix();
+        }
+
+        if (frame.frameParts.containsKey(EnumAnimationPart.LEFT_LEG)) {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(-0.025F, 0.6F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.4F);
+            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+            GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+            GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
+            model.bipedLeftLeg.render(0.0625F);
+            GL11.glPopMatrix();
+        }
+
+        if (frame.frameParts.containsKey(EnumAnimationPart.RIGHT_ARM) && itemstack != null)
         {
             float f11, f12;
             GL11.glPushMatrix();
@@ -172,46 +209,17 @@ public class MixinItemRenderer {
             GL11.glPopMatrix();
         }
 
-        GL11.glPushMatrix();
-        GL11.glTranslatef(-0.1F, 0.4F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.3F);
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
-        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
-        model.bipedLeftArm.render(0.0625F);
-        GL11.glPopMatrix();
-
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0.025F, 0.6F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.4F);
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
-        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
-        model.bipedRightLeg.render(0.0625F);
-        GL11.glPopMatrix();
-
-        GL11.glPushMatrix();
-        GL11.glTranslatef(-0.025F, 0.6F + -0.75F * 0.8F - (1.0F - f1) * 0.6F, -0.4F);
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-        GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
-        GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(0.0F, 0.0F, 0.0F, 1.0F);
-        model.bipedLeftLeg.render(0.0625F);
-        GL11.glPopMatrix();
-
-        if (frame != null) {
-            for (int p = 0; p < parts.length; p++) {
-                ModelRenderer part = parts[p];
-                EnumAnimationPart enumPart = enumParts[p];
-                FramePart originalPart = ClientEventHandler.originalValues.get(part);
-                if (originalPart != null && frame.frameParts.containsKey(enumPart)) {
-                    part.rotationPointX = originalPart.pivot[0];
-                    part.rotationPointY = originalPart.pivot[1];
-                    part.rotationPointZ = originalPart.pivot[2];
-                    part.rotateAngleX = originalPart.rotation[0];
-                    part.rotateAngleY = originalPart.rotation[1];
-                    part.rotateAngleZ = originalPart.rotation[2];
-                }
+        for (int p = 0; p < parts.length; p++) {
+            ModelRenderer part = parts[p];
+            EnumAnimationPart enumPart = enumParts[p];
+            FramePart originalPart = ClientEventHandler.originalValues.get(part);
+            if (originalPart != null && frame.frameParts.containsKey(enumPart)) {
+                part.rotationPointX = originalPart.pivot[0];
+                part.rotationPointY = originalPart.pivot[1];
+                part.rotationPointZ = originalPart.pivot[2];
+                part.rotateAngleX = originalPart.rotation[0];
+                part.rotateAngleY = originalPart.rotation[1];
+                part.rotateAngleZ = originalPart.rotation[2];
             }
         }
 
