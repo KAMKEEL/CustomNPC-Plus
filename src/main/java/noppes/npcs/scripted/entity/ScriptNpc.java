@@ -404,6 +404,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptRoleTrader(npc);
 		else if(npc.advanced.role == EnumRoleType.Transporter)
 			return new ScriptRoleTransporter(npc);
+		else if(npc.advanced.role == EnumRoleType.Companion)
+			return new ScriptRoleCompanion(npc);
 		return new ScriptRoleInterface(npc);
 	}
 
