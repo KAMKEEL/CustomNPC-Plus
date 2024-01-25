@@ -7,7 +7,8 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
-import kamkeel.addon.GeckoAddonSupport;
+import kamkeel.addon.AddonManager;
+import kamkeel.addon.GeckoAddon;
 import kamkeel.command.CommandKamkeel;
 import kamkeel.developer.Developer;
 import net.minecraft.block.Block;
@@ -32,7 +33,6 @@ import noppes.npcs.entity.old.*;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Set;
 
 @Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9-beta5")
@@ -168,7 +168,9 @@ public class CustomNpcs {
         new CustomNpcsPermissions();
         new Developer();
 
+        // Load Mod Support
         PixelmonHelper.load();
+        new AddonManager();
     }
 
     @EventHandler
@@ -185,14 +187,6 @@ public class CustomNpcs {
         MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
         MARKOV_GENERATOR[9] = new MarkovSpanish(3);
 
-    }
-
-    @EventHandler
-    public void load(FMLPostInitializationEvent ev) {
-        if(Loader.isModLoaded("customnpcsgecko")){
-            System.out.println("Enabling CNPC+ Gecko Addon");
-            GeckoAddonSupport.supportEnabled = true;
-        }
     }
 
     @EventHandler

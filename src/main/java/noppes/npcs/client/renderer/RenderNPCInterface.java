@@ -2,7 +2,8 @@ package noppes.npcs.client.renderer;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
-import kamkeel.addon.GeckoAddonSupport;
+import kamkeel.addon.GeckoAddon;
+import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.FontRenderer;
@@ -11,7 +12,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
@@ -33,7 +33,6 @@ import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -220,10 +219,8 @@ public class RenderNPCInterface extends RenderLiving{
 
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-		if(GeckoAddonSupport.geckoModelRender(mainModel)){
-			GL11.glRotatef(180, 1,0,0);
-			GL11.glTranslated(0, -1.5,0);
-			renderGeoModel(npc, npc.rotationYaw, Minecraft.getMinecraft().timer.renderPartialTicks);
+		if(GeckoAddonClient.Instance.isGeckoModel(mainModel)){
+			GeckoAddonClient.Instance.geckoRenderModel((ModelMPM) mainModel, npc, npc.rotationYaw, Minecraft.getMinecraft().timer.renderPartialTicks);
 		} else if (this.getEntityTexture(entityliving) != null) {
 			super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		}

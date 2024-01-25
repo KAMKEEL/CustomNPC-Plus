@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.model;
 
-import kamkeel.addon.GeckoAddonSupport;
+import kamkeel.addon.GeckoAddon;
+import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -23,8 +24,6 @@ import noppes.npcs.entity.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-
-import static kamkeel.addon.GeckoAddonSupport.openGeckoGui;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener{
 
@@ -169,12 +168,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			addButton(new GuiNpcButton(201, guiLeft + 80, y + i * 22, 50, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}, breed));
 		}
 
-		if(EntityList.getEntityString(entity).equals("customnpcsgecko.CustomModel") || EntityList.getEntityString(entity).equals("CustomModel")){
-			this.addButton(new GuiNpcButton(202, guiLeft, y + i * 22, 120, 20, "Select model"));
-			this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+20, 120, 20, "Select animation file"));
-			this.addButton(new GuiNpcButton(204, guiLeft, y + i * 22+40, 120, 20, "Select idle animation"));
-			//this.addButton(new GuiNpcButton(203, guiLeft, y + i * 22+60, 120, 20, "Select animation file"));
-		}
+		GeckoAddonClient.Instance.showGeckoButtons(this, entity);
 	}
 	private boolean isIgnored(String tag){
 		for(String s : ignoredTags)
@@ -326,9 +320,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			} catch (Exception ignored) {}
 		}
 
-		if(GeckoAddonSupport.supportEnabled){
-			openGeckoGui(this, button, player, npc);
-		}
+		GeckoAddonClient.Instance.geckoGuiCreationScreenActionPerformed(this, button);
 	}
 
 	private void updateTexture(){

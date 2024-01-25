@@ -3,8 +3,6 @@ package noppes.npcs;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import kamkeel.addon.DataDisplaySupport;
-import kamkeel.addon.GeckoAddonSupport;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -37,8 +35,6 @@ public class DataDisplay {
 	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
 	public String cloakTexture = "";
 
-	public HashMap<String, DataDisplaySupport> dataDisplaySupport;
-
 	public DataSkinOverlays skinOverlayData;
 	public long overlayRenderTicks = 0;
 
@@ -69,9 +65,6 @@ public class DataDisplay {
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
 		animationData = new AnimationData(this);
-		dataDisplaySupport = new HashMap<>();
-
-		GeckoAddonSupport.initGeckoData(dataDisplaySupport);
 	}
 
 	public String getRandomName() {
@@ -85,10 +78,6 @@ public class DataDisplay {
 		nbttagcompound.setString("Title", title);
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
-
-		for(DataDisplaySupport dataDisplaySupport : dataDisplaySupport.values()){
-			nbttagcompound = dataDisplaySupport.writeToNBT(nbttagcompound);
-		}
 
 		nbttagcompound.setString("CloakTexture", cloakTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
@@ -151,10 +140,6 @@ public class DataDisplay {
         String prevTexture = texture;
 
 		texture = nbttagcompound.getString("Texture");
-
-		for(DataDisplaySupport dataDisplaySupport : dataDisplaySupport.values()){
-			dataDisplaySupport.readToNBT(nbttagcompound);
-		}
 
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
