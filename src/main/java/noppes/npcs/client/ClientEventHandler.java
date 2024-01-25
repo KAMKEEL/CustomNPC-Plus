@@ -200,34 +200,22 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onRenderHand(RenderHandEvent event) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        Render playerRenderer = RenderManager.instance.getEntityRenderObject(player);
-        if (playerRenderer instanceof RendererLivingEntity) {
-            ClientEventHandler.renderer = (RendererLivingEntity) playerRenderer;
-        }
-        ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
-        partialHandTicks = event.partialTicks;
-
         if (ConfigMixin.FirstPersonAnimationMixin && ClientCacheHandler.playerAnimations.containsKey(player.getUniqueID())) {
-            for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
-                ModelRenderer renderer = entry.getKey();
-                FramePart part = entry.getValue();
-                renderer.rotateAngleX = part.rotation[0];
-                renderer.rotateAngleY = part.rotation[1];
-                renderer.rotateAngleZ = part.rotation[2];
-                renderer.rotationPointX = part.pivot[0];
-                renderer.rotationPointY = part.pivot[1];
-                renderer.rotationPointZ = part.pivot[2];
+            Render playerRenderer = RenderManager.instance.getEntityRenderObject(player);
+            if (playerRenderer instanceof RendererLivingEntity) {
+                ClientEventHandler.renderer = (RendererLivingEntity) playerRenderer;
             }
+            ClientEventHandler.renderingPlayer = player;
+            ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+            partialHandTicks = event.partialTicks;
 
             AnimationData animData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
             if (animData != null && animData.isActive()) {
                 Frame frame = (Frame) animData.animation.currentFrame();
-                for (EnumAnimationPart e : EnumAnimationPart.values()) {
-                    if (frame.frameParts.containsKey(e)) {
-                        FramePart part = frame.frameParts.get(e);
-                        part.interpolateOffset();
-                        part.interpolateAngles();
-                    }
+                if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                    FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                    part.interpolateOffset();
+                    part.interpolateAngles();
                 }
             }
         }
