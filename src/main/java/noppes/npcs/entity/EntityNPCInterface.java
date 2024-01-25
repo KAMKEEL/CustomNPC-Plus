@@ -67,7 +67,7 @@ import noppes.npcs.util.GameProfileAlt;
 import java.io.IOException;
 import java.util.*;
 
-public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData{
+public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData {
 	public ICustomNpc wrappedNPC;
 
 	public static final GameProfileAlt chateventProfile = new GameProfileAlt();
@@ -80,6 +80,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataScript script;
 	public DataTransform transform;
 	public DataTimers timers;
+
+	public CombatHandler combatHandler = new CombatHandler(this);
 
 	public String linkedName = "";
 	public long linkedLast = 0;
@@ -311,10 +313,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				updateTasks();
 				updateHitbox();
 			}
-			setBoolFlag(this.getAttackTarget() != null, 4);
+			// setBoolFlag(this.getAttackTarget() != null, 4);
 			setBoolFlag(!getNavigator().noPath(), 1);
 			setBoolFlag(isInteracting(), 2);
-
+			combatHandler.update();
 			onCollide();
 		}
 
@@ -348,6 +350,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			if(advanced.job == EnumJobType.Bard)
 				((JobBard)jobInterface).onLivingUpdate();
 		}
+	}
+
+	@Override
+	protected void damageEntity(DamageSource damageSrc, float damageAmount){
+		super.damageEntity(damageSrc, damageAmount);
+		combatHandler.damage(damageSrc, damageAmount);
 	}
 
 	public void updateClient() {
@@ -677,17 +685,18 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		removeTask(aiRange);
 		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
 
+		if (this.ai.canSprint)
+			this.tasks.addTask(this.taskCount++, new EntityAISprintToTarget(this));
+
 		if (this.ai.onAttack == 1)
 			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
 
 		else if (this.ai.onAttack == 2)  {
 			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
-			this.setCanSprint();
 		}
 
 		else if (this.ai.onAttack == 0) {
-			this.setCanLeap();
-			this.setCanSprint();
+			this.setLeapTask();
 			if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
 			{
 				switch(this.ai.tacticalVariant)
@@ -773,17 +782,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	/*
 	 * Branch task function for leaping
 	 */
-	public void setCanLeap() {
-		if (this.ai.canLeap)
+	public void setLeapTask() {
+		if (this.ai.leapType == 1)
 			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAILeapAtTarget(this, 0.4F));
-	}
-
-	/*
-	 * Branch task function for sprinting
-	 */
-	public void setCanSprint() {
-		if (this.ai.canSprint)
-			this.tasks.addTask(this.taskCount++, aiSprint = new EntityAISprintToTarget(this));
+		if (this.ai.leapType == 2)
+			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAIPounceTarget(this));
 	}
 
 	/*
@@ -1079,6 +1082,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		setHealth(getMaxHealth());
 		dataWatcher.updateObject(14, 0); // animation Normal
 		dataWatcher.updateObject(15, 0);
+
+		combatHandler.reset();
 		this.setAttackTarget(null);
 		this.setRevengeTarget(null);
 		this.deathTime = 0;
@@ -1478,6 +1483,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			this.motionY = 0.4000000059604645D;
 		}
 	}
+
 	@Override
 	public void addVelocity(double p_70024_1_, double p_70024_3_, double p_70024_5_) {
 		if (this.attackingPlayer != null) {
@@ -1685,12 +1691,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			super.setInWeb();
 	}
 
+	public boolean isInRange(Entity entity, double range){
+		return this.isInRange(entity.posX, entity.posY, entity.posZ, range);
+	}
+
+	public boolean isInRange(double posX, double posY, double posZ, double range){
+		double y = Math.abs(this.posY - posY);
+		if(posY >= 0 && y > range)
+			return false;
+
+		double x = Math.abs(this.posX - posX);
+		double z = Math.abs(this.posZ - posZ);
+
+		return x <= range && z <= range;
+	}
+
 	@Override
 	public boolean canBeCollidedWith(){
 		return !isKilled();
 	}
 
-	// obviously we dont want this
 	@Override
 	public boolean canBePushed() {
 		return this.display.collidesWith == 0;

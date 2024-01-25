@@ -39,7 +39,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     	addLabel(new GuiNpcLabel(11,"ai.return", guiLeft + 150, guiTop + 40));
     	addButton(new GuiNpcButton(6, guiLeft + 230, guiTop + 35, 60, 20, new String[]{"gui.no","gui.yes"} ,npc.ai.returnToStart ? 1:0));
     	addLabel(new GuiNpcLabel(17,"ai.leapattarget", guiLeft + 150, guiTop + 65));
-        addButton(new GuiNpcButton(15,guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ai.canLeap ? 1:0));   	
+        addButton(new GuiNpcButton(15,guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "ai.jump", "ai.pounce"} ,npc.ai.leapType));
 		addLabel(new GuiNpcLabel(15, "ai.indirect", guiLeft + 150, guiTop + 90));
     	addButton(new GuiNpcButton(13, guiLeft + 230, guiTop + 85, 60, 20, new String[]{"gui.no", "gui.whendistant", "gui.whenhidden"}, ai.canFireIndirect));
 		addLabel(new GuiNpcLabel(16, "ai.rangemelee", guiLeft + 150, guiTop + 115));
@@ -129,7 +129,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			initGui();
 		}
 		else if (button.id == 15) {
-			ai.canLeap = (button.getValue() == 1);
+			ai.leapType = (byte) button.getValue();
 		}
 		else if (button.id == 16) {
 			ai.canSprint = (button.getValue() == 1);

@@ -16,19 +16,15 @@ public class EntityAIClearTarget extends EntityAITarget
 
     @Override
     public boolean shouldExecute(){
-    	target = taskOwner.getAttackTarget();
+        target = npc.getAttackTarget();
         if (target == null)
             return false;
-        
-        if(target instanceof EntityPlayer && ((EntityPlayer)target).capabilities.disableDamage)
-        	return true;
-        
-        int distance = npc.stats.aggroRange * 2 * npc.stats.aggroRange;
-        if(npc.getOwner() != null && npc.getDistanceSqToEntity(npc.getOwner()) > distance){
-        	return true;
+
+        if(npc.getOwner() != null && !npc.isInRange(npc.getOwner(), npc.stats.aggroRange * 2)){
+            return true;
         }
-        
-        return npc.getDistanceSqToEntity(target) > distance;
+
+        return npc.combatHandler.checkTarget();
     }
 
     @Override

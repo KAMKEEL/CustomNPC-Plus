@@ -13,11 +13,17 @@ import java.util.Collection;
 import java.util.List;
 
 public class VersionCompatibility {
-	public static int ModRev = 21;
+	public static int ModRev = 22;
 
 	public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound){
 		if(npc.npcVersion == ModRev)
 			return;
+		if(npc.npcVersion < 22) {
+			if (compound.hasKey("CanLeap")) {
+				boolean canLeap = compound.getBoolean("CanLeap");
+				compound.setInteger("LeapType", !canLeap ? 0 : 1);
+			}
+		}
 		if(npc.npcVersion < 19) {
 			if (compound.hasKey("CanDrown")) {
 				compound.setInteger("DrowningType", (compound.getBoolean("CanDrown") ? 1 : 0));
