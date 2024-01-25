@@ -6,18 +6,22 @@ import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import noppes.npcs.config.ConfigMixin;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.opengl.GL11;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -195,7 +199,26 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderHand(RenderHandEvent event) {
-        partialHandTicks = event.partialTicks;
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (ConfigMixin.FirstPersonAnimationMixin && ClientCacheHandler.playerAnimations.containsKey(player.getUniqueID())) {
+            Render playerRenderer = RenderManager.instance.getEntityRenderObject(player);
+            if (playerRenderer instanceof RendererLivingEntity) {
+                ClientEventHandler.renderer = (RendererLivingEntity) playerRenderer;
+            }
+            ClientEventHandler.renderingPlayer = player;
+            ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+            partialHandTicks = event.partialTicks;
+
+            AnimationData animData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
+            if (animData != null && animData.isActive()) {
+                Frame frame = (Frame) animData.animation.currentFrame();
+                if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                    FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                    part.interpolateOffset();
+                    part.interpolateAngles();
+                }
+            }
+        }
     }
 
     public static boolean hasOverlays(EntityPlayer player) {
