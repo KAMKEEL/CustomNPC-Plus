@@ -1126,7 +1126,7 @@ public class ScriptWorld implements IWorld {
 
 	/**
 	 * Sends a packet from the server to the client everytime its called. Probably should not use this too much.
-	 * @param particle Particle name. Particle name list: http://minecraft.gamepedia.com/Particles
+	 * @param particle Particle name. Particle name list: http://minecraft.wiki/w/Particles
 	 * @param x The x position
 	 * @param y The y position
 	 * @param z The z position

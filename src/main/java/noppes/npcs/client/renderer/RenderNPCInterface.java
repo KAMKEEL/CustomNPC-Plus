@@ -2,6 +2,8 @@ package noppes.npcs.client.renderer;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+import kamkeel.addon.GeckoAddon;
+import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.FontRenderer;
@@ -10,7 +12,6 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
@@ -32,7 +33,6 @@ import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -219,7 +219,9 @@ public class RenderNPCInterface extends RenderLiving{
 
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
 		EntityNPCInterface npc = (EntityNPCInterface) entityliving;
-		if (this.getEntityTexture(entityliving) != null) {
+		if(GeckoAddonClient.Instance.isGeckoModel(mainModel)){
+			GeckoAddonClient.Instance.geckoRenderModel((ModelMPM) mainModel, npc, npc.rotationYaw, Minecraft.getMinecraft().timer.renderPartialTicks);
+		} else if (this.getEntityTexture(entityliving) != null) {
 			super.renderModel(entityliving, par2, par3, par4, par5, par6, par7);
 		}
 
@@ -290,6 +292,31 @@ public class RenderNPCInterface extends RenderLiving{
 			npc.display.overlayRenderTicks++;
 		}
 	}
+
+	private void renderGeoModel(EntityNPCInterface npc, float rot, float partial)
+	{
+		((ModelMPM) mainModel).entity.renderYawOffset = ((ModelMPM) mainModel).entity.prevRenderYawOffset = 0;
+		if (!npc.isInvisible())
+		{
+			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
+		}
+		else if (!npc.isInvisibleToPlayer(Minecraft.getMinecraft().thePlayer))
+		{
+			GL11.glPushMatrix();
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 0.15F);
+			GL11.glDepthMask(false);
+			GL11.glEnable(GL11.GL_BLEND);
+			GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			GL11.glAlphaFunc(GL11.GL_GREATER, 0.003921569F);
+			RenderManager.instance.renderEntityWithPosYaw(((ModelMPM) mainModel).entity, 0,0,0,rot,partial);
+			GL11.glDisable(GL11.GL_BLEND);
+			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
+			GL11.glPopMatrix();
+			GL11.glDepthMask(true);
+		}
+	}
+
+
 	@Override
 	protected float handleRotationFloat(EntityLivingBase par1EntityLiving, float par2){
 		EntityNPCInterface npc = (EntityNPCInterface) par1EntityLiving;

@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import com.mojang.authlib.GameProfile;
+import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataDisplay;
@@ -95,6 +96,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
 
+		GeckoAddonClient.Instance.geckoNpcDisplayInitGui(this);
 	}
 
 	@Override
@@ -192,6 +194,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		else if(button.id == 15){
 			setSubGui(new SubGuiNpcName(display));
 		}
+
+		GeckoAddonClient.Instance.geckoNpcDisplayActionPerformed(this, button);
     }
 
 	@Override

@@ -16,9 +16,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class DataDisplay {
 	public EntityNPCInterface npc;
@@ -45,7 +43,7 @@ public class DataDisplay {
 	public String glowTexture = "";
 
 	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
-	
+
 	public int modelSize = 5;
 
 	public int showName = 0;
@@ -53,7 +51,7 @@ public class DataDisplay {
 	public int modelType = 0;
 
 	public boolean disableLivingAnimation = false;
-	
+
 	public byte showBossBar = 0;
 
 	public ArrayList<UUID> invisibleToList = new ArrayList<>();
@@ -80,6 +78,7 @@ public class DataDisplay {
 		nbttagcompound.setString("Title", title);
 		nbttagcompound.setString("SkinUrl", url);
 		nbttagcompound.setString("Texture", texture);
+
 		nbttagcompound.setString("CloakTexture", cloakTexture);
 		nbttagcompound.setByte("UsingSkinUrl", skinType);
 		nbttagcompound.setString("GlowTexture", glowTexture);
@@ -94,7 +93,7 @@ public class DataDisplay {
             NBTUtil.func_152460_a(nbttagcompound1, this.playerProfile);
             nbttagcompound.setTag("SkinUsername", nbttagcompound1);
         }
-		
+
 		nbttagcompound.setInteger("Size", modelSize);
 		nbttagcompound.setInteger("modelType", modelType);
 
@@ -121,12 +120,12 @@ public class DataDisplay {
 		setMarkovGender(nbttagcompound.getInteger("MarkovGender"));
 
 		title = nbttagcompound.getString("Title");
-		
+
 		url = nbttagcompound.getString("SkinUrl");
 
 		int prevSkinType = skinType;
 		skinType = nbttagcompound.getByte("UsingSkinUrl");
-		
+
 		this.playerProfile = null;
 		if(skinType == 1){
 	        if (nbttagcompound.hasKey("SkinUsername", 10)){
@@ -139,8 +138,9 @@ public class DataDisplay {
 		}
 
         String prevTexture = texture;
-        
+
 		texture = nbttagcompound.getString("Texture");
+
 		cloakTexture = nbttagcompound.getString("CloakTexture");
 		glowTexture = nbttagcompound.getString("GlowTexture");
 
@@ -169,7 +169,7 @@ public class DataDisplay {
 			modelSize = ConfigMain.NpcSizeLimit;
 
 		modelType = nbttagcompound.getInteger("modelType");
-		
+
 		showName = nbttagcompound.getInteger("ShowName");
 		visible = nbttagcompound.getInteger("NpcVisible");
 
@@ -197,7 +197,7 @@ public class DataDisplay {
 			npc.textureLocation = null;
 		npc.updateHitbox();
 	}
-	
+
     public void loadProfile(){
         if (this.playerProfile != null && !StringUtils.isNullOrEmpty(this.playerProfile.getName()) && MinecraftServer.getServer() != null){
             if (!this.playerProfile.isComplete() || !this.playerProfile.getProperties().containsKey("textures")){
@@ -215,7 +215,7 @@ public class DataDisplay {
             }
         }
     }
-	
+
 	public boolean showName() {
 		if(npc.isKilled())
 			return false;
@@ -265,5 +265,4 @@ public class DataDisplay {
 			return;
 		this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
 	}
-
 }

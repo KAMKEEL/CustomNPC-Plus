@@ -1,14 +1,14 @@
 package noppes.npcs;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.*;
 import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
+import kamkeel.addon.AddonManager;
+import kamkeel.addon.GeckoAddon;
 import kamkeel.command.CommandKamkeel;
 import kamkeel.developer.Developer;
 import net.minecraft.block.Block;
@@ -35,7 +35,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9-beta4")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9-beta5")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -168,7 +168,9 @@ public class CustomNpcs {
         new CustomNpcsPermissions();
         new Developer();
 
+        // Load Mod Support
         PixelmonHelper.load();
+        new AddonManager();
     }
 
     @EventHandler
@@ -257,7 +259,6 @@ public class CustomNpcs {
     private void registerNewEntity(Class<? extends Entity> cl, String name, int range, int update, boolean velocity) {
         EntityRegistry.registerModEntity(cl, name, NewEntityStartId++, this, range, update, velocity);
     }
-
 
     public static File getWorldSaveDirectory() {
         MinecraftServer server = MinecraftServer.getServer();

@@ -128,7 +128,7 @@ public class GuiCustomScroll extends GuiScreen
         	i -= guiLeft;
         	j -= guiTop;
             if(Mouse.isButtonDown(0)){
-                if(i >= xSize-11 && i < xSize-6 && j >= 4 && j < ySize){
+                if(i >= xSize-9 && i < xSize-4 && j >= 4 && j < ySize){
                     isScrolling = true;
                 }
             } 

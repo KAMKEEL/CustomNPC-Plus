@@ -19,6 +19,7 @@ import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
@@ -378,7 +379,7 @@ public class NpcAPI extends AbstractNpcAPI {
                     scriptStack = new ScriptCustomItem(itemstack);
                 } else if (itemstack.getItem() instanceof ItemArmor) {
                     scriptStack = new ScriptItemArmor(itemstack);
-                } else if (itemstack.getItem() instanceof ItemBook) {
+                } else if (itemstack.getItem() instanceof ItemWritableBook || itemstack.getItem() instanceof ItemEditableBook || itemstack.getItem() == Items.written_book || itemstack.getItem() == Items.writable_book) {
                     scriptStack = new ScriptItemBook(itemstack);
                 } else if (itemstack.getItem() instanceof ItemBlock) {
                     scriptStack = new ScriptItemBlock(itemstack);
