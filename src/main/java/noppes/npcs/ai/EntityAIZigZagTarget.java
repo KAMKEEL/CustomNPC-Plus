@@ -63,7 +63,6 @@ public class EntityAIZigZagTarget extends EntityAIBase
 		            if (vec3 != null)
 		            {
 		            	if (this.targetEntity.getDistanceSq(vec3.xCoord, vec3.yCoord, vec3.zCoord) < this.targetEntity.getDistanceSq(entityPosX, entityPosY, entityPosZ))  
-//		            	if (this.theEntity.getDistanceSq(vec3.xCoord, vec3.yCoord, vec3.zCoord) > field_75426_g * field_75426_g && this.targetEntity.getDistanceSq(vec3.xCoord, vec3.yCoord, vec3.zCoord) < this.targetEntity.getDistanceSq(entityPosX, entityPosY, entityPosZ))
 		            	{
 	                    	this.movePosX = vec3.xCoord;
 	                    	this.movePosY = vec3.yCoord;
