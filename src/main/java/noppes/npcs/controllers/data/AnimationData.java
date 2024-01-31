@@ -1,6 +1,8 @@
 package noppes.npcs.controllers.data;
 
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -10,13 +12,18 @@ import noppes.npcs.DataDisplay;
 import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class AnimationData implements IAnimationData {
     //Server-side: DataDisplay, PlayerData
@@ -144,7 +151,30 @@ public class AnimationData implements IAnimationData {
     }
 
     public void setAnimation(IAnimation animation) {
-        this.animation = (Animation) animation;
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+            this.animation = (Animation) animation;
+        } else {
+            Animation newAnim = new Animation();
+            newAnim.readFromNBT(((Animation) animation).writeToNBT());
+            if (this.animation != null && newAnim.frames.size() > 0) {
+                Frame frame = (Frame) this.animation.currentFrame();
+                if (frame != null) {
+                    Frame firstFrame = newAnim.frames.get(0);
+                    for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
+                        if (firstFrame.frameParts.containsKey(entry.getKey())) {
+                            FramePart prevFramePart = entry.getValue();
+                            FramePart newFramePart = firstFrame.frameParts.get(entry.getKey());
+                            for (int i = 0; i < 3; i++) {
+                                newFramePart.prevPivots[i] = prevFramePart.prevPivots[i];
+                                newFramePart.prevRotations[i] = prevFramePart.prevRotations[i];
+                            }
+                        }
+                    }
+                }
+            }
+            this.animation = newAnim;
+            newAnim.parent = this;
+        }
     }
 
     public IAnimation getAnimation() {
