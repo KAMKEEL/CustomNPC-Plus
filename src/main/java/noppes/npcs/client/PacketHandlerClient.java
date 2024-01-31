@@ -330,26 +330,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				}
 
 				if (animationData.allowAnimation) {
-					Animation animation = new Animation();
-					animation.readFromNBT(ClientCacheHandler.animationCache.get(animationId).writeToNBT());
-					if (animationData.animation != null && animation.frames.size() > 0) {
-						Frame frame = (Frame) animationData.animation.currentFrame();
-						if (frame != null) {
-							Frame firstFrame = animation.frames.get(0);
-							for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
-								if (firstFrame.frameParts.containsKey(entry.getKey())) {
-									FramePart prevFramePart = entry.getValue();
-									FramePart newFramePart = firstFrame.frameParts.get(entry.getKey());
-									for (int i = 0; i < 3; i++) {
-										newFramePart.prevPivots[i] = prevFramePart.prevPivots[i];
-										newFramePart.prevRotations[i] = prevFramePart.prevRotations[i];
-									}
-								}
-							}
-						}
-					}
-					animationData.animation = animation;
-					animation.parent = animationData;
+					animationData.setAnimation(ClientCacheHandler.animationCache.get(animationId));
 					Client.sendData(EnumPacketServer.CacheAnimation, animationId);
 				}
 			}
