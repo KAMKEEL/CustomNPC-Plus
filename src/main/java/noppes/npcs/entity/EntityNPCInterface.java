@@ -535,7 +535,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 								}
 								break;
 							case Stubborn:
-								if (closerTargetFound && shouldChangeTarget(5.0)) {
+								if (closerTargetFound && combatHandler.shouldChangeTarget(5.0)) {
+									setAttackTarget(attackingEntity);
+								}
+								break;
+							case Tactical:
+								if (attackingEntity != getAttackTarget() && combatHandler.shouldSwitchTactically(getAttackTarget(), attackingEntity)) {
 									setAttackTarget(attackingEntity);
 								}
 								break;
@@ -1927,10 +1932,4 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	protected void updateLeashedState(){}
-
-	private boolean shouldChangeTarget(double chance) {
-		// Assuming randomNum is a random number between 0 and 100
-		double randomNum = Math.random() * 100; // Generates a random number between 0 and 100
-		return randomNum <= chance;
-	}
 }
