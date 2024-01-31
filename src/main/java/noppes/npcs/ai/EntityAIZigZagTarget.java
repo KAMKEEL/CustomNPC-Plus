@@ -19,14 +19,14 @@ public class EntityAIZigZagTarget extends EntityAIBase
     private int entityPosX;
     private int entityPosY;
     private int entityPosZ;
-    private double field_75425_f;
-    private float field_75426_g;
+    private double speed;
+    private float tacticalRange;
 
     public EntityAIZigZagTarget(EntityCreature par1EntityCreature, double par2, float par4)
     {
         this.theEntity = par1EntityCreature;
-        this.field_75425_f = par2;
-        this.field_75426_g = par4;
+        this.speed = par2;
+        this.tacticalRange = par4;
         this.setMutexBits(AiMutex.PASSIVE + AiMutex.LOOK);
     }
 
@@ -41,7 +41,7 @@ public class EntityAIZigZagTarget extends EntityAIBase
         {
             return false;
         }
-        else if (this.targetEntity.getDistanceSqToEntity(this.theEntity) < (double)(this.field_75426_g * this.field_75426_g))
+        else if (this.targetEntity.getDistanceSqToEntity(this.theEntity) < (double)(this.tacticalRange * this.tacticalRange))
         {
             return false;
         }
@@ -51,14 +51,14 @@ public class EntityAIZigZagTarget extends EntityAIBase
 
         	if (pathentity != null)
         	{
-        		if (pathentity.getCurrentPathLength() >= this.field_75426_g)
+        		if (pathentity.getCurrentPathLength() >= this.tacticalRange)
 		        {
-		        	PathPoint pathpoint = pathentity.getPathPointFromIndex(MathHelper.floor_double(this.field_75426_g / 2.0D));
+		        	PathPoint pathpoint = pathentity.getPathPointFromIndex(MathHelper.floor_double(this.tacticalRange / 2.0D));
 		        	this.entityPosX = pathpoint.xCoord;
 		        	this.entityPosY = pathpoint.yCoord;
 		        	this.entityPosZ = pathpoint.zCoord;
 		        	
-		        	Vec3 vec3 = RandomPositionGeneratorAlt.findRandomTargetBlockTowards(this.theEntity, (int)field_75426_g, 3, Vec3.createVectorHelper(this.entityPosX, this.entityPosY, this.entityPosZ));
+		        	Vec3 vec3 = RandomPositionGeneratorAlt.findRandomTargetBlockTowards(this.theEntity, (int) tacticalRange, 3, Vec3.createVectorHelper(this.entityPosX, this.entityPosY, this.entityPosZ));
 		
 		            if (vec3 != null)
 		            {
@@ -81,7 +81,7 @@ public class EntityAIZigZagTarget extends EntityAIBase
      */
     public boolean continueExecuting()
     {
-        return !this.theEntity.getNavigator().noPath() && this.targetEntity.isEntityAlive() && this.targetEntity.getDistanceSqToEntity(this.theEntity) > (double)(this.field_75426_g * this.field_75426_g);
+        return !this.theEntity.getNavigator().noPath() && this.targetEntity.isEntityAlive() && this.targetEntity.getDistanceSqToEntity(this.theEntity) > (double)(this.tacticalRange * this.tacticalRange);
     }
 
     /**
@@ -89,7 +89,7 @@ public class EntityAIZigZagTarget extends EntityAIBase
      */
     public void startExecuting()
     {
-        this.theEntity.getNavigator().tryMoveToXYZ(this.movePosX, this.movePosY, this.movePosZ, this.field_75425_f);
+        this.theEntity.getNavigator().tryMoveToXYZ(this.movePosX, this.movePosY, this.movePosZ, this.speed);
     }
     
     /**
