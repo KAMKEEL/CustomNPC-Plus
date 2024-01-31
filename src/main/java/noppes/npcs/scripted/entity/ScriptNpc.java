@@ -726,6 +726,34 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.ai.tacticalVariant.name();
 	}
 
+	public void setCombatPolicy(int variant){
+		if(variant > EnumCombatPolicy.values().length-1 || variant < 0)
+			return;
+
+		npc.ai.combatPolicy = EnumCombatPolicy.values()[variant];
+	}
+
+	public int getCombatPolicy(){
+		return npc.ai.combatPolicy.ordinal();
+	}
+
+	public void setCombatPolicy(String variant){
+		boolean found = false;
+		for(String s : EnumCombatPolicy.names()){
+			if(s.equals(variant))
+				found = true;
+		}
+
+		if(!found)
+			return;
+
+		npc.ai.combatPolicy = EnumCombatPolicy.valueOf(variant);
+	}
+
+	public String getCombatPolicyName(){
+		return npc.ai.combatPolicy.name();
+	}
+
 	public void setTacticalRadius(int tacticalRadius){
 		if(tacticalRadius < 0)
 			tacticalRadius = 0;

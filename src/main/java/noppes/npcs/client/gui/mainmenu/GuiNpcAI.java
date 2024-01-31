@@ -6,6 +6,7 @@ import noppes.npcs.DataAI;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.SubGuiNpcMovement;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumCombatPolicy;
 import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -68,19 +69,22 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 	    	getTextField(3).integersOnly = true;
 	        getTextField(3).setMinMaxDefault(1, npc.stats.aggroRange, 5);
     	}
+		addLabel(new GuiNpcLabel(25,"ai.combatpolicy", guiLeft + 150, guiTop + 165));
+		addButton(new GuiNpcButton(25 ,guiLeft + 230, guiTop + 160, 60, 20, EnumCombatPolicy.names(), ai.combatPolicy.ordinal()));
 
-		addLabel(new GuiNpcLabel(22,"ai.cobwebAffected", guiLeft + 150, guiTop + 165));
-    	addButton(new GuiNpcButton(22 ,guiLeft + 230, guiTop + 160, 60, 20,  new String[]{"gui.no", "gui.yes"}, npc.ai.ignoreCobweb ? 0:1));
-    	
-    	getButton(17).setEnabled(this.ai.onAttack == 0);
+		getButton(17).setEnabled(this.ai.onAttack == 0);
     	getButton(15).setEnabled(this.ai.onAttack == 0);
+		getButton(25).setEnabled(this.ai.onAttack == 0);
     	getButton(13).setEnabled(this.npc.inventory.getProjectile() != null);
     	getButton(14).setEnabled(this.npc.inventory.getProjectile() != null);
-    	getButton(10).setEnabled(ai.tacticalVariant != EnumNavType.Stalk || ai.tacticalVariant != EnumNavType.None);
+    	getButton(10).setEnabled(ai.tacticalVariant != EnumNavType.Stalk && ai.tacticalVariant != EnumNavType.None);
 
     	addLabel(new GuiNpcLabel(2,"ai.movement", guiLeft + 4, guiTop + 165));
-    	addButton(new GuiNpcButton(2, guiLeft + 86, guiTop + 160, 60, 20, "selectServer.edit")); 	
-    }
+    	addButton(new GuiNpcButton(2, guiLeft + 86, guiTop + 160, 60, 20, "selectServer.edit"));
+
+		addLabel(new GuiNpcLabel(22,"ai.cobwebAffected", guiLeft + 4, guiTop + 190));
+		addButton(new GuiNpcButton(22 ,guiLeft + 86, guiTop + 185, 60, 20,  new String[]{"gui.no", "gui.yes"}, npc.ai.ignoreCobweb ? 0:1));
+	}
     
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
@@ -141,6 +145,9 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 		}
 		else if (button.id == 22) {
 			ai.ignoreCobweb = (button.getValue() == 0);
+		}
+		else if (button.id == 25) {
+			ai.combatPolicy = EnumCombatPolicy.values()[button.getValue()];
 		}
     }
     

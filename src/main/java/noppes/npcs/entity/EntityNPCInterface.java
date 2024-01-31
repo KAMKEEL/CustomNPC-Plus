@@ -313,7 +313,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				updateTasks();
 				updateHitbox();
 			}
-			// setBoolFlag(this.getAttackTarget() != null, 4);
 			setBoolFlag(!getNavigator().noPath(), 1);
 			setBoolFlag(isInteracting(), 2);
 			combatHandler.update();
@@ -496,17 +495,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if((float)this.hurtResistantTime > (float)this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
 			return false;
 
-		Entity entity = damagesource.getEntity();
-
+		Entity entity = NoppesUtilServer.GetDamageSource(damagesource);
 		EntityLivingBase attackingEntity = null;
 
 		if (entity instanceof EntityLivingBase)
 			attackingEntity = (EntityLivingBase) entity;
-
-		if ((entity instanceof EntityArrow) && ((EntityArrow) entity).shootingEntity instanceof EntityLivingBase)
-			attackingEntity = (EntityLivingBase) ((EntityArrow) entity).shootingEntity;
-		else if ((entity instanceof EntityThrowable))
-			attackingEntity = ((EntityThrowable) entity).getThrower();
 
 		if(attackingEntity != null && attackingEntity == getOwner())
 			return false;
@@ -532,13 +525,28 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		try{
 			if (isAttacking()){
-				if(getAttackTarget() != null && attackingEntity != null && this.getDistanceSqToEntity(getAttackTarget()) > this.getDistanceSqToEntity(attackingEntity)){
-					setAttackTarget(attackingEntity);
+				if (getAttackTarget() != null) {
+					if (ai.combatPolicy != EnumCombatPolicy.Brute) {
+						boolean closerTargetFound = this.getDistanceSqToEntity(getAttackTarget()) > this.getDistanceSqToEntity(attackingEntity);
+						switch (ai.combatPolicy) {
+							case Flip:
+								if (closerTargetFound) {
+									setAttackTarget(attackingEntity);
+								}
+								break;
+							case Stubborn:
+								if (closerTargetFound && shouldChangeTarget(5.0)) {
+									setAttackTarget(attackingEntity);
+								}
+								break;
+							default:
+								break;
+						}
+					}
 				}
 				return super.attackEntityFrom(damagesource, i);
 			}
-
-			if (i > 0) {
+			if (i > 0){
 				List<EntityNPCInterface> inRange = worldObj.getEntitiesWithinAABB(EntityNPCInterface.class, this.boundingBox.expand(32D, 16D, 32D));
 				for (EntityNPCInterface npc : inRange) {
 					if (npc.isKilled() || !npc.advanced.defendFaction || npc.faction.id != faction.id)
@@ -1919,4 +1927,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	protected void updateLeashedState(){}
+
+	private boolean shouldChangeTarget(double chance) {
+		// Assuming randomNum is a random number between 0 and 100
+		double randomNum = Math.random() * 100; // Generates a random number between 0 and 100
+		return randomNum <= chance;
+	}
 }

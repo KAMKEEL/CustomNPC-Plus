@@ -394,7 +394,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 try {
@@ -417,7 +417,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.AttackedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
@@ -437,7 +437,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);

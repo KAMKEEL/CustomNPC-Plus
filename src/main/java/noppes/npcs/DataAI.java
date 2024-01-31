@@ -3,10 +3,7 @@ package noppes.npcs;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumMovingType;
-import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.constants.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -30,6 +27,7 @@ public class DataAI {
 	public boolean canSprint = false;
 	public boolean stopAndInteract = true;
 	public EnumNavType tacticalVariant = EnumNavType.Default;
+	public EnumCombatPolicy combatPolicy = EnumCombatPolicy.Flip;
 	public int useRangeMelee = 0;
 	public int tacticalRadius = 8;
 	
@@ -88,6 +86,7 @@ public class DataAI {
 		standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		tacticalVariant = EnumNavType.values()[compound.getInteger("TacticalVariant") % EnumNavType.values().length];
+		combatPolicy = EnumCombatPolicy.values()[compound.getInteger("CombatPolicy") % EnumCombatPolicy.values().length];
 	
 		orientation = compound.getInteger("Orientation");
 		bodyOffsetY = compound.getFloat("PositionOffsetY");
@@ -155,6 +154,7 @@ public class DataAI {
 		compound.setInteger("StandingState", standingType.ordinal());
 		compound.setInteger("MovingState", movingType.ordinal());
 		compound.setInteger("TacticalVariant", tacticalVariant.ordinal());
+		compound.setInteger("CombatPolicy", combatPolicy.ordinal());
 		
 		compound.setInteger("Orientation", orientation);
 		compound.setFloat("PositionOffsetX", bodyOffsetX);

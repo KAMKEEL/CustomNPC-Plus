@@ -1,6 +1,7 @@
 package noppes.npcs.ai;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import net.minecraft.entity.Entity;
@@ -11,8 +12,9 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class CombatHandler {
-	
+
 	private Map<EntityLivingBase, Float> aggressors = new HashMap<EntityLivingBase, Float>();
+	private Map<EntityLivingBase, LinkedList<Float>> recentDamages = new HashMap<>();
 	private EntityNPCInterface npc;
 	private long startTime = 0;
 	private int combatResetTimer = 0;
@@ -47,18 +49,28 @@ public class CombatHandler {
     	return isValidTarget(npc.getAttackTarget());
 	}
 
-	public void damage(DamageSource source, float damageAmount){
+	public void damage(DamageSource source, float damageAmount) {
 		combatResetTimer = 0;
-		Entity e = NoppesUtilServer.GetDamageSourcee(source);
-		System.out.println(e);
-		if(e instanceof EntityLivingBase){
+		Entity e = NoppesUtilServer.GetDamageSource(source);
+
+		if (e instanceof EntityLivingBase) {
 			EntityLivingBase el = (EntityLivingBase) e;
+
+			// Update recent damages
+			LinkedList<Float> recentDamageList = recentDamages.computeIfAbsent(el, k -> new LinkedList<>());
+			recentDamageList.addLast(damageAmount);
+			if (recentDamageList.size() > 15) {
+				recentDamageList.removeFirst();
+			}
+
+			// Update total aggressor damage
 			Float f = aggressors.get(el);
-			if(f == null)
+			if (f == null) {
 				f = 0f;
+			}
 			aggressors.put(el, f + damageAmount);
 		}
-    }
+	}
 
 	public void start(){
 		combatResetTimer = 0;
@@ -68,8 +80,10 @@ public class CombatHandler {
 
 	public void reset(){
 		combatResetTimer = 0;
+		startTime = 0;
 		aggressors.clear();
-		npc.setBoolFlag(true, 4);
+		recentDamages.clear();
+		npc.setBoolFlag(false, 4);
 	}
 
 	public boolean checkTarget() {
@@ -103,4 +117,19 @@ public class CombatHandler {
 		return npc.isInRange(target, npc.stats.aggroRange);
 	}
 
+	public float calculateThreatLevel(EntityLivingBase entity) {
+		float threatLevel = 0.0f;
+		LinkedList<Float> recentDamageList = recentDamages.get(entity);
+
+		if (recentDamageList != null) {
+			long currentTime = npc.worldObj.getWorldInfo().getWorldTotalTime();
+			for (Float damage : recentDamageList) {
+				float decayFactor = Math.max(0, 1 - (float) startTime / currentTime);
+
+				threatLevel += damage * decayFactor;
+			}
+		}
+
+		return threatLevel;
+	}
 }
