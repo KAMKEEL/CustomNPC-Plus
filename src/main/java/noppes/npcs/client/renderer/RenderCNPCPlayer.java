@@ -9,6 +9,7 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.Entity;
@@ -134,7 +135,22 @@ public class RenderCNPCPlayer extends RenderPlayer {
         return -1;
     }
 
-    protected void passSpecialRender(EntityLivingBase p_77033_1_, double p_77033_2_, double p_77033_4_, double p_77033_6_) {}
+    public void passSpecialRender(EntityLivingBase p_77033_1_, double p_77033_2_, double p_77033_4_, double p_77033_6_) {
+        Render render = RenderManager.instance.getEntityRenderObject(p_77033_1_);
+        if (render instanceof RenderPlayer) {
+            RenderPlayer renderPlayer = (RenderPlayer) render;
+            renderPlayer.passSpecialRender(p_77033_1_, p_77033_2_, p_77033_4_, p_77033_6_);
+        }
+    }
+
+    @Override
+    public void rotateCorpse(EntityLivingBase p_77043_1_, float p_77043_2_, float p_77043_3_, float p_77043_4_) {
+        Render render = RenderManager.instance.getEntityRenderObject(p_77043_1_);
+        if (render instanceof RenderPlayer) {
+            RenderPlayer renderPlayer = (RenderPlayer) render;
+            renderPlayer.rotateCorpse(p_77043_1_, p_77043_2_, p_77043_3_, p_77043_4_);
+        }
+    }
 
     protected void func_96449_a(AbstractClientPlayer p_96449_1_, double p_96449_2_, double p_96449_4_, double p_96449_6_, String p_96449_8_, float p_96449_9_, double p_96449_10_) {}
     

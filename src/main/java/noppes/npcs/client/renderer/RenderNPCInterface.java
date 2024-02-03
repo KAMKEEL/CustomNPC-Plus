@@ -190,7 +190,7 @@ public class RenderNPCInterface extends RenderLiving{
 	}
 
 	@Override
-	protected void passSpecialRender(EntityLivingBase par1EntityLivingBase, double par2, double par4, double par6){
+	public void passSpecialRender(EntityLivingBase par1EntityLivingBase, double par2, double par4, double par6){
 		renderName((EntityNPCInterface)par1EntityLivingBase, par2, par4, par6);
 	}
 
