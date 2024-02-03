@@ -30,6 +30,7 @@ public class DataAI {
 	public EnumCombatPolicy combatPolicy = EnumCombatPolicy.Flip;
 	public int useRangeMelee = 0;
 	public int tacticalRadius = 8;
+	public int tacticalChance = 5;
 	
 	public int movementType = 0;
 	public double flySpeed = 1.0D;
@@ -75,7 +76,8 @@ public class DataAI {
 		canFireIndirect = compound.getInteger("FireIndirect");
 		useRangeMelee = compound.getInteger("RangeAndMelee");
 		distanceToMelee = compound.getInteger("DistanceToMelee");
-		tacticalRadius = compound.getInteger("TacticalRadius");	
+		tacticalRadius = compound.getInteger("TacticalRadius");
+		tacticalChance = compound.getInteger("TacticalChance");
 		movingPause = compound.getBoolean("MovingPause");
 		ignoreCobweb = compound.getBoolean("IgnoreCobweb");
 		npcInteracting = compound.getBoolean("npcInteracting");
@@ -145,6 +147,7 @@ public class DataAI {
 		compound.setInteger("RangeAndMelee", useRangeMelee);
 		compound.setInteger("DistanceToMelee", distanceToMelee);
 		compound.setInteger("TacticalRadius", tacticalRadius);
+		compound.setInteger("TacticalChance", tacticalChance);
 		compound.setBoolean("MovingPause", movingPause);
 		compound.setBoolean("IgnoreCobweb", ignoreCobweb);
 		compound.setBoolean("npcInteracting", npcInteracting);
