@@ -483,7 +483,11 @@ public class CustomItems {
 			shield = new ItemRotatedShield(26744,EnumNpcToolMaterial.DIA).setUnlocalizedName("npcFullDiaShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullDiaShield");
 			shield = new ItemRotatedShield(26745,EnumNpcToolMaterial.BRONZE).setUnlocalizedName("npcFullBronzeShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullBronzeShield");
 			shield = new ItemRotatedShield(26727,EnumNpcToolMaterial.EMERALD).setUnlocalizedName("npcFullEmeraldShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldShield");
-			
+			shield = new ItemRotatedShield(26727,EnumNpcToolMaterial.DEMONIC).setUnlocalizedName("npcFullDemonicShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullDemonicShield");
+			shield = new ItemRotatedShield(26727,EnumNpcToolMaterial.FROST).setUnlocalizedName("npcFullFrostShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullFrostShield");
+			shield = new ItemRotatedShield(26727,EnumNpcToolMaterial.MITHRIL).setUnlocalizedName("npcFullMithrilShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullMithrilShield");
+
+
 			shield = new ItemShield(26746,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcHeaterShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcHeaterShield");
 			shield = new ItemShield(26747,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcCryscentShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcCryscentShield");
 			shield = new ItemShield(26748,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcScutumShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcScutumShield");
