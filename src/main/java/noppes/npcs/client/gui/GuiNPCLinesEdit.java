@@ -41,7 +41,7 @@ public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData
         	}
         	addTextField(new GuiNpcTextField(i,this, fontRendererObj, guiLeft + 4, guiTop + 4 + i * 24, 200, 20,text));
         	addTextField(new GuiNpcTextField(i + 8,this, fontRendererObj, guiLeft + 208, guiTop + 4 + i * 24, 146, 20,sound));
-        	addButton(new GuiNpcButton(i, guiLeft + 358, guiTop + 4 + i * 24, 60, 20, "mco.template.button.select"));
+        	addButton(new GuiNpcButton(i, guiLeft + 358, guiTop + 4 + i * 24, 60, 20, "gui.select"));
         }
         
     }

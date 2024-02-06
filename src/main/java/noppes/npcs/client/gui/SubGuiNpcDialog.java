@@ -51,7 +51,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 
 		addLabel(new GuiNpcLabel(9, "gui.selectSound", guiLeft + 7, guiTop + 105));
 		addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 90, guiTop + 100, 194, 20, dialog.sound));
-		addButton(new GuiNpcButton(9, guiLeft + 293, guiTop + 100, 60, 20, "mco.template.button.select"));
+		addButton(new GuiNpcButton(9, guiLeft + 293, guiTop + 100, 60, 20, "gui.select"));
 
 		addLabel(new GuiNpcLabel(4, "availability.options", guiLeft + 180, guiTop + 33));
 		addButton(new GuiNpcButton(4, guiLeft + 303, guiTop + 28, 50, 20, "selectServer.edit"));
