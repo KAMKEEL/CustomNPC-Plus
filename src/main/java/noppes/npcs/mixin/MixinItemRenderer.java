@@ -53,13 +53,34 @@ public class MixinItemRenderer {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         Render renderer = RenderManager.instance.getEntityRenderObject(player);
         if (renderer instanceof RendererLivingEntity && ((RendererLivingEntity) renderer).mainModel instanceof ModelBiped) {
+            Render playerRenderer = RenderManager.instance.getEntityRenderObject(player);
+            if (playerRenderer instanceof RendererLivingEntity) {
+                ClientEventHandler.renderer = (RendererLivingEntity) playerRenderer;
+            }
+            ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+            ClientEventHandler.partialHandTicks = p_78440_1_;
+
+            ClientEventHandler.renderingPlayer = player;
+            ClientEventHandler.firstPersonAnimation = true;
             if (mixin_renderFirstPersonAnimation(p_78440_1_, player, (ModelBiped) ((RendererLivingEntity) renderer).mainModel)) {
                 callbackInfo.cancel();
             }
+            ClientEventHandler.firstPersonAnimation = false;
+            ClientEventHandler.renderingPlayer = null;
         }
     }
 
     private boolean mixin_renderFirstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model) {
+        AnimationData animData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
+        if (animData != null && animData.isActive()) {
+            Frame frame = (Frame) animData.animation.currentFrame();
+            if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                part.interpolateOffset();
+                part.interpolateAngles();
+            }
+        }
+
         ModelRenderer[] parts = new ModelRenderer[]{model.bipedRightArm, model.bipedLeftArm, model.bipedRightLeg, model.bipedLeftLeg};
         EnumAnimationPart[] enumParts = new EnumAnimationPart[]{EnumAnimationPart.RIGHT_ARM, EnumAnimationPart.LEFT_ARM, EnumAnimationPart.RIGHT_LEG, EnumAnimationPart.LEFT_LEG};
         Frame frame;
