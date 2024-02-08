@@ -195,7 +195,6 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     public void drawScreen(int i, int j, float f){
     	mouseX = i;
     	mouseY = j;
-    	
     	Container container = this.inventorySlots;
         if(subgui != null){
         	this.inventorySlots = new ContainerEmpty();
@@ -242,26 +241,30 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 		subgui.parent = this;
     	initGui();
     }
-	
+
 	public void drawNpc(int x, int y){
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
 		GL11.glEnable(GL11.GL_COLOR_MATERIAL);
 		GL11.glPushMatrix();
 		GL11.glTranslatef(guiLeft + x, guiTop + y, 50F);
-        float scale = 1;
-        if(npc.height > 2.4)
-        	scale = 2 / npc.height;
-        GL11.glScalef(-30 * scale, 30 * scale, 30 * scale);
+		float scale = 1;
+		if (npc.height > 2.4)
+			scale = 2 / npc.height;
+		GL11.glScalef(-30 * scale, 30 * scale, 30 * scale);
 		GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
-		
-		
 		float f2 = npc.renderYawOffset;
 		float f3 = npc.rotationYaw;
 		float f4 = npc.rotationPitch;
 		float f7 = npc.rotationYawHead;
 		float f5 = (float) (guiLeft + x) - mouseX;
 		float f6 = (float) ((guiTop + y) - 50) - mouseY;
+		int orientation = 0;
+		if(npc != null){
+			if(npc.ai != null){
+				orientation = npc.ai.orientation;
+				npc.ai.orientation = 0;
+			}
+		}
 		GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
 		RenderHelper.enableStandardItemLighting();
 		GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
@@ -277,6 +280,11 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 		npc.rotationYaw = f3;
 		npc.rotationPitch = f4;
 		npc.rotationYawHead = f7;
+		if(npc != null){
+			if(npc.ai != null){
+				npc.ai.orientation = orientation;
+			}
+		}
 		GL11.glPopMatrix();
 		RenderHelper.disableStandardItemLighting();
 		GL11.glDisable(GL12.GL_RESCALE_NORMAL);
@@ -284,6 +292,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 		OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 	}
 
 }
