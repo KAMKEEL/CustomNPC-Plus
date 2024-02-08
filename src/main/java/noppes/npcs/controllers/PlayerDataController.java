@@ -308,6 +308,22 @@ public class PlayerDataController {
 		data.player = player;
 		return data;
 	}
+
+	public static EntityPlayer getPlayerFromUUID(UUID uuid) {
+		MinecraftServer server = MinecraftServer.getServer();
+		if (server != null) {
+			for (Object playerObj : server.getConfigurationManager().playerEntityList) {
+				if (playerObj instanceof EntityPlayer) {
+					EntityPlayer player = (EntityPlayer) playerObj;
+					if (player.getUniqueID().equals(uuid)) {
+						return player;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	public String hasPlayer(String username) {
 		for(String name : nameUUIDs.keySet()){
 			if(name.equalsIgnoreCase(username))
