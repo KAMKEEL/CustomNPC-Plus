@@ -132,4 +132,19 @@ public class CombatHandler {
 
 		return threatLevel;
 	}
+
+	public boolean shouldChangeTarget(double chance) {
+		// Assuming randomNum is a random number between 0 and 100
+		double randomNum = Math.random() * 100; // Generates a random number between 0 and 100
+		return randomNum <= chance;
+	}
+
+	public boolean shouldSwitchTactically(EntityLivingBase originalTarget, EntityLivingBase newTarget) {
+		// Implement your Tactical Switcher conditions here
+		// Example: Switch if the new target has a higher threat level
+		float currentThreat = calculateThreatLevel(originalTarget);
+		float newThreat = calculateThreatLevel(newTarget);
+
+		return newThreat > currentThreat;
+	}
 }

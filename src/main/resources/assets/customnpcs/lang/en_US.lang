@@ -92,6 +92,7 @@ gui.engagedistance=EngageDistance
 gui.orbitdistance=OrbitDistance
 gui.fightifthisclose=FightIfThisClose
 gui.ambushdistance=AmbushDistance
+gui.combatchance=CombatChance
 gui.whendistant=WhenDistant
 gui.whenhidden=WhenHidden
 gui.currentFolder=Current Folder
@@ -392,6 +393,11 @@ aitactics.orbit=Surround
 aitactics.hitandrun=Hit&Run
 aitactics.ambush=Ambush
 aitactics.stalk=Stalk
+
+aicombat.flip=Flip
+aicombat.brute=Brute
+aicombat.stubborn=Stubborn
+aicombat.tactical=Tactical
 
 advanced.idlesound=LivingSound
 advanced.angersound=AngrySound
@@ -743,6 +749,9 @@ item.npcFullGoldenShield.name=Golden Shield
 item.npcFullDiaShield.name=Diamond Shield
 item.npcFullBronzeShield.name=Bronze Shield
 item.npcFullEmeraldShield.name=Emerald Shield
+item.npcFullDemonicShield.name=Demonic Shield
+item.npcFullFrostShield.name=Frost Shield
+item.npcFullMithrilShield.name=Mithril Shield
 
 item.npcTowerShield.name=Steel Tower Shield
 item.npcCryscentShield.name=Steel Cryscent Shield

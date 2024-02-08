@@ -49,7 +49,7 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
     	getTextField(6).setMinMaxDefault(1, Integer.MAX_VALUE, 20);
     	addTextField(new GuiNpcTextField(7,this, fontRendererObj, guiLeft + 85, y += 22, 100, 20, stats.fireSound));
     	addLabel(new GuiNpcLabel(7, "stats.firesound:", guiLeft + 5, y + 5));
-    	addButton(new GuiNpcButton(7, guiLeft + 187, y, 60, 20, "mco.template.button.select"));
+    	addButton(new GuiNpcButton(7, guiLeft + 187, y, 60, 20, "gui.select"));
     	addTextField(new GuiNpcTextField(8, this, fontRendererObj, guiLeft + 85, y += 22, 50, 18, stats.shotCount + ""));
     	addLabel(new GuiNpcLabel(8, "stats.shotcount", guiLeft + 5, y + 5));
     	getTextField(8).integersOnly = true;

@@ -29,6 +29,7 @@ public class Party {
 
     private int currentQuestID = -1;
     private boolean friendlyFire;
+    private boolean partyLocked = false;
 
     //Client-sided
     private String partyLeaderName;
@@ -43,6 +44,14 @@ public class Party {
 
     public UUID getPartyUUID() {
         return this.partyUUID;
+    }
+
+    public boolean getIsLocked() {
+        return this.partyLocked;
+    }
+
+    public void setIsLocked(boolean val) {
+        this.partyLocked = val;
     }
 
     public int getCurrentQuestID() {
@@ -219,6 +228,7 @@ public class Party {
         this.partyLeaderName = compound.getString("PartyLeader");
         this.currentQuestID = compound.getInteger("PartyQuestID");
         this.friendlyFire = compound.getBoolean("FriendlyFire");
+        this.partyLocked = compound.getBoolean("PartyLocked");
 
         NBTTagList list = compound.getTagList("PartyMembers", 10);
         for (int i = 0; i < list.tagCount(); i++) {
@@ -236,6 +246,7 @@ public class Party {
         compound.setString("PartyUUID", this.partyUUID.toString());
         compound.setInteger("PartyQuestID", this.currentQuestID);
         compound.setBoolean("FriendlyFire", this.friendlyFire);
+        compound.setBoolean("PartyLocked", this.partyLocked);
 
         NBTTagList list = new NBTTagList();
         for (UUID uuid : this.partyOrder) {

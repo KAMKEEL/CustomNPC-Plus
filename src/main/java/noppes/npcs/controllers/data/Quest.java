@@ -11,10 +11,7 @@ import noppes.npcs.api.handler.data.IQuestCategory;
 import noppes.npcs.api.handler.data.IQuestInterface;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.constants.EnumQuestRepeat;
-import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.quests.*;
@@ -38,9 +35,10 @@ public class Quest implements ICompatibilty, IQuest {
 	public String command = "";
 
 	public boolean allowParty = false;
-	public byte partyRequirements = 0; // 0 - Only Party Leaders, 1 - Everyone
-	public byte rewardControl = 0;  // 0 - Only Party Leaders, 1 - Everyone, 2 - Completer
-	public int maxPartySize = 4;
+	public EnumPartyRequirements partyRequirements = EnumPartyRequirements.Leader;
+	public EnumPartyExchange rewardControl = EnumPartyExchange.Leader;
+	public EnumPartyExchange completeFor = EnumPartyExchange.Leader;
+	public int maxPartySize = ConfigMain.DefaultMaxPartySize;
 	
 	public QuestInterface questInterface = new QuestItem();
 	
@@ -86,8 +84,9 @@ public class Quest implements ICompatibilty, IQuest {
 		// Party Management
 		allowParty = compound.getBoolean("AllowParty");
 		if(allowParty){
-			partyRequirements = compound.getByte("PartyRequirements");
-			rewardControl = compound.getByte("RewardControl");
+			partyRequirements = EnumPartyRequirements.values()[compound.getInteger("PartyRequirements")];
+			rewardControl = EnumPartyExchange.values()[compound.getInteger("RewardControl")];
+			completeFor = EnumPartyExchange.values()[compound.getInteger("CompleteFor")];
 			maxPartySize = compound.getInteger("MaxPartySize");
 		}
 		else {
@@ -97,12 +96,16 @@ public class Quest implements ICompatibilty, IQuest {
 			if(compound.hasKey("RewardControl")){
 				compound.removeTag("RewardControl");
 			}
+			if(compound.hasKey("CompleteFor")){
+				compound.removeTag("CompleteFor");
+			}
 			if(compound.hasKey("MaxPartySize")){
 				compound.removeTag("MaxPartySize");
 			}
 
-			partyRequirements = 0;
-			rewardControl = 0;
+			partyRequirements = EnumPartyRequirements.Leader;
+			rewardControl = EnumPartyExchange.Leader;
+			completeFor = EnumPartyExchange.Leader;
 			maxPartySize = ConfigMain.DefaultMaxPartySize;
 		}
 	}
@@ -149,8 +152,9 @@ public class Quest implements ICompatibilty, IQuest {
 
 		compound.setBoolean("AllowParty", allowParty);
 		if(allowParty){
-			compound.setByte("PartyRequirements", partyRequirements);
-			compound.setByte("RewardControl", rewardControl);
+			compound.setInteger("PartyRequirements", partyRequirements.ordinal());
+			compound.setInteger("RewardControl", rewardControl.ordinal());
+			compound.setInteger("CompleteFor", completeFor.ordinal());
 			compound.setInteger("MaxPartySize", maxPartySize);
 		}
 		else {
@@ -159,6 +163,9 @@ public class Quest implements ICompatibilty, IQuest {
 			}
 			if(compound.hasKey("RewardControl")){
 				compound.removeTag("RewardControl");
+			}
+			if(compound.hasKey("CompleteFor")){
+				compound.removeTag("CompleteFor");
 			}
 			if(compound.hasKey("MaxPartySize")){
 				compound.removeTag("MaxPartySize");
@@ -328,20 +335,37 @@ public class Quest implements ICompatibilty, IQuest {
 		this.allowParty = allowParty;
 	}
 
-	public byte getPartyRequirements() {
-		return partyRequirements;
+	public int getPartyRequirements() {
+		return partyRequirements.ordinal();
 	}
 
-	public void setPartyRequirements(byte partyRequirements) {
-		this.partyRequirements = partyRequirements;
+	public void setPartyRequirements(int partyReq) {
+		if (partyReq < 0 || partyReq >= EnumPartyRequirements.values().length) {
+			return;
+		}
+		this.partyRequirements = EnumPartyRequirements.values()[partyReq];
 	}
 
-	public byte getRewardControl() {
-		return rewardControl;
+	public int getRewardControl() {
+		return rewardControl.ordinal();
 	}
 
-	public void setRewardControl(byte rewardControl) {
-		this.rewardControl = rewardControl;
+	public void setRewardControl(int rewardCon) {
+		if (rewardCon < 0 || rewardCon >= EnumPartyExchange.values().length) {
+			return;
+		}
+		this.rewardControl = EnumPartyExchange.values()[rewardCon];
+	}
+
+	public int getCompleteFor() {
+		return completeFor.ordinal();
+	}
+
+	public void setCompleteFor(int compFor) {
+		if (compFor < 0 || compFor >= EnumPartyExchange.values().length) {
+			return;
+		}
+		this.completeFor = EnumPartyExchange.values()[compFor];
 	}
 
 	@Override

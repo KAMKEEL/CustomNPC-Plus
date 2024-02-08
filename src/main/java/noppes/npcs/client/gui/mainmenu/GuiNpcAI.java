@@ -71,6 +71,15 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     	}
 		addLabel(new GuiNpcLabel(25,"ai.combatpolicy", guiLeft + 150, guiTop + 165));
 		addButton(new GuiNpcButton(25 ,guiLeft + 230, guiTop + 160, 60, 20, EnumCombatPolicy.names(), ai.combatPolicy.ordinal()));
+		if (ai.combatPolicy == EnumCombatPolicy.Stubborn)
+		{
+			String label = "";
+            label = "gui.combatchance";
+            addLabel(new GuiNpcLabel(21, label, guiLeft + 300, guiTop + 140));
+			addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 380, guiTop + 135, 30, 20, ai.tacticalChance + ""));
+			getTextField(4).integersOnly = true;
+			getTextField(4).setMinMaxDefault(1, 100, 5);
+		}
 
 		getButton(17).setEnabled(this.ai.onAttack == 0);
     	getButton(15).setEnabled(this.ai.onAttack == 0);
@@ -90,6 +99,9 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 	public void unFocused(GuiNpcTextField textfield){
 		if(textfield.id == 3){
 			ai.tacticalRadius = textfield.getInteger();
+		}
+		if(textfield.id == 4){
+			ai.tacticalChance = textfield.getInteger();
 		}
 		if(textfield.id == 6){
 			ai.distanceToMelee = textfield.getInteger();

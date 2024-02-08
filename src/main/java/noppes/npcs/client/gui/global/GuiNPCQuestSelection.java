@@ -54,7 +54,7 @@ public class GuiNPCQuestSelection extends GuiNPCInterface implements IScrollData
         
 
     	this.addButton(new GuiNpcButton(2, width / 2 -100, height - 41,98, 20, "gui.back"));
-    	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 41,98, 20, "mco.template.button.select"));
+    	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 41,98, 20, "gui.select"));
     }
 
 
