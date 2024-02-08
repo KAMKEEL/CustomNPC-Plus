@@ -82,7 +82,7 @@ public abstract class MixinModelRenderer {
                 float prevAngleY = this.rotateAngleY;
                 float prevAngleZ = this.rotateAngleZ;
 
-                this.setAnimationValues();
+                this.setAnimationValues(p_78785_1_);
 
                 GL11.glTranslatef(this.offsetX, this.offsetY, this.offsetZ);
                 int i;
@@ -165,7 +165,7 @@ public abstract class MixinModelRenderer {
         }
     }
 
-    private void setAnimationValues() {
+    private void setAnimationValues(float p_78785_1_) {
         float prevPointX = this.rotationPointX;
         float prevPointY = this.rotationPointY;
         float prevPointZ = this.rotationPointZ;
@@ -194,23 +194,12 @@ public abstract class MixinModelRenderer {
             }
         }
 
-        if (ClientEventHandler.renderingPlayer != null) {
-            ClientEventHandler.playerModel = ((ModelRenderer) (Object) this).baseModel;
-        }
         if (ClientEventHandler.renderingPlayer != null && ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
+            ClientEventHandler.playerModel = ((ModelRenderer) (Object) this).baseModel;
             AnimationData animData = ClientCacheHandler.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
 
-            EnumAnimationPart partType = null;
-            EnumAnimationPart mainPartType = null;
-            try{
-                EnumAnimationPart pivotEqualPart = null;
-                mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
-                if (mainPartType == null) {
-                    pivotEqualPart = this.pivotEqualPart((ModelRenderer) (Object) this);
-                }
-                partType = mainPartType != null ? mainPartType : pivotEqualPart;
-            }
-            catch (Exception ignored){}
+            EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
+            EnumAnimationPart partType = mainPartType != null ? mainPartType : this.pivotEqualPart((ModelRenderer) (Object) this);
 
             if (partType != null && animData != null && animData.animation != null) {
                 boolean animDataActive = animData.isActive();
@@ -221,6 +210,7 @@ public abstract class MixinModelRenderer {
                     part.rotation = new float[]{prevAngleX, prevAngleY, prevAngleZ};
                     ClientEventHandler.originalValues.put((ModelRenderer) (Object) this, part);
                 }
+
                 FramePart originalPart = ClientEventHandler.originalValues.get((ModelRenderer) (Object) this);
                 Frame frame = (Frame) animData.animation.currentFrame();
                 if (!animDataActive && animData.finishedFrame >= 0 && animData.finishedFrame < animData.animation.frames.size()) {
@@ -243,7 +233,8 @@ public abstract class MixinModelRenderer {
                             part.prevRotations[2] = part.prevRotations[2] * (1.0F - speed) + (this.rotateAngleZ * speed);
                         }
 
-                        if (animDataActive || (partType != EnumAnimationPart.HEAD && ClientEventHandler.renderingPlayer.getAge() - animData.finishedTime < 20)) {
+                        if (animDataActive || (partType != EnumAnimationPart.HEAD
+                                        && ClientEventHandler.renderingPlayer.getAge() - animData.finishedTime < 20)) {
                             this.rotationPointX = originalPart.pivot[0] + part.prevPivots[0];
                             this.rotationPointY = originalPart.pivot[1] + part.prevPivots[1];
                             this.rotationPointZ = originalPart.pivot[2] + part.prevPivots[2];

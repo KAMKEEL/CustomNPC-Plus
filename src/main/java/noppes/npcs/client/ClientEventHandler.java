@@ -32,6 +32,7 @@ public class ClientEventHandler {
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
+    public static boolean firstPersonAnimation;
 
     public static float partialRenderTick;
     public static RendererLivingEntity renderer;
@@ -194,30 +195,6 @@ public class ClientEventHandler {
             }
 
             renderCNPCPlayer.renderDBCModel(event);
-        }
-    }
-
-    @SubscribeEvent
-    public void onRenderHand(RenderHandEvent event) {
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (ConfigMixin.FirstPersonAnimationMixin && ClientCacheHandler.playerAnimations.containsKey(player.getUniqueID())) {
-            Render playerRenderer = RenderManager.instance.getEntityRenderObject(player);
-            if (playerRenderer instanceof RendererLivingEntity) {
-                ClientEventHandler.renderer = (RendererLivingEntity) playerRenderer;
-            }
-            ClientEventHandler.renderingPlayer = player;
-            ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
-            partialHandTicks = event.partialTicks;
-
-            AnimationData animData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
-            if (animData != null && animData.isActive()) {
-                Frame frame = (Frame) animData.animation.currentFrame();
-                if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
-                    FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
-                    part.interpolateOffset();
-                    part.interpolateAngles();
-                }
-            }
         }
     }
 
