@@ -77,15 +77,19 @@ public class ItemSoulstoneFilled extends Item {
     		return false;
     	entity.setPosition(x + 0.5, y + 1 +  0.2F, z + 0.5);
 		entity.dimension = world.provider.dimensionId;
+		String sourceName = "DISPENSER";
+		if(player != null){
+			sourceName = player.getCommandSenderName();
+		}
 		if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-			LogWriter.script(String.format("[%s] %s PLACED ENTITY %s", "SOULSTONE", player.getCommandSenderName(), entity));
+			LogWriter.script(String.format("[%s] %s PLACED ENTITY %s", "SOULSTONE", sourceName, entity));
 		}
     	if(entity instanceof EntityNPCInterface){
     		EntityNPCInterface npc = (EntityNPCInterface) entity;
     		npc.ai.startPos = new int[]{x, y, z};
     		npc.setHealth(npc.getMaxHealth());
 			npc.setPosition((float)x + 0.5F, npc.getStartYPos(), (float)z + 0.5F);
-			npc.advanced.soulStonePlayerName = player.getDisplayName();
+			npc.advanced.soulStonePlayerName = sourceName;
     		npc.advanced.soulStoneInit = true;
     		if(npc.advanced.role == EnumRoleType.Companion && player != null){
     			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
