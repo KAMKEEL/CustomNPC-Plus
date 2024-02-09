@@ -10,7 +10,6 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiNPCEventScripts;
-import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptContainer;
