@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.client.gui.script;
 
 import net.minecraft.client.gui.GuiButton;
@@ -296,15 +291,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             this.setSubGui(new EventGuiScriptList((List)this.languages.get(this.handler.getLanguage()), container));
         }
-
-        if(guibutton.id == 108) {
-            container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            if(container != null) {
-                this.setScript();
-                AWTWindow = new GuiJTextArea(container.script).setListener(this);
-            }
-        }
-
     }
 
     private void setScript() {

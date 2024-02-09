@@ -89,8 +89,6 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
 			addButton(new GuiNpcButton(100, guiLeft + 315, guiTop + 25, 50, 20, "gui.copy"));
 
-			addButton(new GuiNpcButton(108, guiLeft + 315, guiTop + 47, 80, 20, "gui.editor"));
-
 			addButton(new GuiNpcButton(107, guiLeft + 315, guiTop + 70, 80, 20, "script.loadscript"));
 
 			GuiCustomScroll scroll = new GuiCustomScroll(this, 0).setUnselectable();
@@ -216,13 +214,6 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			if(container == null)
 				script.setNPCScript(activeTab, container = new ScriptContainer(this.script));
 			setSubGui(new GuiScriptList(languages.get(script.scriptLanguage), container));
-		}
-		if (guibutton.id == 108) {
-			ScriptContainer container = script.getNPCScript(activeTab);
-			if(container != null){
-				setScript();
-				this.AWTWindow = new GuiJTextArea(container.script).setListener(this);
-			}
 		}
 	}
 

@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.swing;
 
+import net.minecraft.client.Minecraft;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import org.lwjgl.opengl.Display;
 
@@ -7,16 +8,16 @@ import javax.swing.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-public class GuiJTextArea extends JDialog implements WindowListener{
+public class GuiJTextArea extends JDialog implements WindowListener {
 	public IJTextAreaListener listener;
-	private JTextArea area;
+	private final JTextArea area;
 	public GuiJTextArea(String text){
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setSize(Display.getWidth() - 40, Display.getHeight() - 40);
 		setLocation(Display.getX() + 20, Display.getY() + 20);
 
-	    JScrollPane scroll = new JScrollPane(area = new JTextArea(text));
-	    scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		JScrollPane scroll = new JScrollPane(area = new JTextArea(text));
+		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		this.add(scroll);
 		this.addWindowListener(this);
 		setVisible(true);
@@ -40,8 +41,14 @@ public class GuiJTextArea extends JDialog implements WindowListener{
 
 	@Override
 	public void windowClosed(WindowEvent e) {
-		if(listener != null)
-			listener.saveText(area.getText());
+		if(listener == null)
+			return;
+		Minecraft.getMinecraft().func_152344_a(new Runnable() {
+			@Override
+			public void run() {
+				listener.saveText(area.getText());
+			}
+		});
 	}
 
 	@Override
