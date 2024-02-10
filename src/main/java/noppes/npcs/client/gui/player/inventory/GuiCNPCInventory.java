@@ -6,6 +6,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.config.ConfigClient;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
@@ -39,12 +40,14 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         partyButton.active = activeTab == 1;
         partyButton.renderStack = new ItemStack(CustomItems.bag);
         addButton(partyButton);
-
-        GuiMenuSideButton factionButton = new GuiMenuSideButton(102, guiLeft + xSize + 37, this.guiTop + 3 + 21*2, 22, 22, "");
-        factionButton.rightSided = true;
-        factionButton.active = activeTab == 2;
-        factionButton.renderStack = new ItemStack(CustomItems.wallBanner);
-        addButton(factionButton);
+        
+        if(ConfigClient.enableFactionTab){
+            GuiMenuSideButton factionButton = new GuiMenuSideButton(102, guiLeft + xSize + 37, this.guiTop + 3 + 21*2, 22, 22, "");
+            factionButton.rightSided = true;
+            factionButton.active = activeTab == 2;
+            factionButton.renderStack = new ItemStack(CustomItems.wallBanner);
+            addButton(factionButton);
+        }
     }
 
     @Override

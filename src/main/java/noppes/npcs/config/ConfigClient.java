@@ -24,6 +24,9 @@ public class ConfigClient
     public static Property CacheLifeProperty;
     public static int CacheLife = 10;
 
+    public static Property enableFactionTabProperty;
+    public static boolean enableFactionTab = true;
+
     /**
      *  Visual Properties
      **/
@@ -62,6 +65,9 @@ public class ConfigClient
             // General
             CacheLifeProperty = config.get(GENERAL, "Cache Life", 10, "How long should downloaded imagery data be saved client side? (In minutes)");
             CacheLife = CacheLifeProperty.getInt(10);
+
+            enableFactionTabProperty = config.get(GENERAL, "Enable Faction Tab", true, "Enable the Faction Tab");
+            enableFactionTab = enableFactionTabProperty.getBoolean(true);
 
             // Visual
             EnableChatBubblesProperty = config.get(VISUAL, "Enable Chat Bubbles", true, "Enable/Disable Chat Bubbles");
