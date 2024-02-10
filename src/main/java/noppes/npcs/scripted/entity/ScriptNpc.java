@@ -893,6 +893,48 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	/**
+	 * @return The melee range
+	 */
+	public int getMeleeRange(){
+		return npc.stats.attackRange;
+	}
+
+	/**
+	 * @param range The melee range
+	 */
+	public void setMeleeRange(int range){
+		npc.stats.attackRange = range;
+	}
+
+	/**
+	 * @return The knockback strength
+	 */
+	public int getKnockback(){
+		return npc.stats.knockback;
+	}
+
+	/**
+	 * @param knockback The melee range
+	 */
+	public void setKnockback(int knockback){
+		npc.stats.knockback = knockback;
+	}
+
+	/**
+	 * @return The aggro range
+	 */
+	public int getAggroRange(){
+		return npc.stats.aggroRange;
+	}
+
+	/**
+	 * @param aggroRange The new aggro range
+	 */
+	public void setAggroRange(int aggroRange){
+		npc.stats.aggroRange = aggroRange;
+	}
+
+	/**
 	 * @return The ranged strength
 	 */
 	public float getRangedStrength(){
