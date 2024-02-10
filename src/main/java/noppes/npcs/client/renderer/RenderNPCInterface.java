@@ -29,6 +29,7 @@ import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import org.lwjgl.Sys;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -313,11 +314,10 @@ public class RenderNPCInterface extends RenderLiving{
 		if (npc.textureLocation == null) {
 			if (npc.display.skinType == 0) {
 				if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
-					if (!(npc.display.texture).equals("")) {
+					if (!(npc.display.texture).isEmpty()) {
 						try {
 							npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
-						} catch (IOException ignored) {
-						}
+						} catch (IOException ignored) {}
 					}
 				} else {
 					npc.textureLocation = new ResourceLocation(npc.display.texture);
@@ -357,7 +357,6 @@ public class RenderNPCInterface extends RenderLiving{
 
 	private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
 		InputStream inputstream = null;
-
 		try {
 			TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
 			texturemanager.deleteTexture(location);
@@ -369,12 +368,11 @@ public class RenderNPCInterface extends RenderLiving{
 
 			int totalWidth = bufferedimage.getWidth();
 			int totalHeight = bufferedimage.getHeight();
-
-			if (totalHeight > 32 && npc.display.modelType == 0) {
-				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, 32);
+			if (totalWidth == totalHeight && npc.display.modelType == 0) {
+				bufferedimage = bufferedimage.getSubimage(0, 0, totalWidth, totalWidth / 2);
 			}
 
-			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(false));
+			ImageDownloadAlt object = new ImageDownloadAlt(null, npc.display.texture, SkinManager.field_152793_a, new ImageBufferDownloadAlt(true));
 			object.setBufferedImage(bufferedimage);
 
 			try {
@@ -384,7 +382,7 @@ public class RenderNPCInterface extends RenderLiving{
 				for (byte b : hash) {
 					sb.append(String.format("%02x", b&0xff));
 				}
-				if (totalHeight > 32 && npc.display.modelType == 0) {
+				if (npc.display.modelType == 0) {
 					location = new ResourceLocation("skin/" + sb.toString());
 				} else {
 					location = new ResourceLocation("skin64/" + sb.toString());
