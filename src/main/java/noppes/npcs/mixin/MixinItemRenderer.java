@@ -45,7 +45,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED_FIRST_PERSON;
 
 @Mixin(ItemRenderer.class)
-public class MixinItemRenderer {
+public abstract class MixinItemRenderer {
 
     @Inject(method = "renderItemInFirstPerson", at = @At(value = "HEAD"), cancellable = true)
     public void renderItemInFirstPerson(float p_78440_1_, CallbackInfo callbackInfo)

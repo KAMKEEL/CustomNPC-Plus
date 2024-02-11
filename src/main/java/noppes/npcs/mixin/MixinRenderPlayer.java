@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = RenderPlayer.class)
-public class MixinRenderPlayer {
+public abstract class MixinRenderPlayer {
 
     @SideOnly(Side.CLIENT)
     @Inject(method = "rotateCorpse*", at = @At(value = "TAIL"))
