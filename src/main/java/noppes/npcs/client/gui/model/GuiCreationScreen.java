@@ -44,8 +44,34 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		for(Object name : mapping.keySet()){
 			Class<?> c = (Class<?>) mapping.get(name);
 			try {
-				if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers())){					if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity)
-						data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
+				if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers())){
+					if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity){
+						if(EntityNpcSlime.class.isAssignableFrom(c)){
+							data.put("CustomNPC Slime",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNpcDragon.class.isAssignableFrom(c)){
+							data.put("CustomNPC Dragon",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNpcPony.class.isAssignableFrom(c)){
+							data.put("CustomNPC Pony",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNPCGolem.class.isAssignableFrom(c)){
+							data.put("CustomNPC Golem",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNpcCrystal.class.isAssignableFrom(c)){
+							data.put("CustomNPC Crystal",c.asSubclass(EntityLivingBase.class));
+						}
+						else {
+							String className = name.toString();
+							if(className.equals("npcgecko.CustomModelEntity")){
+								data.put("CustomNPC GeoModel",c.asSubclass(EntityLivingBase.class));
+							}
+							else {
+								data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
+							}
+
+						}
+					}
 				}
 			} catch (SecurityException e) {
 				e.printStackTrace();
