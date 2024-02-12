@@ -11,7 +11,7 @@ import noppes.npcs.util.ValueUtil;
 public class DataStats {
 	
 	private float attackStrength = 5;
-	public int attackSpeed = 20, attackDelay = 0, attackRange = 2, knockback = 0;
+	public int attackSpeed = 20, swingWarmUp = 0, attackRange = 2, knockback = 0;
 	public int minDelay = 20, maxDelay = 40, rangedRange = 15, fireRate = 5, burstCount = 1, shotCount = 1, accuracy = 60;
 	public int aggroRange = 16;
 	
@@ -72,7 +72,7 @@ public class DataStats {
 		compound.setFloat("AttackStrenght", attackStrength);
 		compound.setInteger("AttackRange", attackRange);
 		compound.setInteger("AttackSpeed", attackSpeed);
-		compound.setInteger("attackDelay", attackDelay);
+		compound.setInteger("SwingWarmup", swingWarmUp);
 		compound.setInteger("KnockBack", knockback);
 		compound.setInteger("PotionEffect", potionType.ordinal());
 		compound.setInteger("PotionDuration", potionDuration);
@@ -132,7 +132,7 @@ public class DataStats {
 
 		setAttackStrength(compound.getFloat("AttackStrenght"));
 		attackSpeed = compound.getInteger("AttackSpeed");
-		attackDelay = ValueUtil.clamp(compound.getInteger("attackDelay"), 0, 1000);
+		swingWarmUp = ValueUtil.clamp(compound.getInteger("SwingWarmup"), 0, 1000);
 		attackRange = compound.getInteger("AttackRange");
 		knockback = compound.getInteger("KnockBack");
 		potionType = EnumPotionType.values()[compound.getInteger("PotionEffect") % EnumPotionType.values().length];

@@ -312,6 +312,7 @@ stats.projectileproperties=ProjectileType
 stats.meleestrength=MeleeStrength
 stats.meleerange=MeleeRange
 stats.meleespeed=MeleeSpeed
+stats.swingwarmup=SwingWarmup
 stats.accuracy=Accuracy(%)
 stats.rangedrange=RangedRange
 stats.burstspeed=FireRate

@@ -35,8 +35,8 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
         getTextField(3).integersOnly = true;
         getTextField(3).setMinMaxDefault(1, Integer.MAX_VALUE, 20);
 
-		addLabel(new GuiNpcLabel(8,"stats.swingdelay", guiLeft + 130, guiTop + 75));
-		addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 220, guiTop + 70, 30, 18, stats.attackDelay+""));
+		addLabel(new GuiNpcLabel(8,"stats.swingwarmup", guiLeft + 130, guiTop + 75));
+		addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 220, guiTop + 70, 30, 18, stats.swingWarmUp +""));
 		getTextField(8).integersOnly = true;
 		getTextField(8).setMinMaxDefault(0, 1000, 0);
 
@@ -76,7 +76,7 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
 			stats.potionDuration = textfield.getInteger();
 		}
 		else if(textfield.id == 8){
-			stats.attackDelay = textfield.getInteger();
+			stats.swingWarmUp = textfield.getInteger();
 		}
 	}
     

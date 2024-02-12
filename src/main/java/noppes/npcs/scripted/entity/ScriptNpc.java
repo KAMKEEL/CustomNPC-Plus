@@ -907,6 +907,20 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	/**
+	 * @return The swing warmup time in ticks
+	 */
+	public int getSwingWarmup(){
+		return npc.stats.swingWarmUp;
+	}
+
+	/**
+	 * @param ticks The amount of time before damage to swing arm
+	 */
+	public void setSwingWarmup(int ticks){
+		npc.stats.swingWarmUp = ticks;
+	}
+
+	/**
 	 * @return The knockback strength
 	 */
 	public int getKnockback(){

@@ -133,10 +133,10 @@ public class EntityAIAttackTarget extends EntityAIBase
         {
             if (this.attackTick <= 0) {
                 this.attackTick = this.npc.stats.attackSpeed;
-                if(this.npc.stats.attackDelay == 0)
+                if(this.npc.stats.swingWarmUp == 0)
                     this.npc.attackEntityAsMob(this.entityTarget);
                 this.npc.swingItem();
-            } else if (this.npc.stats.attackDelay > 0 && this.attackTick == this.npc.stats.attackSpeed - this.npc.stats.attackDelay) {
+            } else if (this.npc.stats.swingWarmUp > 0 && this.attackTick == this.npc.stats.attackSpeed - this.npc.stats.swingWarmUp) {
                 // Perform the actual attack that deals damage
                 this.npc.attackEntityAsMob(this.entityTarget);
             }
