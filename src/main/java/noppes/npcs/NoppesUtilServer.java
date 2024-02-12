@@ -799,11 +799,10 @@ public class NoppesUtilServer {
 		int i = MathHelper.floor_double(entity.posX / 16.0D);
 		int j = MathHelper.floor_double(entity.posZ / 16.0D);
 		if (!entity.forceSpawn && !worldObj.checkChunksExist(
-				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ
-			))
-		{
+				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ)) {
 			return null;
-		} else {
+		}
+		else {
 			worldObj.getChunkFromChunkCoords(i, j).addEntity(entity);
 			worldObj.loadedEntityList.add(entity);
 			worldObj.onEntityAdded(entity);
