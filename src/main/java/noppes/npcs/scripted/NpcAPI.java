@@ -21,6 +21,7 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.math.BlockPos;
@@ -417,6 +418,22 @@ public class NpcAPI extends AbstractNpcAPI {
             if (world.provider.dimensionId == dimensionId) {
                 return this.getIWorld(world);
             }
+        }
+
+        throw new CustomNPCsException("Unknown dimension id: " + dimensionId);
+    }
+
+    public IWorld getIWorldLoad(int dimensionId) {
+        try {
+            IWorld iWorld = this.getIWorld(dimensionId);
+            if(iWorld != null)
+                return iWorld;
+        }
+        catch (CustomNPCsException ignored){}
+
+        WorldServer worldServer = CustomNpcs.getServer().worldServerForDimension(dimensionId);
+        if (worldServer != null) {
+            return this.getIWorld(worldServer);
         }
 
         throw new CustomNPCsException("Unknown dimension id: " + dimensionId);
