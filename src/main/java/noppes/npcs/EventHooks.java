@@ -179,6 +179,15 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onNPCMeleeSwing(EntityNPCInterface npc, NpcEvent.SwingEvent event){
+        if(npc == null || npc.wrappedNPC == null)
+            return false;
+
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ATTACK_SWING, event);
+        npc.script.callScript(EnumScriptType.ATTACK_SWING,  event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onNPCRangedAttack(EntityNPCInterface npc, NpcEvent.RangedLaunchedEvent event){
         if(npc == null || npc.wrappedNPC == null)
             return false;

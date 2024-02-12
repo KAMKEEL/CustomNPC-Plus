@@ -19,6 +19,7 @@ public enum EnumScriptType {
 
 	ATTACKED("attacked"),
 	ATTACK_MELEE("meleeAttack"),
+	ATTACK_SWING("meleeSwing"),
 	ROLE("role"),
 	RANGED_CHARGE("rangedCharge"),
 	RANGED_LAUNCHED("rangedLaunched"),

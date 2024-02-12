@@ -226,6 +226,28 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         }
     }
 
+    @Cancelable
+    public static class SwingEvent extends NpcEvent implements INpcEvent.SwingEvent {
+        public final IItemStack itemStack;
+
+        public SwingEvent(ICustomNpc npc, ItemStack itemStack) {
+            super(npc);
+            this.itemStack = (IItemStack)NpcAPI.Instance().getIItemStack(itemStack);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.ATTACK_SWING.function;
+        }
+
+        /**
+         * @return Returns the swung item
+         */
+        @Override
+        public IItemStack getItemStack() {
+            return itemStack;
+        }
+    }
+
     public static class KilledEntityEvent extends NpcEvent implements INpcEvent.KilledEntityEvent {
         public final IEntityLivingBase entity;
 
