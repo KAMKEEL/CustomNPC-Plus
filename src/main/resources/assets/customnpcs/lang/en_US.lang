@@ -382,6 +382,7 @@ ai.rangemelee=UseRangeAttack
 ai.tacticalvariant=TacticalVariant
 ai.cobwebAffected=CobwebAffected
 ai.movement=Movement
+ai.combatpolicy=CombatPolicy
 
 movement.ground=Ground
 movement.flying=Flying
