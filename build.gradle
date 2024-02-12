@@ -38,7 +38,7 @@ configurations {
 
 apply plugin: 'forge'
 
-version = "1.9-beta5"
+version = "1.9-beta6"
 group= "com.kamkeel.customnpc-plus" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "CustomNPC-Plus"
 
@@ -209,3 +209,6 @@ sourceSets {
         ext.refMap = refMapForYourConfig
     }
 }
+
+// Enable Temporarily if Assets not loading
+sourceSets {main { output.resourcesDir = output.classesDir }}
