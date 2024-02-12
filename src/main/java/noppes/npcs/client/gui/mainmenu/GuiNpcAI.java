@@ -90,9 +90,6 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 
     	addLabel(new GuiNpcLabel(2,"ai.movement", guiLeft + 4, guiTop + 165));
     	addButton(new GuiNpcButton(2, guiLeft + 86, guiTop + 160, 60, 20, "selectServer.edit"));
-
-		addLabel(new GuiNpcLabel(22,"ai.cobwebAffected", guiLeft + 4, guiTop + 190));
-		addButton(new GuiNpcButton(22 ,guiLeft + 86, guiTop + 185, 60, 20,  new String[]{"gui.no", "gui.yes"}, npc.ai.ignoreCobweb ? 0:1));
 	}
     
 	@Override
@@ -154,9 +151,6 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			ai.tacticalVariant = EnumNavType.values()[button.getValue()];
 			ai.directLOS = EnumNavType.values()[button.getValue()] != EnumNavType.Stalk && this.ai.directLOS;
 			initGui();
-		}
-		else if (button.id == 22) {
-			ai.ignoreCobweb = (button.getValue() == 0);
 		}
 		else if (button.id == 25) {
 			ai.combatPolicy = EnumCombatPolicy.values()[button.getValue()];

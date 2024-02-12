@@ -55,8 +55,6 @@ public class DataAI {
 
 	public boolean movingPause = true;
 
-	public boolean ignoreCobweb = false;
-	
 	public DataAI(EntityNPCInterface npc){
 		this.npc = npc;
 	}
@@ -79,7 +77,6 @@ public class DataAI {
 		tacticalRadius = compound.getInteger("TacticalRadius");
 		tacticalChance = compound.getInteger("TacticalChance");
 		movingPause = compound.getBoolean("MovingPause");
-		ignoreCobweb = compound.getBoolean("IgnoreCobweb");
 		npcInteracting = compound.getBoolean("npcInteracting");
 		stopAndInteract = compound.getBoolean("stopAndInteract");
 		
@@ -149,7 +146,6 @@ public class DataAI {
 		compound.setInteger("TacticalRadius", tacticalRadius);
 		compound.setInteger("TacticalChance", tacticalChance);
 		compound.setBoolean("MovingPause", movingPause);
-		compound.setBoolean("IgnoreCobweb", ignoreCobweb);
 		compound.setBoolean("npcInteracting", npcInteracting);
 		compound.setBoolean("stopAndInteract", stopAndInteract);
 

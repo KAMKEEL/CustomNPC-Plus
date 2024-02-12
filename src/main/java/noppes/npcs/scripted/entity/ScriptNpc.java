@@ -766,11 +766,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setIgnoreCobweb(boolean ignore){
-		npc.ai.ignoreCobweb = ignore;
+		npc.stats.ignoreCobweb = ignore;
 	}
 
 	public boolean getIgnoreCobweb(){
-		return npc.ai.ignoreCobweb;
+		return npc.stats.ignoreCobweb;
 	}
 
 	public void setOnFoundEnemy(int onAttack){

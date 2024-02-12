@@ -23,28 +23,32 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
     {
         super.initGui();
         addLabel(new GuiNpcLabel(1,"stats.meleestrength", guiLeft + 5, guiTop + 15));
-        addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 85, guiTop + 10, 50, 18, String.format("%.0f", stats.getAttackStrength()) + ""));
+        addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 85, guiTop + 10, 160, 18, String.format("%.0f", stats.getAttackStrength()) + ""));
         getTextField(1).floatsOnly = true;
 		getTextField(1).setMinMaxDefaultFloat(0,Float.MAX_VALUE,5);
         addLabel(new GuiNpcLabel(2,"stats.meleerange", guiLeft + 5, guiTop + 45));
-        addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 85, guiTop + 40, 50, 18, stats.attackRange+""));
+        addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 85, guiTop + 40, 40, 18, stats.attackRange+""));
         getTextField(2).integersOnly = true;
         getTextField(2).setMinMaxDefault(1, Integer.MAX_VALUE, 2);
         addLabel(new GuiNpcLabel(3,"stats.meleespeed", guiLeft + 5, guiTop + 75));
-        addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 85, guiTop + 70, 50, 18, stats.attackSpeed+""));
+        addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 85, guiTop + 70, 40, 18, stats.attackSpeed+""));
         getTextField(3).integersOnly = true;
         getTextField(3).setMinMaxDefault(1, Integer.MAX_VALUE, 20);
 
+		addLabel(new GuiNpcLabel(8,"stats.swingdelay", guiLeft + 130, guiTop + 75));
+		addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 220, guiTop + 70, 30, 18, stats.attackDelay+""));
+		getTextField(8).integersOnly = true;
+		getTextField(8).setMinMaxDefault(0, 1000, 0);
 
         addLabel(new GuiNpcLabel(4,"enchantment.knockback", guiLeft + 5, guiTop + 105));
-		addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 85, guiTop + 100, 50, 18, stats.knockback + ""));
+		addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 85, guiTop + 100, 40, 18, stats.knockback + ""));
 		getTextField(4).integersOnly = true;
 		getTextField(4).setMinMaxDefault(0, Integer.MAX_VALUE, 0);
         addLabel(new GuiNpcLabel(5,"stats.meleeeffect", guiLeft + 5, guiTop + 135));
 		addButton(new GuiButtonBiDirectional(5,guiLeft + 85, guiTop + 130, 100, 20, potionNames, stats.potionType.ordinal()));
 		if(stats.potionType != EnumPotionType.None) {
     		addLabel(new GuiNpcLabel(6,"gui.time", guiLeft + 5, guiTop + 165));
-    		addTextField(new GuiNpcTextField(6,this, fontRendererObj, guiLeft + 85, guiTop + 160, 50, 18, stats.potionDuration + ""));
+    		addTextField(new GuiNpcTextField(6,this, fontRendererObj, guiLeft + 85, guiTop + 160, 40, 18, stats.potionDuration + ""));
     		getTextField(6).integersOnly = true;
     		getTextField(6).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
     		if(stats.potionType != EnumPotionType.Fire) {
@@ -70,6 +74,9 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
 		}
 		else if(textfield.id == 6){
 			stats.potionDuration = textfield.getInteger();
+		}
+		else if(textfield.id == 8){
+			stats.attackDelay = textfield.getInteger();
 		}
 	}
     

@@ -23,6 +23,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S0BPacketAnimation;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
@@ -266,6 +267,34 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				par1Entity.setFire(stats.potionDuration);
 		}
 		return var4;
+	}
+
+	@Override
+	public void swingItem()
+	{
+		ItemStack stack = this.getHeldItem();
+		if (stack != null && stack.getItem() != null)
+		{
+			Item item = stack.getItem();
+			if (item.onEntitySwing(this, stack))
+			{
+				return;
+			}
+		}
+		if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
+		{
+			NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
+			if(EventHooks.onNPCMeleeSwing(this, event))
+				return;
+
+			this.swingProgressInt = -1;
+			this.isSwingInProgress = true;
+
+			if (this.worldObj instanceof WorldServer)
+			{
+				((WorldServer)this.worldObj).getEntityTracker().func_151247_a(this, new S0BPacketAnimation(this, 0));
+			}
+		}
 	}
 
 	@Override
@@ -1701,7 +1730,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 	@Override
 	public void setInWeb(){
-		if(!ai.ignoreCobweb)
+		if(!stats.ignoreCobweb)
 			super.setInWeb();
 	}
 
