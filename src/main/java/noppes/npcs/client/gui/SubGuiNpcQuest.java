@@ -63,8 +63,8 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		addButton(new GuiNpcButton(6, guiLeft + 240, guiTop + 76, 60, 20, new String[]{"quest.item","quest.dialog","quest.kill","quest.location","quest.areakill"},quest.type.ordinal()));
 		addButton(new GuiNpcButton(7, guiLeft + 303, guiTop + 76,50, 20, "selectServer.edit"));
 
-		addLabel(new GuiNpcLabel(17, "party.options", guiLeft + 180, guiTop + 105));
-		addButton(new GuiNpcButton(18, guiLeft + 303, guiTop + 100, 50, 20, "selectServer.edit"));
+		addLabel(new GuiNpcLabel(17, "party.options", guiLeft + 180, guiTop + 135));
+		addButton(new GuiNpcButton(18, guiLeft + 303, guiTop + 130, 50, 20, "selectServer.edit"));
 
 		this.addButton(new GuiNpcButton(9, guiLeft + 7, guiTop + 102,90, 20, new String[]{"quest.npc","quest.instant"},quest.completion.ordinal()));
 		if(quest.completerNpc.isEmpty() && npc != null)
@@ -90,7 +90,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		if(!quest.mail.subject.isEmpty())
 			getButton(13).setDisplayText(quest.mail.subject);
 	}
-	
+
 	public void buttonEvent(GuiButton guibutton)
     {
 		GuiNpcButton button = (GuiNpcButton) guibutton;

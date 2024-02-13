@@ -1,23 +1,18 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.api.handler.data.IPartyOptions;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPartyExchange;
 import noppes.npcs.constants.EnumPartyRequirements;
-import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerDataController;
 
 public class PartyOptions implements IPartyOptions {
-
 	public boolean allowParty = false;
 	public EnumPartyRequirements partyRequirements = EnumPartyRequirements.Leader;
 	public EnumPartyExchange rewardControl = EnumPartyExchange.Leader;
 	public EnumPartyExchange completeFor = EnumPartyExchange.Leader;
 	public int maxPartySize = ConfigMain.DefaultMaxPartySize;
-	
+
     public void readFromNBT(NBTTagCompound compound)
     {
 		// Party Management

@@ -133,6 +133,8 @@ gui.off=Off
 gui.on=On
 
 party.accept=Accept
+party.allowParty=Allow Partying
+party.completeFor=Complete For
 party.createParty=Create Party
 party.disbandParty=Disband Party
 party.disbandConfirm=Are you sure you want to disband the party?
@@ -148,11 +150,15 @@ party.leaderConfirm=Are you sure you want to make this player the party leader?
 party.leaveParty=Leave Party
 party.leaveConfirm=Are you sure you want to leave the party?
 party.makeLeader=Make Leader
+party.maxPartySize=Max Party Size
+party.options=Party Options
 party.party=Party
 party.partying=Partying!
 party.partyInfo1=You're not in a party!
 party.partyInfo2=Either wait for an invite
 party.partyInfo3=or create one.
+party.partyRequirements=Party Requirements
+party.partyRewards=Party Rewards
 
 scale.shared=Shared
 filter.contains=Contains
