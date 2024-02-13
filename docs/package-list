@@ -1,5 +1,11 @@
+net.minecraft.block.properties
+net.minecraft.block.state
+net.minecraft.util
+net.minecraft.util.math
 noppes.npcs.api
+noppes.npcs.api.block
 noppes.npcs.api.entity
+noppes.npcs.api.entity.data
 noppes.npcs.api.event
 noppes.npcs.api.gui
 noppes.npcs.api.handler
