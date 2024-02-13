@@ -32,8 +32,6 @@ sourceSets {
     named("main").configure {
         java {
             srcDirs += ['src/api/java']
-            compileClasspath += mcpTasks.patchedMcSources.output
-            compileClasspath += mcpTasks.patchedConfiguration
         }
     }
 }
