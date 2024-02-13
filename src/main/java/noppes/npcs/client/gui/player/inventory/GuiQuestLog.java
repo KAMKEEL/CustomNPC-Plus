@@ -9,13 +9,11 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.TextBlockClient;
+import noppes.npcs.client.*;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -89,19 +87,28 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         addButton(new GuiButtonNextPage(1, guiLeft + 286, guiTop + 176, true));
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        GuiNpcButton trackingButton = new GuiNpcButton(3, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"quest.track", "quest.tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
+        if (ClientCacheHandler.party != null && data.hasSelectedQuest()) {
+            String questName = ClientCacheHandler.party.getCurrentQuestName();
+            GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, Objects.equals(questName, data.selectedQuest) ? 1 : 0);
+            if (Objects.equals(questName, data.selectedQuest)) {
+                partyButton.packedFGColour = 0x32CD32;
+            }
+            addButton(partyButton);
+        }
+
+        GuiNpcButton trackingButton = new GuiNpcButton(4, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"quest.track", "quest.tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
         if (trackingButton.displayString.equals("quest.tracking")) {
             trackingButton.packedFGColour = 0x32CD32;
         }
         addButton(trackingButton);
 
-        GuiNpcButton alertButton = new GuiNpcButton(4, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
+        GuiNpcButton alertButton = new GuiNpcButton(5, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
         addButton(alertButton);
 
         getButton(1).visible = questDetails && data.hasSelectedQuest();
         getButton(2).visible = !questDetails && data.hasSelectedQuest();
-        getButton(3).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
-        getButton(4).visible = getButton(3).visible;
+        getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
+        getButton(5).visible = getButton(4).visible;
     }
     @Override
 	protected void actionPerformed(GuiButton guibutton){
@@ -111,14 +118,22 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     	if(guibutton.id == 2){
     		questDetails = true;
     	}
-        if(guibutton.id == 3){
+        if (guibutton.id == 3)
+        {
+            if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
+                Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
+            } else {
+                Client.sendData(EnumPacketServer.SetPartyQuest, data.selectedCategory, data.selectedQuest);
+            }
+        }
+        if(guibutton.id == 4){
             if (!data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest)) {
                 data.trackedQuestKey = data.selectedCategory + ":" + data.selectedQuest;
             } else {
                 data.trackedQuestKey = "";
             }
         }
-        if(guibutton.id == 4){
+        if(guibutton.id == 5){
             data.toggleQuestAlerts();
         }
         initGui();
@@ -270,11 +285,17 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     }
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
-		QuestLogData data = new QuestLogData();
-		data.readNBT(compound);
-		this.data = data;
-        this.questAlertsOnOpen = new HashMap<>(data.questAlerts);
-        this.trackedQuestKeyOnOpen = data.trackedQuestKey;
+        if (compound.hasKey("PartyUUID")) {
+            UUID uuid = UUID.fromString(compound.getString("PartyUUID"));
+            ClientCacheHandler.party = new Party(uuid);
+            ClientCacheHandler.party.readFromNBT(compound);
+        } else {
+            QuestLogData data = new QuestLogData();
+            data.readNBT(compound);
+            this.data = data;
+            this.questAlertsOnOpen = new HashMap<>(data.questAlerts);
+            this.trackedQuestKeyOnOpen = data.trackedQuestKey;
+        }
 		initGui();
 	}
 
