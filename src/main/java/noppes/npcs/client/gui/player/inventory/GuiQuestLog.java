@@ -87,7 +87,8 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         addButton(new GuiButtonNextPage(1, guiLeft + 286, guiTop + 176, true));
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        if (ClientCacheHandler.party != null && data.hasSelectedQuest()) {
+        if (ClientCacheHandler.party != null && data.hasSelectedQuest()
+                && ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName())) {
             String questName = ClientCacheHandler.party.getCurrentQuestName();
             GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, Objects.equals(questName, data.selectedQuest) ? 1 : 0);
             if (Objects.equals(questName, data.selectedQuest)) {

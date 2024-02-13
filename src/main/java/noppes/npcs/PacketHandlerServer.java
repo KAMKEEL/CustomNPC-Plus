@@ -185,6 +185,10 @@ public class PacketHandlerServer{
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				Party party = PartyController.Instance().getParty(playerData.partyUUID);
 				if (party != null) {
+					if (party.getPartyLeader() != player) {
+						return;
+					}
+
 					String questCategory = Server.readString(buffer);
 					String questName = Server.readString(buffer);
 					party.setQuest(null);
