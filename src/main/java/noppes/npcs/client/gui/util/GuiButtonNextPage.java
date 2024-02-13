@@ -6,7 +6,6 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiButtonNextPage extends GuiNpcButton{
     private final boolean field_146151_o;
-    private static final String __OBFID = "CL_00000745";
     private static final ResourceLocation field_110405_a = new ResourceLocation("textures/gui/book.png");
 
     public GuiButtonNextPage(int par1, int par2, int par3, boolean par4)

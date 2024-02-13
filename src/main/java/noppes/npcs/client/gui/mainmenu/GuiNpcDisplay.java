@@ -23,7 +23,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
 	private DataDisplay display;
 	public GuiNpcTextField nameText;
-	
+
 	public GuiNpcDisplay(EntityNPCInterface npc) {
 		super(npc,1);
 		display = npc.display;
@@ -205,7 +205,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		mc.renderGlobal.onEntityDestroy(npc);
 		mc.renderGlobal.onEntityCreate(npc);
 		Client.sendData(EnumPacketServer.MainmenuDisplaySave, display.writeToNBT(new NBTTagCompound()));
-		
+
 	}
 
 	@Override

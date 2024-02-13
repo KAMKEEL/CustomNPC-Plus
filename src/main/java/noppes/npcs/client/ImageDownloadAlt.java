@@ -117,7 +117,6 @@ public class ImageDownloadAlt extends SimpleTexture
     {
         this.imageThread = new Thread("Texture Downloader #" + threadDownloadCounter.incrementAndGet())
         {
-            private static final String __OBFID = "CL_00001050";
             public void run()
             {
                 HttpURLConnection connection = null;
