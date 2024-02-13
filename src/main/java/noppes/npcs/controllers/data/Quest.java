@@ -6,10 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.*;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.data.IQuest;
-import noppes.npcs.api.handler.data.IQuestCategory;
-import noppes.npcs.api.handler.data.IQuestInterface;
-import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.api.handler.data.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.PlayerDataController;
@@ -33,12 +30,6 @@ public class Quest implements ICompatibilty, IQuest {
 	public String nextQuestTitle = "";
 	public PlayerMail mail = new PlayerMail();
 	public String command = "";
-
-	public boolean allowParty = false;
-	public EnumPartyRequirements partyRequirements = EnumPartyRequirements.Leader;
-	public EnumPartyExchange rewardControl = EnumPartyExchange.Leader;
-	public EnumPartyExchange completeFor = EnumPartyExchange.Leader;
-	public int maxPartySize = ConfigMain.DefaultMaxPartySize;
 	
 	public QuestInterface questInterface = new QuestItem();
 	
@@ -46,6 +37,7 @@ public class Quest implements ICompatibilty, IQuest {
 	public NpcMiscInventory rewardItems = new NpcMiscInventory(9);
 	public boolean randomReward = false;
 	public FactionOptions factionOptions = new FactionOptions();
+	public PartyOptions partyOptions = new PartyOptions();
 	
 
 	public void readNBT(NBTTagCompound compound) {
@@ -78,36 +70,9 @@ public class Quest implements ICompatibilty, IQuest {
 		questInterface.readEntityFromNBT(compound);
 		
 		factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
+		partyOptions.readFromNBT(compound.getCompoundTag("PartyOptions"));
 		
 		mail.readNBT(compound.getCompoundTag("QuestMail"));
-
-		// Party Management
-		allowParty = compound.getBoolean("AllowParty");
-		if(allowParty){
-			partyRequirements = EnumPartyRequirements.values()[compound.getInteger("PartyRequirements")];
-			rewardControl = EnumPartyExchange.values()[compound.getInteger("RewardControl")];
-			completeFor = EnumPartyExchange.values()[compound.getInteger("CompleteFor")];
-			maxPartySize = compound.getInteger("MaxPartySize");
-		}
-		else {
-			if(compound.hasKey("PartyRequirements")){
-				compound.removeTag("PartyRequirements");
-			}
-			if(compound.hasKey("RewardControl")){
-				compound.removeTag("RewardControl");
-			}
-			if(compound.hasKey("CompleteFor")){
-				compound.removeTag("CompleteFor");
-			}
-			if(compound.hasKey("MaxPartySize")){
-				compound.removeTag("MaxPartySize");
-			}
-
-			partyRequirements = EnumPartyRequirements.Leader;
-			rewardControl = EnumPartyExchange.Leader;
-			completeFor = EnumPartyExchange.Leader;
-			maxPartySize = ConfigMain.DefaultMaxPartySize;
-		}
 	}
 
 	public void setType(EnumQuestType questType) {
@@ -148,29 +113,9 @@ public class Quest implements ICompatibilty, IQuest {
 		
 		this.questInterface.writeEntityToNBT(compound);
 		compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
+		compound.setTag("PartyOptions", partyOptions.writeToNBT());
 		compound.setTag("QuestMail", mail.writeNBT());
 
-		compound.setBoolean("AllowParty", allowParty);
-		if(allowParty){
-			compound.setInteger("PartyRequirements", partyRequirements.ordinal());
-			compound.setInteger("RewardControl", rewardControl.ordinal());
-			compound.setInteger("CompleteFor", completeFor.ordinal());
-			compound.setInteger("MaxPartySize", maxPartySize);
-		}
-		else {
-			if(compound.hasKey("PartyRequirements")){
-				compound.removeTag("PartyRequirements");
-			}
-			if(compound.hasKey("RewardControl")){
-				compound.removeTag("RewardControl");
-			}
-			if(compound.hasKey("CompleteFor")){
-				compound.removeTag("CompleteFor");
-			}
-			if(compound.hasKey("MaxPartySize")){
-				compound.removeTag("MaxPartySize");
-			}
-		}
 		return compound;
 	}
 	
@@ -327,54 +272,7 @@ public class Quest implements ICompatibilty, IQuest {
 		return this.questInterface;
 	}
 
-	public boolean isAllowParty() {
-		return allowParty;
-	}
-
-	public void setAllowParty(boolean allowParty) {
-		this.allowParty = allowParty;
-	}
-
-	public int getPartyRequirements() {
-		return partyRequirements.ordinal();
-	}
-
-	public void setPartyRequirements(int partyReq) {
-		if (partyReq < 0 || partyReq >= EnumPartyRequirements.values().length) {
-			return;
-		}
-		this.partyRequirements = EnumPartyRequirements.values()[partyReq];
-	}
-
-	public int getRewardControl() {
-		return rewardControl.ordinal();
-	}
-
-	public void setRewardControl(int rewardCon) {
-		if (rewardCon < 0 || rewardCon >= EnumPartyExchange.values().length) {
-			return;
-		}
-		this.rewardControl = EnumPartyExchange.values()[rewardCon];
-	}
-
-	public int getCompleteFor() {
-		return completeFor.ordinal();
-	}
-
-	public void setCompleteFor(int compFor) {
-		if (compFor < 0 || compFor >= EnumPartyExchange.values().length) {
-			return;
-		}
-		this.completeFor = EnumPartyExchange.values()[compFor];
-	}
-
-	@Override
-	public int getMaxPartySize() {
-		return maxPartySize;
-	}
-
-	@Override
-	public void setMaxPartySize(int newSize) {
-		maxPartySize = newSize;
+	public IPartyOptions getPartyOptions() {
+		return this.partyOptions;
 	}
 }

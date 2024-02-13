@@ -194,14 +194,14 @@ public class Party {
             return false;
         }
 
-        int partyReq = quest.getPartyRequirements();
+        int partyReq = quest.getPartyOptions().getPartyRequirements();
         if (partyReq < 0 || partyReq >= EnumPartyRequirements.values().length) {
             sendInfoMessage(leader, "Error in quest party requirements");
             return false;
         }
 
-        if (partyMembers.size() > quest.getMaxPartySize()) {
-            sendInfoMessage(leader, String.format("Party too large. Max %d members", quest.getMaxPartySize()));
+        if (partyMembers.size() > quest.getPartyOptions().getMaxPartySize()) {
+            sendInfoMessage(leader, String.format("Party too large. Max %d members", quest.getPartyOptions().getMaxPartySize()));
             return false;
         }
 
