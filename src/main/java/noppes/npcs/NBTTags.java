@@ -91,6 +91,28 @@ public class NBTTags {
         }
 		return list;
 	}
+
+	public static HashSet<String> getStringSet(NBTTagList tagList) {
+		HashSet<String> list = new HashSet<>();
+		for(int i = 0; i < tagList.tagCount(); i++)
+		{
+			NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+			list.add(nbttagcompound.getString("String"));
+		}
+		return list;
+	}
+
+	public static NBTTagList nbtStringSet(HashSet<String> collection) {
+		NBTTagList nbttaglist = new NBTTagList();
+		if(collection == null)
+			return nbttaglist;
+		for (String slot : collection) {
+			NBTTagCompound nbttagcompound = new NBTTagCompound();
+			nbttagcompound.setString("String", slot);
+			nbttaglist.appendTag(nbttagcompound);
+		}
+		return nbttaglist;
+	}
 	
 	public static HashSet<Integer> getIntegerSet(NBTTagList tagList) {
 		HashSet<Integer> list = new HashSet<Integer>();
@@ -100,6 +122,18 @@ public class NBTTags {
             list.add(nbttagcompound.getInteger("Integer"));
         }
 		return list;
+	}
+
+	public static NBTTagList nbtIntegerSet(HashSet<Integer> set) {
+		NBTTagList nbttaglist = new NBTTagList();
+		if(set == null)
+			return nbttaglist;
+		for (int slot : set) {
+			NBTTagCompound nbttagcompound = new NBTTagCompound();
+			nbttagcompound.setInteger("Integer", slot);
+			nbttaglist.appendTag(nbttagcompound);
+		}
+		return nbttaglist;
 	}
 
 	public static HashMap<String, String> getStringStringMap(NBTTagList tagList) {
@@ -299,18 +333,6 @@ public class NBTTags {
 			NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setInteger("Slot", slot);
             nbttagcompound.setLong("Long", lines.get(slot));
-			nbttaglist.appendTag(nbttagcompound);
-		}
-		return nbttaglist;
-	}
-
-	public static NBTTagList nbtIntegerSet(HashSet<Integer> set) {
-		NBTTagList nbttaglist = new NBTTagList();
-		if(set == null)
-			return nbttaglist;
-		for (int slot : set) {
-			NBTTagCompound nbttagcompound = new NBTTagCompound();
-            nbttagcompound.setInteger("Integer", slot);
 			nbttaglist.appendTag(nbttagcompound);
 		}
 		return nbttaglist;

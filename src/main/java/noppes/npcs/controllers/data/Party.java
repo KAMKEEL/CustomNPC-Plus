@@ -28,6 +28,8 @@ public class Party {
     private final ArrayList<UUID> partyOrder = new ArrayList<>();
 
     private int currentQuestID = -1;
+    private String currentQuestName = "";
+
     private boolean friendlyFire;
     private boolean partyLocked = false;
 
@@ -50,16 +52,28 @@ public class Party {
         return this.partyLocked;
     }
 
-    public void setIsLocked(boolean val) {
-        this.partyLocked = val;
+    public void setQuest(IQuest quest) {
+        if (quest != null) {
+            this.currentQuestID = quest.getId();
+            this.currentQuestName = quest.getName();
+        } else {
+            this.currentQuestID = -1;
+            this.currentQuestName = "";
+        }
+
+        this.partyLocked = quest != null;
+    }
+
+    public IQuest getQuest() {
+        return QuestController.Instance.get(this.currentQuestID);
     }
 
     public int getCurrentQuestID() {
         return currentQuestID;
     }
 
-    public void setCurrentQuestID(int currentQuestID) {
-        this.currentQuestID = currentQuestID;
+    public String getCurrentQuestName() {
+        return this.currentQuestName;
     }
 
     public boolean addPlayer(EntityPlayer player) {
@@ -279,6 +293,7 @@ public class Party {
     public void readFromNBT(NBTTagCompound compound) {
         this.partyLeaderName = compound.getString("PartyLeader");
         this.currentQuestID = compound.getInteger("PartyQuestID");
+        this.currentQuestName = compound.getString("PartyQuestName");
         this.friendlyFire = compound.getBoolean("FriendlyFire");
         this.partyLocked = compound.getBoolean("PartyLocked");
 
@@ -297,6 +312,7 @@ public class Party {
 
         compound.setString("PartyUUID", this.partyUUID.toString());
         compound.setInteger("PartyQuestID", this.currentQuestID);
+        compound.setString("PartyQuestName", this.currentQuestName);
         compound.setBoolean("FriendlyFire", this.friendlyFire);
         compound.setBoolean("PartyLocked", this.partyLocked);
 
@@ -321,12 +337,14 @@ public class Party {
 
     public void readClientNBT(NBTTagCompound compound) {
         this.currentQuestID = compound.getInteger("PartyQuestID");
+        this.currentQuestName = compound.getString("PartyQuestName");
         this.friendlyFire = compound.getBoolean("FriendlyFire");
     }
 
     public NBTTagCompound writeClientNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("PartyQuestID", this.currentQuestID);
+        compound.setString("PartyQuestName", this.currentQuestName);
         compound.setBoolean("FriendlyFire", this.friendlyFire);
         return compound;
     }

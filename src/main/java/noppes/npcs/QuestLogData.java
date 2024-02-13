@@ -9,6 +9,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Vector;
 
 public class QuestLogData {
@@ -16,10 +17,11 @@ public class QuestLogData {
 	public HashMap<String,Vector<String>> categories = new HashMap<String,Vector<String>>();
 	public String selectedQuest = "";
 	public String selectedCategory = "";
-	public HashMap<String,String> questText = new HashMap<String,String>();
+	public HashMap<String,String> questText = new HashMap<>();
 	public HashMap<String,String> questAlerts = new HashMap<>();
-	public HashMap<String,Vector<String>> questStatus = new HashMap<String,Vector<String>>();
-	public HashMap<String,String> finish = new HashMap<String,String>();
+	public HashMap<String,Vector<String>> questStatus = new HashMap<>();
+	public HashMap<String,String> finish = new HashMap<>();
+	public HashSet<String> partyAbleQuests = new HashSet<>();
 	
 	public NBTTagCompound writeNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
@@ -29,6 +31,7 @@ public class QuestLogData {
 		compound.setTag("Status", NBTTags.nbtVectorMap(questStatus));
 		compound.setTag("QuestFinisher", NBTTags.nbtStringStringMap(finish));
 		compound.setString("TrackedQuestID", trackedQuestKey);
+		compound.setTag("PartyQuests", NBTTags.nbtStringSet(partyAbleQuests));
 		return compound;
 	}
 
@@ -39,6 +42,7 @@ public class QuestLogData {
 		questStatus = NBTTags.getVectorMap(compound.getTagList("Status", 10));
 		finish = NBTTags.getStringStringMap(compound.getTagList("QuestFinisher", 10));
 		trackedQuestKey = compound.getString("TrackedQuestID");
+		partyAbleQuests = NBTTags.getStringSet(compound.getTagList("PartyQuests", 10));
 	}
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
@@ -61,6 +65,10 @@ public class QuestLogData {
 				if (quest.id == playerData.questData.getTrackedQuest().getId()) {
 					trackedQuestKey = category + ":" + quest.title;
 				}
+			}
+
+			if (quest.allowParty) {
+				partyAbleQuests.add(category + ":" + quest.title);
 			}
         }
 	}
