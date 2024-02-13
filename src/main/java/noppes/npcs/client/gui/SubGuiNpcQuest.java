@@ -12,7 +12,6 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.data.QuestCategory;
 
 public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, GuiSelectionListener,ITextfieldListener
 {
@@ -63,6 +62,9 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		addLabel(new GuiNpcLabel(6, "gui.type", guiLeft + 180, guiTop + 81));
 		addButton(new GuiNpcButton(6, guiLeft + 240, guiTop + 76, 60, 20, new String[]{"quest.item","quest.dialog","quest.kill","quest.location","quest.areakill"},quest.type.ordinal()));
 		addButton(new GuiNpcButton(7, guiLeft + 303, guiTop + 76,50, 20, "selectServer.edit"));
+
+		addLabel(new GuiNpcLabel(17, "party.options", guiLeft + 180, guiTop + 105));
+		addButton(new GuiNpcButton(18, guiLeft + 303, guiTop + 100, 50, 20, "selectServer.edit"));
 
 		this.addButton(new GuiNpcButton(9, guiLeft + 7, guiTop + 102,90, 20, new String[]{"quest.npc","quest.instant"},quest.completion.ordinal()));
 		if(quest.completerNpc.isEmpty() && npc != null)
@@ -155,6 +157,10 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 			questSelection = new GuiNPCQuestSelection(npc, getParent(), quest.nextQuestid);
 			questSelection.listener = this;
 			NoppesUtil.openGUI(player, questSelection);
+		}
+		if(button.id == 18)
+		{
+			setSubGui(new SubGuiNpcPartyOptions(quest.partyOptions));
 		}
 		if(button.id == 16){
 			close();

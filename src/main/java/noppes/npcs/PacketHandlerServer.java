@@ -193,7 +193,7 @@ public class PacketHandlerServer{
 					String questName = Server.readString(buffer);
 					party.setQuest(null);
 					for (Quest quest : QuestController.Instance.quests.values()) {
-						if (quest.allowParty && quest.getCategory().getName().equals(questCategory) && quest.getName().equals(questName)) {
+						if (quest.partyOptions.allowParty && quest.getCategory().getName().equals(questCategory) && quest.getName().equals(questName)) {
 							party.setQuest(quest);
 							break;
 						}

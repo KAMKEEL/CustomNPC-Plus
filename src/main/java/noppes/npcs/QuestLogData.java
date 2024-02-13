@@ -67,7 +67,7 @@ public class QuestLogData {
 				}
 			}
 
-			if (quest.allowParty) {
+			if (quest.partyOptions.allowParty) {
 				partyAbleQuests.add(category + ":" + quest.title);
 			}
         }
