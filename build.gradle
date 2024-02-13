@@ -2,6 +2,7 @@
 
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
+    id 'idea'
 }
 
 version = "1.9-beta6"
@@ -13,28 +14,28 @@ if(!embedMixin){
     version += "-nomixin"
 }
 
-task submodulesUpdate(type:Exec) {
-    description 'Updates (and inits) git submodules'
+// API Task
+tasks.create('updateAPI', Exec) {
+    description 'Updates (and Inits) git submodules'
     commandLine 'git', 'submodule', 'update', '--init', '--recursive'
-    group 'Build Setup'
+    group 'CustomNPC+'
 }
 
-minecraft {
-    sourceSets {
-        api {
-            java {
-                srcDir 'src/api/java'
-            }
+// No Mixin Build Task
+tasks.create('buildNoMixin', Exec) {
+    description 'Builds mod without embed'
+    group 'CustomNPC+'
+    commandLine 'build', '-Pnomixin'
+}
+
+sourceSets {
+    named("main").configure {
+        java {
+            srcDirs += ['src/api/java']
+            compileClasspath += mcpTasks.patchedMcSources.output
+            compileClasspath += mcpTasks.patchedConfiguration
         }
     }
 }
 
-jar {
-    from sourceSets.api.output
 
-    manifest {
-        attributes(
-            'FMLAT': "customnpcs_at.cfg",
-        )
-    }
-}
