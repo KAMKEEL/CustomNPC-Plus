@@ -57,9 +57,9 @@ public class GuiBook extends GuiScreen
     private GuiButton buttonSign;
     private GuiButton buttonFinalize;
     private GuiButton buttonCancel;
-    
+
     private int x, y, z;
-    
+
     public GuiBook(EntityPlayer par1EntityPlayer, ItemStack item, int x, int y, int z){
     	this.x = x;
     	this.y = y;
@@ -177,9 +177,9 @@ public class GuiBook extends GuiScreen
                     this.bookObj.setTagInfo("title", new NBTTagString(this.bookTitle.trim()));
                     this.bookObj.func_150996_a(Items.written_book);
                 }
-                
+
                 NoppesUtilPlayer.sendData(EnumPlayerPacket.SaveBook, x, y, z, sign, bookObj.writeToNBT(new NBTTagCompound()));
-            
+
             }
         }
     }
@@ -426,7 +426,6 @@ public class GuiBook extends GuiScreen
     static class NextPageButton extends GuiButton
         {
             private final boolean field_146151_o;
-            private static final String __OBFID = "CL_00000745";
 
             public NextPageButton(int par1, int par2, int par3, boolean par4)
             {

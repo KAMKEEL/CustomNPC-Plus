@@ -35,8 +35,6 @@ public class GuiMerchantAdd extends GuiContainer
     private MerchantButton previousRecipeButtonIndex;
     private int currentRecipeIndex;
     private String field_94082_v;
-
-    
     public GuiMerchantAdd()
     {
         super(new ContainerMerchantAdd(Minecraft.getMinecraft().thePlayer, ServerEventsHandler.Merchant, Minecraft.getMinecraft().theWorld));
@@ -50,7 +48,7 @@ public class GuiMerchantAdd extends GuiContainer
     public void initGui()
     {
         super.initGui();
-        
+
         int i = (this.width - this.xSize) / 2;
         int j = (this.height - this.ySize) / 2;
         this.buttonList.add(this.nextRecipeButtonIndex = new MerchantButton(1, i + 120 + 27, j + 24 - 1, true));
@@ -104,7 +102,7 @@ public class GuiMerchantAdd extends GuiContainer
             --this.currentRecipeIndex;
             flag = true;
         }
-        
+
         if(par1GuiButton.id == 4){
             MerchantRecipeList merchantrecipelist = this.theIMerchant.getRecipes(mc.thePlayer);
             if(currentRecipeIndex < merchantrecipelist.size()){
@@ -114,7 +112,7 @@ public class GuiMerchantAdd extends GuiContainer
             	Client.sendData(EnumPacketServer.MerchantUpdate, ServerEventsHandler.Merchant.getEntityId(), merchantrecipelist);
             }
         }
-        
+
         if(par1GuiButton.id == 5){
         	ItemStack item1 = this.inventorySlots.getSlot(0).getStack();
         	ItemStack item2 = this.inventorySlots.getSlot(1).getStack();
@@ -123,7 +121,7 @@ public class GuiMerchantAdd extends GuiContainer
         		item1 = item2;
         		item2 = null;
         	}
-        	
+
         	if(item1 != null && sold != null){
         		item1 = item1.copy();
     			sold = sold.copy();
@@ -136,7 +134,7 @@ public class GuiMerchantAdd extends GuiContainer
                 merchantrecipelist.add(recipe);
             	Client.sendData(EnumPacketServer.MerchantUpdate, ServerEventsHandler.Merchant.getEntityId(), merchantrecipelist);
         	}
-        	
+
         }
 
         if (flag)
@@ -266,7 +264,6 @@ public class GuiMerchantAdd extends GuiContainer
     static class MerchantButton extends GuiButton
         {
             private final boolean field_146157_o;
-            private static final String __OBFID = "CL_00000763";
 
             public MerchantButton(int par1, int par2, int par3, boolean par4)
             {

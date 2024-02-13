@@ -10,11 +10,10 @@ import noppes.npcs.controllers.data.PlayerMailData;
 import java.util.Iterator;
 
 public class ContainerMail extends ContainerNpcInterface{
-    private static final String __OBFID = "CL_00001742";
 	public static PlayerMail staticmail = new PlayerMail();
 	public PlayerMail mail = new PlayerMail();
 	private boolean canEdit, canSend;
-	
+
 
     public ContainerMail(EntityPlayer player, boolean canEdit, boolean canSend){
     	super(player);
@@ -29,7 +28,7 @@ public class ContainerMail extends ContainerNpcInterface{
         {
             this.addSlotToContainer(new SlotValid(mail, k , 179 + k * 24, 138, canEdit));
         }
-        
+
 
         for (int j = 0; j < 3; ++j)
         {
