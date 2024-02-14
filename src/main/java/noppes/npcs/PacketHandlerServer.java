@@ -135,12 +135,14 @@ public class PacketHandlerServer{
 					PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 					if (playerData.partyUUID != null) {
 						Party party = PartyController.Instance().getParty(playerData.partyUUID);
-						party.removePlayer(kickPlayer);
-						if (kickPlayer != player) {
-							sendPartyData(player);
-						} else {
-							sendInviteData((EntityPlayerMP) kickPlayer);
-						}
+                        if (!party.getIsLocked()) {
+                            party.removePlayer(kickPlayer);
+                            if (kickPlayer != player) {
+                                sendPartyData(player);
+                            } else {
+                                sendInviteData((EntityPlayerMP) kickPlayer);
+                            }
+                        }
 					}
 				}
 			} else if (type == EnumPacketServer.SavePartyData) {
@@ -153,8 +155,10 @@ public class PacketHandlerServer{
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-					party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
-					Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+                    if (!party.getIsLocked()) {
+                        party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
+                        Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+                    }
 				}
 			} else if (type == EnumPacketServer.PartyInvite) {
 				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
@@ -162,7 +166,10 @@ public class PacketHandlerServer{
 					PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
 					PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
 					if (senderData.partyUUID != null && invitedData.partyUUID == null) {//only send invite if player is not in a party
-						invitedData.inviteToParty(PartyController.Instance().getParty(senderData.partyUUID));
+                        Party party = PartyController.Instance().getParty(senderData.partyUUID);
+                        if (!party.getIsLocked()) {
+                            invitedData.inviteToParty(party);
+                        }
 					}
 				}
 			} else if (type == EnumPacketServer.GetPartyInviteList) {

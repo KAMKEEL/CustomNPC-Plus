@@ -50,7 +50,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public UUID partyUUID = null;
 	private final HashSet<UUID> partyInvites = new HashSet<>();
-	
+
 	public EntityPlayer player;
 
 	public String playername = "";
@@ -134,7 +134,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		compound.setString("UUID", uuid);
 		compound.setInteger("PlayerCompanionId", companionID);
 		compound.setBoolean("isGUIOpen",isGUIOpen);
-		
+
 		if(hasCompanion()){
 			NBTTagCompound nbt = new NBTTagCompound();
 			if(activeCompanion.writeToNBTOptional(nbt))
@@ -216,8 +216,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		if (uuid != null) {
 			this.partyInvites.remove(uuid);
 			Party party = PartyController.Instance().getParty(uuid);
-			party.addPlayer(player);
-			PacketHandlerServer.sendPartyData((EntityPlayerMP) player);
+            if (!party.getIsLocked()) {
+                party.addPlayer(player);
+                PacketHandlerServer.sendPartyData((EntityPlayerMP) player);
+            }
 		}
 	}
 
