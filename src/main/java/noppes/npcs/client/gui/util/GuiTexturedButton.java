@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import org.lwjgl.opengl.GL11;
 

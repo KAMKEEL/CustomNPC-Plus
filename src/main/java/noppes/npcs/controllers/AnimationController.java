@@ -12,7 +12,9 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 public class AnimationController implements IAnimationHandler {

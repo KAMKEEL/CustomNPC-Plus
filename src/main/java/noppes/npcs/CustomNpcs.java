@@ -1,14 +1,15 @@
 package noppes.npcs;
 
-import cpw.mods.fml.common.*;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
+import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
 import kamkeel.addon.AddonManager;
-import kamkeel.addon.GeckoAddon;
 import kamkeel.command.CommandKamkeel;
 import kamkeel.developer.Developer;
 import net.minecraft.block.Block;

@@ -10,13 +10,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.Server;
-import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IAnimation;
-import noppes.npcs.client.Client;
-import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 

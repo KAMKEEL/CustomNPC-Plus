@@ -2,14 +2,10 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelRotatePart;
-import noppes.npcs.client.gui.util.GuiModelInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcSlider;
-import noppes.npcs.client.gui.util.ISliderListener;
-import noppes.npcs.entity.EntityCustomNpc;
 
 public class GuiModelRotate extends GuiModelInterface implements ISliderListener{
 
@@ -20,7 +16,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 	private GuiNpcSlider rotateX;
 	private GuiNpcSlider rotateY;
 	private GuiNpcSlider rotateZ;
-	
+
 	public GuiModelRotate(GuiScreen parent, ModelData data, EntityCustomNpc npc){
 		super(npc);
 		this.parent = parent;
@@ -113,7 +109,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 			}
 		}
     }
-    
+
     private void drawSlider(int y, ModelRotatePart config){
     	part = config;
 		addButton(new GuiNpcButton(29, guiLeft + 100, y , 80, 20, new String[]{"gui.enabled","gui.disabled"}, config.disabled ?1:0));
@@ -144,7 +140,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
     	}
     	if(!(btn instanceof GuiNpcButton))
     		return;
-    	
+
     	GuiNpcButton button = (GuiNpcButton) btn;
 		if(btn.id == 14){
 			playerdata.enableRotation = button.getValue() == 0;
@@ -194,7 +190,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 	public void mouseDragged(GuiNpcSlider slider) {
 		int percent = (int) ((slider.sliderValue) * 360);
 		slider.setString(percent + "%");
-		
+
 		if(slider.id == 10)
 			part.rotationX = slider.sliderValue - 0.5f;
 		if(slider.id == 11)
@@ -206,7 +202,7 @@ public class GuiModelRotate extends GuiModelInterface implements ISliderListener
 
 	@Override
 	public void mousePressed(GuiNpcSlider slider) {
-		
+
 	}
 
 	@Override

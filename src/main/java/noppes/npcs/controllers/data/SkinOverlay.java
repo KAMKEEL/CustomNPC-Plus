@@ -1,12 +1,7 @@
 package noppes.npcs.controllers.data;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.ISkinOverlay;
-import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.entity.data.DataSkinOverlays;
 
 public class SkinOverlay implements ISkinOverlay {

@@ -6,16 +6,15 @@ import net.minecraft.client.audio.SoundHandler;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 public class ScriptSoundController {
     public HashMap<Integer, ScriptClientSound> sounds = new HashMap<>();
     public static ScriptSoundController Instance;
 
-    public ScriptSoundController() { 
+    public ScriptSoundController() {
         Instance = this;
     }
-    
+
     public void onUpdate() {
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         final Iterator<Map.Entry<Integer, ScriptClientSound>> iterator = sounds.entrySet().iterator();

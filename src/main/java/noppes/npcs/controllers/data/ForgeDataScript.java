@@ -14,8 +14,11 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class ForgeDataScript implements INpcScriptHandler {
     private List<ScriptContainer> scripts = new ArrayList();

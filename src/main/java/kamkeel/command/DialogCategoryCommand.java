@@ -4,7 +4,9 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogCategory;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,7 +47,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         }
     }
 
-    
+
     @SubCommand(
             desc = "Read a dialog category for a player",
             usage = "<player> <dialogcatid>"
@@ -55,12 +57,12 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         int dialogCatId;
         try {
         	dialogCatId = Integer.parseInt(args[1]);
-        } 
+        }
         catch (NumberFormatException ex) {
         	sendError(sender, "DialogCatID must be an integer: " + args[1]);
             return;
         }
-        
+
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
         	sendError(sender, String.format("Unknown player '%s'", playername));

@@ -2,10 +2,10 @@ package noppes.npcs.client.model.part;
 
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.ModelPartInterface;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelSnout extends ModelPartInterface {
 	private ModelRenderer small;
@@ -13,10 +13,10 @@ public class ModelSnout extends ModelPartInterface {
 	private ModelRenderer large;
 	private ModelRenderer bunny;
 	private ModelRenderer beak;
-	
+
 	public ModelSnout(ModelMPM base) {
 		super(base);
-		
+
 		small = new ModelRenderer(base, 24, 0);
 		small.setTextureSize(64,32);
 		small.addBox(0F, 0F, 0F, 4, 3, 1);
@@ -34,13 +34,13 @@ public class ModelSnout extends ModelPartInterface {
 		large.addBox(0F, 0F, 0F, 4, 3, 3);
 		large.setRotationPoint(-2F, -3F, -7F);
 		this.addChild(large);
-		
+
 		bunny = new ModelRenderer(base, 24, 0);
 		bunny.setTextureSize(64,32);
 		bunny.addBox(1F, 1F, 0F, 4, 2, 1);
 		bunny.setRotationPoint(-3F, -4F, -5F);
 		this.addChild(bunny);
-		
+
 		ModelRenderer tooth = new ModelRenderer(base, 24, 3);
 		tooth.setTextureSize(64,32);
 		tooth.addBox(2F, 3f, 0F, 2, 1, 1);
@@ -75,7 +75,7 @@ public class ModelSnout extends ModelPartInterface {
 		large.isHidden = config.type != 2;
 		bunny.isHidden = config.type != 3;
 		beak.isHidden = config.type != 4;
-		
+
 		if(!config.playerTexture){
 			location = config.getResource();
 		}

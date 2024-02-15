@@ -1,11 +1,9 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketServer;

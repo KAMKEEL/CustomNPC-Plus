@@ -14,9 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.IParticle;
@@ -580,7 +578,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 			compound.setString(key, (String)value);
 		saveStoredCompound(compound);
 	}
-	
+
 	public void setStoredData(String key, int[] array){
 		NBTTagCompound compound = getStoredCompound();
 		compound.setIntArray(key, array);
@@ -694,7 +692,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	public String getTypeName(){
 		return EntityList.getEntityString(entity);
 	}
-	
+
 	public void playSound(String name, float volume, float pitch) {
 		entity.playSound(name, volume, pitch);
 	}

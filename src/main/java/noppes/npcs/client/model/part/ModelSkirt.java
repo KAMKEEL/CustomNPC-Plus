@@ -3,11 +3,11 @@ package noppes.npcs.client.model.part;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelPlaneRenderer;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
 
 public class ModelSkirt extends ModelPartInterface {
@@ -22,7 +22,7 @@ public class ModelSkirt extends ModelPartInterface {
 		Shape1 = new ModelPlaneRenderer(base, 58, 18);
 		Shape1.setTextureSize(64,32);
 		Shape1.addSidePlane(0, 0, 0, 9, 2);
-		
+
 		ModelPlaneRenderer part1 = new ModelPlaneRenderer(base, 58, 18);
 		part1.setTextureSize(64,32);
 		part1.addSidePlane(2, 0, 0, 9, 2);

@@ -1,20 +1,12 @@
 package kamkeel.command;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.ISkinOverlay;
-import noppes.npcs.client.EntityUtil;
-import noppes.npcs.constants.EnumAvailabilityDialog;
-import noppes.npcs.constants.EnumAvailabilityQuest;
-import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.*;
-import noppes.npcs.entity.EntityDialogNpc;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.SkinOverlay;
 
-import java.util.Collection;
 import java.util.List;
 
 public class OverlayCommand extends CommandKamkeelBase {
@@ -28,7 +20,7 @@ public class OverlayCommand extends CommandKamkeelBase {
 	public String getDescription() {
 		return "Overlay operations";
 	}
-    
+
     @SubCommand(
             desc = "set an overlay to a player",
             usage = "<player> <num> <texture>"

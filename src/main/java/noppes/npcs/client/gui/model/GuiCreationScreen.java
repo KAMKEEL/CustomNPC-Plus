@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.model;
 
-import kamkeel.addon.GeckoAddon;
 import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -17,8 +16,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.compat.PixelmonHelper;
+import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.*;
 
 import java.lang.reflect.Method;

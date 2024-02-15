@@ -1,18 +1,13 @@
 package noppes.npcs.client.gui.util;
 
 import kamkeel.util.TextSplitter;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
 import java.util.*;
-
-import static noppes.npcs.client.gui.util.GuiHoverText.buttonTextures;
 
 public class GuiCustomScroll extends GuiScreen
 {
@@ -40,7 +35,7 @@ public class GuiCustomScroll extends GuiScreen
     private boolean isSorted = true;
 	public boolean visible = true;
 	private boolean selectable = true;
-    
+
     public GuiCustomScroll(GuiScreen parent, int id)
     {
         width = 176;
@@ -75,12 +70,12 @@ public class GuiCustomScroll extends GuiScreen
     	ySize = y;
     	xSize = x;
         listHeight = 14 * list.size();
-        
+
         if(listHeight > 0)
         	scrollHeight = (int) (((double)(ySize - 8) / (double)listHeight) * (ySize-8));
         else
         	scrollHeight = Integer.MAX_VALUE;
-        
+
         maxScrollY = listHeight - (ySize - 8) - 1;
     }
 
@@ -100,7 +95,7 @@ public class GuiCustomScroll extends GuiScreen
         GL11.glPushMatrix();
         GL11.glTranslatef(guiLeft, guiTop, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        
+
         if(selectable)
             hover = getMouseOver(i,j);
 
@@ -131,10 +126,10 @@ public class GuiCustomScroll extends GuiScreen
                 if(i >= xSize-9 && i < xSize-4 && j >= 4 && j < ySize){
                     isScrolling = true;
                 }
-            } 
+            }
             else
                 isScrolling = false;
-            
+
             if(isScrolling){
                 scrollY = (((j - 8) * listHeight) / (ySize-8)) - (scrollHeight);
                 if(scrollY < 0){
@@ -144,14 +139,14 @@ public class GuiCustomScroll extends GuiScreen
                     scrollY = maxScrollY;
                 }
             }
-            
+
             if(mouseScrolled != 0){
                 scrollY += mouseScrolled > 0?-14:14;
                 if(scrollY > maxScrollY)
                     scrollY = maxScrollY;
                 if(scrollY < 0)
                     scrollY = 0;
-            } 
+            }
         }
     }
 
@@ -252,12 +247,12 @@ public class GuiCustomScroll extends GuiScreen
                 {
                     continue;
                 }
-                
+
                 return j1;
             }
 
         }
-    	
+
     	return -1;
     }
 
@@ -331,7 +326,7 @@ public class GuiCustomScroll extends GuiScreen
 			Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 		if(old.equals(select))
 			select = name;
-		
+
 		selected = list.indexOf(select);
 		setSize(xSize,ySize);
 	}

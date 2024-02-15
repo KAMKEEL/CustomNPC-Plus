@@ -1,7 +1,12 @@
 package foxz.command;
 
-import java.util.List;
-
+import foxz.commandhelper.ChMcLogger;
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.OpOnly;
+import foxz.commandhelper.permissions.ParamCheck;
+import foxz.commandhelper.permissions.PlayerOnly;
+import foxz.utils.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandBase;
 import net.minecraft.entity.Entity;
@@ -12,13 +17,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
-import foxz.commandhelper.ChMcLogger;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.OpOnly;
-import foxz.commandhelper.permissions.ParamCheck;
-import foxz.commandhelper.permissions.PlayerOnly;
-import foxz.utils.Utils;
+
+import java.util.List;
 
 @Command(
         name = "clone",
@@ -42,7 +42,7 @@ public class CmdClone extends ChMcLogger {
         	tab = Integer.parseInt(args[1]);
         }
         catch(NumberFormatException ex){
-        	
+
         }
         List<EntityNPCInterface> list = Utils.getNearbeEntityFromPlayer(EntityNPCInterface.class, player, 80);
         for (EntityNPCInterface npc : list) {
@@ -69,7 +69,7 @@ public class CmdClone extends ChMcLogger {
         	tab = Integer.parseInt(args[0]);
         }
         catch(NumberFormatException ex){
-        	
+
         }
         for (String name : ServerCloneController.Instance.getClones(tab)) {
             sendmessage(name);
@@ -78,15 +78,15 @@ public class CmdClone extends ChMcLogger {
         return true;
     }
 
-    @SubCommand(desc = "Remove NPC from clone storage", usage = "<name> <tab>", permissions={OpOnly.class ,ParamCheck.class}) 
-    public Boolean del(String[] args) {       
+    @SubCommand(desc = "Remove NPC from clone storage", usage = "<name> <tab>", permissions={OpOnly.class ,ParamCheck.class})
+    public Boolean del(String[] args) {
         String nametodel = args[0];
         int tab = 0;
         try{
         	tab = Integer.parseInt(args[1]);
         }
         catch(NumberFormatException ex){
-        	
+
         }
         boolean deleted = false;
         for(String name : ServerCloneController.Instance.getClones(tab)){
@@ -95,7 +95,7 @@ public class CmdClone extends ChMcLogger {
         		deleted = true;
         		break;
         	}
-        }      
+        }
         if (!ServerCloneController.Instance.removeClone(nametodel, tab)) {
             sendmessage(String.format("Npc '%s' wasn't found", nametodel));
             return false;
@@ -105,8 +105,8 @@ public class CmdClone extends ChMcLogger {
     }
 
     @SubCommand(
-    		desc = "Spawn cloned NPC", 
-    		usage = "<name> <tab> [[world:]x,y,z]] [newname]", 
+    		desc = "Spawn cloned NPC",
+    		usage = "<name> <tab> [[world:]x,y,z]] [newname]",
     		permissions={OpOnly.class ,ParamCheck.class})
     public boolean spawn(String[] args) {
         String name = args[0].replaceAll("%", " "); // if name of npc separed by space, user must use % in place of space
@@ -115,8 +115,8 @@ public class CmdClone extends ChMcLogger {
         	tab = Integer.parseInt(args[1]);
         }
         catch(NumberFormatException ex){
-        	
-        }        
+
+        }
         String newname=null;
         NBTTagCompound compound = ServerCloneController.Instance.getCloneData(this.pcParam, name, tab);
         if(compound == null){
@@ -127,10 +127,10 @@ public class CmdClone extends ChMcLogger {
         double posX = pcParam.getPlayerCoordinates().posX;
         double posY = pcParam.getPlayerCoordinates().posY;
         double posZ = pcParam.getPlayerCoordinates().posZ;
-        
+
         if(args.length > 2){
 	        String location = args[2];
-	        String[] par; 
+	        String[] par;
 	        if (location.contains(":")){
 	            par = location.split(":");
 	            location = par[1];
@@ -139,7 +139,7 @@ public class CmdClone extends ChMcLogger {
 	                sendmessage (String.format("'%s' is an unknown world",par[0]));
 	                return false;
 	            }
-	        }      
+	        }
 
 	        if (location.contains(",")){
 	            par = location.split(",");
@@ -154,35 +154,35 @@ public class CmdClone extends ChMcLogger {
 	            }  catch(NumberFormatException ex){
 	            	sendmessage("Location should be in numbers");
 	            	return false;
-	            }            
+	            }
 	            if (args.length > 3){
 	                newname = args[3];
 	            }
 	        } else {
-	            newname = location; 
+	            newname = location;
 	        }
         }
-                
+
         if (posX == 0 && posY == 0 && posZ == 0){//incase it was called from the console and not pos was given
             sendmessage ("Location needed");
-            return false;         
+            return false;
         }
-        
+
         Entity entity = EntityList.createEntityFromNBT(compound, world);
         entity.setPosition(posX + 0.5, posY + 1, posZ + 0.5);
         if(entity instanceof EntityNPCInterface){
         	EntityNPCInterface npc = (EntityNPCInterface) entity;
         	npc.ai.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
         	if(newname != null && !newname.isEmpty())
-        		npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way             
+        		npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way
         }
         world.spawnEntityInWorld(entity);
         return true;
     }
 
     @SubCommand(
-    		desc = "Spawn cloned NPC", 
-    		usage = "<name> <tab> <lenght> <width> [[world:]x,y,z]] [newname]", 
+    		desc = "Spawn cloned NPC",
+    		usage = "<name> <tab> <lenght> <width> [[world:]x,y,z]] [newname]",
     		permissions={OpOnly.class ,ParamCheck.class})
     public boolean grid(String[] args) {
         String name = args[0].replaceAll("%", " "); // if name of npc separed by space, user must use % in place of space
@@ -191,9 +191,9 @@ public class CmdClone extends ChMcLogger {
         	tab = Integer.parseInt(args[1]);
         }
         catch(NumberFormatException ex){
-        	
-        }        
-        
+
+        }
+
         int width, height;
         try{
         	width = Integer.parseInt(args[2]);
@@ -202,9 +202,9 @@ public class CmdClone extends ChMcLogger {
         catch(NumberFormatException ex){
         	sendmessage("lenght or width wasnt a number");
         	return false;
-        }  
-        
-        
+        }
+
+
         String newname=null;
         NBTTagCompound compound = ServerCloneController.Instance.getCloneData(this.pcParam, name, tab);
         if(compound == null){
@@ -215,10 +215,10 @@ public class CmdClone extends ChMcLogger {
         double posX = pcParam.getPlayerCoordinates().posX;
         double posY = pcParam.getPlayerCoordinates().posY;
         double posZ = pcParam.getPlayerCoordinates().posZ;
-        
+
         if(args.length > 4){
 	        String location = args[4];
-	        String[] par; 
+	        String[] par;
 	        if (location.contains(":")){
 	            par = location.split(":");
 	            location = par[1];
@@ -227,7 +227,7 @@ public class CmdClone extends ChMcLogger {
 	                sendmessage (String.format("'%s' is an unknown world",par[0]));
 	                return false;
 	            }
-	        }      
+	        }
 
 	        if (location.contains(",")){
 	            par = location.split(",");
@@ -242,27 +242,27 @@ public class CmdClone extends ChMcLogger {
 	            }  catch(NumberFormatException ex){
 	            	sendmessage("Location should be in numbers");
 	            	return false;
-	            }            
+	            }
 	            if (args.length > 5){
 	                newname = args[5];
 	            }
 	        } else {
-	            newname = location; 
+	            newname = location;
 	        }
         }
-                
+
         if (posX == 0 && posY == 0 && posZ == 0){//incase it was called from the console and not pos was given
             sendmessage ("Location needed");
-            return false;         
+            return false;
         }
-        
+
         for(int x = 0; x < width; x++){
             for(int z = 0; z < height; z++){
                 Entity entity = EntityList.createEntityFromNBT(compound, world);
                 int xx = MathHelper.floor_double(posX) + x;
                 int yy = Math.max(MathHelper.floor_double(posY) - 2, 1);
                 int zz = MathHelper.floor_double(posZ) + z;
-                
+
                 for(int y = 0; y < 10; y++){
                 	Block b = world.getBlock(xx, yy + y, zz);
                 	Block b2 = world.getBlock(xx, yy + y + 1, zz);
@@ -276,7 +276,7 @@ public class CmdClone extends ChMcLogger {
                 	EntityNPCInterface npc = (EntityNPCInterface) entity;
                 	npc.ai.startPos = new int[]{xx, yy, zz};
                 	if(newname != null && !newname.isEmpty())
-                		npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way             
+                		npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way
                 }
                 world.spawnEntityInWorld(entity);
             }

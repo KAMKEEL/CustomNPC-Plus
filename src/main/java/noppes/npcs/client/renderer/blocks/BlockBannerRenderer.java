@@ -3,13 +3,10 @@ package noppes.npcs.client.renderer.blocks;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
@@ -26,11 +23,11 @@ public class BlockBannerRenderer extends BlockRendererInterface{
 
 	private final ModelBanner model = new ModelBanner();
 	private final ModelBannerFlag flag = new ModelBannerFlag();
-    
+
     public static final ResourceLocation resourceFlag = new ResourceLocation("customnpcs","textures/models/BannerFlag.png");
 
 
-    
+
     public BlockBannerRenderer(){
 		((BlockBanner)CustomItems.banner).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -48,7 +45,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-        
+
         setMaterialTexture(var1.getBlockMetadata());
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
@@ -151,7 +148,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
 	public int getRenderId() {
 		return CustomItems.banner.getRenderType();
 	}
-	
+
 	public int specialRenderDistance(){
 		return 26;
 	}

@@ -3,7 +3,8 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.*;
+import noppes.npcs.client.gui.SubGuiEditText;
+import noppes.npcs.client.gui.SubGuiNpcDialog;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
@@ -32,7 +33,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 
 	private String catSearch = "";
 	private String diagSearch = "";
-	
+
     public GuiNPCManageDialogs(EntityNPCInterface npc)
     {
     	super(npc);
@@ -150,7 +151,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		}
 		return list;
 	}
-	
+
 	public void buttonEvent(GuiButton guibutton)
     {
 		int id = guibutton.id;

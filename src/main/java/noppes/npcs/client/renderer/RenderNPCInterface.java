@@ -2,7 +2,6 @@ package noppes.npcs.client.renderer;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
-import kamkeel.addon.GeckoAddon;
 import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
@@ -29,7 +28,6 @@ import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.Sys;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;

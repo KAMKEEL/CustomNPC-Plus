@@ -11,7 +11,6 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,10 +42,10 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     public void initGui()
     {
         super.initGui();
-        
+
        	this.addButton(new GuiNpcButton(0,guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
-        
+
     	if(scrollAnimations == null){
 	        scrollAnimations = new GuiCustomScroll(this,0, 0);
 			scrollAnimations.setSize(143, 185);
@@ -219,17 +218,17 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 		String name = scrollAnimations.getSelected();
 		this.data = data;
 		scrollAnimations.setList(getSearchList());
-		
+
 		if(name != null)
 			scrollAnimations.setSelected(name);
 	}
-    
+
 	@Override
 	public void setSelected(String selected) {
 		this.selected = selected;
 		scrollAnimations.setSelected(selected);
 	}
-    
+
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
@@ -238,18 +237,18 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 			Client.sendData(EnumPacketServer.AnimationGet, data.get(selected));
 		}
 	}
-	
+
 	public void save() {
 		if(selected != null && data.containsKey(selected) && animation != null){
 			Client.sendData(EnumPacketServer.AnimationSave, animation.writeToNBT());
 		}
 	}
-		
+
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
 		if(animation.id == -1)
 			return;
-		
+
 		if(guiNpcTextField.id == 0) {
 			String name = guiNpcTextField.getText();
 			if(!name.isEmpty() && !data.containsKey(name)){

@@ -1,8 +1,10 @@
 package foxz.command;
 
-import java.util.Arrays;
-import java.util.Set;
-
+import foxz.commandhelper.ChMcLogger;
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.OpOnly;
+import foxz.commandhelper.permissions.PlayerOnly;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -13,11 +15,9 @@ import noppes.npcs.Server;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
-import foxz.commandhelper.ChMcLogger;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.OpOnly;
-import foxz.commandhelper.permissions.PlayerOnly;
+
+import java.util.Arrays;
+import java.util.Set;
 
 @Command(
         name="config",
@@ -28,8 +28,8 @@ public class CmdConfig extends ChMcLogger {
 
     public CmdConfig(Object sender) {
         super (sender);
-    }  
-    
+    }
+
     @SubCommand(
     		desc="Disable/Enable the natural leaves decay",
             usage="<true/false>",
@@ -57,7 +57,7 @@ public class CmdConfig extends ChMcLogger {
     	}
         return true;
     }
-    
+
     @SubCommand(
     		desc="Disable/Enable the vines growing",
             usage="<true/false>",
@@ -85,7 +85,7 @@ public class CmdConfig extends ChMcLogger {
     	}
         return true;
     }
-    
+
     @SubCommand(
     		desc="Disable/Enable the ice melting",
             usage="<true/false>",
@@ -134,7 +134,7 @@ public class CmdConfig extends ChMcLogger {
     	}
         return true;
     }
-    
+
     @SubCommand(
     		desc="Freezes/Unfreezes npcs",
             usage="<true/false>",
@@ -151,7 +151,7 @@ public class CmdConfig extends ChMcLogger {
     	}
         return true;
     }
-    
+
     @SubCommand(
     		desc="Set how many active chunkloaders you can have",
             usage="<number>",
@@ -185,7 +185,7 @@ public class CmdConfig extends ChMcLogger {
         return true;
     }
 
-    
+
     @SubCommand(
     		desc="Get/Set font",
             usage="[type] [size]",
@@ -200,7 +200,7 @@ public class CmdConfig extends ChMcLogger {
     			args = Arrays.copyOfRange(args, 0, args.length - 1);
     		}
     		catch(Exception e){
-    			
+
     		}
     	}
 		String font = "";

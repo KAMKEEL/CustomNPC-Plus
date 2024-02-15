@@ -11,7 +11,6 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.util.List;

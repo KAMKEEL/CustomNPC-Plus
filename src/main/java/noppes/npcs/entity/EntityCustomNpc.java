@@ -5,10 +5,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.client.EntityUtil;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class EntityCustomNpc extends EntityNPCFlying {
 	public ModelData modelData = new ModelData();
@@ -47,7 +47,7 @@ public class EntityCustomNpc extends EntityNPCFlying {
 	    			entity.onUpdate();
 	    		}
 	    		catch(Exception e){
-	    			
+
 	    		}
 				EntityUtil.Copy(this, entity);
 	    	}
@@ -59,7 +59,7 @@ public class EntityCustomNpc extends EntityNPCFlying {
     	super.mountEntity(par1Entity);
     	updateHitbox();
     }
-	
+
 	@Override
 	public void updateHitbox() {
 		Entity entity = modelData.getEntity(this);
@@ -82,4 +82,3 @@ public class EntityCustomNpc extends EntityNPCFlying {
 	}
 
 }
-	

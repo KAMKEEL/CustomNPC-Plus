@@ -2,15 +2,15 @@ package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.entity.EntityCustomNpc;

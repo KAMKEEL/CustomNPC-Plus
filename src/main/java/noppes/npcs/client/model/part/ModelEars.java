@@ -1,18 +1,18 @@
 package noppes.npcs.client.model.part;
 
 import net.minecraft.client.model.ModelRenderer;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.client.model.util.ModelPartInterface;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelEars extends ModelPartInterface {
 	private ModelRenderer ears;
 	private ModelRenderer bunny;
 	public ModelEars(ModelMPM par1ModelBase) {
 		super(par1ModelBase);
-		
+
 		ears = new ModelRenderer(base);
 		this.addChild(ears);
 
@@ -42,10 +42,10 @@ public class ModelEars extends ModelPartInterface {
         left2.setThickness(1.16f);
         ears.addChild(left2);
 
-		
+
 		bunny = new ModelRenderer(base);
 		this.addChild(bunny);
-		
+
 		ModelRenderer earleft = new ModelRenderer(base, 56, 0);
 		earleft.mirror = true;
 		earleft.addBox(-1.466667F, -4F, 0F, 3, 7, 1);
@@ -68,7 +68,7 @@ public class ModelEars extends ModelPartInterface {
 		}
 		isHidden = false;
 		this.color = config.color;
-		
+
 		ears.isHidden = config.type != 0;
 		bunny.isHidden = config.type != 1;
 

@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.constants.EnumAnimationPart;

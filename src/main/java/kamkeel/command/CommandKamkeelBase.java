@@ -1,5 +1,12 @@
 package kamkeel.command;
 
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.CustomNpcsPermissions;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,23 +17,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import kamkeel.developer.Developer;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ChatComponentTranslation;
-import noppes.npcs.CustomNpcsPermissions;
-
 public abstract class CommandKamkeelBase extends CommandBase{
 	public Map<String, Method> subcommands = new HashMap<String, Method>();
-	
+
 	public CommandKamkeelBase(){
         for (Method m : this.getClass().getDeclaredMethods()) {
             SubCommand sc = m.getAnnotation(SubCommand.class);
             if (sc != null) {
                 String name = sc.name();
-                if (name.equals("")) 
+                if (name.equals(""))
                     name = m.getName();
                 subcommands.put(name.toLowerCase(), m);
             }
@@ -42,7 +41,7 @@ public abstract class CommandKamkeelBase extends CommandBase{
 	public String getCommandUsage(ICommandSender sender) {
 		return getDescription();
 	}
-	
+
 	public abstract String getDescription();
 
 	/**
@@ -71,14 +70,14 @@ public abstract class CommandKamkeelBase extends CommandBase{
 	@Retention(value = RetentionPolicy.RUNTIME)
 	@Target(ElementType.METHOD)
 	public @interface SubCommand {
-	
+
 	    String name() default "";
-	
+
 	    /**
 	     * @return Should return a string in the format of <arg> <arg2> <arg3> [arg4] where <> is a required parameter and [] optional
 	     */
 	    String usage() default "";
-	
+
 	    String desc();
 
 		int permission() default 2;

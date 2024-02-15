@@ -15,20 +15,19 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.controllers.BankController;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.util.CustomNPCsThreader;
 
 import java.util.HashMap;
 
 public class BankData {
-	public HashMap<Integer,NpcMiscInventory> itemSlots;  
-	public HashMap<Integer,Boolean> upgradedSlots;  
+	public HashMap<Integer,NpcMiscInventory> itemSlots;
+	public HashMap<Integer,Boolean> upgradedSlots;
 	public int unlockedSlots = 0;
 	public int bankId = -1;
-	
+
 	public BankData(){
 		itemSlots = new HashMap<Integer,NpcMiscInventory>();
 		upgradedSlots = new HashMap<Integer,Boolean>();
-		
+
 		for(int i = 0; i < 6; i++){
 			itemSlots.put(i, new NpcMiscInventory(54));
 			upgradedSlots.put(i, false);
@@ -63,7 +62,7 @@ public class BankData {
 		for(int slot: items.keySet()){
 			NBTTagCompound nbttagcompound = new NBTTagCompound();
 			nbttagcompound.setInteger("Slot", slot);
-			
+
 			nbttagcompound.setTag("BankItems",items.get(slot).getToNBT());
 			list.appendTag(nbttagcompound);
 		}
@@ -74,16 +73,16 @@ public class BankData {
 			return true;
 		return bank.canBeUpgraded(slot) && upgradedSlots.get(slot);
 	}
-	
+
 	public void openBankGui(final EntityPlayer player, EntityNPCInterface npc, int bankId, int slot) {
 		final Bank bank = BankController.getInstance().getBank(bankId);
 
 		if(bank.getMaxSlots() <= slot)
 			return;
-		
+
     	if(bank.startSlots > unlockedSlots)
     		unlockedSlots = bank.startSlots;
-    	
+
     	ItemStack currency = null;
     	if(unlockedSlots <= slot){
     		currency = bank.currencyInventory.getStackInSlot(slot);
@@ -115,7 +114,7 @@ public class BankData {
 		Container con = player.openContainer;
 		if(con == null || !(con instanceof ContainerNPCBankInterface))
 			return null;
-		
+
 		return (ContainerNPCBankInterface) con;
 	}
 }

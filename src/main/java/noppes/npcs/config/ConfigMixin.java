@@ -3,8 +3,6 @@ package noppes.npcs.config;
 import cpw.mods.fml.common.FMLLog;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
 
 import java.io.File;

@@ -14,9 +14,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import noppes.npcs.api.*;
-import noppes.npcs.util.LRUHashMap;
-
-import java.util.Map;
 
 public class ScriptBlock implements IBlock {
     protected IWorld world;

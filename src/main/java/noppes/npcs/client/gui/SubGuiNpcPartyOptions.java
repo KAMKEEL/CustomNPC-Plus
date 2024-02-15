@@ -1,17 +1,10 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPartyExchange;
 import noppes.npcs.constants.EnumPartyRequirements;
-import noppes.npcs.controllers.data.FactionOptions;
 import noppes.npcs.controllers.data.PartyOptions;
-
-import java.util.HashMap;
-import java.util.Vector;
 
 public class SubGuiNpcPartyOptions extends SubGuiInterface implements ITextfieldListener
 {

@@ -16,7 +16,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -153,7 +152,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
     }
 
     protected void func_96449_a(AbstractClientPlayer p_96449_1_, double p_96449_2_, double p_96449_4_, double p_96449_6_, String p_96449_8_, float p_96449_9_, double p_96449_10_) {}
-    
+
     public void renderHand(float partialTicks, int renderPass) {
         Minecraft mc = Minecraft.getMinecraft();
         EntityRenderer entityRenderer = mc.entityRenderer;

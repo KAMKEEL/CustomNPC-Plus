@@ -1,15 +1,15 @@
 package noppes.npcs.ai;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 public class CombatHandler {
 

@@ -10,7 +10,6 @@ import noppes.npcs.client.gui.SubGuiNpcDimensions;
 import noppes.npcs.client.gui.SubGuiSpawningOptions;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.data.DialogImage;
 import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -23,12 +22,12 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	private String search = "";
 
 	private SpawnData spawn = new SpawnData();
-	
+
 	public GuiNpcNaturalSpawns(EntityNPCInterface npc) {
 		super(npc);
     	Client.sendData(EnumPacketServer.NaturalSpawnGetAll);
 	}
-	
+
 	@Override
 	public void initGui(){
 		super.initGui();
@@ -43,11 +42,11 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 
        	this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
-    	
+
     	if(this.spawn.id >= 0)
     		showSpawn();
 	}
-	
+
 	private void showSpawn() {
 		addLabel(new GuiNpcLabel(1,"gui.title", guiLeft + 4, guiTop + 8));
 		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 60, guiTop + 3, 140, 20, this.spawn.name));
@@ -126,7 +125,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         	String name = "New";
         	while(data.containsKey(name))
         		name += "_";
-        	
+
         	SpawnData spawn = new SpawnData();
         	spawn.name = name;
         	Client.sendData(EnumPacketServer.NaturalSpawnSave, spawn.writeNBT(new NBTTagCompound()));
@@ -206,13 +205,13 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			initGui();
 		}
 	}
-	
+
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scrollNaturalSpawns.getSelected();
 		this.data = data;
 		scrollNaturalSpawns.setList(getSearchList());
-		
+
 		if(name != null)
 			scrollNaturalSpawns.setSelected(name);
 		initGui();
@@ -251,7 +250,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			initGui();
 		}
 	}
-	
+
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		spawn.readNBT(compound);

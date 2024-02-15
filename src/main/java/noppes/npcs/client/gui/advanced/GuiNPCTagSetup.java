@@ -1,19 +1,19 @@
 package noppes.npcs.client.gui.advanced;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
 
 public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener,IGuiData
 {
@@ -78,9 +78,9 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 		}
 		initGui();
     }
-	
+
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) 
+	public void setData(Vector<String> list, HashMap<String, Integer> data)
 	{
 		allTags.addAll(data.keySet());
 		allTags.sort(String.CASE_INSENSITIVE_ORDER);
@@ -96,23 +96,23 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 			tagNames.add(tagList.getStringTagAt(i));
 		}
 	}
-	
+
     public void mouseClicked(int i, int j, int k)
     {
     	super.mouseClicked(i, j, k);
     	if(k == 0 && scrollTags != null)
     		scrollTags.mouseClicked(i, j, k);
     }
-	
+
 	@Override
 	public void setSelected(String selected) {
 		scrollTags.setSelected(selected);
 	}
-	
+
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 	}
-	
+
 	public void save() {
 		NBTTagCompound tagCompound = new NBTTagCompound();
 		NBTTagList tagList = new NBTTagList();

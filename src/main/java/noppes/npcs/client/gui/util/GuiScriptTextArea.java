@@ -11,12 +11,9 @@ import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.TextContainer.LineData;
-import noppes.npcs.config.ConfigClient;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
-import sun.font.TrueTypeFont;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

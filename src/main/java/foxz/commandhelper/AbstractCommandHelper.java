@@ -2,16 +2,9 @@
 // licence : cc-by-nc+no gov,mil usage
 package foxz.commandhelper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import foxz.commandhelper.annotations.Command;
+import foxz.commandhelper.annotations.SubCommand;
+import foxz.commandhelper.permissions.AbstractPermission;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.PlayerSelector;
@@ -21,11 +14,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.World;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.PlayerDataController;
-import foxz.commandhelper.annotations.Command;
-import foxz.commandhelper.annotations.SubCommand;
-import foxz.commandhelper.permissions.AbstractPermission;
+import noppes.npcs.controllers.data.PlayerData;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class AbstractCommandHelper extends CommandHelper {
 
@@ -111,7 +107,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
             String parameter = np[args.length - 1];
             if(parameter.equals("<player>"))
                 return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
- 
+
         	return null;
         }
 
@@ -183,7 +179,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
             cmdError(cmd);
         return false;
     }
-    
+
     private boolean doHelp(ICommandSender param, String[] args, String cmd){
     	boolean isHelp = cmd.equals("HELP");
     	if(args.length > 0){
@@ -206,7 +202,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
 			allHelp();
         return true;
     }
-    
+
     @Override
 	public List addTabCompletion(ICommandSender par1, String[] args) {
 		if(args.length  <= 1){
@@ -223,7 +219,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
         currentHelper = ch.commandHelper;
     	return ch.addTabCompletion(par1, args);
 	}
-    
+
     public List<PlayerData> getPlayersData(String username){
     	ArrayList<PlayerData> list = new ArrayList<PlayerData>();
     	EntityPlayerMP[] players = PlayerSelector.matchPlayers(pcParam, username);
@@ -237,7 +233,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
     	        list.add(PlayerDataController.Instance.getPlayerData(player));
             }
     	}
-    	
+
     	return list;
     }
 

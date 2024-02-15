@@ -6,8 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
@@ -15,16 +13,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ClientProxy;
-import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.opengl.GL11;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class CustomFX extends EntityFX {
     private final Entity entity;
@@ -377,7 +368,7 @@ public class CustomFX extends EntityFX {
 
         return (int)(((int)rr << 16) + ((int)rg << 8) + (rb));
     }
-    
+
     public int getFXLayer(){
     	return 0;
     }

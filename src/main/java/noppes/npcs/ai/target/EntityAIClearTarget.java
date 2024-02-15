@@ -2,7 +2,6 @@ package noppes.npcs.ai.target;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAITarget;
-import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIClearTarget extends EntityAITarget

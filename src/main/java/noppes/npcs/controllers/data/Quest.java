@@ -7,8 +7,10 @@ import noppes.npcs.*;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.*;
-import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.*;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestRepeat;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.quests.*;
@@ -30,15 +32,15 @@ public class Quest implements ICompatibilty, IQuest {
 	public String nextQuestTitle = "";
 	public PlayerMail mail = new PlayerMail();
 	public String command = "";
-	
+
 	public QuestInterface questInterface = new QuestItem();
-	
+
 	public int rewardExp = 0;
 	public NpcMiscInventory rewardItems = new NpcMiscInventory(9);
 	public boolean randomReward = false;
 	public FactionOptions factionOptions = new FactionOptions();
 	public PartyOptions partyOptions = new PartyOptions();
-	
+
 
 	public void readNBT(NBTTagCompound compound) {
 		id = compound.getInteger("Id");
@@ -47,7 +49,7 @@ public class Quest implements ICompatibilty, IQuest {
 	public void readNBTPartial(NBTTagCompound compound) {
     	version = compound.getInteger("ModRev");
 		VersionCompatibility.CheckAvailabilityCompatibility(this, compound);
-		
+
 		setType(EnumQuestType.values()[compound.getInteger("Type")]);
 		title = compound.getString("Title");
 		logText = compound.getString("Text");
@@ -63,15 +65,15 @@ public class Quest implements ICompatibilty, IQuest {
 		randomReward = compound.getBoolean("RandomReward");
 		rewardExp = compound.getInteger("RewardExp");
 		rewardItems.setFromNBT(compound.getCompoundTag("Rewards"));
-		
+
 		completion = EnumQuestCompletion.values()[compound.getInteger("QuestCompletion")];
 		repeat = EnumQuestRepeat.values()[compound.getInteger("QuestRepeat")];
-		
+
 		questInterface.readEntityFromNBT(compound);
-		
+
 		factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
 		partyOptions.readFromNBT(compound.getCompoundTag("PartyOptions"));
-		
+
 		mail.readNBT(compound.getCompoundTag("QuestMail"));
 	}
 
@@ -85,7 +87,7 @@ public class Quest implements ICompatibilty, IQuest {
 			questInterface = new QuestKill();
 		else if(type == EnumQuestType.Location)
 			questInterface = new QuestLocation();
-		
+
 		if(questInterface != null)
 			questInterface.questId = id;
 	}
@@ -110,7 +112,7 @@ public class Quest implements ICompatibilty, IQuest {
 
 		compound.setInteger("QuestCompletion", completion.ordinal());
 		compound.setInteger("QuestRepeat", repeat.ordinal());
-		
+
 		this.questInterface.writeEntityToNBT(compound);
 		compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
 		compound.setTag("PartyOptions", partyOptions.writeToNBT());
@@ -118,7 +120,7 @@ public class Quest implements ICompatibilty, IQuest {
 
 		return compound;
 	}
-	
+
 	public boolean hasNewQuest()
 	{
 		return getNextQuest() != null;
@@ -156,7 +158,7 @@ public class Quest implements ICompatibilty, IQuest {
 		}
 		return 0L;
 	}
-	
+
 	@Override
 	public int getVersion() {
 		return version;

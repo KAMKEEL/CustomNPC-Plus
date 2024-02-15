@@ -1,16 +1,16 @@
 package noppes.npcs.client.model.part;
 
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.client.model.util.ModelPartInterface;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelClaws extends ModelPartInterface {
 
 	private Model2DRenderer model;
 	private boolean isRight = false;
-	
+
 	public ModelClaws(ModelMPM base, boolean isRight) {
 		super(base);
 		this.isRight = isRight;
@@ -34,7 +34,7 @@ public class ModelClaws extends ModelPartInterface {
 		}
 		color = config.color;
 		isHidden = false;
-		
+
 		if(!config.playerTexture){
 			location = config.getResource();
 		}

@@ -1,9 +1,5 @@
 package kamkeel.command;
 
-import java.lang.reflect.Method;
-import java.util.*;
-
-import kamkeel.developer.Developer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -12,12 +8,18 @@ import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.scripted.CustomNPCsException;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class CommandKamkeel extends CommandBase{
-	
+
 	public Map<String, CommandKamkeelBase> map = new HashMap<String, CommandKamkeelBase>();
 	public HelpCommand help = new HelpCommand(this);
 	public String[] alias = {"kam"};
-	
+
 	public CommandKamkeel(){
 		registerCommand(help);
 		registerCommand(new ScriptCommand());
@@ -34,14 +36,14 @@ public class CommandKamkeel extends CommandBase{
 		registerCommand(new OverlayCommand());
 		registerCommand(new CommandCommand());
 	}
-	
+
 	public void registerCommand(CommandKamkeelBase command){
 		String name = command.getCommandName().toLowerCase();
 		if(map.containsKey(name))
 			throw new CustomNPCsException("Already a subcommand with the name: " + name);
 		map.put(name, command);
 	}
-	
+
 	@Override
 	public String getCommandName() {
 		return "kamkeel";
@@ -64,11 +66,11 @@ public class CommandKamkeel extends CommandBase{
 			help.processCommand(sender, args);
 			return;
 		}
-		
+
 		CommandKamkeelBase command = getCommand(args);
 		if(command == null)
 			throw new CommandException("Unknown command " + args[0]);
-		
+
 		args = Arrays.copyOfRange(args, 1, args.length);
 		if(command.subcommands.isEmpty() || !command.runSubCommands()){
 			if(!canSendCommand(sender, command))
@@ -77,12 +79,12 @@ public class CommandKamkeel extends CommandBase{
 			command.processCommand(sender, args);
 			return;
 		}
-		
+
 		if(args.length == 0){
 			help.processCommand(sender, new String[]{command.getCommandName()});
 			return;
 		}
-		
+
 		command.processSubCommand(sender, args[0], Arrays.copyOfRange(args, 1, args.length));
 	}
 
@@ -112,7 +114,7 @@ public class CommandKamkeel extends CommandBase{
 		}
 		return command.addTabCompletionOptions(sender, Arrays.copyOfRange(args, 1, args.length));
     }
-    
+
     public CommandKamkeelBase getCommand(String[] args){
     	if(args.length == 0)
     		return null;

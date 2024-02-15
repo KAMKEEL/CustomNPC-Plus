@@ -1,10 +1,8 @@
 package noppes.npcs.mixin;
 
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
-import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMixin;
 import org.spongepowered.asm.lib.tree.ClassNode;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 

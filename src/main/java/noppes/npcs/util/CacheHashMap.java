@@ -1,6 +1,8 @@
 package noppes.npcs.util;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class CacheHashMap<K, V extends CacheHashMap.CachedObject<?>> extends HashMap<K, V> {
     private final long maxCacheTime;

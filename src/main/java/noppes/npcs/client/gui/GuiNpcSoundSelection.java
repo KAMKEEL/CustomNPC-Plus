@@ -11,8 +11,6 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.entity.EntityNPCInterface;
-import org.lwjgl.Sys;
 
 import java.util.*;
 
@@ -22,16 +20,16 @@ public class GuiNpcSoundSelection extends GuiNPCInterface {
 	public String domain;
 	private final GuiScreen parent;
 	public GuiSelectionListener listener;
-	
+
 	private String up = "..<" + StatCollector.translateToLocal("gui.up") + ">..";
-	
+
 	private HashMap<String,List<String>> domains = new HashMap<String,List<String>>();
-		
+
     public GuiNpcSoundSelection(GuiScreen parent, String sound)
     {
     	SoundHandler handler = Minecraft.getMinecraft().getSoundHandler();
     	SoundRegistry registry = ObfuscationReflectionHelper.getPrivateValue(SoundHandler.class, handler, 4);
-    	
+
     	Set<ResourceLocation> set = registry.getKeys();
     	for(ResourceLocation location : set){
     		List<String> list = domains.get(location.getResourceDomain());
@@ -53,9 +51,9 @@ public class GuiNpcSoundSelection extends GuiNPCInterface {
         if(domain == null)
         	ss = "Select domain";
         addLabel(new GuiNpcLabel(0,ss, width / 2 - (this.fontRendererObj.getStringWidth(ss)/2), 20, 0xffffff));
-        
+
         Collection<String> col = domains.keySet();
-        
+
         if(domain != null){
         	col = domains.get(domain);
         	if(!col.contains(up))
@@ -69,12 +67,12 @@ public class GuiNpcSoundSelection extends GuiNPCInterface {
         }
         else
         	this.addButton(new GuiNpcButton(4, width / 2 - 100, height - 50,98, 20, "gui.open"));
-        	
+
     	this.addButton(new GuiNpcButton(2, width / 2 + 2, height - 50,98, 20, "gui.cancel"));
     }
 
     public void drawScreen(int i, int j, float f)
-    {        
+    {
     	slot.drawScreen(i, j, f);
         super.drawScreen(i, j, f);
     }
@@ -123,7 +121,7 @@ public class GuiNpcSoundSelection extends GuiNPCInterface {
         }
     }
 	public void save() {
-		
+
 	}
 	public void close() {
 		this.save();

@@ -4,7 +4,6 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.GuiNpcMobSpawner;
 import noppes.npcs.controllers.data.Tag;
 
-import java.util.HashSet;
 import java.util.UUID;
 
 public class GuiCustomScrollCloner extends GuiCustomScroll {

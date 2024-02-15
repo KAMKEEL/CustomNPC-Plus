@@ -14,13 +14,15 @@ import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Tag;
-import noppes.npcs.controllers.data.TagMap;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.UUID;
 
 public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ISubGuiListener {
-	
+
 	private Entity toClone;
 	private NBTTagCompound compound;
 	private static boolean serverSide = false;
@@ -58,7 +60,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		String name = toClone.getCommandSenderName();
 		addLabel(new GuiNpcLabel(0, "Save as", guiLeft + 4, guiTop + 6));
 		addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 18, 200, 20, name));
-		
+
 
 		addLabel(new GuiNpcLabel(1, "Tab", guiLeft + 10, guiTop + 50));
 		addButton(new GuiButtonBiDirectional(2, guiLeft + 40, guiTop + 45, 60, 20, new String[]{"1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"}, tab - 1));
@@ -140,7 +142,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 
 	@Override
 	public void save() {
-		
+
 	}
 
 	@Override

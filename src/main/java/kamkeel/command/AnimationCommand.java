@@ -2,12 +2,10 @@ package kamkeel.command;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import noppes.npcs.api.ISkinOverlay;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.SkinOverlay;
 
 import java.util.List;
 
@@ -22,7 +20,7 @@ public class AnimationCommand extends CommandKamkeelBase {
 	public String getDescription() {
 		return "Animation operations";
 	}
-    
+
     @SubCommand(
             desc = "set an animation to a player",
             usage = "<player> <num>"

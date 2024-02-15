@@ -3,7 +3,6 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.util.*;
-import org.lwjgl.Sys;
 
 import java.util.*;
 

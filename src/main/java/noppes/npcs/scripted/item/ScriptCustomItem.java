@@ -10,7 +10,6 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.INpcScriptHandler;
-import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.*;

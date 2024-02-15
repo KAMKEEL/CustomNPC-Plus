@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.Entity;
@@ -21,6 +20,7 @@ import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
 import java.util.Random;
 
 import static net.minecraft.client.renderer.entity.RenderItem.renderInFrame;

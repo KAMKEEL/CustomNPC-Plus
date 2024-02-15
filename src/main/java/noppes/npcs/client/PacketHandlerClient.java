@@ -29,18 +29,18 @@ import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 
@@ -55,7 +55,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 	}
 
-	private void client(ByteBuf buffer, final EntityPlayer player, EnumPacketClient type) throws IOException{		
+	private void client(ByteBuf buffer, final EntityPlayer player, EnumPacketClient type) throws IOException{
 		if(type == EnumPacketClient.CHATBUBBLE){
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
@@ -65,7 +65,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				npc.messages = new RenderChatMessages();
 			String text = NoppesStringUtils.formatText(Server.readString(buffer), player, npc);
 			npc.messages.addMessage(text, npc);
-			
+
 			if(buffer.readBoolean())
 				player.addChatMessage(new ChatComponentTranslation(npc.getCommandSenderName() + ": " + text));
 		}
@@ -74,7 +74,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			String str;
 			while((str = Server.readString(buffer)) != null && !str.isEmpty())
 				message += StatCollector.translateToLocal(str);
-			
+
 			player.addChatMessage(new ChatComponentTranslation(message));
 		}
 		else if(type == EnumPacketClient.MESSAGE || type == EnumPacketClient.PARTY_MESSAGE){
@@ -93,7 +93,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
         		RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
             	RecipeController.syncRecipes.put(recipe.id,recipe);
             }
-	        
+
 		}
 		else if(type == EnumPacketClient.SYNCRECIPES_WORKBENCH){
             RecipeController.reloadGlobalRecipes(RecipeController.syncRecipes);
@@ -117,7 +117,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.QUEST_COMPLETION){
 			NoppesUtil.guiQuestCompletion(player, Server.readNBT(buffer));
-		}	
+		}
 		else if(type == EnumPacketClient.EDIT_NPC){
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
@@ -126,10 +126,10 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.PLAY_MUSIC){
 			MusicController.Instance.playMusic(Server.readString(buffer), player);
-		}			
+		}
 		else if(type == EnumPacketClient.PLAY_SOUND){
 			MusicController.Instance.playSound(Server.readString(buffer),buffer.readFloat(),buffer.readFloat(),buffer.readFloat());
-		}			
+		}
 		else if(type == EnumPacketClient.UPDATE_NPC){
 			NBTTagCompound compound = Server.readNBT(buffer);
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
@@ -141,7 +141,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			NBTTagCompound compound = Server.readNBT(buffer);
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
 			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return; 
+				return;
 			((EntityNPCInterface)entity).advanced.setRole(compound.getInteger("Role"));
 			((EntityNPCInterface)entity).roleInterface.readFromNBT(compound);
 			NoppesUtil.setLastNpc((EntityNPCInterface) entity);
@@ -213,10 +213,10 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 			if(gui == null || !(gui instanceof IGuiError))
 				return;
-			
+
 			int i = buffer.readInt();
 			NBTTagCompound compound = Server.readNBT(buffer);
-			
+
 			((IGuiError)gui).setError(i, compound);
 		}
 		else if(type == EnumPacketClient.GUI_CLOSE){
@@ -229,7 +229,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				NBTTagCompound compound = Server.readNBT(buffer);
 					((IGuiClose)gui).setClose(i, compound);
 			}
-			
+
 			Minecraft mc = Minecraft.getMinecraft();
 	        mc.displayGuiScreen(null);
 	        mc.setIngameFocus();
@@ -240,7 +240,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.OPEN_BOOK){
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
-			
+
 			NoppesUtil.openGUI(player, new GuiBook(player, ItemStack.loadItemStackFromNBT(Server.readNBT(buffer)), x, y, z));
 		}
 		else if(type == EnumPacketClient.CONFIG){
@@ -258,7 +258,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					if(ConfigClient.config.hasChanged()){
 						ConfigClient.config.save();
 					}
-					
+
 					player.addChatMessage(new ChatComponentTranslation("Font set to %s", ClientProxy.Font.getName()));
 				}
 				else

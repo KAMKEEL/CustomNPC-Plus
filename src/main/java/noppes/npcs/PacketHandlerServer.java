@@ -22,7 +22,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.MerchantRecipeList;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;

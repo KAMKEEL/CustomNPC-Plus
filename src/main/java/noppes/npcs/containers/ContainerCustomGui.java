@@ -18,8 +18,6 @@ import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
 
-import java.util.Iterator;
-
 public class ContainerCustomGui extends Container {
     public ScriptGui customGui;
     public IInventory guiInventory;

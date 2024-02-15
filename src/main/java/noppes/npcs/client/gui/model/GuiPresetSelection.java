@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.controllers.Preset;
 import noppes.npcs.client.controllers.PresetController;
@@ -16,6 +15,7 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelData;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Collections;
@@ -28,7 +28,7 @@ public class GuiPresetSelection extends GuiNPCInterface
 	private NBTTagCompound prevData;
 	private ModelData playerdata;
 	private EntityCustomNpc npc;
-	
+
     public GuiPresetSelection(GuiCreationScreen parent, ModelData playerdata)
     {
     	this.parent = parent;
@@ -37,17 +37,17 @@ public class GuiPresetSelection extends GuiNPCInterface
     	drawDefaultBackground = false;
 		npc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
 		npc.modelData = playerdata.copy();
-		
+
 		PresetController.instance.load();
     }
-    
+
     public void initGui()
     {
         super.initGui();
         Vector<String> list = new Vector<String>();
         for(Preset preset : PresetController.instance.presets.values())
         	list.add(preset.name);
-        
+
 		Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
         slot = new GuiNPCStringSlot(list,this,false,18);
         slot.registerScrollButtons(4, 5);
@@ -65,7 +65,7 @@ public class GuiPresetSelection extends GuiNPCInterface
     		entity = this.npc;
     	else
     		EntityUtil.Copy(npc, entity);
-    	
+
     	int l = (width/2)-180;
     	int i1 =  (height/2) - 90;
         GL11.glEnable(32826 /*GL_RESCALE_NORMAL_EXT*/);
@@ -122,14 +122,14 @@ public class GuiPresetSelection extends GuiNPCInterface
             close();
         }
     }
-	public void close() {		
+	public void close() {
 		mc.displayGuiScreen(parent);
 	}
 
 	public FontRenderer getFontRenderer() {
 		return this.fontRendererObj;
 	}
-	
+
 	@Override
 	protected void actionPerformed(GuiButton button)
     {
@@ -146,7 +146,7 @@ public class GuiPresetSelection extends GuiNPCInterface
 	        Vector<String> list = new Vector<String>();
 	        for(Preset preset : PresetController.instance.presets.values())
 	        	list.add(preset.name);
-	        
+
 			Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 			slot.setList(list);
 			slot.selected = "";
@@ -156,7 +156,7 @@ public class GuiPresetSelection extends GuiNPCInterface
 	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 

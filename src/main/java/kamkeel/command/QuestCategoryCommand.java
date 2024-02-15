@@ -11,8 +11,9 @@ import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
-import java.util.Collection;
 import noppes.npcs.controllers.data.QuestData;
+
+import java.util.Collection;
 import java.util.List;
 
 public class QuestCategoryCommand extends CommandKamkeelBase {
@@ -51,7 +52,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
     }
 
-    
+
     @SubCommand(
             desc = "Finish a quest category for a player",
             usage = "<player> <questcatid>"
@@ -61,18 +62,18 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         int questcatid;
         try {
         	questcatid = Integer.parseInt(args[1]);
-        } 
+        }
         catch (NumberFormatException ex) {
         	sendError(sender, "QuestCatID must be an integer: " + args[1]);
             return;
         }
-        
+
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
-        
+
         QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
         if (questCategory == null){
         	sendError(sender, "Unknown QuestCatID: " + questcatid);
@@ -194,7 +195,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
     }
 
-    
+
     @SubCommand(
             desc = "Remove a quest cat from active/finished",
             usage = "<player> <questcatid>"

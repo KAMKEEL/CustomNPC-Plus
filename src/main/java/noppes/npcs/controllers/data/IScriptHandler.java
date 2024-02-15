@@ -6,7 +6,6 @@
 package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 
 import java.util.List;

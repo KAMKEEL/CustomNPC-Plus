@@ -1,15 +1,15 @@
 package foxz.command;
 
-import java.util.List;
-
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerFactionData;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerFactionData;
+
+import java.util.List;
 
 @Command(
         name = "faction",
@@ -96,11 +96,11 @@ public class CmdFaction extends ChMcLogger {
         }
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
-        	playerfactiondata.factionData.put(this.selectedFaction.id,points);      
+        	playerfactiondata.factionData.put(this.selectedFaction.id,points);
         }
         return true;
     }
-    
+
     @SubCommand(
             desc="Drop relationship",
             usage="",

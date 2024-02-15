@@ -13,7 +13,10 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.NpcAPI;
 
-import javax.script.*;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;

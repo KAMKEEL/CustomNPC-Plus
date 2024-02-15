@@ -18,7 +18,10 @@ import noppes.npcs.controllers.QuestController;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class Party {
     private final UUID partyUUID;
@@ -152,7 +155,7 @@ public class Party {
 
         // Remove New Leader
         partyOrder.remove(uuid);
-        
+
         // Add New Leader to Front
         partyOrder.add(0, uuid);
 

@@ -1,13 +1,11 @@
 package noppes.npcs.client.renderer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
