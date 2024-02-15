@@ -100,6 +100,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	private int taskCount = 1;
 	public int lastInteract = 0;
 	public int itemGiverId = 0;
+    public boolean isDrawn = false;
 
 	public Faction faction; //should only be used server side
 

@@ -111,6 +111,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         GL11.glColor4f(1, 1, 1, 1);
 
         if(!dialog.hideNPC){
+            npc.isDrawn = true;
 	    	float l = (guiLeft - 70);
 	    	float i1 =  (guiTop + ySize);
 	        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
@@ -151,6 +152,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        npc.rotationYaw = f3;
 	        npc.rotationPitch = f4;
 	        npc.prevRotationYawHead = npc.rotationYawHead = f7;
+            npc.isDrawn = false;
 	        GL11.glPopMatrix();
 	        RenderHelper.disableStandardItemLighting();
 	        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
@@ -691,7 +693,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			options.add(slot);
 		}
 		calculateRowHeight();
-		 
+
 		grabMouse(dialog.showWheel);
 	}
 	private void calculateRowHeight(){

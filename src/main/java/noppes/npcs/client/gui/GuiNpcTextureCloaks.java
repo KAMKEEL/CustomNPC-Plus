@@ -29,6 +29,7 @@ public class GuiNpcTextureCloaks extends GuiNpcSelectionInterface
 
     public void drawScreen(int i, int j, float f)
     {
+        npc.isDrawn = true;
     	int l = (width/2)-180;
     	int i1 =  (height/2) - 90;
         GL11.glEnable(32826 /*GL_RESCALE_NORMAL_EXT*/);
@@ -60,6 +61,7 @@ public class GuiNpcTextureCloaks extends GuiNpcSelectionInterface
         npc.rotationYaw = f3;
         npc.rotationPitch = f4;
         npc.rotationYawHead = f7;
+        npc.isDrawn = false;
         GL11.glPopMatrix();
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(32826 /*GL_RESCALE_NORMAL_EXT*/);
@@ -67,7 +69,7 @@ public class GuiNpcTextureCloaks extends GuiNpcSelectionInterface
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
-        
+
         super.drawScreen(i, j, f);
     }
     @Override
@@ -76,7 +78,7 @@ public class GuiNpcTextureCloaks extends GuiNpcSelectionInterface
     		npc.display.cloakTexture = assets.getAsset(slot.selected);
     	}
     }
-    
+
 	public void save() {
 	}
 

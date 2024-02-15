@@ -41,7 +41,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public int guiLeft,guiTop,xSize,ySize;
 	private SubGuiInterface subgui;
 	public int mouseX, mouseY;
-	
+
 	public float bgScale = 1;
 	public float bgScaleX = 1;
 	public float bgScaleY = 1;
@@ -233,7 +233,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     	if(background != null && mc.renderEngine != null){
     		drawBackground();
     	}
-    	
+
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for(GuiNpcLabel label : labels.values())
         	label.drawLabel(this,fontRendererObj);
@@ -272,7 +272,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public FontRenderer getFontRenderer() {
 		return this.fontRendererObj;
 	}
-	
+
 	public void elementClicked() {
 		if(subgui != null)
 			subgui.elementClicked();
@@ -281,10 +281,10 @@ public abstract class GuiNPCInterface extends GuiScreen
     public boolean doesGuiPauseGame(){
         return false;
     }
-	
+
 	public void doubleClicked() {
 	}
-	
+
 	public boolean isInventoryKey(int i){
         return i == mc.gameSettings.keyBindInventory.getKeyCode(); //inventory key
 	}
@@ -314,21 +314,20 @@ public abstract class GuiNPCInterface extends GuiScreen
 			return subgui.getSubGui();
 		return subgui;
 	}
-	
+
 	public void drawNpc(int x, int y){
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
+        npc.isDrawn = true;
 		GL11.glEnable(GL11.GL_COLOR_MATERIAL);
 		GL11.glPushMatrix();
 		GL11.glTranslatef(guiLeft + x, guiTop + y, 50F);
         float scale = 1;
         if(npc.height > 2.4)
         	scale = 2 / npc.height;
-        
+
         GL11.glScalef(-30 * scale, 30 * scale, 30 * scale);
 		GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
-		
-		
+
 		float f2 = npc.renderYawOffset;
 		float f3 = npc.rotationYaw;
 		float f4 = npc.rotationPitch;
@@ -353,12 +352,12 @@ public abstract class GuiNPCInterface extends GuiScreen
 		GL11.glPopMatrix();
 		RenderHelper.disableStandardItemLighting();
 		GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-
+        npc.isDrawn = false;
 		OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
 	}
-	
+
     public void openLink(String link){
         try{
             Class oclass = Class.forName("java.awt.Desktop");

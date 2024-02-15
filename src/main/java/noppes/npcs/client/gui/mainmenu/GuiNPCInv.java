@@ -32,14 +32,14 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
         slot = getResource("slot.png");
         Client.sendData(EnumPacketServer.MainmenuInvGet);
     }
-    
+
     public void initGui()
     {
         super.initGui();
         addLabel(new GuiNpcLabel(0,"inv.minExp", guiLeft + 118, guiTop + 18));
         addTextField(new GuiNpcTextField(0,this, fontRendererObj, guiLeft + 108, guiTop + 29, 60, 20, npc.inventory.minExp + ""));
         getTextField(0).integersOnly = true;
-        
+
         addLabel(new GuiNpcLabel(1,"inv.maxExp", guiLeft + 118, guiTop + 52));
         addTextField(new GuiNpcTextField(1,this, fontRendererObj, guiLeft + 108, guiTop + 63, 60, 20, npc.inventory.maxExp + ""));
         getTextField(1).integersOnly = true;
@@ -128,6 +128,7 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
     }
     public void drawScreen(int i, int j, float f)
     {
+        npc.isDrawn = true;
     	int showname = npc.display.showName;
     	npc.display.showName = 1;
        	int l = guiLeft + 20; //(width/2)-180;
@@ -164,15 +165,14 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
         GL11.glPopMatrix();
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(32826 /*GL_RESCALE_NORMAL_EXT*/);
-
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
     	npc.display.showName = showname;
-    	
+        npc.isDrawn = false;
         super.drawScreen(i, j, f);
     }
-    
+
 	@Override
 	public void save() {
         npc.inventory.dropchance = chances;
@@ -180,7 +180,7 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
     	npc.inventory.maxExp = getTextField(1).getInteger();
     	Client.sendData(EnumPacketServer.MainmenuInvSave, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
 	}
-	
+
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		npc.inventory.readEntityFromNBT(compound);

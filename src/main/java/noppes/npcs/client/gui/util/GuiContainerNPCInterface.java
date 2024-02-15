@@ -38,7 +38,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 	public boolean closeOnEsc = false;
 	private SubGuiInterface subgui;
 	public int mouseX, mouseY;
-	
+
     public GuiContainerNPCInterface(EntityNPCInterface npc,Container cont)
     {
     	super(cont);
@@ -63,9 +63,9 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     		subgui.setWorldAndResolution(mc, width, height);
     		subgui.initGui();
     	}
-    	
+
         buttonList.clear();
-        
+
         guiLeft = (width - xSize)/2;
         guiTop = (height - ySize) / 2;
     }
@@ -98,7 +98,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     	}
     }
     public void mouseEvent(int i, int j, int k){};
-    
+
     @Override
     protected void keyTyped(char c, int i)
     {
@@ -107,7 +107,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     	else{
 	    	for(GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
 	    		tf.textboxKeyTyped(c, i);
-	    	
+
 	        if (closeOnEsc && (i == 1 || i == mc.gameSettings.keyBindInventory.getKeyCode() && !GuiNpcTextField.isFieldActive()))
 	            close();
     	}
@@ -122,7 +122,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 			buttonEvent(guibutton);
 	}
     public void buttonEvent(GuiButton guibutton){};
-    
+
 	public void close(){
 		Keyboard.enableRepeatEvents(false);
     	GuiNpcTextField.unfocus();
@@ -171,12 +171,12 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
         scrolls.put(scroll.id, scroll);
 	}
 	public GuiCustomScroll getScroll(int id){
-		return scrolls.get(id); 
+		return scrolls.get(id);
 	}
 
     @Override
     protected void drawGuiContainerForegroundLayer(int par1, int par2){
-    	
+
     }
 
     @Override
@@ -190,7 +190,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
             scroll.drawScreen(i, j, f, hasSubGui()?0:Mouse.getDWheel());
     }
     public abstract void save();
-    
+
     @Override
     public void drawScreen(int i, int j, float f){
     	mouseX = i;
@@ -215,7 +215,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     	if(drawDefaultBackground && subgui == null)
     		super.drawDefaultBackground();
     }
-    
+
 	public FontRenderer getFontRenderer() {
 		return this.fontRendererObj;
 	}
@@ -234,7 +234,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 	public void displayGuiScreen(GuiScreen gui) {
 		this.mc.displayGuiScreen(gui);
 	}
-    
+
     public void setSubGui(SubGuiInterface gui){
     	subgui = gui;
 		subgui.setWorldAndResolution(mc, width, height);
@@ -243,6 +243,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
     }
 
 	public void drawNpc(int x, int y){
+        npc.isDrawn = true;
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 		GL11.glEnable(GL11.GL_COLOR_MATERIAL);
 		GL11.glPushMatrix();
@@ -285,6 +286,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 				npc.ai.orientation = orientation;
 			}
 		}
+        npc.isDrawn = false;
 		GL11.glPopMatrix();
 		RenderHelper.disableStandardItemLighting();
 		GL11.glDisable(GL12.GL_RESCALE_NORMAL);
