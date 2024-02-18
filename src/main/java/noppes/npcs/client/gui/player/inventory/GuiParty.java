@@ -65,13 +65,9 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 //
                 //create party button
                 //
-                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 20, "party.createParty");
+                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 40, guiTop + ySize/2 + 20, "party.createParty");
                 createPartyButton.width = 100;
                 this.addButton(createPartyButton);
-
-                this.addLabel(new GuiNpcLabel(201, "party.partyInfo1", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 30));
-                this.addLabel(new GuiNpcLabel(202, "party.partyInfo2", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 20));
-                this.addLabel(new GuiNpcLabel(203, "party.partyInfo3", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 10));
 
                 //party invites list
                 //
@@ -112,11 +108,35 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 this.addScroll(playerScroll);
 
                 if (party.getIsLocked()) {
-                    addButton(new GuiButtonNextPage(400, guiLeft + 144, guiTop + 176, false));
-                    getButton(400).visible = this.showQuestText;
-                    addButton(new GuiButtonNextPage(401, guiLeft + 286, guiTop + 176, true));
-                    getButton(401).visible = !getButton(400).visible;
+                    int arrowButtonsY = guiTop + ySize - 8 - 20;
+
+                    addButton(new GuiButtonNextPage(400, guiLeft + 144, arrowButtonsY, false));
+                    addLabel(new GuiNpcLabel(401, "quest.objectives", guiLeft + 168, getButton(400).yPosition + 3));
+                    getButton(400).visible = getLabel(401).enabled = this.showQuestText;
+
+                    addButton(new GuiButtonNextPage(405, guiLeft + 286, arrowButtonsY, true));
+                    String textString = StatCollector.translateToLocal("gui.text");
+                    addLabel(new GuiNpcLabel(406, textString,
+                        guiLeft + 284 - fontRendererObj.getStringWidth(textString), getButton(405).yPosition + 3));
+                    getButton(405).visible = getLabel(406).enabled = !getButton(400).visible;
+
+                    GuiNpcButton disbandButton = new GuiNpcButton(410, guiLeft + 164, arrowButtonsY + 19, "party.dropQuest");
+                    disbandButton.width = 135;
+                    this.addButton(disbandButton);
                 }
+
+                //toggle friendly fire
+                //
+                GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":",
+                    guiLeft + xSize / 2 + 10, guiTop + ySize / 2 + 5);
+                if (party.getIsLocked()) {
+                    friendlyFireLabel.x = guiLeft + 5;
+                    friendlyFireLabel.y = guiTop + ySize - 8 - 15;
+                }
+                this.addLabel(friendlyFireLabel);
+                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, friendlyFireLabel.x + 70, friendlyFireLabel.y - 6, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
+                friendlyFireButton.width = 40;
+                this.addButton(friendlyFireButton);
 
                 if (this.isLeader) {
                     if (!party.getIsLocked()) {
@@ -134,24 +154,12 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
                         //send invite button (opens subgui)
                         //
-                        GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, guiLeft + xSize / 2 + 20, guiTop + ySize / 2 + 40, 100, 20, "");
+                        GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, friendlyFireLabel.x, guiTop + ySize / 2 + 25, 100, 20, "");
                         this.addTextField(playerTextField);
-                        GuiNpcButton inviteButton = new GuiNpcButton(330, guiLeft + xSize / 2 + 125, guiTop + ySize / 2 + 40, "party.invite");
+                        GuiNpcButton inviteButton = new GuiNpcButton(330, playerTextField.xPosition + 105, playerTextField.yPosition, "party.invite");
                         inviteButton.width = 50;
                         this.addButton(inviteButton);
                     }
-
-                    //toggle friendly fire
-                    //
-                    GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":", guiLeft + xSize / 2 + 20, guiTop + ySize / 2 + 5);
-                    if (party.getIsLocked()) {
-                        friendlyFireLabel.x = guiLeft + 5;
-                        friendlyFireLabel.y = guiTop + ySize - 8 - 15;
-                    }
-                    this.addLabel(friendlyFireLabel);
-                    GuiNpcButton friendlyFireButton = new GuiNpcButton(320, friendlyFireLabel.x + 70, friendlyFireLabel.y - 6, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
-                    friendlyFireButton.width = 40;
-                    this.addButton(friendlyFireButton);
 
                     //disband party
                     //
@@ -252,8 +260,11 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             case 400:
                 this.showQuestText = false;
                 break;
-            case 401:
+            case 405:
                 this.showQuestText = true;
+                break;
+            case 410:
+                Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
                 break;
         }
         initGui();
@@ -291,16 +302,14 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             return;
         }
 
-        if (ClientCacheHandler.party != null && ClientCacheHandler.party.getQuest() != null) {
+        if (ClientCacheHandler.party == null) {
+            drawTextBlock("party.messageNoParty", guiLeft + 155, guiTop + ySize/2 - 20, 160);
+        } else if (ClientCacheHandler.party.getQuest() != null) {
             Quest quest = (Quest) ClientCacheHandler.party.getQuest();
             if (showQuestText) {
-                drawQuestText(quest);
-                String title = StatCollector.translateToLocal("quest.objectives");
-                fontRendererObj.drawString(title, guiLeft + 168, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+                drawTextBlock(quest.getLogText(), guiLeft + 142, guiTop + 20, 174);
             } else {
                 drawProgress();
-                String title = StatCollector.translateToLocal("gui.text");
-                fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
             }
 
             GL11.glPushMatrix();
@@ -309,14 +318,6 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             fontRendererObj.drawString(quest.getName(), (130 - fontRendererObj.getStringWidth(quest.getName())) / 2, 4, CustomNpcResourceListener.DefaultTextColor);
             GL11.glPopMatrix();
             drawHorizontalLine(guiLeft + 142, guiLeft + 312, guiTop + 17, +0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-        }
-    }
-
-    private void drawQuestText(Quest quest){
-        TextBlockClient block = new TextBlockClient(quest.getLogText(), 174, true, player);
-        for(int i = 0; i < block.lines.size(); i++){
-            String text = block.lines.get(i).getFormattedText();
-            fontRendererObj.drawString(text, guiLeft + 142, guiTop + 20 + (i * fontRendererObj.FONT_HEIGHT), CustomNpcResourceListener.DefaultTextColor);
         }
     }
 

@@ -87,15 +87,16 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         addButton(new GuiButtonNextPage(1, guiLeft + 286, guiTop + 176, true));
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        if (ClientCacheHandler.party != null && data.hasSelectedQuest()
-                && data.partyAbleQuests.contains(data.selectedCategory + ":" + data.selectedQuest)
-                && ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName())) {
-            String questName = ClientCacheHandler.party.getCurrentQuestName();
+        if (data.partyAbleQuests.contains(data.selectedCategory + ":" + data.selectedQuest)) {
+            String questName = ClientCacheHandler.party != null ? ClientCacheHandler.party.getCurrentQuestName() : null;
             GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, Objects.equals(questName, data.selectedQuest) ? 1 : 0);
-            if (Objects.equals(questName, data.selectedQuest)) {
+            addButton(partyButton);
+
+            partyButton.enabled = ClientCacheHandler.party != null && data.hasSelectedQuest()
+                && ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
+            if (partyButton.enabled && Objects.equals(questName, data.selectedQuest)) {
                 partyButton.packedFGColour = 0x32CD32;
             }
-            addButton(partyButton);
         }
 
         GuiNpcButton trackingButton = new GuiNpcButton(4, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"quest.track", "quest.tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
@@ -111,6 +112,9 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         getButton(2).visible = !questDetails && data.hasSelectedQuest();
         getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
         getButton(5).visible = getButton(4).visible;
+        if (getButton(3) != null) {
+            getButton(3).visible = getButton(4).visible;
+        }
     }
     @Override
 	protected void actionPerformed(GuiButton guibutton){
@@ -317,5 +321,5 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
             Client.sendData(EnumPacketServer.QuestLogToServer, compound, this.data.trackedQuestKey);
         }
 	}
-	
+
 }
