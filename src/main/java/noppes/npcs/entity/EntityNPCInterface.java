@@ -1094,7 +1094,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(width / 2 > worldObj.MAX_ENTITY_RADIUS) {
 			worldObj.MAX_ENTITY_RADIUS = width / 2;
 		}
-
+        if(display.customHitboxData.isCustomHitbox()){
+            width = display.customHitboxData.getWidth();
+            height = display.customHitboxData.getHeight();
+        }
 		this.setPosition(posX, posY, posZ);
 	}
 
