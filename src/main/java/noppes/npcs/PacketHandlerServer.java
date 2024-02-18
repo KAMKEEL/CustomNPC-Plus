@@ -260,7 +260,20 @@ public class PacketHandlerServer{
 
 		if (playerData.partyUUID != null) {
 			Party party = PartyController.Instance().getParty(playerData.partyUUID);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+            NBTTagCompound compound = party.writeToNBT();
+            if (party.getQuest() != null) {
+                Quest quest = (Quest) party.getQuest();
+                Vector<String> vector = quest.questInterface.getQuestLogStatus(player);
+                NBTTagList list = new NBTTagList();
+                for (String s : vector) {
+                    list.appendTag(new NBTTagString(s));
+                }
+                compound.setTag("QuestProgress", list);
+                if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData)) {
+                    compound.setString("QuestCompleteWith", quest.completerNpc);
+                }
+            }
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else {
 			sendInviteData(player);
 		}
