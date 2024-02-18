@@ -7,10 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNPCTextures;
-import noppes.npcs.client.gui.GuiNpcTextureCloaks;
-import noppes.npcs.client.gui.GuiNpcTextureOverlays;
-import noppes.npcs.client.gui.SubGuiNpcName;
+import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
@@ -46,7 +43,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
         addLabel(new GuiNpcLabel(11,"gui.title", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(11,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.title));
-
     	y+=23;
         addLabel(new GuiNpcLabel(1,"display.model", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(1, guiLeft + 50, y,110,20, "selectServer.edit"));
@@ -94,7 +90,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
-
+        addButton(new GuiNpcButton(12,guiLeft + 290, y, 56, 20, "selectServer.edit"));
+        addLabel(new GuiNpcLabel(12,"Hitbox", guiLeft + 240, y + 5));
 		GeckoAddonClient.Instance.geckoNpcDisplayInitGui(this);
 	}
 
@@ -185,6 +182,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			npc.display.skinOverlayData.overlayList.get(0).setBlend(button.getValue() == 0);
 			initGui();
 		}
+        else if (button.id == 12){
+            setSubGui(new SubGuiCustomHitbox(display.customHitboxData));
+        }
 		else if(button.id == 14){
 			String name = display.getRandomName();
 			display.setName(name);
