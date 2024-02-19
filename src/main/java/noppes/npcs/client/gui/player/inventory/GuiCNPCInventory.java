@@ -26,9 +26,6 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         super.initGui();
         guiTop +=10;
 
-        TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
-
         GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + 3, 22, 22, "");
         questsButton.rightSided = true;
         questsButton.active = activeTab == 0;
@@ -40,7 +37,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         partyButton.active = activeTab == 1;
         partyButton.renderStack = new ItemStack(CustomItems.bag);
         addButton(partyButton);
-        
+
         if(ConfigClient.enableFactionTab){
             GuiMenuSideButton factionButton = new GuiMenuSideButton(102, guiLeft + xSize + 37, this.guiTop + 3 + 21*2, 22, 22, "");
             factionButton.rightSided = true;

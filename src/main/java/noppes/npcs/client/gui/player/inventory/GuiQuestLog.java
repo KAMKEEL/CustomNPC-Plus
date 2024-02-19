@@ -53,8 +53,9 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     public void initGui(){
         super.initGui();
     	sideButtons.clear();
-		TabRegistry.addTabsToList(buttonList);
-		TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
+
+        TabRegistry.addTabsToList(buttonList);
+        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         noQuests = false;
 
