@@ -28,6 +28,7 @@ import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.controllers.data.CustomTintData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -218,10 +219,10 @@ public class RenderNPCInterface extends RenderLiving{
 
 		staticRenderManager = this.renderManager;
 
-		doRenderLiving(entityliving, d, d1, d2, f, f1);
+		doRenderLiving(npc, d, d1, d2, f, f1);
 	}
 
-    public void doRenderLiving(EntityLiving p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
+    public void doRenderLiving(EntityNPCInterface p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
     {
         if (MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Pre(p_76986_1_, this, p_76986_2_, p_76986_4_, p_76986_6_))) return;
         GL11.glPushMatrix();
@@ -371,8 +372,8 @@ public class RenderNPCInterface extends RenderLiving{
             OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
-
-            if ((j >> 24 & 255) > 0 || p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0)
+            CustomTintData customTintData = p_76986_1_.display.customTintData;
+            if ((j >> 24 & 255) > 0 || p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0 || (customTintData.isEnableCustomTint() && customTintData.isEnableNpcTint()))
             {
                 GL11.glDisable(GL11.GL_TEXTURE_2D);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -380,16 +381,26 @@ public class RenderNPCInterface extends RenderLiving{
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 GL11.glDepthFunc(GL11.GL_EQUAL);
 
-                if (p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0)
+                if ((p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0) && (!customTintData.isEnableCustomTint() || customTintData.isEnableHurtTint()))
                 {
-                    GL11.glColor4f(f14, 0.0F, 0.0F, 0.4F);
+                    float r, g, b;
+                    if(customTintData.isEnableCustomTint()) {
+                        r = (float) (customTintData.getColorHurtTint() >> 16 & 255) / 255.0F * f14;
+                        g = (float) (customTintData.getColorHurtTint() >> 8 & 255) / 255.0F * f14;
+                        b = (float) (customTintData.getColorHurtTint() & 255) / 255.0F * f14;
+                    }else{
+                        r=f14;
+                        g=0;
+                        b=0;
+                    }
+                    GL11.glColor4f(r,g,b, 0.4F);
                     this.mainModel.render(p_76986_1_, f7, f6, f4, f3 - f2, f13, f5);
 
                     for (int l = 0; l < 4; ++l)
                     {
                         if (this.inheritRenderPass(p_76986_1_, l, p_76986_9_) >= 0)
                         {
-                            GL11.glColor4f(f14, 0.0F, 0.0F, 0.4F);
+                            GL11.glColor4f(r,g,b, 0.4F);
                             this.renderPassModel.render(p_76986_1_, f7, f6, f4, f3 - f2, f13, f5);
                         }
                     }
@@ -452,6 +463,14 @@ public class RenderNPCInterface extends RenderLiving{
         }
 
         return p_77034_1_ + p_77034_3_ * f3;
+    }
+
+    protected int getColorMultiplier(EntityLivingBase p_77030_1_, float p_77030_2_, float p_77030_3_)
+    {
+        EntityNPCInterface npc = (EntityNPCInterface) p_77030_1_;
+        CustomTintData tintData = npc.display.customTintData;
+        int alpha = (int) (0xff*((double)tintData.getColorNpcTintAlpha()/100d)) << 24;
+        return (tintData.isEnableCustomTint() && tintData.isEnableNpcTint())?tintData.getColorNpcTint()+alpha:0;
     }
 
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
