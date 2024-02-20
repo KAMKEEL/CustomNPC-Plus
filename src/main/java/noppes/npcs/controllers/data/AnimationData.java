@@ -155,7 +155,7 @@ public class AnimationData implements IAnimationData {
         } else {
             Animation newAnim = new Animation();
             newAnim.readFromNBT(((Animation) animation).writeToNBT());
-            if (this.animation != null && newAnim.frames.size() > 0) {
+            if (this.isActive() && !newAnim.frames.isEmpty()) {
                 Frame frame = (Frame) this.animation.currentFrame();
                 if (frame != null) {
                     Frame firstFrame = newAnim.frames.get(0);
