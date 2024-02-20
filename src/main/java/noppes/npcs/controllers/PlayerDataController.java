@@ -242,7 +242,7 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public NBTTagCompound loadNBTData(File file){
+	public static NBTTagCompound loadNBTData(File file){
 		try {
 			return CompressedStreamTools.readCompressed(new FileInputStream(file));
 		} catch (Exception e) {

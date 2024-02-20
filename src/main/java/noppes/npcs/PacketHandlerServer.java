@@ -1100,7 +1100,6 @@ public class PacketHandlerServer{
 					Market.setMarket(npc, market);
 				else
 					Market.save((RoleTrader)npc.roleInterface, market);
-				//NoppesUtilServer.sendRoleData(player, npc);
 			}
 		}
 		else if(type == EnumPacketServer.AnimationsGet){
