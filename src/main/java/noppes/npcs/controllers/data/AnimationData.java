@@ -54,9 +54,6 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
-            if(sendingEntity instanceof EntityNPCInterface && sendingEntity.dimension != sendingEntity.worldObj.provider.dimensionId)
-                ((EntityNPCInterface) sendingEntity).fixDimensionID();
-
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(
                 sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
                 sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));

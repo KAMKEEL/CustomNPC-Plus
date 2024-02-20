@@ -390,17 +390,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public void updateClient() {
 		NBTTagCompound compound = writeSpawnData();
 		compound.setInteger("EntityId", getEntityId());
-        fixDimensionID();
 		Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
 		updateClient = false;
 	}
-
-    public void fixDimensionID(){
-        if(worldObj == null || worldObj.provider == null || this.dimension == worldObj.provider.dimensionId)
-            return;
-        this.dimension = worldObj.provider.dimensionId;
-    }
-
 
 	@Override
 	public boolean interact(EntityPlayer player) {
