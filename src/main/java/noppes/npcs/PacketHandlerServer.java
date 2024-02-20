@@ -657,6 +657,12 @@ public class PacketHandlerServer{
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
 			}
 		}
+        else if(type == EnumPacketServer.RemoteGlobalMenu){
+            NoppesUtilServer.sendOpenGui(player, EnumGuiType.GlobalRemote, null);
+            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+                LogWriter.script(String.format("[%s] (Player) %s OPEN GLOBAL MENU", "WAND", player.getCommandSenderName()));
+            }
+        }
 		else if(type == EnumPacketServer.RemoteDelete){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
@@ -671,7 +677,6 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.RemoteNpcsGet){
 			NoppesUtilServer.sendNearbyNpcs(player);
-			Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze Npcs":"Freeze Npcs");
 		}
 		else if(type == EnumPacketServer.RemoteFreeze){
 			CustomNpcs.FreezeNPCs = !CustomNpcs.FreezeNPCs;
@@ -953,7 +958,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.PlayerDataRemove){
 			NoppesUtilServer.removePlayerData(buffer,player);
 		}
-		else if(type == EnumPacketServer.PlayerDataRegen){
+		else if(type == EnumPacketServer.PlayerDataMapRegen){
 			NoppesUtilServer.regenPlayerData(player);
 		}
 		else if(type == EnumPacketServer.MainmenuDisplayGet){

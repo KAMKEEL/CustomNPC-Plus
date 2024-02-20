@@ -55,10 +55,11 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     public void initGui(){
         super.initGui();
-        this.selectedInvite = this.selectedPlayer = null;
-        Party party = ClientCacheHandler.party;
         TabRegistry.addTabsToList(buttonList);
         TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
+
+        this.selectedInvite = this.selectedPlayer = null;
+        Party party = ClientCacheHandler.party;
 
         if (receivedData) {
             if (party == null) {

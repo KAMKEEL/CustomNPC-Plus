@@ -23,12 +23,12 @@ public class BlockNpcRedstone extends BlockContainer{
         super(Material.rock);
     }
 
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	if(par1World.isRemote)
     		return false;
 		ItemStack currentItem = player.inventory.getCurrentItem();
-		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)) {
+		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_REDSTONE)) {
 			TileEntity tile = par1World.getTileEntity(i, j, k);
 			NBTTagCompound compound = new NBTTagCompound();
 			tile.writeToNBT(compound);
@@ -37,7 +37,7 @@ public class BlockNpcRedstone extends BlockContainer{
 		}
 		return false;
     }
-    
+
     @Override
     public void onBlockAdded(World par1World, int par2, int par3, int par4){
         par1World.notifyBlocksOfNeighborChange(par2, par3, par4, this);
@@ -66,24 +66,24 @@ public class BlockNpcRedstone extends BlockContainer{
     	if(isActivated(par1IBlockAccess, par2, par3, par4) > 0)
     		return 0xFF6B68;
     	else
-    		return super.colorMultiplier(par1IBlockAccess, par2, par3, par4); 
+    		return super.colorMultiplier(par1IBlockAccess, par2, par3, par4);
     }
-    
+
     @Override
     public int isProvidingWeakPower(IBlockAccess par1IBlockAccess, int par2, int par3, int par4, int par5){
         return isActivated(par1IBlockAccess, par2, par3, par4);
     }
-    
+
     @Override
     public int isProvidingStrongPower(IBlockAccess par1World, int par2, int par3, int par4, int par5){
         return isActivated(par1World, par2, par3, par4);
     }
-    
+
     @Override
     public boolean canProvidePower(){
         return true;
     }
-    
+
 	public int isActivated(IBlockAccess par1IBlockAccess, int par2, int par3, int par4){
 		return par1IBlockAccess.getBlockMetadata(par2, par3, par4) == 1?15 : 0;
 	}

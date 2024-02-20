@@ -3,6 +3,7 @@
 /.idea/
 /.vscode/
 /run/
+/out/
 /build/
 /eclipse/
 .classpath
@@ -36,3 +37,5 @@ addon.local.gradle.kts
 addon.late.local.gradle
 addon.late.local.gradle.kts
 layout.json
+out
+run

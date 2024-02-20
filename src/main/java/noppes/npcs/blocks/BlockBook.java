@@ -20,8 +20,8 @@ public class BlockBook extends BlockRotated{
         super(Blocks.planks);
         setBlockBounds(0, 0, 0, 1, 0.2f, 1);
 	}
-	    
-    @Override    
+
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	if(par1World.isRemote)
     		return true;
@@ -29,14 +29,14 @@ public class BlockBook extends BlockRotated{
     	if(!(tile instanceof TileBook))
     		return false;
 		ItemStack currentItem = player.inventory.getCurrentItem();
-		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)) {
+		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BOOK)) {
 			((TileBook)tile).book.func_150996_a(Items.writable_book);
 		}
     	Server.sendData((EntityPlayerMP)player, EnumPacketClient.OPEN_BOOK, i, j, k, ((TileBook)tile).book.writeToNBT(new NBTTagCompound()));
     	return true;
     }
-    
-    @Override   
+
+    @Override
     public String getUnlocalizedName(){
     	return "item.book";
     }
