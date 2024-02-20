@@ -26,15 +26,15 @@ public class GuiNPCDialogSelection extends GuiNPCInterface implements IScrollDat
 		title = "Select Dialog Category";
     	this.parent = parent;
     	this.dialog = dialog;
-    	
-    	
+
+
     	if(dialog >= 0){
     		Client.sendData(EnumPacketServer.DialogsGetFromDialog, dialog);
     		selectCategory = false;
     		title = "Select Dialog";
     	}else
     		Client.sendData(EnumPacketServer.DialogCategoriesGet, dialog);
-    	
+
     	if(parent instanceof GuiSelectionListener){
     		listener = (GuiSelectionListener) parent;
     	}
@@ -47,7 +47,6 @@ public class GuiNPCDialogSelection extends GuiNPCInterface implements IScrollDat
 
         slot = new GuiNPCStringSlot(list,this,false,18);
         slot.registerScrollButtons(4, 5);
-
 
     	this.addButton(new GuiNpcButton(2, width / 2 -100, height - 41,98, 20, "gui.back"));
     	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 41,98, 20, "gui.select"));
@@ -92,7 +91,7 @@ public class GuiNPCDialogSelection extends GuiNPCInterface implements IScrollDat
 			close();
 			NoppesUtil.openGUI(player, parent);
 		}
-		
+
 	}
 	public void save() {
 		if(dialog >= 0){
@@ -113,7 +112,7 @@ public class GuiNPCDialogSelection extends GuiNPCInterface implements IScrollDat
 
 	@Override
 	public void setSelected(String selected) {
-		
+
 	}
 
 
