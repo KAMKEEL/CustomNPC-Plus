@@ -201,6 +201,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
             int z = buffer.readInt();
             CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.MobSpawner, player);
         }
+        else if(type == EnumPacketClient.TELEPORTER){
+            CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);
+        }
 		else if(type == EnumPacketClient.GUI_DATA){
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 			if(gui == null)

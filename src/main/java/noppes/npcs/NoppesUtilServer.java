@@ -706,6 +706,12 @@ public class NoppesUtilServer {
         Server.sendData(player, EnumPacketClient.CLONER, x, y, z);
     }
 
+    public static void setTeleporterGUI(EntityPlayerMP player){
+        if(player == null)
+            return;
+        Server.sendData(player, EnumPacketClient.TELEPORTER);
+    }
+
 	public static void setRecipeGui(EntityPlayerMP player, RecipeCarpentry recipe){
 		if(recipe == null)
 			return;
