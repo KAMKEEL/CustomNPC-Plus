@@ -382,6 +382,9 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ScriptBlock)
 			return new GuiScriptBlock(x,y,z);
 
+        else if (gui == EnumGuiType.GlobalRemote)
+            return new GuiNPCGlobalMainMenu(null);
+
 		return null;
 	}
 

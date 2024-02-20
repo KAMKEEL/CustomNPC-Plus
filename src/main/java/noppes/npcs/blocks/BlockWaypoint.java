@@ -24,13 +24,13 @@ public class BlockWaypoint extends BlockContainer{
         this.setCreativeTab(CustomItems.tab);
 	}
 
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9)
     {
     	if(par1World.isRemote)
     		return false;
 		ItemStack currentItem = player.inventory.getCurrentItem();
-		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)) {
+		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_WAYPOINT)) {
 			TileEntity tile = par1World.getTileEntity(i, j, k);
 			NBTTagCompound compound = new NBTTagCompound();
 			tile.writeToNBT(compound);
@@ -39,14 +39,14 @@ public class BlockWaypoint extends BlockContainer{
 		}
 		return false;
     }
-    
+
     @Override
     public void onBlockPlacedBy(World world, int i, int j, int k, EntityLivingBase entityliving, ItemStack item){
     	if(entityliving instanceof EntityPlayer && world.isRemote){
     		CustomNpcs.proxy.openGui(i, j, k, EnumGuiType.Waypoint, (EntityPlayer) entityliving);
     	}
     }
-    
+
 	@Override
 	public TileEntity createNewTileEntity(World var1, int var2) {
 		return new TileWaypoint();

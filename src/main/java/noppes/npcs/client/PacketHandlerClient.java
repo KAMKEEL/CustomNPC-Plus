@@ -195,6 +195,12 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			NBTTagCompound compound = Server.readNBT(buffer);
 			NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(compound));
 		}
+        else if(type == EnumPacketClient.CLONER){
+            int x = buffer.readInt();
+            int y = buffer.readInt();
+            int z = buffer.readInt();
+            CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.MobSpawner, player);
+        }
 		else if(type == EnumPacketClient.GUI_DATA){
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 			if(gui == null)

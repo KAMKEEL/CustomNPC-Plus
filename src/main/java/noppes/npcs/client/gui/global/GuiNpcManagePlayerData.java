@@ -169,7 +169,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	@Override
 	public void confirmClicked(boolean confirm, int id){
 		if(confirm){
-			Client.sendData(EnumPacketServer.PlayerDataRegen);
+			Client.sendData(EnumPacketServer.PlayerDataMapRegen);
 			close();
 		}
 		else

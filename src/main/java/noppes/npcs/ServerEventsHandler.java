@@ -88,6 +88,8 @@ public class ServerEventsHandler {
 			}
 		}
 		else if(item.getItem() == CustomItems.cloner && !isRemote && !(event.target instanceof EntityPlayer)){
+            if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_CLONER))
+                return;
 			NBTTagCompound compound = new NBTTagCompound();
 			if(!event.target.writeToNBTOptional(compound))
 				return;
@@ -102,7 +104,7 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 		}
 		else if(item.getItem() == CustomItems.scripter && !isRemote && npcInteracted){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI))
+			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);

@@ -12,6 +12,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 
@@ -21,12 +22,12 @@ public class ItemNpcScripter extends Item{
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
     }
-	
+
     @Override
     public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
 		return 0x8B4513;
     }
-    
+
     @Override
     public boolean requiresMultipleRenderPasses(){
         return true;
@@ -36,7 +37,7 @@ public class ItemNpcScripter extends Item{
     public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player){
         if(!world.isRemote)
             return itemStack;
-        if(!ConfigScript.isScriptDev(player)){
+        if(!ConfigScript.isScriptDev(player) && !CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.TOOL_SCRIPTER)){
             player.addChatMessage(new ChatComponentTranslation("availability.permission"));
         } else {
             CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);
