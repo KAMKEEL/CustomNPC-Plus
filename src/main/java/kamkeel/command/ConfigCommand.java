@@ -1,5 +1,6 @@
 package kamkeel.command;
 
+import foxz.utils.Market;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -264,7 +265,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             }
 
             sendResult(sender, "Started Conversion Process for Market");
-            PlayerDataController.Instance.convertPlayerFiles(send, convertToDat);
+            Market.convertMarketFiles(send, convertToDat);
         }
     }
 

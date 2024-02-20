@@ -74,7 +74,7 @@ public class Market {
         }
     }
 
-    public File getNewMarketDir(){
+    public static File getNewMarketDir(){
         try{
             File file = new File(CustomNpcs.getWorldSaveDirectory(),"markets_new");
             if(file.exists()){
@@ -110,7 +110,7 @@ public class Market {
     }
 
 
-    public void convertMarketFiles(final EntityPlayerMP sender, final boolean type){
+    public static void convertMarketFiles(final EntityPlayerMP sender, final boolean type){
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> {
             String fileType;
