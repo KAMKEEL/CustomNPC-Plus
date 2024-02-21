@@ -41,6 +41,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
 	public AnimationData animationData = new AnimationData(this);
+    public PlayerDataScript scriptData;
 
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);

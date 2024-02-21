@@ -85,6 +85,11 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onScriptItemRightClick(IItemCustom handler, noppes.npcs.scripted.event.ItemEvent.RightClickEvent event) {
+        ((ScriptCustomItem) handler).callScript(EnumScriptType.RIGHT_CLICK, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onScriptItemAttack(IItemCustom handler, noppes.npcs.scripted.event.ItemEvent.AttackEvent event) {
         ((ScriptCustomItem) handler).callScript(EnumScriptType.ATTACK, event);
         return NpcAPI.EVENT_BUS.post(event);
