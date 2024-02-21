@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
+import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeManual;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.data.PlayerMail;
@@ -125,6 +126,9 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 
 			if(quest.type == EnumQuestType.AreaKill)
 				setSubGui(new GuiNpcQuestTypeKill(npc, quest, this));
+			
+			if(quest.type == EnumQuestType.Manual)
+				setSubGui(new GuiNpcQuestTypeManual(npc, quest, this));
 		}
 		if(button.id == 8)
 		{
