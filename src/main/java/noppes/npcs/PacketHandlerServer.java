@@ -1000,6 +1000,11 @@ public class PacketHandlerServer{
 			npc.updateAI = true;
 			npc.updateClient = true;
 		}
+        else if(type == EnumPacketServer.MainmenuAdvancedMarkData){
+            MarkData data = MarkData.get(npc);
+            data.setNBT(Server.readNBT(buffer));
+            data.syncClients();
+        }
 		else if(type == EnumPacketServer.JobSave){
 			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
 			NBTTagCompound compound = Server.readNBT(buffer);

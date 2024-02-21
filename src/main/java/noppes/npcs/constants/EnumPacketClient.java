@@ -53,5 +53,6 @@ public enum EnumPacketClient {
 	PAUSE_SOUNDS,
 	CONTINUE_SOUNDS,
 	STOP_SOUNDS,
-	SYNC_WEAPON
+	SYNC_WEAPON,
+    MARK_DATA
 }

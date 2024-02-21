@@ -20,7 +20,7 @@ public enum EnumPacketServer {
 	MainmenuDisplaySave(CustomNpcsPermissions.NPC_DISPLAY, true), MainmenuDisplayGet(true),
 	ModelDataSave(CustomNpcsPermissions.NPC_DISPLAY, true),
 
-	MainmenuAdvancedSave(CustomNpcsPermissions.NPC_ADVANCED,true), MainmenuAdvancedGet(true),
+	MainmenuAdvancedSave(CustomNpcsPermissions.NPC_ADVANCED,true), MainmenuAdvancedGet(true), MainmenuAdvancedMarkData(CustomNpcsPermissions.NPC_ADVANCED,true),
 	DialogNpcSet(CustomNpcsPermissions.NPC_ADVANCED),
 	DialogNpcRemove(CustomNpcsPermissions.NPC_ADVANCED, true),
 	FactionSet(CustomNpcsPermissions.NPC_ADVANCED, true),

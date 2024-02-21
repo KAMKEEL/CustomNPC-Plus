@@ -23,6 +23,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
@@ -40,6 +41,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 
+import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -861,6 +863,18 @@ public class NoppesUtilServer {
 		}
         return null;
 	}
+
+    public static Entity getEntityFromUUID(World world, UUID uuid) {
+        for (Object obj : world.loadedEntityList) {
+            if (obj instanceof Entity) {
+                Entity entity = (Entity) obj;
+                if (entity.getUniqueID().equals(uuid)) {
+                    return entity;
+                }
+            }
+        }
+        return null;
+    }
 
 	static public EntityPlayer getPlayerByName(String playername){
 		return MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);

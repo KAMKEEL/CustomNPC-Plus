@@ -15,11 +15,14 @@ import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.constants.MarkType;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.reflect.Field;
@@ -93,6 +96,16 @@ public class ClientEventHandler {
         AnimationData data = null;
         if (event.entity instanceof EntityNPCInterface) {
             data = ClientEventHandler.renderingNpc.display.animationData;
+
+            MarkData markData = MarkData.get((EntityNPCInterface) event.entity);
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            for(MarkData.Mark m : markData.marks){
+                if(m.getType() != MarkType.NONE && m.availability.isAvailable(player)){
+                    MarkRenderer.render(event.entity, event.x, event.y, event.z, m);
+                    break;
+                }
+            }
+
         } else if (event.entity instanceof EntityPlayer) {
             if (ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
                 data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
@@ -118,6 +131,7 @@ public class ClientEventHandler {
                 animation.increaseTime();
             }
         }
+
         ClientEventHandler.renderingNpc = null;
     }
 
