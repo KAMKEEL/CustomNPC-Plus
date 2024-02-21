@@ -13,6 +13,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
@@ -200,6 +201,8 @@ public class NpcAPI extends AbstractNpcAPI {
                 data = new ScriptEntityData(new ScriptAnimal<>((EntityAnimal) entity));
             else if(entity instanceof EntityMob)
                 data = new ScriptEntityData(new ScriptMonster<>((EntityMob) entity));
+            else if(entity instanceof EntityVillager)
+                data = new ScriptEntityData(new ScriptVillager<>((EntityVillager) entity));
             else if(entity instanceof EntityLiving)
                 data = new ScriptEntityData(new ScriptLiving<>((EntityLiving) entity));
             else if(entity instanceof EntityLivingBase)
