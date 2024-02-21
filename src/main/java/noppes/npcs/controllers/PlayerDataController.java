@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
-import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class PlayerDataController {
 	public static PlayerDataController Instance;
@@ -66,7 +66,7 @@ public class PlayerDataController {
 								}
 							}
 							if(file.getName().endsWith(".dat")){
-								NBTTagCompound compound = loadNBTData(file);
+								NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
 								if(compound.hasKey("PlayerName")){
 									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 4));
 								}
@@ -128,7 +128,7 @@ public class PlayerDataController {
 	}
 
 	public synchronized void savePlayerDataMap(){
-		playerDataThread.execute(() -> {
+		customNPCThread.execute(() -> {
 			try {
 				File saveDir = CustomNpcs.getWorldSaveDirectory();
 				File file = new File(saveDir, "playerdatamap.dat_new");
@@ -230,7 +230,7 @@ public class PlayerDataController {
 			File file = new File(saveDir, filename);
 			if(file.exists()){
 				if(ConfigMain.DatFormat){
-					return loadNBTData(file);
+					return NBTJsonUtil.loadNBTData(file);
 				} else {
 					return NBTJsonUtil.LoadFile(file);
 				}
@@ -242,16 +242,7 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public static NBTTagCompound loadNBTData(File file){
-		try {
-			return CompressedStreamTools.readCompressed(new FileInputStream(file));
-		} catch (Exception e) {
-			LogWriter.error("Error loading: " + file.getName(), e);
-		}
-		return new NBTTagCompound();
-	}
-
-	public void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
+    public void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
 		synchronized (playerDataCache) {
 			playerDataCache.put(uuid, new CacheHashMap.CachedObject<>(playerCompound));
 		}
@@ -453,7 +444,7 @@ public class PlayerDataController {
 								}
 							}
 							if(file.getName().endsWith(".dat")){
-								NBTTagCompound compound = loadNBTData(file);
+								NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
 								if(compound.hasKey("PlayerName")){
 									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 4));
 								}
@@ -536,7 +527,7 @@ public class PlayerDataController {
 								}
 							} else {
 								if(file.getName().endsWith(".dat")){
-									compound = loadNBTData(file);
+									compound = NBTJsonUtil.loadNBTData(file);
 									if(compound.hasKey("PlayerName")){
 										filename = file.getName().substring(0, file.getName().length() - 4);
 										valid = true;

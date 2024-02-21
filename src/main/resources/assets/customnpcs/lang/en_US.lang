@@ -87,6 +87,7 @@ gui.untilclose=UntilClose
 gui.whenavailable=OnTheMove
 gui.ignoreDamage=Ignore damage
 gui.ignoreNBT=Ignore NBT
+gui.recordHistory=Record History
 gui.minrange=MinimumRange
 gui.engagedistance=EngageDistance
 gui.orbitdistance=OrbitDistance

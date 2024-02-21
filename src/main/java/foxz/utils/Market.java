@@ -9,6 +9,8 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
+import noppes.npcs.util.CacheHashMap;
+import noppes.npcs.util.MarketCachedObject;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
@@ -16,28 +18,68 @@ import java.io.FileOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static noppes.npcs.controllers.PlayerDataController.loadNBTData;
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class Market {
 
-    static public void save(RoleTrader r, String name) {
+    private static final CacheHashMap<String, MarketCachedObject> marketCache = new CacheHashMap<>(5 * 60 * 1000, 1 * 60 * 1000);
+
+    public static void save(RoleTrader r, String name) {
         if(name.isEmpty())
             return;
+
+        NBTTagCompound roleCompound = r.writeNBT(new NBTTagCompound());
+        roleCompound.setString("SaveName", name);
+        putMarketCache(name, roleCompound);
+        if(r.recordHistory)
+            return;
+
+        saveFile(roleCompound);
+    }
+
+    public static void saveFile(NBTTagCompound compound) {
+        String name = compound.getString("SaveName");
         File file = getFile(name + "_new");
         File file1 = getFile(name);
+        customNPCThread.execute(() -> {
+            try {
+                if(ConfigMain.MarketDatFormat){
+                    CompressedStreamTools.writeCompressed(compound, new FileOutputStream(file));
+                } else {
+                    NBTJsonUtil.SaveFile(file, compound);
+                }
+                if(file1.exists()){
+                    file1.delete();
+                }
+                file.renameTo(file1);
+            } catch (Exception e) {
 
-        try {
-            if(ConfigMain.MarketDatFormat){
-                CompressedStreamTools.writeCompressed(r.writeNBT(new NBTTagCompound()), new FileOutputStream(file));
-            } else {
-                NBTJsonUtil.SaveFile(file, r.writeNBT(new NBTTagCompound()));
             }
-            if(file1.exists()){
-                file1.delete();
-            }
-            file.renameTo(file1);
-        } catch (Exception e) {
+        });
+    }
 
+    public static void getMarket(RoleTrader role, String name){
+        NBTTagCompound data = getMarketCache(name);
+        if(data != null){
+            role.readNBT(data);
+            return;
+        }
+
+        load(role, name);
+    }
+
+    public static NBTTagCompound getMarketCache(final String name) {
+        synchronized (marketCache) {
+            if (!marketCache.containsKey(name)) {
+                return null;
+            }
+            return marketCache.get(name).getObject();
+        }
+    }
+
+    public static void putMarketCache(final String name, final NBTTagCompound role) {
+        synchronized (marketCache) {
+            marketCache.put(name, new MarketCachedObject(role));
         }
     }
 
@@ -51,7 +93,7 @@ public class Market {
 
         try {
             if(ConfigMain.MarketDatFormat){
-                NBTTagCompound compound = loadNBTData(file);
+                NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
                 role.readNBT(compound);
             }
             else {
@@ -106,7 +148,7 @@ public class Market {
         if(!getFile(marketName).exists())
             Market.save((RoleTrader) npc.roleInterface, marketName);
 
-        Market.load((RoleTrader) npc.roleInterface, marketName);
+        Market.getMarket((RoleTrader) npc.roleInterface, marketName);
     }
 
 
@@ -164,7 +206,7 @@ public class Market {
                                 }
                             } else {
                                 if(file.getName().endsWith(".dat")){
-                                    compound = loadNBTData(file);
+                                    compound = NBTJsonUtil.loadNBTData(file);
                                     if(compound.hasKey("PlayerName")){
                                         filename = file.getName().substring(0, file.getName().length() - 4);
                                         valid = true;

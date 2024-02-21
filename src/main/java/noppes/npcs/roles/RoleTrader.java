@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RoleTrader extends RoleInterface{
+public class RoleTrader extends RoleInterface {
 
     public String marketName = "";
 	public NpcMiscInventory inventoryCurrency;
@@ -23,14 +23,13 @@ public class RoleTrader extends RoleInterface{
 
 	public boolean ignoreDamage = false;
 	public boolean ignoreNBT = false;
-	
-	public boolean toSave = false;
-	
+    public boolean recordHistory = false;
+
 	public int[] purchases;
 	public int[] disableSlot;
 	public HashMap<String, int[]> playerPurchases;
 	public HashMap<String, int[]> playerDisableSlot;
-	
+
 	public RoleTrader(EntityNPCInterface npc) {
 		super(npc);
 		inventoryCurrency = new NpcMiscInventory(36);
@@ -45,10 +44,6 @@ public class RoleTrader extends RoleInterface{
 	public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
         nbttagcompound.setString("TraderMarket", marketName);
 		writeNBT(nbttagcompound);
-        if (toSave && !npc.isRemote()) {
-            Market.save(this, marketName);
-        }
-        toSave = false;
         return nbttagcompound;
 	}
 
@@ -57,10 +52,13 @@ public class RoleTrader extends RoleInterface{
     	nbttagcompound.setTag("TraderSold", inventorySold.getToNBT());
         nbttagcompound.setBoolean("TraderIgnoreDamage", ignoreDamage);
         nbttagcompound.setBoolean("TraderIgnoreNBT", ignoreNBT);
-        nbttagcompound.setIntArray("Purchases", purchases);
+        nbttagcompound.setBoolean("RecordHistory", recordHistory);
         nbttagcompound.setIntArray("DisableSlot", disableSlot);
-        nbttagcompound.setTag("PlayerPurchases", NBTTags.nbtStringIntegerArrayMap(playerPurchases));
         nbttagcompound.setTag("PlayerDisableSlot", NBTTags.nbtStringIntegerArrayMap(playerDisableSlot));
+        if(recordHistory){
+            nbttagcompound.setIntArray("Purchases", purchases);
+            nbttagcompound.setTag("PlayerPurchases", NBTTags.nbtStringIntegerArrayMap(playerPurchases));
+        }
         return nbttagcompound;
 	}
 
@@ -68,12 +66,11 @@ public class RoleTrader extends RoleInterface{
 	public void readFromNBT(NBTTagCompound nbttagcompound) {
         marketName = nbttagcompound.getString("TraderMarket");
 		readNBT(nbttagcompound);
-        
+
     	try {
-			Market.load(this, marketName);
+			Market.getMarket(this, marketName);
 		} catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-			
 		}
 	}
 
@@ -82,25 +79,28 @@ public class RoleTrader extends RoleInterface{
 		inventorySold.setFromNBT(nbttagcompound.getCompoundTag("TraderSold"));
         ignoreDamage = nbttagcompound.getBoolean("TraderIgnoreDamage");
         ignoreNBT = nbttagcompound.getBoolean("TraderIgnoreNBT");
-        purchases = nbttagcompound.getIntArray("Purchases");
+        recordHistory = nbttagcompound.getBoolean("RecordHistory");
+        disableSlot = nbttagcompound.getIntArray("DisableSlot");
+        playerDisableSlot = NBTTags.getStringIntegerArrayMap(nbttagcompound.getTagList("PlayerDisableSlot", 10), 18);
+        if(recordHistory){
+            purchases = nbttagcompound.getIntArray("Purchases");
+            playerPurchases = NBTTags.getStringIntegerArrayMap(nbttagcompound.getTagList("PlayerPurchases", 10), 18);
+        }
         if (purchases == null || purchases.length != 18) {
         	purchases = new int[18];
         	for (int i = 0; i < purchases.length; ++i) purchases[i] = 0;
         }
-        disableSlot = nbttagcompound.getIntArray("DisableSlot");
         if (disableSlot == null || disableSlot.length != 18) {
         	disableSlot = new int[18];
         	for (int i = 0; i < disableSlot.length; ++i) disableSlot[i] = 0;
         }
-        playerPurchases = NBTTags.getStringIntegerArrayMap(nbttagcompound.getTagList("PlayerPurchases", 10), 18);
-        playerDisableSlot = NBTTags.getStringIntegerArrayMap(nbttagcompound.getTagList("PlayerDisableSlot", 10), 18);
 	}
-	
+
 	@Override
 	public void interact(EntityPlayer player) {
 		npc.say(player, npc.advanced.getInteractLine());
         try {
-        	Market.load(this, marketName);
+        	Market.getMarket(this, marketName);
         } catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
         }
@@ -117,19 +117,22 @@ public class RoleTrader extends RoleInterface{
 		}
 		return false;
 	}
-	
+
 	public void addPurchase(int slot, String playerName) {
 		if(slot >= 18 || slot < 0) return;
 		++purchases[slot];
 		++getArrayByName(playerName, playerPurchases)[slot];
+
+        if(recordHistory)
+            Market.save(this, marketName);
 	}
-	
+
 	public boolean isSlotEnabled(int slot, String playerName) {
 		if(slot >= 18 || slot < 0) return false;
 		if (disableSlot[slot] > 0) return false;
 		return getArrayByName(playerName, playerDisableSlot)[slot] <= 0;
 	}
-	
+
 	public int[] getArrayByName(String name, HashMap<String, int[]> map) {
 		map.computeIfAbsent(name, k -> new int[18]);
 		return map.get(name);

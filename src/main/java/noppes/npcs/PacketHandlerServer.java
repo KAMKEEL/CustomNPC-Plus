@@ -1094,6 +1094,8 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TraderMarketSave){
 			String market = Server.readString(buffer);
+            if(market == null)
+                return;
 			boolean bo = buffer.readBoolean();
 			if(npc.roleInterface instanceof RoleTrader){
 				if(bo)

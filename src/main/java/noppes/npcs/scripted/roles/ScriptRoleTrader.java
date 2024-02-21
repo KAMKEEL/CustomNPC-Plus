@@ -30,7 +30,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
 			role.inventoryCurrency.items.put(slot + 18, currency2.getMCItemStack());
 		else
 			role.inventoryCurrency.items.remove(slot + 18);
-		
+
 		role.inventorySold.items.put(slot, sold.getMCItemStack());
 	}
 
@@ -55,7 +55,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
 		}
 		return currency;
 	}
-	
+
 
 	public void removeSellOption(int slot){
 		if(slot >= 18 || slot < 0) return;
@@ -66,7 +66,7 @@ public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader
 
 	public void setMarket(String name){
 		role.marketName = name;
-		Market.load(role, name);
+		Market.getMarket(role, name);
 	}
 
 	public String getMarket(){
