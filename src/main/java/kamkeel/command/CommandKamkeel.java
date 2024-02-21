@@ -28,6 +28,7 @@ public class CommandKamkeel extends CommandBase{
 		registerCommand(new QuestCategoryCommand());
 		registerCommand(new DialogCommand());
 		registerCommand(new DialogCategoryCommand());
+		registerCommand(new ObjectiveCommand());
 		registerCommand(new FactionCommand());
 		registerCommand(new NpcCommand());
 		registerCommand(new CloneCommand());
