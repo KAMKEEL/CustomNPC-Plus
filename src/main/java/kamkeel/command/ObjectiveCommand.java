@@ -102,15 +102,13 @@ public class ObjectiveCommand extends CommandKamkeelBase {
 
         for(PlayerData playerdata : data) {
             QuestData questdata = playerdata.questData.activeQuests.get(questid);
-            if (questdata instanceof IQuestObjective) {
-                IQuestInterface iQuestInterface = questdata.quest.getQuestInterface();
-                if (iQuestInterface instanceof QuestInterface) {
-                    QuestInterface questInterface = (QuestInterface)iQuestInterface;
-                    IQuestObjective objective = questInterface.getObjectives((EntityPlayer)sender)[objectivenumber];
-                    changeMethod.apply(objective, progress);
-                    sendResult(sender, String.format("Objective current value for Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77' is %d of %d" , questid, playerdata.playername, objectivenumber, objective.getProgress(), objective.getMaxProgress()));
-                    return;
-                }
+            IQuestInterface iQuestInterface = questdata.quest.getQuestInterface();
+            if (iQuestInterface instanceof QuestInterface) {
+                QuestInterface questInterface = (QuestInterface)iQuestInterface;
+                IQuestObjective objective = questInterface.getObjectives((EntityPlayer)sender)[objectivenumber];
+                changeMethod.apply(objective, progress);
+                sendResult(sender, String.format("Objective current value for Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77' is %d of %d" , questid, playerdata.playername, objectivenumber, objective.getProgress(), objective.getMaxProgress()));
+                return;
             }
         }
             
@@ -157,14 +155,12 @@ public class ObjectiveCommand extends CommandKamkeelBase {
 
         for(PlayerData playerdata : data) {
             QuestData questdata = playerdata.questData.activeQuests.get(questid);
-            if (questdata instanceof IQuestObjective) {
-                IQuestInterface iQuestInterface = questdata.quest.getQuestInterface();
-                if (iQuestInterface instanceof QuestInterface) {
-                    QuestInterface questInterface = (QuestInterface)iQuestInterface;
-                    IQuestObjective objective = questInterface.getObjectives((EntityPlayer)sender)[objectivenumber];
-                    sendResult(sender, String.format("Objective current value for Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77' is %d of %d" , questid, playerdata.playername, objectivenumber, objective.getProgress(), objective.getMaxProgress()));
-                    return;
-                }
+            IQuestInterface iQuestInterface = questdata.quest.getQuestInterface();
+            if (iQuestInterface instanceof QuestInterface) {
+                QuestInterface questInterface = (QuestInterface)iQuestInterface;
+                IQuestObjective objective = questInterface.getObjectives((EntityPlayer)sender)[objectivenumber];
+                sendResult(sender, String.format("Objective current value for Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77' is %d of %d" , questid, playerdata.playername, objectivenumber, objective.getProgress(), objective.getMaxProgress()));
+                return;
             }
         }
             
