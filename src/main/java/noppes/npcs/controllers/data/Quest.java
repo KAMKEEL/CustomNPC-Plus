@@ -87,6 +87,8 @@ public class Quest implements ICompatibilty, IQuest {
 			questInterface = new QuestKill();
 		else if(type == EnumQuestType.Location)
 			questInterface = new QuestLocation();
+		else if(type == EnumQuestType.Manual)
+			questInterface = new QuestManual();
 
 		if(questInterface != null)
 			questInterface.questId = id;
