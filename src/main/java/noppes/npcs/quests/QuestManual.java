@@ -19,9 +19,9 @@ import noppes.npcs.scripted.CustomNPCsException;
 
 public class QuestManual extends QuestInterface {
 
-    public static final String NBT_KEY_OBJECTIVE = "QuestManual";
-    public static final String DATA_KEY_OBJECTIVE_FOUND = "QuestManualFound";
-    public static final Integer OBJECTIVES_COUNT = 5;
+    public static final String NBT_KEY_OBJECTIVE = "QuestManuals";
+    public static final String DATA_KEY_OBJECTIVE_FOUND = "QuestManualsFound";
+    public static final Integer OBJECTIVES_COUNT = 10;
     
     public HashMap<String, Integer> objectives = new HashMap<String, Integer>();
 
@@ -32,9 +32,10 @@ public class QuestManual extends QuestInterface {
 
     @Override
     public void readEntityFromNBT(NBTTagCompound compound) {
-        objectives.clear();
         if (compound.hasKey(NBT_KEY_OBJECTIVE)) {
-            objectives.putAll(NBTTags.getStringIntegerMap(compound.getTagList(NBT_KEY_OBJECTIVE, 5)));
+            objectives = NBTTags.getStringIntegerMap(compound.getTagList(NBT_KEY_OBJECTIVE, OBJECTIVES_COUNT));
+        } else {
+            objectives.clear();
         }
     }
 
@@ -64,14 +65,18 @@ public class QuestManual extends QuestInterface {
 		Vector<String> vec = new Vector<String>();
 		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.activeQuests.get(questId);
+
 		if(data == null)
 			return vec;
+
 		HashMap<String,Integer> found = getFound(data);
+
 		for(String entityName : objectives.keySet()){
-			//Class cls = (Class) EntityList.stringToClassMapping.get(entityName);
 			int amount = 0;
+
 			if(found.containsKey(entityName))
 				amount = found.get(entityName);
+
 			String state = amount + "/" + objectives.get(entityName);
 			
 			vec.add(entityName + ": " + state);
