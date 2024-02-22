@@ -125,8 +125,7 @@ public class QuestManual extends QuestInterface {
 
 			if(questdata != null) {
 				HashMap<String, Integer> found = parent.getFound(questdata);
-                String key = QuestManual.DATA_KEY_OBJECTIVE_FOUND + objective;
-				return !found.containsKey(key) ? 0 : (Integer)found.get(key);
+				return !found.containsKey(objective) ? 0 : (Integer)found.get(objective);
 			}
 
 			return 0;
