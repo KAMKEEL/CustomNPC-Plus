@@ -403,6 +403,7 @@ quest.item=Item
 quest.kill=Tötungs Quest
 quest.areakill=Bereich Tötungs Quest
 quest.dialog=Dialog
+quest.manual=Manuell
 quest.location=Location
 quest.completedtext=Abgeschlossener Text
 quest.questlogtext=Questlog text

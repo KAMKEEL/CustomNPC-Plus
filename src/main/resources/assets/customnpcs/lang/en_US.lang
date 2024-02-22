@@ -549,6 +549,7 @@ quest.item=Item
 quest.kill=Kill
 quest.areakill=AreaKill
 quest.dialog=Dialog
+quest.manual=Manual
 quest.location=Location
 quest.completedtext=Completed text
 quest.questlogtext=Questlog text
