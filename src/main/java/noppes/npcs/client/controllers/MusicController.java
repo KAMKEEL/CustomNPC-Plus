@@ -1,27 +1,24 @@
 package noppes.npcs.client.controllers;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
 
 public class MusicController {
-	//public TreeSet<String> sounds = new TreeSet<String>();
-	//public TreeSet<String> music = new TreeSet<String>();
-	
+
 	public static MusicController Instance;
     public PositionedSoundRecord playing;
     public ResourceLocation playingResource;
     public Entity playingEntity;
 
-	//private SoundPoolEntry musicPool;
-	
 	public MusicController(){
 		Instance = this;
 	}
-
 
 	public void stopMusic(){
 		SoundHandler handler = Minecraft.getMinecraft().getSoundHandler();
@@ -32,9 +29,9 @@ public class MusicController {
 		playingEntity = null;
 		playing = null;
 	}
-	
+
 	public void playStreaming(String music, Entity entity){
-		if(isPlaying(music)){			
+		if(isPlaying(music)){
 			return;
 		}
 		stopMusic();
@@ -57,7 +54,7 @@ public class MusicController {
         playing = PositionedSoundRecord.func_147673_a(playingResource);
         handler.playSound(playing);
 	}
-	
+
 
 	public boolean isPlaying(String music) {
 		ResourceLocation resource = new ResourceLocation(music);
@@ -66,7 +63,7 @@ public class MusicController {
 		}
     	return Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(playing);
 	}
-	
+
 	public void playSound(String music, float x, float y, float z) {
 		Minecraft.getMinecraft().theWorld.playSound(x, y, z, music, 1, 1, false);
 	}

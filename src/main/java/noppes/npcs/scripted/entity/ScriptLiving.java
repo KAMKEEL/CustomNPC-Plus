@@ -8,10 +8,8 @@ import noppes.npcs.scripted.NpcAPI;
 
 public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> implements IEntityLiving {
 
-	private T entity;
 	public ScriptLiving(T entity) {
 		super(entity);
-		this.entity = entity;
 	}
 
 	@Override
@@ -33,7 +31,7 @@ public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> im
 		IEntityLivingBase base = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity.getAttackTarget());
 		return (base != null)? base: super.getAttackTarget();
 	}
-	
+
 	/**
 	 * Start path finding toward this target
 	 * @param x Destination x position
@@ -44,21 +42,21 @@ public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> im
 	public void navigateTo(double x, double y, double z, double speed){
 		entity.getNavigator().tryMoveToXYZ(x, y, z, speed);
 	}
-	
+
 	/**
 	 * Stop navigating wherever this npc was walking to
 	 */
 	public void clearNavigation(){
 		entity.getNavigator().clearPathEntity();
 	}
-	
+
 	/**
 	 * @return Whether or not this entity is navigating somewhere
 	 */
 	public boolean isNavigating(){
 		return !entity.getNavigator().noPath();
 	}
-	
+
 	@Override
 	public boolean canSeeEntity(IEntity entity){
 		return this.entity.getEntitySenses().canSee(entity.getMCEntity());

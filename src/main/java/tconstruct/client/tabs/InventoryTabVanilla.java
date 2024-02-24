@@ -10,18 +10,7 @@ public class InventoryTabVanilla extends AbstractTab {
 
 	@Override
 	public void onTabClicked() {
-		Thread t = new Thread(){
-			@Override
-			public void run(){
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				TabRegistry.openInventoryGui();
-			}
-		};
-		t.start();
+        TabRegistry.openInventoryGui();
 	}
 
 	@Override

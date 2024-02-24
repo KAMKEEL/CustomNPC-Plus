@@ -20,11 +20,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
-	protected T entity;
 
 	public ScriptLivingBase(T entity){
 		super(entity);
-		this.entity = entity;
 	}
 
 	/**

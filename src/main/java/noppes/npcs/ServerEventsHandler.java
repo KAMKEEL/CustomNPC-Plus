@@ -403,4 +403,15 @@ public class ServerEventsHandler {
 	public void populateChunk(PopulateChunkEvent.Post event){
 		NPCSpawning.performWorldGenSpawning(event.world, event.chunkX, event.chunkZ, event.rand);
 	}
+
+    @SubscribeEvent
+    public void playerTracking(PlayerEvent.StartTracking event){
+        if(!(event.target instanceof EntityNPCInterface) || event.target.worldObj.isRemote)
+            return;
+
+        MarkData data = MarkData.get((EntityNPCInterface) event.target);
+        if(data.marks.isEmpty())
+            return;
+        Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.MARK_DATA, event.target.getEntityId(), data.getNBT());
+    }
 }

@@ -41,6 +41,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
 	public AnimationData animationData = new AnimationData(this);
+    public PlayerDataScript scriptData;
 
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
@@ -277,7 +278,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		PlayerDataController.Instance.putPlayerMap(playername, uuid);
 		PlayerDataController.Instance.putPlayerDataCache(uuid, this);
-		CustomNPCsThreader.playerDataThread.execute(() -> {
+		CustomNPCsThreader.customNPCThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.Instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");

@@ -1000,6 +1000,11 @@ public class PacketHandlerServer{
 			npc.updateAI = true;
 			npc.updateClient = true;
 		}
+        else if(type == EnumPacketServer.MainmenuAdvancedMarkData){
+            MarkData data = MarkData.get(npc);
+            data.setNBT(Server.readNBT(buffer));
+            data.syncClients();
+        }
 		else if(type == EnumPacketServer.JobSave){
 			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
 			NBTTagCompound compound = Server.readNBT(buffer);
@@ -1094,13 +1099,14 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TraderMarketSave){
 			String market = Server.readString(buffer);
+            if(market == null)
+                return;
 			boolean bo = buffer.readBoolean();
 			if(npc.roleInterface instanceof RoleTrader){
 				if(bo)
 					Market.setMarket(npc, market);
 				else
 					Market.save((RoleTrader)npc.roleInterface, market);
-				//NoppesUtilServer.sendRoleData(player, npc);
 			}
 		}
 		else if(type == EnumPacketServer.AnimationsGet){

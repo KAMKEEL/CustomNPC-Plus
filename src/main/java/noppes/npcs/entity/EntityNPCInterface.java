@@ -394,7 +394,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		updateClient = false;
 	}
 
-
 	@Override
 	public boolean interact(EntityPlayer player) {
 		if(worldObj.isRemote)

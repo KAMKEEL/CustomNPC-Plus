@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -35,6 +36,7 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -103,6 +105,13 @@ public class PacketHandlerClient extends PacketHandlerServer{
             RecipeController.Instance.anvilRecipes = RecipeController.syncRecipes;
             RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
 		}
+        else if(type == EnumPacketClient.MARK_DATA){
+            Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
+            if(!(entity instanceof EntityNPCInterface))
+                return;
+            MarkData data = MarkData.get((EntityNPCInterface) entity);
+            data.setNBT(Server.readNBT(buffer));
+        }
 		else if(type == EnumPacketClient.DIALOG){
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
@@ -200,6 +209,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
             int y = buffer.readInt();
             int z = buffer.readInt();
             CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.MobSpawner, player);
+        }
+        else if(type == EnumPacketClient.TELEPORTER){
+            CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);
         }
 		else if(type == EnumPacketClient.GUI_DATA){
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;

@@ -20,25 +20,24 @@ import java.util.HashMap;
 public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData
 {
 	private GuiScreen parent;
-	
 	private QuestDialog quest;
-	
+
 	private HashMap<Integer, String> data = new HashMap<Integer, String>();
 
     public GuiNpcQuestTypeDialog(EntityNPCInterface npc, Quest q, GuiScreen parent) {
     	this.npc = npc;
     	this.parent = parent;
     	title = "Quest Dialog Setup";
-    	
+
     	quest = (QuestDialog) q.questInterface;
 
 		setBackground("menubg.png");
 		xSize = 256;
 		ySize = 216;
 		closeOnEsc = true;
-		Client.sendData(EnumPacketServer.QuestDialogGetTitle, 
-				quest.dialogs.containsKey(0)?quest.dialogs.get(0):-1, 
-				quest.dialogs.containsKey(1)?quest.dialogs.get(1):-1, 
+		Client.sendData(EnumPacketServer.QuestDialogGetTitle,
+				quest.dialogs.containsKey(0)?quest.dialogs.get(0):-1,
+				quest.dialogs.containsKey(1)?quest.dialogs.get(1):-1,
 				quest.dialogs.containsKey(2)?quest.dialogs.get(2):-1);
 	}
 
@@ -48,12 +47,12 @@ public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelecti
 			String title = "dialog.selectoption";
 			if(data.containsKey(i))
 				title = data.get(i);
-			this.addButton(new GuiNpcButton(i + 9, guiLeft + 10, 55 + i * 22, 20, 20, "X"));
-			this.addButton(new GuiNpcButton(i + 3, guiLeft + 34, 55 + i * 22, 210, 20, title));
+			this.addButton(new GuiNpcButton(i + 9, guiLeft + 10, guiTop + 55 + i * 22, 20, 20, "X"));
+			this.addButton(new GuiNpcButton(i + 3, guiLeft + 34, guiTop + 55 + i * 22, 210, 20, title));
 
 		}
 		this.addButton(new GuiNpcButton(0, guiLeft + 150, guiTop + 190, 98, 20, "gui.back"));
-		
+
 	}
 
 	private int selectedSlot;
@@ -67,9 +66,10 @@ public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelecti
 			int id = -1;
 			if(quest.dialogs.containsKey(selectedSlot))
 				id = quest.dialogs.get(selectedSlot);
-			GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, parent, id);
-			gui.listener = this;
-			NoppesUtil.openGUI(player, gui);
+
+            GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), id);
+            gui.listener = this;
+            NoppesUtil.openGUI(player, gui);
 		}
 		if (button.id >= 9 && button.id < 15) {
 			int slot = button.id - 9;

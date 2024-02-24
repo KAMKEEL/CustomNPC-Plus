@@ -57,6 +57,7 @@ public class CustomNpcsPermissions{
 	public static final Permission TOOL_SCRIPTER = new Permission("customnpcs.tool.scripter");
     public static final Permission TOOL_CLONER = new Permission("customnpcs.tool.cloner");
     public static final Permission TOOL_SCRIPTED_ITEM = new Permission("customnpcs.tool.scripteditem");
+    public static final Permission TOOL_TELEPORTER = new Permission("customnpcs.tool.teleporter");
 
     // Edit Villager
 	public static final Permission EDIT_VILLAGER = new Permission("customnpcs.edit.villager");
