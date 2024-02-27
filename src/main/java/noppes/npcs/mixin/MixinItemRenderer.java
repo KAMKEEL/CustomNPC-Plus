@@ -122,8 +122,16 @@ public abstract class MixinItemRenderer {
         float f4 = entityplayersp.prevRenderArmYaw + (entityplayersp.renderArmYaw - entityplayersp.prevRenderArmYaw) * partialRenderTick;
         GL11.glRotatef((entityclientplayermp.rotationPitch - f3) * 0.1F, 1.0F, 0.0F, 0.0F);
         GL11.glRotatef((entityclientplayermp.rotationYaw - f4) * 0.1F, 0.0F, 1.0F, 0.0F);
-        ItemStack itemstack = itemRenderer.itemToRender;
 
+        if (animData != null && animData.isActive()) {
+            if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+                FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
+                float pi = 180 / (float) Math.PI;
+                GL11.glRotatef(-part.prevRotations[1] * pi, 0, 1, 0);
+            }
+        }
+
+        ItemStack itemstack = itemRenderer.itemToRender;
         int i = Minecraft.getMinecraft().theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(entityclientplayermp.posX), MathHelper.floor_double(entityclientplayermp.posY), MathHelper.floor_double(entityclientplayermp.posZ), 0);
         int j = i % 65536;
         int k = i / 65536;
