@@ -1167,5 +1167,11 @@ markov.gender.name=Gender
 markov.gender.either=Either
 markov.gender.female=Female
 markov.gender.male=Male
-
 markov.generate=Generate
+
+mark.question=Question
+mark.exclamation=Exclamation
+mark.pointer=Pointer
+mark.skull=Skull
+mark.cross=Cross
+mark.star=Star
