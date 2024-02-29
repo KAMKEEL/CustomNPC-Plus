@@ -320,8 +320,6 @@ public class RenderNPCInterface extends RenderLiving{
 				} else {
 					npc.textureLocation = new ResourceLocation(npc.display.texture);
 				}
-			} else if(LastTextureTick < 5) { //fixes request flood somewhat
-				return AbstractClientPlayer.locationStevePng;
 			} else if(npc.display.skinType == 1 && npc.display.playerProfile != null) {
 				Minecraft minecraft = Minecraft.getMinecraft();
 				Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
@@ -330,22 +328,25 @@ public class RenderNPCInterface extends RenderLiving{
 				}
 				LastTextureTick = 0;
 			} else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
-				try {
-					MessageDigest digest = MessageDigest.getInstance("MD5");
-					byte[] hash = digest.digest(npc.display.url.getBytes("UTF-8"));
-					StringBuilder sb = new StringBuilder(2*hash.length);
-					for (byte b : hash) {
-						sb.append(String.format("%02x", b&0xff));
-					}
-					if (npc.display.skinType == 2) {
-						npc.textureLocation = new ResourceLocation("skins/" + sb.toString());
-						ClientCacheHandler.getNPCTexture(npc.display.url, false, npc.textureLocation);
-					} else {
-						npc.textureLocation = new ResourceLocation("skins64/" + sb.toString());
-						ClientCacheHandler.getNPCTexture(npc.display.url, true, npc.textureLocation);
-					}
-					LastTextureTick = 0;
-				} catch(Exception ignored){}
+                ResourceLocation location = new ResourceLocation("skins/" + (npc.display.modelType + npc.display.url).hashCode());
+                // If URL Empty Steve
+                if(npc.display.url.isEmpty()){ return AbstractClientPlayer.locationStevePng; }
+                // If URL Cached then grab it
+                else if(ClientCacheHandler.isCachedNPC(location)){
+                    try {
+                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0, location).getLocation();
+                    } catch(Exception ignored){}
+                }
+                // For New URL Requests do not spam it
+                else if(LastTextureTick < 5) { //fixes request flood somewhat
+                    return AbstractClientPlayer.locationStevePng;
+                }
+                else {
+                    try {
+                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0, location).getLocation();
+                        LastTextureTick = 0;
+                    } catch(Exception ignored){}
+                }
 			} else {
 				return AbstractClientPlayer.locationStevePng;
 			}

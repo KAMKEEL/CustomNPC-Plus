@@ -43,6 +43,12 @@ public class ClientCacheHandler {
         }
     }
 
+    public static boolean isCachedNPC(ResourceLocation resource) {
+        synchronized (imageDataCache) {
+            return imageDataCache.containsKey(resource.getResourcePath());
+        }
+    }
+
     public static void clearCache() {
         ClientCacheHandler.imageDataCache.clear();
         ClientCacheHandler.animationCache.clear();
