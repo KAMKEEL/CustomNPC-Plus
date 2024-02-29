@@ -26,7 +26,6 @@ public class PlayerDataScript implements INpcScriptHandler {
     private IPlayer playerAPI;
     private long lastPlayerUpdate = 0L;
     public long lastInited = -1L;
-    public boolean hadInteract = true;
     public boolean enabled = false;
 
     public PlayerDataScript(EntityPlayer player) {

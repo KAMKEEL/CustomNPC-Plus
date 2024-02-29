@@ -41,7 +41,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
 	public AnimationData animationData = new AnimationData(this);
-    public PlayerDataScript scriptData;
 
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
@@ -61,8 +60,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public int companionID = 0;
 
 	public boolean isGUIOpen = false;
+    public boolean hadInteract = true;
 
-	public ScreenSize screenSize = new ScreenSize(-1,-1);
+    public ScreenSize screenSize = new ScreenSize(-1,-1);
 
 	public void onLogin() {
 

@@ -291,7 +291,6 @@ public class PlayerDataController {
 		if(data != null){
             if(data.player == null){
                 data.player = player;
-                data.scriptData = new PlayerDataScript(player);
             }
 			return data;
 		}
@@ -300,13 +299,11 @@ public class PlayerDataController {
 		if(data == null){
 			player.registerExtendedProperties("CustomNpcsData", data = new PlayerData());
 			data.player = player;
-            data.scriptData = new PlayerDataScript(player);
 			data.load();
 		}
 
         if(data.player == null){
             data.player = player;
-            data.scriptData = new PlayerDataScript(player);
         }
 		return data;
 	}

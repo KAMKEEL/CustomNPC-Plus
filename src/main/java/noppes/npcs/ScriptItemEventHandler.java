@@ -124,30 +124,38 @@ public class ScriptItemEventHandler {
         if(event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer)
             return;
 
-        if(event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR){
-            PlayerDataScript handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer).scriptData;
-            if(handler.hadInteract) {
-                handler.hadInteract = false;
-                return;
+        if (PlayerDataController.Instance != null) {
+            if(event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR){
+                PlayerData handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+                if(handler == null)
+                    return;
+
+                if(handler.hadInteract) {
+                    handler.hadInteract = false;
+                    return;
+                }
+                try {
+                    if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
+                        IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
+                        ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 0, null);
+                        event.setCanceled(EventHooks.onScriptItemRightClick(isw, eve));
+                    }
+                } catch(Exception e) {}
             }
-            try {
-                if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                    IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                    ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 0, null);
-                    event.setCanceled(EventHooks.onScriptItemRightClick(isw, eve));
-                }
-            } catch(Exception e) {}
-        }
-        else if(event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK){
-            PlayerDataScript handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer).scriptData;
-            handler.hadInteract = true;
-            try {
-                if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                    IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                    ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock((IWorld) NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
-                    event.setCanceled(EventHooks.onScriptItemRightClick(isw, eve));
-                }
-            } catch(Exception e) {}
+            else if(event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK){
+                PlayerData handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+                if(handler == null)
+                    return;
+
+                handler.hadInteract = true;
+                try {
+                    if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
+                        IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
+                        ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock((IWorld) NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
+                        event.setCanceled(EventHooks.onScriptItemRightClick(isw, eve));
+                    }
+                } catch(Exception e) {}
+            }
         }
     }
 
