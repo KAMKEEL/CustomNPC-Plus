@@ -4,15 +4,15 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public class HitboxData {
 
-    private float width = 1f;
-    private float height = 1.8f;
+    private float widthScale = 1f;
+    private float heightScale = 1f;
     private boolean hitboxEnabled = false;
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
         nbttagcompound.setBoolean("HitboxEnabled", hitboxEnabled);
         if(hitboxEnabled) {
-            nbttagcompound.setFloat("HitboxWidth", width);
-            nbttagcompound.setFloat("HitboxHeight", height);
+            nbttagcompound.setFloat("HitboxWidthScale", widthScale);
+            nbttagcompound.setFloat("HitboxHeightScale", heightScale);
         }
         return nbttagcompound;
     }
@@ -20,25 +20,25 @@ public class HitboxData {
     public void readFromNBT(NBTTagCompound nbttagcompound) {
         hitboxEnabled = nbttagcompound.getBoolean("HitboxEnabled");
         if(hitboxEnabled) {
-            width = nbttagcompound.getFloat("HitboxWidth");
-            height = nbttagcompound.getFloat("HitboxHeight");
+            widthScale = nbttagcompound.getFloat("HitboxWidthScale");
+            heightScale = nbttagcompound.getFloat("HitboxHeightScale");
         }
     }
 
-    public float getWidth() {
-        return width;
+    public float getWidthScale() {
+        return widthScale;
     }
 
-    public void setWidth(float width) {
-        this.width = width;
+    public void setWidthScale(float widthScale) {
+        this.widthScale = widthScale;
     }
 
-    public float getHeight() {
-        return height;
+    public float getHeightScale() {
+        return heightScale;
     }
 
-    public void setHeight(float height) {
-        this.height = height;
+    public void setHeightScale(float heightScale) {
+        this.heightScale = heightScale;
     }
 
     public boolean isHitboxEnabled() {

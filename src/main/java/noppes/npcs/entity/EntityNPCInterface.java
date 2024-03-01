@@ -1087,16 +1087,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		width = (width / 5f) * display.modelSize;
 		height = (height / 5f) * display.modelSize;
 
+        if(display.hitboxData.isHitboxEnabled()){
+            width = width * display.hitboxData.getWidthScale();
+            height = height * display.hitboxData.getHeightScale();
+        }
+
 		if(isKilled() && stats.hideKilledBody) {
 			width = 0.00001f;
 		}
 		if(width / 2 > worldObj.MAX_ENTITY_RADIUS) {
 			worldObj.MAX_ENTITY_RADIUS = width / 2;
 		}
-        if(display.hitboxData.isHitboxEnabled()){
-            width = display.hitboxData.getWidth();
-            height = display.hitboxData.getHeight();
-        }
 		this.setPosition(posX, posY, posZ);
 	}
 

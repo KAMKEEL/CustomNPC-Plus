@@ -1188,5 +1188,5 @@ tint.alpha=Alpha
 tint.hurt=Hurt Tint
 
 hitbox.hitbox=Hitbox
-hitbox.width=Width
-hitbox.height=Height
+hitbox.width=Width Scale
+hitbox.height=Height Scale
