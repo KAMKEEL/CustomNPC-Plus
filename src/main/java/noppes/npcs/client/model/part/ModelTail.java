@@ -153,7 +153,7 @@ public class ModelTail extends ModelScaleRenderer {
 		}
         CustomTintData customTintData = entity.display.customTintData;
         boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
-            !(customTintData.isEnableCustomTint() && customTintData.isEnableNpcTint());
+            !(customTintData.isTintEnabled() && customTintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (color >> 16 & 255) / 255f;
 	    	float green = (color >> 8  & 255) / 255f;

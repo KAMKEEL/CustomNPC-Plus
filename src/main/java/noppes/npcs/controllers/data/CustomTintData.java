@@ -3,81 +3,81 @@ package noppes.npcs.controllers.data;
 import net.minecraft.nbt.NBTTagCompound;
 
 public class CustomTintData {
-    private boolean enableCustomTint = false;
-    private boolean enableHurtTint = true;
-    private boolean enableNpcTint = false;
-    private int colorHurtTint = 0xff0000;
-    private int colorNpcTint = 0x000000;
-    private int colorNpcTintAlpha = 40;
+    private boolean tintEnabled = false;
+    private boolean hurtTintEnabled = true;
+    private boolean generalTintEnabled = false;
+    private int hurtTint = 0xff0000;
+    private int generalTint = 0x000000;
+    private int generalAlpha = 40;
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
-        nbttagcompound.setBoolean("EnableCustomTint", enableCustomTint);
-        if(enableCustomTint) {
-            nbttagcompound.setBoolean("EnableHurtTint", enableHurtTint);
-            nbttagcompound.setBoolean("EnableNpcTint", enableNpcTint);
-            nbttagcompound.setInteger("ColorHurtTint", colorHurtTint);
-            nbttagcompound.setInteger("ColorNpcTint", colorNpcTint);
-            nbttagcompound.setInteger("ColorNpcTintAlpha", colorNpcTintAlpha);
+        nbttagcompound.setBoolean("TintEnabled", tintEnabled);
+        if(tintEnabled) {
+            nbttagcompound.setBoolean("HurtTintEnabled", hurtTintEnabled);
+            nbttagcompound.setBoolean("GeneralTintEnabled", generalTintEnabled);
+            nbttagcompound.setInteger("HurtTint", hurtTint);
+            nbttagcompound.setInteger("GeneralTint", generalTint);
+            nbttagcompound.setInteger("GeneralAlpha", generalAlpha);
         }
         return nbttagcompound;
     }
 
     public void readFromNBT(NBTTagCompound nbttagcompound) {
-        enableCustomTint = nbttagcompound.getBoolean("EnableCustomTint");
-        if(enableCustomTint) {
-            enableHurtTint = nbttagcompound.getBoolean("EnableHurtTint");
-            enableNpcTint = nbttagcompound.getBoolean("EnableNpcTint");
-            colorHurtTint = nbttagcompound.getInteger("ColorHurtTint");
-            colorNpcTint = nbttagcompound.getInteger("ColorNpcTint");
-            colorNpcTintAlpha = nbttagcompound.getInteger("ColorNpcTintAlpha");
+        tintEnabled = nbttagcompound.getBoolean("TintEnabled");
+        if(tintEnabled) {
+            hurtTintEnabled = nbttagcompound.getBoolean("HurtTintEnabled");
+            generalTintEnabled = nbttagcompound.getBoolean("GeneralTintEnabled");
+            hurtTint = nbttagcompound.getInteger("HurtTint");
+            generalTint = nbttagcompound.getInteger("GeneralTint");
+            generalAlpha = nbttagcompound.getInteger("GeneralAlpha");
         }
     }
 
-    public boolean isEnableHurtTint() {
-        return enableHurtTint;
+    public boolean isHurtTintEnabled() {
+        return hurtTintEnabled;
     }
 
-    public void setEnableHurtTint(boolean enableHurtTint) {
-        this.enableHurtTint = enableHurtTint;
+    public void setHurtTintEnabled(boolean hurtTintEnabled) {
+        this.hurtTintEnabled = hurtTintEnabled;
     }
 
-    public int getColorHurtTint() {
-        return colorHurtTint;
+    public int getHurtTint() {
+        return hurtTint;
     }
 
-    public void setColorHurtTint(int colorHurtTint) {
-        this.colorHurtTint = colorHurtTint;
+    public void setHurtTint(int colorHurtTint) {
+        this.hurtTint = colorHurtTint;
     }
 
-    public int getColorNpcTint() {
-        return colorNpcTint;
+    public int getGeneralTint() {
+        return generalTint;
     }
 
-    public void setColorNpcTint(int colorNpcTint) {
-        this.colorNpcTint = colorNpcTint;
+    public void setGeneralTint(int generalTint) {
+        this.generalTint = generalTint;
     }
 
-    public boolean isEnableCustomTint() {
-        return enableCustomTint;
+    public boolean isTintEnabled() {
+        return tintEnabled;
     }
 
-    public void setEnableCustomTint(boolean enableCustomTint) {
-        this.enableCustomTint = enableCustomTint;
+    public void setTintEnabled(boolean tintEnabled) {
+        this.tintEnabled = tintEnabled;
     }
 
-    public boolean isEnableNpcTint() {
-        return enableNpcTint;
+    public boolean isGeneralTintEnabled() {
+        return generalTintEnabled;
     }
 
-    public void setEnableNpcTint(boolean enableNpcTint) {
-        this.enableNpcTint = enableNpcTint;
+    public void setGeneralTintEnabled(boolean generalTintEnabled) {
+        this.generalTintEnabled = generalTintEnabled;
     }
 
-    public int getColorNpcTintAlpha() {
-        return colorNpcTintAlpha;
+    public int getGeneralAlpha() {
+        return generalAlpha;
     }
 
-    public void setColorNpcTintAlpha(int colorNpcTintAlpha) {
-        this.colorNpcTintAlpha = colorNpcTintAlpha;
+    public void setGeneralAlpha(int generalAlpha) {
+        this.generalAlpha = generalAlpha;
     }
 }

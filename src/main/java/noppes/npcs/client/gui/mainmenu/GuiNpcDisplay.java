@@ -43,7 +43,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
         addLabel(new GuiNpcLabel(11,"gui.title", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(11,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.title));
-        this.addButton(new GuiNpcButton(13, guiLeft + 259, y , 80, 20, "Tint settings"));
 
     	y+=23;
         addLabel(new GuiNpcLabel(1,"display.model", guiLeft + 5, y + 5));
@@ -82,16 +81,18 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"}, display.disableLivingAnimation?1:0));
 
-		addLabel(new GuiNpcLabel(6,"Collides With Entities", guiLeft + 185, y + 5));
+		addLabel(new GuiNpcLabel(6,"display.collides", guiLeft + 185, y + 5));
 		this.addButton(new GuiNpcButton(6, guiLeft + 300, y, 100, 20, new String[]{"gui.yes","gui.no","Only CNPCs","Only Players","CNPCs & Players"}, display.collidesWith));
 
 		y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
 
+        this.addButton(new GuiNpcButton(13, guiLeft + 185, y , 100, 20, "display.tintsettings"));
+
     	y+=23;
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
-    	this.addButton(new GuiNpcButton(10, guiLeft + 120, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
+    	this.addButton(new GuiNpcButton(10, guiLeft + 60, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
 
 		GeckoAddonClient.Instance.geckoNpcDisplayInitGui(this);
 	}

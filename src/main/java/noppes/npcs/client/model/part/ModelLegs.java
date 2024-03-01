@@ -389,7 +389,7 @@ public class ModelLegs extends ModelScaleRenderer{
 		}
         CustomTintData customTintData = entity.display.customTintData;
 		boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
-            !(customTintData.isEnableCustomTint() && customTintData.isEnableNpcTint());
+            !(customTintData.isTintEnabled() && customTintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (entity.modelData.legParts.color >> 16 & 255) / 255f;
 	    	float green = (entity.modelData.legParts.color >> 8  & 255) / 255f;

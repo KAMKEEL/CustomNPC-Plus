@@ -373,7 +373,7 @@ public class RenderNPCInterface extends RenderLiving{
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
             CustomTintData customTintData = p_76986_1_.display.customTintData;
-            if ((j >> 24 & 255) > 0 || p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0 || (customTintData.isEnableCustomTint() && customTintData.isEnableNpcTint()))
+            if ((j >> 24 & 255) > 0 || p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0 || (customTintData.isTintEnabled() && customTintData.isGeneralTintEnabled()))
             {
                 GL11.glDisable(GL11.GL_TEXTURE_2D);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -381,13 +381,13 @@ public class RenderNPCInterface extends RenderLiving{
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 GL11.glDepthFunc(GL11.GL_EQUAL);
 
-                if ((p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0) && (!customTintData.isEnableCustomTint() || customTintData.isEnableHurtTint()))
+                if ((p_76986_1_.hurtTime > 0 || p_76986_1_.deathTime > 0) && (!customTintData.isTintEnabled() || customTintData.isHurtTintEnabled()))
                 {
                     float r, g, b;
-                    if(customTintData.isEnableCustomTint()) {
-                        r = (float) (customTintData.getColorHurtTint() >> 16 & 255) / 255.0F * f14;
-                        g = (float) (customTintData.getColorHurtTint() >> 8 & 255) / 255.0F * f14;
-                        b = (float) (customTintData.getColorHurtTint() & 255) / 255.0F * f14;
+                    if(customTintData.isTintEnabled()) {
+                        r = (float) (customTintData.getHurtTint() >> 16 & 255) / 255.0F * f14;
+                        g = (float) (customTintData.getHurtTint() >> 8 & 255) / 255.0F * f14;
+                        b = (float) (customTintData.getHurtTint() & 255) / 255.0F * f14;
                     }else{
                         r=f14;
                         g=0;
@@ -469,8 +469,8 @@ public class RenderNPCInterface extends RenderLiving{
     {
         EntityNPCInterface npc = (EntityNPCInterface) p_77030_1_;
         CustomTintData tintData = npc.display.customTintData;
-        int alpha = (int) (0xff*((double)tintData.getColorNpcTintAlpha()/100d)) << 24;
-        return (tintData.isEnableCustomTint() && tintData.isEnableNpcTint())?tintData.getColorNpcTint()+alpha:0;
+        int alpha = (int) (0xff*((double)tintData.getGeneralAlpha()/100d)) << 24;
+        return (tintData.isTintEnabled() && tintData.isGeneralTintEnabled())?tintData.getGeneralTint()+alpha:0;
     }
 
 	protected void renderModel(EntityLivingBase entityliving, float par2, float par3, float par4, float par5, float par6, float par7) {
