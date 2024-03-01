@@ -22,33 +22,33 @@ public class SubGuiNpcTint extends SubGuiInterface implements ISubGuiListener, I
     public void initGui() {
         super.initGui();
         int y = 30;
-        addLabel(new GuiNpcLabel(0, "Enable Custom Tint", guiLeft + 5, guiTop + y + 5));
+        addLabel(new GuiNpcLabel(0, "tint.enablecustom", guiLeft + 5, guiTop + y + 5));
         addButton(new GuiNpcButtonYesNo(0, guiLeft + 122, guiTop + y, 56, 20, tintData.isEnableCustomTint()));
         y+=22;
         if (tintData.isEnableCustomTint()) {
-            addLabel(new GuiNpcLabel(1, "Enable Npc Tint", guiLeft + 5, guiTop + y + 5));
+            addLabel(new GuiNpcLabel(1, "tint.enablenpc", guiLeft + 5, guiTop + y + 5));
             addButton(new GuiNpcButtonYesNo(1, guiLeft + 122, guiTop + y, 56, 20, tintData.isEnableNpcTint()));
             y+=22;
             if(tintData.isEnableNpcTint()) {
                 String color = Integer.toHexString(tintData.getColorNpcTint());
                 while (color.length() < 6) color = 0 + color;
-                addLabel(new GuiNpcLabel(2, "Npc Tint", guiLeft + 4, guiTop + y + 5));
+                addLabel(new GuiNpcLabel(2, "tint.tint", guiLeft + 4, guiTop + y + 5));
                 addButton(new GuiNpcButton(2, guiLeft + 122, guiTop + y, 60, 20, color));
                 getButton(2).setTextColor(tintData.getColorNpcTint());
                 y+=22;
-                addLabel(new GuiNpcLabel(3,"Npc Tint Alpha", guiLeft + 5, guiTop + y + 5));
+                addLabel(new GuiNpcLabel(3,"tint.alpha", guiLeft + 5, guiTop + y + 5));
                 addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 122, guiTop + y, 60, 20, tintData.getColorNpcTintAlpha() + ""));
                 getTextField(3).integersOnly = true;
                 getTextField(3).setMinMaxDefault(1, 100, 40);
                 y+=22;
             }
-            addLabel(new GuiNpcLabel(4, "Enable Hurt Tint", guiLeft + 5, guiTop + y + 5));
+            addLabel(new GuiNpcLabel(4, "tint.enablehurt", guiLeft + 5, guiTop + y + 5));
             addButton(new GuiNpcButtonYesNo(4, guiLeft + 122, guiTop + y, 56, 20, tintData.isEnableHurtTint()));
             y+=22;
             if (tintData.isEnableHurtTint()) {
                 String color2 = Integer.toHexString(tintData.getColorHurtTint());
                 while (color2.length() < 6) color2 = 0 + color2;
-                addLabel(new GuiNpcLabel(5, "Hurt Tint", guiLeft + 4, guiTop + y + 5));
+                addLabel(new GuiNpcLabel(5, "tint.hurt", guiLeft + 4, guiTop + y + 5));
                 addButton(new GuiNpcButton(5, guiLeft + 122, guiTop + y, 60, 20, color2));
                 getButton(5).setTextColor(tintData.getColorHurtTint());
             }

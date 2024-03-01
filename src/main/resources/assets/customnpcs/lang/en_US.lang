@@ -1176,3 +1176,10 @@ mark.pointer=Pointer
 mark.skull=Skull
 mark.cross=Cross
 mark.star=Star
+
+tint.enablecustom=Enable Custom Tint
+tint.enablenpc=Enable NPC Tint
+tint.enablehurt=Enable Hurt Tint
+tint.tint=Tint
+tint.alpha=Alpha
+tint.hurt=Hurt Tint
