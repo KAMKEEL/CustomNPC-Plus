@@ -7,10 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNPCTextures;
-import noppes.npcs.client.gui.GuiNpcTextureCloaks;
-import noppes.npcs.client.gui.GuiNpcTextureOverlays;
-import noppes.npcs.client.gui.SubGuiNpcName;
+import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
@@ -46,6 +43,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
         addLabel(new GuiNpcLabel(11,"gui.title", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(11,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.title));
+        this.addButton(new GuiNpcButton(13, guiLeft + 259, y , 80, 20, "Tint settings"));
 
     	y+=23;
         addLabel(new GuiNpcLabel(1,"display.model", guiLeft + 5, y + 5));
@@ -185,6 +183,9 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			npc.display.skinOverlayData.overlayList.get(0).setBlend(button.getValue() == 0);
 			initGui();
 		}
+        else if (button.id == 13){
+            setSubGui(new SubGuiNpcTint(display.customTintData));
+        }
 		else if(button.id == 14){
 			String name = display.getRandomName();
 			display.setName(name);
