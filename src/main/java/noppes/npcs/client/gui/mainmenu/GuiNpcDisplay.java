@@ -43,7 +43,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     	y+=23;
         addLabel(new GuiNpcLabel(11,"gui.title", guiLeft + 5, y + 5));
         addTextField(new GuiNpcTextField(11,this, fontRendererObj, guiLeft + 50, y, 206, 20, display.title));
-
     	y+=23;
         addLabel(new GuiNpcLabel(1,"display.model", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(1, guiLeft + 50, y,110,20, "selectServer.edit"));
@@ -87,14 +86,14 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 		y+=23;
     	addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
-
-        this.addButton(new GuiNpcButton(13, guiLeft + 185, y , 100, 20, "display.tintsettings"));
+      this.addButton(new GuiNpcButton(13, guiLeft + 185, y , 100, 20, "display.tintsettings"));
+      this.addButton(new GuiNpcButton(12,guiLeft + 300, y, 100, 20, "display.hitbox"));
 
     	y+=23;
     	addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
     	this.addButton(new GuiNpcButton(10, guiLeft + 60, y, 110, 20, new String[]{"display.hide","display.show","display.showAttacking"}, display.showBossBar));
 
-		GeckoAddonClient.Instance.geckoNpcDisplayInitGui(this);
+		  GeckoAddonClient.Instance.geckoNpcDisplayInitGui(this);
 	}
 
 	@Override
@@ -184,9 +183,12 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 			npc.display.skinOverlayData.overlayList.get(0).setBlend(button.getValue() == 0);
 			initGui();
 		}
-        else if (button.id == 13){
-            setSubGui(new SubGuiNpcTint(display.customTintData));
-        }
+    else if (button.id == 12){
+      setSubGui(new SubGuiCustomHitbox(display.customHitboxData));
+    }
+    else if (button.id == 13){
+      setSubGui(new SubGuiNpcTint(display.customTintData));
+    }
 		else if(button.id == 14){
 			String name = display.getRandomName();
 			display.setName(name);

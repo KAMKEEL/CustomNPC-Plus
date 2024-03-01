@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.CustomHitboxData;
 import noppes.npcs.controllers.data.CustomTintData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -61,8 +62,9 @@ public class DataDisplay {
 
 	//0 - Yes, 1 - No, 2 - Only NPCs, 3 - Only Players, 4 - NPCs and Players
 	public int collidesWith = 1;
-
-    public CustomTintData customTintData;
+  
+  public CustomHitboxData customHitboxData;
+  public CustomTintData customTintData;
 
 	public DataDisplay(EntityNPCInterface npc){
 		this.npc = npc;
@@ -70,7 +72,8 @@ public class DataDisplay {
 		skinOverlayData = new DataSkinOverlays(npc);
 		name = getRandomName();
 		animationData = new AnimationData(this);
-        customTintData = new CustomTintData();
+    customHitboxData = new CustomHitboxData();
+    customTintData = new CustomTintData();
 	}
 
 	public String getRandomName() {
@@ -92,8 +95,8 @@ public class DataDisplay {
 		nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
 
 		nbttagcompound = animationData.writeToNBT(nbttagcompound);
-
-        nbttagcompound = customTintData.writeToNBT(nbttagcompound);
+    nbttagcompound = customHitboxData.writeToNBT(nbttagcompound);
+    nbttagcompound = customTintData.writeToNBT(nbttagcompound);
 
 		if (this.playerProfile != null)
         {
@@ -119,7 +122,6 @@ public class DataDisplay {
 		}
 
 		nbttagcompound.setTag("InvisibleToList", list);
-
 		return nbttagcompound;
 	}
 	public void readToNBT(NBTTagCompound nbttagcompound) {
@@ -171,9 +173,9 @@ public class DataDisplay {
 		skinOverlayData.readFromNBT(nbttagcompound);
 
 		animationData.readFromNBT(nbttagcompound);
-
-        customTintData.readFromNBT(nbttagcompound);
-
+    customHitboxData.readFromNBT(nbttagcompound);
+    customTintData.readFromNBT(nbttagcompound);
+    
 		modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
 		if(modelSize > ConfigMain.NpcSizeLimit)
 			modelSize = ConfigMain.NpcSizeLimit;
