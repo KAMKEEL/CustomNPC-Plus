@@ -6,7 +6,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
-import noppes.npcs.controllers.data.CustomTintData;
+import noppes.npcs.controllers.data.TintData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
@@ -60,9 +60,9 @@ public abstract class ModelPartInterface extends ModelRenderer {
 	            base.currentlyPlayerTexture = true;
 			}
     	}
-        CustomTintData customTintData = entity.display.customTintData;
+        TintData tintData = entity.display.tintData;
         boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
-            !(customTintData.isTintEnabled() && customTintData.isGeneralTintEnabled());
+            !(tintData.isTintEnabled() && tintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (color >> 16 & 255) / 255f;
 	    	float green = (color >> 8  & 255) / 255f;

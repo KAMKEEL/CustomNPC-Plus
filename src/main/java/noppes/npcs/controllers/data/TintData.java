@@ -2,7 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-public class CustomTintData {
+public class TintData {
     private boolean tintEnabled = false;
     private boolean hurtTintEnabled = true;
     private boolean generalTintEnabled = false;

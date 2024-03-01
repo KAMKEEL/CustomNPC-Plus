@@ -2,15 +2,15 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-public class CustomHitboxData {
+public class HitboxData {
+
     private float width = 1f;
     private float height = 1.8f;
-
-    private boolean customHitbox = false;
+    private boolean hitboxEnabled = false;
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
-        nbttagcompound.setBoolean("CustomHitbox", customHitbox);
-        if(customHitbox) {
+        nbttagcompound.setBoolean("HitboxEnabled", hitboxEnabled);
+        if(hitboxEnabled) {
             nbttagcompound.setFloat("HitboxWidth", width);
             nbttagcompound.setFloat("HitboxHeight", height);
         }
@@ -18,8 +18,8 @@ public class CustomHitboxData {
     }
 
     public void readFromNBT(NBTTagCompound nbttagcompound) {
-        customHitbox = nbttagcompound.getBoolean("CustomHitbox");
-        if(customHitbox) {
+        hitboxEnabled = nbttagcompound.getBoolean("CustomHitbox");
+        if(hitboxEnabled) {
             width = nbttagcompound.getFloat("HitboxWidth");
             height = nbttagcompound.getFloat("HitboxHeight");
         }
@@ -41,11 +41,11 @@ public class CustomHitboxData {
         this.height = height;
     }
 
-    public boolean isCustomHitbox() {
-        return customHitbox;
+    public boolean isHitboxEnabled() {
+        return hitboxEnabled;
     }
 
-    public void setCustomHitbox(boolean customHitbox) {
-        this.customHitbox = customHitbox;
+    public void setHitboxEnabled(boolean hitboxEnabled) {
+        this.hitboxEnabled = hitboxEnabled;
     }
 }

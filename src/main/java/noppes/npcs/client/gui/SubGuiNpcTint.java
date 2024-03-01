@@ -2,13 +2,13 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.controllers.data.CustomTintData;
+import noppes.npcs.controllers.data.TintData;
 
 public class SubGuiNpcTint extends SubGuiInterface implements ISubGuiListener, ITextfieldListener {
-    private CustomTintData tintData;
+    private TintData tintData;
     private int lastColorClicked = -1;
 
-    public SubGuiNpcTint(CustomTintData tintData) {
+    public SubGuiNpcTint(TintData tintData) {
         this.tintData = tintData;
         setBackground("menubg.png");
         xSize = 256;

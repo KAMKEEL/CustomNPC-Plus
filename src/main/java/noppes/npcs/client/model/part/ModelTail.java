@@ -10,7 +10,7 @@ import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.part.tails.*;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.controllers.data.CustomTintData;
+import noppes.npcs.controllers.data.TintData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
@@ -151,9 +151,9 @@ public class ModelTail extends ModelScaleRenderer {
 	            base.currentlyPlayerTexture = true;
 			}
 		}
-        CustomTintData customTintData = entity.display.customTintData;
+        TintData tintData = entity.display.tintData;
         boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
-            !(customTintData.isTintEnabled() && customTintData.isGeneralTintEnabled());
+            !(tintData.isTintEnabled() && tintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (color >> 16 & 255) / 255f;
 	    	float green = (color >> 8  & 255) / 255f;
