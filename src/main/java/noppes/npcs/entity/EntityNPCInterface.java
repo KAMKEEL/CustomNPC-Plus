@@ -748,7 +748,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
 					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
 					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
-					// case Twist: this.tasks.addTask(this.taskCount++, aiResponse = new EntityAITwistTarget(this, 1.3D, this.ai.tacticalRadius)); break;
+					case Twist: this.tasks.addTask(this.taskCount++, aiResponse = new EntityAITwistTarget(this, 1.3D, this.ai.tacticalRadius)); break;
 					default :
 				}
 			}
@@ -1093,9 +1093,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(width / 2 > worldObj.MAX_ENTITY_RADIUS) {
 			worldObj.MAX_ENTITY_RADIUS = width / 2;
 		}
-        if(display.customHitboxData.isCustomHitbox()){
-            width = display.customHitboxData.getWidth();
-            height = display.customHitboxData.getHeight();
+        if(display.hitboxData.isHitboxEnabled()){
+            width = display.hitboxData.getWidth();
+            height = display.hitboxData.getHeight();
         }
 		this.setPosition(posX, posY, posZ);
 	}
