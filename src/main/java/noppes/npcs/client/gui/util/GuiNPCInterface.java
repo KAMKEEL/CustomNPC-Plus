@@ -253,6 +253,10 @@ public abstract class GuiNPCInterface extends GuiScreen
 			if(scroll.hoverableText){
 				scroll.drawHover(i, j, f, hasSubGui()?0:this.mouseWheel);
 			}
+        for(GuiNpcButton button : buttons.values())
+            if(!button.hoverableText.isEmpty()){
+                button.drawHover(i, j, hasSubGui());
+            }
         if(subgui != null)
     		subgui.drawScreen(i,j,f);
     }
