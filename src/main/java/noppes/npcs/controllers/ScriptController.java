@@ -251,19 +251,22 @@ public class ScriptController {
 	public ScriptEngine getEngineByName(String language) {
 		if (nashornNames.contains(language) && this.nashornFactory != null) {
             ScriptEngine scriptEngine;
-
-            try {
-                ClassFilter filter = s -> {
-                    for (String className : ConfigScript.BannedClasses) {
-                        if (s.compareTo(className) == 0) {
-                            return false;
+            if(ConfigScript.EnableBannedClasses){
+                try {
+                    ClassFilter filter = s -> {
+                        for (String className : ConfigScript.BannedClasses) {
+                            if (s.compareTo(className) == 0) {
+                                return false;
+                            }
                         }
-                    }
-                    return true;
-                };
-                NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.nashornFactory;
-                scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
-            } catch (Exception e) {
+                        return true;
+                    };
+                    NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.nashornFactory;
+                    scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
+                } catch (Exception e) {
+                    scriptEngine = this.nashornFactory.getScriptEngine();
+                }
+            } else {
                 scriptEngine = this.nashornFactory.getScriptEngine();
             }
 			scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);

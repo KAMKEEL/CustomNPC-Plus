@@ -52,6 +52,9 @@ public class ConfigScript
     public static Property ScriptDevIDsProperty;
     public static String ScriptDevIDs = "";
 
+    public static Property EnableBannedClassesProperty;
+    public static boolean EnableBannedClasses = false;
+
     public static Property BannedClassesProperty;
     public final static HashSet<String> BannedClasses = new HashSet<>();
 
@@ -100,6 +103,14 @@ public class ConfigScript
                             "If left empty and ScriptsOpsOnly is false, anyone can see and edit scripts with a scripter.");
             ScriptDevIDs = ScriptDevIDsProperty.getString();
 
+            EnableBannedClassesProperty = config.get(CUSTOMIZATION, "Enable Banned Classes", false, "Enables the Banned Classes Functionality");
+            EnableBannedClasses = EnableBannedClassesProperty.getBoolean(false);
+
+            BannedClassesProperty = config.get(CUSTOMIZATION, "Banned Classes", "java.net.URL,java.net.URI",
+                "Comma separated list of classes that cannot be used in scripts through Java.for().\n" +
+                    "Classes must be fully written out with library names preceding them.\n" +
+                    "This is a feature ONLY AVAILABLE ON NASHORN.");
+
             // Convert to Legacy
             if(CustomNpcs.legacyExist){
                 ScriptingEnabled = LegacyConfig.ScriptingEnabled;
@@ -138,12 +149,7 @@ public class ConfigScript
                 }
             } catch (Exception ignored) {}
 
-            BannedClassesProperty = config.get(CUSTOMIZATION, "Banned Classes", "java.net.URL,java.net.URI",
-                "Comma separated list of classes that cannot be used in scripts through Java.for().\n" +
-                    "Classes must be fully written out with library names preceding them.\n" +
-                    "This is a feature ONLY AVAILABLE ON NASHORN.");
             String bannedClassesString = BannedClassesProperty.getString();
-
             try {
                 BannedClasses.clear();
                 BannedClasses.addAll(Arrays.asList(bannedClassesString.split(",")));
