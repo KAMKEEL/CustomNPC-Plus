@@ -28,25 +28,25 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
     public void initGui(){
     	super.initGui();
 		int y = guiTop + 10;
-		int gap = 21;
     	this.addButton(new GuiNpcButton(3, guiLeft + 85 + 160, y, 52, 20, "selectServer.edit"));
     	this.addButton(new GuiNpcButton(8, guiLeft + 85, y,155,20, new String[]{"role.none","role.trader","role.follower","role.bank","role.transporter", "role.mailman", NoppesStringUtils.translate("role.companion", "(WIP)")},npc.advanced.role.ordinal()));
     	getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman);
 
-    	this.addButton(new GuiNpcButton(4, guiLeft + 85 + 160, y += gap, 52, 20, "selectServer.edit"));
+    	this.addButton(new GuiNpcButton(4, guiLeft + 85 + 160, y += 22, 52, 20, "selectServer.edit"));
     	this.addButton(new GuiNpcButton(5, guiLeft + 85, y,155,20, new String[]{"job.none","job.bard","job.healer","job.guard","job.itemgiver","role.follower", "job.spawner", "job.conversation", "job.chunkloader"},npc.advanced.job.ordinal()));
 
    		getButton(4).setEnabled(npc.advanced.job != EnumJobType.None && npc.advanced.job != EnumJobType.ChunkLoader);
 
-    	this.addButton(new GuiNpcButton(7, guiLeft + 85, y += gap, 214, 20, "advanced.lines"));
-    	this.addButton(new GuiNpcButton(9, guiLeft + 85, y += gap, 214, 20, "menu.factions"));
-    	this.addButton(new GuiNpcButton(10, guiLeft + 85, y += gap, 214, 20, "dialog.dialogs"));
-    	this.addButton(new GuiNpcButton(11, guiLeft + 85, y += gap, 214, 20, "advanced.sounds"));
-    	this.addButton(new GuiNpcButton(12, guiLeft + 85, y += gap, 214, 20, "advanced.night"));
-    	this.addButton(new GuiNpcButton(13, guiLeft + 85, y += gap, 214, 20, "global.linked"));
-		this.addButton(new GuiNpcButton(14, guiLeft + 85, y += gap, 214, 20, "menu.tags"));
+    	this.addButton(new GuiNpcButton(7, guiLeft + 15, y += 22, 190, 20, "advanced.lines"));
+    	this.addButton(new GuiNpcButton(9, guiLeft + 208, y, 190, 20, "menu.factions"));
 
-        // FIX THIS KAM
+        this.addButton(new GuiNpcButton(10, guiLeft + 15, y += 22, 190, 20, "dialog.dialogs"));
+    	this.addButton(new GuiNpcButton(11, guiLeft + 208, y, 190, 20, "advanced.sounds"));
+
+        this.addButton(new GuiNpcButton(12, guiLeft + 15, y += 22, 190, 20, "advanced.night"));
+    	this.addButton(new GuiNpcButton(13, guiLeft + 208, y, 190, 20, "global.linked"));
+
+        this.addButton(new GuiNpcButton(14, guiLeft + 15, y += 22, 190, 20, "menu.tags"));
         this.addButton(new GuiNpcButton(15, guiLeft + 208, y, 190, 20, "advanced.marks"));
     }
 

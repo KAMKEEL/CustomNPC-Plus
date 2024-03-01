@@ -421,6 +421,7 @@ advanced.editingmode=EditingMode
 advanced.loadday=Load Day
 advanced.loadnight=Load Night
 advanced.haspitch=Has Pitch
+advanced.marks=Marks
 
 faction.hostiles=Hostile Factions
 faction.unfriendly=Unfriendly
