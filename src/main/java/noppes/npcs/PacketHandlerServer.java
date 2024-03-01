@@ -135,9 +135,20 @@ public class PacketHandlerServer{
 					if (playerData.partyUUID != null) {
 						Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         if (!party.getIsLocked()) {
-                            party.removePlayer(kickPlayer);
+                            boolean successful = party.removePlayer(kickPlayer);
                             if (kickPlayer != player) {
                                 sendPartyData(player);
+                                if(successful){
+                                    for(String name : party.getPlayerNames()){
+                                        EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+                                        if(playerMP != null){
+                                            Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer.getCommandSenderName());
+                                            Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7c", kickPlayer.getCommandSenderName(), " \u00A7e", "party.kickOtherChat", "!");
+                                        }
+                                    }
+                                    Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
+                                    Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A7c", "party.kickYouChat", "!");
+                                }
                             } else {
                                 sendInviteData((EntityPlayerMP) kickPlayer);
                             }
@@ -257,7 +268,6 @@ public class PacketHandlerServer{
 
 	public static void sendPartyData(EntityPlayerMP player) {
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-
 		if (playerData.partyUUID != null) {
 			Party party = PartyController.Instance().getParty(playerData.partyUUID);
             NBTTagCompound compound = party.writeToNBT();
