@@ -246,6 +246,7 @@ display.fixed=Fixed
 display.glow=Glow
 display.solid=Solid
 display.tintsettings=Tint Settings
+display.hitboxsettings=Hitbox Settings
 
 inv.minExp=Min Exp
 inv.maxExp=Max Exp
@@ -1185,3 +1186,7 @@ tint.enablehurt=Enable Hurt Tint
 tint.tint=General Tint
 tint.alpha=Alpha
 tint.hurt=Hurt Tint
+
+hitbox.hitbox=Hitbox
+hitbox.width=Width
+hitbox.height=Height

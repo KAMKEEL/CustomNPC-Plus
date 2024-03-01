@@ -18,7 +18,7 @@ public class HitboxData {
     }
 
     public void readFromNBT(NBTTagCompound nbttagcompound) {
-        hitboxEnabled = nbttagcompound.getBoolean("CustomHitbox");
+        hitboxEnabled = nbttagcompound.getBoolean("HitboxEnabled");
         if(hitboxEnabled) {
             width = nbttagcompound.getFloat("HitboxWidth");
             height = nbttagcompound.getFloat("HitboxHeight");

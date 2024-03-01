@@ -36,7 +36,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         addTextField(nameText);
         this.addButton(new GuiNpcButton(0, guiLeft + 253+52, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
 
-
         this.addButton(new GuiNpcButton(14, guiLeft + 259, y , 20, 20, Character.toString('\u21bb')));
         this.addButton(new GuiNpcButton(15, guiLeft + 259 + 22, y , 20, 20, Character.toString('\u22EE')));
 
@@ -87,7 +86,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
         this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
         this.addButton(new GuiNpcButton(13, guiLeft + 185, y , 100, 20, "display.tintsettings"));
-        this.addButton(new GuiNpcButton(12,guiLeft + 300, y, 100, 20, "display.hitbox"));
+        this.addButton(new GuiNpcButton(12,guiLeft + 300, y, 100, 20, "display.hitboxsettings"));
 
         y+=23;
         addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
@@ -144,7 +143,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         }
         if(button.id == 1){
             NoppesUtil.openGUI(player, new GuiCreationScreen(this, (EntityCustomNpc) npc));
-            //NoppesUtil.openGUI(player, new GuiNpcModelSelection(npc,this));
         }
         if(button.id == 2){
             display.skinType = (byte) button.getValue();
@@ -195,6 +193,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
             setSubGui(new SubGuiNpcName(display));
         }
 
+        // Button 212
         GeckoAddonClient.Instance.geckoNpcDisplayActionPerformed(this, button);
     }
 
