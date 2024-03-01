@@ -22,7 +22,7 @@ import java.util.ArrayList;
 public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
-    
+
     private ArrayList<Faction> playerFactions = new ArrayList<Faction>();
 	private Minecraft mc = Minecraft.getMinecraft();
 
@@ -46,8 +46,8 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
     public void initGui()
     {
 		super.initGui();
-		TabRegistry.addTabsToList(buttonList);
-		TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
+        TabRegistry.addTabsToList(buttonList);
+        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, (guiLeft + (xSize + 35) / 2) + 25, guiTop + 170, true));
         this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, (guiLeft + (xSize + 35) / 2) - 40, guiTop + 170, false));
@@ -62,16 +62,16 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 		mc.renderEngine.bindTexture(resource);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
 		drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
-        
+
         if(playerFactions.isEmpty()){
         	String noFaction = StatCollector.translateToLocal("faction.nostanding");
             fontRendererObj.drawString(noFaction,guiLeft + (xSize - fontRendererObj.getStringWidth(noFaction)) / 2,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
         }
         else
         	renderScreen();
-        
+
         super.drawScreen(i, j, f);
-        
+
     }
 
 	private void renderScreen(){
@@ -131,21 +131,21 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
         	fontRendererObj.drawString(s, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(s)) / 2, guiTop + 175, CustomNpcResourceListener.DefaultTextColor);
         }
     }
-    
+
     @Override
 	protected void actionPerformed(GuiButton guibutton){
 		if (guibutton.id >= 100) {
 			if (guibutton.id == 100 && activeTab != 0) {
 				activeTab = 0;
-				mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+                mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
 			}
 			if (guibutton.id == 101 && activeTab != 1) {
 				activeTab = 1;
-				mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+                mc.displayGuiScreen(new GuiParty(mc.thePlayer));
 			}
 			if (guibutton.id == 102 && activeTab != 2) {
 				activeTab = 2;
-				mc.displayGuiScreen(new GuiFaction());
+                mc.displayGuiScreen(new GuiFaction());
 			}
 		}
 
@@ -166,9 +166,9 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
     }
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
-    	
+
     }
-    
+
     @Override
     public void keyTyped(char c, int i)
     {
@@ -199,10 +199,10 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 					faction.defaultPoints = points;
 			}
 		}
-		
+
 		pages = (playerFactions.size() - 1) / 10 ;
 		pages++;
-		
+
 		page = 1;
 
 		updateButtons();

@@ -321,9 +321,25 @@ public class JobSpawner extends JobInterface{
 		target = null;
 		checkSpawns();
 	}
-	@Override
+
+    @Override
+    public void delete() {
+        if(spawnType == 3 && npc.stats.spawnCycle == 3){
+            spawnEntity(compound1);
+            spawnEntity(compound2);
+            spawnEntity(compound3);
+            spawnEntity(compound4);
+            spawnEntity(compound5);
+            spawnEntity(compound6);
+            number = 6;
+        }
+        reset();
+    }
+
+
+    @Override
 	public void killed() {
-		if(spawnType == 3){
+		if(spawnType == 3 && npc.stats.spawnCycle != 3){
 			spawnEntity(compound1);
 			spawnEntity(compound2);
 			spawnEntity(compound3);

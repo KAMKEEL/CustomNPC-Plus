@@ -88,6 +88,8 @@ public class ServerEventsHandler {
 			}
 		}
 		else if(item.getItem() == CustomItems.cloner && !isRemote && !(event.target instanceof EntityPlayer)){
+            if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_CLONER))
+                return;
 			NBTTagCompound compound = new NBTTagCompound();
 			if(!event.target.writeToNBTOptional(compound))
 				return;
@@ -102,7 +104,7 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 		}
 		else if(item.getItem() == CustomItems.scripter && !isRemote && npcInteracted){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI))
+			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
@@ -401,4 +403,15 @@ public class ServerEventsHandler {
 	public void populateChunk(PopulateChunkEvent.Post event){
 		NPCSpawning.performWorldGenSpawning(event.world, event.chunkX, event.chunkZ, event.rand);
 	}
+
+    @SubscribeEvent
+    public void playerTracking(PlayerEvent.StartTracking event){
+        if(!(event.target instanceof EntityNPCInterface) || event.target.worldObj.isRemote)
+            return;
+
+        MarkData data = MarkData.get((EntityNPCInterface) event.target);
+        if(data.marks.isEmpty())
+            return;
+        Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.MARK_DATA, event.target.getEntityId(), data.getNBT());
+    }
 }

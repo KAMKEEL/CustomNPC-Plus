@@ -11,6 +11,8 @@ import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class ConfigScript
@@ -49,6 +51,12 @@ public class ConfigScript
 
     public static Property ScriptDevIDsProperty;
     public static String ScriptDevIDs = "";
+
+    public static Property EnableBannedClassesProperty;
+    public static boolean EnableBannedClasses = false;
+
+    public static Property BannedClassesProperty;
+    public final static HashSet<String> BannedClasses = new HashSet<>();
 
     public static void init(File configFile)
     {
@@ -95,6 +103,14 @@ public class ConfigScript
                             "If left empty and ScriptsOpsOnly is false, anyone can see and edit scripts with a scripter.");
             ScriptDevIDs = ScriptDevIDsProperty.getString();
 
+            EnableBannedClassesProperty = config.get(CUSTOMIZATION, "Enable Banned Classes", false, "Enables the Banned Classes Functionality");
+            EnableBannedClasses = EnableBannedClassesProperty.getBoolean(false);
+
+            BannedClassesProperty = config.get(CUSTOMIZATION, "Banned Classes", "java.net.URL,java.net.URI",
+                "Comma separated list of classes that cannot be used in scripts through Java.for().\n" +
+                    "Classes must be fully written out with library names preceding them.\n" +
+                    "This is a feature ONLY AVAILABLE ON NASHORN.");
+
             // Convert to Legacy
             if(CustomNpcs.legacyExist){
                 ScriptingEnabled = LegacyConfig.ScriptingEnabled;
@@ -133,6 +149,11 @@ public class ConfigScript
                 }
             } catch (Exception ignored) {}
 
+            String bannedClassesString = BannedClassesProperty.getString();
+            try {
+                BannedClasses.clear();
+                BannedClasses.addAll(Arrays.asList(bannedClassesString.split(",")));
+            } catch (Exception ignored) {}
         }
         catch (Exception e)
         {
@@ -147,9 +168,8 @@ public class ConfigScript
     }
 
     public static boolean isScriptDev(EntityPlayer player) {
-        if(ScriptOpsOnly && !MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
-                Developer.ScriptUser.contains(player.getUniqueID()) || Developer.Universal.contains(player.getUniqueID())){
-            return true;
-        } else return ScriptDevIDs.isEmpty();
+        return ScriptOpsOnly && MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
+                Developer.ScriptUser.contains(player.getUniqueID()) ||
+                Developer.Universal.contains(player.getUniqueID());
     }
 }

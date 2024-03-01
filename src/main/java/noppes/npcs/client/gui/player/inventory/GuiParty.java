@@ -12,22 +12,21 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData, GuiYesNoCallback {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
-    private Minecraft mc = Minecraft.getMinecraft();
+    private final Minecraft mc = Minecraft.getMinecraft();
 
     private boolean receivedData;
     private long renderTicks;
@@ -39,6 +38,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     private boolean isLeader;
 
     private final HashMap<String, String> invites = new HashMap<>();
+
+    private boolean showQuestText;
+    private final Vector<String> questLogStatus = new Vector<>();
+    private String questCompleteWith;
 
     public GuiParty(EntityPlayer player) {
         super();
@@ -52,46 +55,43 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     public void initGui(){
         super.initGui();
-        this.selectedInvite = this.selectedPlayer = null;
-        Party party = ClientCacheHandler.party;
         TabRegistry.addTabsToList(buttonList);
         TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
+
+        this.selectedInvite = this.selectedPlayer = null;
+        Party party = ClientCacheHandler.party;
 
         if (receivedData) {
             if (party == null) {
                 //
                 //create party button
                 //
-                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 20, "party.createParty");
+                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 40, guiTop + ySize/2 + 20, "party.createParty");
                 createPartyButton.width = 100;
                 this.addButton(createPartyButton);
-
-                this.addLabel(new GuiNpcLabel(201, "party.partyInfo1", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 30));
-                this.addLabel(new GuiNpcLabel(202, "party.partyInfo2", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 20));
-                this.addLabel(new GuiNpcLabel(203, "party.partyInfo3", guiLeft + xSize/2 + 30, guiTop + ySize/2 - 10));
 
                 //party invites list
                 //
                 GuiCustomScroll inviteScroll = new GuiCustomScroll(this, 210, false);
-                inviteScroll.setSize(150, 160);
+                inviteScroll.setSize(135, 165);
                 inviteScroll.guiLeft = guiLeft + 5;
                 inviteScroll.guiTop = guiTop + 5;
                 inviteScroll.setList(new ArrayList<>(this.invites.keySet()));
                 this.addScroll(inviteScroll);
 
-                GuiNpcButton acceptButton = new GuiNpcButton(215, guiLeft + 15, guiTop + ySize - 12, "party.accept");
-                acceptButton.width = 60;
+                GuiNpcButton acceptButton = new GuiNpcButton(215, guiLeft + 5, guiTop + ySize - 8, "party.accept");
+                acceptButton.width = 65;
                 this.addButton(acceptButton);
 
-                GuiNpcButton ignoreButton = new GuiNpcButton(220, guiLeft + 80, guiTop + ySize - 12, "party.ignore");
-                ignoreButton.width = 60;
+                GuiNpcButton ignoreButton = new GuiNpcButton(220, guiLeft + 75, guiTop + ySize - 8, "party.ignore");
+                ignoreButton.width = 65;
                 this.addButton(ignoreButton);
             } else {
                 //
                 //party player list
                 //
                 GuiCustomScroll playerScroll = new GuiCustomScroll(this, 300, false);
-                playerScroll.setSize(150, 160);
+                playerScroll.setSize(135, this.isLeader ? 145 : 165);
                 playerScroll.guiLeft = guiLeft + 5;
                 playerScroll.guiTop = guiTop + 5;
 
@@ -108,50 +108,69 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 playerScroll.setList(arrayList);
                 this.addScroll(playerScroll);
 
+                if (party.getIsLocked()) {
+                    int arrowButtonsY = guiTop + ySize - 8 - 20;
+
+                    addButton(new GuiButtonNextPage(400, guiLeft + 144, arrowButtonsY, false));
+                    addLabel(new GuiNpcLabel(401, "quest.objectives", guiLeft + 168, getButton(400).yPosition + 3));
+                    getButton(400).visible = getLabel(401).enabled = this.showQuestText;
+
+                    addButton(new GuiButtonNextPage(405, guiLeft + 286, arrowButtonsY, true));
+                    String textString = StatCollector.translateToLocal("gui.text");
+                    addLabel(new GuiNpcLabel(406, textString,
+                        guiLeft + 284 - fontRendererObj.getStringWidth(textString), getButton(405).yPosition + 3));
+                    getButton(405).visible = getLabel(406).enabled = !getButton(400).visible;
+
+                    GuiNpcButton disbandButton = new GuiNpcButton(410, guiLeft + 164, arrowButtonsY + 19, "party.dropQuest");
+                    disbandButton.width = 135;
+                    this.addButton(disbandButton);
+                }
+
+                //toggle friendly fire
+                //
+                GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":",
+                    guiLeft + xSize / 2 + 10, guiTop + ySize / 2 + 5);
+                if (party.getIsLocked()) {
+                    friendlyFireLabel.x = guiLeft + 5;
+                    friendlyFireLabel.y = guiTop + ySize - 8 - 15;
+                }
+                this.addLabel(friendlyFireLabel);
+                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, friendlyFireLabel.x + 70, friendlyFireLabel.y - 6, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
+                friendlyFireButton.width = 40;
+                this.addButton(friendlyFireButton);
+
                 if (this.isLeader) {
                     if (!party.getIsLocked()) {
                         //set leader button
                         //
-                        GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 12, "party.makeLeader");
-                        leaderButton.width = 70;
+                        GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 8 - 21, "party.makeLeader");
+                        leaderButton.width = 65;
                         this.addButton(leaderButton);
 
                         //kick player button
                         //
-                        GuiNpcButton kickButton = new GuiNpcButton(310, guiLeft + 85, guiTop + ySize - 12, "party.kick");
-                        kickButton.width = 70;
+                        GuiNpcButton kickButton = new GuiNpcButton(310, guiLeft + 75, guiTop + ySize - 8 - 21, "party.kick");
+                        kickButton.width = 65;
                         this.addButton(kickButton);
 
                         //send invite button (opens subgui)
                         //
-                        GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, guiLeft + xSize / 2 + 20, guiTop + ySize / 2 + 40, 100, 20, "");
+                        GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, friendlyFireLabel.x, guiTop + ySize / 2 + 25, 100, 20, "");
                         this.addTextField(playerTextField);
-                        GuiNpcButton inviteButton = new GuiNpcButton(330, guiLeft + xSize / 2 + 125, guiTop + ySize / 2 + 40, "party.invite");
+                        GuiNpcButton inviteButton = new GuiNpcButton(330, playerTextField.xPosition + 105, playerTextField.yPosition, "party.invite");
                         inviteButton.width = 50;
                         this.addButton(inviteButton);
                     }
 
-                    //toggle friendly fire
-                    //
-                    GuiNpcButton friendlyFireButton = new GuiNpcButton(320, guiLeft + xSize / 2 + 95, guiTop + ySize / 2, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
-                    friendlyFireButton.width = 40;
-                    this.addButton(friendlyFireButton);
-                    GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":", guiLeft + xSize / 2 + 20, guiTop + ySize / 2 + 5);
-                    this.addLabel(friendlyFireLabel);
-
                     //disband party
                     //
-                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.disbandParty");
-                    disbandButton.width = party.getIsLocked() ? 150 : 100;
-                    if (party.getIsLocked()) {
-                        disbandButton.xPosition = guiLeft + 5;
-                        disbandButton.yPosition = guiTop + ySize - 12;
-                    }
+                    GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + 5, guiTop + ySize - 9, "party.disbandParty");
+                    disbandButton.width = 135;
                     this.addButton(disbandButton);
                 } else {
                     //leave party
                     //
-                    GuiNpcButton leaveButton = new GuiNpcButton(335, guiLeft + xSize/2 + 45, guiTop + ySize/2 + 70, "party.leaveParty");
+                    GuiNpcButton leaveButton = new GuiNpcButton(335, guiLeft + 5, guiTop + ySize - 9, "party.leaveParty");
                     leaveButton.width = 100;
                     this.addButton(leaveButton);
                 }
@@ -239,6 +258,15 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     displayGuiScreen(yesnoLeave);
                 }
                 break;
+            case 400:
+                this.showQuestText = false;
+                break;
+            case 405:
+                this.showQuestText = true;
+                break;
+            case 410:
+                Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
+                break;
         }
         initGui();
         if (guibutton.id == 100 && activeTab != 0) {
@@ -272,6 +300,49 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 periods += ".";
             }
             fontRendererObj.drawString(StatCollector.translateToLocal("gui.loading") + periods,guiLeft + xSize/2,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+            return;
+        }
+
+        if (ClientCacheHandler.party == null) {
+            drawTextBlock("party.messageNoParty", guiLeft + 155, guiTop + ySize/2 - 20, 160);
+        } else if (ClientCacheHandler.party.getQuest() != null) {
+            Quest quest = (Quest) ClientCacheHandler.party.getQuest();
+            if (showQuestText) {
+                drawTextBlock(quest.getLogText(), guiLeft + 142, guiTop + 20, 174);
+            } else {
+                drawProgress();
+            }
+
+            GL11.glPushMatrix();
+            GL11.glTranslatef(guiLeft + 148, guiTop, 0);
+            GL11.glScalef(1.24f, 1.24f, 1.24f);
+            fontRendererObj.drawString(quest.getName(), (130 - fontRendererObj.getStringWidth(quest.getName())) / 2, 4, CustomNpcResourceListener.DefaultTextColor);
+            GL11.glPopMatrix();
+            drawHorizontalLine(guiLeft + 142, guiLeft + 312, guiTop + 17, +0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+        }
+    }
+
+    private void drawProgress() {
+        String complete = this.questCompleteWith;
+        if(complete != null && !complete.isEmpty())
+            fontRendererObj.drawString(StatCollector.translateToLocalFormatted("quest.completewith", complete), guiLeft + 144, guiTop + 105, CustomNpcResourceListener.DefaultTextColor);
+
+        int yoffset = guiTop + 22;
+        for(String process : this.questLogStatus){
+            int index = process.lastIndexOf(":");
+            if(index > 0){
+                String name = process.substring(0, index);
+                String trans = StatCollector.translateToLocal(name);
+                if(!trans.equals(name))
+                    name = trans;
+                trans = StatCollector.translateToLocal("entity." + name + ".name");
+                if(!trans.equals("entity." + name + ".name")){
+                    name = trans;
+                }
+                process = name + process.substring(index);
+            }
+            fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
+            yoffset += 10;
         }
     }
 
@@ -304,6 +375,17 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             ClientCacheHandler.party = new Party(uuid);
             Party party = ClientCacheHandler.party;
             party.readFromNBT(compound);
+            this.questLogStatus.clear();
+            this.questCompleteWith = "";
+            if (compound.hasKey("QuestProgress")) {
+                NBTTagList tagList = compound.getTagList("QuestProgress", 8);
+                for (int i = 0; i < tagList.tagCount(); i++) {
+                    this.questLogStatus.add(tagList.getStringTagAt(i));
+                }
+            }
+            if (compound.hasKey("QuestCompleteWith")) {
+                this.questCompleteWith = compound.getString("QuestCompleteWith");
+            }
             this.isLeader = ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
         } else if (compound.hasKey("Disband")) {
             this.isLeader = false;

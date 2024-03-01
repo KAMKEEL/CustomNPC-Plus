@@ -2,8 +2,8 @@ package noppes.npcs.mixin;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.client.model.ModelBase;
+import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.data.AnimationData;
@@ -15,15 +15,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = RenderPlayer.class)
-public abstract class MixinRenderPlayer {
+@Mixin(value = ModelBase.class)
+public abstract class MixinModelBase {
 
     @SideOnly(Side.CLIENT)
-    @Inject(method = "rotateCorpse*", at = @At(value = "TAIL"))
-    protected void modelDataRotations(AbstractClientPlayer p_77043_1_, float p_77043_2_, float p_77043_3_, float p_77043_4_, CallbackInfo callbackInfo)
+    @Inject(method = "setLivingAnimations", at = @At(value = "TAIL"))
+    public void setLivingAnimations(EntityLivingBase p_78086_1_, float p_78086_2_, float p_78086_3_, float p_78086_4_, CallbackInfo callbackInfo)
     {
-        if (ClientCacheHandler.playerAnimations.containsKey(p_77043_1_.getUniqueID())) {
-            AnimationData animData = ClientCacheHandler.playerAnimations.get(p_77043_1_.getUniqueID());
+        if (ClientCacheHandler.playerAnimations.containsKey(p_78086_1_.getUniqueID())) {
+            AnimationData animData = ClientCacheHandler.playerAnimations.get(p_78086_1_.getUniqueID());
             if (animData != null && animData.isActive()) {
                 Frame frame = (Frame) animData.animation.currentFrame();
                 if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {

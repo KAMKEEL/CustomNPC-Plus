@@ -9,6 +9,9 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
+import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -250,6 +253,10 @@ public abstract class GuiNPCInterface extends GuiScreen
 			if(scroll.hoverableText){
 				scroll.drawHover(i, j, f, hasSubGui()?0:this.mouseWheel);
 			}
+        for(GuiNpcButton button : buttons.values())
+            if(!button.hoverableText.isEmpty()){
+                button.drawHover(i, j, hasSubGui());
+            }
         if(subgui != null)
     		subgui.drawScreen(i,j,f);
     }
@@ -268,6 +275,14 @@ public abstract class GuiNPCInterface extends GuiScreen
 			drawTexturedModalRect(0, 0, 0, 0, xSize, ySize);
 		GL11.glPopMatrix();
 	}
+
+    protected void drawTextBlock(String text, int x, int y, int lineWidth) {
+        TextBlockClient block = new TextBlockClient(StatCollector.translateToLocal(text), lineWidth, true, player);
+        for(int line = 0; line < block.lines.size(); line++){
+            String lineText = block.lines.get(line).getFormattedText();
+            fontRendererObj.drawString(lineText, x, y + (line * fontRendererObj.FONT_HEIGHT), CustomNpcResourceListener.DefaultTextColor);
+        }
+    }
 
 	public FontRenderer getFontRenderer() {
 		return this.fontRendererObj;

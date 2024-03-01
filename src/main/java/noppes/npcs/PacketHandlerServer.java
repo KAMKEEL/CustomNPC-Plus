@@ -260,7 +260,20 @@ public class PacketHandlerServer{
 
 		if (playerData.partyUUID != null) {
 			Party party = PartyController.Instance().getParty(playerData.partyUUID);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+            NBTTagCompound compound = party.writeToNBT();
+            if (party.getQuest() != null) {
+                Quest quest = (Quest) party.getQuest();
+                Vector<String> vector = quest.questInterface.getQuestLogStatus(player);
+                NBTTagList list = new NBTTagList();
+                for (String s : vector) {
+                    list.appendTag(new NBTTagString(s));
+                }
+                compound.setTag("QuestProgress", list);
+                if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData)) {
+                    compound.setString("QuestCompleteWith", quest.completerNpc);
+                }
+            }
+			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		} else {
 			sendInviteData(player);
 		}
@@ -644,6 +657,12 @@ public class PacketHandlerServer{
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
 			}
 		}
+        else if(type == EnumPacketServer.RemoteGlobalMenu){
+            NoppesUtilServer.sendOpenGui(player, EnumGuiType.GlobalRemote, null);
+            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+                LogWriter.script(String.format("[%s] (Player) %s OPEN GLOBAL MENU", "WAND", player.getCommandSenderName()));
+            }
+        }
 		else if(type == EnumPacketServer.RemoteDelete){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))
@@ -658,7 +677,6 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.RemoteNpcsGet){
 			NoppesUtilServer.sendNearbyNpcs(player);
-			Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze Npcs":"Freeze Npcs");
 		}
 		else if(type == EnumPacketServer.RemoteFreeze){
 			CustomNpcs.FreezeNPCs = !CustomNpcs.FreezeNPCs;
@@ -940,7 +958,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.PlayerDataRemove){
 			NoppesUtilServer.removePlayerData(buffer,player);
 		}
-		else if(type == EnumPacketServer.PlayerDataRegen){
+		else if(type == EnumPacketServer.PlayerDataMapRegen){
 			NoppesUtilServer.regenPlayerData(player);
 		}
 		else if(type == EnumPacketServer.MainmenuDisplayGet){
@@ -982,6 +1000,11 @@ public class PacketHandlerServer{
 			npc.updateAI = true;
 			npc.updateClient = true;
 		}
+        else if(type == EnumPacketServer.MainmenuAdvancedMarkData){
+            MarkData data = MarkData.get(npc);
+            data.setNBT(Server.readNBT(buffer));
+            data.syncClients();
+        }
 		else if(type == EnumPacketServer.JobSave){
 			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
 			NBTTagCompound compound = Server.readNBT(buffer);
@@ -1076,13 +1099,14 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TraderMarketSave){
 			String market = Server.readString(buffer);
+            if(market == null)
+                return;
 			boolean bo = buffer.readBoolean();
 			if(npc.roleInterface instanceof RoleTrader){
 				if(bo)
 					Market.setMarket(npc, market);
 				else
 					Market.save((RoleTrader)npc.roleInterface, market);
-				//NoppesUtilServer.sendRoleData(player, npc);
 			}
 		}
 		else if(type == EnumPacketServer.AnimationsGet){

@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
+import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.gui.player.inventory.GuiQuestLog;
 
 public class InventoryTabCustomNpc extends AbstractTab {
@@ -16,6 +17,8 @@ public class InventoryTabCustomNpc extends AbstractTab {
 
 	@Override
 	public void onTabClicked() {
+
+
 		Thread t = new Thread(){
 			@Override
 			public void run(){
@@ -25,6 +28,9 @@ public class InventoryTabCustomNpc extends AbstractTab {
 					e.printStackTrace();
 				}
 				Minecraft mc = Minecraft.getMinecraft();
+                if(mc.currentScreen instanceof GuiCNPCInventory)
+                    return;
+
 				mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
 			}
 		};

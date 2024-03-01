@@ -60,8 +60,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public int companionID = 0;
 
 	public boolean isGUIOpen = false;
+    public boolean hadInteract = true;
 
-	public ScreenSize screenSize = new ScreenSize(-1,-1);
+    public ScreenSize screenSize = new ScreenSize(-1,-1);
 
 	public void onLogin() {
 
@@ -277,7 +278,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		PlayerDataController.Instance.putPlayerMap(playername, uuid);
 		PlayerDataController.Instance.putPlayerDataCache(uuid, this);
-		CustomNPCsThreader.playerDataThread.execute(() -> {
+		CustomNPCsThreader.customNPCThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.Instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");

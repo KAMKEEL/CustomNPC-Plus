@@ -1,8 +1,8 @@
-package	
+package
 noppes.npcs.constants;
 
 public enum EnumPacketClient {
-	CHAT,	
+	CHAT,
 	MESSAGE,
 	PARTY_MESSAGE,
 	SYNCRECIPES_ADD,
@@ -33,6 +33,8 @@ public enum EnumPacketClient {
 	CHATBUBBLE,
 	SYNCRECIPES_CARPENTRYBENCH,
 	CLONE,
+    CLONER,
+    TELEPORTER,
 	OPEN_BOOK,
 	DIALOG_DUMMY,
 	CONFIG,
@@ -51,5 +53,6 @@ public enum EnumPacketClient {
 	PAUSE_SOUNDS,
 	CONTINUE_SOUNDS,
 	STOP_SOUNDS,
-	SYNC_WEAPON
+	SYNC_WEAPON,
+    MARK_DATA
 }

@@ -3,6 +3,9 @@ package noppes.npcs;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemEditableBook;
@@ -25,9 +28,10 @@ import noppes.npcs.roles.RoleCompanion;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.UUID;
 
 public class PacketHandlerPlayer{
-	
+
 	@SubscribeEvent
 	public void onServerPacket(ServerCustomPacketEvent event) {
 		EntityPlayerMP player = ((NetHandlerPlayServer)event.handler).playerEntity;
@@ -40,7 +44,17 @@ public class PacketHandlerPlayer{
 	}
 
 	private void player(ByteBuf buffer, EntityPlayerMP player, EnumPlayerPacket type) throws IOException {
-		if(type == EnumPlayerPacket.CompanionTalentExp){
+        if(type == EnumPlayerPacket.MarkData){
+            String uuid = Server.readString(buffer);
+            if(uuid == null)
+                return;
+
+            Entity entity = NoppesUtilServer.getEntityFromUUID(player.worldObj, UUID.fromString(uuid));
+            if(!(entity instanceof EntityNPCInterface))
+                return;
+            MarkData data = MarkData.get((EntityNPCInterface) entity);
+        }
+		else if(type == EnumPlayerPacket.CompanionTalentExp){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
 				return;
@@ -202,7 +216,7 @@ public class PacketHandlerPlayer{
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			
+
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();
@@ -220,7 +234,7 @@ public class PacketHandlerPlayer{
 				NoppesUtilServer.sendGuiError(player, 0);
 				return;
 			}
-			
+
 			PlayerMail mail = new PlayerMail();
             //String s = player.func_145748_c_().getFormattedText();
             String s = player.getDisplayName();
@@ -235,7 +249,7 @@ public class PacketHandlerPlayer{
 				return;
 			}
 			PlayerDataController.Instance.addPlayerMessage(username, mail);
-			
+
 			NBTTagCompound comp = new NBTTagCompound();
 			comp.setString("username", username);
 			NoppesUtilServer.sendGuiClose(player, 1,comp);
@@ -245,7 +259,7 @@ public class PacketHandlerPlayer{
 			String username = Server.readString(buffer);
 			player.closeContainer();
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			
+
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();
@@ -260,7 +274,7 @@ public class PacketHandlerPlayer{
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			
+
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();

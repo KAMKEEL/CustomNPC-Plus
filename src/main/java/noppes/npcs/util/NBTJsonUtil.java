@@ -3,12 +3,10 @@ package noppes.npcs.util;
 import com.google.common.io.Files;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import net.minecraft.nbt.*;
+import noppes.npcs.LogWriter;
 import org.apache.commons.io.Charsets;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -211,7 +209,17 @@ public class NBTJsonUtil {
 		}
 		return json;
 	}
-	static class JsonLine{
+
+    public static NBTTagCompound loadNBTData(File file){
+        try {
+            return CompressedStreamTools.readCompressed(new FileInputStream(file));
+        } catch (Exception e) {
+            LogWriter.error("Error loading: " + file.getName(), e);
+        }
+        return new NBTTagCompound();
+    }
+
+    static class JsonLine{
 		private String line;
 		public JsonLine(String line){
 			this.line = line;

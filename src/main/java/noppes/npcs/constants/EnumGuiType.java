@@ -30,6 +30,7 @@ public enum EnumGuiType {
 	ManageRecipes,
 	QuestItem,
 	NpcRemote,
+    GlobalRemote,
 	ScriptEvent,
 	MoneyBag,
 	MainMenuAI,

@@ -11,6 +11,7 @@ import noppes.npcs.client.model.part.legs.ModelMermaidLegs2;
 import noppes.npcs.client.model.part.legs.ModelNagaLegs;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.controllers.data.CustomTintData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
@@ -386,7 +387,9 @@ public class ModelLegs extends ModelScaleRenderer{
 				y *= 2f;
 			}
 		}
-		boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor;
+        CustomTintData customTintData = entity.display.customTintData;
+		boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
+            !(customTintData.isTintEnabled() && customTintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (entity.modelData.legParts.color >> 16 & 255) / 255f;
 	    	float green = (entity.modelData.legParts.color >> 8  & 255) / 255f;

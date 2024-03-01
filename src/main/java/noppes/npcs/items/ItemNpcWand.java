@@ -20,17 +20,21 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityCustomNpc;
 
 public class ItemNpcWand extends Item{
-	
+
     public ItemNpcWand(){
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
     }
 
 	@Override
-    public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer){
+    public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer player){
 		if(!par2World.isRemote)
 			return par1ItemStack;
-		CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.NpcRemote, par3EntityPlayer);
+        else if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_GUI)){
+            CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.NpcRemote, player);
+        }
+        else
+            player.addChatMessage(new ChatComponentTranslation("availability.permission"));
         return par1ItemStack;
     }
 
@@ -45,7 +49,7 @@ public class ItemNpcWand extends Item{
 		else if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){
 			EntityCustomNpc npc = new EntityCustomNpc(par3World);
 	    	npc.ai.startPos = new int[]{par4,par5,par6};
-	    	
+
 			npc.setLocationAndAngles((float)par4 + 0.5F, npc.getStartYPos(), (float)par6 + 0.5F, player.rotationYaw, player.rotationPitch);
 
 			par3World.spawnEntityInWorld(npc);
@@ -57,7 +61,7 @@ public class ItemNpcWand extends Item{
 			player.addChatMessage(new ChatComponentTranslation("availability.permission"));
         return true;
     }
-	
+
     @Override
     public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
 		return 0x8B4513;
@@ -66,7 +70,7 @@ public class ItemNpcWand extends Item{
     public boolean requiresMultipleRenderPasses(){
         return true;
     }
-    
+
     @SideOnly(Side.CLIENT)
     @Override
     public void registerIcons(IIconRegister par1IconRegister){

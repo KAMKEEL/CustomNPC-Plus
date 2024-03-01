@@ -54,10 +54,9 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
-
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(
-                    sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
-                    sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));
+                sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
+                sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));
 
             entities.removeIf(player -> Arrays.stream(excludedPlayers).anyMatch(exp -> player == exp));
 
@@ -153,7 +152,7 @@ public class AnimationData implements IAnimationData {
         } else {
             Animation newAnim = new Animation();
             newAnim.readFromNBT(((Animation) animation).writeToNBT());
-            if (this.animation != null && newAnim.frames.size() > 0) {
+            if (this.isActive() && !newAnim.frames.isEmpty()) {
                 Frame frame = (Frame) this.animation.currentFrame();
                 if (frame != null) {
                     Frame firstFrame = newAnim.frames.get(0);

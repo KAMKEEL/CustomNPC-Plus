@@ -17,6 +17,7 @@ public class GuiScriptItem extends GuiScriptInterface {
         hookList.add("pickedUp");
         hookList.add("spawn");
         hookList.add("interact");
+        hookList.add("rightClick");
         hookList.add("attack");
         hookList.add("startItem");
         hookList.add("usingItem");

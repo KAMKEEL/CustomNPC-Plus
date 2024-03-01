@@ -38,6 +38,7 @@ public class Party {
 
     //Client-sided
     private String partyLeaderName;
+    private Quest quest;
 
     public Party() {
         this.partyUUID = UUID.randomUUID();
@@ -68,7 +69,11 @@ public class Party {
     }
 
     public IQuest getQuest() {
-        return QuestController.Instance.get(this.currentQuestID);
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+            return QuestController.Instance.get(this.currentQuestID);
+        } else {
+            return this.quest;
+        }
     }
 
     public int getCurrentQuestID() {
@@ -295,10 +300,15 @@ public class Party {
 
     public void readFromNBT(NBTTagCompound compound) {
         this.partyLeaderName = compound.getString("PartyLeader");
-        this.currentQuestID = compound.getInteger("PartyQuestID");
         this.currentQuestName = compound.getString("PartyQuestName");
         this.friendlyFire = compound.getBoolean("FriendlyFire");
         this.partyLocked = compound.getBoolean("PartyLocked");
+
+        this.currentQuestID = compound.getInteger("PartyQuestID");
+        if (compound.hasKey("QuestNBT")) {
+            this.quest = new Quest();
+            this.quest.readNBT(compound.getCompoundTag("QuestNBT"));
+        }
 
         NBTTagList list = compound.getTagList("PartyMembers", 10);
         for (int i = 0; i < list.tagCount(); i++) {
@@ -314,10 +324,15 @@ public class Party {
         NBTTagCompound compound = new NBTTagCompound();
 
         compound.setString("PartyUUID", this.partyUUID.toString());
-        compound.setInteger("PartyQuestID", this.currentQuestID);
         compound.setString("PartyQuestName", this.currentQuestName);
         compound.setBoolean("FriendlyFire", this.friendlyFire);
         compound.setBoolean("PartyLocked", this.partyLocked);
+
+        compound.setInteger("PartyQuestID", this.currentQuestID);
+        if (this.getQuest() != null) {
+            Quest quest = (Quest) this.getQuest();
+            compound.setTag("QuestNBT", quest.writeToNBT(new NBTTagCompound()));
+        }
 
         NBTTagList list = new NBTTagList();
         for (UUID uuid : this.partyOrder) {

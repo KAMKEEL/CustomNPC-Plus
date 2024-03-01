@@ -88,4 +88,81 @@ public class Model2DRenderer extends ModelRenderer {
 		GL11.glEndList();
 		this.compiledModel = true;
 	}
+
+    public static void renderItemIn2D(float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, int p_78439_5_, int p_78439_6_, float p_78439_7_) {
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(0.0F, 0.0F, 1.0F);
+        tessellator.addVertexWithUV(0.0D, 0.0D, 0.0D, p_78439_1_, p_78439_4_);
+        tessellator.addVertexWithUV(1.0D, 0.0D, 0.0D, p_78439_3_, p_78439_4_);
+        tessellator.addVertexWithUV(1.0D, 1.0D, 0.0D, p_78439_3_, p_78439_2_);
+        tessellator.addVertexWithUV(0.0D, 1.0D, 0.0D, p_78439_1_, p_78439_2_);
+        tessellator.draw();
+
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(0.0F, 0.0F, -1.0F);
+        tessellator.addVertexWithUV(0.0D, 1.0D, 0.0F - p_78439_7_, p_78439_1_, p_78439_2_);
+        tessellator.addVertexWithUV(1.0D, 1.0D, 0.0F - p_78439_7_, p_78439_3_, p_78439_2_);
+        tessellator.addVertexWithUV(1.0D, 0.0D, 0.0F - p_78439_7_, p_78439_3_, p_78439_4_);
+        tessellator.addVertexWithUV(0.0D, 0.0D, 0.0F - p_78439_7_, p_78439_1_, p_78439_4_);
+        tessellator.draw();
+
+        float f5 = 0.5F * (p_78439_1_ - p_78439_3_) / (float) p_78439_5_;
+        float f6 = 0.5F * (p_78439_4_ - p_78439_2_) / (float) p_78439_6_;
+
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(-1.0F, 0.0F, 0.0F);
+
+        for (int k = 0; k < p_78439_5_; ++k) {
+            float f7 = (float) k / (float) p_78439_5_;
+            float f8 = p_78439_1_ + (p_78439_3_ - p_78439_1_) * f7 - f5;
+            tessellator.addVertexWithUV(f7, 0.0D, 0.0F - p_78439_7_, f8, p_78439_4_);
+            tessellator.addVertexWithUV(f7, 0.0D, 0.0D, f8, p_78439_4_);
+            tessellator.addVertexWithUV(f7, 1.0D, 0.0D, f8, p_78439_2_);
+            tessellator.addVertexWithUV(f7, 1.0D, 0.0F - p_78439_7_, f8, p_78439_2_);
+        }
+
+        tessellator.draw();
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(1.0F, 0.0F, 0.0F);
+
+        for (int k = 0; k < p_78439_5_; ++k) {
+            float f7 = (float) k / (float) p_78439_5_;
+            float f8 = p_78439_1_ + (p_78439_3_ - p_78439_1_) * f7 - f5;
+            float f9 = f7 + 1.0F / (float) p_78439_5_;
+            tessellator.addVertexWithUV(f9, 1.0D, 0.0F - p_78439_7_, f8, p_78439_2_);
+            tessellator.addVertexWithUV(f9, 1.0D, 0.0D, f8, p_78439_2_);
+            tessellator.addVertexWithUV(f9, 0.0D, 0.0D, f8, p_78439_4_);
+            tessellator.addVertexWithUV(f9, 0.0D, 0.0F - p_78439_7_, f8, p_78439_4_);
+        }
+
+        tessellator.draw();
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(0.0F, 1.0F, 0.0F);
+
+        for (int k = 0; k < p_78439_6_; ++k) {
+            float f7 = (float) k / (float) p_78439_6_;
+            float f8 = p_78439_4_ + (p_78439_2_ - p_78439_4_) * f7 - f6;
+            float f9 = f7 + 1.0F / (float) p_78439_6_;
+            tessellator.addVertexWithUV(0.0D, f9, 0.0D, p_78439_1_, f8);
+            tessellator.addVertexWithUV(1.0D, f9, 0.0D, p_78439_3_, f8);
+            tessellator.addVertexWithUV(1.0D, f9, 0.0F - p_78439_7_, p_78439_3_, f8);
+            tessellator.addVertexWithUV(0.0D, f9, 0.0F - p_78439_7_, p_78439_1_, f8);
+        }
+
+        tessellator.draw();
+        tessellator.startDrawingQuads();
+        tessellator.setNormal(0.0F, -1.0F, 0.0F);
+
+        for (int k = 0; k < p_78439_6_; ++k) {
+            float f7 = (float) k / (float) p_78439_6_;
+            float f8 = p_78439_4_ + (p_78439_2_ - p_78439_4_) * f7 - f6;
+            tessellator.addVertexWithUV(1.0D, f7, 0.0D, p_78439_3_, f8);
+            tessellator.addVertexWithUV(0.0D, f7, 0.0D, p_78439_1_, f8);
+            tessellator.addVertexWithUV(0.0D, f7, 0.0F - p_78439_7_, p_78439_1_, f8);
+            tessellator.addVertexWithUV(1.0D, f7, 0.0F - p_78439_7_, p_78439_3_, f8);
+        }
+
+        tessellator.draw();
+    }
 }
