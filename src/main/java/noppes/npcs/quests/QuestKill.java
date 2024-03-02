@@ -7,6 +7,7 @@ import noppes.npcs.api.handler.data.IQuestKill;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
@@ -68,7 +69,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 			if(!targets.containsKey(entity) || targets.get(entity) > killed.get(entity))
 				return false;
 		}
-		
+
 		return true;
 	}
 
@@ -91,10 +92,10 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 			if(killed.containsKey(entityName))
 				amount = killed.get(entityName);
 			String state = amount + "/" + targets.get(entityName);
-			
+
 			vec.add(entityName + ": " + state);
 		}
-		
+
 		return vec;
 	}
 
@@ -117,7 +118,55 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
-	public void setTargetType(int type) {
+    @Override
+    public Vector<String> getPartyQuestLogStatus(Party party) {
+        Vector<String> vec = new Vector<String>();
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return vec;
+        HashMap<String,Integer> killed = getKilled(data);
+        for(String entityName : targets.keySet()){
+            int amount = 0;
+            if(killed.containsKey(entityName))
+                amount = killed.get(entityName);
+            String state = amount + "/" + targets.get(entityName);
+
+            vec.add(entityName + ": " + state);
+        }
+
+        return vec;
+    }
+
+    @Override
+    public boolean isPartyCompleted(Party party) {
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return false;
+
+        HashMap<String,Integer> killed = getKilled(data);
+        int completed = 0;
+        for(String entityName : targets.keySet()){
+            int amount = 0;
+            if(killed.containsKey(entityName))
+                amount = killed.get(entityName);
+            if(amount >= targets.get(entityName)){
+                completed++;
+            }
+        }
+        if(completed >= targets.keySet().size())
+            return true;
+
+        if(killed.size() != targets.size())
+            return false;
+        for(String entity : killed.keySet()){
+            if(!targets.containsKey(entity) || targets.get(entity) > killed.get(entity))
+                return false;
+        }
+
+        return true;
+    }
+
+    public void setTargetType(int type) {
 		if(type < 0)
 			type = 0;
 		if(type > 2)

@@ -8,6 +8,7 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.api.handler.data.IQuestItem;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.util.ValueUtil;
@@ -51,8 +52,8 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 			if(!done)
 				return false;
 		}
-		
-		
+
+
 		return true;
 	}
 	public HashMap<Integer,ItemStack> getProcessSet(EntityPlayer player){
@@ -80,6 +81,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 		}
 		return map;
 	}
+
 	@Override
 	public void handleComplete(EntityPlayer player) {
 		super.handleComplete(player);
@@ -143,7 +145,52 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 		return list.toArray(new IQuestObjective[0]);
 	}
 
-	public void setLeaveItems(boolean leaveItems){
+    @Override
+    public Vector<String> getPartyQuestLogStatus(Party party) {
+        Vector<String> vec = new Vector<String>();
+        HashMap<Integer,ItemStack> map = getProcessSetParty(party);
+        for(int slot : map.keySet()){
+            ItemStack item = map.get(slot);
+            ItemStack quest = items.items.get(slot);
+            if(item == null)
+                continue;
+            String process = item.stackSize + "";
+            if(item.stackSize > quest.stackSize)
+                process = quest.stackSize + "";
+            process += "/" + quest.stackSize + "";
+            if(item.hasDisplayName())
+                vec.add(item.getDisplayName() + ": " + process);
+            else
+                vec.add(item.getUnlocalizedName() + ".name" + ": " + process);
+        }
+        return vec;
+    }
+
+    @Override
+    public boolean isPartyCompleted(Party party) {
+        HashMap<Integer,ItemStack> map = getProcessSetParty(party);
+        for(ItemStack reqItem : items.items.values()){
+            boolean done = false;
+            for(ItemStack item : map.values()){
+                if(NoppesUtilPlayer.compareItems(reqItem, item, ignoreDamage, ignoreNBT) && item.stackSize >= reqItem.stackSize){
+                    done = true;
+                    break;
+                }
+            }
+            if(!done)
+                return false;
+        }
+
+        return true;
+    }
+
+
+    public HashMap<Integer,ItemStack> getProcessSetParty(Party party){
+        HashMap<Integer,ItemStack> map = new HashMap<Integer,ItemStack>();
+        return map;
+    }
+
+    public void setLeaveItems(boolean leaveItems){
 		this.leaveItems = leaveItems;
 	}
 	public boolean getLeaveItems(){

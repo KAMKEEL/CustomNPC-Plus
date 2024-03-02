@@ -26,6 +26,7 @@ import java.util.UUID;
 public class Party {
     private final UUID partyUUID;
     private UUID partyLeader;
+    private QuestData questData;
 
     private final HashMap<UUID, String> partyMembers = new HashMap<>();
     private final ArrayList<UUID> partyOrder = new ArrayList<>();
@@ -60,11 +61,12 @@ public class Party {
         if (quest != null) {
             this.currentQuestID = quest.getId();
             this.currentQuestName = quest.getName();
+            this.questData = new QuestData((Quest) quest);
         } else {
             this.currentQuestID = -1;
             this.currentQuestName = "";
+            this.questData = null;
         }
-
         this.partyLocked = quest != null;
     }
 
@@ -74,6 +76,10 @@ public class Party {
         } else {
             return this.quest;
         }
+    }
+
+    public QuestData getQuestData() {
+        return questData;
     }
 
     public int getCurrentQuestID() {
@@ -220,7 +226,7 @@ public class Party {
                 sendInfoMessage(leader, "\u00A7aQuest set to party!");
             }
             else {
-                sendInfoMessage(leader, "You are invalid for this quest");
+                sendInfoMessage(leader, "\u00A7cYou are invalid for this quest");
             }
             return leaderBool;
         }

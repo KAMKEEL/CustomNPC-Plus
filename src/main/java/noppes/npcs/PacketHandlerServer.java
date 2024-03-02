@@ -279,13 +279,13 @@ public class PacketHandlerServer{
             NBTTagCompound compound = party.writeToNBT();
             if (party.getQuest() != null) {
                 Quest quest = (Quest) party.getQuest();
-                Vector<String> vector = quest.questInterface.getQuestLogStatus(player);
+                Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
                 NBTTagList list = new NBTTagList();
                 for (String s : vector) {
                     list.appendTag(new NBTTagString(s));
                 }
                 compound.setTag("QuestProgress", list);
-                if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData)) {
+                if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
                     compound.setString("QuestCompleteWith", quest.completerNpc);
                 }
             }

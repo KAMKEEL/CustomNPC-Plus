@@ -7,6 +7,7 @@ import noppes.npcs.api.handler.data.IQuestLocation;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
@@ -26,7 +27,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		location = compound.getString("QuestLocation");
 		location2 = compound.getString("QuestLocation2");
 		location3 = compound.getString("QuestLocation3");
-		
+
 	}
 
 	@Override
@@ -66,7 +67,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 			vec.add(location2 + ": " + (getFound(data,2)?found:notfound));
 		if(!location3.isEmpty())
 			vec.add(location3 + ": " + (getFound(data,3)?found:notfound));
-		
+
 		return vec;
 	}
 
@@ -99,7 +100,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 			data.extraData.setBoolean("Location3Found", true);
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -120,7 +121,34 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
-	public void setLocation1(String loc1){
+    @Override
+    public Vector<String> getPartyQuestLogStatus(Party party) {
+        Vector<String> vec = new Vector<String>();
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return vec;
+        String found = StatCollector.translateToLocal("quest.found");
+        String notfound = StatCollector.translateToLocal("quest.notfound");
+
+        if(!location.isEmpty())
+            vec.add(location + ": " + (getFound(data,1)?found:notfound));
+        if(!location2.isEmpty())
+            vec.add(location2 + ": " + (getFound(data,2)?found:notfound));
+        if(!location3.isEmpty())
+            vec.add(location3 + ": " + (getFound(data,3)?found:notfound));
+
+        return vec;
+    }
+
+    @Override
+    public boolean isPartyCompleted(Party party) {
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return false;
+        return getFound(data, 0);
+    }
+
+    public void setLocation1(String loc1){
 		this.location = loc1;
 	}
 	public String getLocation1(){

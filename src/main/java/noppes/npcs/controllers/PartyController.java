@@ -104,23 +104,24 @@ public class PartyController {
             return;
 
         NBTTagCompound compound = party.writeToNBT();
+        if (party.getQuest() != null) {
+            Quest quest = (Quest) party.getQuest();
+            Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
+            NBTTagList list = new NBTTagList();
+            for (String s : vector) {
+                list.appendTag(new NBTTagString(s));
+            }
+            compound.setTag("QuestProgress", list);
+            if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
+                compound.setString("QuestCompleteWith", quest.completerNpc);
+            }
+        }
+
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    if (party.getQuest() != null) {
-                        Quest quest = (Quest) party.getQuest();
-                        Vector<String> vector = quest.questInterface.getQuestLogStatus(playerMP);
-                        NBTTagList list = new NBTTagList();
-                        for (String s : vector) {
-                            list.appendTag(new NBTTagString(s));
-                        }
-                        compound.setTag("QuestProgress", list);
-                        if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData)) {
-                            compound.setString("QuestCompleteWith", quest.completerNpc);
-                        }
-                    }
                     Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
                 }
             }

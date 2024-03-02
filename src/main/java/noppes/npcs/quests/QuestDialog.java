@@ -1,21 +1,25 @@
 package noppes.npcs.quests;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IQuestDialog;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
+
+import static noppes.npcs.PacketHandlerServer.sendInviteData;
 
 public class QuestDialog extends QuestInterface implements IQuestDialog {
 
@@ -58,7 +62,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 				title += " (unread)";
 			vec.add(title);
 		}
-		
+
 		return vec;
 	}
 
@@ -77,7 +81,79 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
-	class QuestDialogObjective implements IQuestObjective {
+    @Override
+    public Vector<String> getPartyQuestLogStatus(Party party) {
+        Vector<String> vec = new Vector<String>();
+        for(int dialogId : dialogs.values()){
+            Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
+            if(dialog == null)
+                continue;
+
+            ArrayList<String> unread = new ArrayList<>();
+            for (UUID uuid: party.getPlayerUUIDs()) {
+                EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
+                PlayerData playerData;
+                if(player != null){
+                    playerData = PlayerDataController.Instance.getPlayerData(player);
+                }
+                else {
+                    playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
+                }
+                if(playerData != null){
+                    if(!playerData.dialogData.dialogsRead.contains(dialogId))
+                        unread.add(playerData.playername);
+                }
+            }
+
+            String title = dialog.title;
+            if(!unread.isEmpty()){
+                title += " (unread)";
+            }
+            else {
+                title += " (read)";
+            }
+            vec.add(title);
+
+            if(!unread.isEmpty()){
+                StringBuilder unreaders = new StringBuilder("> ");
+                for(String name : unread){
+                    unreaders.append(" ").append(name);
+                }
+                vec.add(unreaders.toString());
+            }
+        }
+
+        return vec;
+    }
+
+    @Override
+    public boolean isPartyCompleted(Party party) {
+        if(party == null)
+            return false;
+
+        for (UUID uuid: party.getPlayerUUIDs()) {
+            EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
+            PlayerData playerData;
+            if(player != null){
+                playerData = PlayerDataController.Instance.getPlayerData(player);
+            }
+            else {
+                playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
+            }
+            if(playerData != null){
+                for(int dialogId : dialogs.values()){
+                    if(!playerData.dialogData.dialogsRead.contains(dialogId)){
+                        return false;
+                    }
+                }
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    class QuestDialogObjective implements IQuestObjective {
 		private final QuestDialog parent;
 		private final EntityPlayer player;
 		private final Dialog dialog;
