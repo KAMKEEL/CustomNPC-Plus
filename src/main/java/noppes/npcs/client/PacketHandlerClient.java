@@ -400,5 +400,19 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			ItemStack stack = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
 			npc.inventory.weapons.put(weaponSlotIndex,stack);
 		}
+        else if(type == EnumPacketClient.PARTY_DATA){
+            GuiScreen gui = Minecraft.getMinecraft().currentScreen;
+            if(gui == null)
+                return;
+
+            if(gui instanceof GuiNPCInterface && ((GuiNPCInterface)gui).hasSubGui()){
+                gui = (GuiScreen) ((GuiNPCInterface)gui).getSubGui();
+            }
+            else if(gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface)gui).hasSubGui()){
+                gui = (GuiScreen) ((GuiContainerNPCInterface)gui).getSubGui();
+            }
+            if(gui instanceof IPartyData)
+                ((IPartyData)gui).setPartyData(Server.readNBT(buffer));
+        }
 	}
 }

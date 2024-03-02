@@ -121,7 +121,7 @@ public class PartyController {
                             compound.setString("QuestCompleteWith", quest.completerNpc);
                         }
                     }
-                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.GUI_DATA, compound);
+                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
                 }
             }
         }

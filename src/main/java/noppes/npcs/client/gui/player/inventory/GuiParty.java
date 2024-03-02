@@ -23,7 +23,7 @@ import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
-public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IGuiData, GuiYesNoCallback {
+public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -370,7 +370,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     }
 
     @Override
-    public void setGuiData(NBTTagCompound compound) {
+    public void setPartyData(NBTTagCompound compound) {
         this.receivedData = true;
         ClientCacheHandler.party = null;
 

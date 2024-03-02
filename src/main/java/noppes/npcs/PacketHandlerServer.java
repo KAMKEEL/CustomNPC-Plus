@@ -127,7 +127,7 @@ public class PacketHandlerServer{
 
 				NBTTagCompound compound = new NBTTagCompound();
 				compound.setBoolean("Disband", true);
-				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+				Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
 			} else if (type == EnumPacketServer.KickPlayer) {
 				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
 				if (kickPlayer != null) {
@@ -171,7 +171,6 @@ public class PacketHandlerServer{
                     if (!party.getIsLocked()) {
                         party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
                         PartyController.Instance().pingPartyUpdate(party);
-                        // Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
                     }
 				}
 			} else if (type == EnumPacketServer.PartyInvite) {
@@ -220,7 +219,7 @@ public class PacketHandlerServer{
 							break;
 						}
 					}
-					Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+					Server.sendData(player, EnumPacketClient.PARTY_DATA, party.writeToNBT());
 				}
 			}
 
@@ -288,7 +287,7 @@ public class PacketHandlerServer{
                     compound.setString("QuestCompleteWith", quest.completerNpc);
                 }
             }
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
 		} else {
 			sendInviteData(player);
 		}
@@ -308,7 +307,7 @@ public class PacketHandlerServer{
 				list.appendTag(partyCompound);
 			}
 			compound.setTag("PartyInvites", list);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
 		}
 	}
 
