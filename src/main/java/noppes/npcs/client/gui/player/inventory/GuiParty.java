@@ -91,7 +91,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 //party player list
                 //
                 GuiCustomScroll playerScroll = new GuiCustomScroll(this, 300, false);
-                playerScroll.setSize(135, this.isLeader ? 145 : 165);
+                playerScroll.setSize(135, 120);
                 playerScroll.guiLeft = guiLeft + 5;
                 playerScroll.guiTop = guiTop + 5;
 
@@ -121,47 +121,45 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                         guiLeft + 284 - fontRendererObj.getStringWidth(textString), getButton(405).yPosition + 3));
                     getButton(405).visible = getLabel(406).enabled = !getButton(400).visible;
 
-                    GuiNpcButton disbandButton = new GuiNpcButton(410, guiLeft + 164, arrowButtonsY + 19, "party.dropQuest");
-                    disbandButton.width = 135;
-                    this.addButton(disbandButton);
+                    if(isLeader){
+                        GuiNpcButton disbandButton = new GuiNpcButton(410, guiLeft + 164, arrowButtonsY + 19, "party.dropQuest");
+                        disbandButton.width = 135;
+                        this.addButton(disbandButton);
+                    }
                 }
 
                 // toggle friendly fire
                 //
                 GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":",
-                    guiLeft + xSize / 2 + 10, guiTop + ySize / 2 + 5);
-                if (party.getIsLocked()) {
-                    friendlyFireLabel.x = guiLeft + 5;
-                    friendlyFireLabel.y = guiTop + ySize - 8 - 15;
-                }
+                    guiLeft + 7, guiTop + ySize - 8 - 39);
                 this.addLabel(friendlyFireLabel);
-                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, friendlyFireLabel.x + 70, friendlyFireLabel.y - 6, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
+                GuiNpcButton friendlyFireButton = new GuiNpcButton(320, guiLeft + 10 + 89, friendlyFireLabel.y - 6, new String[]{"gui.on", "gui.off"}, party.friendlyFire() ? 0 : 1);
                 friendlyFireButton.width = 40;
                 this.addButton(friendlyFireButton);
+                getButton(320).enabled = this.isLeader && !party.getIsLocked();
 
                 if (this.isLeader) {
                     if (!party.getIsLocked()) {
                         //set leader button
                         //
-                        GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 8 - 21, "party.makeLeader");
+                        GuiNpcButton leaderButton = new GuiNpcButton(305, guiLeft + 5, guiTop + ySize - 8 - 23, "party.setLeader");
                         leaderButton.width = 65;
                         this.addButton(leaderButton);
 
                         //kick player button
                         //
-                        GuiNpcButton kickButton = new GuiNpcButton(310, guiLeft + 75, guiTop + ySize - 8 - 21, "party.kick");
+                        GuiNpcButton kickButton = new GuiNpcButton(310, guiLeft + 75, guiTop + ySize - 8 - 23, "party.kick");
                         kickButton.width = 65;
                         this.addButton(kickButton);
 
                         //send invite button (opens subgui)
                         //
-                        GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, friendlyFireLabel.x, guiTop + ySize / 2 + 25, 100, 20, "");
+                        GuiNpcTextField playerTextField = new GuiNpcTextField(325, this, guiLeft + xSize / 2 + 10, guiTop + ySize / 2 + 25, 100, 20, "");
                         this.addTextField(playerTextField);
                         GuiNpcButton inviteButton = new GuiNpcButton(330, playerTextField.xPosition + 105, playerTextField.yPosition, "party.invite");
                         inviteButton.width = 50;
                         this.addButton(inviteButton);
                     }
-
                     //disband party
                     //
                     GuiNpcButton disbandButton = new GuiNpcButton(335, guiLeft + 5, guiTop + ySize - 9, "party.disbandParty");
@@ -171,8 +169,14 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     //leave party
                     //
                     GuiNpcButton leaveButton = new GuiNpcButton(335, guiLeft + 5, guiTop + ySize - 9, "party.leaveParty");
-                    leaveButton.width = 100;
+                    leaveButton.width = 135;
                     this.addButton(leaveButton);
+                }
+
+                if (party.getIsLocked()){
+                    GuiNpcButton trackButton = new GuiNpcButton(340, guiLeft + 5, guiTop + ySize - 8 - 23, "party.track");
+                    trackButton.width = 135;
+                    this.addButton(trackButton);
                 }
             }
         }

@@ -21,7 +21,7 @@ import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
-public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,ICustomScrollListener, IGuiData{
+public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,ICustomScrollListener, IGuiData, IPartyData {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
 
@@ -292,19 +292,23 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     }
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
+        QuestLogData data = new QuestLogData();
+        data.readNBT(compound);
+        this.data = data;
+        this.questAlertsOnOpen = new HashMap<>(data.questAlerts);
+        this.trackedQuestKeyOnOpen = data.trackedQuestKey;
+        initGui();
+	}
+
+    @Override
+    public void setPartyData(NBTTagCompound compound) {
         if (compound.hasKey("PartyUUID")) {
             UUID uuid = UUID.fromString(compound.getString("PartyUUID"));
             ClientCacheHandler.party = new Party(uuid);
             ClientCacheHandler.party.readFromNBT(compound);
-        } else {
-            QuestLogData data = new QuestLogData();
-            data.readNBT(compound);
-            this.data = data;
-            this.questAlertsOnOpen = new HashMap<>(data.questAlerts);
-            this.trackedQuestKeyOnOpen = data.trackedQuestKey;
+            initGui();
         }
-		initGui();
-	}
+    }
 
     @Override
     public void onGuiClosed() {
