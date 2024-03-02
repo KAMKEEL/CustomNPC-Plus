@@ -109,7 +109,7 @@ public enum EnumPacketServer {
 
 	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
 
-	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
+	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
 	IgnoreInvite, SetPartyLeader, SetPartyQuest,
 
     ServerUpdateSkinOverlays;

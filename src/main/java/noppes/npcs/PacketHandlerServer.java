@@ -136,26 +136,27 @@ public class PacketHandlerServer{
 						Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         if (!party.getIsLocked()) {
                             boolean successful = party.removePlayer(kickPlayer);
-                            if (kickPlayer != player) {
-                                sendPartyData(player);
-                                if(successful){
-                                    for(String name : party.getPlayerNames()){
-                                        EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
-                                        if(playerMP != null){
-                                            Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer.getCommandSenderName());
-                                            Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7c", kickPlayer.getCommandSenderName(), " \u00A7e", "party.kickOtherChat", "!");
-                                        }
-                                    }
-                                    Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
-                                    Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A7c", "party.kickYouChat", "!");
-                                }
-                            } else {
-                                sendInviteData((EntityPlayerMP) kickPlayer);
+                            sendPartyData(player);
+                            if(successful){
+                                PartyController.Instance().sendKickMessages(party, kickPlayer);
                             }
                         }
 					}
 				}
-			} else if (type == EnumPacketServer.SavePartyData) {
+			} else if (type == EnumPacketServer.LeavePlayer) {
+                EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+                if (leavingPlayer != null) {
+                    PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                    if (playerData.partyUUID != null) {
+                        Party party = PartyController.Instance().getParty(playerData.partyUUID);
+                        boolean successful = party.removePlayer(leavingPlayer);
+                        sendInviteData((EntityPlayerMP) leavingPlayer);
+                        if(successful){
+                            PartyController.Instance().sendLeavingMessages(party, leavingPlayer);
+                        }
+                    }
+                }
+            } else if (type == EnumPacketServer.SavePartyData) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);

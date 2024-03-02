@@ -183,16 +183,20 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         if (flag) {
             switch (i) {
                 case 0:
+                    // Leader New Player
                     Client.sendData(EnumPacketServer.SetPartyLeader, this.selectedPlayer);
                     break;
                 case 1:
+                    // Kick Other Player
                     Client.sendData(EnumPacketServer.KickPlayer, this.selectedPlayer);
                     break;
                 case 2:
+                    // Disband Party
                     Client.sendData(EnumPacketServer.DisbandParty);
                     break;
                 case 3:
-                    Client.sendData(EnumPacketServer.KickPlayer, this.player.getCommandSenderName());
+                    // Leave Party
+                    Client.sendData(EnumPacketServer.LeavePlayer, this.player.getCommandSenderName());
                     break;
             }
             receivedData = false;
