@@ -21,8 +21,8 @@ public class QuestLogData {
 	public HashMap<String,String> questAlerts = new HashMap<>();
 	public HashMap<String,Vector<String>> questStatus = new HashMap<>();
 	public HashMap<String,String> finish = new HashMap<>();
-	public HashSet<String> partyAbleQuests = new HashSet<>();
-	
+	public HashSet<String> partyQuests = new HashSet<>();
+
 	public NBTTagCompound writeNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setTag("Categories", NBTTags.nbtVectorMap(categories));
@@ -31,7 +31,7 @@ public class QuestLogData {
 		compound.setTag("Status", NBTTags.nbtVectorMap(questStatus));
 		compound.setTag("QuestFinisher", NBTTags.nbtStringStringMap(finish));
 		compound.setString("TrackedQuestID", trackedQuestKey);
-		compound.setTag("PartyQuests", NBTTags.nbtStringSet(partyAbleQuests));
+		compound.setTag("PartyQuests", NBTTags.nbtStringSet(partyQuests));
 		return compound;
 	}
 
@@ -42,7 +42,7 @@ public class QuestLogData {
 		questStatus = NBTTags.getVectorMap(compound.getTagList("Status", 10));
 		finish = NBTTags.getStringStringMap(compound.getTagList("QuestFinisher", 10));
 		trackedQuestKey = compound.getString("TrackedQuestID");
-		partyAbleQuests = NBTTags.getStringSet(compound.getTagList("PartyQuests", 10));
+		partyQuests = NBTTags.getStringSet(compound.getTagList("PartyQuests", 10));
 	}
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
@@ -54,7 +54,7 @@ public class QuestLogData {
     			categories.put(category, new Vector<String>());
     		Vector<String> list = categories.get(category);
     		list.add(quest.title);
-    		
+
     		questText.put(category + ":" + quest.title, quest.logText);
 			questAlerts.put(category + ":" + quest.title, String.valueOf(playerData.questData.activeQuests.get(quest.id).sendAlerts));
     		questStatus.put(category + ":" + quest.title, quest.questInterface.getQuestLogStatus(player));
@@ -68,7 +68,7 @@ public class QuestLogData {
 			}
 
 			if (quest.partyOptions.allowParty) {
-				partyAbleQuests.add(category + ":" + quest.title);
+				partyQuests.add(category + ":" + quest.title);
 			}
         }
 	}
