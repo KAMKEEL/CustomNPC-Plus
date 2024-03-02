@@ -217,9 +217,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		if (uuid != null) {
 			this.partyInvites.remove(uuid);
 			Party party = PartyController.Instance().getParty(uuid);
-            if (!party.getIsLocked()) {
-                party.addPlayer(player);
-                PacketHandlerServer.sendPartyData((EntityPlayerMP) player);
+            if(party != null){
+                if (!party.getIsLocked()) {
+                    party.addPlayer(player);
+                    PartyController.Instance().pingPartyUpdate(party);
+                }
             }
 		}
 	}

@@ -126,7 +126,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     this.addButton(disbandButton);
                 }
 
-                //toggle friendly fire
+                // toggle friendly fire
                 //
                 GuiNpcLabel friendlyFireLabel = new GuiNpcLabel(321, StatCollector.translateToLocal("party.friendlyFire") + ":",
                     guiLeft + xSize / 2 + 10, guiTop + ySize / 2 + 5);

@@ -136,8 +136,9 @@ public class PacketHandlerServer{
 						Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         if (!party.getIsLocked()) {
                             boolean successful = party.removePlayer(kickPlayer);
-                            sendPartyData(player);
                             if(successful){
+                                sendInviteData((EntityPlayerMP) kickPlayer);
+                                PartyController.Instance().pingPartyUpdate(party);
                                 PartyController.Instance().sendKickMessages(party, kickPlayer);
                             }
                         }
@@ -150,8 +151,9 @@ public class PacketHandlerServer{
                     if (playerData.partyUUID != null) {
                         Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         boolean successful = party.removePlayer(leavingPlayer);
-                        sendInviteData((EntityPlayerMP) leavingPlayer);
                         if(successful){
+                            sendInviteData((EntityPlayerMP) leavingPlayer);
+                            PartyController.Instance().pingPartyUpdate(party);
                             PartyController.Instance().sendLeavingMessages(party, leavingPlayer);
                         }
                     }
@@ -168,7 +170,8 @@ public class PacketHandlerServer{
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
                     if (!party.getIsLocked()) {
                         party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
-                        Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
+                        PartyController.Instance().pingPartyUpdate(party);
+                        // Server.sendData(player, EnumPacketClient.GUI_DATA, party.writeToNBT());
                     }
 				}
 			} else if (type == EnumPacketServer.PartyInvite) {
@@ -180,6 +183,7 @@ public class PacketHandlerServer{
                         Party party = PartyController.Instance().getParty(senderData.partyUUID);
                         if (!party.getIsLocked()) {
                             invitedData.inviteToParty(party);
+                            sendInviteData((EntityPlayerMP) invitedPlayer);
                         }
 					}
 				}

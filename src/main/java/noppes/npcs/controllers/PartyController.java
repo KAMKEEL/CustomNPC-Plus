@@ -2,14 +2,22 @@ package noppes.npcs.controllers;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.Quest;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.Vector;
+
+import static noppes.npcs.PacketHandlerServer.sendInviteData;
 
 public class PartyController {
     private static PartyController Instance;
@@ -41,8 +49,21 @@ public class PartyController {
         if (party != null) {
             for (UUID uuid: party.getPlayerUUIDs()) {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
-                PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-                playerData.partyUUID = null;
+                PlayerData playerData;
+                if(player != null){
+                    playerData = PlayerDataController.Instance.getPlayerData(player);
+                }
+                else {
+                    playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
+                }
+                if(playerData != null){
+                    playerData.partyUUID = null;
+                    if(player != null){
+                        sendInviteData((EntityPlayerMP) player);
+                        Server.sendData((EntityPlayerMP) player, EnumPacketClient.PARTY_MESSAGE,  "party.disbandAlert");
+                        Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "\u00A7c", "party.disbandMessage", "!");
+                    }
+                }
             }
             this.parties.remove(partyUUID);
         }
@@ -56,11 +77,11 @@ public class PartyController {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
                 Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer.getCommandSenderName());
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7c", kickPlayer.getCommandSenderName(), " \u00A7e", "party.kickOtherChat", "!");
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayer.getCommandSenderName(), " \u00A74", "party.kickOtherChat", "!");
             }
         }
         Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
-        Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A7c", "party.kickYouChat", "!");
+        Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
     }
 
     public void sendLeavingMessages(Party party, EntityPlayer leavingPlayer){
@@ -71,10 +92,38 @@ public class PartyController {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
                 Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7a", leavingPlayer.getCommandSenderName(), " \u00A7e", "party.leaveOtherChat", "!");
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
             }
         }
         Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.PARTY_MESSAGE, "party.leaveYouAlert", "");
-        Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.CHAT, "\u00A7a", "party.leaveYouChat", "!");
+        Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.CHAT, "\u00A7c", "party.leaveYouChat", "!");
+    }
+
+    public void pingPartyUpdate(Party party){
+        if(party == null)
+            return;
+
+        NBTTagCompound compound = party.writeToNBT();
+        for(String name : party.getPlayerNames()){
+            EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+            if(playerMP != null){
+                PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
+                if(playerData != null){
+                    if (party.getQuest() != null) {
+                        Quest quest = (Quest) party.getQuest();
+                        Vector<String> vector = quest.questInterface.getQuestLogStatus(playerMP);
+                        NBTTagList list = new NBTTagList();
+                        for (String s : vector) {
+                            list.appendTag(new NBTTagString(s));
+                        }
+                        compound.setTag("QuestProgress", list);
+                        if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData)) {
+                            compound.setString("QuestCompleteWith", quest.completerNpc);
+                        }
+                    }
+                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.GUI_DATA, compound);
+                }
+            }
+        }
     }
 }
