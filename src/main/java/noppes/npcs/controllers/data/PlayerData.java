@@ -202,7 +202,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		if (party != null && this.partyUUID == null && !this.partyInvites.contains(party.getPartyUUID())) {
 			this.partyInvites.add(party.getPartyUUID());
 			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.PARTY_MESSAGE, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
-			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.CHAT, "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
+			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.CHAT, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
 		}
 	}
 
