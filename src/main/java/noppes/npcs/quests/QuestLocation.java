@@ -121,6 +121,23 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
+    public IQuestObjective[] getPartyObjectives(Party party) {
+        List<IQuestObjective> list = new ArrayList();
+        if (!this.location.isEmpty()) {
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location, "LocationFound"));
+        }
+
+        if (!this.location2.isEmpty()) {
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location2, "Location2Found"));
+        }
+
+        if (!this.location3.isEmpty()) {
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location3, "Location3Found"));
+        }
+
+        return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+    }
+
     @Override
     public Vector<String> getPartyQuestLogStatus(Party party) {
         Vector<String> vec = new Vector<String>();
@@ -172,6 +189,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 	class QuestLocationObjective implements IQuestObjective {
 		private final QuestLocation parent;
 		private final EntityPlayer player;
+        private final Party party;
 		private final String location;
 		private final String nbtName;
 
@@ -180,7 +198,16 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 			this.player = player;
 			this.location = location;
 			this.nbtName = nbtName;
+            this.party = null;
 		}
+
+        public QuestLocationObjective(QuestLocation this$0, Party party, String location, String nbtName) {
+            this.parent = this$0;
+            this.player = null;
+            this.location = location;
+            this.nbtName = nbtName;
+            this.party = party;
+        }
 
 		public int getProgress() {
 			return this.isCompleted() ? 1 : 0;
@@ -188,14 +215,23 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= 1) {
-				PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-				QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
-				boolean completed = questData.extraData.getBoolean	(this.nbtName);
-				if ((!completed || progress != 1) && (completed || progress != 0)) {
-					questData.extraData.setBoolean(this.nbtName, progress == 1);
-					data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
-					data.save();
-				}
+                if(player != null){
+                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
+                    boolean completed = questData.extraData.getBoolean	(this.nbtName);
+                    if ((!completed || progress != 1) && (completed || progress != 0)) {
+                        questData.extraData.setBoolean(this.nbtName, progress == 1);
+                        data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
+                        data.save();
+                    }
+                } else if (party != null){
+                    QuestData questData = party.getQuestData();
+                    boolean completed = questData.extraData.getBoolean	(this.nbtName);
+                    if ((!completed || progress != 1) && (completed || progress != 0)) {
+                        questData.extraData.setBoolean(this.nbtName, progress == 1);
+                        party.checkQuestCompletion(EnumQuestType.values()[3]);
+                    }
+                }
 			} else {
 				throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
 			}
@@ -206,15 +242,21 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		}
 
 		public boolean isCompleted() {
-			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-			PlayerQuestData playerQuestData = data.questData;
-			if(playerQuestData != null){
-				QuestData questData = playerQuestData.activeQuests.get(this.parent.questId);
-				if(questData != null){
-					return questData.extraData.getBoolean(this.nbtName);
-				}
-			}
+            QuestData questData = null;
 
+            if(player != null){
+                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerQuestData playerQuestData = data.questData;
+                if(playerQuestData != null){
+                    questData = playerQuestData.activeQuests.get(this.parent.questId);
+                }
+            } else if(party != null){
+                questData = party.getQuestData();
+            }
+
+            if(questData != null){
+                return questData.extraData.getBoolean(this.nbtName);
+            }
 			return false;
 		}
 

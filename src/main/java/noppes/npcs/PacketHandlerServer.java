@@ -204,25 +204,33 @@ public class PacketHandlerServer{
 				}
 			} else if (type == EnumPacketServer.SetPartyQuest) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				Party party = PartyController.Instance().getParty(playerData.partyUUID);
-				if (party != null) {
-					if (party.getPartyLeader() != player) {
-						return;
-					}
+                if(playerData.partyUUID != null){
+                    Party party = PartyController.Instance().getParty(playerData.partyUUID);
+                    if (party != null) {
+                        if (party.getPartyLeader() != player) {
+                            return;
+                        }
 
-					String questCategory = Server.readString(buffer);
-					String questName = Server.readString(buffer);
-					party.setQuest(null);
-					for (Quest quest : QuestController.Instance.quests.values()) {
-						if (quest.partyOptions.allowParty && quest.getCategory().getName().equals(questCategory) && quest.getName().equals(questName)) {
-							party.setQuest(quest);
-							break;
-						}
-					}
+                        String questCategory = Server.readString(buffer);
+                        String questName = Server.readString(buffer);
+                        party.setQuest(null);
+                        for (Quest quest : QuestController.Instance.quests.values()) {
+                            if (quest.partyOptions.allowParty && quest.getCategory().getName().equals(questCategory) && quest.getName().equals(questName)) {
 
-					Server.sendData(player, EnumPacketClient.PARTY_DATA, party.writeToNBT());
-                    PartyController.Instance().pingPartyUpdate(party);
-				}
+                                if(playerData.questData.hasActiveQuest(quest.getId())){
+                                    QuestData questdata = new QuestData(quest);
+                                    playerData.questData.activeQuests.put(quest.getId(), questdata);
+                                }
+
+                                party.setQuest(quest);
+                                break;
+                            }
+                        }
+
+                        Server.sendData(player, EnumPacketClient.PARTY_DATA, party.writeToNBT());
+                        PartyController.Instance().pingPartyUpdate(party);
+                    }
+                }
 			}
 
 			if(type.needsNpc && npc == null){

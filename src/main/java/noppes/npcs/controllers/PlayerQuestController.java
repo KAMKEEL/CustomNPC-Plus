@@ -10,10 +10,7 @@ import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.quests.QuestDialog;
 
 import java.util.Vector;
@@ -24,12 +21,12 @@ public class PlayerQuestController {
 		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return !data.activeQuests.isEmpty();
 	}
-	
+
 	public static boolean isQuestActive(EntityPlayer player, int quest){
 		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.activeQuests.containsKey(quest);
 	}
-	
+
 	public static boolean isQuestFinished(EntityPlayer player, int questid){
 		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.finishedQuests.containsKey(questid);
@@ -56,7 +53,7 @@ public class PlayerQuestController {
 			}
 		}
 	}
-	
+
 	public static void setQuestFinished(Quest quest, EntityPlayer player){
 		PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData data = playerdata.questData;
@@ -73,12 +70,33 @@ public class PlayerQuestController {
 				playerdata.dialogData.dialogsRead.remove(dialog);
 			}
 		}
-		if (questData.sendAlerts) {
+		if (questData != null && questData.sendAlerts) {
 			Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
 			Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
 		}
-
 	}
+
+    public static void setQuestPartyFinished(Quest quest, EntityPlayer player, QuestData questData ){
+        PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
+        PlayerQuestData data = playerdata.questData;
+        data.activeQuests.remove(quest.id);
+        if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
+            data.finishedQuests.put(quest.id, System.currentTimeMillis());
+        else
+            data.finishedQuests.put(quest.id,player.worldObj.getTotalWorldTime());
+
+        if(quest.repeat != EnumQuestRepeat.NONE && quest.type == EnumQuestType.Dialog){
+            QuestDialog questdialog = (QuestDialog) quest.questInterface;
+            for(int dialog : questdialog.dialogs.values()){
+                playerdata.dialogData.dialogsRead.remove(dialog);
+            }
+        }
+        if (questData != null && questData.sendAlerts) {
+            Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
+            Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
+        }
+    }
+
 	public static boolean canQuestBeAccepted(Quest quest, EntityPlayer player){
 		if(quest == null)
 			return false;
@@ -86,14 +104,14 @@ public class PlayerQuestController {
 		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		if(data.activeQuests.containsKey(quest.id))
 			return false;
-		
+
 		if(!data.finishedQuests.containsKey(quest.id) || quest.repeat == EnumQuestRepeat.REPEATABLE)
 			return true;
 		if(quest.repeat == EnumQuestRepeat.NONE)
 			return false;
-		
+
 		long questTime = data.finishedQuests.get(quest.id);
-		
+
 		if(quest.repeat == EnumQuestRepeat.MCDAILY){
 			return player.worldObj.getTotalWorldTime() - questTime >= 24000;
 		}

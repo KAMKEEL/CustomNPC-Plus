@@ -82,6 +82,22 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 	}
 
     @Override
+    public IQuestObjective[] getPartyObjectives(Party party) {
+        List<IQuestObjective> list = new ArrayList();
+
+        for(int i = 0; i < 3; ++i) {
+            if (this.dialogs.containsKey(i)) {
+                Dialog dialog = (Dialog)DialogController.Instance.dialogs.get(this.dialogs.get(i));
+                if (dialog != null) {
+                    list.add(new noppes.npcs.quests.QuestDialog.QuestDialogObjective(this, party, dialog));
+                }
+            }
+        }
+
+        return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+    }
+
+    @Override
     public Vector<String> getPartyQuestLogStatus(Party party) {
         Vector<String> vec = new Vector<String>();
         for(int dialogId : dialogs.values()){
@@ -156,13 +172,22 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
     class QuestDialogObjective implements IQuestObjective {
 		private final QuestDialog parent;
 		private final EntityPlayer player;
+        private final Party party;
 		private final Dialog dialog;
 
 		public QuestDialogObjective(QuestDialog this$0, EntityPlayer player, Dialog dialog) {
 			this.parent = this$0;
 			this.player = player;
 			this.dialog = dialog;
+            this.party = null;
 		}
+
+        public QuestDialogObjective(QuestDialog this$0, Party party, Dialog dialog) {
+            this.parent = this$0;
+            this.party = party;
+            this.dialog = dialog;
+            this.player = null;
+        }
 
 		public int getProgress() {
 			return this.isCompleted() ? 1 : 0;

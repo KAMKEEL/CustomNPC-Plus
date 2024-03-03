@@ -118,6 +118,18 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
+    public IQuestObjective[] getPartyObjectives(Party party) {
+        List<IQuestObjective> list = new ArrayList();
+        Iterator var3 = this.targets.entrySet().iterator();
+
+        while(var3.hasNext()) {
+            Map.Entry<String, Integer> entry = (Map.Entry)var3.next();
+            list.add(new noppes.npcs.quests.QuestKill.QuestKillObjective(this, party, (String)entry.getKey(), (Integer)entry.getValue()));
+        }
+
+        return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+    }
+
     @Override
     public Vector<String> getPartyQuestLogStatus(Party party) {
         Vector<String> vec = new Vector<String>();
@@ -181,6 +193,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	class QuestKillObjective implements IQuestObjective {
 		private final QuestKill parent;
 		private final EntityPlayer player;
+        private final Party party;
 		private final String entity;
 		private final int amount;
 
@@ -189,34 +202,66 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 			this.player = player;
 			this.entity = entity;
 			this.amount = amount;
+            this.party = null;
 		}
 
+        public QuestKillObjective(QuestKill parent, Party party, String entity, int amount) {
+            this.parent = parent;
+            this.party = party;
+            this.entity = entity;
+            this.amount = amount;
+            this.player = null;
+        }
+
 		public int getProgress() {
-			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-			PlayerQuestData playerdata = data.questData;
-			QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
-			if(questdata != null){
-				HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-				return !killed.containsKey(this.entity) ? 0 : (Integer)killed.get(this.entity);
-			}
+            if(player != null){
+                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerQuestData playerdata = data.questData;
+                QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
+                if(questdata != null){
+                    HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                    return !killed.containsKey(this.entity) ? 0 : (Integer)killed.get(this.entity);
+                }
+            }
+            else if(party != null) {
+                QuestData questdata = party.getQuestData();
+                if(questdata != null){
+                    HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                    return !killed.containsKey(this.entity) ? 0 : (Integer)killed.get(this.entity);
+                }
+            }
+
 			return 0;
 		}
 
 		public void setProgress(int progress) {
 			if (progress >= 0 && progress <= this.amount) {
-				PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-				PlayerQuestData playerdata = data.questData;
-				QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
-				if(questdata != null){
-					HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-					if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
-						killed.put(this.entity, progress);
-						this.parent.setKilled(questdata, killed);
-						data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
-						data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
-						data.save();
-					}
-				}
+                if(player != null){
+                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerQuestData playerdata = data.questData;
+                    QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
+                    if(questdata != null){
+                        HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                        if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                            killed.put(this.entity, progress);
+                            this.parent.setKilled(questdata, killed);
+                            data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
+                            data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
+                            data.save();
+                        }
+                    }
+                } else if(party != null){
+                    QuestData questdata = party.getQuestData();
+                    if(questdata != null){
+                        HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                        if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                            killed.put(this.entity, progress);
+                            this.parent.setKilled(questdata, killed);
+                            party.checkQuestCompletion(EnumQuestType.values()[2]);
+                            party.checkQuestCompletion(EnumQuestType.values()[4]);
+                        }
+                    }
+                }
 			} else {
 				throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
 			}

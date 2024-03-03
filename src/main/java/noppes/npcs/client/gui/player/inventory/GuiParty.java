@@ -202,6 +202,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     // Leave Party
                     Client.sendData(EnumPacketServer.LeavePlayer, this.player.getCommandSenderName());
                     break;
+                case 4:
+                    // Drop Party Quest
+                    Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
+                    break;
             }
             receivedData = false;
             initGui();
@@ -273,7 +277,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 this.showQuestText = true;
                 break;
             case 410:
-                Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
+                if (this.isLeader) {
+                    GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.disbandConfirm"), 4);
+                    displayGuiScreen(yesnoDisband);
+                }
                 break;
         }
         initGui();

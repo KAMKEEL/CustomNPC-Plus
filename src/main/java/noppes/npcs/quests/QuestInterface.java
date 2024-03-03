@@ -27,15 +27,8 @@ public abstract class QuestInterface implements IQuestInterface {
 	public abstract Vector<String> getQuestLogStatus(EntityPlayer player);
 	public abstract IQuestObjective[] getObjectives(EntityPlayer var1);
 
+    public abstract IQuestObjective[] getPartyObjectives(Party party);
+
     public abstract Vector<String> getPartyQuestLogStatus(Party party);
     public abstract boolean isPartyCompleted(Party party);
-
-    public void handlePartyComplete(Party party) {
-//        PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
-//        if(questData != null && questData.getTrackedQuest() != null){
-//            if (this.questId == PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest().getId()) {
-//                PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
-//            }
-//        }
-    }
 }

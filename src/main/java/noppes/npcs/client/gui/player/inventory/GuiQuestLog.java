@@ -2,6 +2,8 @@ package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -21,7 +23,7 @@ import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
-public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,ICustomScrollListener, IGuiData, IPartyData {
+public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,ICustomScrollListener, IGuiData, IPartyData, GuiYesNoCallback {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
 
@@ -117,6 +119,18 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
             getButton(3).visible = getButton(4).visible;
         }
     }
+
+    @Override
+    public void confirmClicked(boolean flag, int i) {
+        if (flag) {
+            if (i == 0) {
+                Client.sendData(EnumPacketServer.SetPartyQuest, data.selectedCategory, data.selectedQuest);
+            }
+            initGui();
+        }
+        displayGuiScreen(this);
+    }
+
     @Override
 	protected void actionPerformed(GuiButton guibutton){
     	if(guibutton.id == 1){
@@ -130,7 +144,8 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
                 Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
             } else {
-                Client.sendData(EnumPacketServer.SetPartyQuest, data.selectedCategory, data.selectedQuest);
+                GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.setQuestConfirm"), 0);
+                displayGuiScreen(yesnoDisband);
             }
         }
         if(guibutton.id == 4){

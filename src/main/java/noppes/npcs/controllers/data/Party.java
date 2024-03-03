@@ -5,15 +5,22 @@ import com.google.gson.JsonParser;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentText;
+import noppes.npcs.EventHooks;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumPartyRequirements;
+import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.quests.QuestInterface;
+import noppes.npcs.quests.QuestItem;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -173,6 +180,10 @@ public class Party {
         // Set New Leader
         partyLeader = uuid;
         return true;
+    }
+
+    public UUID getLeaderUUID() {
+        return partyLeader;
     }
 
     public Collection<String> getPlayerNames() {
@@ -371,5 +382,33 @@ public class Party {
         compound.setString("PartyQuestName", this.currentQuestName);
         compound.setBoolean("FriendlyFire", this.friendlyFire);
         return compound;
+    }
+
+    public boolean checkQuestCompletion(EnumQuestType type) {
+        boolean bo = false;
+        if(questData == null)
+            return bo;
+
+        if(questData.quest.type != type && type != null)
+            return bo;
+
+        QuestInterface inter =  questData.quest.questInterface;
+        if(inter.isPartyCompleted(this)){
+            if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(this)){
+                questData.isCompleted = true;
+                if (questData.quest.completion == EnumQuestCompletion.Npc) {
+                    // EventHooks.onQuestFinished(player, data.quest);
+                }
+                bo = true;
+            }
+        } else {
+            questData.isCompleted = false;
+        }
+//        if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
+//            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
+//        }
+        QuestItem.pickedUp = null;
+        return bo;
+
     }
 }

@@ -6,7 +6,7 @@ public enum EnumPartyExchange {
 	Leader("party.leader"),
 	All("party.all"),
 	Enrolled("party.enrolled"),
-	Completer("party.completer");
+    Valid("party.valid");
 
 	String name;
 
@@ -17,7 +17,7 @@ public enum EnumPartyExchange {
 		ArrayList<String> list = new ArrayList<String>();
 		for(EnumPartyExchange e : values())
 			list.add(e.name);
-		
+
 		return list.toArray(new String[list.size()]);
 	}
 }

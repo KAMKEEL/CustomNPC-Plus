@@ -171,6 +171,8 @@ party.partying=Partying!
 party.messageNoParty=You're not in a party! Either wait for an invite or create one.
 party.partyRequirements=Party Requirements
 party.partyRewards=Party Rewards
+party.setQuestConfirm=Setting a Quest to a party will clear its progress!
+party.dropQuestConfirm=Are you sure you want to drop the party quest?`
 
 scale.shared=Shared
 filter.contains=Contains

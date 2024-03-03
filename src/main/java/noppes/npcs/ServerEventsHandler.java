@@ -37,6 +37,7 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ServerCloneController;
@@ -323,9 +324,19 @@ public class ServerEventsHandler {
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
 		boolean checkCompletion = false;
-		String entityName = EntityList.getEntityString(entity);
+        String entityName = EntityList.getEntityString(entity);
 
+
+        Party party = null;
 		ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
+        if(playerData.partyUUID != null){
+            Party findParty = PartyController.Instance().getParty(playerData.partyUUID);
+            if(findParty != null && findParty.getQuestData() != null){
+                party = findParty;
+                activeQuestValues.add(0, findParty.getQuestData());
+            }
+        }
+
 		for(QuestData data : activeQuestValues){
 			if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
 				continue;
@@ -373,6 +384,9 @@ public class ServerEventsHandler {
 			return;
 
 		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);
+
+        if(party != null)
+            party.checkQuestCompletion(EnumQuestType.Kill);
 	}
 
 	@SubscribeEvent
