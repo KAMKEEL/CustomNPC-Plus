@@ -12,7 +12,7 @@ import tconstruct.client.tabs.TabRegistry;
 
 public class GuiCNPCInventory extends GuiNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
-    protected static int activeTab = 0;
+    public static int activeTab = 0;
     private Minecraft mc = Minecraft.getMinecraft();
 
     public GuiCNPCInventory() {
