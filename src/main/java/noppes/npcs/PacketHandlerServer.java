@@ -225,7 +225,6 @@ public class PacketHandlerServer{
                                 }
                             }
                         }
-                        Server.sendData(player, EnumPacketClient.PARTY_DATA, party.writeToNBT());
                         PartyController.Instance().pingPartyUpdate(party);
                     }
                 }
