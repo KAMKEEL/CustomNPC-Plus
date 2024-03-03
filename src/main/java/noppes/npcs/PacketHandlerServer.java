@@ -211,22 +211,20 @@ public class PacketHandlerServer{
                             return;
                         }
 
-                        String questCategory = Server.readString(buffer);
-                        String questName = Server.readString(buffer);
+                        int questID = buffer.readInt();
                         party.setQuest(null);
-                        for (Quest quest : QuestController.Instance.quests.values()) {
-                            if (quest.partyOptions.allowParty && quest.getCategory().getName().equals(questCategory) && quest.getName().equals(questName)) {
-
-                                if(playerData.questData.hasActiveQuest(quest.getId())){
-                                    QuestData questdata = new QuestData(quest);
-                                    playerData.questData.activeQuests.put(quest.getId(), questdata);
+                        if(questID != -1){
+                            Quest foundQuest = QuestController.Instance.quests.get(questID);
+                            if(foundQuest != null){
+                                if (foundQuest.partyOptions.allowParty) {
+                                    if(playerData.questData.hasActiveQuest(questID)){
+                                        QuestData questdata = new QuestData(foundQuest);
+                                        playerData.questData.activeQuests.put(questID, questdata);
+                                    }
+                                    party.setQuest(foundQuest);
                                 }
-
-                                party.setQuest(quest);
-                                break;
                             }
                         }
-
                         Server.sendData(player, EnumPacketClient.PARTY_DATA, party.writeToNBT());
                         PartyController.Instance().pingPartyUpdate(party);
                     }

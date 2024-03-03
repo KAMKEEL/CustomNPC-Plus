@@ -21,7 +21,7 @@ public class QuestLogData {
 	public HashMap<String,String> questAlerts = new HashMap<>();
 	public HashMap<String,Vector<String>> questStatus = new HashMap<>();
 	public HashMap<String,String> finish = new HashMap<>();
-	public HashSet<String> partyQuests = new HashSet<>();
+	public HashMap<String, Integer> partyQuests = new HashMap<>();
 
 	public NBTTagCompound writeNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
@@ -31,7 +31,7 @@ public class QuestLogData {
 		compound.setTag("Status", NBTTags.nbtVectorMap(questStatus));
 		compound.setTag("QuestFinisher", NBTTags.nbtStringStringMap(finish));
 		compound.setString("TrackedQuestID", trackedQuestKey);
-		compound.setTag("PartyQuests", NBTTags.nbtStringSet(partyQuests));
+		compound.setTag("PartyQuests", NBTTags.nbtStringIntegerMap(partyQuests));
 		return compound;
 	}
 
@@ -42,7 +42,7 @@ public class QuestLogData {
 		questStatus = NBTTags.getVectorMap(compound.getTagList("Status", 10));
 		finish = NBTTags.getStringStringMap(compound.getTagList("QuestFinisher", 10));
 		trackedQuestKey = compound.getString("TrackedQuestID");
-		partyQuests = NBTTags.getStringSet(compound.getTagList("PartyQuests", 10));
+		partyQuests = NBTTags.getStringIntegerMap(compound.getTagList("PartyQuests", 10));
 	}
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
@@ -55,20 +55,21 @@ public class QuestLogData {
     		Vector<String> list = categories.get(category);
     		list.add(quest.title);
 
-    		questText.put(category + ":" + quest.title, quest.logText);
-			questAlerts.put(category + ":" + quest.title, String.valueOf(playerData.questData.activeQuests.get(quest.id).sendAlerts));
-    		questStatus.put(category + ":" + quest.title, quest.questInterface.getQuestLogStatus(player));
+            String key = category + ":" + quest.title;
+    		questText.put(key, quest.logText);
+			questAlerts.put(key, String.valueOf(playerData.questData.activeQuests.get(quest.id).sendAlerts));
+    		questStatus.put(key, quest.questInterface.getQuestLogStatus(player));
     		if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData))
-    			finish.put(category + ":" + quest.title, quest.completerNpc);
+    			finish.put(key, quest.completerNpc);
 
 			if (playerData.questData.getTrackedQuest() != null) {
 				if (quest.id == playerData.questData.getTrackedQuest().getId()) {
-					trackedQuestKey = category + ":" + quest.title;
+					trackedQuestKey = key;
 				}
 			}
 
 			if (quest.partyOptions.allowParty) {
-				partyQuests.add(category + ":" + quest.title);
+				partyQuests.put(key, quest.id);
 			}
         }
 	}

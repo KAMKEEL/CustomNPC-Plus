@@ -90,7 +90,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         addButton(new GuiButtonNextPage(1, guiLeft + 286, guiTop + 176, true));
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        if (data.partyQuests.contains(data.selectedCategory + ":" + data.selectedQuest)) {
+        if (data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)) {
             String questName = ClientCacheHandler.party != null ? ClientCacheHandler.party.getCurrentQuestName() : null;
             GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, Objects.equals(questName, data.selectedQuest) ? 1 : 0);
             addButton(partyButton);
@@ -124,7 +124,11 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     public void confirmClicked(boolean flag, int i) {
         if (flag) {
             if (i == 0) {
-                Client.sendData(EnumPacketServer.SetPartyQuest, data.selectedCategory, data.selectedQuest);
+                String key = data.selectedCategory + ":" + data.selectedQuest;
+                if(data.partyQuests.containsKey(key)){
+                    int questID = data.partyQuests.get(key);
+                    Client.sendData(EnumPacketServer.SetPartyQuest, questID);
+                }
             }
             initGui();
         }
@@ -142,7 +146,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         if (guibutton.id == 3)
         {
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
-                Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
+                Client.sendData(EnumPacketServer.SetPartyQuest, -1);
             } else {
                 GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.setQuestConfirm"), 0);
                 displayGuiScreen(yesnoDisband);

@@ -204,7 +204,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     break;
                 case 4:
                     // Drop Party Quest
-                    Client.sendData(EnumPacketServer.SetPartyQuest, "", "");
+                    Client.sendData(EnumPacketServer.SetPartyQuest, -1);
                     break;
             }
             receivedData = false;

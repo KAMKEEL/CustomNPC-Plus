@@ -25,18 +25,18 @@ public class QuestController implements IQuestHandler {
 
 	private int lastUsedCatID = 0;
 	private int lastUsedQuestID = 0;
-	
+
 	public QuestController(){
 		Instance = this;
 	}
-	
+
 	public void load(){
 		categories.clear();
 		quests.clear();
 
 		lastUsedCatID = 0;
 		lastUsedQuestID = 0;
-		
+
 		try {
 	        File file = new File(CustomNpcs.getWorldSaveDirectory(), "quests.dat");
 	        if(file.exists()){
@@ -48,9 +48,9 @@ public class QuestController implements IQuestHandler {
 	        	return;
 	        }
 		} catch (Exception e) {
-			
+
 		}
-		
+
 		File dir = getDir();
 		if(!dir.exists()){
 			dir.mkdir();
@@ -103,7 +103,7 @@ public class QuestController implements IQuestHandler {
 		File dir = getDir();
 		if(!dir.exists()){
 			dir.mkdir();
-		}		
+		}
         NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
         lastUsedCatID = nbttagcompound1.getInteger("lastID");
         lastUsedQuestID = nbttagcompound1.getInteger("lastQuestID");
@@ -143,7 +143,7 @@ public class QuestController implements IQuestHandler {
 			quests.remove(dia);
 		categories.remove(category);
 	}
-	
+
 	public void saveCategory(QuestCategory category){
 		category.title = NoppesStringUtils.cleanFileName(category.title);
 		if(categories.containsKey(category.id)){
@@ -181,7 +181,7 @@ public class QuestController implements IQuestHandler {
 		}
 		return false;
 	}
-	
+
 	private boolean containsQuestName(QuestCategory category, Quest quest) {
 		for(Quest q : category.quests.values()){
 			if(q.id != quest.id && q.title.equalsIgnoreCase(quest.title))
@@ -189,7 +189,7 @@ public class QuestController implements IQuestHandler {
 		}
 		return false;
 	}
-	
+
 	public void saveQuest(int categoryID, Quest quest){
 		QuestCategory category = categories.get(categoryID);
 		if(category == null)
@@ -199,21 +199,21 @@ public class QuestController implements IQuestHandler {
 		while(containsQuestName(quest.category, quest)){
 			quest.title = quest.title + "_";
 		}
-		
+
 		if(quest.id < 0){
 			lastUsedQuestID++;
 			quest.id = lastUsedQuestID;
 		}
     	quests.put(quest.id, quest);
     	category.quests.put(quest.id, quest);
-    	
+
     	File dir = new File(getDir(), category.title);
     	if(!dir.exists())
     		dir.mkdirs();
 
     	File file = new File(dir, quest.id + ".json_new");
     	File file2 = new File(dir, quest.id + ".json");
-    	
+
     	try {
 			NBTJsonUtil.SaveFile(file, quest.writeToNBTPartial(new NBTTagCompound()));
 			if(file2.exists())
