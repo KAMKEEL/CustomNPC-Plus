@@ -238,10 +238,7 @@ public class Party {
         EnumPartyRequirements partyRequirements = EnumPartyRequirements.values()[partyReq];
         if (partyRequirements == EnumPartyRequirements.Leader) {
             boolean leaderBool = isValidLeaderQuest(leader, questID);
-            if(leaderBool){
-                sendInfoMessage(leader, "\u00A7aQuest set to party!");
-            }
-            else {
+            if(!leaderBool){
                 sendInfoMessage(leader, "\u00A7cYou are invalid for this quest");
             }
             return leaderBool;
