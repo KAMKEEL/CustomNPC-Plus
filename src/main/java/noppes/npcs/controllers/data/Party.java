@@ -264,14 +264,15 @@ public class Party {
                 if (playerData != null) {
                     IPlayerQuestData questData = playerData.getQuestData();
                     if (questData != null) {
-                        if (requirements == EnumPartyRequirements.All && !questData.hasActiveQuest(quest.getId())) {
-                            allowQuest = false;
-                            sendInfoMessage(leader, String.format("%s does not have the active quest", player.getCommandSenderName()));
-                        }
+                        boolean hasActive = questData.hasActiveQuest(quest.getId());
+                        boolean hasFinished = questData.hasFinishedQuest(quest.getId());
 
-                        if (requirements == EnumPartyRequirements.Valid && !questData.hasActiveQuest(quest.getId()) && !questData.hasFinishedQuest(quest.getId())) {
+                        if (requirements == EnumPartyRequirements.All && !hasActive) {
                             allowQuest = false;
-                            sendInfoMessage(leader, String.format("%s has not finished the quest or have it active", player.getCommandSenderName()));
+                            sendInfoMessage(leader, String.format("%s does not have quest active", player.getCommandSenderName()));
+                        } else if (requirements == EnumPartyRequirements.Valid && !hasActive && !hasFinished) {
+                            allowQuest = false;
+                            sendInfoMessage(leader, String.format("%s does not have the quest active or finished", player.getCommandSenderName()));
                         }
                     } else {
                         allowQuest = false;

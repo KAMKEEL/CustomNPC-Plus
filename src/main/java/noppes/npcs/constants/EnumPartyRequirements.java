@@ -5,7 +5,6 @@ import java.util.ArrayList;
 public enum EnumPartyRequirements {
 	Leader("party.leader"),
 	All("party.all"),
-    Enrolled("party.enrolled"),
 	Valid("party.valid");
 
 	String name;
