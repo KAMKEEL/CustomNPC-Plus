@@ -17,6 +17,7 @@ import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumPartyRequirements;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.quests.QuestInterface;
@@ -404,6 +405,9 @@ public class Party {
                     // EventHooks.onQuestFinished(player, data.quest);
                 }
                 bo = true;
+
+                setQuest(null);
+                PartyController.Instance().pingPartyUpdate(this);
             }
         } else {
             questData.isCompleted = false;
