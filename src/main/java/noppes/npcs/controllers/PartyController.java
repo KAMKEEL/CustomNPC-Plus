@@ -28,8 +28,7 @@ public class PartyController {
 
     private HashMap<UUID, Party> parties = new HashMap<>();
 
-    private PartyController() {
-    }
+    private PartyController() {}
 
     public static PartyController Instance() {
         if (Instance == null) {
