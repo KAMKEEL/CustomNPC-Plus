@@ -6,6 +6,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.api.handler.data.IQuestLocation;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -229,7 +230,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
                     boolean completed = questData.extraData.getBoolean	(this.nbtName);
                     if ((!completed || progress != 1) && (completed || progress != 0)) {
                         questData.extraData.setBoolean(this.nbtName, progress == 1);
-                        party.checkQuestCompletion(EnumQuestType.values()[3]);
+                        PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[3]);
                     }
                 }
 			} else {

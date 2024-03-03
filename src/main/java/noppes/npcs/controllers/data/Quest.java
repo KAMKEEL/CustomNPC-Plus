@@ -139,11 +139,7 @@ public class Quest implements ICompatibilty, IQuest {
 	}
 
     public boolean instantPartyComplete(Party party) {
-        if(completion == EnumQuestCompletion.Instant && NoppesUtilPlayer.questPartyCompletion(party)){
-            // Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
-            return true;
-        }
-        return false;
+        return completion == EnumQuestCompletion.Instant && NoppesUtilPlayer.questPartyCompletion(party);
     }
 
 	public Quest copy(){

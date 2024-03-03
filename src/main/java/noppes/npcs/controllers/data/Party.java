@@ -388,35 +388,4 @@ public class Party {
         compound.setBoolean("FriendlyFire", this.friendlyFire);
         return compound;
     }
-
-    public boolean checkQuestCompletion(EnumQuestType type) {
-        boolean bo = false;
-        if(questData == null)
-            return bo;
-
-        if(questData.quest.type != type && type != null)
-            return bo;
-
-        QuestInterface inter =  questData.quest.questInterface;
-        if(inter.isPartyCompleted(this)){
-            if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(this)){
-                questData.isCompleted = true;
-                if (questData.quest.completion == EnumQuestCompletion.Npc) {
-                    // EventHooks.onQuestFinished(player, data.quest);
-                }
-                bo = true;
-
-                setQuest(null);
-                PartyController.Instance().pingPartyUpdate(this);
-            }
-        } else {
-            questData.isCompleted = false;
-        }
-//        if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
-//            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
-//        }
-        QuestItem.pickedUp = null;
-        return bo;
-
-    }
 }

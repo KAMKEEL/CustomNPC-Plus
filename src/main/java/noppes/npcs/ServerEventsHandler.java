@@ -388,7 +388,7 @@ public class ServerEventsHandler {
 			return;
 
         if(party != null)
-            party.checkQuestCompletion(EnumQuestType.Kill);
+            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
 
 		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);
 	}

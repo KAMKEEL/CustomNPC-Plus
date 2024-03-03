@@ -561,6 +561,10 @@ public class NoppesUtilPlayer {
                 // questData.trackQuest(nextQuest.quest);
             }
             playerData.save();
+
+            if(meetsComplete){
+                Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+            }
         }
 
         return true;

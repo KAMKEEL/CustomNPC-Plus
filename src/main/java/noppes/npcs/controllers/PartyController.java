@@ -9,9 +9,13 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.quests.QuestInterface;
+import noppes.npcs.quests.QuestItem;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -126,5 +130,50 @@ public class PartyController {
                 }
             }
         }
+    }
+
+    public void sendQuestChat(Party party, String chatAlert){
+        if(party == null)
+            return;
+
+        for(String name : party.getPlayerNames()){
+            EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+            if(playerMP != null){
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7a", chatAlert, "!");
+            }
+        }
+    }
+
+    public boolean checkQuestCompletion(Party party, EnumQuestType type) {
+        boolean bo = false;
+        QuestData questData = party.getQuestData();
+        if(questData == null)
+            return bo;
+
+        if(questData.quest.type != type && type != null)
+            return bo;
+
+        QuestInterface inter =  questData.quest.questInterface;
+        if(inter.isPartyCompleted(party)){
+            if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
+                questData.isCompleted = true;
+                if (questData.quest.completion == EnumQuestCompletion.Npc) {
+                    // EventHooks.onQuestFinished(player, data.quest);
+                }
+                bo = true;
+
+                party.setQuest(null);
+                PartyController.Instance().pingPartyUpdate(party);
+                PartyController.Instance().sendQuestChat(party, "party.completeChat");
+            }
+        } else {
+            questData.isCompleted = false;
+        }
+//        if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
+//            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
+//        }
+        QuestItem.pickedUp = null;
+        return bo;
+
     }
 }

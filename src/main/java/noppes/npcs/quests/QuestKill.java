@@ -6,6 +6,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.data.IQuestKill;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -257,8 +258,8 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                         if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
                             killed.put(this.entity, progress);
                             this.parent.setKilled(questdata, killed);
-                            party.checkQuestCompletion(EnumQuestType.values()[2]);
-                            party.checkQuestCompletion(EnumQuestType.values()[4]);
+                            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
+                            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
                         }
                     }
                 }
