@@ -9,10 +9,8 @@ import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IQuest;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.constants.EnumQuestRepeat;
-import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.constants.*;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -38,7 +36,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 		if(mainCompound == null)
 			return;
 		NBTTagCompound compound = mainCompound.getCompoundTag("QuestData");
-		
+
         NBTTagList list = compound.getTagList("CompletedQuests", 10);
         if(list != null){
         	HashMap<Integer,Long> finishedQuests = new HashMap<Integer,Long>();
@@ -49,7 +47,7 @@ public class PlayerQuestData implements IPlayerQuestData {
             }
             this.finishedQuests = finishedQuests;
         }
-		
+
         NBTTagList list2 = compound.getTagList("ActiveQuests", 10);
         if(list2 != null){
         	HashMap<Integer,QuestData> activeQuests = new HashMap<Integer,QuestData>();
@@ -79,9 +77,9 @@ public class PlayerQuestData implements IPlayerQuestData {
 			nbttagcompound.setLong("Date", finishedQuests.get(quest));
 			list.appendTag(nbttagcompound);
 		}
-		
+
 		compound.setTag("CompletedQuests", list);
-		
+
 		NBTTagList list2 = new NBTTagList();
 		for(int quest : activeQuests.keySet()){
 			NBTTagCompound nbttagcompound = new NBTTagCompound();
@@ -89,9 +87,9 @@ public class PlayerQuestData implements IPlayerQuestData {
 			activeQuests.get(quest).writeEntityToNBT(nbttagcompound);
 			list2.appendTag(nbttagcompound);
 		}
-		
+
 		compound.setTag("ActiveQuests", list2);
-		
+
 		maincompound.setTag("QuestData", compound);
 
 		if (this.trackedQuest != null) {
@@ -116,10 +114,26 @@ public class PlayerQuestData implements IPlayerQuestData {
 		boolean bo = false;
 		EntityPlayer player = playerData.player;
 
+        int partyQuestID = -1;
+        if(playerData.partyUUID != null){
+            Party party = PartyController.Instance().getParty(playerData.partyUUID);
+            if(party != null){
+                IQuest quest = party.getQuest();
+                if(quest != null){
+                    partyQuestID = quest.getId();
+                }
+            }
+        }
+
 		ArrayList<QuestData> activeQuestValues = new ArrayList<>(this.activeQuests.values());
 		for(QuestData data : activeQuestValues){
 			if(data.quest.type != type && type != null)
 				continue;
+
+            // Check if Active Quest = Party Quest
+            if(partyQuestID != -1 && data.quest.id == partyQuestID && data.quest.partyOptions.isAllowParty()){
+                continue;
+            }
 
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
@@ -140,7 +154,6 @@ public class PlayerQuestData implements IPlayerQuestData {
 		}
 		QuestItem.pickedUp = null;
 		return bo;
-		
 	}
 
 	public void trackQuest(IQuest quest) {
