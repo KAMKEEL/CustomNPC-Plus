@@ -141,6 +141,10 @@ public class Party {
         return partyMembers.containsKey(player.getUniqueID());
     }
 
+    public boolean hasPlayer(UUID uuid) {
+        return partyMembers.containsKey(uuid);
+    }
+
     public boolean hasPlayer(String playerName) {
         UUID uuid = getUUID(playerName);
         if (uuid == null){

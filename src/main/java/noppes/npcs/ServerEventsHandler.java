@@ -345,7 +345,11 @@ public class ServerEventsHandler {
 				List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
 				for (EntityPlayer pl : list) {
 					if (pl != player) {
-						doQuest(pl, entity, false);
+                        if(party == null){
+                            doQuest(pl, entity, false);
+                        } else if(!party.hasPlayer(pl.getUniqueID())){
+                            doQuest(pl, entity, false);
+                        }
 					}
 				}
 			}
