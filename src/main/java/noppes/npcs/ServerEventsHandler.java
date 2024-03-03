@@ -383,10 +383,10 @@ public class ServerEventsHandler {
 		if(!checkCompletion)
 			return;
 
-		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);
-
         if(party != null)
             party.checkQuestCompletion(EnumQuestType.Kill);
+
+		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);
 	}
 
 	@SubscribeEvent
