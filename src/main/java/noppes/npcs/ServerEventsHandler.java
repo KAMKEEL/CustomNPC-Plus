@@ -412,6 +412,8 @@ public class ServerEventsHandler {
 
         String name = EntityList.getEntityString(entity);
         QuestKill quest = (QuestKill) data.quest.questInterface;
+        if(data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.Leader && !party.getLeaderUUID().equals(player.getUniqueID()))
+            return;
 
         Class entityType = EntityNPCInterface.class;
         if (quest.targetType == 2) {
