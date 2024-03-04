@@ -217,11 +217,13 @@ public class PacketHandlerServer{
                             Quest foundQuest = QuestController.Instance.quests.get(questID);
                             if(foundQuest != null){
                                 if (foundQuest.partyOptions.allowParty) {
-                                    if(playerData.questData.hasActiveQuest(questID)){
-                                        QuestData questdata = new QuestData(foundQuest);
-                                        playerData.questData.activeQuests.put(questID, questdata);
+                                    if(party.validateQuest(questID)){
+                                        if(playerData.questData.hasActiveQuest(questID)){
+                                            QuestData questdata = new QuestData(foundQuest);
+                                            playerData.questData.activeQuests.put(questID, questdata);
+                                        }
+                                        party.setQuest(foundQuest);
                                     }
-                                    party.setQuest(foundQuest);
                                 }
                             }
                         }

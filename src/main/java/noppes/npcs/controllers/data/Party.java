@@ -212,7 +212,7 @@ public class Party {
         return this.partyMembers.keySet();
     }
 
-    // To Be Called DURING Invite, Leave, Quest Switch, Leader Switch, etc.
+    // To Be Called during Set Quest or Quest Switch
     public boolean validateQuest(int questID) {
         IQuest quest = QuestController.Instance.get(questID);
         if (quest == null) {
@@ -289,10 +289,6 @@ public class Party {
                 String playerName = partyMembers.get(playerUUID);
                 sendInfoMessage(leader, String.format("%s was not found", playerName));
             }
-        }
-
-        if(allowQuest){
-            sendInfoMessage(leader, "\u00A7aQuest set to party!");
         }
         return allowQuest;
     }
