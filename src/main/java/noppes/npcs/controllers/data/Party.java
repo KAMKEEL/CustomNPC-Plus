@@ -230,6 +230,11 @@ public class Party {
             return false;
         }
 
+        if (partyMembers.size() < quest.getPartyOptions().getMinPartySize()) {
+            sendInfoMessage(leader, String.format("Party too small. Min %d members", quest.getPartyOptions().getMaxPartySize()));
+            return false;
+        }
+
         if (partyMembers.size() > quest.getPartyOptions().getMaxPartySize()) {
             sendInfoMessage(leader, String.format("Party too large. Max %d members", quest.getPartyOptions().getMaxPartySize()));
             return false;

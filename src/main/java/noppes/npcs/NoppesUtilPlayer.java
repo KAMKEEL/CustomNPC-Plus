@@ -471,6 +471,7 @@ public class NoppesUtilPlayer {
         PartyOptions partyOptions = quest.partyOptions;
         EnumPartyExchange complete = partyOptions.completeFor;
         EnumPartyExchange reward = partyOptions.rewardControl;
+        EnumPartyExchange command = partyOptions.executeCommand;
         for(String name : party.getPlayerNames()){
             EntityPlayer player = NoppesUtilServer.getPlayerByName(name);
             if(player == null)
@@ -487,6 +488,7 @@ public class NoppesUtilPlayer {
 
             boolean meetsComplete = meetsPartyExchange(complete, hasActiveQuest, hasFinishedQuest, isLeader);
             boolean meetsReward = meetsPartyExchange(reward, hasActiveQuest, hasFinishedQuest, isLeader);
+            boolean meetsCommand = meetsPartyExchange(command, hasActiveQuest, hasFinishedQuest, isLeader);
 
             if(meetsComplete){
                 if (data.quest.completion == EnumQuestCompletion.Instant) {
@@ -547,19 +549,22 @@ public class NoppesUtilPlayer {
                 }
             }
 
-            if(meetsComplete){
+            if(meetsCommand){
                 if(!data.quest.command.isEmpty()){
                     NoppesUtilServer.runCommand(player, "QuestCompletion", data.quest.command);
                 }
-                PlayerQuestController.setQuestPartyFinished(data.quest, player, data);
             }
 
-            if (data.quest.hasNewQuest()) {
-                QuestData nextQuest = new QuestData(data.quest.getNextQuest());
-                nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
-                PlayerQuestController.addActiveQuest(nextQuest, player);
-                // questData.trackQuest(nextQuest.quest);
+            if(meetsComplete){
+                PlayerQuestController.setQuestPartyFinished(data.quest, player, data);
+                if (data.quest.hasNewQuest()) {
+                    QuestData nextQuest = new QuestData(data.quest.getNextQuest());
+                    nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
+                    PlayerQuestController.addActiveQuest(nextQuest, player);
+                    // questData.trackQuest(nextQuest.quest);
+                }
             }
+
             playerData.save();
 
             if(meetsComplete){

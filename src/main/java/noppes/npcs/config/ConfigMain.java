@@ -66,8 +66,10 @@ public class ConfigMain
     public static Property MarketDatFormatProperty;
     public static boolean MarketDatFormat = false;
 
+    public static Property DefaultMinPartySizeProperty;
+    public static int DefaultMinPartySize = 1;
 
-    public static Property DefaultMaxPartySizetProperty;
+    public static Property DefaultMaxPartySizeProperty;
     public static int DefaultMaxPartySize = 4;
 
     /**
@@ -159,8 +161,11 @@ public class ConfigMain
             MarketDatFormatProperty = config.get(GENERAL, "Dat Format for Market", false, "You need to use '/kamkeel config market' to convert existing market to new format.");
             MarketDatFormat = MarketDatFormatProperty.getBoolean(false);
 
-            DefaultMaxPartySizetProperty = config.get(GENERAL, "Default Max Party Size", 4, "When creating a new Quest sets the default max party size");
-            DefaultMaxPartySize = DefaultMaxPartySizetProperty.getInt(4);
+            DefaultMinPartySizeProperty = config.get(GENERAL, "Default Min Party Size", 1, "When creating a new Quest sets the default min party size");
+            DefaultMinPartySize = DefaultMinPartySizeProperty.getInt(4);
+
+            DefaultMaxPartySizeProperty = config.get(GENERAL, "Default Max Party Size", 4, "When creating a new Quest sets the default max party size");
+            DefaultMaxPartySize = DefaultMaxPartySizeProperty.getInt(4);
 
             // NPC
             NpcNavRangeProperty = config.get(NPC, "NPC Navigation Range", 32, "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.");
