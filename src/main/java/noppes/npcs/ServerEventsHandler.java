@@ -397,19 +397,6 @@ public class ServerEventsHandler {
         if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
             return;
 
-//        if (data.quest.type == EnumQuestType.AreaKill && all) {
-//            List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
-//            for (EntityPlayer pl : list) {
-//                if (pl != player) {
-//                    if(party == null){
-//                        doQuest(pl, entity, false);
-//                    } else if(!party.hasPlayer(pl.getUniqueID())){
-//                        doQuest(pl, entity, false);
-//                    }
-//                }
-//            }
-//        }
-
         String name = EntityList.getEntityString(entity);
         QuestKill quest = (QuestKill) data.quest.questInterface;
         if(data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.Leader && !party.getLeaderUUID().equals(player.getUniqueID()))
