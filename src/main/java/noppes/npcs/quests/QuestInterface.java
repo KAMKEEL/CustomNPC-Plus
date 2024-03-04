@@ -27,6 +27,8 @@ public abstract class QuestInterface implements IQuestInterface {
 	public abstract Vector<String> getQuestLogStatus(EntityPlayer player);
 	public abstract IQuestObjective[] getObjectives(EntityPlayer var1);
 
+
+    // Party Related
     public abstract IQuestObjective[] getPartyObjectives(Party party);
 
     public abstract Vector<String> getPartyQuestLogStatus(Party party);

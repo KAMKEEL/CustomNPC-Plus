@@ -70,6 +70,24 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		return vec;
 	}
 
+    @Override
+    public IQuestObjective[] getObjectives(EntityPlayer player) {
+        List<IQuestObjective> list = new ArrayList();
+        if (!this.location.isEmpty()) {
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location, "LocationFound"));
+        }
+
+        if (!this.location2.isEmpty()) {
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location2, "Location2Found"));
+        }
+
+        if (!this.location3.isEmpty()) {
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location3, "Location3Found"));
+        }
+
+        return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
+    }
+
 	public boolean getFound(QuestData data, int i) {
         if(i == 1)
             return data.extraData.getBoolean("LocationFound");
@@ -190,23 +208,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         return newFind;
     }
 
-	public IQuestObjective[] getObjectives(EntityPlayer player) {
-		List<IQuestObjective> list = new ArrayList();
-		if (!this.location.isEmpty()) {
-			list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location, "LocationFound"));
-		}
-
-		if (!this.location2.isEmpty()) {
-			list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location2, "Location2Found"));
-		}
-
-		if (!this.location3.isEmpty()) {
-			list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location3, "Location3Found"));
-		}
-
-		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
-	}
-
+    @Override
     public IQuestObjective[] getPartyObjectives(Party party) {
         List<IQuestObjective> list = new ArrayList();
         if (!this.location.isEmpty()) {

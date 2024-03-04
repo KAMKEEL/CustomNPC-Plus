@@ -24,7 +24,6 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	@Override
 	public void writeEntityToNBT(NBTTagCompound compound) {
 		compound.setTag("QuestKills", NBTTags.nbtStringIntegerMap(targets));
-		//compound.setTag("QuestDialogs", NBTTags.nbtStringIntegerMap(targets));
 		compound.setInteger("TargetType",targetType);
 		compound.setString("CustomTargetType",customTargetType);
 	}
@@ -38,9 +37,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		} else {
 			targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestKills", 10));
 		}
-
-		//targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
-		targetType = compound.getInteger("TargetType");
+        targetType = compound.getInteger("TargetType");
 		customTargetType = compound.getString("CustomTargetType");
 	}
 

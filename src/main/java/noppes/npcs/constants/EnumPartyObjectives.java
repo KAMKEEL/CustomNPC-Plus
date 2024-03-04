@@ -7,7 +7,7 @@ public enum EnumPartyObjectives {
     All("party.all"),
 	Leader("party.leader");
 
-	String name;
+	final String name;
 
 	EnumPartyObjectives(String name){
 		this.name = name;
