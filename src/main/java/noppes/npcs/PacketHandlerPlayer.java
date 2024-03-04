@@ -19,6 +19,7 @@ import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
 import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.ScriptController;
@@ -199,6 +200,10 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.CheckQuestCompletion){
 			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 			PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
+            Party playerParty = playerData.getPlayerParty();
+            if(playerParty != null)
+                PartyController.Instance().checkQuestCompletion(playerParty, null);
+
 			questData.checkQuestCompletion(playerData, null);
 		}
 		else if(type == EnumPlayerPacket.QuestLog){

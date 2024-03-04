@@ -15,7 +15,7 @@ public class PartyOptions implements IPartyOptions {
     public EnumPartyExchange rewardControl = EnumPartyExchange.Leader;
 	public EnumPartyExchange completeFor = EnumPartyExchange.Leader;
 
-    public EnumPartyObjectives objectiveRequirement = EnumPartyObjectives.All;
+    public EnumPartyObjectives objectiveRequirement = EnumPartyObjectives.Shared;
 	public int maxPartySize = ConfigMain.DefaultMaxPartySize;
 
     public void readFromNBT(NBTTagCompound compound)

@@ -226,6 +226,13 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 	}
 
+    public Party getPlayerParty() {
+        if (partyUUID != null) {
+            return PartyController.Instance().getParty(partyUUID);
+        }
+        return null;
+    }
+
 	public HashSet<UUID> getPartyInvites() {
 		return (HashSet<UUID>) this.partyInvites.clone();
 	}

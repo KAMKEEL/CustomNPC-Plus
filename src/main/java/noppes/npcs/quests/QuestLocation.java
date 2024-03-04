@@ -3,15 +3,14 @@ package noppes.npcs.quests;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.data.IQuestLocation;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.data.Party;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.ArrayList;
@@ -23,12 +22,11 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 	public String location2 = "";
 	public String location3 = "";
 
-	@Override
+    @Override
 	public void readEntityFromNBT(NBTTagCompound compound) {
 		location = compound.getString("QuestLocation");
 		location2 = compound.getString("QuestLocation2");
 		location3 = compound.getString("QuestLocation3");
-
 	}
 
 	@Override
@@ -73,21 +71,22 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 	}
 
 	public boolean getFound(QuestData data, int i) {
-		if(i == 1)
-			return data.extraData.getBoolean("LocationFound");
-		if(i == 2)
-			return data.extraData.getBoolean("Location2Found");
-		if(i == 3)
-			return data.extraData.getBoolean("Location3Found");
+        if(i == 1)
+            return data.extraData.getBoolean("LocationFound");
+        if(i == 2)
+            return data.extraData.getBoolean("Location2Found");
+        if(i == 3)
+            return data.extraData.getBoolean("Location3Found");
 
-		if(!location.isEmpty() && !data.extraData.getBoolean("LocationFound"))
-			return false;
-		if(!location2.isEmpty() && !data.extraData.getBoolean("Location2Found"))
-			return false;
-		if(!location3.isEmpty() && !data.extraData.getBoolean("Location3Found"))
-			return false;
-		return true;
-	}
+        if(!location.isEmpty() && !data.extraData.getBoolean("LocationFound"))
+            return false;
+        if(!location2.isEmpty() && !data.extraData.getBoolean("Location2Found"))
+            return false;
+        if(!location3.isEmpty() && !data.extraData.getBoolean("Location3Found"))
+            return false;
+        return true;
+    }
+
 	public boolean setFound(QuestData data, String location) {
 		if(location.equalsIgnoreCase(this.location) && !data.extraData.getBoolean("LocationFound")){
 			data.extraData.setBoolean("LocationFound", true);
@@ -104,6 +103,92 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 		return false;
 	}
+
+    public boolean setFoundParty(Party party, EntityPlayer player, String location, boolean isLeader) {
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return false;
+
+        if(data.quest == null)
+            return false;
+
+        int memberCount = party.getPlayerNames().size();
+        EnumPartyObjectives objectives = data.quest.partyOptions.objectiveRequirement;
+        if(objectives == EnumPartyObjectives.All){
+            if(location.equalsIgnoreCase(this.location) && !data.extraData.getBoolean("LocationFound")){
+                return setPartyPlayerFound(data, player, "PlayersLocationFound", "LocationFound", memberCount);
+            }
+            if(location.equalsIgnoreCase(location2) && !data.extraData.getBoolean("LocationFound2")){
+                return setPartyPlayerFound(data, player, "PlayersLocationFound2", "Location2Found", memberCount);
+            }
+            if(location.equalsIgnoreCase(location3) && !data.extraData.getBoolean("LocationFound3")){
+                return setPartyPlayerFound(data, player, "PlayersLocationFound3", "Location3Found", memberCount);
+            }
+        }
+        else if(objectives == EnumPartyObjectives.Leader && isLeader || objectives == EnumPartyObjectives.Shared){
+            if(location.equalsIgnoreCase(this.location) && !data.extraData.getBoolean("LocationFound")){
+                data.extraData.setBoolean("LocationFound", true);
+                return true;
+            }
+            if(location.equalsIgnoreCase(location2) && !data.extraData.getBoolean("LocationFound2")){
+                data.extraData.setBoolean("Location2Found", true);
+                return true;
+            }
+            if(location.equalsIgnoreCase(location3) && !data.extraData.getBoolean("LocationFound3")){
+                data.extraData.setBoolean("Location3Found", true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public List<String> getPartyFound(Party party, int i) {
+        List<String> foundPlayers = new ArrayList<>();
+        if(party == null)
+            return foundPlayers;
+
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return foundPlayers;
+
+        String locationKey;
+        if(i == 1)
+            locationKey = "PlayersLocationFound";
+        else if(i == 2)
+            locationKey = "PlayersLocationFound2";
+        else
+            locationKey = "PlayersLocationFound3";
+
+        if(data.extraData.hasKey(locationKey)){
+            foundPlayers = NBTTags.getStringList(data.extraData.getTagList(locationKey, 10));
+        }
+
+        return foundPlayers;
+    }
+
+
+    public boolean setPartyPlayerFound(QuestData data, EntityPlayer player, String locationKey, String locationFoundKey, int partySize) {
+        boolean newFind = false;
+        List<String> foundPlayers;
+        if(data.extraData.hasKey(locationKey)){
+            foundPlayers = NBTTags.getStringList(data.extraData.getTagList(locationKey, 10));
+        }
+        else {
+            foundPlayers = new ArrayList<>();
+        }
+
+        if(!foundPlayers.contains(player.getCommandSenderName())){
+            foundPlayers.add(player.getCommandSenderName());
+            newFind = true;
+        }
+
+        data.extraData.setTag(locationKey, NBTTags.nbtStringList(foundPlayers));
+        if(foundPlayers.size() == partySize){
+            data.extraData.setBoolean(locationFoundKey, true);
+        }
+
+        return newFind;
+    }
 
 	public IQuestObjective[] getObjectives(EntityPlayer player) {
 		List<IQuestObjective> list = new ArrayList();
@@ -148,13 +233,34 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         String found = StatCollector.translateToLocal("quest.found");
         String notfound = StatCollector.translateToLocal("quest.notfound");
 
-        if(!location.isEmpty())
-            vec.add(location + ": " + (getFound(data,1)?found:notfound));
-        if(!location2.isEmpty())
-            vec.add(location2 + ": " + (getFound(data,2)?found:notfound));
-        if(!location3.isEmpty())
-            vec.add(location3 + ": " + (getFound(data,3)?found:notfound));
+        if(data.quest == null)
+            return vec;
 
+        boolean requireAll = data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All;
+        if(!location.isEmpty()){
+            vec.add(location + ": " + (getFound(data,1)?found:notfound));
+            if(requireAll){
+                List<String> playersFound = getPartyFound(party, 1);
+                String playersFoundString = "Found: " + String.join(", ", playersFound);
+                vec.add(playersFoundString);
+            }
+        }
+        if(!location2.isEmpty()){
+            vec.add(location2 + ": " + (getFound(data,2)?found:notfound));
+            if(requireAll){
+                List<String> playersFound = getPartyFound(party, 2);
+                String playersFoundString = "Found: " + String.join(", ", playersFound);
+                vec.add(playersFoundString);
+            }
+        }
+        if(!location3.isEmpty()){
+            vec.add(location3 + ": " + (getFound(data,3)?found:notfound));
+            if(requireAll){
+                List<String> playersFound = getPartyFound(party, 3);
+                String playersFoundString = "Found: " + String.join(", ", playersFound);
+                vec.add(playersFoundString);
+            }
+        }
         return vec;
     }
 

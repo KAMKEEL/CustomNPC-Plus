@@ -31,10 +31,7 @@ import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
-import noppes.npcs.controllers.CustomGuiController;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.scripted.NpcAPI;
@@ -692,6 +689,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
+        Party playerParty = playerData.getPlayerParty();
+        if(playerParty != null)
+            PartyController.Instance().checkQuestCompletion(playerParty, EnumQuestType.Item);
+
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
