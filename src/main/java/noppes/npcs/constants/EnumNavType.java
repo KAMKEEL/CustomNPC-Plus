@@ -9,7 +9,8 @@ public enum EnumNavType {
 	HitNRun("aitactics.hitandrun"),
 	Ambush("aitactics.ambush"),
 	Stalk("aitactics.stalk"),
-	None("gui.none");
+	None("gui.none"),
+	Twist("aitactics.twist");
 	
 	String name;
 	EnumNavType(String name){
