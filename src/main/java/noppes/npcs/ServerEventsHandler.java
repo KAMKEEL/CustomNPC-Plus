@@ -33,10 +33,7 @@ import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.*;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.RecipeController;
@@ -327,19 +324,25 @@ public class ServerEventsHandler {
         String entityName = EntityList.getEntityString(entity);
 
 
-        Party party = null;
-		ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
-        if(playerData.partyUUID != null){
-            Party findParty = PartyController.Instance().getParty(playerData.partyUUID);
-            if(findParty != null && findParty.getQuestData() != null){
-                party = findParty;
-                activeQuestValues.add(0, findParty.getQuestData());
+        Party party = playerData.getPlayerParty();
+        Quest partyQuest = null;
+        if(party != null){
+            if(party.getQuestData() != null){
+                partyQuest = party.getQuestData().quest;
+                if(partyQuest != null && (partyQuest.type == EnumQuestType.Kill || partyQuest.type == EnumQuestType.AreaKill ))
+                    doPartyQuest(player, party, entity);
+                else
+                    partyQuest = null;
             }
         }
 
+        ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
 		for(QuestData data : activeQuestValues){
 			if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
 				continue;
+
+            if(partyQuest != null && partyQuest.getId() == data.quest.getId())
+                continue;
 
 			if (data.quest.type == EnumQuestType.AreaKill && all) {
 				List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
@@ -388,11 +391,73 @@ public class ServerEventsHandler {
 		if(!checkCompletion)
 			return;
 
-        if(party != null)
-            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
-
 		questData.checkQuestCompletion(playerData,EnumQuestType.Kill);
 	}
+
+    private void doPartyQuest(EntityPlayer player, Party party, EntityLivingBase entity){
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return;
+
+        if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
+            return;
+
+//        if (data.quest.type == EnumQuestType.AreaKill && all) {
+//            List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
+//            for (EntityPlayer pl : list) {
+//                if (pl != player) {
+//                    if(party == null){
+//                        doQuest(pl, entity, false);
+//                    } else if(!party.hasPlayer(pl.getUniqueID())){
+//                        doQuest(pl, entity, false);
+//                    }
+//                }
+//            }
+//        }
+
+        String name = EntityList.getEntityString(entity);
+        QuestKill quest = (QuestKill) data.quest.questInterface;
+
+        Class entityType = EntityNPCInterface.class;
+        if (quest.targetType == 2) {
+            try {
+                entityType = Class.forName(quest.customTargetType);
+            } catch (ClassNotFoundException notFoundException) {
+                return;
+            }
+        }
+
+        if (quest.targetType > 0 && !(entityType.isInstance(entity)))
+            return;
+
+        if (quest.targets.containsKey(entity.getCommandSenderName()))
+            name = entity.getCommandSenderName();
+        else if (!quest.targets.containsKey(name))
+            return;
+
+        if(data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+            HashMap<String, Integer> killed = quest.getPlayerKilled(data, player.getCommandSenderName());
+            if (!killed.containsKey(name)) {
+                killed.put(name, 1);
+            } else if(killed.get(name) < quest.targets.get(name)) {
+                int amount = killed.get(name);
+                killed.put(name, amount + 1);
+            }
+            quest.setPlayerKilled(data, killed, player.getCommandSenderName());
+        }
+        else {
+            HashMap<String, Integer> killed = quest.getKilled(data);
+            if (!killed.containsKey(name)) {
+                killed.put(name, 1);
+            } else if(killed.get(name) < quest.targets.get(name)) {
+                int amount = killed.get(name);
+                killed.put(name, amount + 1);
+            }
+            quest.setKilled(data, killed);
+        }
+
+        PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
+    }
 
 	@SubscribeEvent
 	public void pickUp(EntityItemPickupEvent event){
