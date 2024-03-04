@@ -344,6 +344,9 @@ public class ServerEventsHandler {
             if(partyQuest != null && partyQuest.getId() == data.quest.getId())
                 continue;
 
+            if(data.quest.partyOptions.allowParty && data.quest.partyOptions.onlyParty)
+                continue;
+
             if(data.quest.type == EnumQuestType.AreaKill && all){
                 List<EntityPlayer> list = player.worldObj.getEntitiesWithinAABB(EntityPlayer.class, entity.boundingBox.expand(10, 10, 10));
                 for(EntityPlayer pl : list)
