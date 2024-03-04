@@ -134,13 +134,13 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         EnumPartyObjectives objectives = data.quest.partyOptions.objectiveRequirement;
         if(objectives == EnumPartyObjectives.All){
             if(location.equalsIgnoreCase(this.location) && !data.extraData.getBoolean("LocationFound")){
-                return setPartyPlayerFound(data, player, "PlayersLocationFound", "LocationFound", memberCount);
+                return setPartyPlayerFound(data, player, "LocationFound", memberCount);
             }
             if(location.equalsIgnoreCase(location2) && !data.extraData.getBoolean("LocationFound2")){
-                return setPartyPlayerFound(data, player, "PlayersLocationFound2", "Location2Found", memberCount);
+                return setPartyPlayerFound(data, player, "Location2Found", memberCount);
             }
             if(location.equalsIgnoreCase(location3) && !data.extraData.getBoolean("LocationFound3")){
-                return setPartyPlayerFound(data, player, "PlayersLocationFound3", "Location3Found", memberCount);
+                return setPartyPlayerFound(data, player, "Location3Found", memberCount);
             }
         }
         else if(objectives == EnumPartyObjectives.Leader && isLeader || objectives == EnumPartyObjectives.Shared){
@@ -160,7 +160,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         return false;
     }
 
-    public List<String> getPartyFound(Party party, int i) {
+    public List<String> getPartyFound(Party party, String locationFoundKey) {
         List<String> foundPlayers = new ArrayList<>();
         if(party == null)
             return foundPlayers;
@@ -169,14 +169,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         if(data == null)
             return foundPlayers;
 
-        String locationKey;
-        if(i == 1)
-            locationKey = "PlayersLocationFound";
-        else if(i == 2)
-            locationKey = "PlayersLocationFound2";
-        else
-            locationKey = "PlayersLocationFound3";
-
+        String locationKey = "Players" + locationFoundKey;
         if(data.extraData.hasKey(locationKey)){
             foundPlayers = NBTTags.getStringList(data.extraData.getTagList(locationKey, 10));
         }
@@ -185,9 +178,10 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
     }
 
 
-    public boolean setPartyPlayerFound(QuestData data, EntityPlayer player, String locationKey, String locationFoundKey, int partySize) {
+    public boolean setPartyPlayerFound(QuestData data, EntityPlayer player, String locationFoundKey, int partySize) {
         boolean newFind = false;
         List<String> foundPlayers;
+        String locationKey = "Players" + locationFoundKey;
         if(data.extraData.hasKey(locationKey)){
             foundPlayers = NBTTags.getStringList(data.extraData.getTagList(locationKey, 10));
         }
@@ -212,15 +206,15 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
     public IQuestObjective[] getPartyObjectives(Party party) {
         List<IQuestObjective> list = new ArrayList();
         if (!this.location.isEmpty()) {
-            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location, "LocationFound"));
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location, "LocationFound", getPartyFound(party, "LocationFound")));
         }
 
         if (!this.location2.isEmpty()) {
-            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location2, "Location2Found"));
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location2, "Location2Found", getPartyFound(party, "Location2Found")));
         }
 
         if (!this.location3.isEmpty()) {
-            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location3, "Location3Found"));
+            list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location3, "Location3Found", getPartyFound(party, "Location3Found")));
         }
 
         return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
@@ -242,24 +236,24 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         if(!location.isEmpty()){
             vec.add(location + ": " + (getFound(data,1)?found:notfound));
             if(requireAll){
-                List<String> playersFound = getPartyFound(party, 1);
-                String playersFoundString = "Found: " + String.join(", ", playersFound);
+                List<String> playersFound = getPartyFound(party, "LocationFound");
+                String playersFoundString = "Completed: " + String.join(", ", playersFound);
                 vec.add(playersFoundString);
             }
         }
         if(!location2.isEmpty()){
             vec.add(location2 + ": " + (getFound(data,2)?found:notfound));
             if(requireAll){
-                List<String> playersFound = getPartyFound(party, 2);
-                String playersFoundString = "Found: " + String.join(", ", playersFound);
+                List<String> playersFound = getPartyFound(party, "Location2Found");
+                String playersFoundString = "Completed: " + String.join(", ", playersFound);
                 vec.add(playersFoundString);
             }
         }
         if(!location3.isEmpty()){
             vec.add(location3 + ": " + (getFound(data,3)?found:notfound));
             if(requireAll){
-                List<String> playersFound = getPartyFound(party, 3);
-                String playersFoundString = "Found: " + String.join(", ", playersFound);
+                List<String> playersFound = getPartyFound(party, "Location3Found");
+                String playersFoundString = "Completed: " + String.join(", ", playersFound);
                 vec.add(playersFoundString);
             }
         }
@@ -301,6 +295,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         private final Party party;
 		private final String location;
 		private final String nbtName;
+        private final List<String> completedPlayers;
 
 		public QuestLocationObjective(QuestLocation this$0, EntityPlayer player, String location, String nbtName) {
 			this.parent = this$0;
@@ -308,14 +303,16 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 			this.location = location;
 			this.nbtName = nbtName;
             this.party = null;
+            this.completedPlayers = new ArrayList<>();
 		}
 
-        public QuestLocationObjective(QuestLocation this$0, Party party, String location, String nbtName) {
+        public QuestLocationObjective(QuestLocation this$0, Party party, String location, String nbtName, List<String> completedPlayers) {
             this.parent = this$0;
             this.player = null;
             this.location = location;
             this.nbtName = nbtName;
             this.party = party;
+            this.completedPlayers =  new ArrayList<>(completedPlayers);
         }
 
 		public int getProgress() {
@@ -337,7 +334,16 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
                     QuestData questData = party.getQuestData();
                     boolean completed = questData.extraData.getBoolean	(this.nbtName);
                     if ((!completed || progress != 1) && (completed || progress != 0)) {
-                        questData.extraData.setBoolean(this.nbtName, progress == 1);
+                        boolean setTo = progress == 1;
+                        questData.extraData.setBoolean(this.nbtName, setTo);
+                        if(questData.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+                            completedPlayers.clear();
+                            if(setTo){
+                                completedPlayers.addAll(party.getPlayerNames());
+                            }
+                            String locationKey = "Players" + nbtName;
+                            questData.extraData.setTag(locationKey, NBTTags.nbtStringList(completedPlayers));
+                        }
                         PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[3]);
                     }
                 }
@@ -352,7 +358,6 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
 		public boolean isCompleted() {
             QuestData questData = null;
-
             if(player != null){
                 PlayerData data = PlayerDataController.Instance.getPlayerData(player);
                 PlayerQuestData playerQuestData = data.questData;
@@ -372,5 +377,9 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		public String getText() {
 			return this.location + ": " + (this.isCompleted() ? "Found" : "Not Found");
 		}
+
+        public String getAdditionalText() {
+            return  "Completed: " + String.join(", ", completedPlayers);
+        }
 	}
 }
