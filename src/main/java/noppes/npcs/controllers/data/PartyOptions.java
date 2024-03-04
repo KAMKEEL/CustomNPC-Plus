@@ -50,7 +50,7 @@ public class PartyOptions implements IPartyOptions {
 			rewardControl = EnumPartyExchange.Leader;
 			completeFor = EnumPartyExchange.Leader;
 			maxPartySize = ConfigMain.DefaultMaxPartySize;
-            objectiveRequirement = EnumPartyObjectives.All;
+            objectiveRequirement = EnumPartyObjectives.Shared;
 		}
     }
 	public NBTTagCompound writeToNBT()
