@@ -186,6 +186,9 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 
     @Override
     public boolean isPartyCompleted(Party party) {
+        if(party == null)
+            return false;
+
         HashMap<Integer,ItemStack> map = getProcessSetParty(party);
         for(ItemStack reqItem : items.items.values()){
             boolean done = false;
@@ -315,5 +318,10 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 		public String getText() {
 			return this.questItem.getDisplayName() + ": " + this.getProgress() + "/" + this.getMaxProgress();
 		}
-	}
+
+        @Override
+        public String getAdditionalText() {
+            return null;
+        }
+    }
 }

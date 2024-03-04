@@ -226,6 +226,11 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 		public String getText() {
 			return this.dialog.title + (this.isCompleted() ? " (read)" : " (unread)");
 		}
-	}
+
+        @Override
+        public String getAdditionalText() {
+            return null;
+        }
+    }
 
 }

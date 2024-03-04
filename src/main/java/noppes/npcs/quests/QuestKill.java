@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.data.IQuestKill;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
@@ -116,6 +117,13 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		return (IQuestObjective[])list.toArray(new IQuestObjective[list.size()]);
 	}
 
+    public HashMap<String, Integer> getPlayerKilled(QuestData data, String playerName) {
+        return NBTTags.getStringIntegerMap(data.extraData.getTagList(playerName + "Killed", 10));
+    }
+    public void setPlayerKilled(QuestData data, HashMap<String, Integer> killed, String playerName) {
+        data.extraData.setTag(playerName + "Killed", NBTTags.nbtStringIntegerMap(killed));
+    }
+
     public IQuestObjective[] getPartyObjectives(Party party) {
         List<IQuestObjective> list = new ArrayList();
         Iterator var3 = this.targets.entrySet().iterator();
@@ -134,43 +142,86 @@ public class QuestKill extends QuestInterface implements IQuestKill {
         QuestData data = party.getQuestData();
         if(data == null)
             return vec;
-        HashMap<String,Integer> killed = getKilled(data);
-        for(String entityName : targets.keySet()){
-            int amount = 0;
-            if(killed.containsKey(entityName))
-                amount = killed.get(entityName);
-            String state = amount + "/" + targets.get(entityName);
 
-            vec.add(entityName + ": " + state);
+        if(data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+            for(String entityName : targets.keySet()){
+                String firstLine = entityName + ": " + targets.get(entityName);
+                List<String> playerResults = new ArrayList<>();
+                for(String player : party.getPlayerNames()){
+                    HashMap<String,Integer> killed = getPlayerKilled(data, player);
+                    int amount = 0;
+                    if(killed.containsKey(entityName))
+                        amount = killed.get(entityName);
+
+                    if(amount < targets.get(entityName)){
+                        String state = player + ": " + amount;
+                        playerResults.add(state);
+                    }
+                }
+
+                if(!playerResults.isEmpty()){
+                    vec.add(firstLine);
+                    vec.add("[" + String.join(", ", playerResults) + "]");
+                }
+                else {
+                    vec.add(firstLine + " (Done)");
+                }
+            }
         }
+        else {
+            HashMap<String,Integer> killed = getKilled(data);
+            for(String entityName : targets.keySet()){
+                int amount = 0;
+                if(killed.containsKey(entityName))
+                    amount = killed.get(entityName);
+                String state = amount + "/" + targets.get(entityName);
 
+                vec.add(entityName + ": " + state);
+            }
+        }
         return vec;
     }
 
     @Override
     public boolean isPartyCompleted(Party party) {
+        if(party == null)
+            return false;
+
         QuestData data = party.getQuestData();
         if(data == null)
             return false;
 
-        HashMap<String,Integer> killed = getKilled(data);
-        int completed = 0;
-        for(String entityName : targets.keySet()){
-            int amount = 0;
-            if(killed.containsKey(entityName))
-                amount = killed.get(entityName);
-            if(amount >= targets.get(entityName)){
-                completed++;
+        if(data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+            for(String entityName : targets.keySet()){
+                for(String player : party.getPlayerNames()){
+                    HashMap<String, Integer> killed = getPlayerKilled(data, player);
+                    int amount = killed.getOrDefault(entityName, 0);
+                    if(amount < targets.get(entityName)){
+                        return false;
+                    }
+                }
             }
         }
-        if(completed >= targets.keySet().size())
-            return true;
+        else {
+            int completed = 0;
+            HashMap<String,Integer> killed = getKilled(data);
+            for(String entityName : targets.keySet()){
+                int amount = 0;
+                if(killed.containsKey(entityName))
+                    amount = killed.get(entityName);
+                if(amount >= targets.get(entityName)){
+                    completed++;
+                }
+            }
+            if(completed >= targets.keySet().size())
+                return true;
 
-        if(killed.size() != targets.size())
-            return false;
-        for(String entity : killed.keySet()){
-            if(!targets.containsKey(entity) || targets.get(entity) > killed.get(entity))
+            if(killed.size() != targets.size())
                 return false;
+            for(String entity : killed.keySet()){
+                if(!targets.containsKey(entity) || targets.get(entity) > killed.get(entity))
+                    return false;
+            }
         }
 
         return true;
@@ -220,15 +271,24 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                     HashMap<String, Integer> killed = this.parent.getKilled(questdata);
                     return !killed.containsKey(this.entity) ? 0 : (Integer)killed.get(this.entity);
                 }
-            }
-            else if(party != null) {
+            } else if(party != null) {
                 QuestData questdata = party.getQuestData();
-                if(questdata != null){
-                    HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                    return !killed.containsKey(this.entity) ? 0 : (Integer)killed.get(this.entity);
+                if (questdata != null) {
+                    if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
+                        int progress = 0;
+                        for (String player : party.getPlayerNames()) {
+                            HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
+                            int currentProgress = !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
+                            if(currentProgress >= this.amount)
+                                progress += 1;
+                        }
+                        return progress;
+                    } else {
+                        HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                        return !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
+                    }
                 }
             }
-
 			return 0;
 		}
 
@@ -251,12 +311,25 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                 } else if(party != null){
                     QuestData questdata = party.getQuestData();
                     if(questdata != null){
-                        HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                        if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
-                            killed.put(this.entity, progress);
-                            this.parent.setKilled(questdata, killed);
+                        if(questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+                            for(String player : party.getPlayerNames()){
+                                HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
+                                if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                                    killed.put(this.entity, progress);
+                                    this.parent.setPlayerKilled(questdata, killed, player);
+                                }
+                            }
                             PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
                             PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
+                        }
+                        else {
+                            HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                            if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                                killed.put(this.entity, progress);
+                                this.parent.setKilled(questdata, killed);
+                                PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
+                                PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
+                            }
                         }
                     }
                 }
@@ -276,5 +349,10 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		public String getText() {
 			return this.entity + ": " + this.getProgress() + "/" + this.getMaxProgress();
 		}
-	}
+
+        @Override
+        public String getAdditionalText() {
+            return null;
+        }
+    }
 }

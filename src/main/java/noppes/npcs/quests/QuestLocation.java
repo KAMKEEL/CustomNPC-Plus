@@ -262,6 +262,9 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 
     @Override
     public boolean isPartyCompleted(Party party) {
+        if(party == null)
+            return false;
+
         QuestData data = party.getQuestData();
         if(data == null)
             return false;
