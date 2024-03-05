@@ -425,7 +425,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		Dialog dialog = getDialog(player);
 		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.getQuestCompletion(player, this);
-		if (data != null){
+        Party partyCompleted = playerdata.getPartyQuestCompletion(player, this);
+        if(partyCompleted != null){
+            NoppesUtilPlayer.questPartyCompletion(partyCompleted);
+        }
+		else if (data != null){
 			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
 		}
