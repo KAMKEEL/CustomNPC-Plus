@@ -121,7 +121,7 @@ public class ScriptItemEventHandler {
         if(event.entityPlayer == null || event.entityPlayer.worldObj == null || event.action == null)
             return;
 
-        if(event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer)
+        if(event.entityPlayer.worldObj.isRemote || !(event.entityPlayer.worldObj instanceof WorldServer))
             return;
 
         if (PlayerDataController.Instance != null) {
