@@ -1,11 +1,17 @@
 package noppes.npcs.controllers.data;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.api.handler.data.IPartyOptions;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPartyExchange;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumPartyRequirements;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.PlayerDataController;
+
+import java.util.Vector;
 
 public class PartyOptions implements IPartyOptions {
 	public boolean allowParty = false;
@@ -229,4 +235,18 @@ public class PartyOptions implements IPartyOptions {
 
 		maxPartySize = newSize;
 	}
+
+    public Vector<String> getPartyOptionsList() {
+        Vector<String> vec = new Vector<String>();
+        if(onlyParty){
+            vec.add("party.only" + ":" + "gui.yes");
+        }
+        vec.add("party.partyRequirements" + ":" + partyRequirements.name);
+        vec.add("quest.objectives" + ":" + objectiveRequirement.name);
+        vec.add("party.completeFor" + ":" + completeFor.name);
+        vec.add("quest.reward" + ":" + rewardControl.name);
+        vec.add("party.minPartySize" + ":" + minPartySize);
+        vec.add("party.maxPartySize" + ":" + maxPartySize);
+        return vec;
+    }
 }

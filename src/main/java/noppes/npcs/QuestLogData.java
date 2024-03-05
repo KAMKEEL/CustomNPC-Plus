@@ -22,6 +22,7 @@ public class QuestLogData {
 	public HashMap<String,Vector<String>> questStatus = new HashMap<>();
 	public HashMap<String,String> finish = new HashMap<>();
 	public HashMap<String, Integer> partyQuests = new HashMap<>();
+    public HashMap<String,Vector<String>> partyOptions = new HashMap<>();
 
 	public NBTTagCompound writeNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
@@ -32,6 +33,7 @@ public class QuestLogData {
 		compound.setTag("QuestFinisher", NBTTags.nbtStringStringMap(finish));
 		compound.setString("TrackedQuestID", trackedQuestKey);
 		compound.setTag("PartyQuests", NBTTags.nbtStringIntegerMap(partyQuests));
+        compound.setTag("PartyOptions", NBTTags.nbtVectorMap(partyOptions));
 		return compound;
 	}
 
@@ -43,6 +45,7 @@ public class QuestLogData {
 		finish = NBTTags.getStringStringMap(compound.getTagList("QuestFinisher", 10));
 		trackedQuestKey = compound.getString("TrackedQuestID");
 		partyQuests = NBTTags.getStringIntegerMap(compound.getTagList("PartyQuests", 10));
+        partyOptions = NBTTags.getVectorMap(compound.getTagList("PartyOptions", 10));
 	}
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
@@ -70,6 +73,7 @@ public class QuestLogData {
 
 			if (quest.partyOptions.allowParty) {
 				partyQuests.put(key, quest.id);
+                partyOptions.put(key, quest.partyOptions.getPartyOptionsList());
 			}
         }
 	}
@@ -97,4 +101,8 @@ public class QuestLogData {
 	public String getComplete() {
 		return finish.get(selectedCategory + ":" + selectedQuest);
 	}
+
+    public Vector<String> getPartyOptions() {
+        return partyOptions.get(selectedCategory + ":" + selectedQuest);
+    }
 }

@@ -68,9 +68,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         List<String> categories = new ArrayList<String>();
         categories.addAll(data.categories.keySet());
         Collections.sort(categories,String.CASE_INSENSITIVE_ORDER);
-
-        addButton(new GuiNpcButton(100,guiLeft - 68, this.guiTop, 68,12, "UP"));
-
         int i = 0;
         for(String category : categories){
         	if(data.selectedCategory.isEmpty())
@@ -95,7 +92,20 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         // Objectives Back--
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        if (data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)) {
+        boolean showParty = false;
+        boolean showTrackAlerts = true;
+        if(data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+            showParty = true;
+            if(data.partyOptions.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+                if(data.partyOptions.get(data.selectedCategory + ":" + data.selectedQuest).get(0).contains("only")){
+                    showTrackAlerts = false;
+                }
+            }
+
+        }
+
+
+        if (showParty) {
             // Objectives Forward--
             addButton(new GuiButtonNextPage(11, guiLeft + 286, guiTop + 176, true));
 
@@ -132,6 +142,9 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         if (getButton(3) != null) {
             getButton(3).visible = getButton(4).visible;
         }
+
+        getButton(4).enabled = showTrackAlerts;
+        getButton(5).enabled = showTrackAlerts;
     }
 
     @Override
@@ -258,6 +271,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
                 fontRendererObj.drawString(title, guiLeft + 170, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
             }
         } else if (questPages == 0) {
+            drawPartyOptions();
             String title = StatCollector.translateToLocal("quest.objectives");
             fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         } else {
@@ -306,6 +320,16 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
 	        yoffset += 10;
         }
 	}
+
+    private void drawPartyOptions() {
+        int yoffset = guiTop + 22;
+        for(String process : data.getPartyOptions()){
+            List<String> parts = Arrays.asList(process.split(":"));
+            String drawString = StatCollector.translateToLocal(parts.get(0)) + ": " + StatCollector.translateToLocal(parts.get(1));
+            fontRendererObj.drawString("- " + drawString, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
+            yoffset += 10;
+        }
+    }
 
 	protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {

@@ -8,7 +8,7 @@ public enum EnumPartyExchange {
 	Enrolled("party.enrolled"),
     Valid("party.valid");
 
-	final String name;
+	public final String name;
 
 	EnumPartyExchange(String name){
 		this.name = name;
