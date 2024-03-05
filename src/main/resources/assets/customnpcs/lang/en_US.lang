@@ -142,6 +142,7 @@ party.dropQuest=Drop Quest
 party.friendlyFire=Friendly Fire
 party.ignore=Ignore
 party.invite=Invite
+party.setChat=Party quest set to
 party.completeChat=The party quest has been completed!
 
 party.kick=Kick

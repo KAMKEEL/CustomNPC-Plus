@@ -131,14 +131,21 @@ public class PartyController {
         }
     }
 
-    public void sendQuestChat(Party party, String chatAlert){
-        if(party == null)
+    public void sendQuestChat(Party party, String... chatAlerts) {
+        if (party == null)
             return;
 
-        for(String name : party.getPlayerNames()){
+        for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
-            if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7a", chatAlert, "!");
+            if (playerMP != null) {
+                Object[] args = new Object[2 + chatAlerts.length];
+                args[0] = "\u00A7a";
+
+                System.arraycopy(chatAlerts, 0, args, 1, chatAlerts.length);
+                args[args.length - 1] = "!"; // Add "!" at the end
+
+                // Pass args to Server.sendData using spread operator
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, args);
             }
         }
     }

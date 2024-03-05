@@ -223,6 +223,7 @@ public class PacketHandlerServer{
                                             playerData.questData.activeQuests.put(questID, questdata);
                                         }
                                         party.setQuest(foundQuest);
+                                        PartyController.Instance().sendQuestChat(party, "party.setChat", " ", foundQuest.title);
                                     }
                                 }
                             }
