@@ -49,7 +49,6 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
-        activeTab = 1;
         Client.sendData(EnumPacketServer.GetPartyData);
     }
 

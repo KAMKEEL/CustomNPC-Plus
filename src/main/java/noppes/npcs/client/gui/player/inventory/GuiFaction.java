@@ -38,7 +38,6 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 		ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
-		activeTab = 2;
         NoppesUtilPlayer.sendData(EnumPlayerPacket.FactionsGet);
 	}
 
