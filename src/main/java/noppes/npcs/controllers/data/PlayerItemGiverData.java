@@ -32,7 +32,7 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 	public boolean hasInteractedBefore(JobItemGiver jobItemGiver) {
 		return itemgivers.containsKey(jobItemGiver.itemGiverId);
 	}
-	
+
 	public long getTime(JobItemGiver jobItemGiver){
 		return itemgivers.get(jobItemGiver.itemGiverId);
 	}
@@ -58,18 +58,5 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 
 	public boolean hasInteractedBefore(IJobItemGiver jobItemGiver) {
 		return itemgivers.containsKey(((JobItemGiver) jobItemGiver).itemGiverId);
-	}
-
-	public IJobItemGiver[] getItemGivers() {
-		ArrayList<IJobItemGiver> list = new ArrayList<>();
-		for (JobItemGiver jobItemGiver : GlobalDataController.Instance.itemGivers.values()) {
-			if (jobItemGiver.npc != null) {
-				list.add(new ScriptJobItemGiver(jobItemGiver.npc));
-			} else {
-				list.add(new ScriptJobItemGiver(jobItemGiver));
-			}
-		}
-
-		return list.toArray(new IJobItemGiver[0]);
 	}
 }

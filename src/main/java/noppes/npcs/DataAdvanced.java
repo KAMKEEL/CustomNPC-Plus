@@ -12,6 +12,7 @@ import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.*;
+import org.lwjgl.Sys;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +25,7 @@ public class DataAdvanced {
     public Lines attackLines = new Lines();
     public Lines killedLines = new Lines();
     public Lines killLines = new Lines();
-    
+
     public boolean orderedLines = false;
 
     public String idleSound = "";
@@ -43,7 +44,7 @@ public class DataAdvanced {
     public boolean attackOtherFactions = false;
     public boolean defendFaction = false;
 	public boolean disablePitch = false;
-	
+
 	public String soulStonePlayerName = "";
 	public boolean refuseSoulStone = false;
 	public boolean soulStoneInit = false;
@@ -78,7 +79,7 @@ public class DataAdvanced {
         compound.setTag("FactionPoints", factions.writeToNBT(new NBTTagCompound()));
 
 		compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
-		
+
 		compound.setBoolean("RefuseSoulStone", refuseSoulStone);
 		compound.setString("SoulStonePlayerName", soulStonePlayerName);
 		compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
@@ -90,7 +91,7 @@ public class DataAdvanced {
             }
             compound.setTag("TagUUIDs", nbtTagList);
         }
-		
+
         return compound;
     }
 
@@ -120,8 +121,8 @@ public class DataAdvanced {
 
         factions.readFromNBT(compound.getCompoundTag("FactionPoints"));
 
-		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));	
-		
+		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));
+
 		refuseSoulStone = compound.getBoolean("RefuseSoulStone");
 		soulStonePlayerName = compound.getString("SoulStonePlayerName");
 		minFactionPointsToSoulStone = compound.getInteger("MinFactionPointsToSoulStone");
@@ -204,40 +205,23 @@ public class DataAdvanced {
     public void setJob(int i) {
         if(npc.jobInterface != null && !npc.worldObj.isRemote)
         	npc.jobInterface.reset();
-        
+
         job = EnumJobType.values()[i % EnumJobType.values().length];
         if (job == EnumJobType.None)
             npc.jobInterface = null;
-        else if (job == EnumJobType.Bard && !(npc.jobInterface instanceof JobBard)) 
+        else if (job == EnumJobType.Bard && !(npc.jobInterface instanceof JobBard))
             npc.jobInterface = new JobBard(npc);
-        else if (job == EnumJobType.Healer && !(npc.jobInterface instanceof JobHealer)) 
+        else if (job == EnumJobType.Healer && !(npc.jobInterface instanceof JobHealer))
             npc.jobInterface = new JobHealer(npc);
-        else if (job == EnumJobType.Guard && !(npc.jobInterface instanceof JobGuard)) 
+        else if (job == EnumJobType.Guard && !(npc.jobInterface instanceof JobGuard))
             npc.jobInterface = new JobGuard(npc);
-        else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver)) {
-            if (!npc.isRemote()) {
-                if (npc.itemGiverId > 0 && GlobalDataController.Instance.itemGivers.containsKey(npc.itemGiverId)) {
-                    GlobalDataController.Instance.itemGivers.get(npc.itemGiverId).npc = npc;
-                    npc.jobInterface = GlobalDataController.Instance.itemGivers.get(npc.itemGiverId);
-                } else {
-                    npc.jobInterface = new JobItemGiver(npc);
-                    if (npc.itemGiverId == -1) {
-                        ((JobItemGiver) npc.jobInterface).itemGiverId = GlobalDataController.Instance.incrementItemGiverId();
-                    } else {
-                        ((JobItemGiver) npc.jobInterface).itemGiverId = npc.itemGiverId;
-                    }
-                    GlobalDataController.Instance.itemGivers.put(((JobItemGiver) npc.jobInterface).itemGiverId, (JobItemGiver) npc.jobInterface);
-                    npc.itemGiverId = ((JobItemGiver) npc.jobInterface).itemGiverId;
-                }
-            } else {
-                npc.jobInterface = new JobItemGiver(npc);
-            }
-        }
-        else if (job == EnumJobType.Follower && !(npc.jobInterface instanceof JobFollower)) 
+        else if (job == EnumJobType.ItemGiver && !(npc.jobInterface instanceof JobItemGiver))
+            npc.jobInterface = new JobItemGiver(npc);
+        else if (job == EnumJobType.Follower && !(npc.jobInterface instanceof JobFollower))
             npc.jobInterface = new JobFollower(npc);
-        else if (job == EnumJobType.Spawner && !(npc.jobInterface instanceof JobSpawner)) 
+        else if (job == EnumJobType.Spawner && !(npc.jobInterface instanceof JobSpawner))
             npc.jobInterface = new JobSpawner(npc);
-        else if (job == EnumJobType.Conversation && !(npc.jobInterface instanceof JobConversation)) 
+        else if (job == EnumJobType.Conversation && !(npc.jobInterface instanceof JobConversation))
             npc.jobInterface = new JobConversation(npc);
         else if (job == EnumJobType.ChunkLoader && !(npc.jobInterface instanceof JobChunkLoader))
             npc.jobInterface = new JobChunkLoader(npc);

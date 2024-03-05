@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NpcMiscInventory;
+import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Line;
@@ -25,11 +26,11 @@ public class JobItemGiver extends JobInterface{
 	public int cooldown = 10;
 	public NpcMiscInventory inventory;
 	public int itemGiverId = 0;
-	
+
 	public List<String> lines = new ArrayList<String>();
-	
+
 	private int ticks = 10;
-	
+
 	private List<EntityPlayer> recentlyChecked = new ArrayList<EntityPlayer>();
 	private List<EntityPlayer> toCheck;
 	public Availability availability = new Availability();
@@ -65,6 +66,10 @@ public class JobItemGiver extends JobInterface{
 		cooldown = nbttagcompound.getInteger("igCooldown");
     	lines = NBTTags.getStringList(nbttagcompound.getTagList("igLines", 10));
     	inventory.setFromNBT(nbttagcompound.getCompoundTag("igJobInventory"));
+
+        if(itemGiverId == 0 && GlobalDataController.Instance != null)
+            itemGiverId = GlobalDataController.Instance.incrementItemGiverId();
+
     	availability.readFromNBT(nbttagcompound.getCompoundTag("igAvailability"));
 	}
 
@@ -91,16 +96,16 @@ public class JobItemGiver extends JobInterface{
 		}
 		return map;
 	}
-    
+
 	public boolean giveItems(EntityPlayer player){
 		PlayerItemGiverData data = PlayerDataController.Instance.getPlayerData(player).itemgiverData;
 		if(!canPlayerInteract(data)){
 			return false;
 		}
-		
+
 		Vector<ItemStack> items = new Vector<ItemStack>();
 		Vector<ItemStack> toGive = new Vector<ItemStack>();
-		
+
 		for(ItemStack is : inventory.items.values())
 			if(is != null)
 				items.add(is.copy());
@@ -234,7 +239,7 @@ public class JobItemGiver extends JobInterface{
 	private boolean isDaily(){
 		return cooldownType == 2;
 	}
-	
+
 	public boolean aiShouldExecute() {
 		if(npc.isAttacking())
 			return false;
@@ -242,7 +247,7 @@ public class JobItemGiver extends JobInterface{
 		if(ticks > 0)
 			return false;
 		ticks = 10;
-		
+
 		toCheck = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(3, 3, 3));
 		toCheck.removeAll(recentlyChecked);
 
@@ -260,11 +265,11 @@ public class JobItemGiver extends JobInterface{
 			}
 		}
 	}
-	
+
 	@Override
 	public void killed() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private boolean interact(EntityPlayer player) {
@@ -276,6 +281,6 @@ public class JobItemGiver extends JobInterface{
 	@Override
 	public void delete() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
