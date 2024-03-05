@@ -207,28 +207,26 @@ public class PacketHandlerServer{
                 if(playerData.partyUUID != null){
                     Party party = PartyController.Instance().getParty(playerData.partyUUID);
                     if (party != null) {
-                        if (party.getPartyLeader() != player) {
-                            return;
-                        }
-
-                        int questID = buffer.readInt();
-                        party.setQuest(null);
-                        if(questID != -1){
-                            Quest foundQuest = QuestController.Instance.quests.get(questID);
-                            if(foundQuest != null){
-                                if (foundQuest.partyOptions.allowParty) {
-                                    if(party.validateQuest(questID)){
-                                        if(playerData.questData.hasActiveQuest(questID)){
-                                            QuestData questdata = new QuestData(foundQuest);
-                                            playerData.questData.activeQuests.put(questID, questdata);
+                        if (party.getLeaderUUID().equals(player.getUniqueID())) {
+                            int questID = buffer.readInt();
+                            party.setQuest(null);
+                            if(questID != -1){
+                                Quest foundQuest = QuestController.Instance.quests.get(questID);
+                                if(foundQuest != null){
+                                    if (foundQuest.partyOptions.allowParty) {
+                                        if(party.validateQuest(questID)){
+                                            if(playerData.questData.hasActiveQuest(questID)){
+                                                QuestData questdata = new QuestData(foundQuest);
+                                                playerData.questData.activeQuests.put(questID, questdata);
+                                            }
+                                            party.setQuest(foundQuest);
+                                            PartyController.Instance().sendQuestChat(party, "party.setChat", " ", foundQuest.title);
                                         }
-                                        party.setQuest(foundQuest);
-                                        PartyController.Instance().sendQuestChat(party, "party.setChat", " ", foundQuest.title);
                                     }
                                 }
                             }
+                            PartyController.Instance().pingPartyUpdate(party);
                         }
-                        PartyController.Instance().pingPartyUpdate(party);
                     }
                 }
 			}
