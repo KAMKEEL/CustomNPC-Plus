@@ -78,19 +78,22 @@ public class PartyController {
         }
     }
 
-    public void sendKickMessages(Party party, String kickPlayer){
-        if(kickPlayer == null || party == null)
+    public void sendKickMessages(Party party, EntityPlayer kickPlayer, String kickPlayerName){
+        if(party == null)
             return;
 
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer);
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayer, " \u00A74", "party.kickOtherChat", "!");
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayerName);
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
             }
         }
-        Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
-        Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
+
+        if(kickPlayer != null){
+            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
+            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
+        }
     }
 
     public void sendLeavingMessages(Party party, EntityPlayer leavingPlayer){

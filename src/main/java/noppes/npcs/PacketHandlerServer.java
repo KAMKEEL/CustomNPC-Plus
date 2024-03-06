@@ -160,7 +160,7 @@ public class PacketHandlerServer{
                                         sendInviteData((EntityPlayerMP) kickPlayer);
                                     }
                                     PartyController.Instance().pingPartyUpdate(party);
-                                    PartyController.Instance().sendKickMessages(party, kickPlayerName);
+                                    PartyController.Instance().sendKickMessages(party, kickPlayer, kickPlayerName);
                                 }
                             }
                         }
