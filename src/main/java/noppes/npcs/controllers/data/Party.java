@@ -139,6 +139,24 @@ public class Party implements IParty {
         return false;
     }
 
+    public boolean removePlayer(UUID uuid) {
+        if (uuid == null) return false;
+        if(partyMembers.containsKey(uuid)){
+            partyMembers.remove(uuid);
+            partyOrder.remove(uuid);
+            if(uuid.equals(partyLeader)){
+                if(!partyMembers.isEmpty()){
+                    partyLeader = partyOrder.get(0);
+                }
+            }
+
+            PlayerData playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
+            playerData.partyUUID = null;
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean addPlayer(String playerName) {
         return playerName != null && this.addPlayer(NoppesUtilServer.getPlayerByName(playerName));

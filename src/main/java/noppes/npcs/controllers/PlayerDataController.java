@@ -332,6 +332,15 @@ public class PlayerDataController {
 		return "";
 	}
 
+    public String getPlayerUUIDFromName(String username) {
+        for(String name : nameUUIDs.keySet()){
+            if(name.equalsIgnoreCase(username))
+                return nameUUIDs.get(name);
+        }
+
+        return "";
+    }
+
 	public PlayerData getDataFromUsername(String username){
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
 		PlayerData data = null;

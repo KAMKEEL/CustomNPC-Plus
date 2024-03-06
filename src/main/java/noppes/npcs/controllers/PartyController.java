@@ -78,15 +78,15 @@ public class PartyController {
         }
     }
 
-    public void sendKickMessages(Party party, EntityPlayer kickPlayer){
+    public void sendKickMessages(Party party, String kickPlayer){
         if(kickPlayer == null || party == null)
             return;
 
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer.getCommandSenderName());
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayer.getCommandSenderName(), " \u00A74", "party.kickOtherChat", "!");
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer);
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayer, " \u00A74", "party.kickOtherChat", "!");
             }
         }
         Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");

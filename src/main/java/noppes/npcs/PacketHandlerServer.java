@@ -130,25 +130,42 @@ public class PacketHandlerServer{
 				compound.setBoolean("Disband", true);
 				Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
 			} else if (type == EnumPacketServer.KickPlayer) {
-				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+                String kickPlayerName = Server.readString(buffer);
+				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(kickPlayerName);
+                PlayerData playerData = null;
+                UUID playerUUID = null;
 				if (kickPlayer != null) {
-					PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-					if (playerData.partyUUID != null) {
-						Party party = PartyController.Instance().getParty(playerData.partyUUID);
+                    playerData = PlayerDataController.Instance.getPlayerData(player);
+				} else {
+                    String uuid = PlayerDataController.Instance.getPlayerUUIDFromName(kickPlayerName);
+                    if(!uuid.isEmpty()){
+                        playerData = PlayerDataController.Instance.getPlayerDataCache(uuid);
+                        playerUUID = UUID.fromString(uuid);
+                    }
+                }
+
+                if(playerData != null){
+                    if (playerData.partyUUID != null) {
+                        Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         if (!party.getIsLocked()) {
                             PartyEvent.PartyKickEvent partyEvent = new PartyEvent.PartyKickEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(kickPlayer));
                             EventHooks.onPartyKick(partyEvent);
                             if (!partyEvent.isCancelled()){
                                 boolean successful = party.removePlayer(kickPlayer);
+                                if(!successful)
+                                    successful = party.removePlayer(playerUUID);
+
                                 if(successful){
-                                    sendInviteData((EntityPlayerMP) kickPlayer);
+                                    if(kickPlayer != null){
+                                        sendInviteData((EntityPlayerMP) kickPlayer);
+                                    }
                                     PartyController.Instance().pingPartyUpdate(party);
-                                    PartyController.Instance().sendKickMessages(party, kickPlayer);
+                                    PartyController.Instance().sendKickMessages(party, kickPlayerName);
                                 }
                             }
                         }
-					}
-				}
+                    }
+                }
 			} else if (type == EnumPacketServer.LeavePlayer) {
                 EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
                 if (leavingPlayer != null) {
