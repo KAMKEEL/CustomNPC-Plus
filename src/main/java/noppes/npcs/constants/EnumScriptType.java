@@ -90,7 +90,16 @@ public enum EnumScriptType {
 	FORGE_ENTITY("forgeEntity"),
 	FORGE_WORLD("forgeWorld"),
 	CNPC_NATURAL_SPAWN("onCNPCNaturalSpawn"),
-	CUSTOM_ITEM_EVENT("customItemEvent");
+	CUSTOM_ITEM_EVENT("customItemEvent"),
+
+    PARTY_EVENT("partyEvent"),
+    PARTY_QUEST_COMPLETED("partyQuestCompleted"),
+    PARTY_QUEST_SET("partyQuestSet"),
+    PARTY_QUEST_TURNED_IN("partyQuestTurnedIn"),
+    PARTY_INVITE("partyInvite"),
+    PARTY_KICK("partyKick"),
+    PARTY_LEAVE("partyLeave"),
+    PARTY_DISBAND("partyDisband");
 
 	public String function;
 

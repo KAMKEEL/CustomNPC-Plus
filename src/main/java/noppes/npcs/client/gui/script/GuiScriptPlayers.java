@@ -70,6 +70,14 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         hookList.add("customGuiSlotClicked");
         hookList.add("customGuiScroll");
         hookList.add("customGuiTextfield");
+        hookList.add("partyEvent");
+        hookList.add("partyQuestCompleted");
+        hookList.add("partyQuestSet");
+        hookList.add("partyQuestTurnedIn");
+        hookList.add("partyInvite");
+        hookList.add("partyKick");
+        hookList.add("partyLeave");
+        hookList.add("partyDisband");
 
         this.handler = this.script;
         Client.sendData(EnumPacketServer.ScriptPlayerGet);

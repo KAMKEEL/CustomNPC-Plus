@@ -69,7 +69,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	}
 
 	public void onLogout() {
-		this.partyUUID = null;
 		this.partyInvites.clear();
 	}
 

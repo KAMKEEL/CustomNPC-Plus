@@ -412,6 +412,18 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 String partyUUID = listCompound.getString("PartyUUID");
                 this.invites.put(inviteName, partyUUID);
             }
+        } else if (compound.hasKey("QuestProgress")) {
+            this.questLogStatus.clear();
+            this.questCompleteWith = "";
+            if (compound.hasKey("QuestProgress")) {
+                NBTTagList tagList = compound.getTagList("QuestProgress", 8);
+                for (int i = 0; i < tagList.tagCount(); i++) {
+                    this.questLogStatus.add(tagList.getStringTagAt(i));
+                }
+            }
+            if (compound.hasKey("QuestCompleteWith")) {
+                this.questCompleteWith = compound.getString("QuestCompleteWith");
+            }
         }
 
         initGui();

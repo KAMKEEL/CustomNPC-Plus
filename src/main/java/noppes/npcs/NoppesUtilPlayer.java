@@ -29,6 +29,7 @@ import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
+import noppes.npcs.scripted.event.PartyEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 
 import java.io.IOException;
@@ -468,6 +469,14 @@ public class NoppesUtilPlayer {
         if(quest == null)
             return false;
 
+        if (data.quest.completion == EnumQuestCompletion.Instant)
+            EventHooks.onPartyFinished(party, data.quest);
+
+        PartyEvent.PartyQuestTurnedInEvent partyEv = new PartyEvent.PartyQuestTurnedInEvent(party, data.quest);
+        EventHooks.onPartyTurnIn(partyEv);
+        if (partyEv.isCancelled())
+            return false;
+
         PartyOptions partyOptions = quest.partyOptions;
         EnumPartyExchange complete = partyOptions.completeFor;
         EnumPartyExchange reward = partyOptions.rewardControl;
@@ -480,7 +489,6 @@ public class NoppesUtilPlayer {
             PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
             if(playerData == null)
                 continue;
-
 
             boolean isLeader = party.getLeaderUUID().equals(player.getUniqueID());
             boolean hasActiveQuest = playerData.questData.hasActiveQuest(quest.getId());
@@ -521,7 +529,7 @@ public class NoppesUtilPlayer {
 
                 EventHooks.onQuestTurnedIn(event);
                 if (event.isCancelled())
-                    return false;
+                    continue;
 
                 IItemStack[] var12 = event.itemRewards;
                 int var14 = var12.length;
@@ -566,7 +574,6 @@ public class NoppesUtilPlayer {
             }
 
             playerData.save();
-
             if(meetsComplete){
                 Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
             }

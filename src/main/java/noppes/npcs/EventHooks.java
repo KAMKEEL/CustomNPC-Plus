@@ -23,6 +23,7 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.IProjectile;
+import noppes.npcs.api.event.IPartyEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.item.IItemCustom;
@@ -763,6 +764,49 @@ public class EventHooks {
     public static void onScriptBlockTimer(IScriptBlockHandler handler, int id) {
         BlockEvent.TimerEvent event = new BlockEvent.TimerEvent(handler.getBlock(), id);
         handler.callScript(EnumScriptType.TIMER, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyFinished(Party party, Quest quest){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PartyEvent.PartyQuestCompletedEvent event = new PartyEvent.PartyQuestCompletedEvent(party, quest);
+        handler.callScript(EnumScriptType.PARTY_QUEST_COMPLETED, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyQuestSet(PartyEvent.PartyQuestSetEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.PARTY_QUEST_SET, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyTurnIn(PartyEvent.PartyQuestTurnedInEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.PARTY_QUEST_TURNED_IN, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyInvite(PartyEvent.PartyInviteEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.PARTY_INVITE, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyKick(PartyEvent.PartyKickEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.PARTY_KICK, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyLeave(PartyEvent.PartyLeaveEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.PARTY_LEAVE, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onPartyDisband(PartyEvent.PartyDisbandEvent event){
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.PARTY_DISBAND, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 }

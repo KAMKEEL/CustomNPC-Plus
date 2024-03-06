@@ -443,6 +443,7 @@ public class ServerEventsHandler {
             quest.setKilled(data, killed);
         }
 
+        PartyController.Instance().pingPartyQuestObjectiveUpdate(party);
         PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
     }
 

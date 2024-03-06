@@ -44,6 +44,8 @@ import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.PartyEvent;
+import noppes.npcs.scripted.event.QuestEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
@@ -124,7 +126,6 @@ public class PacketHandlerServer{
 				if (playerData.partyUUID != null) {
 					PartyController.Instance().disbandParty(playerData.partyUUID);
 				}
-
 				NBTTagCompound compound = new NBTTagCompound();
 				compound.setBoolean("Disband", true);
 				Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
@@ -135,11 +136,15 @@ public class PacketHandlerServer{
 					if (playerData.partyUUID != null) {
 						Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         if (!party.getIsLocked()) {
-                            boolean successful = party.removePlayer(kickPlayer);
-                            if(successful){
-                                sendInviteData((EntityPlayerMP) kickPlayer);
-                                PartyController.Instance().pingPartyUpdate(party);
-                                PartyController.Instance().sendKickMessages(party, kickPlayer);
+                            PartyEvent.PartyKickEvent partyEvent = new PartyEvent.PartyKickEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(kickPlayer));
+                            EventHooks.onPartyKick(partyEvent);
+                            if (!partyEvent.isCancelled()){
+                                boolean successful = party.removePlayer(kickPlayer);
+                                if(successful){
+                                    sendInviteData((EntityPlayerMP) kickPlayer);
+                                    PartyController.Instance().pingPartyUpdate(party);
+                                    PartyController.Instance().sendKickMessages(party, kickPlayer);
+                                }
                             }
                         }
 					}
@@ -152,6 +157,8 @@ public class PacketHandlerServer{
                         Party party = PartyController.Instance().getParty(playerData.partyUUID);
                         boolean successful = party.removePlayer(leavingPlayer);
                         if(successful){
+                            PartyEvent.PartyLeaveEvent partyEvent = new PartyEvent.PartyLeaveEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(leavingPlayer));
+                            EventHooks.onPartyLeave(partyEvent);
                             sendInviteData((EntityPlayerMP) leavingPlayer);
                             PartyController.Instance().pingPartyUpdate(party);
                             PartyController.Instance().sendLeavingMessages(party, leavingPlayer);
@@ -181,8 +188,12 @@ public class PacketHandlerServer{
 					if (senderData.partyUUID != null && invitedData.partyUUID == null) {//only send invite if player is not in a party
                         Party party = PartyController.Instance().getParty(senderData.partyUUID);
                         if (!party.getIsLocked()) {
-                            invitedData.inviteToParty(party);
-                            sendInviteData((EntityPlayerMP) invitedPlayer);
+                            PartyEvent.PartyInviteEvent partyEvent = new PartyEvent.PartyInviteEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(invitedPlayer));
+                            EventHooks.onPartyInvite(partyEvent);
+                            if (!partyEvent.isCancelled()){
+                                invitedData.inviteToParty(party);
+                                sendInviteData((EntityPlayerMP) invitedPlayer);
+                            }
                         }
 					}
 				}
@@ -214,13 +225,17 @@ public class PacketHandlerServer{
                                 Quest foundQuest = QuestController.Instance.quests.get(questID);
                                 if(foundQuest != null){
                                     if (foundQuest.partyOptions.allowParty) {
-                                        if(party.validateQuest(questID)){
-                                            if(playerData.questData.hasActiveQuest(questID)){
-                                                QuestData questdata = new QuestData(foundQuest);
-                                                playerData.questData.activeQuests.put(questID, questdata);
+                                        if(party.validateQuest(questID, true)){
+                                            PartyEvent.PartyQuestSetEvent partyEvent = new PartyEvent.PartyQuestSetEvent(party, foundQuest);
+                                            EventHooks.onPartyQuestSet(partyEvent);
+                                            if (!partyEvent.isCancelled()){
+                                                if(playerData.questData.hasActiveQuest(questID)){
+                                                    QuestData questdata = new QuestData(foundQuest);
+                                                    playerData.questData.activeQuests.put(questID, questdata);
+                                                }
+                                                party.setQuest(foundQuest);
+                                                PartyController.Instance().sendQuestChat(party, "party.setChat", " ", foundQuest.title);
                                             }
-                                            party.setQuest(foundQuest);
-                                            PartyController.Instance().sendQuestChat(party, "party.setChat", " ", foundQuest.title);
                                         }
                                     }
                                 }
