@@ -152,6 +152,9 @@ public class PlayerQuestData implements IPlayerQuestData {
                 continue;
             }
 
+            if(data.quest.partyOptions.allowParty && data.quest.partyOptions.onlyParty)
+                continue;
+
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
 				if((!data.isCompleted && data.quest.completion == EnumQuestCompletion.Npc) || data.quest.instantComplete(player,data)){
