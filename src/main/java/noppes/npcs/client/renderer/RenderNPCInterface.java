@@ -585,13 +585,13 @@ public class RenderNPCInterface extends RenderLiving{
 				}
 				LastTextureTick = 0;
 			} else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
-                ResourceLocation location = new ResourceLocation("skins/" + (npc.display.modelType + npc.display.url).hashCode());
+                ResourceLocation location = new ResourceLocation("skins/" + (npc.display.modelType + npc.display.skinType + npc.display.url).hashCode());
                 // If URL Empty Steve
                 if(npc.display.url.isEmpty()){ return AbstractClientPlayer.locationStevePng; }
                 // If URL Cached then grab it
                 else if(ClientCacheHandler.isCachedNPC(location)){
                     try {
-                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0, location).getLocation();
+                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0 || npc.display.skinType == 3, location).getLocation();
                     } catch(Exception ignored){}
                 }
                 // For New URL Requests do not spam it
@@ -600,7 +600,7 @@ public class RenderNPCInterface extends RenderLiving{
                 }
                 else {
                     try {
-                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0, location).getLocation();
+                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0 || npc.display.skinType == 3, location).getLocation();
                         LastTextureTick = 0;
                     } catch(Exception ignored){}
                 }
