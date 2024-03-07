@@ -144,10 +144,13 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                 }
                 vec.add(title);
 
-                if(!unread.isEmpty()){
-                    StringBuilder unreaders = new StringBuilder("> ");
-                    for(String name : unread){
-                        unreaders.append(" ").append(name);
+                if (!unread.isEmpty()) {
+                    StringBuilder unreaders = new StringBuilder();
+                    for (String name : unread) {
+                        if (unreaders.length() > 0) {
+                            unreaders.append(", ");
+                        }
+                        unreaders.append(name);
                     }
                     vec.add(unreaders.toString());
                 }
