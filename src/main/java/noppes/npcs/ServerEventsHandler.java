@@ -456,8 +456,11 @@ public class ServerEventsHandler {
 		QuestItem.pickedUp = event.item.getEntityItem();
 
         Party playerParty = playerData.getPlayerParty();
-        if(playerParty != null)
+        if(playerParty != null){
+            QuestItem.pickedUpParty = event.item.getEntityItem();
+            QuestItem.pickedUpPlayer = event.entityPlayer;
             PartyController.Instance().checkQuestCompletion(playerParty, EnumQuestType.Item);
+        }
 
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}

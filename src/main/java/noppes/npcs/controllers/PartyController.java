@@ -189,34 +189,32 @@ public class PartyController {
     }
 
     public boolean checkQuestCompletion(Party party, EnumQuestType type) {
-        boolean bo = false;
         QuestData questData = party.getQuestData();
-        if(questData == null)
-            return bo;
-
-        if(questData.quest.type != type && type != null)
-            return bo;
-
-        QuestInterface inter =  questData.quest.questInterface;
-        if(inter.isPartyCompleted(party)){
-            if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
-                questData.isCompleted = true;
-                if (questData.quest.completion == EnumQuestCompletion.Npc) {
-                    EventHooks.onPartyFinished(party, questData.quest);
+        if(questData != null){
+            if(questData.quest.type != type && type != null){
+                QuestInterface inter =  questData.quest.questInterface;
+                if(inter.isPartyCompleted(party)){
+                    if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
+                        questData.isCompleted = true;
+                        if (questData.quest.completion == EnumQuestCompletion.Npc) {
+                            EventHooks.onPartyFinished(party, questData.quest);
+                        }
+                        party.setQuest(null);
+                        PartyController.Instance().pingPartyUpdate(party);
+                        PartyController.Instance().sendQuestChat(party, "party.completeChat");
+                    }
+                } else {
+                    questData.isCompleted = false;
                 }
-                bo = true;
-                party.setQuest(null);
-                PartyController.Instance().pingPartyUpdate(party);
-                PartyController.Instance().sendQuestChat(party, "party.completeChat");
-            }
-        } else {
-            questData.isCompleted = false;
-        }
-//        if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
-//            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
-//        }
-        QuestItem.pickedUp = null;
-        return bo;
 
+//                if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
+//                    NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
+//                }
+            }
+        }
+
+        QuestItem.pickedUpParty = null;
+        QuestItem.pickedUpPlayer = null;
+        return true;
     }
 }
