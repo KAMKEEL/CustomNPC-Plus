@@ -14,6 +14,7 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumPartyRequirements;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
@@ -89,6 +90,15 @@ public class Party implements IParty {
 
     public QuestData getQuestData() {
         return questData;
+    }
+
+    public EnumPartyObjectives getObjectiveRequirement() {
+        if(getQuestData() != null){
+            if(getQuestData().quest != null){
+                return getQuestData().quest.partyOptions.objectiveRequirement;
+            }
+        }
+        return null;
     }
 
     @Override
