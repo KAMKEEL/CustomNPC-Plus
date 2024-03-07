@@ -176,6 +176,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     GuiNpcButton trackButton = new GuiNpcButton(340, guiLeft + 5, guiTop + ySize - 8 - 23, "party.track");
                     trackButton.width = 135;
                     this.addButton(trackButton);
+                    getButton(340).enabled = false;
                 }
             }
         }
