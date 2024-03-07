@@ -145,6 +145,7 @@ public class PartyController {
             return;
 
         NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("QuestPing", 0);
         if (party.getQuest() != null) {
             Quest quest = (Quest) party.getQuest();
             Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
@@ -191,7 +192,7 @@ public class PartyController {
     public boolean checkQuestCompletion(Party party, EnumQuestType type) {
         QuestData questData = party.getQuestData();
         if(questData != null){
-            if(questData.quest.type != type && type != null){
+            if(questData.quest.type == type || type == null){
                 QuestInterface inter =  questData.quest.questInterface;
                 if(inter.isPartyCompleted(party)){
                     if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
