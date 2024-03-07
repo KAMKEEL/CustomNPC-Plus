@@ -204,10 +204,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
                             continue;
                         if(item.stackSize > quest.stackSize)
                             continue;
-                        if(item.hasDisplayName())
-                            slotCurrent.add(player.getCommandSenderName() + ": " + item.getDisplayName() + ": " + item.stackSize);
-                        else
-                            slotCurrent.add(player.getCommandSenderName() + ": " + item.getUnlocalizedName() + ".name" + ": " + item.stackSize);
+                        slotCurrent.add(player.getCommandSenderName() + ": " + item.stackSize);
                         playerVector.put(slot, slotCurrent);
                     }
                 }
