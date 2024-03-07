@@ -236,8 +236,10 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         final float SMOOTHING_FACTOR = 0.1F; // Adjust this value for smoother or faster scrolling
 
         int maxScroll = Math.max(0, this.sideButtons.size() - 9) * 22;
-        this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, -maxScroll, 0);
-
+        // Adjust scrolling only if the mouse is in the scroll zone
+        if (isMouseInScrollZone(i, j)) {
+            this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, -maxScroll, 0);
+        }
         // Apply smoothing to the scroll transition
         this.sideButtonScroll += (this.destSideButtonScroll - this.sideButtonScroll) * SMOOTHING_FACTOR;
 
@@ -418,4 +420,13 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         }
 	}
 
+
+    public boolean isMouseInScrollZone(int x, int y) {
+        int scrollZoneLeft = guiLeft - 69; // Left boundary of the scroll zone
+        int scrollZoneRight = guiLeft - 69 + 70; // Right boundary of the scroll zone
+        int scrollZoneTop = guiTop + 2; // Top boundary of the scroll zone
+        int scrollZoneBottom = guiTop + 2 + 8 * 21; // Bottom boundary of the scroll zone
+
+        return x >= scrollZoneLeft && x <= scrollZoneRight && y >= scrollZoneTop && y <= scrollZoneBottom;
+    }
 }
