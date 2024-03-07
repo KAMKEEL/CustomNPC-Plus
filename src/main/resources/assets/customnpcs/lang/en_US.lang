@@ -144,6 +144,7 @@ party.ignore=Ignore
 party.invite=Invite
 party.setChat=Party quest set to
 party.completeChat=The party quest has been completed!
+party.turnedInChat=The party quest is ready to be turned in!
 
 party.kick=Kick
 party.kickConfirm=Are you sure you want to kick this player?

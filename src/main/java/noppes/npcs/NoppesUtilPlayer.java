@@ -472,6 +472,9 @@ public class NoppesUtilPlayer {
         if (data.quest.completion == EnumQuestCompletion.Instant)
             EventHooks.onPartyFinished(party, data.quest);
 
+        if(data.quest.completion == EnumQuestCompletion.Npc)
+            PartyController.Instance().sendQuestChat(party, "party.completeChat");
+
         PartyEvent.PartyQuestTurnedInEvent partyEv = new PartyEvent.PartyQuestTurnedInEvent(party, data.quest);
         EventHooks.onPartyTurnIn(partyEv);
         if (partyEv.isCancelled())

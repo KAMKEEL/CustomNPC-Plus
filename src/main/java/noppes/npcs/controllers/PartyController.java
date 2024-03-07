@@ -199,10 +199,12 @@ public class PartyController {
                         questData.isCompleted = true;
                         if (questData.quest.completion == EnumQuestCompletion.Npc) {
                             EventHooks.onPartyFinished(party, questData.quest);
+                            PartyController.Instance().sendQuestChat(party, "party.turnedInChat");
+                        } else {
+                            party.setQuest(null);
+                            PartyController.Instance().sendQuestChat(party, "party.completeChat");
                         }
-                        party.setQuest(null);
                         PartyController.Instance().pingPartyUpdate(party);
-                        PartyController.Instance().sendQuestChat(party, "party.completeChat");
                     }
                 } else {
                     questData.isCompleted = false;
