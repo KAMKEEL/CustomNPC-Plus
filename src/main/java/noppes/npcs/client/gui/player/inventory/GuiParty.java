@@ -441,7 +441,8 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     @Override
     public void save() {
         if (this.partyChanged) {
-            Client.sendData(EnumPacketServer.SavePartyData, ClientCacheHandler.party.writeClientNBT());
+            if(ClientCacheHandler.party != null)
+                Client.sendData(EnumPacketServer.SavePartyData, ClientCacheHandler.party.writeClientNBT());
         }
     }
 
