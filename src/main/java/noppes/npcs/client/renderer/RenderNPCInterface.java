@@ -48,6 +48,9 @@ public class RenderNPCInterface extends RenderLiving{
 	public static RenderManager staticRenderManager;
 	public ModelBase originalModel;
 
+    public static ResourceLocation steve64 = new ResourceLocation("customnpcs","textures/entity/64-Textures/humanmale/Steve.png");
+    public static ResourceLocation alex = new ResourceLocation("customnpcs","textures/entity/64-Textures/humanfemale/Alex.png");
+
 	public RenderNPCInterface(ModelBase model, float f){
 		super(model, f);
 		this.originalModel = model;
@@ -585,27 +588,39 @@ public class RenderNPCInterface extends RenderLiving{
 				}
 				LastTextureTick = 0;
 			} else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
-                ResourceLocation location = new ResourceLocation("skins/" + (npc.display.modelType + npc.display.skinType + npc.display.url).hashCode());
+                ResourceLocation location = new ResourceLocation("skins/" + (npc.display.skinType + npc.display.url).hashCode());
                 // If URL Empty Steve
-                if(npc.display.url.isEmpty()){ return AbstractClientPlayer.locationStevePng; }
+                if(npc.display.url.isEmpty()){
+                    return fallBackSkin(npc);
+                }
                 // If URL Cached then grab it
                 else if(ClientCacheHandler.isCachedNPC(location)){
                     try {
-                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0 || npc.display.skinType == 3, location).getLocation();
+                        ResourceLocation loc = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.skinType == 3, location).getLocation();
+                        if(loc != null){
+                            npc.textureLocation = loc;
+                        } else {
+                            return fallBackSkin(npc);
+                        }
                     } catch(Exception ignored){}
                 }
                 // For New URL Requests do not spam it
                 else if(LastTextureTick < 5) { //fixes request flood somewhat
-                    return AbstractClientPlayer.locationStevePng;
+                    return fallBackSkin(npc);
                 }
                 else {
                     try {
-                        npc.textureLocation = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.modelType > 0 || npc.display.skinType == 3, location).getLocation();
+                        ResourceLocation loc = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.skinType == 3, location).getLocation();
+                        if(loc != null){
+                            npc.textureLocation = loc;
+                        } else {
+                            return fallBackSkin(npc);
+                        }
                         LastTextureTick = 0;
                     } catch(Exception ignored){}
                 }
 			} else {
-				return AbstractClientPlayer.locationStevePng;
+				return fallBackSkin(npc);
 			}
 		}
 		return npc.textureLocation;
@@ -652,5 +667,17 @@ public class RenderNPCInterface extends RenderLiving{
 			}
 		}
 	}
+
+
+    private ResourceLocation fallBackSkin(EntityNPCInterface npcInterface){
+        switch (npcInterface.display.modelType){
+            case 2:
+                return alex;
+            case 1:
+                return steve64;
+            default:
+                return AbstractClientPlayer.locationStevePng;
+        }
+    }
 
 }
