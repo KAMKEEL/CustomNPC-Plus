@@ -9,7 +9,6 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IAvailability;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.scripted.CustomNPCsException;
 
@@ -185,7 +184,7 @@ public class Availability implements ICompatibilty, IAvailability {
 		if(faction == null)
 			return true;
 
-		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+		PlayerFactionData data = PlayerData.get(player).factionData;
 		int points = data.getFactionPoints(id);
 
 		EnumAvailabilityFaction current = EnumAvailabilityFaction.Neutral;
@@ -209,7 +208,7 @@ public class Availability implements ICompatibilty, IAvailability {
             return false;
 		if(en == EnumAvailabilityDialog.Always)
 			return true;
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         if(data == null)
             return false;
 		boolean hasRead = data.dialogData.dialogsRead.contains(id);

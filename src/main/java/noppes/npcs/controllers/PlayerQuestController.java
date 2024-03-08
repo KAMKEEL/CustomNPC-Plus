@@ -18,17 +18,17 @@ import java.util.Vector;
 public class PlayerQuestController {
 
 	public static boolean hasActiveQuests(EntityPlayer player){
-		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerData.get(player).questData;
 		return !data.activeQuests.isEmpty();
 	}
 
 	public static boolean isQuestActive(EntityPlayer player, int quest){
-		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerData.get(player).questData;
 		return data.activeQuests.containsKey(quest);
 	}
 
 	public static boolean isQuestFinished(EntityPlayer player, int questid){
-		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerData.get(player).questData;
 		return data.finishedQuests.containsKey(questid);
 	}
 
@@ -57,7 +57,7 @@ public class PlayerQuestController {
 	}
 
 	public static void setQuestFinished(Quest quest, EntityPlayer player){
-		PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
+		PlayerData playerdata = PlayerData.get(player);
 		PlayerQuestData data = playerdata.questData;
 		QuestData questData = data.activeQuests.get(quest.id);
 		data.activeQuests.remove(quest.id);
@@ -80,7 +80,7 @@ public class PlayerQuestController {
 	}
 
     public static void setQuestPartyFinished(Quest quest, EntityPlayer player, QuestData questData ){
-        PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerdata = PlayerData.get(player);
         PlayerQuestData data = playerdata.questData;
         data.activeQuests.remove(quest.id);
         if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
@@ -133,7 +133,7 @@ public class PlayerQuestController {
 	public static Vector<Quest> getActiveQuests(EntityPlayer player)
 	{
 		Vector<Quest> quests = new Vector<Quest>();
-		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+		PlayerQuestData data = PlayerData.get(player).questData;
 		for(QuestData questdata: data.activeQuests.values()){
 			if(questdata.quest == null)
 				continue;
