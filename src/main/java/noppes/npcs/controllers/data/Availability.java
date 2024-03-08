@@ -24,7 +24,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	public int dialog2Id = -1;
 	public int dialog3Id = -1;
 	public int dialog4Id = -1;
-	
+
 	public EnumAvailabilityQuest questAvailable = EnumAvailabilityQuest.Always;
 	public EnumAvailabilityQuest quest2Available = EnumAvailabilityQuest.Always;
 	public EnumAvailabilityQuest quest3Available = EnumAvailabilityQuest.Always;
@@ -35,10 +35,10 @@ public class Availability implements ICompatibilty, IAvailability {
 	public int quest4Id = -1;
 
 	public EnumDayTime daytime = EnumDayTime.Always;
-	
+
 	public int factionId = -1;
 	public int faction2Id = -1;
-	
+
 	public EnumAvailabilityFactionType factionAvailable = EnumAvailabilityFactionType.Always;
 	public EnumAvailabilityFactionType faction2Available = EnumAvailabilityFactionType.Always;
 
@@ -46,8 +46,8 @@ public class Availability implements ICompatibilty, IAvailability {
 	public EnumAvailabilityFaction faction2Stance = EnumAvailabilityFaction.Friendly;
 
 	public int minPlayerLevel = 0;
-	
-	
+
+
     public void readFromNBT(NBTTagCompound compound)
     {
 		version = compound.getInteger("ModRev");
@@ -57,22 +57,22 @@ public class Availability implements ICompatibilty, IAvailability {
     	dialog2Available = EnumAvailabilityDialog.values()[compound.getInteger("AvailabilityDialog2")];
     	dialog3Available = EnumAvailabilityDialog.values()[compound.getInteger("AvailabilityDialog3")];
     	dialog4Available = EnumAvailabilityDialog.values()[compound.getInteger("AvailabilityDialog4")];
-    	
+
     	dialogId = compound.getInteger("AvailabilityDialogId");
     	dialog2Id = compound.getInteger("AvailabilityDialog2Id");
     	dialog3Id = compound.getInteger("AvailabilityDialog3Id");
     	dialog4Id = compound.getInteger("AvailabilityDialog4Id");
-    	
+
     	questAvailable = EnumAvailabilityQuest.values()[compound.getInteger("AvailabilityQuest")];
     	quest2Available = EnumAvailabilityQuest.values()[compound.getInteger("AvailabilityQuest2")];
     	quest3Available = EnumAvailabilityQuest.values()[compound.getInteger("AvailabilityQuest3")];
     	quest4Available = EnumAvailabilityQuest.values()[compound.getInteger("AvailabilityQuest4")];
-    	
+
     	questId = compound.getInteger("AvailabilityQuestId");
     	quest2Id = compound.getInteger("AvailabilityQuest2Id");
     	quest3Id = compound.getInteger("AvailabilityQuest3Id");
     	quest4Id = compound.getInteger("AvailabilityQuest4Id");
-    	
+
     	setFactionAvailability(compound.getInteger("AvailabilityFaction"));
     	setFactionAvailabilityStance(compound.getInteger("AvailabilityFactionStance"));
 
@@ -81,43 +81,43 @@ public class Availability implements ICompatibilty, IAvailability {
 
     	factionId = compound.getInteger("AvailabilityFactionId");
     	faction2Id = compound.getInteger("AvailabilityFaction2Id");
-    	
+
     	daytime = EnumDayTime.values()[compound.getInteger("AvailabilityDayTime")];
 
     	minPlayerLevel = compound.getInteger("AvailabilityMinPlayerLevel");
     }
-    
+
 	public NBTTagCompound writeToNBT(NBTTagCompound compound){
 		compound.setInteger("ModRev", version);
-		
+
 		compound.setInteger("AvailabilityDialog", dialogAvailable.ordinal());
 		compound.setInteger("AvailabilityDialog2", dialog2Available.ordinal());
 		compound.setInteger("AvailabilityDialog3", dialog3Available.ordinal());
 		compound.setInteger("AvailabilityDialog4", dialog4Available.ordinal());
-		
+
 		compound.setInteger("AvailabilityDialogId", dialogId);
 		compound.setInteger("AvailabilityDialog2Id", dialog2Id);
 		compound.setInteger("AvailabilityDialog3Id", dialog3Id);
 		compound.setInteger("AvailabilityDialog4Id", dialog4Id);
-		
+
 		compound.setInteger("AvailabilityQuest", questAvailable.ordinal());
 		compound.setInteger("AvailabilityQuest2", quest2Available.ordinal());
 		compound.setInteger("AvailabilityQuest3", quest3Available.ordinal());
 		compound.setInteger("AvailabilityQuest4", quest4Available.ordinal());
-		
+
 		compound.setInteger("AvailabilityQuestId", questId);
 		compound.setInteger("AvailabilityQuest2Id", quest2Id);
 		compound.setInteger("AvailabilityQuest3Id", quest3Id);
 		compound.setInteger("AvailabilityQuest4Id", quest4Id);
-		
+
 		compound.setInteger("AvailabilityFaction", factionAvailable.ordinal());
 		compound.setInteger("AvailabilityFactionStance", factionStance.ordinal());
-		
+
 		compound.setInteger("AvailabilityFactionId", factionId);
 
 		compound.setInteger("AvailabilityFaction2", faction2Available.ordinal());
 		compound.setInteger("AvailabilityFaction2Stance", faction2Stance.ordinal());
-		
+
 		compound.setInteger("AvailabilityFaction2Id", faction2Id);
 
 		compound.setInteger("AvailabilityDayTime", daytime.ordinal());
@@ -147,7 +147,7 @@ public class Availability implements ICompatibilty, IAvailability {
 			if(time < 12000)
 				return false;
 		}
-		
+
 		if(!dialogAvailable(dialogId, dialogAvailable, player))
 			return false;
 		if(!dialogAvailable(dialog2Id, dialog2Available, player))
@@ -170,24 +170,24 @@ public class Availability implements ICompatibilty, IAvailability {
 			return false;
 		if(!factionAvailable(faction2Id, faction2Stance, faction2Available, player))
 			return false;
-		
+
 		if(player.experienceLevel < minPlayerLevel)
 			return false;
-		
+
 		return true;
 	}
-	
+
 	private boolean factionAvailable(int id, EnumAvailabilityFaction stance, EnumAvailabilityFactionType available, EntityPlayer player) {
 		if(available == EnumAvailabilityFactionType.Always)
 			return true;
-		
+
 		Faction faction = FactionController.getInstance().get(id);
 		if(faction == null)
 			return true;
-		
+
 		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		int points = data.getFactionPoints(id);
-		
+
 		EnumAvailabilityFaction current = EnumAvailabilityFaction.Neutral;
 		if(faction.neutralPoints >= points)
 			current = EnumAvailabilityFaction.Hostile;
@@ -200,21 +200,26 @@ public class Availability implements ICompatibilty, IAvailability {
 		if(available == EnumAvailabilityFactionType.IsNot && stance != current){
 			return true;
 		}
-		
+
 		return false;
 	}
-	
+
 	public boolean dialogAvailable(int id, EnumAvailabilityDialog en, EntityPlayer player){
+        if(player == null)
+            return false;
 		if(en == EnumAvailabilityDialog.Always)
 			return true;
-		boolean hasRead = PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.contains(id);
+        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        if(data == null)
+            return false;
+		boolean hasRead = data.dialogData.dialogsRead.contains(id);
 		if(hasRead && en == EnumAvailabilityDialog.After)
 			return true;
 		else if(!hasRead && en == EnumAvailabilityDialog.Before)
 			return true;
 		return false;
 	}
-	
+
 	public boolean questAvailable(int id, EnumAvailabilityQuest en, EntityPlayer player){
 		if(en == EnumAvailabilityQuest.Always)
 			return true;
