@@ -9,29 +9,23 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChatComponentText;
-import noppes.npcs.EventHooks;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumPartyRequirements;
-import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.quests.QuestInterface;
-import noppes.npcs.quests.QuestItem;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
-public class Party {
+public class Party implements IParty {
     private final UUID partyUUID;
     private UUID partyLeader;
     private QuestData questData;
@@ -61,10 +55,17 @@ public class Party {
         return this.partyUUID;
     }
 
+    @Override
+    public String getPartyUUIDString() {
+        return this.partyUUID.toString();
+    }
+
+    @Override
     public boolean getIsLocked() {
         return this.partyLocked;
     }
 
+    @Override
     public void setQuest(IQuest quest) {
         if (quest != null) {
             this.currentQuestID = quest.getId();
@@ -78,6 +79,7 @@ public class Party {
         this.partyLocked = quest != null;
     }
 
+    @Override
     public IQuest getQuest() {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
             return QuestController.Instance.get(this.currentQuestID);
@@ -90,15 +92,28 @@ public class Party {
         return questData;
     }
 
+    public EnumPartyObjectives getObjectiveRequirement() {
+        if(getQuestData() != null){
+            if(getQuestData().quest != null){
+                return getQuestData().quest.partyOptions.objectiveRequirement;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public int getCurrentQuestID() {
         return currentQuestID;
     }
 
+    @Override
     public String getCurrentQuestName() {
         return this.currentQuestName;
     }
 
     public boolean addPlayer(EntityPlayer player) {
+        if (player == null) return false;
+
         if(partyMembers.containsKey(player.getUniqueID())){
             return false;
         }
@@ -134,18 +149,57 @@ public class Party {
         return false;
     }
 
+    public boolean removePlayer(UUID uuid) {
+        if (uuid == null) return false;
+        if(partyMembers.containsKey(uuid)){
+            partyMembers.remove(uuid);
+            partyOrder.remove(uuid);
+            if(uuid.equals(partyLeader)){
+                if(!partyMembers.isEmpty()){
+                    partyLeader = partyOrder.get(0);
+                }
+            }
+
+            PlayerData playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
+            playerData.partyUUID = null;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean addPlayer(String playerName) {
+        return playerName != null && this.addPlayer(NoppesUtilServer.getPlayerByName(playerName));
+    }
+
+    @Override
     public boolean removePlayer(String playerName) {
         return playerName != null && this.removePlayer(NoppesUtilServer.getPlayerByName(playerName));
+    }
+
+    @Override
+    public boolean addPlayer(IPlayer player) {
+        return player != null && this.addPlayer((EntityPlayerMP)player.getMCEntity());
+    }
+
+    @Override
+    public boolean removePlayer(IPlayer player) {
+        return player != null && this.removePlayer((EntityPlayerMP)player.getMCEntity());
     }
 
     public boolean hasPlayer(EntityPlayer player) {
         return partyMembers.containsKey(player.getUniqueID());
     }
 
-    public boolean hasPlayer(UUID uuid) {
-        return partyMembers.containsKey(uuid);
+    @Override
+    public boolean hasPlayer(IPlayer player) {
+        if(player == null)
+            return false;
+        EntityPlayer entityPlayer = (EntityPlayer)player.getMCEntity();
+        return partyMembers.containsKey(entityPlayer.getUniqueID());
     }
 
+    @Override
     public boolean hasPlayer(String playerName) {
         UUID uuid = getUUID(playerName);
         if (uuid == null){
@@ -158,6 +212,7 @@ public class Party {
         return NoppesUtilServer.getPlayer(this.partyLeader);
     }
 
+    @Override
     public String getPartyLeaderName() {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
             return this.partyLeaderName;
@@ -195,6 +250,11 @@ public class Party {
         return this.getPlayerNames(false);
     }
 
+    @Override
+    public List<String> getPlayerNamesList() {
+        return new ArrayList<>(this.getPlayerNames(false));
+    }
+
     public Collection<String> getPlayerNames(boolean lowercase) {
         Collection<String> names = this.partyMembers.values();
         if (!lowercase) {
@@ -212,8 +272,9 @@ public class Party {
         return this.partyMembers.keySet();
     }
 
-    // To Be Called during Set Quest or Quest Switch
-    public boolean validateQuest(int questID) {
+    // Called when Set Quest is Called
+    @Override
+    public boolean validateQuest(int questID, boolean sendLeaderMessages){
         IQuest quest = QuestController.Instance.get(questID);
         if (quest == null) {
             return false;
@@ -226,17 +287,17 @@ public class Party {
 
         int partyReq = quest.getPartyOptions().getPartyRequirements();
         if (partyReq < 0 || partyReq >= EnumPartyRequirements.values().length) {
-            sendInfoMessage(leader, "Error in quest party requirements");
+            sendInfoMessage(leader, "Error in quest party requirements", sendLeaderMessages);
             return false;
         }
 
         if (partyMembers.size() < quest.getPartyOptions().getMinPartySize()) {
-            sendInfoMessage(leader, String.format("Party too small. Min %d members", quest.getPartyOptions().getMaxPartySize()));
+            sendInfoMessage(leader, String.format("Party too small. Min %d members", quest.getPartyOptions().getMinPartySize()), sendLeaderMessages);
             return false;
         }
 
         if (partyMembers.size() > quest.getPartyOptions().getMaxPartySize()) {
-            sendInfoMessage(leader, String.format("Party too large. Max %d members", quest.getPartyOptions().getMaxPartySize()));
+            sendInfoMessage(leader, String.format("Party too large. Max %d members", quest.getPartyOptions().getMaxPartySize()), sendLeaderMessages);
             return false;
         }
 
@@ -244,12 +305,12 @@ public class Party {
         if (partyRequirements == EnumPartyRequirements.Leader) {
             boolean leaderBool = isValidLeaderQuest(leader, questID);
             if(!leaderBool){
-                sendInfoMessage(leader, "\u00A7cYou are invalid for this quest");
+                sendInfoMessage(leader, "\u00A7cYou are invalid for this quest", sendLeaderMessages);
             }
             return leaderBool;
         }
 
-        return arePlayersValid(leader, partyRequirements, quest);
+        return arePlayersValid(leader, partyRequirements, quest, sendLeaderMessages);
     }
 
     private boolean isValidLeaderQuest(EntityPlayer leader, int questID) {
@@ -257,7 +318,7 @@ public class Party {
         return questData != null && questData.hasActiveQuest(questID);
     }
 
-    private boolean arePlayersValid(EntityPlayer leader, EnumPartyRequirements requirements, IQuest quest) {
+    private boolean arePlayersValid(EntityPlayer leader, EnumPartyRequirements requirements, IQuest quest, boolean sendLeaderMessages) {
         boolean allowQuest = true;
         for (UUID playerUUID : partyMembers.keySet()) {
             EntityPlayer player = PlayerDataController.getPlayerFromUUID(playerUUID);
@@ -271,36 +332,41 @@ public class Party {
 
                         if (requirements == EnumPartyRequirements.All && !hasActive) {
                             allowQuest = false;
-                            sendInfoMessage(leader, String.format("%s does not have quest active", player.getCommandSenderName()));
+                            sendInfoMessage(leader, String.format("%s does not have quest active", player.getCommandSenderName()), sendLeaderMessages);
                         } else if (requirements == EnumPartyRequirements.Valid && !hasActive && !hasFinished) {
                             allowQuest = false;
-                            sendInfoMessage(leader, String.format("%s does not have the quest active or finished", player.getCommandSenderName()));
+                            sendInfoMessage(leader, String.format("%s does not have the quest active or finished", player.getCommandSenderName()), sendLeaderMessages);
                         }
                     } else {
                         allowQuest = false;
-                        sendInfoMessage(leader, String.format("%s has no quest data", player.getCommandSenderName()));
+                        sendInfoMessage(leader, String.format("%s has no quest data", player.getCommandSenderName()), sendLeaderMessages);
                     }
                 } else {
                     allowQuest = false;
-                    sendInfoMessage(leader, String.format("%s has no player data", player.getCommandSenderName()));
+                    sendInfoMessage(leader, String.format("%s has no player data", player.getCommandSenderName()), sendLeaderMessages);
                 }
             } else {
                 allowQuest = false;
                 String playerName = partyMembers.get(playerUUID);
-                sendInfoMessage(leader, String.format("%s was not found", playerName));
+                sendInfoMessage(leader, String.format("%s was not found", playerName), sendLeaderMessages);
             }
         }
         return allowQuest;
     }
 
-    private void sendInfoMessage(EntityPlayer player, String message) {
+    private void sendInfoMessage(EntityPlayer player, String message, boolean send) {
+        if(!send)
+            return;
+
         player.addChatMessage(new ChatComponentText(String.format("\u00A7c%s", message)));
     }
 
+    @Override
     public void toggleFriendlyFire() {
         this.friendlyFire = !this.friendlyFire;
     }
 
+    @Override
     public boolean friendlyFire() {
         return this.friendlyFire;
     }
@@ -372,6 +438,20 @@ public class Party {
         }
 
         return compound;
+    }
+
+    @Override
+    public void updateQuestObjectiveData(){
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+            PartyController.Instance().pingPartyQuestObjectiveUpdate(this);
+        }
+    }
+
+    @Override
+    public void updatePartyData(){
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+            PartyController.Instance().pingPartyUpdate(this);
+        }
     }
 
     public void readClientNBT(NBTTagCompound compound) {

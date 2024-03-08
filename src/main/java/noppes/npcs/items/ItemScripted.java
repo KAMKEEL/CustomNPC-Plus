@@ -59,7 +59,7 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player)
     {
         if(player.isSneaking() && player.capabilities.isCreativeMode) {
-            if(!ConfigScript.isScriptDev(player) && !CustomNpcsPermissions.Instance.hasPermission(player, CustomNpcsPermissions.TOOL_SCRIPTED_ITEM)){
+            if(!ConfigScript.canScript(player, CustomNpcsPermissions.TOOL_SCRIPTED_ITEM)){
                 player.addChatMessage(new ChatComponentTranslation("availability.permission"));
             } else {
                 CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, player);

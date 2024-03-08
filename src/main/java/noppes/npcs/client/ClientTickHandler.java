@@ -12,6 +12,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
+import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
+import noppes.npcs.client.gui.player.inventory.GuiFaction;
+import noppes.npcs.client.gui.player.inventory.GuiParty;
 import noppes.npcs.client.gui.player.inventory.GuiQuestLog;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumPlayerPacket;
@@ -28,7 +31,7 @@ public class ClientTickHandler{
 	private int buttonPressed = -1;
 	private long buttonTime = 0L;
 	private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
-	
+
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onClientTick(TickEvent.ClientTickEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
@@ -91,8 +94,19 @@ public class ClientTickHandler{
 	public void onKey(InputEvent.KeyInputEvent event){
 		if(ClientProxy.QuestLog.isPressed()){
 			Minecraft mc = Minecraft.getMinecraft();
-			if(mc.currentScreen == null)
-				NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
+			if(mc.currentScreen == null){
+                switch (GuiCNPCInventory.activeTab){
+                    case 0:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
+                        break;
+                    case 1:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiParty(mc.thePlayer));
+                        break;
+                    case 2:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiFaction());
+                        break;
+                }
+            }
 			else if(mc.currentScreen instanceof GuiQuestLog)
 				mc.setIngameFocus();
 		}

@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
 
@@ -168,8 +169,16 @@ public class ConfigScript
     }
 
     public static boolean isScriptDev(EntityPlayer player) {
-        return ScriptOpsOnly && MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
+        return MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
                 Developer.ScriptUser.contains(player.getUniqueID()) ||
                 Developer.Universal.contains(player.getUniqueID());
+    }
+
+    public static boolean canScript(EntityPlayer player, CustomNpcsPermissions.Permission perm) {
+        if(ScriptOpsOnly){
+            return isScriptDev(player);
+        }
+
+        return CustomNpcsPermissions.hasPermission(player, perm);
     }
 }

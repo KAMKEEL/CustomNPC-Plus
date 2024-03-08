@@ -33,7 +33,8 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     private HashMap<Integer,GuiNpcButton> otherButtons = new HashMap<Integer,GuiNpcButton>();
 	private QuestLogData data = new QuestLogData();
 	private boolean noQuests = false;
-	private boolean questDetails = true;
+	private byte questPages = 1;
+    private static long lastClicked = System.currentTimeMillis();
 
     private HashMap<String,String> questAlertsOnOpen;
     private String trackedQuestKeyOnOpen;
@@ -50,7 +51,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         ySize = 180;
         NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestLog);
         drawDefaultBackground = false;
-        activeTab = 0;
 	}
     public void initGui(){
         super.initGui();
@@ -73,7 +73,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         	if(data.selectedCategory.isEmpty())
         		data.selectedCategory = category;
         	sideButtons.put(i, new GuiMenuSideButton(i,guiLeft - 69, this.guiTop +2 + i*21, 70,22, category));
-            otherButtons.put(i, new GuiNpcButton(i,guiLeft - 69, this.guiTop +2 + i*21, 70,22, category));
             i++;
         }
         sideButtons.get(categories.indexOf(data.selectedCategory)).active = true;
@@ -87,10 +86,32 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         scroll.guiTop = guiTop + 15;
         addScroll(scroll);
 
+        // Text Forward--
         addButton(new GuiButtonNextPage(1, guiLeft + 286, guiTop + 176, true));
+
+        // Objectives Back--
         addButton(new GuiButtonNextPage(2, guiLeft + 144, guiTop + 176, false));
 
-        if (data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)) {
+        boolean showParty = false;
+        boolean showTrackAlerts = true;
+        if(data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+            showParty = true;
+            if(data.partyOptions.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+                if(data.partyOptions.get(data.selectedCategory + ":" + data.selectedQuest).get(0).contains("only")){
+                    showTrackAlerts = false;
+                }
+            }
+
+        }
+
+
+        if (showParty) {
+            // Objectives Forward--
+            addButton(new GuiButtonNextPage(11, guiLeft + 286, guiTop + 176, true));
+
+            // Party Back--
+            addButton(new GuiButtonNextPage(10, guiLeft + 144, guiTop + 176, false));
+
             String questName = ClientCacheHandler.party != null ? ClientCacheHandler.party.getCurrentQuestName() : null;
             GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, Objects.equals(questName, data.selectedQuest) ? 1 : 0);
             addButton(partyButton);
@@ -100,6 +121,9 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
             if (partyButton.enabled && Objects.equals(questName, data.selectedQuest)) {
                 partyButton.packedFGColour = 0x32CD32;
             }
+
+            getButton(11).visible = questPages == 0 && data.hasSelectedQuest();
+            getButton(10).visible = questPages == 1 && data.hasSelectedQuest();
         }
 
         GuiNpcButton trackingButton = new GuiNpcButton(4, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"quest.track", "quest.tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
@@ -111,13 +135,16 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         GuiNpcButton alertButton = new GuiNpcButton(5, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
         addButton(alertButton);
 
-        getButton(1).visible = questDetails && data.hasSelectedQuest();
-        getButton(2).visible = !questDetails && data.hasSelectedQuest();
+        getButton(1).visible = questPages == 1 && data.hasSelectedQuest();
+        getButton(2).visible = questPages == 2 && data.hasSelectedQuest();
         getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
         getButton(5).visible = getButton(4).visible;
         if (getButton(3) != null) {
             getButton(3).visible = getButton(4).visible;
         }
+
+        getButton(4).enabled = showTrackAlerts;
+        getButton(5).enabled = showTrackAlerts;
     }
 
     @Override
@@ -137,12 +164,25 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
-    	if(guibutton.id == 1){
-    		questDetails = false;
+        if(lastClicked > System.currentTimeMillis() - 10){
+            return;
+        }
+
+        if(guibutton.id == 11){
+            questPages = 1;
+            lastClicked = System.currentTimeMillis();
+        }
+        else if(guibutton.id == 10){
+            questPages = 0;
+        }
+    	else if(guibutton.id == 1){
+    		questPages = 2;
     	}
-    	if(guibutton.id == 2){
-    		questDetails = true;
+    	else if(guibutton.id == 2){
+    		questPages = 1;
+            lastClicked = System.currentTimeMillis();
     	}
+
         if (guibutton.id == 3)
         {
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
@@ -192,32 +232,54 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         	return;
         }
 
-        int maxScroll = Math.max(0, this.sideButtons.size() - 10) * 22;
-        this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, -maxScroll, 0);
-        this.sideButtonScroll = this.sideButtonScroll * (1.0F - 0.2F) + (this.destSideButtonScroll * 0.2F);
+        // Define constants for smoothing the scroll
+        final float SMOOTHING_FACTOR = 0.1F; // Adjust this value for smoother or faster scrolling
 
-        for(Map.Entry<Integer,GuiMenuSideButton> entry : this.sideButtons.entrySet()){
+        int maxScroll = Math.max(0, this.sideButtons.size() - 9) * 22;
+        // Adjust scrolling only if the mouse is in the scroll zone
+        if (isMouseInScrollZone(i, j)) {
+            this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, -maxScroll, 0);
+        }
+        // Apply smoothing to the scroll transition
+        this.sideButtonScroll += (this.destSideButtonScroll - this.sideButtonScroll) * SMOOTHING_FACTOR;
+
+        // Loop through the side buttons and render them
+        for (Map.Entry<Integer, GuiMenuSideButton> entry : this.sideButtons.entrySet()) {
             int buttonNumber = entry.getKey();
             GuiMenuSideButton button = entry.getValue();
 
-            button.yPosition = (int) (this.guiTop +2 + buttonNumber*21 + this.sideButtonScroll);
-            if (button.yPosition >= this.guiTop && button.yPosition < this.guiTop + 22 * 8) {
+            float rawYPosition = (this.guiTop + 2 + buttonNumber * 21 + this.sideButtonScroll);
+            int smoothedYPosition = Math.round(rawYPosition);
+
+            // Render the button if it's within the visible area
+            if (smoothedYPosition >= this.guiTop && smoothedYPosition < this.guiTop + 22 * 8) {
+                button.yPosition = smoothedYPosition;
                 button.drawButton(mc, i, j);
             }
         }
-    	fontRendererObj.drawString(data.selectedCategory,guiLeft + 5,guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
+
+        fontRendererObj.drawString(data.selectedCategory,guiLeft + 5,guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
 
         if(!data.hasSelectedQuest())
         	return;
 
-        if (questDetails) {
+        if (questPages == 1) {
         	drawProgress();
         	String title = StatCollector.translateToLocal("gui.text");
         	fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+
+            if(data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+                title = StatCollector.translateToLocal("party.party");
+                fontRendererObj.drawString(title, guiLeft + 170, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+            }
+        } else if (questPages == 0) {
+            drawPartyOptions();
+            String title = StatCollector.translateToLocal("quest.objectives");
+            fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         } else {
         	drawQuestText();
         	String title = StatCollector.translateToLocal("quest.objectives");
-        	fontRendererObj.drawString(title, guiLeft + 168, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+        	fontRendererObj.drawString(title, guiLeft + 170, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         }
 
         GL11.glPushMatrix();
@@ -261,6 +323,16 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         }
 	}
 
+    private void drawPartyOptions() {
+        int yoffset = guiTop + 22;
+        for(String process : data.getPartyOptions()){
+            List<String> parts = Arrays.asList(process.split(":"));
+            String drawString = StatCollector.translateToLocal(parts.get(0)) + ": " + StatCollector.translateToLocal(parts.get(1));
+            fontRendererObj.drawString("- " + drawString, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
+            yoffset += 10;
+        }
+    }
+
 	protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
     }
@@ -284,6 +356,8 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     	NoppesUtil.clickSound();
         data.selectedCategory = button.displayString;
         data.selectedQuest = "";
+        if(scroll != null)
+            scroll.selected = -1;
         this.initGui();
     }
 	@Override
@@ -346,4 +420,13 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         }
 	}
 
+
+    public boolean isMouseInScrollZone(int x, int y) {
+        int scrollZoneLeft = guiLeft - 69; // Left boundary of the scroll zone
+        int scrollZoneRight = guiLeft - 69 + 70; // Right boundary of the scroll zone
+        int scrollZoneTop = guiTop + 2; // Top boundary of the scroll zone
+        int scrollZoneBottom = guiTop + 2 + 8 * 21; // Bottom boundary of the scroll zone
+
+        return x >= scrollZoneLeft && x <= scrollZoneRight && y >= scrollZoneTop && y <= scrollZoneBottom;
+    }
 }

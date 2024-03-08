@@ -51,6 +51,7 @@ public class CmdDialog extends ChMcLogger {
         for(PlayerData playerdata : data){
 	        playerdata.dialogData.dialogsRead.add(diagid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -77,6 +78,7 @@ public class CmdDialog extends ChMcLogger {
         for(PlayerData playerdata : data){
 	        playerdata.dialogData.dialogsRead.remove(diagid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -85,7 +87,7 @@ public class CmdDialog extends ChMcLogger {
             permissions={OpOnly.class}
     )
     public boolean reload(String args[]){
-    	new DialogController();
+    	new DialogController().load();
     	return true;
     }
 

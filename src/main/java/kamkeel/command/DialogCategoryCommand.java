@@ -83,6 +83,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Read Dialog Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", dialogCategory.getName(), dialogCatId, playerdata.playername));
             sendResult(sender, String.format("Read a total of \u00A7b%d \u00A77dialogs", count));
         }
@@ -124,6 +125,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Unread Dialog Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", dialogCategory.getName(), dialogCatId, playerdata.playername));
             sendResult(sender, String.format("Unread a total of \u00A7b%d \u00A77dialogs", count));
         }

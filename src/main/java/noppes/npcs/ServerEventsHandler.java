@@ -143,13 +143,15 @@ public class ServerEventsHandler {
 		if(!(event.source != null && event.source.getEntity() instanceof EntityPlayer) || !(event.entityLiving instanceof EntityPlayer) || FMLCommonHandler.instance().getEffectiveSide().isClient())
 			return;
 
-		EntityPlayer sourcePlayer = (EntityPlayer) event.source.getEntity();
-
-		PlayerData playerData = PlayerDataController.Instance.getPlayerData(sourcePlayer);
-		PlayerData targetData = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
-		if (playerData.partyUUID != null && playerData.partyUUID.equals(targetData.partyUUID)) {
-			event.setCanceled(true);
-		}
+        // Check for Friendly Fire
+        EntityPlayer sourcePlayer = (EntityPlayer) event.source.getEntity();
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(sourcePlayer);
+        PlayerData targetData = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
+        if (playerData.partyUUID != null && playerData.partyUUID.equals(targetData.partyUUID)) {
+            Party party = PartyController.Instance().getParty(playerData.partyUUID);
+            if(party != null && !party.friendlyFire())
+                event.setCanceled(true);
+        }
 	}
 
 	@SubscribeEvent
@@ -318,7 +320,7 @@ public class ServerEventsHandler {
 	}
 
 	private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {
-		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
 		PlayerQuestData questData = playerData.questData;
 		boolean checkCompletion = false;
         String entityName = EntityList.getEntityString(entity);
@@ -385,6 +387,7 @@ public class ServerEventsHandler {
 				killed.put(name, amount + 1);
 			}
 			quest.setKilled(data, killed);
+            playerData.updateClient = true;
 		}
 		if(!checkCompletion)
 			return;
@@ -393,8 +396,12 @@ public class ServerEventsHandler {
 	}
 
     private void doPartyQuest(EntityPlayer player, Party party, EntityLivingBase entity){
+        PlayerData pdata = PlayerData.get(player);
         QuestData data = party.getQuestData();
         if(data == null)
+            return;
+
+        if(pdata == null)
             return;
 
         if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
@@ -441,8 +448,10 @@ public class ServerEventsHandler {
                 killed.put(name, amount + 1);
             }
             quest.setKilled(data, killed);
+            pdata.updateClient = true;
         }
 
+        PartyController.Instance().pingPartyQuestObjectiveUpdate(party);
         PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
     }
 
@@ -455,8 +464,11 @@ public class ServerEventsHandler {
 		QuestItem.pickedUp = event.item.getEntityItem();
 
         Party playerParty = playerData.getPlayerParty();
-        if(playerParty != null)
+        if(playerParty != null){
+            QuestItem.pickedUpParty = event.item.getEntityItem();
+            QuestItem.pickedUpPlayer = event.entityPlayer;
             PartyController.Instance().checkQuestCompletion(playerParty, EnumQuestType.Item);
+        }
 
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}

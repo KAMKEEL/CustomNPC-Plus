@@ -110,6 +110,23 @@ public class PlayerQuestData implements IPlayerQuestData {
 		return null;
 	}
 
+    public Party getPartyQuestCompletion(EntityPlayer player,EntityNPCInterface npc) {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        if(playerData != null){
+            Party party = playerData.getPlayerParty();
+            if(party != null){
+                QuestData data = party.getQuestData();
+                if(data != null){
+                    Quest quest = data.quest;
+                    if(quest != null && quest.completion == EnumQuestCompletion.Npc && quest.completerNpc.equals(npc.getCommandSenderName()) && quest.questInterface.isPartyCompleted(party)){
+                        return party;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 	public boolean checkQuestCompletion(PlayerData playerData,EnumQuestType type) {
 		boolean bo = false;
 		EntityPlayer player = playerData.player;
@@ -134,6 +151,9 @@ public class PlayerQuestData implements IPlayerQuestData {
             if(partyQuestID != -1 && data.quest.id == partyQuestID && data.quest.partyOptions.isAllowParty()){
                 continue;
             }
+
+            if(data.quest.partyOptions.allowParty && data.quest.partyOptions.onlyParty)
+                continue;
 
 			QuestInterface inter =  data.quest.questInterface;
 			if(inter.isCompleted(playerData)){
@@ -184,6 +204,8 @@ public class PlayerQuestData implements IPlayerQuestData {
 		activeQuests.put(id, questdata);
 		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+
+        parent.updateClient = true;
 	}
 
 	public void finishQuest(int id) {
@@ -195,6 +217,8 @@ public class PlayerQuestData implements IPlayerQuestData {
 			finishedQuests.put(quest.id, System.currentTimeMillis());
 		else
 			finishedQuests.put(quest.id, parent.player.worldObj.getTotalWorldTime());
+
+        parent.updateClient = true;
 	}
 
 	public void stopQuest(int id) {
@@ -202,6 +226,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 		if (quest == null)
 			return;
 		activeQuests.remove(id);
+        parent.updateClient = true;
 	}
 
 	public void removeQuest(int id) {
@@ -210,6 +235,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 			return;
 		activeQuests.remove(id);
 		finishedQuests.remove(id);
+        parent.updateClient = true;
 	}
 
 	public boolean hasFinishedQuest(int id){

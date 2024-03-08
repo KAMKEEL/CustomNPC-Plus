@@ -7,7 +7,7 @@ public enum EnumPartyRequirements {
 	All("party.all"),
 	Valid("party.valid");
 
-	String name;
+	public final String name;
 
 	EnumPartyRequirements(String name){
 		this.name = name;

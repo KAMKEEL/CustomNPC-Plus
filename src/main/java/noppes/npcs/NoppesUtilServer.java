@@ -172,6 +172,7 @@ public class NoppesUtilServer {
 
 	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia, int optionId){
 		Dialog dialog = dia.copy(player);
+        PlayerData playerdata = PlayerData.get(player);
 
 		if (!npc.isRemote()) {
 			if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
@@ -197,8 +198,10 @@ public class NoppesUtilServer {
         if(dialog.mail.isValid())
         	PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), dialog.mail);
         PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
-        if(!data.dialogsRead.contains(dialog.id))
-        	data.dialogsRead.add(dialog.id);
+        if(!data.dialogsRead.contains(dialog.id) && dialog.id >= 0){
+            data.dialogsRead.add(dialog.id);
+            playerdata.updateClient = true;
+        }
 		setEditingNpc(player, npc);
 	}
 	public static void runCommand(EntityPlayer player, String name, String command){
@@ -549,6 +552,9 @@ public class NoppesUtilServer {
         	PlayerFactionData data = playerdata.factionData;
         	data.factionData.remove(buffer.readInt());
             playerdata.save();
+        }
+        if(pl != null) {
+            SyncController.syncPlayer((EntityPlayerMP) pl);
         }
         sendPlayerData(type, player, name);
 	}

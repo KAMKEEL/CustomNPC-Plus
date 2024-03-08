@@ -74,6 +74,8 @@ public class CustomNpcs {
 
     public static LegacyConfig legacyConfig;
 
+    public static MinecraftServer Server;
+
     public CustomNpcs() {
         instance = this;
     }
@@ -192,10 +194,11 @@ public class CustomNpcs {
 
     @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
+        Server = event.getServer();
         ChunkController.Instance.clear();
-        new QuestController();
+        FactionController.getInstance().load();
+        // VisibilityController.instance = new VisibilityController();
         new PlayerDataController();
-        new FactionController();
         new TagController();
         new TransportController();
         new GlobalDataController();
@@ -229,8 +232,8 @@ public class CustomNpcs {
     @EventHandler
     public void started(FMLServerStartedEvent event) {
         RecipeController.Instance.load();
-        new DialogController();
         new BankController();
+        DialogController.Instance.load();
         QuestController.Instance.load();
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();

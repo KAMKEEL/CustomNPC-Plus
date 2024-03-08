@@ -367,11 +367,11 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         float[] pivots = part.getPivots();
         for (int i = 0; i < 3; i++) {
             this.rotationSliders[i].sliderValue = ValueUtil.clamp((((rotations[i] / 360.0F) + 1) / 2.0F), 0.0F, 1.0F);
-            int label = (int) (360.0F * 2.0F * ((((rotations[i] / 360.0F) + 1) / 2.0F) - 0.5F));
+            int label = Math.round(rotations[i]);
             this.rotationSliders[i].setString(label + "");
 
             this.pivotSliders[i].sliderValue = ValueUtil.clamp(((((ValueUtil.clamp(pivots[i], -100, 100)) / 100.0F) + 1) / 2.0F), 0.0F, 1.0F);
-            int pivotVal = (int)(100.0F * (((((ValueUtil.clamp(pivots[i], -100, 100)) / 100.0F) + 1) / 2.0F) - 0.5F));
+            int pivotVal = Math.round(pivots[i]);
             this.pivotSliders[i].setString(pivotVal + "");
         }
     }

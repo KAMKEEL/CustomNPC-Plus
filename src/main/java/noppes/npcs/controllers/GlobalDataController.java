@@ -4,24 +4,26 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.roles.JobItemGiver;
+import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashMap;
 
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
+
 public class GlobalDataController {
 	public static GlobalDataController Instance;
-	
 	private int itemGiverId = 0;
-	public HashMap<Integer, JobItemGiver> itemGivers = new HashMap<>();
-	
+
 	public GlobalDataController(){
 		Instance = this;
 		load();
 	}
-	
+
 	private void load(){
 		File saveDir = CustomNpcs.getWorldSaveDirectory();
 		try {
@@ -35,7 +37,7 @@ public class GlobalDataController {
 		        if(file.exists()){
 		        	loadData(file);
 		        }
-		        
+
 			} catch (Exception ee) {
 				ee.printStackTrace();
 			}
@@ -44,54 +46,41 @@ public class GlobalDataController {
 	private void loadData(File file) throws Exception {
         NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
         itemGiverId = nbttagcompound1.getInteger("itemGiverId");
-
-		NBTTagList jobList = nbttagcompound1.getTagList("ItemGivers", 10);
-		for (int i = 0; i < jobList.tagCount(); i++) {
-			NBTTagCompound compound = jobList.getCompoundTagAt(i);
-			JobItemGiver jobItemGiver = new JobItemGiver();
-			jobItemGiver.readFromNBT(compound);
-			itemGivers.put(jobItemGiver.itemGiverId, jobItemGiver);
-		}
 	}
 	public void saveData(){
-		try {
-			File saveDir = CustomNpcs.getWorldSaveDirectory();
+        customNPCThread.execute(() -> {
+            try {
+                File saveDir = CustomNpcs.getWorldSaveDirectory();
 
-	        NBTTagCompound nbttagcompound = new NBTTagCompound();
-	        nbttagcompound.setInteger("itemGiverId", itemGiverId);
+                NBTTagCompound nbttagcompound = new NBTTagCompound();
+                nbttagcompound.setInteger("itemGiverId", itemGiverId);
 
-			NBTTagList jobList = new NBTTagList();
-			for (JobItemGiver jobItemGiver : itemGivers.values()) {
-				NBTTagCompound compound = new NBTTagCompound();
-				jobItemGiver.writeToNBT(compound);
-				jobList.appendTag(compound);
-			}
-			nbttagcompound.setTag("ItemGivers", jobList);
-	        
-            File file = new File(saveDir, "global.dat_new");
-            File file1 = new File(saveDir, "global.dat_old");
-            File file2 = new File(saveDir, "global.dat");
-            CompressedStreamTools.writeCompressed(nbttagcompound, new FileOutputStream(file));
-            if(file1.exists())
-            {
-                file1.delete();
+                File file = new File(saveDir, "global.dat_new");
+                File file1 = new File(saveDir, "global.dat_old");
+                File file2 = new File(saveDir, "global.dat");
+                CompressedStreamTools.writeCompressed(nbttagcompound, new FileOutputStream(file));
+                if(file1.exists())
+                {
+                    file1.delete();
+                }
+                file2.renameTo(file1);
+                if(file2.exists())
+                {
+                    file2.delete();
+                }
+                file.renameTo(file2);
+                if(file.exists())
+                {
+                    file.delete();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            file2.renameTo(file1);
-            if(file2.exists())
-            {
-                file2.delete();
-            }
-            file.renameTo(file2);
-            if(file.exists())
-            {
-                file.delete();
-            }
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        });
 	}
 	public int incrementItemGiverId(){
 		itemGiverId++;
+        saveData();
 		return itemGiverId;
 	}
 }

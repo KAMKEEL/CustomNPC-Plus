@@ -49,7 +49,6 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
-        activeTab = 1;
         Client.sendData(EnumPacketServer.GetPartyData);
     }
 
@@ -177,6 +176,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                     GuiNpcButton trackButton = new GuiNpcButton(340, guiLeft + 5, guiTop + ySize - 8 - 23, "party.track");
                     trackButton.width = 135;
                     this.addButton(trackButton);
+                    getButton(340).enabled = false;
                 }
             }
         }
@@ -383,7 +383,21 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     @Override
     public void setPartyData(NBTTagCompound compound) {
         this.receivedData = true;
-        ClientCacheHandler.party = null;
+        if (compound.hasKey("QuestPing")) {
+            this.questLogStatus.clear();
+            this.questCompleteWith = "";
+            if (compound.hasKey("QuestProgress")) {
+                NBTTagList tagList = compound.getTagList("QuestProgress", 8);
+                for (int i = 0; i < tagList.tagCount(); i++) {
+                    this.questLogStatus.add(tagList.getStringTagAt(i));
+                }
+            }
+            if (compound.hasKey("QuestCompleteWith")) {
+                this.questCompleteWith = compound.getString("QuestCompleteWith");
+            }
+        } else {
+            ClientCacheHandler.party = null;
+        }
 
         if (compound.hasKey("PartyUUID")) {
             UUID uuid = UUID.fromString(compound.getString("PartyUUID"));

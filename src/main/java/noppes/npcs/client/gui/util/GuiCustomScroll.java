@@ -82,6 +82,7 @@ public class GuiCustomScroll extends GuiScreen
     public void drawScreen(int i, int j, float f, int mouseScrolled){
     	if(!visible)
     		return;
+
         drawGradientRect(guiLeft, guiTop, xSize+guiLeft ,ySize+guiTop, 0xc0101010, 0xd0101010);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);
@@ -95,6 +96,8 @@ public class GuiCustomScroll extends GuiScreen
         GL11.glPushMatrix();
         GL11.glTranslatef(guiLeft, guiTop, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+        boolean isMouseOverComponent = isMouseOver(i, j);
 
         if(selectable)
             hover = getMouseOver(i,j);
@@ -140,7 +143,7 @@ public class GuiCustomScroll extends GuiScreen
                 }
             }
 
-            if(mouseScrolled != 0){
+            if(mouseScrolled != 0 && isMouseOverComponent){
                 scrollY += mouseScrolled > 0?-14:14;
                 if(scrollY > maxScrollY)
                     scrollY = maxScrollY;

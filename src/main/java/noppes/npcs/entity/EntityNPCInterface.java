@@ -99,7 +99,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
-	public int itemGiverId = 0;
     public boolean isDrawn = false;
 
 	public Faction faction; //should only be used server side
@@ -425,7 +424,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		Dialog dialog = getDialog(player);
 		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.getQuestCompletion(player, this);
-		if (data != null){
+        Party partyCompleted = playerdata.getPartyQuestCompletion(player, this);
+        if(partyCompleted != null){
+            NoppesUtilPlayer.questPartyCompletion(partyCompleted);
+        }
+		else if (data != null){
 			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
 		}
@@ -1016,11 +1019,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		script.readFromNBT(compound);
 		script.readEventsFromNBT(compound);
 		timers.readFromNBT(compound);
-		if (compound.hasKey("ItemGiverId")) {
-			itemGiverId = compound.getInteger("ItemGiverId");
-		} else {
-			itemGiverId = -1;
-		}
 		advanced.readToNBT(compound);
 		if (advanced.role != EnumRoleType.None && roleInterface != null)
 			roleInterface.readFromNBT(compound);

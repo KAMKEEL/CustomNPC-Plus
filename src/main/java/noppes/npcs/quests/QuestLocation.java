@@ -332,6 +332,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
                         questData.extraData.setBoolean(this.nbtName, progress == 1);
                         data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
                         data.save();
+                        data.updateClient = true;
                     }
                 } else if (party != null){
                     QuestData questData = party.getQuestData();

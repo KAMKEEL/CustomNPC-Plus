@@ -44,6 +44,7 @@ public class CmdFaction extends ChMcLogger {
         for(PlayerData playerdata : data){
 	        PlayerFactionData playerfactiondata = playerdata.factionData;
             playerfactiondata.increasePoints(factionid, points, playerdata.player);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -65,6 +66,7 @@ public class CmdFaction extends ChMcLogger {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
             playerfactiondata.increasePoints(factionid, -points, playerdata.player);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -77,6 +79,7 @@ public class CmdFaction extends ChMcLogger {
     public Boolean reset(String[] args) {
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -97,6 +100,7 @@ public class CmdFaction extends ChMcLogger {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
         	playerfactiondata.factionData.put(this.selectedFaction.id,points);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -109,6 +113,7 @@ public class CmdFaction extends ChMcLogger {
     public Boolean drop(String[] args){
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.remove(this.selectedFaction.id);
+            playerdata.updateClient = true;
         }
         return true;
     }

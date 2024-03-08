@@ -54,6 +54,7 @@ public class TileWaypoint extends TileEntity {
                 boolean isPartyLeader = player.getUniqueID().equals(party.getLeaderUUID());
                 if(partyQuestLocation.setFoundParty(party, player, name, isPartyLeader)){
                     player.addChatMessage(new ChatComponentTranslation(name + " " + StatCollector.translateToLocal("quest.found")));
+                    PartyController.Instance().pingPartyQuestObjectiveUpdate(party);
                     PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Location);
                 }
             }

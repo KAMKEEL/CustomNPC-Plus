@@ -37,7 +37,7 @@ public class ItemNpcScripter extends Item{
     public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player){
         if(!world.isRemote)
             return itemStack;
-        if(!ConfigScript.isScriptDev(player) && !CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.TOOL_SCRIPTER)){
+        if(!ConfigScript.canScript(player, CustomNpcsPermissions.TOOL_SCRIPTER)){
             player.addChatMessage(new ChatComponentTranslation("availability.permission"));
         } else {
             CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);

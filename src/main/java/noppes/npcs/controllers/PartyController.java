@@ -5,8 +5,10 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
@@ -16,6 +18,8 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.quests.QuestInterface;
 import noppes.npcs.quests.QuestItem;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.PartyEvent;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -50,6 +54,8 @@ public class PartyController {
     public void disbandParty(UUID partyUUID) {
         Party party = this.parties.get(partyUUID);
         if (party != null) {
+            PartyEvent.PartyDisbandEvent partyEvent = new PartyEvent.PartyDisbandEvent(party, party.getQuest());
+            EventHooks.onPartyDisband(partyEvent);
             for (UUID uuid: party.getPlayerUUIDs()) {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                 PlayerData playerData;
@@ -72,19 +78,22 @@ public class PartyController {
         }
     }
 
-    public void sendKickMessages(Party party, EntityPlayer kickPlayer){
-        if(kickPlayer == null || party == null)
+    public void sendKickMessages(Party party, EntityPlayer kickPlayer, String kickPlayerName){
+        if(party == null)
             return;
 
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayer.getCommandSenderName());
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayer.getCommandSenderName(), " \u00A74", "party.kickOtherChat", "!");
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayerName);
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
             }
         }
-        Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
-        Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
+
+        if(kickPlayer != null){
+            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
+            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
+        }
     }
 
     public void sendLeavingMessages(Party party, EntityPlayer leavingPlayer){
@@ -131,48 +140,84 @@ public class PartyController {
         }
     }
 
-    public void sendQuestChat(Party party, String chatAlert){
+    public void pingPartyQuestObjectiveUpdate(Party party){
         if(party == null)
             return;
+
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("QuestPing", 0);
+        if (party.getQuest() != null) {
+            Quest quest = (Quest) party.getQuest();
+            Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
+            NBTTagList list = new NBTTagList();
+            for (String s : vector) {
+                list.appendTag(new NBTTagString(s));
+            }
+            compound.setTag("QuestProgress", list);
+            if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
+                compound.setString("QuestCompleteWith", quest.completerNpc);
+            }
+        }
 
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7a", chatAlert, "!");
+                PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
+                if(playerData != null){
+                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
+                }
+            }
+        }
+    }
+
+    public void sendQuestChat(Party party, String... chatAlerts) {
+        if (party == null)
+            return;
+
+        for (String name : party.getPlayerNames()) {
+            EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+            if (playerMP != null) {
+                Object[] args = new Object[2 + chatAlerts.length];
+                args[0] = "\u00A7a";
+
+                System.arraycopy(chatAlerts, 0, args, 1, chatAlerts.length);
+                args[args.length - 1] = "!"; // Add "!" at the end
+
+                // Pass args to Server.sendData using spread operator
+                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, args);
             }
         }
     }
 
     public boolean checkQuestCompletion(Party party, EnumQuestType type) {
-        boolean bo = false;
         QuestData questData = party.getQuestData();
-        if(questData == null)
-            return bo;
-
-        if(questData.quest.type != type && type != null)
-            return bo;
-
-        QuestInterface inter =  questData.quest.questInterface;
-        if(inter.isPartyCompleted(party)){
-            if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
-                questData.isCompleted = true;
-                if (questData.quest.completion == EnumQuestCompletion.Npc) {
-                    // EventHooks.onQuestFinished(player, data.quest);
+        if(questData != null){
+            if(questData.quest.type == type || type == null){
+                QuestInterface inter =  questData.quest.questInterface;
+                if(inter.isPartyCompleted(party)){
+                    if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
+                        questData.isCompleted = true;
+                        if (questData.quest.completion == EnumQuestCompletion.Npc) {
+                            EventHooks.onPartyFinished(party, questData.quest);
+                            PartyController.Instance().sendQuestChat(party, "party.turnedInChat");
+                        } else {
+                            party.setQuest(null);
+                            PartyController.Instance().sendQuestChat(party, "party.completeChat");
+                        }
+                        PartyController.Instance().pingPartyUpdate(party);
+                    }
+                } else {
+                    questData.isCompleted = false;
                 }
-                bo = true;
 
-                party.setQuest(null);
-                PartyController.Instance().pingPartyUpdate(party);
-                PartyController.Instance().sendQuestChat(party, "party.completeChat");
+//                if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
+//                    NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
+//                }
             }
-        } else {
-            questData.isCompleted = false;
         }
-//        if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
-//            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
-//        }
-        QuestItem.pickedUp = null;
-        return bo;
 
+        QuestItem.pickedUpParty = null;
+        QuestItem.pickedUpPlayer = null;
+        return true;
     }
 }

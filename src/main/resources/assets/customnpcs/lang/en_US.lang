@@ -142,11 +142,16 @@ party.dropQuest=Drop Quest
 party.friendlyFire=Friendly Fire
 party.ignore=Ignore
 party.invite=Invite
+party.setChat=Party quest set to
 party.completeChat=The party quest has been completed!
+party.turnedInChat=The party quest is ready to be turned in!
 
 party.kick=Kick
 party.kickConfirm=Are you sure you want to kick this player?
 party.leader=Leader
+party.all=All
+party.enrolled=Enrolled
+party.valid=Valid
 party.shared=Shared
 party.leaderConfirm=Are you sure you want to make this player the party leader?
 party.leaveParty=Leave Party

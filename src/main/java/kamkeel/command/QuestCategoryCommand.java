@@ -100,6 +100,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Completed Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Completed a total of \u00A7b%d \u00A77quests", count));
         }
@@ -142,6 +143,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Stopped Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Stopped a total of \u00A7b%d \u00A77quests", count));
         }
@@ -190,6 +192,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Started Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Started a total of \u00A7b%d \u00A77quests", count));
         }
@@ -232,6 +235,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Cleared Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Cleared a total of \u00A7b%d \u00A77quests", count));
         }

@@ -19,10 +19,7 @@ import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.MarkType;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.FramePart;
-import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.reflect.Field;
@@ -99,13 +96,14 @@ public class ClientEventHandler {
 
             MarkData markData = MarkData.get((EntityNPCInterface) event.entity);
             EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            for(MarkData.Mark m : markData.marks){
-                if(m.getType() != MarkType.NONE && m.availability.isAvailable(player)){
-                    MarkRenderer.render(event.entity, event.x, event.y, event.z, m);
-                    break;
+            if(PlayerData.get(player) != null){
+                for(MarkData.Mark m : markData.marks){
+                    if(m.getType() != MarkType.NONE && m.availability.isAvailable(player)){
+                        MarkRenderer.render(event.entity, event.x, event.y, event.z, m);
+                        break;
+                    }
                 }
             }
-
         } else if (event.entity instanceof EntityPlayer) {
             if (ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
                 data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
