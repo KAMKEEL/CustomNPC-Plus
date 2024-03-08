@@ -64,6 +64,7 @@ public class QuestCommand extends CommandKamkeelBase {
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
             }
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Started Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
@@ -109,6 +110,7 @@ public class QuestCommand extends CommandKamkeelBase {
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
                 Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
             }
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Finished Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
@@ -139,6 +141,7 @@ public class QuestCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
 	        playerdata.questData.activeQuests.remove(questid);
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Stopped Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }
@@ -173,6 +176,7 @@ public class QuestCommand extends CommandKamkeelBase {
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
     }

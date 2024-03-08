@@ -61,6 +61,7 @@ public class CmdQuest extends ChMcLogger{
 				Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 				Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
 	        }
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -94,6 +95,7 @@ public class CmdQuest extends ChMcLogger{
         for(PlayerData playerdata : data){
 	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -125,6 +127,7 @@ public class CmdQuest extends ChMcLogger{
         for(PlayerData playerdata : data){
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -157,6 +160,7 @@ public class CmdQuest extends ChMcLogger{
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -165,7 +169,7 @@ public class CmdQuest extends ChMcLogger{
             permissions={OpOnly.class}
     )
     public boolean reload(String args[]){
-    	new QuestController().load();;
+    	new QuestController().load();
     	return true;
     }
 }

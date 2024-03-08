@@ -54,6 +54,7 @@ public class DialogCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
 	        playerdata.dialogData.dialogsRead.add(diagid);
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Forced Read for Dialog \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", diagid, playerdata.playername));
         }
     }
@@ -79,6 +80,7 @@ public class DialogCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
 	        playerdata.dialogData.dialogsRead.remove(diagid);
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Forced Unread for Dialog \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", diagid, playerdata.playername));
         }
     }

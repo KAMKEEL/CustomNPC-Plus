@@ -65,6 +65,7 @@ public class FactionCommand extends CommandKamkeelBase {
 
         for(PlayerData playerdata : data){
             playerdata.save();
+            playerdata.updateClient = true;
         }
 	}
 
@@ -85,6 +86,7 @@ public class FactionCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
 	        PlayerFactionData playerfactiondata = playerdata.factionData;
 	        playerfactiondata.increasePoints(factionid, points, playerdata.player);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Added Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -105,6 +107,7 @@ public class FactionCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
         	playerfactiondata.increasePoints(factionid, -points, playerdata.player);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Subtracted Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -113,6 +116,7 @@ public class FactionCommand extends CommandKamkeelBase {
     public void reset(ICommandSender sender, String[] args) {
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Reset Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -132,6 +136,7 @@ public class FactionCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
         	playerfactiondata.factionData.put(this.selectedFaction.id, points);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Set Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -140,6 +145,7 @@ public class FactionCommand extends CommandKamkeelBase {
     public void drop(ICommandSender sender, String[] args){
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.remove(this.selectedFaction.id);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Dropped Faction \u00A7e%s (%d)\u00A77 from Player \u00A7b%s\u00A77", this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
