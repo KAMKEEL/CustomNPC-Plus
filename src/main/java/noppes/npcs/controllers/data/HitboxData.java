@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.config.ConfigMain;
 
 public class HitboxData {
 
@@ -11,7 +12,12 @@ public class HitboxData {
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
         nbttagcompound.setBoolean("HitboxEnabled", hitboxEnabled);
         if(hitboxEnabled) {
+            if(widthScale > ConfigMain.HitBoxScaleMax)
+                widthScale = ConfigMain.HitBoxScaleMax;
             nbttagcompound.setFloat("HitboxWidthScale", widthScale);
+
+            if(heightScale > ConfigMain.HitBoxScaleMax)
+                heightScale = ConfigMain.HitBoxScaleMax;
             nbttagcompound.setFloat("HitboxHeightScale", heightScale);
         }
         return nbttagcompound;
@@ -21,7 +27,12 @@ public class HitboxData {
         hitboxEnabled = nbttagcompound.getBoolean("HitboxEnabled");
         if(hitboxEnabled) {
             widthScale = nbttagcompound.getFloat("HitboxWidthScale");
+            if(widthScale > ConfigMain.HitBoxScaleMax)
+                widthScale = ConfigMain.HitBoxScaleMax;
+
             heightScale = nbttagcompound.getFloat("HitboxHeightScale");
+            if(heightScale > ConfigMain.HitBoxScaleMax)
+                heightScale = ConfigMain.HitBoxScaleMax;
         }
     }
 

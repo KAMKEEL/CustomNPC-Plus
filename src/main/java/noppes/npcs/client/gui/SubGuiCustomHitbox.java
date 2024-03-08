@@ -24,12 +24,12 @@ public class SubGuiCustomHitbox extends SubGuiInterface implements ITextfieldLis
             addLabel(new GuiNpcLabel(3,"hitbox.width", guiLeft + 5, guiTop + 57));
             addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 122, guiTop + 53, 50, 18, hitboxData.getWidthScale() + ""));
             getTextField(2).floatsOnly = true;
-            getTextField(2).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 20);
+            getTextField(2).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1);
 
             addLabel(new GuiNpcLabel(4,"hitbox.height", guiLeft + 5, guiTop + 79));
             addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 122, guiTop + 75, 50, 18, hitboxData.getHeightScale() + ""));
             getTextField(3).floatsOnly = true;
-            getTextField(3).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 20);
+            getTextField(3).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1);
         }
         addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 190,98, 20, "gui.done"));
     }
