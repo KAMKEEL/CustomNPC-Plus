@@ -174,7 +174,7 @@ public class Animation implements IAnimation {
 		if(compound.hasKey("ID")){
 			id = compound.getInteger("ID");
 		}
-		else {
+		else if (AnimationController.Instance != null) {
 			id = AnimationController.Instance.getUnusedId();
 		}
 
