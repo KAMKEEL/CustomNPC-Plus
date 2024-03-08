@@ -32,15 +32,4 @@ public class Utils {
         }
         return null;
     }
-
-    // <editor-fold desc="--- Foxz fork (pls keep it)">
-//    static public void savePlayerAltInv(EntityPlayer p,String n){
-//        NBTTagList tag=p.inventory.writeToNBT(new NBTTagList());
-//        p.getEntityData().setTag("AltInv_"+n, tag);
-//    }
-//
-//    static public void loadPlayerAltInv(EntityPlayer p,String n){
-//        p.inventory.readFromNBT((NBTTagList) p.getEntityData().getTag("AltInv_"+n));
-//    }
-    // </editor-fold>
 }

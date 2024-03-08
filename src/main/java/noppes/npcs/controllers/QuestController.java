@@ -221,12 +221,11 @@ public class QuestController implements IQuestHandler {
     	File file2 = new File(dir, quest.id + ".json");
 
     	try {
-            NBTTagCompound questCompound = quest.writeToNBTPartial(new NBTTagCompound());
-			NBTJsonUtil.SaveFile(file, questCompound);
+			NBTJsonUtil.SaveFile(file, quest.writeToNBTPartial(new NBTTagCompound()));
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST, questCompound, category.id);
+            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST, quest.writeToNBT(new NBTTagCompound()), category.id);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

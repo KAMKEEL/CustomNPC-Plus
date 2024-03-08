@@ -10,6 +10,7 @@ import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
@@ -170,6 +171,7 @@ public class CmdQuest extends ChMcLogger{
     )
     public boolean reload(String args[]){
     	new QuestController().load();
+        SyncController.syncAllQuests();
     	return true;
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.PlayerData;
@@ -88,6 +89,7 @@ public class CmdDialog extends ChMcLogger {
     )
     public boolean reload(String args[]){
     	new DialogController().load();
+        SyncController.syncAllDialogs();
     	return true;
     }
 

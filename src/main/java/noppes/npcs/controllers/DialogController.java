@@ -286,12 +286,12 @@ public class DialogController implements IDialogHandler {
     	File file2 = new File(dir, dialog.id + ".json");
 
     	try {
-            NBTTagCompound compound = dialog.writeToNBT(new NBTTagCompound());
+            NBTTagCompound compound = dialog.writeToNBTPartial(new NBTTagCompound());
 			NBTJsonUtil.SaveFile(file, compound);
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG, compound, category.id);
+            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG, dialog.writeToNBT(new NBTTagCompound()), category.id);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
