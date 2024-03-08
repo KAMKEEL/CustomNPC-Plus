@@ -172,7 +172,10 @@ public class BlockScripted extends BlockContainer {
 
     @Override
     public int isProvidingStrongPower(IBlockAccess world, int x, int y, int z, int side) {
-        return ((TileScripted) world.getTileEntity(x, y, z)).activePowering;
+        TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
+        if (tile == null)
+            return 0;
+        return tile.activePowering;
     }
 
     @Override
@@ -187,7 +190,10 @@ public class BlockScripted extends BlockContainer {
 
     @Override
     public float getBlockHardness(World world, int x, int y, int z) {
-        return ((TileScripted) world.getTileEntity(x, y, z)).blockHardness;
+        TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
+        if (tile == null)
+            return 0;
+        return tile.blockHardness;
     }
 
     @Override
@@ -200,7 +206,10 @@ public class BlockScripted extends BlockContainer {
 
     @Override
     public float getExplosionResistance(Entity par1Entity, World world, int x, int y, int z, double explosionX, double explosionY, double explosionZ) {
-        return ((TileScripted) world.getTileEntity(x, y, z)).blockResistance;
+        TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
+        if (tile == null)
+            return 0;
+        return tile.blockResistance;
     }
 
     @Override
