@@ -51,6 +51,7 @@ tile.npcPlaceholder_12.name=Placeholder
 tile.npcPlaceholder_13.name=Placeholder
 tile.npcPlaceholder_14.name=Placeholder
 tile.npcPlaceholder_15.name=Placeholder
+tile.npcScripted.name=Scripted Block
 
 gui.delete=Are you sure you want to delete this?
 gui.add=Add
