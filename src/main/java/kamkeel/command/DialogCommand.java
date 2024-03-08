@@ -4,12 +4,14 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.constants.EnumAvailabilityDialog;
 import noppes.npcs.constants.EnumAvailabilityQuest;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
@@ -85,7 +87,8 @@ public class DialogCommand extends CommandKamkeelBase {
             permission = 4
     )
     public void reload(ICommandSender sender, String args[]){
-    	new DialogController();
+    	new DialogController().load();
+        SyncController.syncAllDialogs();
         sendResult(sender, "Dialogs Reloaded");
     }
 

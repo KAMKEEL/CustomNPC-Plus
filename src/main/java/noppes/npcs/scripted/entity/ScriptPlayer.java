@@ -193,11 +193,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void readDialog(int id) {
-		PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.add(id);
+        PlayerData playerData = PlayerData.get(player);
+        playerData.dialogData.dialogsRead.add(id);
+        playerData.updateClient = true;
 	}
 
 	public void unreadDialog(int id) {
-		PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
+        PlayerData playerData = PlayerData.get(player);
+		playerData.dialogData.dialogsRead.remove(id);
+        playerData.updateClient = true;
 	}
 
 	public boolean hasFinishedQuest(IQuest quest) {
@@ -261,6 +265,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         data.questData.activeQuests.put(id, questdata);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+        data.updateClient = true;
 	}
 
 	/**
@@ -271,12 +276,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-
+		PlayerData data = PlayerData.get(player);
 		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
 			data.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
 		else
 			data.questData.finishedQuests.put(quest.id, player.worldObj.getTotalWorldTime());
+        data.updateClient = true;
 	}
 
 	/**
@@ -289,6 +294,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		data.questData.activeQuests.remove(id);
+        data.updateClient = true;
 	}
 
 	/**
@@ -299,9 +305,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+		PlayerData data = PlayerData.get(player);
 		data.questData.activeQuests.remove(id);
 		data.questData.finishedQuests.remove(id);
+        data.updateClient = true;
 	}
 
 	@Override

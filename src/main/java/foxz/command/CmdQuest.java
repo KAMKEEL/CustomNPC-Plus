@@ -165,7 +165,7 @@ public class CmdQuest extends ChMcLogger{
             permissions={OpOnly.class}
     )
     public boolean reload(String args[]){
-    	new DialogController();
+    	new QuestController().load();;
     	return true;
     }
 }

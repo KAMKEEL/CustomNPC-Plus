@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.PacketHandlerServer;
 import noppes.npcs.Server;
@@ -61,6 +62,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public boolean isGUIOpen = false;
     public boolean hadInteract = true;
+
+    public boolean updateClient = false;
 
     public ScreenSize screenSize = new ScreenSize(-1,-1);
 
@@ -142,6 +145,15 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		return compound;
 	}
+
+    public NBTTagCompound getSyncNBT(){
+        NBTTagCompound compound = new NBTTagCompound();
+        dialogData.saveNBTData(compound);
+        questData.saveNBTData(compound);
+        factionData.saveNBTData(compound);
+
+        return compound;
+    }
 
 	@Override
 	public void init(Entity entity, World world) {
@@ -313,4 +325,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		setNBT(data);
 	}
+
+    public static PlayerData get(EntityPlayer player) {
+        if(player.worldObj.isRemote)
+            return CustomNpcs.proxy.getPlayerData(player);
+
+        return PlayerDataController.Instance.getPlayerData(player);
+    }
 }

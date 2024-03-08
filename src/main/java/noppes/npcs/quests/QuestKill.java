@@ -305,6 +305,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                             this.parent.setKilled(questdata, killed);
                             data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
                             data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
+                            data.updateClient = true;
                             data.save();
                         }
                     }

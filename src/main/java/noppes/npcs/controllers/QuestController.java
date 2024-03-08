@@ -6,9 +6,12 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
@@ -18,10 +21,11 @@ import java.io.FileInputStream;
 import java.util.*;
 
 public class QuestController implements IQuestHandler {
+    public HashMap<Integer,QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
 
-	public static QuestController Instance;
+	public static QuestController Instance = new QuestController();;
 
 	private int lastUsedCatID = 0;
 	private int lastUsedQuestID = 0;
@@ -142,6 +146,7 @@ public class QuestController implements IQuestHandler {
 		for(int dia : cat.quests.keySet())
 			quests.remove(dia);
 		categories.remove(category);
+        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.QUEST_CATEGORY, category);
 	}
 
 	public void saveCategory(QuestCategory category){
@@ -172,6 +177,7 @@ public class QuestController implements IQuestHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
+        Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST_CATEGORY, category.writeNBT(new NBTTagCompound()));
 	}
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -215,10 +221,12 @@ public class QuestController implements IQuestHandler {
     	File file2 = new File(dir, quest.id + ".json");
 
     	try {
-			NBTJsonUtil.SaveFile(file, quest.writeToNBTPartial(new NBTTagCompound()));
+            NBTTagCompound questCompound = quest.writeToNBTPartial(new NBTTagCompound());
+			NBTJsonUtil.SaveFile(file, questCompound);
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
+            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST, questCompound, category.id);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

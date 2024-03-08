@@ -33,16 +33,20 @@ import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.items.ItemScripted;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 
@@ -105,6 +109,27 @@ public class PacketHandlerClient extends PacketHandlerServer{
             RecipeController.Instance.anvilRecipes = RecipeController.syncRecipes;
             RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
 		}
+        else if(type == EnumPacketClient.SYNC_ADD || type == EnumPacketClient.SYNC_END){
+            int synctype = buffer.readInt();
+            NBTTagCompound compound = Server.readNBT(buffer);
+
+            SyncController.clientSync(synctype, compound, type == EnumPacketClient.SYNC_END);
+
+            if(synctype == SyncType.PLAYER_DATA){
+                ClientProxy.playerData.setNBT(compound);
+            }
+        }
+        else if(type == EnumPacketClient.SYNC_UPDATE){
+            int synctype = buffer.readInt();
+            NBTTagCompound compound = Server.readNBT(buffer);
+            SyncController.clientSyncUpdate(synctype, compound, buffer);
+        }
+        else if(type == EnumPacketClient.SYNC_REMOVE){
+            int synctype = buffer.readInt();
+            int id = buffer.readInt();
+
+            SyncController.clientSyncRemove(synctype, id);
+        }
         else if(type == EnumPacketClient.MARK_DATA){
             Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
             if(!(entity instanceof EntityNPCInterface))

@@ -5,8 +5,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.IFactionHandler;
 import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Faction;
 
 import java.io.*;
@@ -17,22 +20,16 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 public class FactionController implements IFactionHandler {
+    public HashMap<Integer,Faction> factionsSync = new HashMap<Integer,Faction>();
 	public HashMap<Integer,Faction> factions;
 
-	private static FactionController instance;
+	private static FactionController instance = new FactionController();
 
 	private int lastUsedID = 0;
 
 	public FactionController(){
 		instance = this;
 		factions = new HashMap<Integer, Faction>();
-		loadFactions();
-		if(factions.isEmpty()){
-			factions.put(0,new Faction(0,"Friendly", 0x00DD00, 2000));
-			factions.put(1,new Faction(1,"Neutral", 0xF2DD00, 1000));
-			factions.put(2,new Faction(2,"Aggressive", 0xDD0000, 0));
-		}
-
 	}
 
 	public static FactionController getInstance(){
@@ -43,7 +40,7 @@ public class FactionController implements IFactionHandler {
 		return factions.get(faction);
 	}
 
-	private void loadFactions(){
+	public void load(){
 
 		File saveDir = CustomNpcs.getWorldSaveDirectory();
 		if(saveDir == null){
@@ -64,6 +61,12 @@ public class FactionController implements IFactionHandler {
 			} catch (Exception ee) {
 			}
 		}
+
+        if(factions.isEmpty()){
+            factions.put(0,new Faction(0,"Friendly", 0x00DD00, 2000));
+            factions.put(1,new Faction(1,"Neutral", 0xF2DD00, 1000));
+            factions.put(2,new Faction(2,"Aggressive", 0xDD0000, 0));
+        }
 	}
 
 	private void loadFactionsFile(File file) throws IOException{
@@ -151,6 +154,10 @@ public class FactionController implements IFactionHandler {
 		}
 		factions.remove(faction.id);
 		factions.put(faction.id, faction);
+
+        NBTTagCompound facCompound = new NBTTagCompound();
+        faction.writeNBT(facCompound);
+        Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.FACTION, facCompound);
 		saveFactions();
 	}
 
@@ -185,6 +192,7 @@ public class FactionController implements IFactionHandler {
 			} else {
 				this.saveFactions();
 				faction.id = -1;
+                Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.FACTION, id);
 				return faction;
 			}
 		} else {
@@ -206,7 +214,7 @@ public class FactionController implements IFactionHandler {
 				return true;
 		return false;
 	}
-	
+
 	public Faction getFactionFromName(String factioname){
 		for (Map.Entry<Integer,Faction>entryfaction:FactionController.getInstance().factions.entrySet()){
 			if (entryfaction.getValue().name.equalsIgnoreCase(factioname)){

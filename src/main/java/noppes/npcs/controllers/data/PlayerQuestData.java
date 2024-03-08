@@ -204,6 +204,8 @@ public class PlayerQuestData implements IPlayerQuestData {
 		activeQuests.put(id, questdata);
 		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+
+        parent.updateClient = true;
 	}
 
 	public void finishQuest(int id) {
@@ -215,6 +217,8 @@ public class PlayerQuestData implements IPlayerQuestData {
 			finishedQuests.put(quest.id, System.currentTimeMillis());
 		else
 			finishedQuests.put(quest.id, parent.player.worldObj.getTotalWorldTime());
+
+        parent.updateClient = true;
 	}
 
 	public void stopQuest(int id) {
@@ -222,6 +226,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 		if (quest == null)
 			return;
 		activeQuests.remove(id);
+        parent.updateClient = true;
 	}
 
 	public void removeQuest(int id) {
@@ -230,6 +235,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 			return;
 		activeQuests.remove(id);
 		finishedQuests.remove(id);
+        parent.updateClient = true;
 	}
 
 	public boolean hasFinishedQuest(int id){

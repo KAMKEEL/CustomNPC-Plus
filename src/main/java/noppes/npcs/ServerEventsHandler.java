@@ -318,7 +318,7 @@ public class ServerEventsHandler {
 	}
 
 	private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {
-		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
 		PlayerQuestData questData = playerData.questData;
 		boolean checkCompletion = false;
         String entityName = EntityList.getEntityString(entity);
@@ -385,6 +385,7 @@ public class ServerEventsHandler {
 				killed.put(name, amount + 1);
 			}
 			quest.setKilled(data, killed);
+            playerData.updateClient = true;
 		}
 		if(!checkCompletion)
 			return;
@@ -393,8 +394,12 @@ public class ServerEventsHandler {
 	}
 
     private void doPartyQuest(EntityPlayer player, Party party, EntityLivingBase entity){
+        PlayerData pdata = PlayerData.get(player);
         QuestData data = party.getQuestData();
         if(data == null)
+            return;
+
+        if(pdata == null)
             return;
 
         if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
@@ -441,6 +446,7 @@ public class ServerEventsHandler {
                 killed.put(name, amount + 1);
             }
             quest.setKilled(data, killed);
+            pdata.updateClient = true;
         }
 
         PartyController.Instance().pingPartyQuestObjectiveUpdate(party);

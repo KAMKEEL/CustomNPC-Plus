@@ -33,7 +33,8 @@ public class PlayerQuestController {
 	}
 
 	public static void addActiveQuest(QuestData questData, EntityPlayer player) {
-		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerData playerData = PlayerData.get(player);
+		PlayerQuestData data = playerData.questData;
 		if(canQuestBeAccepted(questData.quest, player)){
 			if (EventHooks.onQuestStarted(player, questData.quest)) {
 				return;
@@ -44,6 +45,7 @@ public class PlayerQuestController {
 				Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.newquest", questData.quest.title);
 				Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.newquest", ": ", questData.quest.title);
 			}
+            playerData.updateClient = true;
 		} else {
 			long timeUntilRepeat = questData.quest.getTimeUntilRepeat(player);
 			if (timeUntilRepeat > 0 && questData.quest.getIsRepeatable() && questData.quest.repeat != EnumQuestRepeat.NONE && questData.quest.repeat != EnumQuestRepeat.REPEATABLE) {
@@ -74,6 +76,7 @@ public class PlayerQuestController {
 			Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
 			Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
 		}
+        playerdata.updateClient = true;
 	}
 
     public static void setQuestPartyFinished(Quest quest, EntityPlayer player, QuestData questData ){
@@ -95,6 +98,7 @@ public class PlayerQuestController {
             Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
             Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
         }
+        playerdata.updateClient = true;
     }
 
 	public static boolean canQuestBeAccepted(Quest quest, EntityPlayer player){

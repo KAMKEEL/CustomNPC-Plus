@@ -7,8 +7,11 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.IRecipeHandler;
 import noppes.npcs.api.handler.data.IRecipe;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.data.RecipesDefault;
 
@@ -26,9 +29,9 @@ public class RecipeController implements IRecipeHandler {
 
 	public static final int version = 1;
 	public int nextId = 1;
-	
+
 	public static HashMap<Integer,RecipeCarpentry> syncRecipes = new HashMap<Integer, RecipeCarpentry>();
-	
+
 	public RecipeController(){
 		Instance = this;
 	}
@@ -41,7 +44,7 @@ public class RecipeController implements IRecipeHandler {
 		if(prevRecipes != null){
 			list.removeAll(prevRecipes);
 		}
-		
+
 		prevRecipes = new HashSet<RecipeCarpentry>();
 		for(RecipeCarpentry recipe : globalRecipes.values()){
 			if(recipe.isValid())
@@ -49,7 +52,7 @@ public class RecipeController implements IRecipeHandler {
 		}
 		list.addAll(prevRecipes);
 	}
-	
+
 	private void loadCategories(){
 		File saveDir = CustomNpcs.getWorldSaveDirectory();
 		try {
@@ -139,7 +142,7 @@ public class RecipeController implements IRecipeHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
     public RecipeCarpentry findMatchingRecipe(InventoryCrafting par1InventoryCrafting){
     	for(RecipeCarpentry recipe : anvilRecipes.values()){
     		if(recipe.isValid() && recipe.matches(par1InventoryCrafting,null))
@@ -158,13 +161,13 @@ public class RecipeController implements IRecipeHandler {
 
 	public RecipeCarpentry saveRecipe(NBTTagCompound compound) throws IOException {
 		RecipeCarpentry recipe = RecipeCarpentry.read(compound);
-		
+
 		RecipeCarpentry current = getRecipe(recipe.id);
 		if(current != null && !current.name.equals(recipe.name)){
 			while(containsRecipeName(recipe.name))
 				recipe.name += "_";
 		}
-		
+
 		if(recipe.id == -1){
 			recipe.id = getUniqueId();
 			while(containsRecipeName(recipe.name))
@@ -201,8 +204,14 @@ public class RecipeController implements IRecipeHandler {
 
 	public RecipeCarpentry delete(int id) {
 		RecipeCarpentry recipe = getRecipe(id);
+        if(recipe == null)
+            return null;
 		globalRecipes.remove(recipe.id);
 		anvilRecipes.remove(recipe.id);
+        if(recipe.isGlobal)
+            Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.RECIPE_NORMAL, id);
+        else
+            Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.RECIPE_CARPENTRY, id);
 		saveCategories();
 		reloadGlobalRecipes(globalRecipes);
 		return recipe;

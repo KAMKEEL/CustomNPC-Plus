@@ -85,7 +85,7 @@ public class CmdDialog extends ChMcLogger {
             permissions={OpOnly.class}
     )
     public boolean reload(String args[]){
-    	new DialogController();
+    	new DialogController().load();;
     	return true;
     }
 

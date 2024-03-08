@@ -9,6 +9,7 @@ import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
@@ -284,8 +285,8 @@ public class QuestCommand extends CommandKamkeelBase {
             permission = 4
     )
     public void reload(ICommandSender sender, String args[]){
-    	new QuestController();
-        QuestController.Instance.load();
+    	new QuestController().load();
+        SyncController.syncAllQuests();
         sendResult(sender, "Quests Reloaded");
     }
 }
