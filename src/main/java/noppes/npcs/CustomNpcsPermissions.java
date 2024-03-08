@@ -72,6 +72,7 @@ public class CustomNpcsPermissions{
     public static final Permission SOULSTONE_ALL = new Permission("customnpcs.soulstone.all");
 
     // Modify / Save Scripts
+    public static final Permission SCRIPT = new Permission("customnpcs.script");
     public static final Permission SCRIPT_NPC = new Permission("customnpcs.script.npc");
     public static final Permission SCRIPT_FORGE = new Permission("customnpcs.script.forge");
     public static final Permission SCRIPT_PLAYER = new Permission("customnpcs.script.player");

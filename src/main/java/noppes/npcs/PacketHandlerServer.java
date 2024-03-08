@@ -285,7 +285,7 @@ public class PacketHandlerServer{
 						featherPackets(type, buffer, player);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
 						blockPackets(type, buffer, player);
-					else if (ConfigScript.isScriptDev(player)) {
+					else if (ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
 						if (type == EnumPacketServer.EventScriptDataGet || type == EnumPacketServer.EventScriptDataSave)
 							npcEventScriptPackets(type, buffer, player, npc);
 						else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
