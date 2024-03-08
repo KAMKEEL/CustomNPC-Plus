@@ -472,9 +472,6 @@ public class NoppesUtilPlayer {
         if (data.quest.completion == EnumQuestCompletion.Instant)
             EventHooks.onPartyFinished(party, data.quest);
 
-        if(data.quest.completion == EnumQuestCompletion.Npc)
-            PartyController.Instance().sendQuestChat(party, "party.completeChat");
-
         PartyEvent.PartyQuestTurnedInEvent partyEv = new PartyEvent.PartyQuestTurnedInEvent(party, data.quest);
         EventHooks.onPartyTurnIn(partyEv);
         if (partyEv.isCancelled())
@@ -580,6 +577,12 @@ public class NoppesUtilPlayer {
             if(meetsComplete){
                 Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
             }
+        }
+
+        if(data.quest.completion == EnumQuestCompletion.Npc){
+            party.setQuest(null);
+            PartyController.Instance().sendQuestChat(party, "party.completeChat");
+            PartyController.Instance().pingPartyUpdate(party);
         }
 
         return true;
