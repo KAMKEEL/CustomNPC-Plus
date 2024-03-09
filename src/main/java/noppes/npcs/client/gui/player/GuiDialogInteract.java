@@ -189,7 +189,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			GL11.glEnable(GL11.GL_BLEND);
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 			GL11.glDisable(GL11.GL_ALPHA_TEST);
-
+            GL11.glTranslatef(image.x,image.y,0.0f);
 			GL11.glTranslatef(image.alignment%3*((float)(scaledResolution.getScaledWidth())/2), (float) (Math.floor((float)(image.alignment/3))*((float)(scaledResolution.getScaledHeight())/2)),0.0F);
 			image.onRender(mc);
 
@@ -214,7 +214,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			GL11.glEnable(GL11.GL_BLEND);
 			OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 			GL11.glDisable(GL11.GL_ALPHA_TEST);
-
+            GL11.glTranslatef(image.x,image.y,0.0f);
 			GL11.glTranslatef(guiLeft + dialog.textOffsetX, optionStart + dialog.textOffsetY - image.height * image.scale, 0.0F);
 			image.onRender(mc);
 
@@ -486,6 +486,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
 				GL11.glTranslatef(guiLeft - 30 + dialog.optionSpaceX * k, y, 0.0F);
 				image.color = selected == k ? image.selectedColor : image.color;
+                GL11.glTranslatef(image.x,image.y,0.0f);
 				image.onRender(mc);
 
 				GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
