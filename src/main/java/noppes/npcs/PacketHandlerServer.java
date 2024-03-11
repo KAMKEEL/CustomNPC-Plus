@@ -734,8 +734,11 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.RemoteFreeze){
 			CustomNpcs.FreezeNPCs = !CustomNpcs.FreezeNPCs;
-			Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze Npcs":"Freeze Npcs");
+			Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze NPCs":"Freeze NPCs");
 		}
+        else if(type == EnumPacketServer.RemoteFreezeGet){
+            Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze NPCs":"Freeze NPCs");
+        }
 		else if(type == EnumPacketServer.RemoteReset){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
 			if(entity == null || !(entity instanceof EntityNPCInterface))

@@ -24,6 +24,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
         xSize = 256;
         setBackground("menubg.png");
         Client.sendData(EnumPacketServer.RemoteNpcsGet);
+        Client.sendData(EnumPacketServer.RemoteFreezeGet);
 	}
     public void initGui()
     {

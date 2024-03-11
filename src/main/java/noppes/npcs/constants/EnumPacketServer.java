@@ -8,7 +8,7 @@ public enum EnumPacketServer {
     RemoteGlobalMenu(CustomNpcsPermissions.GLOBAL_REMOTE),
 	NpcMenuClose(CustomNpcsPermissions.NPC_GUI, true),
 	RemoteDelete(CustomNpcsPermissions.NPC_DELETE, true),
-	RemoteFreeze(CustomNpcsPermissions.NPC_FREEZE),
+	RemoteFreeze(CustomNpcsPermissions.NPC_FREEZE), RemoteFreezeGet,
 	RemoteReset(CustomNpcsPermissions.NPC_RESET),
 	SpawnMob(CustomNpcsPermissions.SPAWNER_MOB),
 	MobSpawner(CustomNpcsPermissions.SPAWNER_CREATE),
