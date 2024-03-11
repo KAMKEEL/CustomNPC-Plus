@@ -2,7 +2,6 @@ package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -59,10 +58,7 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.util.CacheHashMap;
-import noppes.npcs.util.JsonException;
-import noppes.npcs.util.LRUHashMap;
-import noppes.npcs.util.NBTJsonUtil;
+import noppes.npcs.util.*;
 
 import java.io.File;
 import java.util.*;
@@ -107,7 +103,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public long sizeOfObject(Object obj) {
-        return ObjectSizeCalculator.getObjectSize(obj);
+        return SizeOfObjectUtil.sizeOfObject(obj);
     }
 
     public void stopServer() {
