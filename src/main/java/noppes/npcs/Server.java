@@ -14,9 +14,11 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class Server {
 
@@ -98,24 +100,60 @@ public class Server {
 			else if(ob instanceof NBTTagCompound)
 				writeNBT(buffer, (NBTTagCompound) ob);
 		}
-		if(buffer.array().length >= 32767){
-			LogWriter.error("Packet " + enu + " was too big to be send");
-			return false;
-		}
+//		if(buffer.array().length >= 32767){
+//			LogWriter.error("Packet " + enu + " was too big to be send");
+//			return false;
+//		}
+        if(buffer.array().length >= Short.MAX_VALUE * 2){
+            LogWriter.error("Packet " + enu + " was too big to be send");
+            return false;
+        }
+
         return true;
 	}
 
-	public static void writeNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
-		byte[] bytes = CompressedStreamTools.compress(compound);
-		buffer.writeShort((short)bytes.length);
-		buffer.writeBytes(bytes);
-	}
+//	public static void writeNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
+//		byte[] bytes = CompressedStreamTools.compress(compound);
+//		buffer.writeShort((short)bytes.length);
+//		buffer.writeBytes(bytes);
+//	}
 
-	public static NBTTagCompound readNBT(ByteBuf buffer) throws IOException {
-		byte[] bytes = new byte[buffer.readShort()];
-		buffer.readBytes(bytes);
-		return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
-	}
+
+//    public static NBTTagCompound readNBT(ByteBuf buffer) throws IOException {
+//		byte[] bytes = new byte[buffer.readShort()];
+//		buffer.readBytes(bytes);
+//		return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
+//	}
+
+
+    public static void writeNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
+        ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
+        DataOutputStream dataoutputstream = new DataOutputStream(new GZIPOutputStream(bytearrayoutputstream));
+
+        try
+        {
+            CompressedStreamTools.write(compound, dataoutputstream);
+        }
+        finally
+        {
+            dataoutputstream.close();
+        }
+        byte[] bytes = bytearrayoutputstream.toByteArray();
+        buffer.writeInt(bytes.length);
+        buffer.writeBytes(bytes);
+    }
+
+    public static NBTTagCompound readNBT(ByteBuf buffer) throws IOException {
+        byte[] bytes = new byte[buffer.readInt()];
+        buffer.readBytes(bytes);
+        DataInputStream datainputstream = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new ByteArrayInputStream(bytes))));
+        try{
+            return CompressedStreamTools.func_152457_a(bytes, NBTSizeTracker.field_152451_a);
+        }
+        finally{
+            datainputstream.close();
+        }
+    }
 
 	public static void writeString(ByteBuf buffer, String s){
         byte[] bytes = s.getBytes(Charsets.UTF_8);
