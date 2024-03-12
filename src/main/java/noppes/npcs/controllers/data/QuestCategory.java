@@ -13,7 +13,7 @@ public class QuestCategory implements IQuestCategory {
 	public HashMap<Integer,Quest> quests;
 	public int id = -1;
 	public String title = "";
-	
+
 	public QuestCategory(){
 		quests = new HashMap<Integer, Quest>();
 	}
@@ -21,11 +21,11 @@ public class QuestCategory implements IQuestCategory {
 	public void readNBT(NBTTagCompound nbttagcompound) {
         id = nbttagcompound.getInteger("Slot");
         title = nbttagcompound.getString("Title");
-        NBTTagList dialogsList = nbttagcompound.getTagList("Dialogs", 10);
-        if(dialogsList != null){
-            for(int ii = 0; ii < dialogsList.tagCount(); ii++)
+        NBTTagList questList = nbttagcompound.getTagList("Quests", 10);
+        if(questList != null){
+            for(int ii = 0; ii < questList.tagCount(); ii++)
             {
-                NBTTagCompound nbttagcompound2 = dialogsList.getCompoundTagAt(ii);
+                NBTTagCompound nbttagcompound2 = questList.getCompoundTagAt(ii);
                 Quest quest = new Quest();
                 quest.readNBT(nbttagcompound2);
                 quest.category = this;
@@ -37,16 +37,17 @@ public class QuestCategory implements IQuestCategory {
 	public NBTTagCompound writeNBT(NBTTagCompound nbttagcompound) {
 		nbttagcompound.setInteger("Slot", id);
 		nbttagcompound.setString("Title", title);
-        NBTTagList dialogs = new NBTTagList();
-        for(int dialogId : quests.keySet()){
-        	Quest quest = quests.get(dialogId);
-        	dialogs.appendTag(quest.writeToNBT(new NBTTagCompound()));
+        NBTTagList quests = new NBTTagList();
+        for(int questID : this.quests.keySet()){
+        	Quest quest = this.quests.get(questID);
+        	quests.appendTag(quest.writeToNBT(new NBTTagCompound()));
         }
-        
-        nbttagcompound.setTag("Dialogs", dialogs);
-        
+
+        nbttagcompound.setTag("Quests", quests);
+
         return nbttagcompound;
 	}
+    
 
     public List<IQuest> quests() {
         return new ArrayList(this.quests.values());
