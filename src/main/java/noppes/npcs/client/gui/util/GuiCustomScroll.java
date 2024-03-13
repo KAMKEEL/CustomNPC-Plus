@@ -36,6 +36,9 @@ public class GuiCustomScroll extends GuiScreen
 	public boolean visible = true;
 	private boolean selectable = true;
 
+    private int lastClickedItem;
+    private long lastClickedTime = 0;
+
     public GuiCustomScroll(GuiScreen parent, int id)
     {
         width = 176;
@@ -274,8 +277,16 @@ public class GuiCustomScroll extends GuiScreen
     			selected = hover;
     		hover = -1;
     	}
-		if(listener != null)
-			listener.customScrollClicked(i, j, k,this);
+
+        if(listener != null) {
+            long time = System.currentTimeMillis();
+            listener.customScrollClicked(i, j, k, this);
+            if(selected >= 0 && selected == lastClickedItem && time - lastClickedTime < 500) {
+                listener.customScrollDoubleClicked(list.get(selected), this);
+            }
+            lastClickedTime = time;
+            lastClickedItem = selected;
+        }
     }
 
     private void drawScrollBar()
@@ -358,5 +369,9 @@ public class GuiCustomScroll extends GuiScreen
 
     public boolean isMouseOver(int x, int y) {
         return x >= this.guiLeft && x <= this.guiLeft + this.xSize && y >= this.guiTop && y <= this.guiTop + this.ySize;
+    }
+
+    public void resetScroll(){
+        scrollY = 0;
     }
 }

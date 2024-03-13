@@ -208,10 +208,6 @@ public class RecipeController implements IRecipeHandler {
             return null;
 		globalRecipes.remove(recipe.id);
 		anvilRecipes.remove(recipe.id);
-        if(recipe.isGlobal)
-            Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.RECIPE_NORMAL, id);
-        else
-            Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.RECIPE_CARPENTRY, id);
 		saveCategories();
 		reloadGlobalRecipes(globalRecipes);
 		return recipe;

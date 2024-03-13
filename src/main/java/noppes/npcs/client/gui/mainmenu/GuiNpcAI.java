@@ -23,7 +23,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     {
         super.initGui();
         addLabel(new GuiNpcLabel(0,"ai.enemyresponse", guiLeft + 5, guiTop + 17));
-    	addButton(new GuiNpcButton(0,guiLeft + 86, guiTop + 10, 60, 20, new String[]{"gui.retaliate","gui.panic","gui.retreat","gui.nothing"} ,npc.ai.onAttack));   	
+    	addButton(new GuiNpcButton(0,guiLeft + 86, guiTop + 10, 60, 20, new String[]{"gui.retaliate","gui.panic","gui.retreat","gui.nothing"} ,npc.ai.onAttack));
     	addLabel(new GuiNpcLabel(1,"ai.door", guiLeft + 5, guiTop + 40));
     	addButton(new GuiNpcButton(1,guiLeft + 86, guiTop + 35, 60, 20, new String[]{"gui.break","gui.open","gui.disabled"} ,npc.ai.doorInteract));
     	addLabel(new GuiNpcLabel(12,"ai.swim", guiLeft + 5, guiTop + 65));
@@ -75,8 +75,8 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 		{
 			String label = "";
             label = "gui.combatchance";
-            addLabel(new GuiNpcLabel(21, label, guiLeft + 300, guiTop + 140));
-			addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 380, guiTop + 135, 30, 20, ai.tacticalChance + ""));
+            addLabel(new GuiNpcLabel(21, label, guiLeft + 300, guiTop + 165));
+			addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 380, guiTop + 160, 30, 20, ai.tacticalChance + ""));
 			getTextField(4).integersOnly = true;
 			getTextField(4).setMinMaxDefault(1, 100, 5);
 		}
@@ -91,7 +91,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     	addLabel(new GuiNpcLabel(2,"ai.movement", guiLeft + 4, guiTop + 165));
     	addButton(new GuiNpcButton(2, guiLeft + 86, guiTop + 160, 60, 20, "selectServer.edit"));
 	}
-    
+
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
 		if(textfield.id == 3){
@@ -104,7 +104,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			ai.distanceToMelee = textfield.getInteger();
 		}
 	}
-	
+
     @Override
 	protected void actionPerformed(GuiButton guibutton)
     {
@@ -154,9 +154,10 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 		}
 		else if (button.id == 25) {
 			ai.combatPolicy = EnumCombatPolicy.values()[button.getValue()];
+            initGui();
 		}
     }
-    
+
 	@Override
 	public void save() {
 		Client.sendData(EnumPacketServer.MainmenuAISave, ai.writeToNBT(new NBTTagCompound()));

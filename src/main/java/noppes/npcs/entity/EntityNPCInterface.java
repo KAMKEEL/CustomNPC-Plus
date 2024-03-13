@@ -675,18 +675,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	private void clearTasks(EntityAITasks tasks){
-		Iterator iterator = tasks.taskEntries.iterator();
-		List<EntityAITaskEntry> list = new ArrayList(tasks.taskEntries);
-		for (EntityAITaskEntry entityaitaskentry : list)
-		{
-			tasks.removeTask(entityaitaskentry.action);
-		}
-		tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
+        Iterator iterator = tasks.taskEntries.iterator();
+        List<EntityAITaskEntry> list = new ArrayList(tasks.taskEntries);
+        for (EntityAITaskEntry entityaitaskentry : list)
+        {
+            try {
+                tasks.removeTask(entityaitaskentry.action);
+            }
+            catch(Throwable e) {
+
+            }
+        }
+        tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
 	}
 	public void updateTasks() {
 		if (worldObj == null || worldObj.isRemote)
 			return;
-		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
 
 		clearTasks(tasks);
 		clearTasks(targetTasks);
@@ -707,11 +711,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 
 		this.taskCount = 1;
+        this.addRegularEntries();
 		this.doorInteractType();
 		this.seekShelter();
 		this.setResponse();
 		this.setMoveType();
-		this.addRegularEntries();
 	}
 
 	private void removeTask(EntityAIBase task){
@@ -723,31 +727,29 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	 * Branch task function for setting how an NPC responds to a threat
 	 */
 	public void setResponse(){
-		removeTask(aiLeap);
-		removeTask(aiResponse);
-		removeTask(aiSprint);
-		removeTask(aiAttackTarget);
-		removeTask(aiRange);
-		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
+        removeTask(aiLeap);
+        removeTask(aiResponse);
+        removeTask(aiSprint);
+        removeTask(aiAttackTarget);
+        removeTask(aiRange);
+        aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
 
 		if (this.ai.canSprint)
 			this.tasks.addTask(this.taskCount++, new EntityAISprintToTarget(this));
 
 		if (this.ai.onAttack == 1)
 			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
-
 		else if (this.ai.onAttack == 2)  {
 			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
 		}
-
 		else if (this.ai.onAttack == 0) {
 			this.setLeapTask();
 			if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
 			{
 				switch(this.ai.tacticalVariant)
 				{
-					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.0D, this.ai.tacticalRadius)); break;
-					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, this.ai.tacticalRadius, true)); break;
+					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.2D, this.ai.tacticalRadius)); break;
+					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.2D, this.ai.tacticalRadius, true)); break;
 					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
 					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
 					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
@@ -760,7 +762,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				switch(this.ai.tacticalVariant)
 				{
 					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIDodgeShoot(this)); break;
-					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, stats.rangedRange, false)); break;
+					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.2D, stats.rangedRange, false)); break;
 					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
 					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
 					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;

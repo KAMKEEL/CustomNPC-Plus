@@ -230,7 +230,7 @@ public class DialogController implements IDialogHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG_CATEGORY, category.writeNBT(new NBTTagCompound()));
+        SyncController.updateDialogCat(category);
 	}
 
 	public void removeCategory(int category){

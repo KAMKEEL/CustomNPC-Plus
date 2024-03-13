@@ -6,6 +6,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
+import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
@@ -17,7 +18,6 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 	public int dialogCategoryID;
 	public Dialog dialog;
 	private final GuiNPCManageDialogs parent;
-	private GuiNpcSoundSelection gui;
 	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId)
@@ -79,7 +79,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		if(!dialog.mail.subject.isEmpty())
 			getButton(13).setDisplayText(dialog.mail.subject);
 	}
-	
+
 	public void buttonEvent(GuiButton guibutton)
     {
 		int id = guibutton.id;
@@ -106,9 +106,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			initGui();
 		}
 		if(id == 9 && dialog.id >= 0){
-			gui = new GuiNpcSoundSelection(getParent(), getTextField(2).getText());
-			gui.listener = this;
-			NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiSoundSelection((getTextField(2).getText())));
 		}
 		if(id == 10){
 			setSubGui(new SubGuiNpcCommand(dialog.command));
@@ -169,12 +167,14 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		else if(subgui instanceof SubGuiMailmanSendSetup){
 			initGui();
 		}
-	}
-
-	@Override
-	public void elementClicked(){
-		getTextField(2).setText(gui.getSelected());
-		unFocused(getTextField(2));
+        else if (subgui instanceof GuiSoundSelection){
+            GuiSoundSelection gss = (GuiSoundSelection) subgui;
+            if(gss.selectedResource != null) {
+                getTextField(2).setText(gss.selectedResource.toString());
+                unFocused(getTextField(2));
+                initGui();
+            }
+        }
 	}
 
 	@Override

@@ -177,8 +177,8 @@ public class QuestController implements IQuestHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST_CATEGORY, category.writeNBT(new NBTTagCompound()));
-	}
+        SyncController.updateQuestCat(category);
+    }
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
 		for(QuestCategory cat : categories.values()){
