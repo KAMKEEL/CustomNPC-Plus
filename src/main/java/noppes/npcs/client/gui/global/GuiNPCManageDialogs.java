@@ -247,7 +247,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 
 		boolean diagEnabled = dialogData != null;
 		if(diagEnabled){
-			if(!(dialog.id >= 0)){
+			if(dialog == null ||!(dialog.id >= 0)){
 				diagEnabled = false;
 			}
 		}
@@ -333,6 +333,13 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 			String selected = catScroll.getSelected();
 			if(!selected.equals(prevCatName) || override){
 				category = new DialogCategory();
+
+                dialogScroll.selected = -1;
+                dialogScroll.resetScroll();
+                diagSearch = "";
+                dialog = null;
+                getTextField(66).setText("");
+
 				Client.sendData(EnumPacketServer.DialogCategoryGet, catData.get(selected));
 				setPrevCatName(selected);
 			}

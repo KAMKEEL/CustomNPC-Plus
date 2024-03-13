@@ -251,7 +251,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 
 		boolean questEnabled = questData != null;
 		if(questEnabled){
-			if(!(quest.id >= 0)){
+			if(quest == null || !(quest.id >= 0)){
 				questEnabled = false;
 			}
 		}
@@ -337,6 +337,13 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 			String selected = catScroll.getSelected();
 			if(!selected.equals(prevCatName) || override){
 				category = new QuestCategory();
+
+                questScroll.selected = -1;
+                questScroll.resetScroll();
+                questSearch = "";
+                quest = null;
+                getTextField(66).setText("");
+
 				Client.sendData(EnumPacketServer.QuestCategoryGet, catData.get(selected));
 				setPrevCatName(selected);
 			}
