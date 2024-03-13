@@ -48,6 +48,17 @@ public class DialogCategory implements IDialogCategory {
         return dialogCat;
 	}
 
+    public NBTTagCompound writeSmallNBT(NBTTagCompound dialogCat) {
+        dialogCat.setInteger("Slot", id);
+        dialogCat.setString("Title", title);
+        return dialogCat;
+    }
+
+    public void readSmallNBT(NBTTagCompound compound){
+        id = compound.getInteger("Slot");
+        title = compound.getString("Title");
+    }
+
 	public List<IDialog> dialogs() {
 		return new ArrayList(this.dialogs.values());
 	}

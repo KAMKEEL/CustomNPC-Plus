@@ -4,14 +4,11 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.server.MinecraftServer;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NBTTags;
 import noppes.npcs.Server;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.*;
-import noppes.npcs.items.ItemScripted;
 
 import java.util.HashMap;
 
@@ -21,58 +18,77 @@ public class SyncController {
 		NBTTagList list = new NBTTagList();
 		NBTTagCompound compound = new NBTTagCompound();
 
-		for(Faction faction : FactionController.getInstance().factions.values()){
-            NBTTagCompound factioNBT = new NBTTagCompound();
-            faction.writeNBT(factioNBT);
-			list.appendTag(factioNBT);
-			if(list.tagCount() > 20){
-				compound = new NBTTagCompound();
-				compound.setTag("Data", list);
-				Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.FACTION, compound);
-				list = new NBTTagList();
-			}
-		}
-		compound = new NBTTagCompound();
-		compound.setTag("Data", list);
-		Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.FACTION, compound);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Faction Sync
+        if(ConfigMain.SyncFactionAuto){
+            for(Faction faction : FactionController.getInstance().factions.values()){
+                NBTTagCompound factioNBT = new NBTTagCompound();
+                faction.writeNBT(factioNBT);
+                list.appendTag(factioNBT);
+                if(list.tagCount() > 20){
+                    compound = new NBTTagCompound();
+                    compound.setTag("Data", list);
+                    Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.FACTION, compound);
+                    list = new NBTTagList();
+                }
+            }
+            compound = new NBTTagCompound();
+            compound.setTag("Data", list);
+            Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.FACTION, compound);
+        }
+        ////////////////////////////////////////////////////////////////////////////////
 
-		for(QuestCategory category : QuestController.Instance.categories.values()){
-			Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.QUEST_CATEGORY, category.writeNBT(new NBTTagCompound()));
-		}
-		Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.QUEST_CATEGORY, new NBTTagCompound());
+        ////////////////////////////////////////////////////////////////////////////////
+        // Quest Sync
+        if(ConfigMain.SyncQuestAuto){
+            for(QuestCategory category : QuestController.Instance.categories.values()){
+                NBTTagCompound questCompound;
+                NBTTagList questList = new NBTTagList();
+                for(int questID : category.quests.keySet()){
+                    Quest quest = category.quests.get(questID);
+                    questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
+                    if(questList.tagCount() > 50){
+                        questCompound = new NBTTagCompound();
+                        questCompound.setTag("Data", questList);
+                        questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                        Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.QUEST_CATEGORY, questCompound);
+                        questList = new NBTTagList();
+                    }
+                }
+                questCompound = new NBTTagCompound();
+                questCompound.setTag("Data", questList);
+                questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.QUEST_CATEGORY, questCompound);
+            }
+            Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.QUEST_CATEGORY, new NBTTagCompound());
+        }
+        ////////////////////////////////////////////////////////////////////////////////
 
-		for(DialogCategory category : DialogController.Instance.categories.values()){
-			Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.DIALOG_CATEGORY, category.writeNBT(new NBTTagCompound()));
-		}
-		Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.DIALOG_CATEGORY, new NBTTagCompound());
-
-		list = new NBTTagList();
-		for(RecipeCarpentry category : RecipeController.Instance.globalRecipes.values()){
-			list.appendTag(category.writeNBT());
-			if(list.tagCount() > 10){
-				compound = new NBTTagCompound();
-				compound.setTag("Data", list);
-				Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.RECIPE_NORMAL, compound);
-				list = new NBTTagList();
-			}
-		}
-		compound = new NBTTagCompound();
-		compound.setTag("Data", list);
-		Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.RECIPE_NORMAL, compound);
-
-		list = new NBTTagList();
-		for(RecipeCarpentry category : RecipeController.Instance.anvilRecipes.values()){
-			list.appendTag(category.writeNBT());
-			if(list.tagCount() > 10){
-				compound = new NBTTagCompound();
-				compound.setTag("Data", list);
-				Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.RECIPE_CARPENTRY, compound);
-				list = new NBTTagList();
-			}
-		}
-		compound = new NBTTagCompound();
-		compound.setTag("Data", list);
-		Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.RECIPE_CARPENTRY, compound);
+        ////////////////////////////////////////////////////////////////////////////////
+        // Dialog Sync
+        if(ConfigMain.SyncDialogAuto){
+            for(DialogCategory category : DialogController.Instance.categories.values()){
+                NBTTagCompound dialogCompound;
+                NBTTagList dialogList = new NBTTagList();
+                for(int dialogID : category.dialogs.keySet()){
+                    Dialog dialog = category.dialogs.get(dialogID);
+                    dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
+                    if(dialogList.tagCount() > 50){
+                        dialogCompound = new NBTTagCompound();
+                        dialogCompound.setTag("Data", dialogList);
+                        dialogCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                        Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.DIALOG_CATEGORY, dialogCompound);
+                        dialogList = new NBTTagList();
+                    }
+                }
+                dialogCompound = new NBTTagCompound();
+                dialogCompound.setTag("Data", dialogList);
+                dialogCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                Server.sendData(player, EnumPacketClient.SYNC_ADD, SyncType.DIALOG_CATEGORY, dialogCompound);
+            }
+            Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.DIALOG_CATEGORY, new NBTTagCompound());
+        }
+        ////////////////////////////////////////////////////////////////////////////////
 
 		PlayerData data = PlayerData.get(player);
         if(data != null)
@@ -80,18 +96,98 @@ public class SyncController {
 	}
 
 	public static void syncAllDialogs() {
-		for(DialogCategory category : DialogController.Instance.categories.values()){
-			Server.sendToAll(EnumPacketClient.SYNC_ADD, SyncType.DIALOG_CATEGORY, category.writeNBT(new NBTTagCompound()));
-		}
-		Server.sendToAll(EnumPacketClient.SYNC_END, SyncType.DIALOG_CATEGORY, new NBTTagCompound());
+        if(ConfigMain.SyncDialogAuto){
+            for(DialogCategory category : DialogController.Instance.categories.values()){
+                NBTTagCompound dialogCompound;
+                NBTTagList dialogList = new NBTTagList();
+                for(int dialogID : category.dialogs.keySet()){
+                    Dialog dialog = category.dialogs.get(dialogID);
+                    dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
+                    if(dialogList.tagCount() > 50){
+                        dialogCompound = new NBTTagCompound();
+                        dialogCompound.setTag("Data", dialogList);
+                        dialogCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                        Server.sendToAll(EnumPacketClient.SYNC_ADD, SyncType.DIALOG_CATEGORY, dialogCompound);
+                        dialogList = new NBTTagList();
+                    }
+                }
+                dialogCompound = new NBTTagCompound();
+                dialogCompound.setTag("Data", dialogList);
+                dialogCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                Server.sendToAll(EnumPacketClient.SYNC_ADD, SyncType.DIALOG_CATEGORY, dialogCompound);
+            }
+            Server.sendToAll(EnumPacketClient.SYNC_END, SyncType.DIALOG_CATEGORY, new NBTTagCompound());
+        }
 	}
 
 	public static void syncAllQuests() {
-		for(QuestCategory category : QuestController.Instance.categories.values()){
-			Server.sendToAll(EnumPacketClient.SYNC_ADD, SyncType.QUEST_CATEGORY, category.writeNBT(new NBTTagCompound()));
-		}
-		Server.sendToAll(EnumPacketClient.SYNC_END, SyncType.QUEST_CATEGORY, new NBTTagCompound());
+        if(ConfigMain.SyncQuestAuto){
+            for(QuestCategory category : QuestController.Instance.categories.values()){
+                NBTTagCompound questCompound;
+                NBTTagList questList = new NBTTagList();
+                for(int questID : category.quests.keySet()){
+                    Quest quest = category.quests.get(questID);
+                    questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
+                    if(questList.tagCount() > 50){
+                        questCompound = new NBTTagCompound();
+                        questCompound.setTag("Data", questList);
+                        questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                        Server.sendToAll(EnumPacketClient.SYNC_ADD, SyncType.QUEST_CATEGORY, questCompound);
+                        questList = new NBTTagList();
+                    }
+                }
+                questCompound = new NBTTagCompound();
+                questCompound.setTag("Data", questList);
+                questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+                Server.sendToAll(EnumPacketClient.SYNC_ADD, SyncType.QUEST_CATEGORY, questCompound);
+            }
+            Server.sendToAll(EnumPacketClient.SYNC_END, SyncType.QUEST_CATEGORY, new NBTTagCompound());
+        }
 	}
+
+    public static void updateQuestCat(QuestCategory questCategory) {
+        if(ConfigMain.SyncQuestAuto){
+            NBTTagCompound questCompound;
+            NBTTagList questList = new NBTTagList();
+            for(int questID : questCategory.quests.keySet()){
+                Quest quest = questCategory.quests.get(questID);
+                questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
+                if(questList.tagCount() > 50){
+                    questCompound = new NBTTagCompound();
+                    questCompound.setTag("Data", questList);
+                    questCompound.setTag("CatNBT", questCategory.writeSmallNBT(new NBTTagCompound()));
+                    Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST_CATEGORY, questCompound);
+                    questList = new NBTTagList();
+                }
+            }
+            questCompound = new NBTTagCompound();
+            questCompound.setTag("Data", questList);
+            questCompound.setTag("CatNBT", questCategory.writeSmallNBT(new NBTTagCompound()));
+            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST_CATEGORY, questCompound);
+        }
+    }
+
+    public static void updateDialogCat(DialogCategory dialogCategory) {
+        if(ConfigMain.SyncDialogAuto){
+            NBTTagCompound dialogCompound;
+            NBTTagList dialogList = new NBTTagList();
+            for(int questID : dialogCategory.dialogs.keySet()){
+                Dialog dialog = dialogCategory.dialogs.get(questID);
+                dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
+                if(dialogList.tagCount() > 50){
+                    dialogCompound = new NBTTagCompound();
+                    dialogCompound.setTag("Data", dialogList);
+                    dialogCompound.setTag("CatNBT", dialogCategory.writeSmallNBT(new NBTTagCompound()));
+                    Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG_CATEGORY, dialogCompound);
+                    dialogList = new NBTTagList();
+                }
+            }
+            dialogCompound = new NBTTagCompound();
+            dialogCompound.setTag("Data", dialogList);
+            dialogCompound.setTag("CatNBT", dialogCategory.writeSmallNBT(new NBTTagCompound()));
+            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG_CATEGORY, dialogCompound);
+        }
+    }
 
 	public static void clientSync(int synctype, NBTTagCompound compound, boolean syncEnd) {
 		if(synctype == SyncType.FACTION){
@@ -109,9 +205,21 @@ public class SyncController {
 		}
 		else if(synctype == SyncType.QUEST_CATEGORY){
             if(!compound.hasNoTags()){
-            	QuestCategory category = new QuestCategory();
-            	category.readNBT(compound);
-	            QuestController.Instance.categoriesSync.put(category.id, category);
+                QuestCategory category = new QuestCategory();
+                category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+                NBTTagList list = compound.getTagList("Data", 10);
+                if(QuestController.Instance.categoriesSync.containsKey(category.id)){
+                    category = QuestController.Instance.categoriesSync.get(category.id);
+                    category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+                }
+                for(int i = 0; i < list.tagCount(); i++)
+                {
+                    Quest quest = new Quest();
+                    quest.readNBT(list.getCompoundTagAt(i));
+                    quest.category = category;
+                    category.quests.put(quest.id, quest);
+                }
+                QuestController.Instance.categoriesSync.put(category.id, category);
             }
 	        if(syncEnd){
 	        	HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
@@ -127,9 +235,21 @@ public class SyncController {
 		}
 		else if(synctype == SyncType.DIALOG_CATEGORY){
             if(!compound.hasNoTags()){
-            	DialogCategory category = new DialogCategory();
-            	category.readNBT(compound);
-	            DialogController.Instance.categoriesSync.put(category.id, category);
+                DialogCategory category = new DialogCategory();
+                category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+                NBTTagList list = compound.getTagList("Data", 10);
+                if(DialogController.Instance.categoriesSync.containsKey(category.id)){
+                    category = DialogController.Instance.categoriesSync.get(category.id);
+                    category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+                }
+                for(int i = 0; i < list.tagCount(); i++)
+                {
+                    Dialog dialog = new Dialog();
+                    dialog.readNBT(list.getCompoundTagAt(i));
+                    dialog.category = category;
+                    category.dialogs.put(dialog.id, dialog);
+                }
+                DialogController.Instance.categoriesSync.put(category.id, category);
             }
 	        if(syncEnd){
 	        	HashMap<Integer,Dialog> dialogs = new HashMap<Integer, Dialog>();
@@ -160,9 +280,21 @@ public class SyncController {
 			category.dialogs.put(dialog.id, dialog);
 		}
 		else if(synctype == SyncType.DIALOG_CATEGORY){
-			DialogCategory category = new DialogCategory();
-			category.readNBT(compound);
-			DialogController.Instance.categories.put(category.id, category);
+            DialogCategory category = new DialogCategory();
+            category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+            NBTTagList list = compound.getTagList("Data", 10);
+            if(DialogController.Instance.categoriesSync.containsKey(category.id)){
+                category = DialogController.Instance.categoriesSync.get(category.id);
+                category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+            }
+            for(int i = 0; i < list.tagCount(); i++)
+            {
+                Dialog dialog = new Dialog();
+                dialog.readNBT(list.getCompoundTagAt(i));
+                dialog.category = category;
+                category.dialogs.put(dialog.id, dialog);
+            }
+            DialogController.Instance.categoriesSync.put(category.id, category);
 		}
 		else if(synctype == SyncType.QUEST){
 			QuestCategory category = QuestController.Instance.categories.get(buffer.readInt());
@@ -174,7 +306,19 @@ public class SyncController {
 		}
 		else if(synctype == SyncType.QUEST_CATEGORY){
 			QuestCategory category = new QuestCategory();
-			category.readNBT(compound);
+            category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+            NBTTagList list = compound.getTagList("Data", 10);
+            if(QuestController.Instance.categoriesSync.containsKey(category.id)){
+                category = QuestController.Instance.categoriesSync.get(category.id);
+                category.readSmallNBT(compound.getCompoundTag("CatNBT"));
+            }
+            for(int i = 0; i < list.tagCount(); i++)
+            {
+                Quest quest = new Quest();
+                quest.readNBT(list.getCompoundTagAt(i));
+                quest.category = category;
+                category.quests.put(quest.id, quest);
+            }
 			QuestController.Instance.categories.put(category.id, category);
 		}
 	}

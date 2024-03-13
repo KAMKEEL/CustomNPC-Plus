@@ -161,7 +161,6 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		int id = guibutton.id;
 		// Edit Cat
 		if(id == 6){
-			saveType(false);
 			if(category != null && category.id > -1){
 				setSubGui(new SubGuiEditText(category.title));
 			}
@@ -171,7 +170,6 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		}
 		// Add Cat
 		if(id == 4){
-			saveType(false);
 			String name = "New";
 			while(catData.containsKey(name))
 				name += "_";
@@ -185,7 +183,6 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		}
 		// Remove Cat
 		if(id == 5){
-			saveType(false);
 			if(catData.containsKey(catScroll.getSelected())) {
 				Client.sendData(EnumPacketServer.QuestCategoryRemove, category.id);
 				clearCategory();
@@ -302,7 +299,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 							catData.put(category.title, category.id);
 							catScroll.replace(old,category.title);
 						}
-						saveType(false);
+                        saveType(false);
 					}
 				}
 			}
@@ -327,12 +324,10 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
 		{
-			saveType(false);
 			getCategory(false);
 		}
 		if(guiCustomScroll.id == 1)
 		{
-			saveType(false);
 			getQuest(false);
 		}
 	}

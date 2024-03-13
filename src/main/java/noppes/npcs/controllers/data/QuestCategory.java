@@ -47,7 +47,17 @@ public class QuestCategory implements IQuestCategory {
 
         return nbttagcompound;
 	}
-    
+
+    public NBTTagCompound writeSmallNBT(NBTTagCompound nbttagcompound) {
+        nbttagcompound.setInteger("Slot", id);
+        nbttagcompound.setString("Title", title);
+        return nbttagcompound;
+    }
+
+    public void readSmallNBT(NBTTagCompound nbttagcompound) {
+        id = nbttagcompound.getInteger("Slot");
+        title = nbttagcompound.getString("Title");
+    }
 
     public List<IQuest> quests() {
         return new ArrayList(this.quests.values());

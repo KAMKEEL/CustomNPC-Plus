@@ -157,7 +157,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		int id = guibutton.id;
 		// Edit Cat
         if(id == 6){
-        	saveType(false);
 			if(category != null && category.id > -1){
 				setSubGui(new SubGuiEditText(category.title));
 			}
@@ -167,7 +166,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
         }
 		// Add Cat
 		if(id == 4){
-			saveType(false);
 			String name = "New";
 			while(catData.containsKey(name))
 				name += "_";
@@ -181,7 +179,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		}
 		// Remove Cat
 		if(id == 5){
-			saveType(false);
         	if(catData.containsKey(catScroll.getSelected())) {
 				Client.sendData(EnumPacketServer.DialogCategoryRemove, category.id);
 				clearCategory();
@@ -323,12 +320,10 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
 		{
-			saveType(false);
 			getCategory(false);
 		}
 		if(guiCustomScroll.id == 1)
 		{
-			saveType(false);
 			getDialog(false);
 		}
 	}
