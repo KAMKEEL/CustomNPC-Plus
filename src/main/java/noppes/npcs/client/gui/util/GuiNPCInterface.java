@@ -238,28 +238,29 @@ public abstract class GuiNPCInterface extends GuiScreen
     		drawBackground();
     	}
 
+        boolean subGui = hasSubGui();
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for(GuiNpcLabel label : labels.values())
         	label.drawLabel(this,fontRendererObj);
     	for(GuiNpcTextField tf : textfields.values()){
     		tf.drawTextBox(i, j);
     	}
-        for(GuiCustomScroll scroll : scrolls.values())
-			scroll.drawScreen(i, j, f, hasSubGui()?0:this.mouseWheel);
-
+        for(GuiCustomScroll scroll : scrolls.values()){
+            scroll.updateSubGUI(subGui);
+            scroll.drawScreen(i, j, f, subGui?0:this.mouseWheel);
+        }
         for(GuiScreen gui : extra.values())
         	gui.drawScreen(i, j, f);
         super.drawScreen(i, j, f);
 		for(GuiCustomScroll scroll : scrolls.values())
 			if(scroll.hoverableText){
-				scroll.drawHover(i, j, f, hasSubGui()?0:this.mouseWheel);
+				scroll.drawHover(i, j, f, subGui?0:this.mouseWheel);
 			}
         for(GuiNpcButton button : buttons.values()){
+            button.updateSubGUI(subGui);
             if(!button.hoverableText.isEmpty()){
-                button.drawHover(i, j, hasSubGui());
+                button.drawHover(i, j, subGui);
             }
-            if(hasSubGui() != button.getHasSubGUI())
-                button.updateSubGUI(hasSubGui());
         }
 
         if(subgui != null)

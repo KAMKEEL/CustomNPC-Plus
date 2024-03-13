@@ -35,6 +35,7 @@ public class GuiCustomScroll extends GuiScreen
     private boolean isSorted = true;
 	public boolean visible = true;
 	private boolean selectable = true;
+    private boolean hasSubGUI = false;
 
     private int lastClickedItem;
     private long lastClickedTime = 0;
@@ -116,7 +117,7 @@ public class GuiCustomScroll extends GuiScreen
                 hoverCount++;
         }
 
-        if(hover != -1 && hoverableText && hoverCount > 100){
+        if(!hasSubGUI && hover != -1 && hoverableText && hoverCount > 100){
             String displayString = StatCollector.translateToLocal(list.get(hover));
             GL11.glColor4f(1, 1, 1, 1);
             List<String> lines = TextSplitter.splitText(displayString, 30);
@@ -176,7 +177,7 @@ public class GuiCustomScroll extends GuiScreen
                 hoverCount++;
         }
 
-        if(hover != -1 && hoverableText && hoverCount > 100){
+        if(!hasSubGUI && hover != -1 && hoverableText && hoverCount > 100){
             String displayString = StatCollector.translateToLocal(list.get(hover));
             GL11.glColor4f(1, 1, 1, 1);
             List<String> lines = TextSplitter.splitText(displayString, 30);
@@ -373,5 +374,10 @@ public class GuiCustomScroll extends GuiScreen
 
     public void resetScroll(){
         scrollY = 0;
+    }
+
+    public void updateSubGUI(boolean hasSubGUI)
+    {
+        this.hasSubGUI = hasSubGUI;
     }
 }

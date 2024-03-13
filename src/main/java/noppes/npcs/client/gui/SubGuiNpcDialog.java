@@ -3,9 +3,8 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
+import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
@@ -14,11 +13,9 @@ import noppes.npcs.controllers.data.PlayerMail;
 
 public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener, GuiSelectionListener,ITextfieldListener
 {
-
 	public int dialogCategoryID;
 	public Dialog dialog;
 	private final GuiNPCManageDialogs parent;
-	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId)
 	{
@@ -96,9 +93,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			setSubGui(new SubGuiNpcDialogOptions(dialog));
 		}
 		if(id == 7 && dialog.id >= 0){
-			questSelection = new GuiNPCQuestSelection(npc, getParent(), dialog.quest);
-			questSelection.listener = this;
-			NoppesUtil.openGUI(player, questSelection);
+            setSubGui(new GuiQuestSelection(dialog.quest));
 		}
 		if(id == 8 && dialog.id >= 0){
 			dialog.quest = -1;
@@ -164,6 +159,13 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		else if(subgui instanceof SubGuiNpcCommand){
 			dialog.command = ((SubGuiNpcCommand) subgui).command;
 		}
+        else if(subgui instanceof GuiQuestSelection){
+            GuiQuestSelection gqs = (GuiQuestSelection) subgui;
+            if(gqs.selectedQuest != null) {
+                dialog.quest = gqs.selectedQuest.id;
+                initGui();
+            }
+        }
 		else if(subgui instanceof SubGuiMailmanSendSetup){
 			initGui();
 		}

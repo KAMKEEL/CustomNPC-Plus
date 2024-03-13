@@ -3,12 +3,11 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
+import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.data.PlayerMail;
@@ -21,7 +20,6 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 	public Quest quest;
 	private final GuiNPCManageQuest parent;
 	private boolean questlogTA = false;
-	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcQuest(GuiNPCManageQuest parent, Quest quest, int catId)
 	{
@@ -51,8 +49,6 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 
 		addLabel(new GuiNpcLabel(5, "quest.reward", guiLeft + 7, guiTop + 81));
 		addButton(new GuiNpcButton(5, guiLeft + 120, guiTop + 76, 50, 20, "selectServer.edit"));
-
-
 
 		addLabel(new GuiNpcLabel(10, "faction.options", guiLeft + 180, guiTop + 33));
 		addButton(new GuiNpcButton(10, guiLeft + 303, guiTop + 28, 50, 20, "selectServer.edit"));
@@ -155,9 +151,10 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 			initGui();
 		}
 		if(button.id == 15 && quest.id >= 0){
-			questSelection = new GuiNPCQuestSelection(npc, getParent(), quest.nextQuestid);
-			questSelection.listener = this;
-			NoppesUtil.openGUI(player, questSelection);
+            setSubGui(new GuiQuestSelection(quest.nextQuestid));
+//			questSelection = new GuiNPCQuestSelection(npc, getParent(), quest.nextQuestid);
+//			questSelection.listener = this;
+//			NoppesUtil.openGUI(player, questSelection);
 		}
 		if(button.id == 18)
 		{
@@ -206,7 +203,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 			SubGuiNpcCommand sub = (SubGuiNpcCommand) subgui;
 			quest.command = sub.command;
 		}
-		else if(subgui instanceof SubGuiMailmanSendSetup){
+		else {
 			initGui();
 		}
 	}

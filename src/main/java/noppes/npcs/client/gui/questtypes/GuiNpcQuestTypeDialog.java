@@ -4,8 +4,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNPCDialogSelection;
+import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiSelectionListener;
 import noppes.npcs.client.gui.util.IGuiData;
@@ -66,10 +65,7 @@ public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelecti
 			int id = -1;
 			if(quest.dialogs.containsKey(selectedSlot))
 				id = quest.dialogs.get(selectedSlot);
-
-            GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), id);
-            gui.listener = this;
-            NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiDialogSelection(id));
 		}
 		if (button.id >= 9 && button.id < 15) {
 			int slot = button.id - 9;

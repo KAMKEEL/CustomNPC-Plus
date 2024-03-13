@@ -4,19 +4,17 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
 import noppes.npcs.client.gui.player.GuiMailmanWrite;
+import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.data.PlayerMail;
 
 public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfieldListener, GuiSelectionListener{
-	
+
 	private PlayerMail mail;
-	private GuiNPCQuestSelection questSelection;
-	
+
 	public SubGuiMailmanSendSetup(PlayerMail mail, GuiScreen parent){
 		this.parent = parent;
         xSize = 256;
@@ -40,10 +38,10 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
 			title = "gui.select";
 		addButton(new GuiNpcButton(3, guiLeft + 70, guiTop + 130, 100, 20, title));
 		addButton(new GuiNpcButton(4, guiLeft + 171, guiTop + 130, 20, 20, "X"));
-		
+
 		addButton(new GuiNpcButton(0, guiLeft + 26, guiTop + 190, 100, 20, "gui.done"));
 		addButton(new GuiNpcButton(1, guiLeft + 130, guiTop + 190, 100, 20, "gui.cancel"));
-		
+
 		if(player.openContainer instanceof ContainerMail){
 			ContainerMail container = (ContainerMail) player.openContainer;
 			mail.items = container.mail.items;
@@ -68,9 +66,7 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
     		Client.sendData(EnumPacketServer.MailOpenSetup, mail.writeNBT());
 		}
     	if(id == 3){
-			questSelection = new GuiNPCQuestSelection(npc, getParent(), mail.questId);
-			questSelection.listener = this;
-			NoppesUtil.openGUI(player, questSelection);
+            setSubGui(new GuiQuestSelection(mail.questId));
     	}
     	if(id == 4){
     		mail.questId = -1;
@@ -81,13 +77,13 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
 
 	@Override
 	public void selected(int ob, String name) {
-		mail.questId = ob;
-		mail.questTitle = questSelection.getSelected();
+        mail.questId = ob;
+        mail.questTitle = name;
 		initGui();
 	}
 	@Override
 	public void save() {
-		
+
 	}
 
 	@Override

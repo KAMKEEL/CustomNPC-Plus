@@ -3,9 +3,8 @@ package noppes.npcs.client.gui.roles;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
+import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -13,14 +12,13 @@ import noppes.npcs.roles.JobConversation;
 import noppes.npcs.roles.JobConversation.ConversationLine;
 
 public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldListener, GuiSelectionListener
-{	
+{
 	private JobConversation job;
-	
+
 	private int slot = -1;
-	private GuiNPCQuestSelection questSelection;
-	
+
     public GuiNpcConversation(EntityNPCInterface npc){
-    	super(npc);    	
+    	super(npc);
     	job = (JobConversation) npc.jobInterface;
     }
 
@@ -29,7 +27,7 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
 
     	addLabel(new GuiNpcLabel(40, "gui.name", guiLeft + 40, guiTop + 4));
     	addLabel(new GuiNpcLabel(41, "gui.name", guiLeft + 240, guiTop + 4));
-    	
+
     	addLabel(new GuiNpcLabel(42, "conversation.delay", guiLeft + 164, guiTop + 4));
     	addLabel(new GuiNpcLabel(43, "conversation.delay", guiLeft + 364, guiTop + 4));
 
@@ -39,7 +37,7 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
 			this.addLabel(new GuiNpcLabel(i, "" + (i + 1), guiLeft + 5 + offset - (i > 8?6:0), guiTop + 18 + i % 7 * 22));
 			this.addTextField(new GuiNpcTextField(i, this, this.fontRendererObj, guiLeft + 13 + offset, guiTop + 13 +  i % 7 * 22, 100, 20, line.npc));
 			this.addButton(new GuiNpcButton(i, guiLeft + 115 + offset, guiTop + 13 + i % 7 * 22, 46, 20, "conversation.line"));
-			
+
 			if(i > 0){
 				this.addTextField(new GuiNpcTextField(i + 14, this, this.fontRendererObj, guiLeft + 164 + offset, guiTop + 13 + i % 7 * 22, 30, 20, line.delay + ""));
 				this.getTextField(i + 14).integersOnly = true;
@@ -55,7 +53,7 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
 		addTextField(new GuiNpcTextField(54, this, fontRendererObj, guiLeft + 260, guiTop + 191, 40, 20, job.range + ""));
 		getTextField(54).integersOnly = true;
 		getTextField(54).setMinMaxDefault(4, Integer.MAX_VALUE, 20);
-		
+
 		addLabel(new GuiNpcLabel(51, "quest.quest", guiLeft + 13, guiTop + 175));
 		String title = job.questTitle;
 		if(title.isEmpty())
@@ -76,9 +74,9 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
     		ConversationLine line = job.getLine(slot);
     		setSubGui(new SubGuiNpcConversationLine(line.text, line.sound));
     	}
-    	if(button.id == 51){
-			NoppesUtil.openGUI(player, new GuiNPCQuestSelection(npc, this,  job.quest));
-    	}
+        if(button.id == 51){
+            setSubGui(new GuiQuestSelection(job.quest));
+        }
     	if(button.id == 52){
     		job.quest = -1;
     		job.questTitle = "";
@@ -93,9 +91,9 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
     }
 	@Override
 	public void selected(int ob, String name) {
-		job.quest = ob;
-		job.questTitle = questSelection.getSelected();
-		initGui();
+        job.quest = ob;
+        job.questTitle = name;
+        initGui();
 	}
 
     @Override
@@ -108,7 +106,7 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
 			line.sound = sub.sound;
 		}
 	}
-	
+
     @Override
 	public void save() {
     	Client.sendData(EnumPacketServer.JobSave, job.writeToNBT(new NBTTagCompound()));

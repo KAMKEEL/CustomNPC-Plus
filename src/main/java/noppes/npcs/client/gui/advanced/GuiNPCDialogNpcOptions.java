@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNPCDialogSelection;
+import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.DialogOption;
@@ -31,7 +31,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 			int offset = i >=6 ?200:0;
 			this.addButton(new GuiNpcButton(i + 20, guiLeft + 20 + offset, guiTop + 13 + i % 6 * 22, 20, 20, "X"));
 			this.addLabel(new GuiNpcLabel(i, "" + i, guiLeft + 6 + offset, guiTop + 18 + i % 6 * 22));
-			
+
 			String title = "dialog.selectoption";
 			if(data.containsKey(i))
 				title = data.get(i).title;
@@ -46,7 +46,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 	private int selectedSlot;
 	protected void actionPerformed(GuiButton guibutton) {
 		int id = guibutton.id;
-		
+
 		if (id == 1) {
 			NoppesUtil.openGUI(player, parent);
 		}
@@ -56,7 +56,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 			int dialogID = -1;
 			if(data.containsKey(id))
 				dialogID = data.get(id).dialogId;
-			NoppesUtil.openGUI(player, new GuiNPCDialogSelection(npc, this, dialogID));
+            setSubGui(new GuiDialogSelection(dialogID));
 		}
 		if (id >= 20 && id < 40) {
 			int slot = id - 20;
@@ -79,10 +79,10 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		int pos = compound.getInteger("Position");
-		
+
 		DialogOption dialog = new DialogOption();
 		dialog.readNBT(compound);
-		
+
 		data.put(pos, dialog);
 		initGui();
 	}
