@@ -68,7 +68,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public ScreenSize screenSize = new ScreenSize(-1,-1);
 
 	public void onLogin() {
-
+        this.animationData.clearCache();
 	}
 
 	public void onLogout() {
