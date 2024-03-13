@@ -109,7 +109,7 @@ public class AnimationData implements IAnimationData {
         this.cachedAnimationIDs.remove(id);
     }
 
-    public void clearAnimationCache() {
+    public void clearCache() {
         this.cachedAnimationIDs.clear();
     }
 
