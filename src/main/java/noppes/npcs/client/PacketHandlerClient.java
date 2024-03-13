@@ -116,7 +116,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
             SyncController.clientSync(synctype, compound, type == EnumPacketClient.SYNC_END);
 
             if(synctype == SyncType.PLAYER_DATA){
-                ClientProxy.playerData.setNBT(compound);
+                ClientCacheHandler.playerData.setNBT(compound);
             }
         }
         else if(type == EnumPacketClient.SYNC_UPDATE){

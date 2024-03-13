@@ -192,18 +192,19 @@ public class ClientProxy extends CommonProxy {
 		((IReloadableResourceManager)Minecraft.getMinecraft().getResourceManager()).registerReloadListener(new CustomNpcResourceListener());
 	}
 
-	public static PlayerData playerData = new PlayerData();
+
 	@Override
 	public PlayerData getPlayerData(EntityPlayer player) {
 		if (player.getUniqueID() == Minecraft.getMinecraft().thePlayer.getUniqueID()) {
-			if (playerData.player != player) {
-				playerData.player = player;
-			}
+            if(ClientCacheHandler.playerData != null){
+                if (ClientCacheHandler.playerData.player != player) {
+                    ClientCacheHandler.playerData.player = player;
+                }
 
-			return playerData;
-		} else {
-			return null;
+                return ClientCacheHandler.playerData;
+            }
 		}
+        return null;
 	}
 
 	@Override
