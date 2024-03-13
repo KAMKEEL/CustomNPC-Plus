@@ -5,16 +5,18 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
 
 
-public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelectionListener,IGuiData{
+public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelectionListener, IGuiData{
 	private GuiScreen parent;
 	private HashMap<Integer, DialogOption> data = new HashMap<Integer,DialogOption>();
 
@@ -46,12 +48,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 	private int selectedSlot;
 	protected void actionPerformed(GuiButton guibutton) {
 		int id = guibutton.id;
-
-		if (id == 1) {
-			NoppesUtil.openGUI(player, parent);
-		}
 		if (id >= 0 && id < 20) {
-			close();
 			selectedSlot = id;
 			int dialogID = -1;
 			if(data.containsKey(id))
@@ -86,5 +83,4 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 		data.put(pos, dialog);
 		initGui();
 	}
-
 }
