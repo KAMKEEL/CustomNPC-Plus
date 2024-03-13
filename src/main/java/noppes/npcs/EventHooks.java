@@ -179,8 +179,8 @@ public class EventHooks {
             return false;
 
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ATTACK_MELEE, event);
-        npc.script.callScript(EnumScriptType.ATTACK,  event, "target", event.target);
         npc.script.callScript(EnumScriptType.ATTACK_MELEE,  event, "target", event.target);
+        npc.script.callScript(EnumScriptType.ATTACK,  event, "target", event.target);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
