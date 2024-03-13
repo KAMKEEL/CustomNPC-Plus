@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
@@ -253,10 +254,14 @@ public abstract class GuiNPCInterface extends GuiScreen
 			if(scroll.hoverableText){
 				scroll.drawHover(i, j, f, hasSubGui()?0:this.mouseWheel);
 			}
-        for(GuiNpcButton button : buttons.values())
+        for(GuiNpcButton button : buttons.values()){
             if(!button.hoverableText.isEmpty()){
                 button.drawHover(i, j, hasSubGui());
             }
+            if(hasSubGui() != button.getHasSubGUI())
+                button.updateSubGUI(hasSubGui());
+        }
+
         if(subgui != null)
     		subgui.drawScreen(i,j,f);
     }
@@ -330,44 +335,63 @@ public abstract class GuiNPCInterface extends GuiScreen
 		return subgui;
 	}
 
-	public void drawNpc(int x, int y){
+    public void drawNpc(int x, int y){
+        drawNpc(npc, x, y, 1, 0);
+    }
+
+	public void drawNpc(EntityLivingBase entity, int x, int y, float zoomed, int rotation){
+        EntityNPCInterface npc = null;
+        if(entity instanceof EntityNPCInterface)
+            npc = (EntityNPCInterface) entity;
+
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        npc.isDrawn = true;
+        if(npc != null)
+            npc.isDrawn = true;
 		GL11.glEnable(GL11.GL_COLOR_MATERIAL);
 		GL11.glPushMatrix();
 		GL11.glTranslatef(guiLeft + x, guiTop + y, 50F);
         float scale = 1;
-        if(npc.height > 2.4)
+        if(entity.height > 2.4)
         	scale = 2 / npc.height;
 
-        GL11.glScalef(-30 * scale, 30 * scale, 30 * scale);
+        GL11.glScalef(-30 * scale * zoomed, 30 * scale * zoomed, 30 * scale * zoomed);
 		GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
 
-		float f2 = npc.renderYawOffset;
-		float f3 = npc.rotationYaw;
-		float f4 = npc.rotationPitch;
-		float f7 = npc.rotationYawHead;
+		float f2 = entity.renderYawOffset;
+		float f3 = entity.rotationYaw;
+		float f4 = entity.rotationPitch;
+		float f7 = entity.rotationYawHead;
 		float f5 = (float) (guiLeft + x) - mouseX;
-		float f6 = (float) ((guiTop + y) - 50) - mouseY;
+        float f6 = (float) ((guiTop + y) - 50 * scale * zoomed) - mouseY;
+        int orientation = 0;
+        if(npc != null){
+            orientation = npc.ai.orientation;
+            npc.ai.orientation = rotation;
+        }
+
 		GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
 		RenderHelper.enableStandardItemLighting();
 		GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
 		GL11.glRotatef(-(float) Math.atan(f6 / 40F) * 20F, 1.0F, 0.0F, 0.0F);
-		npc.renderYawOffset = (float) Math.atan(f5 / 40F) * 20F;
-		npc.rotationYaw = (float) Math.atan(f5 / 40F) * 40F;
-		npc.rotationPitch = -(float) Math.atan(f6 / 40F) * 20F;
-		npc.rotationYawHead = npc.rotationYaw;
-		GL11.glTranslatef(0.0F, npc.yOffset, 0.0F);
+        entity.renderYawOffset = rotation;
+        entity.rotationYaw = (float)Math.atan(f5 / 80F) * 40F + rotation;
+        entity.rotationPitch = -(float) Math.atan(f6 / 40F) * 20F;
+        entity.rotationYawHead = entity.rotationYaw;
+		GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
 		RenderManager.instance.playerViewY = 180F;
-		RenderManager.instance.renderEntityWithPosYaw(npc, 0, 0, 0,	0, 1);
-		npc.renderYawOffset = f2;
-		npc.rotationYaw = f3;
-		npc.rotationPitch = f4;
-		npc.rotationYawHead = f7;
+		RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0,	0, 1);
+        entity.prevRenderYawOffset = entity.renderYawOffset = f2;
+        entity.prevRotationYaw = entity.rotationYaw = f3;
+        entity.prevRotationPitch = entity.rotationPitch = f4;
+        entity.prevRotationYawHead = entity.rotationYawHead = f7;
+        if(npc != null){
+            npc.ai.orientation = orientation;
+        }
 		GL11.glPopMatrix();
 		RenderHelper.disableStandardItemLighting();
 		GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-        npc.isDrawn = false;
+        if(npc != null)
+            npc.isDrawn = false;
 		OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
 		GL11.glDisable(GL11.GL_TEXTURE_2D);
 		OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
