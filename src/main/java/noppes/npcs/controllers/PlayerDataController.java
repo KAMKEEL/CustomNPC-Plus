@@ -289,9 +289,7 @@ public class PlayerDataController {
 	public PlayerData getPlayerData(EntityPlayer player){
 		PlayerData data = getPlayerDataCache(player.getUniqueID().toString());
 		if(data != null){
-            if(data.player == null){
-                data.player = player;
-            }
+            data.player = player;
 			return data;
 		}
 
@@ -302,9 +300,7 @@ public class PlayerDataController {
 			data.load();
 		}
 
-        if(data.player == null){
-            data.player = player;
-        }
+        data.player = player;
 		return data;
 	}
 
