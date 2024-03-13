@@ -51,11 +51,11 @@ public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, 
 	    	this.addTextField(new GuiNpcTextField(4, this, this.fontRendererObj, guiLeft + 4,  guiTop + 84, 248, 20, option.command));
 	    	this.getTextField(4).setMaxStringLength(32767);
 
-	    	this.addLabel(new GuiNpcLabel(4, "advMode.command", guiLeft + 4, guiTop + 110));
-	    	this.addLabel(new GuiNpcLabel(5, "advMode.nearestPlayer", guiLeft + 4, guiTop + 125));
-	    	this.addLabel(new GuiNpcLabel(6, "advMode.randomPlayer", guiLeft + 4, guiTop + 140));
-	    	this.addLabel(new GuiNpcLabel(7, "advMode.allPlayers", guiLeft + 4, guiTop + 155));
-	    	this.addLabel(new GuiNpcLabel(8, "dialog.commandoptionplayer", guiLeft + 4, guiTop + 170));
+            this.addLabel(new GuiNpcLabel(5, "advMode.nearestPlayer", guiLeft + 4, guiTop + 110));
+            this.addLabel(new GuiNpcLabel(6, "advMode.randomPlayer", guiLeft + 4, guiTop + 125));
+            this.addLabel(new GuiNpcLabel(7, "advMode.allPlayers", guiLeft + 4, guiTop + 140));
+            this.addLabel(new GuiNpcLabel(8, "dialog.commandoptionplayer", guiLeft + 4, guiTop + 155));
+            this.addLabel(new GuiNpcLabel(9, "dialog.commandmultiple", guiLeft + 4, guiTop + 170));
     	}
 
     	this.addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 190,98, 20, "gui.done"));

@@ -548,6 +548,7 @@ dialog.option=Dialog Option
 dialog.roleoption=Role Option
 dialog.commandoption=Command Option
 dialog.commandoptionplayer=Use "@dp" to target the player using this
+dialog.commandmultiple=Use "@x" to split the command to append multiple
 dialog.hideNPC=Hide NPC
 dialog.showWheel=Show Dialog Wheel
 dialog.disableEsc=Disable Esc
