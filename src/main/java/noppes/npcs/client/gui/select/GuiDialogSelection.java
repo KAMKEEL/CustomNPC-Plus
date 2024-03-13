@@ -66,7 +66,7 @@ public class GuiDialogSelection extends SubGuiInterface implements ICustomScroll
 		this.dialogData = dialogData;
 
         if(scrollCategories == null){
-	        scrollCategories = new GuiCustomScroll(this,0);
+	        scrollCategories = new GuiCustomScroll(this,0, 0);
             scrollCategories.setSize(177, 153);
         }
         scrollCategories.setList(getCatSearch());
@@ -79,7 +79,7 @@ public class GuiDialogSelection extends SubGuiInterface implements ICustomScroll
         addTextField(new GuiNpcTextField(33, this, fontRendererObj, guiLeft + 4, guiTop + 169, 177, 20, catSearch));
 
         if(scrollDialogs == null){
-        	scrollDialogs = new GuiCustomScroll(this,1);
+        	scrollDialogs = new GuiCustomScroll(this,1,0);
         	scrollDialogs.setSize(177, 153);
         }
         scrollDialogs.setList(getDialogSearch());
