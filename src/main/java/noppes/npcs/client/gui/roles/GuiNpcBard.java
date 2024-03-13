@@ -3,9 +3,7 @@ package noppes.npcs.client.gui.roles;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.controllers.MusicController;
-import noppes.npcs.client.gui.GuiNpcSoundSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
@@ -15,7 +13,6 @@ import noppes.npcs.roles.JobBard;
 public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener
 {
 	private JobBard job;
-	private GuiNpcSoundSelection gui;
 
     public GuiNpcBard(EntityNPCInterface npc)
     {
@@ -51,10 +48,6 @@ public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener
     	getLabel(3).enabled = job.hasOffRange;
     	getTextField(3).enabled = job.hasOffRange;
 
-    }
-    @Override
-    public void elementClicked(){
-    	job.song = gui.getSelected();
     }
 
     protected void actionPerformed(GuiButton guibutton)

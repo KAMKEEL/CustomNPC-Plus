@@ -3,12 +3,13 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.DataStats;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 
-public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfieldListener
+public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfieldListener, ISubGuiListener
 {
 	private DataStats stats;
-	private GuiNpcSoundSelection gui;
+    private GuiNpcTextField soundSelected = null;
 
     public SubGuiNpcRangeProperties(DataStats stats)
     {
@@ -113,19 +114,12 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
 	}
 
 	@Override
-	public void elementClicked(){
-		getTextField(7).setText(gui.getSelected());
-		unFocused(getTextField(7));
-	}
-
-	@Override
 	protected void actionPerformed(GuiButton guibutton){
 		int id = guibutton.id;
-        if(id == 7)
-        {
-			gui = new GuiNpcSoundSelection(parent, getTextField(7).getText());
-			NoppesUtil.openGUI(player, gui);
-		}
+        if(id == 7){
+            soundSelected = getTextField(7);
+            setSubGui(new GuiSoundSelection(soundSelected.getText()));
+        }
         if(id == 66)
         {
         	close();
@@ -133,5 +127,14 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
 		else if(id == 9){
 			stats.aimWhileShooting = ((GuiNpcButtonYesNo)guibutton).getBoolean();
 		}
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        GuiSoundSelection gss = (GuiSoundSelection) subgui;
+        if(gss.selectedResource != null) {
+            soundSelected.setText(gss.selectedResource.toString());
+            unFocused(soundSelected);
+        }
     }
 }
