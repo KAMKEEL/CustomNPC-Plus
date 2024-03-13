@@ -109,6 +109,10 @@ public class AnimationData implements IAnimationData {
         this.cachedAnimationIDs.remove(id);
     }
 
+    public void clearAnimationCache() {
+        this.cachedAnimationIDs.clear();
+    }
+
     public void viewAnimation(Animation animation, EntityLivingBase entity, AnimationData animationData, NBTTagCompound animationNBT) {
         NBTTagCompound data = animationData.writeToNBT(new NBTTagCompound());
         if (animation != null) {

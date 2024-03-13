@@ -73,6 +73,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public void onLogout() {
 		this.partyInvites.clear();
+        this.animationData.clearAnimationCache();
 	}
 
 	@Override
