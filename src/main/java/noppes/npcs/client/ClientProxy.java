@@ -150,8 +150,7 @@ public class ClientProxy extends CommonProxy {
 
 		if(ConfigClient.InventoryGuiEnabled){
 			MinecraftForge.EVENT_BUS.register(new TabRegistry());
-
-			if (TabRegistry.getTabList().size() < 2){
+			if (TabRegistry.getTabList().isEmpty()){
 				TabRegistry.registerTab(new InventoryTabVanilla());
 			}
 			TabRegistry.registerTab(new InventoryTabCustomNpc());
