@@ -567,7 +567,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 								}
 								break;
 							case Stubborn:
-								if (closerTargetFound && combatHandler.shouldChangeTarget((double) ai.tacticalChance / 100)) {
+								if (closerTargetFound && combatHandler.shouldChangeTarget(ai.tacticalChance)) {
 									setAttackTarget(attackingEntity);
 								}
 								break;

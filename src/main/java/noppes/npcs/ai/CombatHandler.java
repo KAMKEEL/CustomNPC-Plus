@@ -136,7 +136,7 @@ public class CombatHandler {
 	public boolean shouldChangeTarget(double chance) {
 		// Assuming randomNum is a random number between 0 and 100
 		double randomNum = Math.random() * 100; // Generates a random number between 0 and 100
-		return randomNum <= chance;
+		return randomNum < chance;
 	}
 
 	public boolean shouldSwitchTactically(EntityLivingBase originalTarget, EntityLivingBase newTarget, boolean reverse) {
