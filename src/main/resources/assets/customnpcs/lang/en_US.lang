@@ -364,6 +364,7 @@ stats.candrown=Drowns
 stats.firesound:=SoundFX
 stats.creaturetype=CreatureType
 stats.normal=Normal
+stats.reverse=Reverse
 stats.undead=Undead
 stats.arthropod=Arthropod
 stats.nofalldamage=NoFallDamage

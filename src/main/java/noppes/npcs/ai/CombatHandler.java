@@ -139,12 +139,14 @@ public class CombatHandler {
 		return randomNum <= chance;
 	}
 
-	public boolean shouldSwitchTactically(EntityLivingBase originalTarget, EntityLivingBase newTarget) {
+	public boolean shouldSwitchTactically(EntityLivingBase originalTarget, EntityLivingBase newTarget, boolean reverse) {
 		// Implement your Tactical Switcher conditions here
 		// Example: Switch if the new target has a higher threat level
 		float currentThreat = calculateThreatLevel(originalTarget);
 		float newThreat = calculateThreatLevel(newTarget);
-
+        if(reverse){
+            return newThreat < currentThreat;
+        }
 		return newThreat > currentThreat;
 	}
 }

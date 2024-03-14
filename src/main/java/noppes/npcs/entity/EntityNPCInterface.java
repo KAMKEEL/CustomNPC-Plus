@@ -572,7 +572,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 								}
 								break;
 							case Tactical:
-								if (attackingEntity != getAttackTarget() && combatHandler.shouldSwitchTactically(getAttackTarget(), attackingEntity)) {
+								if (attackingEntity != getAttackTarget() && combatHandler.shouldSwitchTactically(getAttackTarget(), attackingEntity, ai.tacticalChance > 50)) {
 									setAttackTarget(attackingEntity);
 								}
 								break;
