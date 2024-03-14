@@ -108,6 +108,7 @@ gui.copy=Copy
 gui.clear=Clear
 gui.done=Done
 gui.paste=Paste
+gui.test=Test
 gui.settings=Settings
 gui.enabled=Enabled
 gui.website=Website

@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.player;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -18,6 +19,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.GuiSelectionListener;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPlayerPacket;
@@ -36,6 +38,7 @@ import java.util.List;
 
 public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 {
+    private GuiScreen parent;
 	private Dialog dialog;
     private int selected = 0;
     private List<TextBlockClient> lineBlocks = new ArrayList<TextBlockClient>();
@@ -79,6 +82,11 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     	indicator = this.getResource("indicator.png");
     	wheelparts = new ResourceLocation[]{getResource("wheel1.png"),getResource("wheel2.png"),getResource("wheel3.png"),
     			getResource("wheel4.png"),getResource("wheel5.png"),getResource("wheel6.png")};
+    }
+
+    public GuiDialogInteract(GuiScreen parent, EntityNPCInterface npc, Dialog dialog){
+        this(npc, dialog);
+        this.parent = parent;
     }
 
     public void initGui(){
@@ -703,6 +711,13 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 			totalRows += block.lines.size() + 1;
         }
 	}
+
+    @Override
+    public void close(){
+        super.close();
+        if(parent != null)
+            NoppesUtil.openGUI(player, parent);
+    }
 
 	@Override
 	public void setClose(int i, NBTTagCompound data) {
