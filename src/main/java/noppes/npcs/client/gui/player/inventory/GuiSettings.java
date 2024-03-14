@@ -2,28 +2,14 @@ package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.data.PlayerFactionData;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.TabRegistry;
-
-import java.util.ArrayList;
 
 public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
-	private Minecraft mc = Minecraft.getMinecraft();
-
 
 	public GuiSettings() {
 		super();
@@ -37,8 +23,6 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener 
     public void initGui()
     {
 		super.initGui();
-        TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         int y = 0;
         this.addLabel(new GuiNpcLabel(1, "Chat Bubbles", guiLeft + 8, guiTop + 14 + y));
@@ -88,7 +72,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener 
 
     @Override
 	protected void actionPerformed(GuiButton btn){
-        if (btn.id >= 100) {
+        if (btn.id >= 100 && btn.id <= 105) {
             super.actionPerformed(btn);
             return;
         }

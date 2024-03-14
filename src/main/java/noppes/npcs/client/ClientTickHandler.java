@@ -94,10 +94,10 @@ public class ClientTickHandler{
 			if(mc.currentScreen == null){
                 switch (GuiCNPCInventory.activeTab){
                     case 0:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog());
                         break;
                     case 1:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiParty(mc.thePlayer));
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiParty());
                         break;
                     case 2:
                         NoppesUtil.openGUI(mc.thePlayer, new GuiFaction());

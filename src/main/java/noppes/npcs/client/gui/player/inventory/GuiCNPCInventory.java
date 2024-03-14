@@ -17,7 +17,8 @@ public class GuiCNPCInventory extends GuiNPCInterface {
     public static final ResourceLocation specialIcons = new ResourceLocation("customnpcs","textures/gui/icons.png");
 
     public static int activeTab = 0;
-    private Minecraft mc = Minecraft.getMinecraft();
+    protected Minecraft mc = Minecraft.getMinecraft();
+    protected boolean firstPass = true;
 
     public GuiCNPCInventory() {
         super();
@@ -29,6 +30,13 @@ public class GuiCNPCInventory extends GuiNPCInterface {
     public void initGui(){
         super.initGui();
         guiTop +=10;
+
+        if(firstPass){
+            TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
+            firstPass = false;
+        }
+        TabRegistry.addTabsToList(buttonList);
+
 
         int y = 3;
         GuiMenuSideButton questsButton = new GuiMenuSideButton(100, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
@@ -69,11 +77,11 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         if (guibutton.id >= 100) {
             if (guibutton.id == 100 && activeTab != 0) {
                 activeTab = 0;
-                mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+                mc.displayGuiScreen(new GuiQuestLog());
             }
             if (guibutton.id == 101 && activeTab != 1) {
                 activeTab = 1;
-                mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+                mc.displayGuiScreen(new GuiParty());
             }
             if (guibutton.id == 102 && activeTab != 2) {
                 activeTab = 2;

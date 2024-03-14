@@ -27,15 +27,12 @@ public class InventoryTabCustomNpc extends AbstractTab {
 					e.printStackTrace();
 				}
 				Minecraft mc = Minecraft.getMinecraft();
-                if(mc.currentScreen instanceof GuiCNPCInventory)
-                    return;
-
                 switch (GuiCNPCInventory.activeTab){
                     case 0:
-                        mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+                        mc.displayGuiScreen(new GuiQuestLog());
                         break;
                     case 1:
-                        mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+                        mc.displayGuiScreen(new GuiParty());
                         break;
                     case 2:
                         mc.displayGuiScreen(new GuiFaction());

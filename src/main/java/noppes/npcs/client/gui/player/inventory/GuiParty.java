@@ -18,15 +18,12 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
-public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
+public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
-    private final Minecraft mc = Minecraft.getMinecraft();
 
     private boolean receivedData;
     private long renderTicks;
@@ -43,9 +40,9 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     private final Vector<String> questLogStatus = new Vector<>();
     private String questCompleteWith;
 
-    public GuiParty(EntityPlayer player) {
+    public GuiParty() {
         super();
-        this.player = player;
+        this.player = mc.thePlayer;
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
@@ -54,8 +51,6 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     public void initGui(){
         super.initGui();
-        TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         this.selectedInvite = this.selectedPlayer = null;
         Party party = ClientCacheHandler.party;
@@ -215,11 +210,11 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     @Override
     protected void actionPerformed(GuiButton guibutton){
-        if (guibutton.id >= 100) {
+        Party party = ClientCacheHandler.party;
+        if (guibutton.id >= 100 && guibutton.id <= 105) {
             super.actionPerformed(guibutton);
             return;
         }
-        Party party = ClientCacheHandler.party;
 
         switch (guibutton.id) {
             case 200:
@@ -364,12 +359,6 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 mc.setIngameFocus();
             }
         }
-    }
-
-    @Override
-    public boolean doesGuiPauseGame()
-    {
-        return false;
     }
 
     @Override

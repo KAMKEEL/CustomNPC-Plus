@@ -18,12 +18,10 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
-public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,ICustomScrollListener, IGuiData, IPartyData, GuiYesNoCallback {
+public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListener, IGuiData, IPartyData, GuiYesNoCallback {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
 
@@ -39,25 +37,20 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
     private HashMap<String,String> questAlertsOnOpen;
     private String trackedQuestKeyOnOpen;
 
-	private Minecraft mc = Minecraft.getMinecraft();
-
     private float sideButtonScroll = 0;
     private float destSideButtonScroll = 0;
 
-	public GuiQuestLog(EntityPlayer player) {
+	public GuiQuestLog() {
 		super();
-		this.player = player;
+		this.player = mc.thePlayer;
         xSize = 280;
         ySize = 180;
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestLog);
         drawDefaultBackground = false;
-	}
+        NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestLog);
+    }
     public void initGui(){
         super.initGui();
     	sideButtons.clear();
-
-        TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         noQuests = false;
 
@@ -164,14 +157,14 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
-        if(lastClicked > System.currentTimeMillis() - 10){
-            return;
-        }
-        if (guibutton.id >= 100) {
+        if (guibutton.id >= 100 && guibutton.id <= 105) {
             super.actionPerformed(guibutton);
             return;
         }
 
+        if(lastClicked > System.currentTimeMillis() - 10){
+            return;
+        }
         if (guibutton.id == 3)
         {
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
