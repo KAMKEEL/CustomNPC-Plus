@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -16,6 +17,9 @@ public class GuiMenuSideButton extends GuiNpcButton{
     public boolean active;
     public boolean rightSided;
     public ItemStack renderStack;
+    public ResourceLocation renderResource;
+    public int renderIconPosX = 0;
+    public int renderIconPosY = 0;
 
     public GuiMenuSideButton(int id, int x, int y, String s){
         this(id, x, y, 200, 20, s);
@@ -54,6 +58,15 @@ public class GuiMenuSideButton extends GuiNpcButton{
         }
         mouseDragged(minecraft, i, j);
 
+        // Render Custom Icon
+        if (this.renderResource != null) {
+            this.zLevel = 100.0F;
+            minecraft.renderEngine.bindTexture(renderResource);
+            drawTexturedModalRect(xPosition + 2, yPosition + height/2 - 8, renderIconPosX, renderIconPosY, 16, 16);
+            this.zLevel = 0.0F;
+        }
+
+
         if (this.renderStack != null) {
             RenderHelper.enableGUIStandardItemLighting();
             this.zLevel = 100.0F;
@@ -71,7 +84,7 @@ public class GuiMenuSideButton extends GuiNpcButton{
             this.zLevel = 0.0F;
             RenderHelper.disableStandardItemLighting();
         }
-        
+
         String text = "";
         float maxWidth = width * 0.75f;
         if(fontrenderer.getStringWidth(displayString) > maxWidth){
@@ -102,7 +115,7 @@ public class GuiMenuSideButton extends GuiNpcButton{
 
     @Override
     public void mouseReleased(int i, int j){
-    	
+
     }
 
     @Override
