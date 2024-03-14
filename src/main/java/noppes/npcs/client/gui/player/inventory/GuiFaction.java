@@ -133,21 +133,10 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
-		if (guibutton.id >= 100) {
-			if (guibutton.id == 100 && activeTab != 0) {
-				activeTab = 0;
-                mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
-			}
-			if (guibutton.id == 101 && activeTab != 1) {
-				activeTab = 1;
-                mc.displayGuiScreen(new GuiParty(mc.thePlayer));
-			}
-			if (guibutton.id == 102 && activeTab != 2) {
-				activeTab = 2;
-                mc.displayGuiScreen(new GuiFaction());
-			}
-		}
-
+        if (guibutton.id >= 100) {
+            super.actionPerformed(guibutton);
+            return;
+        }
     	if(!(guibutton instanceof GuiButtonNextPage))
     		return;
 		int id = guibutton.id;

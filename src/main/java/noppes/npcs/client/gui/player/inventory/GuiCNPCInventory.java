@@ -1,10 +1,12 @@
 package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
+import noppes.npcs.client.gui.util.GuiButtonNextPage;
 import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.config.ConfigClient;
@@ -12,7 +14,6 @@ import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
 public class GuiCNPCInventory extends GuiNPCInterface {
-    private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     public static final ResourceLocation specialIcons = new ResourceLocation("customnpcs","textures/gui/icons.png");
 
     public static int activeTab = 0;
@@ -55,12 +56,34 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         }
 
         y += 21;
-        GuiMenuSideButton clientButton = new GuiMenuSideButton(101, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
+        GuiMenuSideButton clientButton = new GuiMenuSideButton(103, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
         clientButton.rightSided = true;
         clientButton.active = activeTab == 3;
         clientButton.renderIconPosX = 16;
         clientButton.renderResource = specialIcons;
         addButton(clientButton);
+    }
+
+    @Override
+    protected void actionPerformed(GuiButton guibutton){
+        if (guibutton.id >= 100) {
+            if (guibutton.id == 100 && activeTab != 0) {
+                activeTab = 0;
+                mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
+            }
+            if (guibutton.id == 101 && activeTab != 1) {
+                activeTab = 1;
+                mc.displayGuiScreen(new GuiParty(mc.thePlayer));
+            }
+            if (guibutton.id == 102 && activeTab != 2) {
+                activeTab = 2;
+                mc.displayGuiScreen(new GuiFaction());
+            }
+            if (guibutton.id == 103 && activeTab != 3) {
+                activeTab = 3;
+                mc.displayGuiScreen(new GuiSettings());
+            }
+        }
     }
 
     @Override

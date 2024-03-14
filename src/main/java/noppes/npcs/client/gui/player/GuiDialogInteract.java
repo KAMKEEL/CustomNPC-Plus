@@ -21,6 +21,8 @@ import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiSelectionListener;
 import noppes.npcs.client.gui.util.IGuiClose;
+import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Dialog;
@@ -56,9 +58,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	private int instantBlockPos = 0;
 	private int instantLinePos = 0;
 	private int prevPausePos = -1;
-
-	private static int textSpeed = 10;
-	private static boolean textSoundEnabled = true;
 
 	private int scrollY;
 	private ResourceLocation wheel;
@@ -177,11 +176,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 
         GL11.glPushMatrix();
 		GL11.glTranslatef(0.0F, 0.5f, 100.065F);
-		if (dialog.renderGradual) {
-			drawString(fontRendererObj, "Text Speed: " + textSpeed, 10, 10, 0xFFFFFF);
-			drawString(fontRendererObj, "Text Sound: " + (textSoundEnabled ? "On" : "Off"), 10, 20, 0xFFFFFF);
-		}
-
 		for (IDialogImage dialogImage : dialog.dialogImages.values()) {
 			if (dialogImage.getImageType() != 0)
 				continue;
@@ -317,8 +311,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 					try {
 						if (textPauseTime > 0) {
 							textPauseTime--;
-						} else if (textSpeed > 10 || gradualTextTime%(11 - textSpeed) == 0) {
-							int addChar = textSpeed > 10 ? textSpeed - 9 : 1;
+						} else if (ConfigClient.DialogSpeed > 10 || gradualTextTime%(11 - ConfigClient.DialogSpeed) == 0) {
+							int addChar = ConfigClient.DialogSpeed > 10 ? ConfigClient.DialogSpeed - 9 : 1;
 							String addText = line.getFormattedText().substring(gradualText.length(), gradualText.length() + addChar);
 
 							if (addText.matches("^(\\{(\\d+)})(.*)")) {
@@ -353,10 +347,12 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 							}
 
 							gradualText += addText;
-							if (textSoundTime % 5 == 0) {
-								Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation(dialog.textSound), dialog.textPitch));
-							}
-							textSoundTime++;
+                            if(ConfigClient.DialogSound){
+                                if (textSoundTime % 5 == 0) {
+                                    Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation(dialog.textSound), dialog.textPitch));
+                                }
+                                textSoundTime++;
+                            }
 						}
 					} catch (IndexOutOfBoundsException exception) {
 						gradualText = line.getFormattedText();
@@ -580,20 +576,6 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 				selected--;
 			}
     	}
-
-		if(i == mc.gameSettings.keyBindForward.getKeyCode() || i == Keyboard.KEY_LEFT){
-			textSpeed--;
-			if (textSpeed < 1) {
-				textSpeed = 1;
-			}
-		}
-		if(i == mc.gameSettings.keyBindBack.getKeyCode() || i == Keyboard.KEY_RIGHT){
-			textSpeed++;
-		}
-
-		if(i == mc.gameSettings.keyBindJump.getKeyCode() || i == Keyboard.KEY_SPACE){
-			textSoundEnabled = !textSoundEnabled;
-		}
 
 		if (dialog.alignment == 1 && totalRows * ClientProxy.Font.height() > dialog.textHeight) {
 			if ((i == mc.gameSettings.keyBindBack.getKeyCode() || i == 201) && scrollY < totalRows * ClientProxy.Font.height()) {//Page up

@@ -167,21 +167,10 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
         if(lastClicked > System.currentTimeMillis() - 10){
             return;
         }
-
-        if(guibutton.id == 11){
-            questPages = 1;
-            lastClicked = System.currentTimeMillis();
+        if (guibutton.id >= 100) {
+            super.actionPerformed(guibutton);
+            return;
         }
-        else if(guibutton.id == 10){
-            questPages = 0;
-        }
-    	else if(guibutton.id == 1){
-    		questPages = 2;
-    	}
-    	else if(guibutton.id == 2){
-    		questPages = 1;
-            lastClicked = System.currentTimeMillis();
-    	}
 
         if (guibutton.id == 3)
         {
@@ -203,18 +192,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ITopButtonListener,
             data.toggleQuestAlerts();
         }
         initGui();
-        if (guibutton.id == 100 && activeTab != 0) {
-            activeTab = 0;
-            mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
-        }
-        if (guibutton.id == 101 && activeTab != 1) {
-            activeTab = 1;
-            mc.displayGuiScreen(new GuiParty(mc.thePlayer));
-        }
-        if (guibutton.id == 102 && activeTab != 2) {
-            activeTab = 2;
-            mc.displayGuiScreen(new GuiFaction());
-        }
     }
     @Override
     public void drawScreen(int i, int j, float f){
