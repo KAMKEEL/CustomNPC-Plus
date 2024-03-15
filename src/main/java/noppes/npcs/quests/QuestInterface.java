@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IQuestInterface;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -24,7 +25,12 @@ public abstract class QuestInterface implements IQuestInterface {
 			}
 		}
 	}
-	public abstract Vector<String> getQuestLogStatus(EntityPlayer player);
+
+    public void handlePartyComplete(EntityPlayer player, Party party, boolean isLeader, EnumPartyObjectives objectives){
+        handleComplete(player);
+    }
+
+    public abstract Vector<String> getQuestLogStatus(EntityPlayer player);
 	public abstract IQuestObjective[] getObjectives(EntityPlayer var1);
 
 

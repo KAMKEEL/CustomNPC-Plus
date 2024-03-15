@@ -596,11 +596,7 @@ public class NoppesUtilPlayer {
                     }
                 }
             }
-
-            if(meetsComplete){
-                data.quest.questInterface.handleComplete(player);
-            }
-
+            data.quest.questInterface.handlePartyComplete(player, party, isLeader, partyOptions.objectiveRequirement);
             if(meetsReward){
                 if(data.quest.rewardExp > 0){
                     player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
@@ -623,12 +619,10 @@ public class NoppesUtilPlayer {
                 PlayerQuestController.setQuestPartyFinished(data.quest, player, data);
             }
 
-            if (hasNextQuest) {
-                if(meetsComplete){
-                    QuestData nextQuest = new QuestData(data.quest.getNextQuest());
-                    nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
-                    PlayerQuestController.addActiveQuest(nextQuest, player);
-                }
+            if (hasNextQuest && meetsComplete) {
+                QuestData nextQuest = new QuestData(data.quest.getNextQuest());
+                nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
+                PlayerQuestController.addActiveQuest(nextQuest, player);
             }
 
             playerData.save();
