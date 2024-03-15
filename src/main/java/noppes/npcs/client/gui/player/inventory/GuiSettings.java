@@ -6,6 +6,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
+import tconstruct.client.tabs.AbstractTab;
 
 public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener {
 
@@ -72,6 +73,9 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener 
 
     @Override
 	protected void actionPerformed(GuiButton btn){
+        if(btn instanceof AbstractTab)
+            return;
+
         if (btn.id >= 100 && btn.id <= 105) {
             super.actionPerformed(btn);
             return;

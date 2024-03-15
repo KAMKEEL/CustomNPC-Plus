@@ -15,6 +15,7 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.PlayerFactionData;
 import org.lwjgl.opengl.GL11;
+import tconstruct.client.tabs.AbstractTab;
 
 import java.util.ArrayList;
 
@@ -129,6 +130,9 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData {
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
+        if(guibutton instanceof AbstractTab)
+            return;
+
         if (guibutton.id >= 100 && guibutton.id <= 105) {
             super.actionPerformed(guibutton);
             return;

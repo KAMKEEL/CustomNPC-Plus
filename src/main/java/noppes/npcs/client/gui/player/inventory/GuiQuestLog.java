@@ -18,6 +18,9 @@ import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.opengl.GL11;
+import tconstruct.client.tabs.AbstractTab;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
+import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 
@@ -28,11 +31,11 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     private EntityPlayer player;
     private GuiCustomScroll scroll;
 	private HashMap<Integer,GuiMenuSideButton> sideButtons = new HashMap<Integer,GuiMenuSideButton>();
-    private HashMap<Integer,GuiNpcButton> otherButtons = new HashMap<Integer,GuiNpcButton>();
 	private QuestLogData data = new QuestLogData();
 	private boolean noQuests = false;
 	private byte questPages = 1;
     private static long lastClicked = System.currentTimeMillis();
+    private boolean isPartySet = false;
 
     private HashMap<String,String> questAlertsOnOpen;
     private String trackedQuestKeyOnOpen;
@@ -50,6 +53,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     }
     public void initGui(){
         super.initGui();
+
     	sideButtons.clear();
 
         noQuests = false;
@@ -98,6 +102,8 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         }
 
 
+        String partyQuestName = ClientCacheHandler.party != null ? ClientCacheHandler.party.getCurrentQuestName() : null;
+        isPartySet = Objects.equals(partyQuestName, data.selectedQuest);
         if (showParty) {
             // Objectives Forward--
             addButton(new GuiButtonNextPage(11, guiLeft + 286, guiTop + 176, true));
@@ -105,13 +111,12 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
             // Party Back--
             addButton(new GuiButtonNextPage(10, guiLeft + 144, guiTop + 176, false));
 
-            String questName = ClientCacheHandler.party != null ? ClientCacheHandler.party.getCurrentQuestName() : null;
-            GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, Objects.equals(questName, data.selectedQuest) ? 1 : 0);
+            GuiNpcButton partyButton = new GuiNpcButton(3, guiLeft + 150, guiTop + 151, 50, 20, new String[]{"party.party", "party.partying"}, isPartySet ? 1 : 0);
             addButton(partyButton);
 
             partyButton.enabled = ClientCacheHandler.party != null && data.hasSelectedQuest()
                 && ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
-            if (partyButton.enabled && Objects.equals(questName, data.selectedQuest)) {
+            if (partyButton.enabled && isPartySet) {
                 partyButton.packedFGColour = 0x32CD32;
             }
 
@@ -128,16 +133,20 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         GuiNpcButton alertButton = new GuiNpcButton(5, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
         addButton(alertButton);
 
-        getButton(1).visible = questPages == 1 && data.hasSelectedQuest();
-        getButton(2).visible = questPages == 2 && data.hasSelectedQuest();
-        getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
-        getButton(5).visible = getButton(4).visible;
-        if (getButton(3) != null) {
-            getButton(3).visible = getButton(4).visible;
+        if(getButton(1) != null)
+            getButton(1).visible = questPages == 1 && data.hasSelectedQuest();
+        if(getButton(2) != null)
+            getButton(2).visible = questPages == 2 && data.hasSelectedQuest();
+        if (getButton(3) != null)
+            getButton(3).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
+        if(getButton(4) != null){
+            getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
+            getButton(4).enabled = showTrackAlerts;
         }
-
-        getButton(4).enabled = showTrackAlerts;
-        getButton(5).enabled = showTrackAlerts;
+        if(getButton(5) != null){
+            getButton(5).visible = getButton(4).visible;
+            getButton(5).enabled = showTrackAlerts;
+        }
     }
 
     @Override
@@ -157,14 +166,32 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
+        if(guibutton instanceof AbstractTab)
+            return;
+
         if (guibutton.id >= 100 && guibutton.id <= 105) {
             super.actionPerformed(guibutton);
             return;
         }
 
-        if(lastClicked > System.currentTimeMillis() - 10){
+        if(lastClicked > System.currentTimeMillis() - 5){
             return;
         }
+        if(guibutton.id == 11){
+            questPages = 1;
+            lastClicked = System.currentTimeMillis();
+        }
+        else if(guibutton.id == 10){
+            questPages = 0;
+        }
+        else if(guibutton.id == 1){
+            questPages = 2;
+        }
+        else if(guibutton.id == 2){
+            questPages = 1;
+            lastClicked = System.currentTimeMillis();
+        }
+
         if (guibutton.id == 3)
         {
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
@@ -348,11 +375,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         }
     }
 
-    @Override
-    public boolean doesGuiPauseGame()
-    {
-        return false;
-    }
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
         QuestLogData data = new QuestLogData();

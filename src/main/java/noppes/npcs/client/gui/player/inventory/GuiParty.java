@@ -18,6 +18,7 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
+import tconstruct.client.tabs.AbstractTab;
 
 import java.util.*;
 
@@ -210,6 +211,9 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
 
     @Override
     protected void actionPerformed(GuiButton guibutton){
+        if(guibutton instanceof AbstractTab)
+            return;
+
         Party party = ClientCacheHandler.party;
         if (guibutton.id >= 100 && guibutton.id <= 105) {
             super.actionPerformed(guibutton);

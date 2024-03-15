@@ -18,7 +18,6 @@ public class GuiCNPCInventory extends GuiNPCInterface {
 
     public static int activeTab = 0;
     protected Minecraft mc = Minecraft.getMinecraft();
-    protected boolean firstPass = true;
 
     public GuiCNPCInventory() {
         super();
@@ -31,10 +30,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         super.initGui();
         guiTop +=10;
 
-        if(firstPass){
-            TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
-            firstPass = false;
-        }
+        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
         TabRegistry.addTabsToList(buttonList);
 
 
