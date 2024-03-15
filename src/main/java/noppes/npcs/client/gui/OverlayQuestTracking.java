@@ -236,15 +236,30 @@ public class OverlayQuestTracking extends Gui {
 
         this.renderOffsetY = -20 * overallScale;
         GL11.glPushMatrix();
-        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) (this.renderOffsetY), 0xFF777777);
-        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY + 1)), 0xFFA8A8A8);
-        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY + 2)), 0xFFFFFFFF);
+        if(overallScale < 0.6){
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY)), 0xFFFFFFFF);
+        } else if (overallScale < 0.8){
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY)), 0xFFA8A8A8);
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY + 1)), 0xFFFFFFFF);
+        } else {
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) (this.renderOffsetY), 0xFF777777);
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY + 1)), 0xFFA8A8A8);
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY + 2)), 0xFFFFFFFF);
+        }
         GL11.glPopMatrix();
         this.renderOffsetY = questTitleTop + 2;
         GL11.glPushMatrix();
-        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) (this.renderOffsetY), 0xFFFFFFFF);
-        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY - 1)), 0xFFA8A8A8);
-        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY - 2)), 0xFF777777);
+
+        if(overallScale < 0.6){
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) (this.renderOffsetY - 2), 0xFFFFFFFF);
+        } else if (overallScale < 0.8){
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY)), 0xFFA8A8A8);
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) (this.renderOffsetY - 1), 0xFFFFFFFF);
+        } else {
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY)), 0xFF777777);
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) ((this.renderOffsetY -1)), 0xFFA8A8A8);
+            this.drawHorizontalLine((int) (centerX - (overlayWidth / 2  * overallScale)), (int) (centerX + (overlayWidth / 2  * overallScale)), (int) (this.renderOffsetY - 2), 0xFFFFFFFF);
+        }
         GL11.glPopMatrix();
         GL11.glPopMatrix();
 
@@ -265,6 +280,8 @@ public class OverlayQuestTracking extends Gui {
                 stringWidth = this.fontRenderer.getStringWidth(s.replace("&a&o&m",""));
             }
 
+            float overallScale = (float) ConfigClient.TrackingScale / 100;
+
             GL11.glPushMatrix();
                 switch (facing) {
                     case 0://center
@@ -284,7 +301,7 @@ public class OverlayQuestTracking extends Gui {
                     GL11.glTranslatef(0.2F, 0.2F, 0.0F);
                     this.drawString(s, 0, 0, this.color, false);
                 }
-                this.renderOffsetY += downwards ? 10 : -10;
+                this.renderOffsetY += (downwards ? 10 : -10) * overallScale;
             GL11.glPopMatrix();
         }
     }

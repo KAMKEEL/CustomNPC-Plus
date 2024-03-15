@@ -63,7 +63,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         this.addLabel(new GuiNpcLabel(14,"settings.trackScale", guiLeft + 8 + 155, guiTop + 14 + y));
         this.addTextField(new GuiNpcTextField(14, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingScale + ""));
         getTextField(14).integersOnly = true;
-        getTextField(14).setMinMaxDefault(0, 100, 100);
+        getTextField(14).setMinMaxDefault(0, 300, 100);
 
         y += 22;
 
