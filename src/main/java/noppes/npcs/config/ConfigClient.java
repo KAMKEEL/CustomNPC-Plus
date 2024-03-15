@@ -6,6 +6,7 @@ import net.minecraftforge.common.config.Property;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
+import tv.twitch.chat.Chat;
 
 import java.io.File;
 
@@ -63,6 +64,12 @@ public class ConfigClient
     public static Property DialogSoundProperty;
     public static boolean DialogSound = true;
 
+    public static Property ChatAlertsProperty;
+    public static boolean ChatAlerts = true;
+
+    public static Property BannerAlertsProperty;
+    public static boolean BannerAlerts = true;
+
     public static void init(File configFile)
     {
         config = new Configuration(configFile);
@@ -104,11 +111,17 @@ public class ConfigClient
             TrackingScaleProperty = config.get(QUESTING, "Tracking Scale", 100, "Client sided! Adjusts the scaling of the Quest Tracking");
             TrackingScale = TrackingScaleProperty.getInt(100);
 
-            DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", 10, "Only set for gradual dialogs");
+            DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", true, "Only set for gradual dialogs");
             DialogSpeed = DialogSpeedProperty.getInt(10);
 
-            DialogSoundProperty = config.get(VISUAL, "Dialog Sound", 10, "Only for dialogs with sounds");
+            DialogSoundProperty = config.get(VISUAL, "Dialog Sound", true, "Only for dialogs with sounds");
             DialogSound = DialogSoundProperty.getBoolean(true);
+
+            ChatAlertsProperty = config.get(VISUAL, "All Chat Alerts", true, "Universal enable/disable for Banner Alerts");
+            ChatAlerts = ChatAlertsProperty.getBoolean(true);
+
+            BannerAlertsProperty = config.get(VISUAL, "All Banner Alerts", true, "Universal enable/disable for Banner Alerts");
+            BannerAlerts = BannerAlertsProperty.getBoolean(true);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

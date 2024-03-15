@@ -60,12 +60,18 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
 
         y += 22;
 
+        this.addLabel(new GuiNpcLabel(6, "settings.chatAlerts", guiLeft + 8, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(6, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.ChatAlerts?1:0));
+
         this.addLabel(new GuiNpcLabel(14,"settings.trackScale", guiLeft + 8 + 155, guiTop + 14 + y));
         this.addTextField(new GuiNpcTextField(14, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingScale + ""));
         getTextField(14).integersOnly = true;
         getTextField(14).setMinMaxDefault(0, 300, 100);
 
         y += 22;
+
+        this.addLabel(new GuiNpcLabel(7, "settings.bannerAlerts", guiLeft + 8, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(7, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.BannerAlerts?1:0));
 
         y += 22;
 
@@ -137,6 +143,14 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         if(button.id == 5){
             GuiYesNo yesNoSkin = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("settings.confirmClearSkin"), 1);
             displayGuiScreen(yesNoSkin);
+        }
+        if(button.id == 6){
+            ConfigClient.ChatAlerts = button.getValue() == 1;
+            ConfigClient.ChatAlertsProperty.set(ConfigClient.ChatAlerts);
+        }
+        if(button.id == 7){
+            ConfigClient.BannerAlerts = button.getValue() == 1;
+            ConfigClient.BannerAlertsProperty.set(ConfigClient.BannerAlerts);
         }
     }
 

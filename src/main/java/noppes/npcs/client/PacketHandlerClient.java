@@ -76,6 +76,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				player.addChatMessage(new ChatComponentTranslation(npc.getCommandSenderName() + ": " + text));
 		}
 		else if(type == EnumPacketClient.CHAT){
+            if(!ConfigClient.ChatAlerts)
+                return;
+
 			String message = "";
 			String str;
 			while((str = Server.readString(buffer)) != null && !str.isEmpty())
@@ -84,6 +87,9 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			player.addChatMessage(new ChatComponentTranslation(message));
 		}
 		else if(type == EnumPacketClient.MESSAGE || type == EnumPacketClient.PARTY_MESSAGE){
+            if(!ConfigClient.BannerAlerts)
+                return;
+
 			String description = StatCollector.translateToLocal(Server.readString(buffer));
 			String message = Server.readString(buffer);
 			Achievement ach = type == EnumPacketClient.MESSAGE ? new MessageAchievement(message, description) : new MessageAchievement(CustomItems.bag == null ? Items.paper : CustomItems.bag, message, description);
