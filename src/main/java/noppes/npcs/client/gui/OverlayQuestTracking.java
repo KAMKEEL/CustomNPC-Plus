@@ -129,7 +129,7 @@ public class OverlayQuestTracking extends Gui {
                     completed = true;
                 }
             } catch (NumberFormatException e) {
-                if (objective.endsWith("(read)") || (objective.endsWith("Found") && !objective.endsWith("Not Found"))) {
+                if (objective.endsWith("(Done)") || objective.endsWith("(read)") || (objective.endsWith("Found") && !objective.endsWith("Not Found"))) {
                     completed = true;
                 }
             }
