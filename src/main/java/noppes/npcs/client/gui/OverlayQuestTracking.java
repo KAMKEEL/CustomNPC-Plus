@@ -180,8 +180,11 @@ public class OverlayQuestTracking extends Gui {
 
     public void renderGameOverlay(float partialTicks){
         res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        scaledWidth = res.getScaledWidth();
-        scaledHeight = res.getScaledHeight();
+
+        float overallScale = (float) ConfigClient.TrackingScale / 100;
+
+        scaledWidth = (int) (res.getScaledWidth());
+        scaledHeight = (int) (res.getScaledHeight());
 
         GL11.glEnable(GL11.GL_BLEND);
         OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
@@ -195,14 +198,13 @@ public class OverlayQuestTracking extends Gui {
         float offsetY = ConfigClient.TrackingInfoAlignment < 3 ? 5 : 0;
         offsetY = ConfigClient.TrackingInfoAlignment > 5 ? -5 : offsetY;
 
-
         GL11.glTranslatef(ConfigClient.TrackingInfoX + offsetX, ConfigClient.TrackingInfoY + offsetY, 0.0F);
 
         red = (color >> 16 & 255) / 255f;
         green = (color >> 8  & 255) / 255f;
         blue = (color & 255) / 255f;
 
-        float centerX = -60;
+        float centerX = (float) -overlayWidth /2 * overallScale;
         if (ConfigClient.TrackingInfoAlignment % 3 == 1) { // For Center alignment
             centerX = 0;
         } else {
@@ -210,39 +212,39 @@ public class OverlayQuestTracking extends Gui {
         }
 
         float questTitleTop;
-        this.renderOffsetY = -40;
+        this.renderOffsetY = -40 * overallScale;
         GL11.glPushMatrix();
         GL11.glTranslatef(centerX, 0.0F, 0.0F);
-        this.renderStringLines(trackedQuestLines,1.2F, false, true, 0);
+        this.renderStringLines(trackedQuestLines,1.2F * overallScale, false, true, 0);
         GL11.glPopMatrix();
         questTitleTop = this.renderOffsetY;
-        this.renderOffsetY -= 10;
+        this.renderOffsetY -= 10 * overallScale;
         GL11.glPushMatrix();
         GL11.glTranslatef(centerX, 0.0F, 0.0F);
-        this.renderStringLines(categoryNameLines,0.85F, false, false, 0);
+        this.renderStringLines(categoryNameLines,0.85F * overallScale, false, false, 0);
         GL11.glPopMatrix();
 
-        this.renderOffsetY = -10;
+        this.renderOffsetY = -10 * overallScale;
         GL11.glPushMatrix();
-        this.renderStringLines(objectiveLines, 1F, true, false, ConfigClient.TrackingInfoAlignment % 3 == 0 ? 1 : (ConfigClient.TrackingInfoAlignment % 3 == 2 ? 2 : 0));
+        this.renderStringLines(objectiveLines, 1F * overallScale, true, false, ConfigClient.TrackingInfoAlignment % 3 == 0 ? 1 : (ConfigClient.TrackingInfoAlignment % 3 == 2 ? 2 : 0));
         GL11.glPopMatrix();
 
-        this.renderOffsetY += 10;
+        this.renderOffsetY += 10 * overallScale;
         GL11.glPushMatrix();
-        this.renderStringLines(turnInText, 1F, true, false, ConfigClient.TrackingInfoAlignment % 3 == 0 ? 1 : (ConfigClient.TrackingInfoAlignment % 3 == 2 ? 2 : 0));
+        this.renderStringLines(turnInText, 1F * overallScale, true, false, ConfigClient.TrackingInfoAlignment % 3 == 0 ? 1 : (ConfigClient.TrackingInfoAlignment % 3 == 2 ? 2 : 0));
         GL11.glPopMatrix();
 
-        this.renderOffsetY = -20;
+        this.renderOffsetY = -20 * overallScale;
         GL11.glPushMatrix();
-        this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY+2), 0xFF777777);
-        this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY+1), 0xFFA8A8A8);
-        this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
+        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) (this.renderOffsetY), 0xFF777777);
+        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY + 1)), 0xFFA8A8A8);
+        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY + 2)), 0xFFFFFFFF);
         GL11.glPopMatrix();
         this.renderOffsetY = questTitleTop + 2;
         GL11.glPushMatrix();
-        this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY), 0xFFFFFFFF);
-        this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY-1), 0xFFA8A8A8);
-        this.drawHorizontalLine((int)(-overlayWidth/2 + centerX), (int)(overlayWidth/2 + centerX), (int) (this.renderOffsetY-2), 0xFF777777);
+        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) (this.renderOffsetY), 0xFFFFFFFF);
+        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY - 1)), 0xFFA8A8A8);
+        this.drawHorizontalLine((int) (centerX - overlayWidth / 2), (int) (centerX + overlayWidth / 2), (int) ((this.renderOffsetY - 2)), 0xFF777777);
         GL11.glPopMatrix();
         GL11.glPopMatrix();
 

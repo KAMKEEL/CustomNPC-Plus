@@ -94,6 +94,9 @@ public class PacketHandlerServer{
 			} else if (type == EnumPacketServer.PartyLogToServer) {
                 NoppesUtilPlayer.updatePartyQuestLogData(buffer, player);
                 return;
+            } else if (type == EnumPacketServer.UntrackQuest) {
+                NoppesUtilPlayer.clearTrackQuest(player);
+                return;
             } else if(type == EnumPacketServer.DimensionsGet){
 				HashMap<String,Integer> map = new HashMap<String,Integer>();
 				for(int id : DimensionManager.getStaticDimensionIDs()){

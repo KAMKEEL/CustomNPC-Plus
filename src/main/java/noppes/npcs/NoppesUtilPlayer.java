@@ -320,6 +320,12 @@ public class NoppesUtilPlayer {
 		}
 	}
 
+    public static void clearTrackQuest(EntityPlayerMP player) throws IOException {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        playerData.questData.untrackQuest();
+    }
+
+
     public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
         PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
         String trackedQuestString = Server.readString(buffer);

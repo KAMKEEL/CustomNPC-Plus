@@ -54,6 +54,9 @@ public class ConfigClient
     public static Property TrackingInfoYProperty;
     public static int TrackingInfoY = 0;
 
+    public static Property TrackingScaleProperty;
+    public static int TrackingScale = 100;
+
     public static Property DialogSpeedProperty;
     public static int DialogSpeed = 10;
 
@@ -97,6 +100,9 @@ public class ConfigClient
 
             TrackingInfoYProperty = config.get(QUESTING, "Tracking Info Y", 0, "Client sided! Offsets the tracking info GUI by this amount in the Y direction.");
             TrackingInfoY = TrackingInfoYProperty.getInt(0);
+
+            TrackingScaleProperty = config.get(QUESTING, "Tracking Scale", 100, "Client sided! Adjusts the scaling of the Quest Tracking");
+            TrackingScale = TrackingScaleProperty.getInt(100);
 
             DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", 10, "Only set for gradual dialogs");
             DialogSpeed = DialogSpeedProperty.getInt(10);

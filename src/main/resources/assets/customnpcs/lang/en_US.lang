@@ -185,6 +185,18 @@ party.partyRequirements=Required by
 party.setQuestConfirm=Setting a Quest to a party will clear its progress!
 party.dropQuestConfirm=Are you sure you want to drop the party quest?`
 
+settings.chatBubbles=Chat Bubbles
+settings.trackAlignment=Tracking Alignment
+settings.dialogSound=Dialog Sound
+settings.dialogSpeed=Dialog Speed
+settings.alignmentX=Alignment X
+settings.alignmentY=Alignment Y
+settings.trackScale=Tracking Scale
+settings.clearTrack=Clear Tracked Quest
+settings.confirmClearTrack=Are you sure you want to clear your tracked quest?
+settings.clearSkin=Clear Skin Cache
+settings.confirmClearSkin=Are you sure you want to clear your skin cache?
+
 scale.shared=Shared
 filter.contains=Contains
 filter.any=Any
