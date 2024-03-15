@@ -528,6 +528,29 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 
         @Override
         public String getAdditionalText() {
+            if(party != null && party.getObjectiveRequirement() == EnumPartyObjectives.All) {
+                List<String> incompletePlayers = new ArrayList<>();
+                EnumPartyObjectives objectives = party.getObjectiveRequirement();
+                for (String name : party.getPlayerNames()) {
+                    EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+                    if (playerMP == null){
+                        incompletePlayers.add(name + ": " + "N/A");
+                        continue;
+                    }
+
+                    int amount = 0;
+                    for (ItemStack is : playerMP.inventory.mainInventory) {
+                        if (NoppesUtilPlayer.compareItems(this.questItem, is, ignoreDamage, ignoreNBT))
+                            amount += is.stackSize;
+                    }
+
+                    int completedSize = ValueUtil.clamp(amount, 0, this.questItem.stackSize);
+                    if(completedSize < this.questItem.stackSize)
+                        incompletePlayers.add(name + ": " + completedSize);
+                }
+                if(!incompletePlayers.isEmpty())
+                    return  "[" + String.join(", ", incompletePlayers) + "]";
+            }
             return null;
         }
     }

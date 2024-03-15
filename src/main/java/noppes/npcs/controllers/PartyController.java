@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.EventHooks;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
 import noppes.npcs.api.entity.IPlayer;
@@ -119,6 +120,7 @@ public class PartyController {
         if (party.getQuest() != null) {
             Quest quest = (Quest) party.getQuest();
             Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
+            compound.setString("QuestName", quest.getCategory().getName() + ":" + quest.getName());
             NBTTagList list = new NBTTagList();
             for (String s : vector) {
                 list.appendTag(new NBTTagString(s));
@@ -150,6 +152,7 @@ public class PartyController {
             Quest quest = (Quest) party.getQuest();
             Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
             NBTTagList list = new NBTTagList();
+            compound.setString("QuestName", quest.getCategory().getName() + ":" + quest.getName());
             for (String s : vector) {
                 list.appendTag(new NBTTagString(s));
             }
@@ -201,7 +204,6 @@ public class PartyController {
                             EventHooks.onPartyFinished(party, questData.quest);
                             PartyController.Instance().sendQuestChat(party, "party.turnedInChat");
                         } else {
-                            party.setQuest(null);
                             PartyController.Instance().sendQuestChat(party, "party.completeChat");
                         }
                         PartyController.Instance().pingPartyUpdate(party);
@@ -210,9 +212,17 @@ public class PartyController {
                     questData.isCompleted = false;
                 }
 
-//                if (this.trackedQuest != null && questData.quest.getId() == this.trackedQuest.getId()) {
-//                    NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) player);
-//                }
+                for (String name : party.getPlayerNames()) {
+                    EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+                    if (playerMP != null) {
+                        PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
+                        if(playerData != null){
+                            if (playerData.questData.getTrackedQuest() != null && questData.quest.getId() == playerData.questData.getTrackedQuest().getId()) {
+                                NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) playerMP, party);
+                            }
+                        }
+                    }
+                }
             }
         }
 

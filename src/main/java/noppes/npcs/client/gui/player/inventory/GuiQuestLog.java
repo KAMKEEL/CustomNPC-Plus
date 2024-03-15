@@ -98,7 +98,6 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
                     showTrackAlerts = false;
                 }
             }
-
         }
 
 
@@ -125,11 +124,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         }
 
         GuiNpcButton trackingButton = new GuiNpcButton(4, guiLeft + 260, guiTop + 151, 50, 20, new String[]{"quest.track", "quest.tracking"}, data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest) ? 1 : 0);
-        if (trackingButton.displayString.equals("quest.tracking")) {
-            trackingButton.packedFGColour = 0x32CD32;
-        }
         addButton(trackingButton);
-
         GuiNpcButton alertButton = new GuiNpcButton(5, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
         addButton(alertButton);
 
@@ -141,11 +136,15 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
             getButton(3).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
         if(getButton(4) != null){
             getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
-            getButton(4).enabled = showTrackAlerts;
+            getButton(4).enabled = showTrackAlerts && !isPartySet;
         }
         if(getButton(5) != null){
             getButton(5).visible = getButton(4).visible;
-            getButton(5).enabled = showTrackAlerts;
+            getButton(5).enabled = showTrackAlerts && !isPartySet;
+        }
+
+        if (trackingButton.enabled && trackingButton.getValue() == 1) {
+            trackingButton.packedFGColour = 0x32CD32;
         }
     }
 

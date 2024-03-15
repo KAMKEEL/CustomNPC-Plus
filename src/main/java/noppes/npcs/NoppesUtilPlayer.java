@@ -320,14 +320,32 @@ public class NoppesUtilPlayer {
 		}
 	}
 
+    public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        String trackedQuestString = Server.readString(buffer);
+        Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
+        if (trackedQuest != null) {
+            playerData.questData.trackParty(playerData.getPlayerParty());
+        } else {
+            playerData.questData.untrackQuest();
+        }
+    }
+
 	private static Quest getQuestFromStringKey(String string) {
 		if (string != null && string.contains(":")) {
 			String[] splitString = string.split(":");
-			if(splitString.length < 2){
-				return null;
-			}
-			String categoryName = splitString[0];
-			String questName = splitString[1];
+
+            String categoryName;
+            String questName;
+            if (splitString.length == 3 && splitString[0].equals("P")) {
+                categoryName = splitString[1];
+                questName = splitString[2];
+            } else if (splitString.length < 2) {
+                return null;
+            } else {
+                categoryName = splitString[0];
+                questName = splitString[1];
+            }
 
 			for (QuestCategory category : QuestController.Instance.categories.values()) {
 				if (category.title.equals(categoryName)) {
@@ -364,6 +382,30 @@ public class NoppesUtilPlayer {
 		}
 	}
 
+    public static void sendPartyTrackedQuestData(EntityPlayerMP player, Party party) {
+        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        if(trackedQuest != null){
+            NBTTagCompound compound = new NBTTagCompound();
+            compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
+            compound.setString("CategoryName", trackedQuest.getCategory().getName());
+            if(trackedQuest.completion == EnumQuestCompletion.Instant){
+                compound.setBoolean("Instant", true);
+            }
+            else {
+                compound.setString("TurnInNPC", trackedQuest.getNpcName());
+            }
+            NBTTagList nbtTagList = new NBTTagList();
+            for (IQuestObjective objective : trackedQuest.questInterface.getPartyObjectives(party)) {
+                nbtTagList.appendTag(new NBTTagString(objective.getText()));
+                if(objective.getAdditionalText() != null)
+                    nbtTagList.appendTag(new NBTTagString(objective.getAdditionalText()));
+            }
+            compound.setTag("ObjectiveList",nbtTagList);
+
+            Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+        }
+    }
+
 	public static void sendQuestLogData(EntityPlayerMP player) {
         if(!PlayerQuestController.hasActiveQuests(player)){
         	return;
@@ -372,6 +414,13 @@ public class NoppesUtilPlayer {
         data.setData(player);
         Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
 	}
+
+    public static void sendTrackedQuest(EntityPlayerMP player) {
+        QuestLogData data = new QuestLogData();
+        data.setTrackedQuestKey(player);
+        Server.sendData(player, EnumPacketClient.PARTY_DATA, data.writeTrackedQuest());
+    }
+
 	public static boolean questCompletion(EntityPlayerMP player, int questId) {
 		if(player == null)
 			return false;
@@ -477,6 +526,7 @@ public class NoppesUtilPlayer {
         if (partyEv.isCancelled())
             return false;
 
+        boolean hasNextQuest = data.quest.hasNewQuest();
         PartyOptions partyOptions = quest.partyOptions;
         EnumPartyExchange complete = partyOptions.completeFor;
         EnumPartyExchange reward = partyOptions.rewardControl;
@@ -565,11 +615,13 @@ public class NoppesUtilPlayer {
 
             if(meetsComplete){
                 PlayerQuestController.setQuestPartyFinished(data.quest, player, data);
-                if (data.quest.hasNewQuest()) {
+            }
+
+            if (hasNextQuest) {
+                if(meetsComplete){
                     QuestData nextQuest = new QuestData(data.quest.getNextQuest());
                     nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
                     PlayerQuestController.addActiveQuest(nextQuest, player);
-                    // questData.trackQuest(nextQuest.quest);
                 }
             }
 
@@ -579,8 +631,30 @@ public class NoppesUtilPlayer {
             }
         }
 
-        if(data.quest.completion == EnumQuestCompletion.Npc){
+
+        if (hasNextQuest) {
+            if(party.validateQuest(data.quest.getNextQuest().getId(), true)){
+                party.setQuest(data.quest.getNextQuest());
+                for(String name : party.getPlayerNames()) {
+                    EntityPlayer player = NoppesUtilServer.getPlayerByName(name);
+                    if (player == null)
+                        continue;
+
+                    PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                    if (playerData == null)
+                        continue;
+
+                    playerData.questData.trackParty(party);
+                }
+            }
+            else {
+                party.setQuest(null);
+            }
+        } else {
             party.setQuest(null);
+        }
+
+        if(data.quest.completion == EnumQuestCompletion.Npc){
             PartyController.Instance().sendQuestChat(party, "party.completeChat");
             PartyController.Instance().pingPartyUpdate(party);
         }

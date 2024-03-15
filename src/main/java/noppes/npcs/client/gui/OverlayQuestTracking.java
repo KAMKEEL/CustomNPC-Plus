@@ -122,6 +122,9 @@ public class OverlayQuestTracking extends Gui {
             boolean completed = false;
 
             try {
+                if(split.length < 2)
+                    throw new NumberFormatException("catch");
+
                 int killed = Integer.parseInt(split[0].trim());
                 int total = Integer.parseInt(split[1].trim());
 
