@@ -25,9 +25,10 @@ public class BlockCarpentryBench extends BlockContainer
     public BlockCarpentryBench()
     {
         super(Material.wood);
+        setStepSound(soundTypeWood);
     }
 
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9)
     {//onBlockActivated
     	if(!par1World.isRemote){
@@ -36,12 +37,13 @@ public class BlockCarpentryBench extends BlockContainer
 		return true;
     }
 
-    @Override    
+    @Override
     public boolean isOpaqueCube()//isOpaqueCube
     {
         return false;
-    }   
-    @Override    
+    }
+
+    @Override
     public int getRenderType()//getRenderType
     {
         return renderId;
@@ -49,7 +51,7 @@ public class BlockCarpentryBench extends BlockContainer
     /**
      * If this block doesn't render as an ordinary block it will return False (examples: signs, buttons, stairs, etc)
      */
-    @Override    
+    @Override
     public boolean renderAsNormalBlock()//renderAsNormalBlock
     {
         return false;
@@ -59,21 +61,21 @@ public class BlockCarpentryBench extends BlockContainer
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister par1IconRegister)
     {
-    	
+
     }
-    @Override   
+    @Override
     public int damageDropped(int par1)
     {
         return par1/4;
     }
 
-    @Override   
+    @Override
     public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
     }
 
-    @Override    
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLiving, ItemStack item)
     {
         int var6 = MathHelper.floor_double((double)(par5EntityLiving.rotationYaw / 90.0F) + 0.5D) & 3;
