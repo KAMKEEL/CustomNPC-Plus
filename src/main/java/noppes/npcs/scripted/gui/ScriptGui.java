@@ -256,7 +256,7 @@ public class ScriptGui implements ICustomGui {
         for(int i = 0; i < list.tagCount(); i++){
             NBTBase b = list.getCompoundTagAt(i);
             ScriptGuiComponent component = ScriptGuiComponent.createFromNBT((NBTTagCompound)b);
-            if (component != null) {
+            if (component != null && !(component instanceof ScriptGuiItemSlot)) {
                 components.put(component.getID(), component);
             }
         }
@@ -267,6 +267,7 @@ public class ScriptGui implements ICustomGui {
         for(int i = 0; i < list.tagCount(); i++){
             NBTBase b = list.getCompoundTagAt(i);
             ScriptGuiItemSlot component = (ScriptGuiItemSlot)ScriptGuiComponent.createFromNBT((NBTTagCompound)b);
+            components.put(component.getID(), component);
             slots.add(component);
         }
 
