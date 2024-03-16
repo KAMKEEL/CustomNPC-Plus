@@ -38,41 +38,41 @@ public class ItemNpcMovingPath extends Item{
 			NoppesUtilServer.sendOpenGui(par3EntityPlayer, EnumGuiType.MovingPath, npc);
         return par1ItemStack;
     }
-    
+
 	@Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer player, World par3World, int x, int y, int z, int par7, float par8, float par9, float par10){		
+    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer player, World par3World, int x, int y, int z, int par7, float par8, float par9, float par10){
 		if(par3World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(player, CustomNpcsPermissions.TOOL_MOUNTER))
 			return false;
 		EntityNPCInterface npc = getNpc(par1ItemStack, par3World);
 		if(npc == null)
-			return true;
+			return false;
 		List<int[]> list = npc.ai.getMovingPath();
 		int[] pos = list.get(list.size() - 1);
 		list.add(new int[]{x,y,z});
-		
+
         double d3 = x - pos[0];
         double d4 = y - pos[1];
         double d5 = z - pos[2];
         double distance = (double)MathHelper.sqrt_double(d3 * d3 + d4 * d4 + d5 * d5);
-		
+
 		player.addChatMessage(new ChatComponentText("Added point x:" + x + " y:"+ y + " z:" + z + " to npc " + npc.getCommandSenderName()));
         if(distance > ConfigMain.NpcNavRange)
         	player.addChatMessage(new ChatComponentText("Warning: point is too far away from previous point. Max block walk distance = " + ConfigMain.NpcNavRange));
-		
+
 		return true;
     }
-	
+
 	private EntityNPCInterface getNpc(ItemStack item, World world){
 		if(world.isRemote || item.stackTagCompound == null)
 			return null;
-		
+
 		Entity entity = world.getEntityByID(item.stackTagCompound.getInteger("NPCID"));
 		if(entity == null || !(entity instanceof EntityNPCInterface))
 			return null;
-		
+
 		return (EntityNPCInterface) entity;
 	}
-	
+
     @Override
     public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
 		return 0x8B4513;
@@ -82,7 +82,7 @@ public class ItemNpcMovingPath extends Item{
     public boolean requiresMultipleRenderPasses(){
         return true;
     }
-    
+
     @SideOnly(Side.CLIENT)
     @Override
     public void registerIcons(IIconRegister par1IconRegister){
