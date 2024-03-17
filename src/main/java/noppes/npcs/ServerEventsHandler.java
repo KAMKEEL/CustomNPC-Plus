@@ -144,13 +144,15 @@ public class ServerEventsHandler {
 			return;
 
         // Check for Friendly Fire
-        EntityPlayer sourcePlayer = (EntityPlayer) event.source.getEntity();
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(sourcePlayer);
-        PlayerData targetData = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
-        if (playerData.partyUUID != null && playerData.partyUUID.equals(targetData.partyUUID)) {
-            Party party = PartyController.Instance().getParty(playerData.partyUUID);
-            if(party != null && !party.friendlyFire())
-                event.setCanceled(true);
+        if(ConfigMain.PartyFriendlyFireEnabled){
+            EntityPlayer sourcePlayer = (EntityPlayer) event.source.getEntity();
+            PlayerData playerData = PlayerDataController.Instance.getPlayerData(sourcePlayer);
+            PlayerData targetData = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
+            if (playerData.partyUUID != null && playerData.partyUUID.equals(targetData.partyUUID)) {
+                Party party = PartyController.Instance().getParty(playerData.partyUUID);
+                if(party != null && !party.friendlyFire())
+                    event.setCanceled(true);
+            }
         }
 	}
 
