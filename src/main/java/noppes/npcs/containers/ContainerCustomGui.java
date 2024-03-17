@@ -33,12 +33,13 @@ public class ContainerCustomGui extends Container {
     public void setGui(ScriptGui gui, EntityPlayer player) {
         this.customGui = gui;
 
+
+        slotCount=0;
+        inventorySlots.clear();
         if (this.customGui.getShowPlayerInv()) {
             this.addPlayerInventory(player, this.customGui.getPlayerInvX(), this.customGui.getPlayerInvY());
         }
 
-        slotCount=0;
-        // inventorySlots.clear();
         for (IItemSlot slot : this.customGui.getSlots()) {
             if (slot.hasStack()) {
                 this.addSlot(player, slot.getPosX(), slot.getPosY(), slot, slot.getStack().getMCItemStack(), player.worldObj.isRemote);
