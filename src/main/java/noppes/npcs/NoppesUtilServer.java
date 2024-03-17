@@ -216,7 +216,7 @@ public class NoppesUtilServer {
         // Trim the command to remove leading/trailing spaces
         command = command.trim();
 
-        String[] commands = command.split(";"); // Split the command by semicolon
+        String[] commands = command.split("@x"); // Split the command by @x
 
         // Create TileEntityCommandBlock instance outside the loop
         TileEntityCommandBlock tile = new TileEntityCommandBlock();
@@ -245,7 +245,7 @@ public class NoppesUtilServer {
 
         // Trim the command to remove leading/trailing spaces
         command = command.trim();
-        String[] commands = command.split(";"); // Split the command by semicolon
+        String[] commands = command.split("@x"); // Split the command by @x
         CommandBlockLogic logic = tile.func_145993_a();
         for (String cmd : commands) {
             logic.func_145752_a(cmd.trim()); // Trim the command to remove any leading/trailing spaces

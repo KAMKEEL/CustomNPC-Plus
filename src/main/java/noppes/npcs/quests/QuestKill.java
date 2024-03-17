@@ -348,11 +348,35 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 		}
 
 		public String getText() {
+            if(party != null) {
+                if(party.getObjectiveRequirement() == EnumPartyObjectives.All ){
+                    return this.entity + ": " + this.getMaxProgress() + (isCompleted() ? " (Done)" : "");
+                }
+            }
 			return this.entity + ": " + this.getProgress() + "/" + this.getMaxProgress();
 		}
 
         @Override
         public String getAdditionalText() {
+            if(party != null) {
+                List<String> incompletePlayers = new ArrayList<>();
+                QuestData questdata = party.getQuestData();
+                if (questdata != null) {
+                    if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
+                        for (String player : party.getPlayerNames()) {
+                            HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
+                            int currentProgress = !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
+                            if(currentProgress < this.amount){
+                                String state = player + ": " + currentProgress;
+                                incompletePlayers.add(state);
+                            }
+                        }
+                        if(!incompletePlayers.isEmpty())
+                            return  "[" + String.join(", ", incompletePlayers) + "]";
+                    }
+                }
+            }
+
             return null;
         }
     }

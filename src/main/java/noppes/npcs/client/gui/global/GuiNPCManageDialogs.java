@@ -187,7 +187,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		if(category != null && category.id >= 0){
 			// Add Dialog
 			if(id == 1){
-				saveType(true);
 				String name = "New";
 				while(dialogData.containsKey(name))
 					name += "_";
@@ -201,7 +200,6 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 			}
 			// Remove Dialog
 			if(id == 2) {
-				saveType(true);
 				if (dialogData.containsKey(dialogScroll.getSelected())) {
 					Client.sendData(EnumPacketServer.DialogRemove, dialog.id, true);
 					dialog = new Dialog();
@@ -210,14 +208,12 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 			}
 			// Edit Dialog
 			if(id == 0) {
-				saveType(true);
 				if (dialogData.containsKey(dialogScroll.getSelected()) && dialog != null && dialog.id >= 0) {
 					setSubGui(new SubGuiNpcDialog(this, dialog, category.id));
 				}
 			}
 			// Clone Dialog
 			if(id == 3) {
-				saveType(true);
 				if (dialogData.containsKey(dialogScroll.getSelected()) && dialog != null && dialog.id >= 0) {
 					String name = dialog.title;
 					while(dialogData.containsKey(name))

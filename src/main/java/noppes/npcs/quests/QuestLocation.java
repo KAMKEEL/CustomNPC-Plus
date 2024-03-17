@@ -260,6 +260,17 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         return vec;
     }
 
+    public boolean isMultiQuest(Party party){
+        QuestData data = party.getQuestData();
+        if(data == null)
+            return false;
+
+        if(data.quest == null)
+            return false;
+
+        return data.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All;
+    }
+
     @Override
     public boolean isPartyCompleted(Party party) {
         if(party == null)
@@ -383,7 +394,9 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 		}
 
         public String getAdditionalText() {
-            return  "Completed: " + String.join(", ", completedPlayers);
+            if(party != null && parent.isMultiQuest(party) && completedPlayers.size() != party.getPlayerNames().size())
+                return  "Completed: " + String.join(", ", completedPlayers);
+            return null;
         }
 	}
 }

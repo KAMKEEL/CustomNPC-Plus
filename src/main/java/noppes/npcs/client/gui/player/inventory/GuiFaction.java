@@ -9,22 +9,21 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiButtonNextPage;
+import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.PlayerFactionData;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.TabRegistry;
+import tconstruct.client.tabs.AbstractTab;
 
 import java.util.ArrayList;
 
-public class GuiFaction extends GuiCNPCInventory implements IGuiData{
+public class GuiFaction extends GuiCNPCInventory implements IGuiData {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
 
     private ArrayList<Faction> playerFactions = new ArrayList<Faction>();
-	private Minecraft mc = Minecraft.getMinecraft();
 
 	private int page = 0;
 	private int pages = 1;
@@ -45,8 +44,6 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
     public void initGui()
     {
 		super.initGui();
-        TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, (guiLeft + (xSize + 35) / 2) + 25, guiTop + 170, true));
         this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, (guiLeft + (xSize + 35) / 2) - 40, guiTop + 170, false));
@@ -133,21 +130,13 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData{
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
-		if (guibutton.id >= 100) {
-			if (guibutton.id == 100 && activeTab != 0) {
-				activeTab = 0;
-                mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
-			}
-			if (guibutton.id == 101 && activeTab != 1) {
-				activeTab = 1;
-                mc.displayGuiScreen(new GuiParty(mc.thePlayer));
-			}
-			if (guibutton.id == 102 && activeTab != 2) {
-				activeTab = 2;
-                mc.displayGuiScreen(new GuiFaction());
-			}
-		}
+        if(guibutton instanceof AbstractTab)
+            return;
 
+        if (guibutton.id >= 100 && guibutton.id <= 105) {
+            super.actionPerformed(guibutton);
+            return;
+        }
     	if(!(guibutton instanceof GuiButtonNextPage))
     		return;
 		int id = guibutton.id;

@@ -102,7 +102,8 @@ public class ClientProxy extends CommonProxy {
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileBlockAnvil.class, new BlockCarpentryBenchRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
-		RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileScripted.class, new BlockScriptedRenderer());
+        RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
 
 		if(!ConfigMain.DisableExtraBlock){
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
@@ -126,7 +127,6 @@ public class ClientProxy extends CommonProxy {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBeam.class, new BlockBeamRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBook.class, new BlockBookRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TilePedestal.class, new BlockPedestalRenderer());
-			ClientRegistry.bindTileEntitySpecialRenderer(TileScripted.class, new BlockScriptedRenderer());
 			RenderingRegistry.registerBlockHandler(new BlockBloodRenderer());
 		}
 		Minecraft mc = Minecraft.getMinecraft();
@@ -150,8 +150,7 @@ public class ClientProxy extends CommonProxy {
 
 		if(ConfigClient.InventoryGuiEnabled){
 			MinecraftForge.EVENT_BUS.register(new TabRegistry());
-
-			if (TabRegistry.getTabList().size() < 2){
+			if (TabRegistry.getTabList().isEmpty()){
 				TabRegistry.registerTab(new InventoryTabVanilla());
 			}
 			TabRegistry.registerTab(new InventoryTabCustomNpc());

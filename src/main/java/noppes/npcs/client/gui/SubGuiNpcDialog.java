@@ -1,24 +1,30 @@
 package noppes.npcs.client.gui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.Server;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
+import noppes.npcs.client.gui.player.GuiDialogInteract;
+import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.PlayerMail;
+import noppes.npcs.entity.EntityDialogNpc;
 
 public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener, GuiSelectionListener,ITextfieldListener
 {
-
 	public int dialogCategoryID;
 	public Dialog dialog;
 	private final GuiNPCManageDialogs parent;
-	private GuiNPCQuestSelection questSelection;
 
 	public SubGuiNpcDialog(GuiNPCManageDialogs parent, Dialog dialog, int catId)
 	{
@@ -72,6 +78,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		addLabel(new GuiNpcLabel(15, "dialog.disableEsc", guiLeft + 180, guiTop + 154 + 5));
 
 		addButton(new GuiNpcButton(16, guiLeft + 303, guiTop + 192, 50, 20, "gui.done"));
+        addButton(new GuiNpcButton(17, guiLeft + 303 - 55, guiTop + 192, 50, 20, "gui.test"));
 
 		if(!parent.dialogQuestName.equals(""))
 			getButton(7).setDisplayText(parent.dialogQuestName);
@@ -96,9 +103,7 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 			setSubGui(new SubGuiNpcDialogOptions(dialog));
 		}
 		if(id == 7 && dialog.id >= 0){
-			questSelection = new GuiNPCQuestSelection(npc, getParent(), dialog.quest);
-			questSelection.listener = this;
-			NoppesUtil.openGUI(player, questSelection);
+            setSubGui(new GuiQuestSelection(dialog.quest));
 		}
 		if(id == 8 && dialog.id >= 0){
 			dialog.quest = -1;
@@ -129,6 +134,13 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		if(id == 16){
 			close();
 		}
+        if(id == 17){
+            EntityDialogNpc npc = new EntityDialogNpc(player.worldObj);
+            npc.display.name = "TEST";
+            EntityUtil.Copy(player, npc);
+            GuiDialogInteract gui = new GuiDialogInteract(getParent(), npc, dialog);
+            NoppesUtil.openGUI(player, gui);
+        }
 	}
 
 	@Override
@@ -164,6 +176,13 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		else if(subgui instanceof SubGuiNpcCommand){
 			dialog.command = ((SubGuiNpcCommand) subgui).command;
 		}
+        else if(subgui instanceof GuiQuestSelection){
+            GuiQuestSelection gqs = (GuiQuestSelection) subgui;
+            if(gqs.selectedQuest != null) {
+                dialog.quest = gqs.selectedQuest.id;
+                initGui();
+            }
+        }
 		else if(subgui instanceof SubGuiMailmanSendSetup){
 			initGui();
 		}

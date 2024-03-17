@@ -9,6 +9,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
+import noppes.npcs.client.gui.select.GuiTextureSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketServer;
@@ -153,7 +154,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
             initGui();
         }
         else if(button.id == 3){
-            NoppesUtil.openGUI(player, new GuiNPCTextures(npc, this));
+            setSubGui(new GuiTextureSelection(npc, npc.display.getSkinTexture()));
         }
         else if(button.id == 5){
             display.disableLivingAnimation = button.getValue() == 1;
@@ -195,6 +196,12 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
         // Button 212
         GeckoAddonClient.Instance.geckoNpcDisplayActionPerformed(this, button);
+    }
+
+    @Override
+    public void closeSubGui(SubGuiInterface subgui) {
+        super.closeSubGui(subgui);
+        initGui();
     }
 
     @Override

@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.player.inventory;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -9,24 +8,24 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.QuestLogData;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.TabRegistry;
+import tconstruct.client.tabs.AbstractTab;
 
 import java.util.*;
 
-public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ITopButtonListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
+public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
     private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
     private final EntityPlayer player;
-    private final Minecraft mc = Minecraft.getMinecraft();
 
     private boolean receivedData;
     private long renderTicks;
@@ -42,20 +41,22 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     private boolean showQuestText;
     private final Vector<String> questLogStatus = new Vector<>();
     private String questCompleteWith;
+    private String trackedQuestKey;
+    private String originalTracked = "";
+    private QuestLogData data = new QuestLogData();
 
-    public GuiParty(EntityPlayer player) {
+    public GuiParty() {
         super();
-        this.player = player;
+        this.player = mc.thePlayer;
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
+        NoppesUtilPlayer.sendData(EnumPlayerPacket.TrackedQuest);
         Client.sendData(EnumPacketServer.GetPartyData);
     }
 
     public void initGui(){
         super.initGui();
-        TabRegistry.addTabsToList(buttonList);
-        TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
 
         this.selectedInvite = this.selectedPlayer = null;
         Party party = ClientCacheHandler.party;
@@ -173,10 +174,12 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 }
 
                 if (party.getIsLocked()){
-                    GuiNpcButton trackButton = new GuiNpcButton(340, guiLeft + 5, guiTop + ySize - 8 - 23, "party.track");
+                    GuiNpcButton trackButton = new GuiNpcButton(415, guiLeft + 5, guiTop + ySize - 8 - 23, new String[]{"party.track", "quest.tracking"}, data.trackedQuestKey.equals("P" + ":" + trackedQuestKey) ? 1 : 0);
                     trackButton.width = 135;
                     this.addButton(trackButton);
-                    getButton(340).enabled = false;
+                    if (trackButton.enabled && trackButton.getValue() == 1) {
+                        trackButton.packedFGColour = 0x32CD32;
+                    }
                 }
             }
         }
@@ -215,7 +218,14 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
 
     @Override
     protected void actionPerformed(GuiButton guibutton){
+        if(guibutton instanceof AbstractTab)
+            return;
+
         Party party = ClientCacheHandler.party;
+        if (guibutton.id >= 100 && guibutton.id <= 105) {
+            super.actionPerformed(guibutton);
+            return;
+        }
 
         switch (guibutton.id) {
             case 200:
@@ -278,24 +288,19 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
                 break;
             case 410:
                 if (this.isLeader) {
-                    GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.disbandConfirm"), 4);
+                    GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.dropQuestConfirm"), 4);
                     displayGuiScreen(yesnoDisband);
+                }
+                break;
+            case 415:
+                if (!data.trackedQuestKey.equals("P" + ":" + trackedQuestKey)) {
+                    data.trackedQuestKey = "P" + ":" + trackedQuestKey;
+                } else {
+                    data.trackedQuestKey = "";
                 }
                 break;
         }
         initGui();
-        if (guibutton.id == 100 && activeTab != 0) {
-            activeTab = 0;
-            mc.displayGuiScreen(new GuiQuestLog(mc.thePlayer));
-        }
-        if (guibutton.id == 101 && activeTab != 1) {
-            activeTab = 1;
-            mc.displayGuiScreen(new GuiParty(mc.thePlayer));
-        }
-        if (guibutton.id == 102 && activeTab != 2) {
-            activeTab = 2;
-            mc.displayGuiScreen(new GuiFaction());
-        }
     }
 
     @Override
@@ -375,17 +380,17 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
     }
 
     @Override
-    public boolean doesGuiPauseGame()
-    {
-        return false;
-    }
-
-    @Override
     public void setPartyData(NBTTagCompound compound) {
         this.receivedData = true;
+        if (compound.hasKey("TrackedQuestID")) {
+            this.originalTracked = compound.getString("TrackedQuestID");
+            data.trackedQuestKey = this.originalTracked;
+        }
+
         if (compound.hasKey("QuestPing")) {
             this.questLogStatus.clear();
             this.questCompleteWith = "";
+            this.trackedQuestKey = "";
             if (compound.hasKey("QuestProgress")) {
                 NBTTagList tagList = compound.getTagList("QuestProgress", 8);
                 for (int i = 0; i < tagList.tagCount(); i++) {
@@ -395,9 +400,13 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             if (compound.hasKey("QuestCompleteWith")) {
                 this.questCompleteWith = compound.getString("QuestCompleteWith");
             }
+            if (compound.hasKey("QuestName")) {
+                this.trackedQuestKey = compound.getString("QuestName");
+            }
         } else {
             ClientCacheHandler.party = null;
         }
+
 
         if (compound.hasKey("PartyUUID")) {
             UUID uuid = UUID.fromString(compound.getString("PartyUUID"));
@@ -406,6 +415,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             party.readFromNBT(compound);
             this.questLogStatus.clear();
             this.questCompleteWith = "";
+            this.trackedQuestKey = "";
             if (compound.hasKey("QuestProgress")) {
                 NBTTagList tagList = compound.getTagList("QuestProgress", 8);
                 for (int i = 0; i < tagList.tagCount(); i++) {
@@ -415,7 +425,11 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
             if (compound.hasKey("QuestCompleteWith")) {
                 this.questCompleteWith = compound.getString("QuestCompleteWith");
             }
+            if (compound.hasKey("QuestName")) {
+                this.trackedQuestKey = compound.getString("QuestName");
+            }
             this.isLeader = ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
+            System.out.println("KEY:" + trackedQuestKey);
         } else if (compound.hasKey("Disband")) {
             this.isLeader = false;
         } else if (compound.hasKey("PartyInvites")) {
@@ -443,6 +457,9 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, IT
         if (this.partyChanged) {
             if(ClientCacheHandler.party != null)
                 Client.sendData(EnumPacketServer.SavePartyData, ClientCacheHandler.party.writeClientNBT());
+        }
+        if (!Objects.equals(this.originalTracked, data.trackedQuestKey)) {
+            Client.sendData(EnumPacketServer.PartyLogToServer, this.data.trackedQuestKey);
         }
     }
 

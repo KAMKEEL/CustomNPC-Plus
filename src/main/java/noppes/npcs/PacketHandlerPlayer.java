@@ -209,6 +209,9 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);
 		}
+        else if(type == EnumPlayerPacket.TrackedQuest){
+            NoppesUtilPlayer.sendTrackedQuest(player);
+        }
 		else if(type == EnumPlayerPacket.FactionsGet){
 			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 			Server.sendData(player, EnumPacketClient.GUI_DATA, data.getPlayerGuiData());

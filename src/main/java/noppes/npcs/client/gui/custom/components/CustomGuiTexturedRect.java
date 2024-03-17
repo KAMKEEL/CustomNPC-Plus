@@ -89,10 +89,10 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             tessellator.startDrawingQuads();
             tessellator.setColorOpaque_F(1, 1, 1);
             tessellator.setColorRGBA_F(red, green, blue, alpha);
-            tessellator.addVertexWithUV(u2 * totalWidth, v2 * totalHeight, 0, u2, v2);
-            tessellator.addVertexWithUV(u2 * totalWidth, v1 * totalHeight, 0, u2, v1);
-            tessellator.addVertexWithUV(u1 * totalWidth, v1 * totalHeight, 0, u1, v1);
-            tessellator.addVertexWithUV(u1 * totalWidth, v2 * totalHeight, 0, u1, v2);
+            tessellator.addVertexWithUV(0, height, 0, u1, v2);
+            tessellator.addVertexWithUV(width, height, 0, u2, v2);
+            tessellator.addVertexWithUV(width, 0, 0, u2, v1);
+            tessellator.addVertexWithUV(0, 0, 0, u1, v1);
             tessellator.draw();
             GL11.glPopMatrix();
         }

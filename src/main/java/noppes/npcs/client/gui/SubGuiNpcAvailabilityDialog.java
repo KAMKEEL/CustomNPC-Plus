@@ -3,7 +3,7 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAvailabilityDialog;
 import noppes.npcs.constants.EnumPacketServer;
@@ -13,7 +13,7 @@ import noppes.npcs.controllers.data.Dialog;
 public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData{
 	private Availability availabitily;
 	private int slot = 0;
-	
+
     public SubGuiNpcAvailabilityDialog(Availability availabitily){
     	this.availabitily = availabitily;
 		setBackground("menubg.png");
@@ -51,10 +51,10 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
     	this.addButton(new GuiNpcButton(13, guiLeft + 56, y, 172, 20, "availability.selectdialog"));
     	getButton(13).setEnabled(availabitily.dialog4Available != EnumAvailabilityDialog.Always);
     	this.addButton(new GuiNpcButton(23, guiLeft + 230, y,20, 20, "X"));
-        
-    	
+
+
     	this.addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 192,98, 20, "gui.done"));
-    	
+
     	updateGuiButtons();
     }
 
@@ -64,7 +64,7 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
 		getButton(11).setDisplayText("availability.selectdialog");
 		getButton(12).setDisplayText("availability.selectdialog");
 		getButton(13).setDisplayText("availability.selectdialog");
-		
+
 		if(availabitily.dialogId >= 0){
 			Client.sendData(EnumPacketServer.DialogGet, availabitily.dialogId);
 		}
@@ -109,27 +109,19 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
         }
         if(button.id == 10){
         	slot = 1;
-        	GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), availabitily.dialogId);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiDialogSelection(availabitily.questId));
         }
         if(button.id == 11){
         	slot = 2;
-        	GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), availabitily.dialog2Id);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiDialogSelection(availabitily.quest2Id));
         }
         if(button.id == 12){
         	slot = 3;
-        	GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), availabitily.dialog3Id);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiDialogSelection(availabitily.quest3Id));
         }
         if(button.id == 13){
         	slot = 4;
-        	GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), availabitily.dialog4Id);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiDialogSelection(availabitily.quest4Id));
         }
         if(button.id == 20){
         	availabitily.dialogId = -1;
@@ -147,7 +139,6 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
         	availabitily.dialog4Id = -1;
     		getButton(13).setDisplayText("availability.selectdialog");
         }
-        
         if(button.id == 66){
     		close();
         }
@@ -163,7 +154,8 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
 			availabitily.dialog3Id = id;
 		if(slot == 4)
 			availabitily.dialog4Id = id;
-	}
+        updateGuiButtons();
+    }
 
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
@@ -178,5 +170,4 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
 		if(availabitily.dialog4Id == dialog.id)
 			getButton(13).setDisplayText(dialog.title);
 	}
-
 }

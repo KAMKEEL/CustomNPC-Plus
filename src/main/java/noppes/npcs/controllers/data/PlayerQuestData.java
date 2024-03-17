@@ -8,6 +8,7 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.Server;
 import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.PartyController;
@@ -182,6 +183,17 @@ public class PlayerQuestData implements IPlayerQuestData {
 			NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) this.parent.player);
 		}
 	}
+
+    public void trackParty(IParty party) {
+        if(party == null)
+            return;
+
+        IQuest quest = party.getQuest();
+        if (this.trackedQuest == null || quest.getId() != this.trackedQuest.getId()) {
+            this.trackedQuest = quest;
+            NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) this.parent.player, (Party) party);
+        }
+    }
 
 	public void untrackQuest() {
 		if (this.trackedQuest != null) {

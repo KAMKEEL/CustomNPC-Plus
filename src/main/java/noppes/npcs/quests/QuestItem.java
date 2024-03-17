@@ -9,7 +9,6 @@ import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.api.handler.data.IQuestItem;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -93,28 +92,46 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 		super.handleComplete(player);
 		if(leaveItems)
 			return;
-		for(ItemStack questitem : items.items.values()){
-			int stacksize = questitem.stackSize;
-			for(int i = 0; i < player.inventory.mainInventory.length; i++){
-				ItemStack item = player.inventory.mainInventory[i];
-				if(item == null)
-					continue;
-				if(NoppesUtilPlayer.compareItems(item, questitem, ignoreDamage, ignoreNBT)){
-					int size = item.stackSize;
-					if(stacksize - size >= 0){
-						player.inventory.setInventorySlotContents(i, null);
-						item.splitStack(size);
-					}
-					else{
-						item.splitStack(stacksize);
-					}
-					stacksize -= size;
-					if(stacksize <= 0)
-						break;
-				}
-			}
-		}
+        removeItems(player);
 	}
+
+    public void handlePartyComplete(EntityPlayer player, Party party, boolean isLeader, EnumPartyObjectives objectives){
+        super.handlePartyComplete(player, party, isLeader, objectives);
+        if(leaveItems)
+            return;
+
+        if(isLeader && objectives == EnumPartyObjectives.Leader){
+            removeItems(player);
+        } else if (objectives == EnumPartyObjectives.All){
+            removeItems(player);
+        } else if (objectives == EnumPartyObjectives.Shared){
+            // Shared Case
+        }
+    }
+
+    public void removeItems(EntityPlayer player){
+        for(ItemStack questitem : items.items.values()){
+            int stacksize = questitem.stackSize;
+            for(int i = 0; i < player.inventory.mainInventory.length; i++){
+                ItemStack item = player.inventory.mainInventory[i];
+                if(item == null)
+                    continue;
+                if(NoppesUtilPlayer.compareItems(item, questitem, ignoreDamage, ignoreNBT)){
+                    int size = item.stackSize;
+                    if(stacksize - size >= 0){
+                        player.inventory.setInventorySlotContents(i, null);
+                        item.splitStack(size);
+                    }
+                    else{
+                        item.splitStack(stacksize);
+                    }
+                    stacksize -= size;
+                    if(stacksize <= 0)
+                        break;
+                }
+            }
+        }
+    }
 
 	@Override
 	public Vector<String> getQuestLogStatus(EntityPlayer player) {
@@ -528,6 +545,29 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 
         @Override
         public String getAdditionalText() {
+            if(party != null && party.getObjectiveRequirement() == EnumPartyObjectives.All) {
+                List<String> incompletePlayers = new ArrayList<>();
+                EnumPartyObjectives objectives = party.getObjectiveRequirement();
+                for (String name : party.getPlayerNames()) {
+                    EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
+                    if (playerMP == null){
+                        incompletePlayers.add(name + ": " + "N/A");
+                        continue;
+                    }
+
+                    int amount = 0;
+                    for (ItemStack is : playerMP.inventory.mainInventory) {
+                        if (NoppesUtilPlayer.compareItems(this.questItem, is, ignoreDamage, ignoreNBT))
+                            amount += is.stackSize;
+                    }
+
+                    int completedSize = ValueUtil.clamp(amount, 0, this.questItem.stackSize);
+                    if(completedSize < this.questItem.stackSize)
+                        incompletePlayers.add(name + ": " + completedSize);
+                }
+                if(!incompletePlayers.isEmpty())
+                    return  "[" + String.join(", ", incompletePlayers) + "]";
+            }
             return null;
         }
     }

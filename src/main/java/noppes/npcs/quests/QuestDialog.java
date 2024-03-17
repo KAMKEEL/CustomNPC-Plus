@@ -454,6 +454,28 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
         @Override
         public String getAdditionalText() {
+            if(party != null && party.getObjectiveRequirement() == EnumPartyObjectives.All){
+                List<String> incomplete = new ArrayList<>();
+                for (UUID uuid: party.getPlayerUUIDs()) {
+                    EntityPlayer individual = NoppesUtilServer.getPlayer(uuid);
+                    PlayerData individualData;
+                    if(individual != null){
+                        individualData = PlayerDataController.Instance.getPlayerData(individual);
+                    }
+                    else {
+                        individualData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
+                    }
+                    if(individualData != null){
+                        boolean read = individualData.dialogData.dialogsRead.contains(this.dialog.id);
+                        if(!read) {
+                            incomplete.add(individualData.playername);
+                        }
+                    }
+                }
+                if(!incomplete.isEmpty())
+                    return  "[" + String.join(", ", incomplete) + "]";
+
+            }
             return null;
         }
     }

@@ -80,6 +80,10 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			getTextField(4).integersOnly = true;
 			getTextField(4).setMinMaxDefault(1, 100, 5);
 		}
+        else if (ai.combatPolicy == EnumCombatPolicy.Tactical)
+        {
+            addButton(new GuiNpcButton(40, guiLeft + 295, guiTop + 160, 60, 20, new String[]{"stats.normal","stats.reverse"}, npc.ai.tacticalChance > 50 ? 1:0));
+        }
 
 		getButton(17).setEnabled(this.ai.onAttack == 0);
     	getButton(15).setEnabled(this.ai.onAttack == 0);
@@ -156,6 +160,15 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			ai.combatPolicy = EnumCombatPolicy.values()[button.getValue()];
             initGui();
 		}
+        else if (button.id == 40) {
+            int val = button.getValue();
+            if(val == 0){
+                ai.tacticalChance = 0;
+            } else {
+                ai.tacticalChance = 100;
+            }
+            initGui();
+        }
     }
 
 	@Override

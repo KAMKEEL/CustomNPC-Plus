@@ -91,7 +91,13 @@ public class PacketHandlerServer{
 			} else if (type == EnumPacketServer.QuestLogToServer) {
 				NoppesUtilPlayer.updateQuestLogData(buffer, player);
 				return;
-			} else if(type == EnumPacketServer.DimensionsGet){
+			} else if (type == EnumPacketServer.PartyLogToServer) {
+                NoppesUtilPlayer.updatePartyQuestLogData(buffer, player);
+                return;
+            } else if (type == EnumPacketServer.UntrackQuest) {
+                NoppesUtilPlayer.clearTrackQuest(player);
+                return;
+            } else if(type == EnumPacketServer.DimensionsGet){
 				HashMap<String,Integer> map = new HashMap<String,Integer>();
 				for(int id : DimensionManager.getStaticDimensionIDs()){
 					WorldProvider provider = DimensionManager.createProviderFor(id);
@@ -317,6 +323,7 @@ public class PacketHandlerServer{
             NBTTagCompound compound = party.writeToNBT();
             if (party.getQuest() != null) {
                 Quest quest = (Quest) party.getQuest();
+                compound.setString("QuestName", quest.getCategory().getName() + ":" + quest.getName());
                 Vector<String> vector = quest.questInterface.getPartyQuestLogStatus(party);
                 NBTTagList list = new NBTTagList();
                 for (String s : vector) {

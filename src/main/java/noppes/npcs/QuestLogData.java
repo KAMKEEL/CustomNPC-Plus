@@ -2,9 +2,11 @@ package noppes.npcs;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 
@@ -47,6 +49,17 @@ public class QuestLogData {
 		partyQuests = NBTTags.getStringIntegerMap(compound.getTagList("PartyQuests", 10));
         partyOptions = NBTTags.getVectorMap(compound.getTagList("PartyOptions", 10));
 	}
+
+    public NBTTagCompound writeTrackedQuest(){
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setString("TrackedQuestID", trackedQuestKey);
+        return compound;
+    }
+
+    public void readTrackedQuest(NBTTagCompound compound){
+        trackedQuestKey = compound.getString("TrackedQuestID");
+    }
+
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
@@ -76,7 +89,35 @@ public class QuestLogData {
                 partyOptions.put(key, quest.partyOptions.getPartyOptionsList());
 			}
         }
+
+        Party party = playerData.getPlayerParty();
+        if(party != null && party.getQuest() != null){
+            if (playerData.questData.getTrackedQuest() != null) {
+                if (party.getQuest().getId() == playerData.questData.getTrackedQuest().getId()) {
+                    trackedQuestKey = "P" + ":" + party.getQuest().getCategory().getName() + ":" + party.getQuest().getName();
+                }
+            }
+        }
 	}
+
+    public void setTrackedQuestKey(EntityPlayer player){
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+
+        Party party = playerData.getPlayerParty();
+        if(party != null && party.getQuest() != null){
+            if (playerData.questData.getTrackedQuest() != null) {
+                if (party.getQuest().getId() == playerData.questData.getTrackedQuest().getId()) {
+                    trackedQuestKey = "P" + ":" + party.getQuest().getCategory().getName() + ":" + party.getQuest().getName();
+                }
+            }
+        } else if(playerData.questData != null && playerData.questData.getTrackedQuest() != null){
+            IQuest quest = playerData.questData.getTrackedQuest();
+            trackedQuestKey = quest.getCategory().getName() + ":" + quest.getName();
+        }
+        else {
+            trackedQuestKey = "";
+        }
+    }
 
 	public boolean hasSelectedQuest() {
 		return !selectedQuest.isEmpty();

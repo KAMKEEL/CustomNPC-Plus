@@ -191,7 +191,6 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		if(category != null && category.id >= 0){
 			// Add Quest
 			if(id == 1){
-				saveType(true);
 				String name = "New";
 				while(questData.containsKey(name))
 					name += "_";
@@ -205,7 +204,6 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 			}
 			// Remove Quest
 			if(id == 2) {
-				saveType(true);
 				if (questData.containsKey(questScroll.getSelected())) {
 					Client.sendData(EnumPacketServer.QuestRemove, quest.id, true);
 					quest = new Quest();
@@ -214,14 +212,12 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 			}
 			// Edit Quest
 			if(id == 0) {
-				saveType(true);
 				if (questData.containsKey(questScroll.getSelected()) && quest != null && quest.id >= 0) {
 					setSubGui(new SubGuiNpcQuest(this, quest, category.id));
 				}
 			}
 			// Clone Quest
 			if(id == 3) {
-				saveType(true);
 				if (questData.containsKey(questScroll.getSelected()) && quest != null && quest.id >= 0) {
 					String name = quest.title;
 					while(questData.containsKey(name))

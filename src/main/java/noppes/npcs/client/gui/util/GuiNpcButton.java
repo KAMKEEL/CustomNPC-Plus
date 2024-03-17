@@ -2,8 +2,10 @@ package noppes.npcs.client.gui.util;
 
 import kamkeel.util.TextSplitter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
@@ -21,6 +23,7 @@ public class GuiNpcButton extends GuiButton{
     public String hoverableText = "";
     public int oldHover;
     public int hoverCount = 0;
+    boolean hasSubGUI = false;
 
 	public GuiNpcButton(int i, int j, int k,  String s) {
 		super(i, j, k,  StatCollector.translateToLocal(s));
@@ -200,4 +203,29 @@ public class GuiNpcButton extends GuiButton{
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
     }
 
+    @Override
+    public int getHoverState(boolean mouseOver)
+    {
+        byte b0 = 1;
+        if (!this.enabled)
+        {
+            b0 = 0;
+        }
+        else if (mouseOver && !this.hasSubGUI)
+        {
+            b0 = 2;
+        }
+
+        return b0;
+    }
+
+    public void updateSubGUI(boolean hasSubGUI)
+    {
+        this.hasSubGUI = hasSubGUI;
+    }
+
+    public boolean getHasSubGUI()
+    {
+        return this.hasSubGUI;
+    }
 }

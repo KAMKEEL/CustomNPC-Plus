@@ -30,10 +30,7 @@ import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -78,7 +75,10 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
-                if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId())) {
+
+                Party party = playerData.getPlayerParty();
+                boolean trackingPartyQuest = playerData.questData.getTrackedQuest() != null && party != null && party.getQuest() != null && party.getQuest().getId() == playerData.questData.getTrackedQuest().getId();
+                if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId()) && !trackingPartyQuest) {
                     PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
                 }
 
@@ -90,7 +90,12 @@ public class ScriptPlayerEventHandler {
                     PlayerQuestData questData = playerData.questData;
                     if(questData != null){
                         if (questData.getTrackedQuest() != null && ((Quest) questData.getTrackedQuest()).type == EnumQuestType.Item) {
-                            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                            if(trackingPartyQuest){
+                                NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) event.player, party);
+                            }
+                            else {
+                                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                            }
                         }
                     }
                 }
@@ -483,9 +488,16 @@ public class ScriptPlayerEventHandler {
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
 
-            Quest quest = (Quest) PlayerDataController.Instance.getPlayerData(event.player).questData.getTrackedQuest();
+            PlayerData playerData =  PlayerDataController.Instance.getPlayerData(event.player);
+            Quest quest = (Quest) playerData.questData.getTrackedQuest();
             if (quest != null) {
-                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                Party party = playerData.getPlayerParty();
+                if(party != null && party.getQuest() != null && party.getQuest().getId() == quest.getId()){
+                    NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) event.player, party);
+                }
+                else {
+                    NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                }
             }
 
             PlayerDataController.Instance.getPlayerData(event.player).skinOverlays.updateClient();
