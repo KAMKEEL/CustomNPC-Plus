@@ -89,7 +89,7 @@ public class ClientTickHandler{
 
 	@SubscribeEvent
 	public void onKey(InputEvent.KeyInputEvent event){
-		if(ClientProxy.QuestLog.isPressed()){
+		if(ClientProxy.NPCButton.isPressed()){
 			Minecraft mc = Minecraft.getMinecraft();
 			if(mc.currentScreen == null){
                 switch (GuiCNPCInventory.activeTab){
