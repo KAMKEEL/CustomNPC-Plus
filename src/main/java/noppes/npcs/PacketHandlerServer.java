@@ -121,6 +121,9 @@ public class PacketHandlerServer{
 				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.GetPartyData || type == EnumPacketServer.CreateParty) {
+                if(!ConfigMain.PartiesEnabled)
+                    return;
+
 				if (type == EnumPacketServer.CreateParty) {
 					Party party = PartyController.Instance().createParty();
 					party.addPlayer(player);
