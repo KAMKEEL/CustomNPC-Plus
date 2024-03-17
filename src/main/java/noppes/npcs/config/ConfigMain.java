@@ -16,7 +16,6 @@ public class ConfigMain
     public final static String GENERAL = "General";
     public final static String NPC = "NPC";
     public final static String UPDATE = "Update";
-    public final static String SYNC = "SYNC";
     public final static String PARTY = "PARTY";
 
     /**
