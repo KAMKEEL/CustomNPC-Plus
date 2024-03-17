@@ -24,14 +24,14 @@ public class CustomItems {
 	public static Item wand;
 	public static Item cloner;
 	public static Item scripter;
-	public static Item moving;	
-	public static Item mount;	
+	public static Item moving;
+	public static Item mount;
 	public static Item teleporter;
 	public static Item scripted_item;
 
 	public static Item soulstoneEmpty;
-	public static Item soulstoneFull;	
-	
+	public static Item soulstoneFull;
+
 	public static Item banjo;
 	public static Item violin;
 	public static Item violinbow;
@@ -136,13 +136,13 @@ public class CustomItems {
 	public static Item staffElemental;
 	public static Item orb;
 	public static Item mana;
-	
+
 	public static Item swordBronze;
 	public static Item swordEmerald;
 	public static Item swordDemonic;
 	public static Item swordFrost;
 	public static Item swordMithril;
-	
+
 	public static Item bronze_ingot;
 	public static Item demonic_ingot;
 	public static Item mithril_ingot;
@@ -154,13 +154,13 @@ public class CustomItems {
 	public static Item letter;
 	public static Item bag;
 	public static Item satchel;
-	
+
 	public static Block redstoneBlock;
 	public static Block carpentyBench;
 	public static Block mailbox;
 	public static Block waypoint;
 	public static Block border;
-	
+
 	public static Block banner;
 	public static Block wallBanner;
 	public static Block tallLamp;
@@ -190,7 +190,7 @@ public class CustomItems {
 	public static Block campfire_unlit;
 	public static Block candle_unlit;
 	public static Block scripted;
-	
+
 	public static Item crossbowBolt;
 
 	public static CreativeTabNpcs tab = new CreativeTabNpcs("cnpcs");
@@ -199,14 +199,14 @@ public class CustomItems {
 	public static CreativeTabNpcs tabBlocks = new CreativeTabNpcs("cnpcsb");
 	public static CreativeTabNpcs tabMisc = new CreativeTabNpcs("cnpcsm");
 
-	public static void load(){		
+	public static void load(){
 		GameRegistry.registerTileEntity(TileRedstoneBlock.class, "TileRedstoneBlock");
 		GameRegistry.registerTileEntity(TileBlockAnvil.class, "TileBlockAnvil");
 		GameRegistry.registerTileEntity(TileMailbox.class, "TileMailbox");
 		GameRegistry.registerTileEntity(TileWaypoint.class, "TileWaypoint");
 		GameRegistry.registerTileEntity(TileBanner.class, "TileNPCBanner");
 		GameRegistry.registerTileEntity(TileScripted.class, "TileNPCScripted");
-		
+
 		if(!ConfigMain.DisableExtraBlock){
 			GameRegistry.registerTileEntity(TileWallBanner.class, "TileNPCWallBanner");
 			GameRegistry.registerTileEntity(TileTallLamp.class, "TileNPCTallLamp");
@@ -237,7 +237,7 @@ public class CustomItems {
 		mount = new ItemMounter().setUnlocalizedName("npcMounter").setFull3D();
 		teleporter = new ItemTeleporter().setUnlocalizedName("npcTeleporter").setFull3D();
 		scripted_item = new ItemScripted().setUnlocalizedName("scripted_item").setFull3D();
-		
+
 		redstoneBlock = new BlockNpcRedstone().setHardness(50.0F).setResistance(2000).setBlockName("npcRedstoneBlock").setBlockTextureName("customnpcs:npcRedstoneBlock").setCreativeTab(tab);
 		carpentyBench = new BlockCarpentryBench().setBlockName("npcCarpentyBench").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 		mailbox = new BlockMailbox().setBlockName("npcMailbox").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
@@ -269,9 +269,9 @@ public class CustomItems {
 
 		Item.getItemFromBlock(mailbox).setHasSubtypes(true);
 		Item.getItemFromBlock(carpentyBench).setHasSubtypes(true);
-		
+
 		((ItemNpcBlock)Item.getItemFromBlock(carpentyBench)).names = new String[]{"tile.npcCarpentyBench", "tile.anvil"};
-		
+
 		if(!ConfigMain.DisableExtraBlock){
 			blood = new BlockBlood().setBlockName("npcBloodBlock").setBlockTextureName("customnpcs:npcBloodBlock").setCreativeTab(tabBlocks);
 			banner = new BlockBanner().setBlockName("npcBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
@@ -297,7 +297,7 @@ public class CustomItems {
 			book = new BlockBook().setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			pedestal = new BlockPedestal().setBlockName("npcPedestal").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			crystal = new BlockCrystal().setBlockName("npcCrystal").setBlockTextureName("customnpcs:npcCrystal").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeGlass).setCreativeTab(tabBlocks);
-	
+
 			campfire_unlit = new BlockCampfire(false).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone);
 			lamp_unlit = new BlockLamp(false).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
 			candle_unlit = new BlockCandle(false).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
@@ -307,17 +307,17 @@ public class CustomItems {
 			GameRegistry.registerBlock(wallBanner, ItemBlock.class, "npcWallBanner");
 			GameRegistry.registerBlock(tallLamp, ItemBlock.class, "npcTallLamp");
 			GameRegistry.registerBlock(chair, ItemBlock.class, "npcChair");
-			GameRegistry.registerBlock(crate, ItemBlock.class, "npcCrate");	
-			GameRegistry.registerBlock(weaponsRack, ItemBlock.class, "npcWeaponRack");	
-			GameRegistry.registerBlock(couchWool, ItemBlock.class, "npcCouchWool");	
-			GameRegistry.registerBlock(couchWood, ItemBlock.class, "npcCouchWood");	
-			GameRegistry.registerBlock(table, ItemBlock.class, "npcTable");	
-			GameRegistry.registerBlock(stool, ItemBlock.class, "npcStool");	
-			GameRegistry.registerBlock(placeholder, ItemPlaceholder.class, "npcPlaceholder");	
+			GameRegistry.registerBlock(crate, ItemBlock.class, "npcCrate");
+			GameRegistry.registerBlock(weaponsRack, ItemBlock.class, "npcWeaponRack");
+			GameRegistry.registerBlock(couchWool, ItemBlock.class, "npcCouchWool");
+			GameRegistry.registerBlock(couchWood, ItemBlock.class, "npcCouchWood");
+			GameRegistry.registerBlock(table, ItemBlock.class, "npcTable");
+			GameRegistry.registerBlock(stool, ItemBlock.class, "npcStool");
+			GameRegistry.registerBlock(placeholder, ItemPlaceholder.class, "npcPlaceholder");
 			GameRegistry.registerBlock(bigsign, "npcBigSign");
-			GameRegistry.registerBlock(barrel, ItemBlock.class, "npcBarrel");	
-			GameRegistry.registerBlock(tombstone, ItemBlock.class, "npcTombstone");	
-			GameRegistry.registerBlock(shelf, ItemBlock.class, "npcShelf");	
+			GameRegistry.registerBlock(barrel, ItemBlock.class, "npcBarrel");
+			GameRegistry.registerBlock(tombstone, ItemBlock.class, "npcTombstone");
+			GameRegistry.registerBlock(shelf, ItemBlock.class, "npcShelf");
 			GameRegistry.registerBlock(sign, ItemBlock.class, "npcSign");
 			GameRegistry.registerBlock(beam, ItemBlock.class, "npcBeam");
 			GameRegistry.registerBlock(book, "npcBook");
@@ -352,49 +352,49 @@ public class CustomItems {
 		}
 
 		banjo = new ItemMusicBanjo().setUnlocalizedName("npcBanjo").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcBanjo");
-		violin = new ItemMusicViolin().setUnlocalizedName("npcViolin").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcViolin");	
+		violin = new ItemMusicViolin().setUnlocalizedName("npcViolin").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcViolin");
 		violinbow = new ItemNpcInterface().setUnlocalizedName("npcViolinBow").setFull3D().setMaxStackSize(1).setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcViolinBow");
 		harp = new ItemMusicViolin().setUnlocalizedName("npcHarp").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcHarp");
 		guitar = new ItemMusicBanjo().setUnlocalizedName("npcGuitar").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcGuitar");
 		frenchHorn = new ItemMusic().setRotated().setUnlocalizedName("npcFrenchHorn").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrenchHorn");
 		ocarina = new ItemMusicOracina().setUnlocalizedName("npcOcarina").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcOcarina");
 		clarinet = new ItemMusicClarinet().setUnlocalizedName("npcClarinet").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcClarinet");
-		
-		
+
+
 		if(!ConfigMain.DisableExtraItems){
 			tabArmor = new CreativeTabNpcs("cnpcsa");
 			tabWeapon = new CreativeTabNpcs("cnpcsw");
-			
+
 			gunWood = new ItemGun(26820,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcWoodenGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenGun");
 			bulletWood = new ItemBullet(26821,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcWoodenBullet").setMaxStackSize(64).setTextureName("customnpcs:npcWoodenBullet");
-	
+
 			gunStone = new ItemGun(26822,EnumNpcToolMaterial.STONE).setUnlocalizedName("npcStoneGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneGun");
 			bulletStone = new ItemBullet(26823,EnumNpcToolMaterial.STONE).setUnlocalizedName("npcStoneBullet").setMaxStackSize(64).setTextureName("customnpcs:npcStoneBullet");
-	
+
 			gunIron = new ItemGun(26824,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcIronGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronGun");
 			bulletIron = new ItemBullet(26825,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcIronBullet").setMaxStackSize(64).setTextureName("customnpcs:npcIronBullet");
-	
+
 			gunGold = new ItemGun(26826,EnumNpcToolMaterial.GOLD).setUnlocalizedName("npcGoldGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcGoldGun");
 			bulletGold = new ItemBullet(26827,EnumNpcToolMaterial.GOLD).setUnlocalizedName("npcGoldenBullet").setMaxStackSize(64).setTextureName("customnpcs:npcGoldenBullet");
-	
+
 			gunDiamond = new ItemGun(26828,EnumNpcToolMaterial.DIA).setUnlocalizedName("npcDiamondGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDiamondGun");
 			bulletDiamond = new ItemBullet(26829,EnumNpcToolMaterial.DIA).setUnlocalizedName("npcDiamondBullet").setMaxStackSize(64).setTextureName("customnpcs:npcDiamondBullet");
-	
+
 			gunBronze = new ItemGun(26830,EnumNpcToolMaterial.BRONZE).setUnlocalizedName("npcBronzeGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcBronzeGun");
 			bulletBronze = new ItemBullet(26831,EnumNpcToolMaterial.BRONZE).setUnlocalizedName("npcBronzeBullet").setMaxStackSize(64).setTextureName("customnpcs:npcBronzeBullet");
-	
+
 			gunEmerald = new ItemGun(26832,EnumNpcToolMaterial.EMERALD).setUnlocalizedName("npcEmeraldGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcEmeraldGun");
 			bulletEmerald = new ItemBullet(26833,EnumNpcToolMaterial.EMERALD).setUnlocalizedName("npcEmeraldBullet").setMaxStackSize(64).setTextureName("customnpcs:npcEmeraldBullet");
-	
+
 			gunMachine = new ItemMachineGun(26834).setUnlocalizedName("npcMachineGun").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMachineGun");
 			bulletBlack = new ItemBullet(26835,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcBlackBullet").setMaxStackSize(64).setTextureName("customnpcs:npcBlackBullet");
-			
+
 			ToolMaterial bronze = EnumHelper.addToolMaterial("BRONZE", 2, 170, 5.0F, 2, 15);
 			ToolMaterial emerald = EnumHelper.addToolMaterial("REALEMERALD", 3, 1000, 8.0F, 4, 10);
 			ToolMaterial demonic = EnumHelper.addToolMaterial("DEMONIC", 3, 100, 8.0F, 6, 22);
 			ToolMaterial frost = EnumHelper.addToolMaterial("FROST", 2, 59, 6.0F, 3, 5);
 			ToolMaterial mithril = EnumHelper.addToolMaterial("MITHRIL", 3, 3000, 8.0F, 3.0F, 10);
-			
+
 			tridentWood = new ItemSpear(26840,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenTrident").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenTrident");
 			tridentStone = new ItemSpear(26841,ToolMaterial.STONE).setUnlocalizedName("npcStoneTrident").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneTrident");
 			tridentIron = new ItemSpear(26842,ToolMaterial.IRON).setUnlocalizedName("npcIronTrident").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronTrident");
@@ -406,7 +406,7 @@ public class CustomItems {
 			tridentDemonic = new ItemSpear(26847,demonic).setUnlocalizedName("npcDemonicTrident").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicTrident");
 			tridentFrost = new ItemSpear(26847,frost).setUnlocalizedName("npcFrostTrident").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostTrident");
 			tridentMithril = new ItemSpear(26847,mithril).setUnlocalizedName("npcMithrilTrident").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilTrident");
-	
+
 			spellNature = new ItemNpcInterface(26930).setUnlocalizedName("npcNatureSpell").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcNatureSpell");
 			spellArcane = new ItemNpcInterface(26931).setUnlocalizedName("npcArcaneSpell").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcArcaneSpell");
 			spellLightning = new ItemNpcInterface(26932).setUnlocalizedName("npcLightningSpell").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcLightningSpell");
@@ -414,24 +414,24 @@ public class CustomItems {
 			spellFire = new ItemNpcInterface(26934).setUnlocalizedName("npcFireSpell").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcFireSpell");
 			spellDark = new ItemNpcInterface(26935).setUnlocalizedName("npcDarkSpell").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcDarkSpell");
 			spellHoly = new ItemNpcInterface(26936).setUnlocalizedName("npcHolySpell").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcHolySpell");
-	
+
 			orb = new ItemOrb(26937).setUnlocalizedName("npcOrb").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcOrb");
 			mana = new ItemNpcInterface(26938).setUnlocalizedName("npcMana").setCreativeTab(CustomItems.tabWeapon).setTextureName("customnpcs:npcMana");
 			Item brokenOrb = new ItemOrb(26939).setUnlocalizedName("npcBrokenOrb").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBrokenOrb");
-			
+
 			kunai = new ItemKunai(26910,ToolMaterial.IRON).setUnlocalizedName("npcKunai").setMaxStackSize(1).setFull3D().setTextureName("customnpcs:npcKunai");
 			Item kunai = new ItemKunaiReversed(26911,ToolMaterial.IRON).setUnlocalizedName("npcReverseKunai").setMaxStackSize(1).setFull3D().setTextureName("customnpcs:npcReverseKunai");
 			kunai = new ItemThrowingShuriken(26912).setRotating().setDropItem().setUnlocalizedName("npcShuriken").setFull3D().setTextureName("customnpcs:npcShuriken");
 			shuriken = new ItemThrowingWeapon(26913).setDamage(4).setRotating().setDropItem().setUnlocalizedName("npcGiantShuriken").setFull3D().setTextureName("customnpcs:npcGiantShuriken");
 			Item katana = new ItemNpcWeaponInterface(26914,ToolMaterial.IRON).setUnlocalizedName("npcKatana").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcKatana");
-			Item knive = new ItemDagger(26915,ToolMaterial.IRON).setUnlocalizedName("npcKukri").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcKukri");
-	
+			Item knive = new ItemNpcWeaponInterface(26915,ToolMaterial.IRON).setUnlocalizedName("npcKukri").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcKukri");
+
 			swordBronze = new ItemNpcWeaponInterface(bronze).setUnlocalizedName("npcBronzeSword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcBronzeSword");
 			swordEmerald = new ItemNpcWeaponInterface(emerald).setUnlocalizedName("npcEmeraldSword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcEmeraldSword");
 			swordDemonic = new ItemNpcWeaponInterface(demonic).setUnlocalizedName("npcDemonicSword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicSword");
 			swordFrost = new ItemNpcWeaponInterface(frost).setUnlocalizedName("npcFrostSword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostSword");
 			swordMithril = new ItemNpcWeaponInterface(mithril).setUnlocalizedName("npcMithrilSword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilSword");
-			
+
 			Item golf = new ItemSpear(26800,ToolMaterial.IRON).setUnlocalizedName("npcGolfClub").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcGolfClub");
 			Item magicwand = new ItemWand(26801).setUnlocalizedName("npcMagicWand").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMagicWand");
 			Item chickenSword = new ItemNpcInterface(26802).setUnlocalizedName("npcChickenSword").setFull3D().setMaxStackSize(1).setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcChickenSword");
@@ -452,10 +452,10 @@ public class CustomItems {
 			Item slingshot = new ItemSlingshot(26767).setUnlocalizedName("npcSlingshot").setFull3D().setTextureName("customnpcs:npcSlingshot");
 			Item musket = new ItemMusket(26758).setUnlocalizedName("npcMusket").setFull3D().setTextureName("customnpcs:npcMusket").setMaxStackSize(1);
 			Item leaf = new ItemLeafBlade(26758,ToolMaterial.IRON).setUnlocalizedName("npcLeafBlade").setFull3D().setTextureName("customnpcs:npcLeafBlade").setMaxStackSize(1);
-			
+
 			Item crossbow = new ItemCrossbow(26768).setUnlocalizedName("npcCrossbow").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcCrossbow");
 			crossbowBolt = new ItemBullet(26769,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcCrossBolt").setMaxStackSize(64).setTextureName("customnpcs:npcCrossBolt");
-			
+
 			Item batton = new ItemNpcWeaponInterface(26814,ToolMaterial.STONE).setUnlocalizedName("npcBatton").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcBatton");
 			Item chainsaw = new ItemGunChainsaw(26815,ToolMaterial.EMERALD).setUnlocalizedName("npcGunChainsaw").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcGunChainsaw");
 			Item rapier = new ItemNpcWeaponInterface(26816,ToolMaterial.IRON).setUnlocalizedName("npcRapier").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcRapier");
@@ -464,7 +464,7 @@ public class CustomItems {
 			Item swiss = new ItemDagger(26819,ToolMaterial.IRON).setUnlocalizedName("npcSwissArmyKnife").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcSwissArmyKnife");
 			Item wrench = new ItemNpcWeaponInterface(26836,ToolMaterial.IRON).setUnlocalizedName("npcWrench").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWrench");
 			excalibur = new ItemExcalibur(26799,ToolMaterial.EMERALD).setUnlocalizedName("npcExcalibur").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcExcalibur");
-			
+
 			Item shield = new ItemShield(26729,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcWoodenShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenShield");
 			shield = new ItemShield(26730,EnumNpcToolMaterial.STONE).setUnlocalizedName("npcStoneShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneShield");
 			shield = new ItemShield(26736,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcIronShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronShield");
@@ -475,7 +475,7 @@ public class CustomItems {
 			shield = new ItemShield(26739,EnumNpcToolMaterial.DEMONIC).setUnlocalizedName("npcDemonicShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicShield");
 			shield = new ItemRotatedShield(26739,EnumNpcToolMaterial.FROST).setUnlocalizedName("npcFrostShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostShield");
 			shield = new ItemRotatedShield(26739,EnumNpcToolMaterial.MITHRIL).setUnlocalizedName("npcMithrilShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilShield");
-			
+
 			shield = new ItemRotatedShield(26740,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcFullWoodenShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenShield");
 			shield = new ItemRotatedShield(26741,EnumNpcToolMaterial.STONE).setUnlocalizedName("npcFullStoneShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullStoneShield");
 			shield = new ItemRotatedShield(26742,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcFullIronShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFullIronShield");
@@ -492,7 +492,7 @@ public class CustomItems {
 			shield = new ItemShield(26747,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcCryscentShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcCryscentShield");
 			shield = new ItemShield(26748,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcScutumShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcScutumShield");
 			shield = new ItemRotatedShield(26749,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcTowerShield").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcTowerShield");
-	
+
 			Item spear = new ItemSpear(26750,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenSpear").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenSpear");
 			spear = new ItemSpear(26751,ToolMaterial.STONE).setUnlocalizedName("npcStoneSpear").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneSpear");
 			spear = new ItemSpear(26752,ToolMaterial.IRON).setUnlocalizedName("npcIronSpear").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronSpear");
@@ -503,7 +503,7 @@ public class CustomItems {
 			spear = new ItemSpear(26756,demonic).setUnlocalizedName("npcDemonicSpear").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicSpear");
 			spear = new ItemSpear(26756,frost).setUnlocalizedName("npcFrostSpear").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostSpear");
 			spear = new ItemSpear(26756,mithril).setUnlocalizedName("npcMithrilSpear").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilSpear");
-			
+
 			halberdWood = new ItemSpear(26750,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenHalberd").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenHalberd");
 			halberdStone = new ItemSpear(26751,ToolMaterial.STONE).setUnlocalizedName("npcStoneHalberd").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneHalberd");
 			halberdIron = new ItemSpear(26752,ToolMaterial.IRON).setUnlocalizedName("npcIronHalberd").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronHalberd");
@@ -514,7 +514,7 @@ public class CustomItems {
 			halberdDemonic = new ItemSpear(26756,demonic).setUnlocalizedName("npcDemonicHalberd").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicHalberd");
 			halberdFrost = new ItemSpear(26756,frost).setUnlocalizedName("npcFrostHalberd").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostHalberd");
 			halberdMithril = new ItemSpear(26756,mithril).setUnlocalizedName("npcMithrilHalberd").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilHalberd");
-			
+
 			battleAxeWood = new ItemBattleAxe(26760,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenBattleAxe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenBattleAxe");
 			battleAxeStone = new ItemBattleAxe(26761,ToolMaterial.STONE).setUnlocalizedName("npcStoneBattleAxe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneBattleAxe");
 			battleAxeIron = new ItemBattleAxe(26762,ToolMaterial.IRON).setUnlocalizedName("npcIronBattleAxe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronBattleAxe");
@@ -525,7 +525,7 @@ public class CustomItems {
 			battleAxeDemonic = new ItemBattleAxe(26766,demonic).setUnlocalizedName("npcDemonicBattleAxe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicBattleAxe");
 			battleAxeFrost = new ItemBattleAxe(26766,frost).setUnlocalizedName("npcFrostBattleAxe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostBattleAxe");
 			battleAxeMithril = new ItemBattleAxe(26766,mithril).setUnlocalizedName("npcMithrilBattleAxe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilBattleAxe");
-			
+
 			Item warhammer = new ItemWarhammer(26760,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenWarhammer").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenWarhammer");
 			warhammer = new ItemWarhammer(26761,ToolMaterial.STONE).setUnlocalizedName("npcStoneWarhammer").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneWarhammer");
 			warhammer = new ItemWarhammer(26762,ToolMaterial.IRON).setUnlocalizedName("npcIronWarhammer").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronWarhammer");
@@ -536,7 +536,7 @@ public class CustomItems {
 			warhammer = new ItemWarhammer(26766,demonic).setUnlocalizedName("npcDemonicWarhammer").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicWarhammer");
 			warhammer = new ItemWarhammer(26766,frost).setUnlocalizedName("npcFrostWarhammer").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostWarhammer");
 			warhammer = new ItemWarhammer(26766,mithril).setUnlocalizedName("npcMithrilWarhammer").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilWarhammer");
-			
+
 			Item mace = new ItemNpcWeaponInterface(26770,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenMace").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenMace");
 			mace = new ItemNpcWeaponInterface(26771,ToolMaterial.STONE).setUnlocalizedName("npcStoneMace").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneMace");
 			mace = new ItemNpcWeaponInterface(26772,ToolMaterial.IRON).setUnlocalizedName("npcIronMace").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronMace");
@@ -547,7 +547,7 @@ public class CustomItems {
 			mace = new ItemNpcWeaponInterface(26776,demonic).setUnlocalizedName("npcDemonicMace").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicMace");
 			mace = new ItemNpcWeaponInterface(26776,frost).setUnlocalizedName("npcFrostMace").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostMace");
 			mace = new ItemNpcWeaponInterface(26776,mithril).setUnlocalizedName("npcMithrilMace").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilMace");
-			
+
 			Item dagger = new ItemDagger(26700,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenDagger").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenDagger");
 			dagger = new ItemDaggerReversed(26701, (ItemDagger) dagger, ToolMaterial.WOOD).setUnlocalizedName("npcWoodenReversedDagger").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenDagger");
 			dagger = new ItemDagger(26702,ToolMaterial.STONE).setUnlocalizedName("npcStoneDagger").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneDagger");
@@ -568,12 +568,12 @@ public class CustomItems {
 			dagger = new ItemDaggerReversed(26713, (ItemDagger) dagger,frost).setUnlocalizedName("npcFrostReversedDagger").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostDagger");
 			dagger = new ItemDagger(26712,mithril).setUnlocalizedName("npcMithrilDagger").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilDagger");
 			dagger = new ItemDaggerReversed(26713, (ItemDagger) dagger,frost).setUnlocalizedName("npcMithrilReversedDagger").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilDagger");
-	
+
 			Item claw = new ItemClaw(26850,ToolMaterial.IRON).setUnlocalizedName("npcNinjaClaw").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcNinjaClaw");
 			claw = new ItemClaw(26851,ToolMaterial.IRON).setUnlocalizedName("npcSteelClaw").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcSteelClaw");
 			claw = new ItemClaw(26852,ToolMaterial.IRON).setUnlocalizedName("npcBearClaw").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcBearClaw");
 			claw = new ItemClaw(26853,ToolMaterial.IRON).setUnlocalizedName("npcKatar").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcKatar");
-			
+
 			staffWood = new ItemStaff(26777,EnumNpcToolMaterial.WOOD).setUnlocalizedName("npcWoodenStaff").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenStaff");
 			staffStone = new ItemStaff(26778,EnumNpcToolMaterial.STONE).setUnlocalizedName("npcStoneStaff").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneStaff");
 			staffIron = new ItemStaff(26779,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcIronStaff").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronStaff");
@@ -585,7 +585,7 @@ public class CustomItems {
 			staffFrost = new ItemStaff(26783,EnumNpcToolMaterial.FROST).setUnlocalizedName("npcFrostStaff").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostStaff");
 			staffMithril = new ItemStaff(26783,EnumNpcToolMaterial.MITHRIL).setUnlocalizedName("npcMithrilStaff").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilStaff");
 			staffElemental = new ItemElementalStaff(26784,EnumNpcToolMaterial.IRON).setUnlocalizedName("npcElementalStaff").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcElementalStaff");
-	
+
 			Item scythe = new ItemScythe(26785,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenScythe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenScythe");
 			scythe = new ItemScythe(26786,ToolMaterial.STONE).setUnlocalizedName("npcStoneScythe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneScythe");
 			scythe = new ItemScythe(26787,ToolMaterial.IRON).setUnlocalizedName("npcIronScythe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronScythe");
@@ -596,7 +596,7 @@ public class CustomItems {
 			scythe = new ItemScythe(26797,demonic).setUnlocalizedName("npcDemonicScythe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicScythe");
 			scythe = new ItemScythe(26797,frost).setUnlocalizedName("npcFrostScythe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostScythe");
 			scythe = new ItemScythe(26797,mithril).setUnlocalizedName("npcMithrilScythe").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilScythe");
-			
+
 			glaiveWood = new ItemGlaive(26790,ToolMaterial.WOOD).setUnlocalizedName("npcWoodenGlaive").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenGlaive");
 			glaiveStone = new ItemGlaive(26791,ToolMaterial.STONE).setUnlocalizedName("npcStoneGlaive").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneGlaive");
 			glaiveIron = new ItemGlaive(26792,ToolMaterial.IRON).setUnlocalizedName("npcIronGlaive").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronGlaive");
@@ -607,7 +607,7 @@ public class CustomItems {
 			glaiveDemonic = new ItemGlaive(26796,demonic).setUnlocalizedName("npcDemonicGlaive").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcDemonicGlaive");
 			glaiveFrost = new ItemGlaive(26796,frost).setUnlocalizedName("npcFrostGlaive").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcFrostGlaive");
 			glaiveMithril = new ItemGlaive(26796,mithril).setUnlocalizedName("npcMithrilGlaive").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcMithrilGlaive");
-			
+
 			new ItemBroadSword(ToolMaterial.WOOD).setUnlocalizedName("npcWoodenBroadsword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcWoodenBroadsword");
 			new ItemBroadSword(ToolMaterial.STONE).setUnlocalizedName("npcStoneBroadsword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcStoneBroadsword");
 			new ItemBroadSword(ToolMaterial.IRON).setUnlocalizedName("npcIronBroadsword").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcIronBroadsword");
@@ -622,37 +622,37 @@ public class CustomItems {
 			ItemArmor.ArmorMaterial armorMithril = EnumHelper.addArmorMaterial("MITHRIL", 40, new int[]{3, 8, 6, 3}, 20);
 			ItemArmor.ArmorMaterial armorBronze = EnumHelper.addArmorMaterial("BRONZE", 7, new int[]{2, 6, 5, 2}, 20);
 			ItemArmor.ArmorMaterial armorEmerald = EnumHelper.addArmorMaterial("EMERALD", 35, new int[]{5, 7, 4, 5}, 5);
-			
+
 			Item cowarmor = new ItemNpcArmor(26860, ArmorMaterial.CHAIN,0,"cowleather").setUnlocalizedName("npcCowleatherHead").setMaxStackSize(1).setTextureName("customnpcs:npcCowleatherHead");
 			Item armor = new ItemNpcArmor(26861,ArmorMaterial.CHAIN,1,"cowleather").setUnlocalizedName("npcCowleatherChest").setMaxStackSize(1).setTextureName("customnpcs:npcCowleatherChest");
 			armor = new ItemNpcArmor(26862,ArmorMaterial.CHAIN,2,"cowleather").setUnlocalizedName("npcCowleatherLegs").setMaxStackSize(1).setTextureName("customnpcs:npcCowleatherLegs");
 			armor = new ItemNpcArmor(26863,ArmorMaterial.CHAIN,3,"cowleather").setUnlocalizedName("npcCowleatherBoots").setMaxStackSize(1).setTextureName("customnpcs:npcCowleatherBoots");
-	
+
 			armor = new ItemNpcArmor(26864,ArmorMaterial.IRON,0,"nanorum").setUnlocalizedName("npcNanorumHead").setMaxStackSize(1).setTextureName("customnpcs:npcNanorumHead");
 			armor = new ItemNpcArmor(26865,ArmorMaterial.IRON,1,"nanorum").setUnlocalizedName("npcNanorumChest").setMaxStackSize(1).setTextureName("customnpcs:npcNanorumChest");
 			armor = new ItemNpcArmor(26866,ArmorMaterial.IRON,2,"nanorum").setUnlocalizedName("npcNanorumLegs").setMaxStackSize(1).setTextureName("customnpcs:npcNanorumLegs");
 			armor = new ItemNpcArmor(26867,ArmorMaterial.IRON,3,"nanorum").setUnlocalizedName("npcNanorumBoots").setMaxStackSize(1).setTextureName("customnpcs:npcNanorumBoots");
-			
+
 			armor = new ItemNpcArmor(26868,ArmorMaterial.IRON,0,"tactical").setUnlocalizedName("npcTacticalHead").setMaxStackSize(1).setTextureName("customnpcs:npcTacticalHead");
 			armor = new ItemNpcArmor(26869,ArmorMaterial.IRON,1,"tactical").setUnlocalizedName("npcTacticalChest").setMaxStackSize(1).setTextureName("customnpcs:npcTacticalChest");
-			
+
 			armor = new ItemNpcArmor(26919,ArmorMaterial.IRON,0,"fullcloth").setUnlocalizedName("npcFullLeatherHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullLeatherHead");
 			armor = new ItemNpcArmor(26920,ArmorMaterial.IRON,1,"fullcloth").setUnlocalizedName("npcFullLeatherChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullLeatherChest");
-			
+
 			armor = new ItemNpcArmor(26870,ArmorMaterial.IRON,0,"fulliron").setUnlocalizedName("npcFullIronHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullIronHead");
 			armor = new ItemNpcArmor(26871,ArmorMaterial.IRON,1,"fulliron").setUnlocalizedName("npcFullIronChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullIronChest");
-			
+
 			armor = new ItemNpcArmor(26872,ArmorMaterial.GOLD,0,"fullgold").setUnlocalizedName("npcFullGoldHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullGoldHead");
 			armor = new ItemNpcArmor(26873,ArmorMaterial.GOLD,1,"fullgold").setUnlocalizedName("npcFullGoldChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullGoldChest");
-			
+
 			armor = new ItemNpcArmor(26874,ArmorMaterial.DIAMOND,0,"fulldiamond").setUnlocalizedName("npcFullDiamondHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullDiamondHead");
 			armor = new ItemNpcArmor(26875,ArmorMaterial.DIAMOND,1,"fulldiamond").setUnlocalizedName("npcFullDiamondChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullDiamondChest");
-	
+
 			armor = new ItemNpcArmor(26876, armorBronze,0,"fullbronze").setUnlocalizedName("npcFullBronzeHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullBronzeHead");
 			armor = new ItemNpcArmor(26877, armorBronze,1,"fullbronze").setUnlocalizedName("npcFullBronzeChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullBronzeChest");
 			armor = new ItemNpcArmor(26878, armorBronze,2,"fullbronze").setUnlocalizedName("npcFullBronzeLeggings").setMaxStackSize(1).setTextureName("customnpcs:npcFullBronzeLeggings");
 			armor = new ItemNpcArmor(26879, armorBronze,3,"fullbronze").setUnlocalizedName("npcFullBronzeBoots").setMaxStackSize(1).setTextureName("customnpcs:npcFullBronzeBoots");
-	
+
 			armor = new ItemNpcArmor(26921, armorEmerald,0,"fullemerald").setUnlocalizedName("npcFullEmeraldHead").setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldHead");
 			armor = new ItemNpcArmor(26922, armorEmerald,1,"fullemerald").setUnlocalizedName("npcFullEmeraldChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldChest");
 			armor = new ItemNpcArmor(26923, armorEmerald,2,"fullemerald").setUnlocalizedName("npcFullEmeraldLeggings").setMaxStackSize(1).setTextureName("customnpcs:npcFullEmeraldLeggings");
@@ -662,20 +662,20 @@ public class CustomItems {
 			armor = new ItemNpcArmor(26881,ArmorMaterial.CLOTH,1,"fullwood").setUnlocalizedName("npcFullWoodenChest").setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenChest");
 			armor = new ItemNpcArmor(26882,ArmorMaterial.CLOTH,2,"fullwood").setUnlocalizedName("npcFullWoodenLeggings").setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenLeggings");
 			armor = new ItemNpcArmor(26883,ArmorMaterial.CLOTH,3,"fullwood").setUnlocalizedName("npcFullWoodenBoots").setMaxStackSize(1).setTextureName("customnpcs:npcFullWoodenBoots");
-	
+
 			armor = new ItemNpcArmor(26884,ArmorMaterial.CHAIN,1,"tuxido").setUnlocalizedName("npcTuxedoChest").setMaxStackSize(1).setTextureName("customnpcs:npcTuxedoChest");
 			armor = new ItemNpcArmor(26885,ArmorMaterial.CHAIN,2,"tuxido").setUnlocalizedName("npcTuxedoPants").setMaxStackSize(1).setTextureName("customnpcs:npcTuxedoPants");
 			armor = new ItemNpcArmor(26886,ArmorMaterial.CHAIN,3,"tuxido").setUnlocalizedName("npcTuxedoBottom").setMaxStackSize(1).setTextureName("customnpcs:npcTuxedoBottom");
-	
+
 			armor = new ItemNpcArmor(26887,ArmorMaterial.CHAIN,0,"wizard").setUnlocalizedName("npcWizardHead").setMaxStackSize(1).setTextureName("customnpcs:npcWizardHead");
 			armor = new ItemNpcArmor(26888,ArmorMaterial.CHAIN,1,"wizard").setUnlocalizedName("npcWizardChest").setMaxStackSize(1).setTextureName("customnpcs:npcWizardChest");
 			armor = new ItemNpcArmor(26889,ArmorMaterial.CHAIN,2,"wizard").setUnlocalizedName("npcWizardPants").setMaxStackSize(1).setTextureName("customnpcs:npcWizardPants");
-	
+
 			armor = new ItemNpcArmor(26890,ArmorMaterial.IRON,0,"assassin").setUnlocalizedName("npcAssassinHead").setMaxStackSize(1).setTextureName("customnpcs:npcAssassinHead");
 			armor = new ItemNpcArmor(26891,ArmorMaterial.IRON,1,"assassin").setUnlocalizedName("npcAssassinChest").setMaxStackSize(1).setTextureName("customnpcs:npcAssassinChest");
 			armor = new ItemNpcArmor(26892,ArmorMaterial.IRON,2,"assassin").setUnlocalizedName("npcAssassinLeggings").setMaxStackSize(1).setTextureName("customnpcs:npcAssassinLeggings");
 			armor = new ItemNpcArmor(26893,ArmorMaterial.IRON,3,"assassin").setUnlocalizedName("npcAssassinBoots").setMaxStackSize(1).setTextureName("customnpcs:npcAssassinBoots");
-	
+
 			armor = new ItemNpcArmor(26894,ArmorMaterial.IRON,0,"soldier").setUnlocalizedName("npcSoldierHead").setMaxStackSize(1).setTextureName("customnpcs:npcSoldierHead");
 			armor = new ItemNpcArmor(26895,ArmorMaterial.IRON,1,"soldier").setUnlocalizedName("npcSoldierChest").setMaxStackSize(1).setTextureName("customnpcs:npcSoldierChest");
 			armor = new ItemNpcArmor(26896,ArmorMaterial.IRON,2,"soldier").setUnlocalizedName("npcSoldierLegs").setMaxStackSize(1).setTextureName("customnpcs:npcSoldierLegs");
@@ -695,23 +695,23 @@ public class CustomItems {
 			armor = new ItemNpcArmor(26899,ArmorMaterial.DIAMOND,1,"demonic").setUnlocalizedName("npcDemonicChest").setMaxStackSize(1).setTextureName("customnpcs:npcDemonicChest");
 			armor = new ItemNpcArmor(26900,ArmorMaterial.DIAMOND,2,"demonic").setUnlocalizedName("npcDemonicLegs").setMaxStackSize(1).setTextureName("customnpcs:npcDemonicLegs");
 			armor = new ItemNpcArmor(26901,ArmorMaterial.DIAMOND,3,"demonic").setUnlocalizedName("npcDemonicBoots").setMaxStackSize(1).setTextureName("customnpcs:npcDemonicBoots");
-	
+
 			armor = new ItemNpcArmor(26902,ArmorMaterial.GOLD,0,"commissar").setUnlocalizedName("npcCommissarHead").setMaxStackSize(1).setTextureName("customnpcs:npcCommissarHead");
 			armor = new ItemNpcArmor(26903,ArmorMaterial.GOLD,1,"commissar").setUnlocalizedName("npcCommissarChest").setMaxStackSize(1).setTextureName("customnpcs:npcCommissarChest");
 			armor = new ItemNpcArmor(26904,ArmorMaterial.GOLD,2,"commissar").setUnlocalizedName("npcCommissarLegs").setMaxStackSize(1).setTextureName("customnpcs:npcCommissarLegs");
 			armor = new ItemNpcArmor(26905,ArmorMaterial.GOLD,3,"commissar").setUnlocalizedName("npcCommissarBottom").setMaxStackSize(1).setTextureName("customnpcs:npcCommissarBottom");
-	
+
 			armor = new ItemNpcArmor(26906,ArmorMaterial.IRON,0,"infantry").setUnlocalizedName("npcInfantryHelmet").setMaxStackSize(1).setTextureName("customnpcs:npcInfantryHelmet");
 			armor = new ItemNpcArmor(26907,ArmorMaterial.DIAMOND,1,"officer").setUnlocalizedName("npcOfficerChest").setMaxStackSize(1).setTextureName("customnpcs:npcOfficerChest");
-	
+
 			armor = new ItemNpcArmor(26908,ArmorMaterial.DIAMOND,0,"crown1").setUnlocalizedName("npcCrown2").setMaxStackSize(1).setTextureName("customnpcs:npcCrown2");
 			armor = new ItemNpcArmor(26909,ArmorMaterial.DIAMOND,0,"crown2").setUnlocalizedName("npcCrown").setMaxStackSize(1).setTextureName("customnpcs:npcCrown");
 			armor = new ItemNpcArmorColorable(26909,ArmorMaterial.CLOTH,0,"papercrown").setUnlocalizedName("npcPaperCrown").setMaxStackSize(1).setTextureName("customnpcs:npcPaperCrown");
-	
+
 			armor = new ItemNpcArmor(26916,ArmorMaterial.IRON,0,"ninja").setUnlocalizedName("npcNinjaHead").setMaxStackSize(1).setTextureName("customnpcs:npcNinjaHead");
 			armor = new ItemNpcArmor(26917,ArmorMaterial.IRON,1,"ninja").setUnlocalizedName("npcNinjaChest").setMaxStackSize(1).setTextureName("customnpcs:npcNinjaChest");
 			armor = new ItemNpcArmor(26918,ArmorMaterial.IRON,2,"ninja").setUnlocalizedName("npcNinjaPants").setMaxStackSize(1).setTextureName("customnpcs:npcNinjaPants");
-	
+
 			armor = new ItemSkirt(ArmorMaterial.CHAIN,"textures/models/armor/chainmail_layer_2.png").setUnlocalizedName("npcChainSkirt").setTextureName("customnpcs:npcChainSkirt");
 			armor = new ItemSkirt(ArmorMaterial.CLOTH,"textures/models/armor/leather_layer_2.png").setUnlocalizedName("npcLeatherSkirt").setTextureName("customnpcs:npcLeatherSkirt");
 			armor = new ItemSkirt(ArmorMaterial.GOLD,"textures/models/armor/gold_layer_2.png").setUnlocalizedName("npcGoldSkirt").setTextureName("customnpcs:npcGoldSkirt");
@@ -721,8 +721,8 @@ public class CustomItems {
 			armor = new ItemSkirt(armorBronze,"customnpcs:textures/armor/fullbronze_2.png").setUnlocalizedName("npcBronzeSkirt").setTextureName("customnpcs:npcBronzeSkirt");
 			armor = new ItemSkirt(ArmorMaterial.DIAMOND,"customnpcs:textures/armor/demonic_2.png").setUnlocalizedName("npcDemonicSkirt").setTextureName("customnpcs:npcDemonicSkirt");
 			armor = new ItemSkirt(armorMithril,"customnpcs:textures/armor/mithril_2.png").setUnlocalizedName("npcMithrilSkirt").setTextureName("customnpcs:npcMithrilSkirt");
-			
-			
+
+
 			coinWood = new ItemNpcInterface(26717).setUnlocalizedName("npcCoinWooden").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCoinWooden");
 			coinStone = new ItemNpcInterface(26718).setUnlocalizedName("npcCoinStone").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCoinStone");
 			coinBronze = new ItemNpcInterface(26719).setUnlocalizedName("npcCoinBronze").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCoinBronze");
@@ -731,23 +731,23 @@ public class CustomItems {
 			coinDiamond = new ItemNpcInterface(26722).setUnlocalizedName("npcCoinDiamond").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCoinDiamond");
 			coinEmerald = new ItemNpcInterface(26723).setUnlocalizedName("npcCoinEmerald").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCoinEmerald");
 			Item quest = new ItemNpcInterface().setUnlocalizedName("npcAncientCoin").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAncientCoin");
-			
+
 			letter = new ItemNpcInterface(26950).setUnlocalizedName("npcLetter").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcLetter");
 			quest = new ItemNpcInterface(26951).setUnlocalizedName("npcPlans").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcPlans");
 			satchel = new ItemNpcInterface(26952).setUnlocalizedName("npcSatchel").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcSatchel");
 			bag = new ItemNpcInterface(26953).setUnlocalizedName("npcBag").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBag");
-			
+
 			quest = new ItemNpcInterface(26954).setUnlocalizedName("npcCrystal").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCrystal");
 			quest = new ItemNpcInterface(26955).setUnlocalizedName("npcSeveredEar").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcSeveredEar");
 			quest = new ItemNpcInterface(26956).setUnlocalizedName("npcPhone").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcPhone");
-	
+
 			quest = new ItemNpcArmor(26957,ArmorMaterial.IRON,0,"mask").setMaxStackSize(64).setUnlocalizedName("npcBanditMask").setCreativeTab(CustomItems.tabArmor).setTextureName("customnpcs:npcBanditMask");
 			quest = new ItemNpcInterface(26958).setUnlocalizedName("npcBrokenArrow").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBrokenArrow");
 			quest = new ItemNpcInterface(26959).setUnlocalizedName("npcEarthElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcEarthElement");
 			quest = new ItemNpcInterface(26960).setUnlocalizedName("npcWaterElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcWaterElement");
 			quest = new ItemNpcInterface(26961).setUnlocalizedName("npcFireElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcFireElement");
 			quest = new ItemNpcInterface(26962).setUnlocalizedName("npcAirElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAirElement");
-			
+
 			quest = new ItemNpcInterface(26963).setUnlocalizedName("npcCarKey").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCarKey");
 			quest = new ItemNpcInterface(26964).setUnlocalizedName("npcKey").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcKey");
 			quest = new ItemNpcInterface(26965).setUnlocalizedName("npcKey2").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcKey2");
@@ -755,7 +755,7 @@ public class CustomItems {
 			quest = new ItemNpcInterface(26967).setUnlocalizedName("npcBlueprint").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBlueprint");
 			quest = new ItemNpcInterface(26968).setUnlocalizedName("npcRing").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcRing");
 			quest = new ItemNpcInterface(26969).setUnlocalizedName("npcSkull").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcSkull");
-	
+
 			Item sapphire = new ItemNpcInterface(26970).setUnlocalizedName("npcSaphire").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcSaphire");
 			Item ruby = new ItemNpcInterface(26971).setUnlocalizedName("npcRuby").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcRuby");
 			Item amethyst = new ItemNpcInterface(26972).setUnlocalizedName("npcAmethyst").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAmethyst");
@@ -763,23 +763,23 @@ public class CustomItems {
 			OreDictionary.registerOre("gemSaphire", sapphire);
 			OreDictionary.registerOre("gemRuby", ruby);
 			OreDictionary.registerOre("gemAmethyst", amethyst);
-			
+
 			bronze_ingot = new ItemNpcInterface(26973).setUnlocalizedName("npcBronzeIngot").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBronzeIngot");
 			demonic_ingot = new ItemNpcInterface(26973).setUnlocalizedName("npcDemonicIngot").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcDemonicIngot");
 			mithril_ingot = new ItemNpcInterface(26973).setUnlocalizedName("npcMithrilIngot").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcMithrilIngot");
 
 			armorMithril.customCraftingMaterial = mithril_ingot;
-			
+
 			bronze.customCraftingMaterial = bronze_ingot;
 			emerald.customCraftingMaterial = Items.emerald;
 			demonic.customCraftingMaterial = demonic_ingot;
 			frost.customCraftingMaterial = Item.getItemFromBlock(Blocks.ice);
 			mithril.customCraftingMaterial = mithril_ingot;
-			
+
 			OreDictionary.registerOre("ingotBronze", bronze_ingot);
 			OreDictionary.registerOre("ingotDemonic", demonic_ingot);
 			OreDictionary.registerOre("ingotMithril", mithril_ingot);
-			
+
 			quest = new ItemNpcInterface().setUnlocalizedName("npcAncientScroll").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAncientScroll");
 			quest = new ItemNpcInterface().setUnlocalizedName("npcArtifact").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcArtifact");
 			quest = new ItemNpcInterface().setUnlocalizedName("npcLocket").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcLocket");
@@ -791,12 +791,12 @@ public class CustomItems {
 			quest = new ItemNpcInterface().setUnlocalizedName("npcMoney").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcMoney");
 			quest = new ItemNpcInterface().setUnlocalizedName("npcNecklace").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcNecklace");
 			quest = new ItemNpcInterface().setUnlocalizedName("npcUsbStick").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcUsbStick");
-			
+
 			tabArmor.item = cowarmor;
 			tabWeapon.item = CustomItems.shuriken;
 			tabMisc.item = CustomItems.coinGold;
 		}
-		
+
 		tab.item = wand;
 	}
 }
