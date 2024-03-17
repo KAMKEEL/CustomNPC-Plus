@@ -17,6 +17,7 @@ public class ConfigMain
     public final static String NPC = "NPC";
     public final static String UPDATE = "Update";
     public final static String SYNC = "SYNC";
+    public final static String PARTY = "PARTY";
 
     /**
      *  General Main Properties
@@ -66,6 +67,12 @@ public class ConfigMain
 
     public static Property MarketDatFormatProperty;
     public static boolean MarketDatFormat = false;
+
+    public static Property PartiesEnabledProperty;
+    public static boolean PartiesEnabled;
+
+    public static Property PartyFriendlyFireEnabledProperty;
+    public static boolean PartyFriendlyFireEnabled;
 
     public static Property DefaultMinPartySizeProperty;
     public static int DefaultMinPartySize = 1;
@@ -165,12 +172,6 @@ public class ConfigMain
             MarketDatFormatProperty = config.get(GENERAL, "Dat Format for Market", false, "You need to use '/kamkeel config market' to convert existing market to new format.");
             MarketDatFormat = MarketDatFormatProperty.getBoolean(false);
 
-            DefaultMinPartySizeProperty = config.get(GENERAL, "Default Min Party Size", 1, "When creating a new Quest sets the default min party size");
-            DefaultMinPartySize = DefaultMinPartySizeProperty.getInt(4);
-
-            DefaultMaxPartySizeProperty = config.get(GENERAL, "Default Max Party Size", 4, "When creating a new Quest sets the default max party size");
-            DefaultMaxPartySize = DefaultMaxPartySizeProperty.getInt(4);
-
             // NPC
             NpcNavRangeProperty = config.get(NPC, "NPC Navigation Range", 32, "Navigation search range for NPCs. Not recommended to increase if you have a slow pc or on a server. Minimum of 16, maximum of 96.");
             NpcNavRange = NpcNavRangeProperty.getInt(32);
@@ -198,6 +199,19 @@ public class ConfigMain
 
             HitBoxScaleMaxProperty = config.get(NPC, "HitBox Scale Limit", 15, "The maximum scale factor for a custom hitbox");
             HitBoxScaleMax = HitBoxScaleMaxProperty.getInt(15);
+
+            //PARTY
+            PartiesEnabledProperty = config.get(PARTY, "Parties Enabled", true, "Determines whether the party system is enabled or not.");
+            PartiesEnabled = PartiesEnabledProperty.getBoolean();
+
+            PartyFriendlyFireEnabledProperty = config.get(PARTY, "Party Friendly Fire", true, "Determines whether friendly fire can be toggled in parties.");
+            PartyFriendlyFireEnabled = PartyFriendlyFireEnabledProperty.getBoolean();
+
+            DefaultMinPartySizeProperty = config.get(PARTY, "Default Min Party Size", 1, "When creating a new Quest sets the default min party size");
+            DefaultMinPartySize = DefaultMinPartySizeProperty.getInt(4);
+
+            DefaultMaxPartySizeProperty = config.get(PARTY, "Default Max Party Size", 4, "When creating a new Quest sets the default max party size");
+            DefaultMaxPartySize = DefaultMaxPartySizeProperty.getInt(4);
 
             // Update
             TrackedQuestUpdateFrequencyProperty = config.get(UPDATE, "Tracked Quest Update Frequency", 5, "How often in seconds to update a players tracked quest. [Only applies to Item Quest currently]");
