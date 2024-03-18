@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -115,6 +116,9 @@ public class PlayerQuestData implements IPlayerQuestData {
 	public boolean checkQuestCompletion(PlayerData playerData,EnumQuestType type) {
 		boolean bo = false;
 		EntityPlayer player = playerData.player;
+
+		if (player instanceof FakePlayer)
+			return false;
 
 		ArrayList<QuestData> activeQuestValues = new ArrayList<>(this.activeQuests.values());
 		for(QuestData data : activeQuestValues){
