@@ -626,11 +626,12 @@ public class NoppesUtilPlayer {
             }
 
             playerData.save();
-            if(meetsComplete){
-                Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
-            }
+            Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
         }
 
+        if(quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared){
+            quest.questInterface.removePartyItems(party);
+        }
 
         if (hasNextQuest) {
             if(party.validateQuest(data.quest.getNextQuest().getId(), true)){

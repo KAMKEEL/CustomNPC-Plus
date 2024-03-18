@@ -106,8 +106,61 @@ public class QuestItem extends QuestInterface implements IQuestItem {
             removeItems(player);
         } else if (objectives == EnumPartyObjectives.Shared){
             // Shared Case
+            // Do nothing, handled later in quest completion
         }
     }
+
+    public void removePartyItems(Party party) {
+        // Iterate through each quest item in the list
+        for (ItemStack questItem : items.items.values()) {
+            int remainingItems = questItem.stackSize;
+
+            // Iterate through all members of the party
+            for (UUID uuid : party.getPlayerUUIDs()) {
+                EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
+                if (player != null) {
+                    int removedItems = removeItemFromPlayer(player, questItem, remainingItems);
+                    remainingItems -= removedItems;
+
+                    // If no remaining items are needed for this quest item, move to the next one
+                    if (remainingItems <= 0) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    private int removeItemFromPlayer(EntityPlayer player, ItemStack questItem, int numItemsToRemove) {
+        int itemsRemoved = 0;
+
+        // Iterate through the player's inventory
+        for (int i = 0; i < player.inventory.mainInventory.length && itemsRemoved < numItemsToRemove; i++) {
+            ItemStack itemStack = player.inventory.mainInventory[i];
+            if (itemStack == null)
+                continue;
+            if (NoppesUtilPlayer.compareItems(itemStack, questItem, ignoreDamage, ignoreNBT)) {
+                int itemsToRemoveFromStack = Math.min(itemStack.stackSize, numItemsToRemove - itemsRemoved);
+                int size = itemStack.stackSize;
+                if (itemsToRemoveFromStack >= size) {
+                    player.inventory.setInventorySlotContents(i, null);
+                    itemsRemoved += size;
+                } else {
+                    itemStack.stackSize -= itemsToRemoveFromStack;
+                    itemsRemoved += itemsToRemoveFromStack;
+                }
+
+                // If there are no more remaining items to remove, break out of the loop
+                if (itemsRemoved >= numItemsToRemove) {
+                    break;
+                }
+            }
+        }
+        return itemsRemoved;
+    }
+
+
 
     public void removeItems(EntityPlayer player){
         for(ItemStack questitem : items.items.values()){

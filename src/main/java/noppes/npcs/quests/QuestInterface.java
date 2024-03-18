@@ -30,6 +30,8 @@ public abstract class QuestInterface implements IQuestInterface {
         handleComplete(player);
     }
 
+    public void removePartyItems(Party party){}
+
     public abstract Vector<String> getQuestLogStatus(EntityPlayer player);
 	public abstract IQuestObjective[] getObjectives(EntityPlayer var1);
 
