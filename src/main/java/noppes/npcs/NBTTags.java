@@ -27,7 +27,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	public static ItemStack[] getItemStackArray(
 			NBTTagList tagList) {
 		ItemStack[] list = new ItemStack[tagList.tagCount()];
@@ -38,7 +38,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	public static ArrayList<int[]> getIntegerArraySet(NBTTagList tagList) {
 		ArrayList<int[]> set = new ArrayList<int[]>();
         for(int i = 0; i < tagList.tagCount(); i++)
@@ -58,7 +58,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	public static HashMap<Integer, Integer> getIntegerIntegerMap(
 			NBTTagList tagList) {
 		HashMap<Integer, Integer> list = new HashMap<Integer, Integer>();
@@ -80,7 +80,7 @@ public class NBTTags {
 		}
 		return list;
 	}
-	
+
 	public static HashMap<Integer, Long> getIntegerLongMap(
 			NBTTagList tagList) {
 		HashMap<Integer, Long> list = new HashMap<Integer, Long>();
@@ -113,7 +113,7 @@ public class NBTTags {
 		}
 		return nbttaglist;
 	}
-	
+
 	public static HashSet<Integer> getIntegerSet(NBTTagList tagList) {
 		HashSet<Integer> list = new HashSet<Integer>();
         for(int i = 0; i < tagList.tagCount(); i++)
@@ -155,7 +155,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	public static HashMap<String, Integer> getStringIntegerMap(NBTTagList tagList) {
 		HashMap<String, Integer> list = new HashMap<String, Integer>();
         for(int i = 0; i < tagList.tagCount(); i++)
@@ -165,7 +165,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	public static HashMap<String, int[]> getStringIntegerArrayMap(NBTTagList tagList) {
 		HashMap<String, int[]> list = new HashMap<String, int[]>();
         for(int i = 0; i < tagList.tagCount(); i++)
@@ -175,7 +175,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	/**
 	 * @param tagList
 	 * @param arrayLength if an int array is not this length a new int array with this length is made
@@ -192,7 +192,7 @@ public class NBTTags {
         }
 		return list;
 	}
-	
+
 	public static HashMap<String, Vector<String>> getVectorMap(NBTTagList tagList) {
 		HashMap<String, Vector<String>> map = new HashMap<String, Vector<String>>();
         for(int i = 0; i < tagList.tagCount(); i++)
@@ -205,7 +205,7 @@ public class NBTTags {
                 NBTTagCompound value = list.getCompoundTagAt(j);
                 values.add(value.getString("Value"));
             }
-            
+
             map.put(nbttagcompound.getString("Key"), values);
         }
 		return map;
@@ -221,7 +221,7 @@ public class NBTTags {
 		}
 		return list;
 	}
-	
+
 	public static String[] getStringArray(NBTTagList tagList, int size) {
 		String[] arr = new String[size];
 		for (int i = 0; i < tagList.tagCount(); i++) {
@@ -232,7 +232,7 @@ public class NBTTags {
 		}
 		return arr;
 	}
-	
+
     public static NBTTagList nbtIntegerArraySet(List<int[]> set) {
         NBTTagList nbttaglist = new NBTTagList();
     	if(set == null)
@@ -245,7 +245,7 @@ public class NBTTags {
         }
         return nbttaglist;
 	}
-	
+
     public static NBTTagList nbtItemStackList(HashMap<Integer,ItemStack>inventory) {
         NBTTagList nbttaglist = new NBTTagList();
     	if(inventory == null)
@@ -259,12 +259,12 @@ public class NBTTags {
             nbttagcompound.setByte("Slot", (byte)slot);
 
     		NoppesUtilServer.writeItem(item, nbttagcompound);
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
 	}
-	
+
     public static NBTTagList nbtItemStackArray(ItemStack[] inventory) {
         NBTTagList nbttaglist = new NBTTagList();
     	if(inventory == null)
@@ -277,7 +277,7 @@ public class NBTTags {
 
         	if(item != null)
         		NoppesUtilServer.writeItem(item, nbttagcompound);
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
@@ -293,13 +293,13 @@ public class NBTTags {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setInteger("Slot", slot);
             nbttagcompound.setBoolean("Boolean", inventory2.get(slot));
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
 	}
 
-	public static NBTTagList nbtIntegerIntegerMap(HashMap<Integer, Integer> lines) {
+	public static NBTTagList nbtIntegerIntegerMap(Map<Integer, Integer> lines) {
 		NBTTagList nbttaglist = new NBTTagList();
 		if(lines == null)
 			return nbttaglist;
@@ -312,7 +312,7 @@ public class NBTTags {
 		return nbttaglist;
 	}
 
-	public static NBTTagList nbtIntegerDoubleMap(HashMap<Integer, Double> lines) {
+	public static NBTTagList nbtIntegerDoubleMap(Map<Integer, Double> lines) {
 		NBTTagList nbttaglist = new NBTTagList();
 		if(lines == null)
 			return nbttaglist;
@@ -325,7 +325,7 @@ public class NBTTags {
 		return nbttaglist;
 	}
 
-	public static NBTTagList nbtIntegerLongMap(HashMap<Integer, Long> lines) {
+	public static NBTTagList nbtIntegerLongMap(Map<Integer, Long> lines) {
 		NBTTagList nbttaglist = new NBTTagList();
 		if(lines == null)
 			return nbttaglist;
@@ -338,7 +338,7 @@ public class NBTTags {
 		return nbttaglist;
 	}
 
-	public static NBTTagList nbtVectorMap(HashMap<String, Vector<String>> map) {
+	public static NBTTagList nbtVectorMap(Map<String, Vector<String>> map) {
         NBTTagList list = new NBTTagList();
         if(map == null)
         	return list;
@@ -356,8 +356,8 @@ public class NBTTags {
         }
 		return list;
 	}
-	
-	public static NBTTagList nbtStringStringMap(HashMap<String, String> map) {
+
+	public static NBTTagList nbtStringStringMap(Map<String, String> map) {
         NBTTagList nbttaglist = new NBTTagList();
     	if(map == null)
     		return nbttaglist;
@@ -366,13 +366,13 @@ public class NBTTags {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setString("Slot", slot);
             nbttagcompound.setString("Value", map.get(slot));
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
 	}
-	
-	public static NBTTagList nbtStringIntegerMap(HashMap<String, Integer> map) {
+
+	public static NBTTagList nbtStringIntegerMap(Map<String, Integer> map) {
         NBTTagList nbttaglist = new NBTTagList();
     	if(map == null)
     		return nbttaglist;
@@ -381,13 +381,13 @@ public class NBTTags {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setString("Slot", slot);
             nbttagcompound.setInteger("Value", map.get(slot));
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
 	}
-	
-	public static NBTTagList nbtStringIntegerArrayMap(HashMap<String, int[]> map) {
+
+	public static NBTTagList nbtStringIntegerArrayMap(Map<String, int[]> map) {
 		NBTTagList nbttaglist = new NBTTagList();
     	if(map == null)
     		return nbttaglist;
@@ -396,7 +396,7 @@ public class NBTTags {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setString("Slot", slot);
             nbttagcompound.setIntArray("Value", map.get(slot));
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
@@ -411,17 +411,17 @@ public class NBTTags {
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setInteger("Slot", slot);
             nbttagcompound.setString("Value", map.get(slot));
-            
+
             nbttaglist.appendTag(nbttagcompound);
         }
         return nbttaglist;
 	}
-	
+
 	public static NBTTagList nbtStringArray(String[] list) {
         NBTTagList nbttaglist = new NBTTagList();
     	if(list == null)
     		return nbttaglist;
-        for(int i = 0; i < list.length; i++){ 
+        for(int i = 0; i < list.length; i++){
         	if(list[i] == null)
         		continue;
 			NBTTagCompound nbttagcompound = new NBTTagCompound();
@@ -431,7 +431,7 @@ public class NBTTags {
         }
         return nbttaglist;
 	}
-		
+
 	public static NBTTagList nbtStringList(List<String> list) {
 		NBTTagList nbttaglist = new NBTTagList();
 		for (String s : list) {
