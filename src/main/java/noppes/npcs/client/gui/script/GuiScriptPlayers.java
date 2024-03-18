@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.client.gui.script;
 
 import net.minecraft.entity.player.EntityPlayer;

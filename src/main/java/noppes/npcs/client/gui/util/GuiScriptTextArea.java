@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.client.gui.util;
 
 import net.minecraft.client.Minecraft;

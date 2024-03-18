@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.eventhandler.Event;
