@@ -145,11 +145,12 @@ public class QuestItem extends QuestInterface implements IQuestItem {
                 int size = itemStack.stackSize;
                 if (itemsToRemoveFromStack >= size) {
                     player.inventory.setInventorySlotContents(i, null);
-                    itemsRemoved += size;
+                    itemStack.splitStack(size);
                 } else {
-                    itemStack.stackSize -= itemsToRemoveFromStack;
-                    itemsRemoved += itemsToRemoveFromStack;
+                    itemStack.splitStack(itemsToRemoveFromStack);
                 }
+
+                itemsRemoved += size;
 
                 // If there are no more remaining items to remove, break out of the loop
                 if (itemsRemoved >= numItemsToRemove) {
