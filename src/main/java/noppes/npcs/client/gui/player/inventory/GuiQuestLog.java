@@ -17,6 +17,7 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.util.ValueUtil;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -234,7 +235,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         int maxScroll = Math.max(0, this.sideButtons.size() - 9) * 22;
         // Adjust scrolling only if the mouse is in the scroll zone
         if (isMouseInScrollZone(i, j)) {
-            this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(this.mouseWheel) * 22, -maxScroll, 0);
+            this.destSideButtonScroll = ValueUtil.clamp(this.destSideButtonScroll - Math.signum(Mouse.getDWheel()) * 22, -maxScroll, 0);
         }
         // Apply smoothing to the scroll transition
         this.sideButtonScroll += (this.destSideButtonScroll - this.sideButtonScroll) * SMOOTHING_FACTOR;

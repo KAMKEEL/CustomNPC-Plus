@@ -28,7 +28,6 @@ import java.util.HashMap;
 
 public abstract class GuiNPCInterface extends GuiScreen
 {
-	public static Window AWTWindow;
 	public EntityClientPlayerMP player;
 	public boolean drawDefaultBackground = true;
 	public EntityNPCInterface npc;
@@ -51,8 +50,6 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public float bgScaleX = 1;
 	public float bgScaleY = 1;
 	public float bgScaleZ = 1;
-
-	public int mouseWheel;
 
     public GuiNPCInterface(EntityNPCInterface npc)
     {
@@ -113,8 +110,6 @@ public abstract class GuiNPCInterface extends GuiScreen
 
     public void mouseClicked(int i, int j, int k)
     {
-		if(AWTWindow != null)
-			return;
     	if(subgui != null)
     		subgui.mouseClicked(i,j,k);
     	else{
@@ -145,8 +140,6 @@ public abstract class GuiNPCInterface extends GuiScreen
 
     @Override
 	public void keyTyped(char c, int i){
-		if(AWTWindow != null)
-			return;
     	if(subgui != null)
     		subgui.keyTyped(c,i);
     	for(GuiNpcTextField tf : textfields.values())
@@ -218,18 +211,6 @@ public abstract class GuiNPCInterface extends GuiScreen
 
     @Override
     public void drawScreen(int i, int j, float f){
-		this.mouseWheel = Mouse.getDWheel();
-
-    	if(AWTWindow != null){
-    		if(!AWTWindow.isVisible()){
-    			AWTWindow.dispose();
-    			AWTWindow = null;
-    		}
-    		else if(Display.isActive()){
-    			Toolkit.getDefaultToolkit().beep();
-    			AWTWindow.setVisible(true);
-    		}
-    	}
     	mouseX = i;
     	mouseY = j;
     	if(drawDefaultBackground && subgui == null)
@@ -248,14 +229,14 @@ public abstract class GuiNPCInterface extends GuiScreen
     	}
         for(GuiCustomScroll scroll : scrolls.values()){
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, subGui?0:this.mouseWheel);
+            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j)?Mouse.getDWheel():0);
         }
         for(GuiScreen gui : extra.values())
         	gui.drawScreen(i, j, f);
         super.drawScreen(i, j, f);
 		for(GuiCustomScroll scroll : scrolls.values())
 			if(scroll.hoverableText){
-				scroll.drawHover(i, j, f, subGui?0:this.mouseWheel);
+				scroll.drawHover(i, j);
 			}
         for(GuiNpcButton button : buttons.values()){
             button.updateSubGUI(subGui);
