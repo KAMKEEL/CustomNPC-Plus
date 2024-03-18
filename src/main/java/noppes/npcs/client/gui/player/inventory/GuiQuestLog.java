@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.player.inventory;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -20,8 +19,6 @@ import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
-import tconstruct.client.tabs.InventoryTabCustomNpc;
-import tconstruct.client.tabs.TabRegistry;
 
 import java.util.*;
 

@@ -23,7 +23,6 @@ import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.IScrollGroup;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;

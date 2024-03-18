@@ -1,14 +1,11 @@
 package noppes.npcs.quests;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IQuestDialog;
 import noppes.npcs.api.handler.data.IQuestObjective;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.DialogController;
@@ -20,8 +17,6 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.*;
-
-import static noppes.npcs.PacketHandlerServer.sendInviteData;
 
 public class QuestDialog extends QuestInterface implements IQuestDialog {
 

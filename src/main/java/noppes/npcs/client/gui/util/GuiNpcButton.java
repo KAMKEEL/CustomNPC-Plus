@@ -2,10 +2,7 @@ package noppes.npcs.client.gui.util;
 
 import kamkeel.util.TextSplitter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;

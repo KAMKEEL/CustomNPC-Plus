@@ -9,7 +9,6 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
@@ -19,7 +18,6 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.quests.QuestInterface;
 import noppes.npcs.quests.QuestItem;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.PartyEvent;
 
 import java.util.HashMap;

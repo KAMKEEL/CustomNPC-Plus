@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -42,11 +41,9 @@ import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.items.ItemScripted;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 

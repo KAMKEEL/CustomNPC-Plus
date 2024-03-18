@@ -8,7 +8,6 @@ import foxz.commandhelper.permissions.ParamCheck;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.PlayerData;

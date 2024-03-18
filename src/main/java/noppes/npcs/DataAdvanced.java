@@ -5,14 +5,12 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.FactionOptions;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.*;
-import org.lwjgl.Sys;
 
 import java.util.HashMap;
 import java.util.HashSet;

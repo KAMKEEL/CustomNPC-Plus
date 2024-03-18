@@ -2,11 +2,7 @@ package noppes.npcs.client.gui.player.inventory;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.init.Items;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.CustomItems;
-import noppes.npcs.client.gui.util.GuiButtonNextPage;
 import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.config.ConfigClient;

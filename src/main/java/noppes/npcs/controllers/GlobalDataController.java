@@ -2,16 +2,11 @@ package noppes.npcs.controllers;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.config.ConfigMain;
-import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.HashMap;
 
 import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 

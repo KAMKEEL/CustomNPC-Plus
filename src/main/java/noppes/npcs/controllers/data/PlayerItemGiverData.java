@@ -4,11 +4,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IPlayerItemGiverData;
 import noppes.npcs.api.jobs.IJobItemGiver;
-import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.scripted.roles.ScriptJobItemGiver;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PlayerItemGiverData implements IPlayerItemGiverData {

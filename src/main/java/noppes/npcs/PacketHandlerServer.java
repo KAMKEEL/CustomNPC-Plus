@@ -45,7 +45,6 @@ import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.PartyEvent;
-import noppes.npcs.scripted.event.QuestEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 

@@ -18,11 +18,8 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 

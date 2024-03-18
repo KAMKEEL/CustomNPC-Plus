@@ -1,11 +1,7 @@
 package noppes.npcs.client.gui;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.NoppesUtil;
@@ -16,7 +12,6 @@ import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.entity.EntityDialogNpc;
 

@@ -2,7 +2,6 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.DataStats;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
 

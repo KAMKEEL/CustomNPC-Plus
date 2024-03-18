@@ -11,7 +11,6 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Vector;
 
 public class QuestLogData {

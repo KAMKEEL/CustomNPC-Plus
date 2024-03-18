@@ -2,7 +2,6 @@ package noppes.npcs.client.renderer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GLAllocation;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.model.util.Model2DRenderer;

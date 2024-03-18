@@ -18,7 +18,6 @@ import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.NpcAPI;

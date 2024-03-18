@@ -6,7 +6,6 @@ import net.minecraftforge.common.config.Property;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
-import tv.twitch.chat.Chat;
 
 import java.io.File;
 

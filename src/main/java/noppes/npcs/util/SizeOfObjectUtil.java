@@ -1,6 +1,5 @@
 package noppes.npcs.util;
 
-import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Field;
 
 public class SizeOfObjectUtil {
