@@ -3,6 +3,7 @@ package noppes.npcs.quests;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.IQuestKill;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
@@ -18,7 +19,7 @@ import noppes.npcs.scripted.CustomNPCsException;
 import java.util.*;
 
 public class QuestKill extends QuestInterface implements IQuestKill {
-	public HashMap<String,Integer> targets = new HashMap<String,Integer>();
+	public TreeMap<String,Integer> targets = new TreeMap<String,Integer>();
 	public int targetType = 0;
 	public String customTargetType = "noppes.npcs.entity.EntityCustomNpc";
 
@@ -33,10 +34,10 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 	public void readEntityFromNBT(NBTTagCompound compound) {
 		if(!compound.hasKey("QuestKills")) {
 			targets.clear();
-			HashMap<String,Integer> oldTargets = NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10));
+            TreeMap<String,Integer> oldTargets = new TreeMap(NBTTags.getStringIntegerMap(compound.getTagList("QuestDialogs", 10)));
 			targets.putAll(oldTargets);
 		} else {
-			targets = NBTTags.getStringIntegerMap(compound.getTagList("QuestKills", 10));
+			targets = new TreeMap(NBTTags.getStringIntegerMap(compound.getTagList("QuestKills", 10)));
 		}
         targetType = compound.getInteger("TargetType");
 		customTargetType = compound.getString("CustomTargetType");
@@ -235,6 +236,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
 		this.targetType = type;
 	}
+
 	public int getTargetType() {
 		return this.targetType;
 	}
@@ -339,7 +341,54 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 			}
 		}
 
-		public int getMaxProgress() {
+        @Override
+        public void setPlayerProgress(String playerName, int progress) {
+            if (progress >= 0 && progress <= this.amount) {
+                EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
+                if(foundplayer != null && party == null){
+                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    PlayerQuestData playerdata = data.questData;
+                    QuestData questdata = (QuestData)playerdata.activeQuests.get(this.parent.questId);
+                    if(questdata != null){
+                        HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                        if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                            killed.put(this.entity, progress);
+                            this.parent.setKilled(questdata, killed);
+                            data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
+                            data.questData.checkQuestCompletion(data, EnumQuestType.values()[4]);
+                            data.updateClient = true;
+                            data.save();
+                        }
+                    }
+                } else if (foundplayer != null){
+                    QuestData questdata = party.getQuestData();
+                    if(questdata != null){
+                        if(questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+                            HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, playerName);
+                            if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                                killed.put(this.entity, progress);
+                                this.parent.setPlayerKilled(questdata, killed, playerName);
+                            }
+                            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
+                            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
+                        }
+                        else {
+                            HashMap<String, Integer> killed = this.parent.getKilled(questdata);
+                            if (!killed.containsKey(this.entity) || (Integer)killed.get(this.entity) != progress) {
+                                killed.put(this.entity, progress);
+                                this.parent.setKilled(questdata, killed);
+                                PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
+                                PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
+                            }
+                        }
+                    }
+                }
+            } else {
+                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
+            }
+        }
+
+        public int getMaxProgress() {
 			return this.amount;
 		}
 
@@ -376,7 +425,6 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                     }
                 }
             }
-
             return null;
         }
     }

@@ -392,7 +392,79 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 			}
 		}
 
-		public int getMaxProgress() {
+        @Override
+        public void setPlayerProgress(String playerName, int progress) {
+            if (progress >= 0 && progress <= 1) {
+                EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
+                if(foundplayer != null && party == null){
+                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    boolean completed = data.dialogData.dialogsRead.contains(this.dialog.id);
+                    if (progress == 0 && completed) {
+                        data.dialogData.dialogsRead.remove(this.dialog.id);
+                        data.questData.checkQuestCompletion(data, EnumQuestType.values()[1]);
+                        data.updateClient = true;
+                        data.save();
+                    }
+
+                    if (progress == 1 && !completed) {
+                        data.dialogData.dialogsRead.add(this.dialog.id);
+                        data.questData.checkQuestCompletion(data, EnumQuestType.values()[1]);
+                        data.updateClient = true;
+                        data.save();
+                    }
+                } else if (foundplayer != null){
+                    if(party.getObjectiveRequirement() != null){
+                        EnumPartyObjectives objectives = party.getObjectiveRequirement();
+                        if(objectives == EnumPartyObjectives.Leader){
+                            EntityPlayer leaderPlayer = NoppesUtilServer.getPlayer(party.getLeaderUUID());
+                            PlayerData leaderData;
+                            if(leaderPlayer != null){
+                                leaderData = PlayerDataController.Instance.getPlayerData(leaderPlayer);
+                            }
+                            else {
+                                leaderData = PlayerDataController.Instance.getPlayerDataCache(party.getLeaderUUID().toString());
+                            }
+                            if(leaderData == null)
+                                return;
+
+                            boolean completed = leaderData.dialogData.dialogsRead.contains(this.dialog.id);
+                            if (progress == 0 && completed) {
+                                leaderData.dialogData.dialogsRead.remove(this.dialog.id);
+                                PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[1]);
+                                leaderData.updateClient = true;
+                                leaderData.save();
+                            }
+                            if (progress == 1 && !completed) {
+                                leaderData.dialogData.dialogsRead.add(this.dialog.id);
+                                PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[1]);
+                                leaderData.updateClient = true;
+                                leaderData.save();
+                            }
+                        } else {
+                            PlayerData individualData = PlayerDataController.Instance.getPlayerData(foundplayer);
+                            if(individualData != null){
+                                boolean completed = individualData.dialogData.dialogsRead.contains(this.dialog.id);
+                                if (progress == 0 && completed) {
+                                    individualData.dialogData.dialogsRead.remove(this.dialog.id);
+                                    individualData.save();
+                                    individualData.updateClient = true;
+                                }
+                                if (progress == 1 && !completed) {
+                                    individualData.dialogData.dialogsRead.add(this.dialog.id);
+                                    individualData.save();
+                                    individualData.updateClient = true;
+                                }
+                            }
+                            PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[1]);
+                        }
+                    }
+                }
+            } else {
+                throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
+            }
+        }
+
+        public int getMaxProgress() {
 			return 1;
 		}
 

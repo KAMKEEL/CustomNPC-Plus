@@ -13,9 +13,14 @@ import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.quests.*;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.quests.QuestDialog;
+import noppes.npcs.quests.QuestInterface;
+import noppes.npcs.quests.QuestItem;
+import noppes.npcs.quests.QuestKill;
+import noppes.npcs.quests.QuestLocation;
+import noppes.npcs.quests.QuestManual;
 
 public class Quest implements ICompatibilty, IQuest {
 	public int version = VersionCompatibility.ModRev;
@@ -87,6 +92,8 @@ public class Quest implements ICompatibilty, IQuest {
 			questInterface = new QuestKill();
 		else if(type == EnumQuestType.Location)
 			questInterface = new QuestLocation();
+        else if(type == EnumQuestType.Manual)
+            questInterface = new QuestManual();
 
 		if(questInterface != null)
 			questInterface.questId = id;

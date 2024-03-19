@@ -1,18 +1,24 @@
 package kamkeel.command;
 
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.Server;
+import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.SyncController;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.util.ValueUtil;
 
 import java.util.Collection;
 import java.util.List;
@@ -168,7 +174,7 @@ public class QuestCommand extends CommandKamkeelBase {
 
         Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
-        	sendError(sender, String.format("Unknown QuestID"));
+        	sendError(sender, "Unknown QuestID");
             return;
         }
 
@@ -179,6 +185,94 @@ public class QuestCommand extends CommandKamkeelBase {
             playerdata.updateClient = true;
             sendResult(sender, String.format("Removed Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
         }
+    }
+
+    @SubCommand(
+        desc= "Get/Set objectives for quests progress",
+        usage = "<player> <quest> [objective] [value]"
+    )
+    public void objective(ICommandSender sender, String[] args) throws CommandException {
+        EntityPlayer player = CommandBase.getPlayer(sender, args[0]);
+        int questid;
+        try {
+            questid = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "QuestID must be an integer: " + args[1]);
+            return;
+        }
+
+        Quest quest = QuestController.Instance.quests.get(questid);
+        if (quest == null){
+            sendError(sender, "Unknown QuestID");
+            return;
+        }
+
+        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        if (data == null){
+            sendError(sender, "No PlayerData found for:" + player);
+            return;
+        }
+
+        Party party = data.getPlayerParty();
+        boolean partyValid = party != null && party.getQuest() != null && party.getQuest().getId() == quest.id;
+
+        if(!partyValid && !data.questData.activeQuests.containsKey(quest.id)) {
+            sendError(sender, "Player does not have quest active");
+            return;
+        }
+
+        IQuestObjective[] objectives;
+        if(partyValid)
+            objectives = quest.questInterface.getPartyObjectives(party);
+        else
+            objectives = quest.questInterface.getObjectives(player);
+
+        if(args.length <= 2) {
+            if(partyValid)
+                sendResult(sender, "For Party: ");
+            for(IQuestObjective ob : objectives) {
+                sendResult(sender, ob.getText());
+            }
+            return;
+        }
+
+        int objective;
+        try {
+            objective = Integer.parseInt(args[2]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "Objective must be an integer. Most often 0, 1 or 2");
+            return;
+        }
+
+        if(objective < 0 || objective >= objectives.length) {
+            sendError(sender, "Invalid objective number was given");
+            return;
+        }
+
+        if(args.length <= 3) {
+            sendResult(sender, objectives[objective].getText());
+            return;
+        }
+
+        IQuestObjective object = objectives[objective];
+        String s = args[3];
+        int value;
+        try {
+            value = Integer.parseInt(args[3]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "Value must be an integer");
+            return;
+        }
+
+        if(s.startsWith("-") || s.startsWith("+")) {
+            value = ValueUtil.CorrectInt(object.getProgress() + value, 0, object.getMaxProgress());
+        }
+
+        if(partyValid)
+            object.setPlayerProgress(player.getCommandSenderName(), value);
+        else
+            object.setProgress(value);
+        sendResult(sender, "Successfully updated progress");
     }
 
     @SubCommand(

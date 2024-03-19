@@ -7,6 +7,7 @@ import noppes.npcs.client.gui.global.GuiNPCManageQuest;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
+import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeManual;
 import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.*;
@@ -57,7 +58,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		addButton(new GuiNpcButton(11, guiLeft + 303, guiTop + 52, 50, 20, "selectServer.edit"));
 
 		addLabel(new GuiNpcLabel(6, "gui.type", guiLeft + 180, guiTop + 81));
-		addButton(new GuiNpcButton(6, guiLeft + 240, guiTop + 76, 60, 20, new String[]{"quest.item","quest.dialog","quest.kill","quest.location","quest.areakill"},quest.type.ordinal()));
+		addButton(new GuiNpcButton(6, guiLeft + 240, guiTop + 76, 60, 20, new String[]{"quest.item","quest.dialog","quest.kill","quest.location","quest.areakill","quest.manual"},quest.type.ordinal()));
 		addButton(new GuiNpcButton(7, guiLeft + 303, guiTop + 76,50, 20, "selectServer.edit"));
 
 		addLabel(new GuiNpcLabel(17, "party.options", guiLeft + 180, guiTop + 135));
@@ -121,6 +122,9 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 
 			if(quest.type == EnumQuestType.AreaKill)
 				setSubGui(new GuiNpcQuestTypeKill(npc, quest, this));
+
+            if(quest.type == EnumQuestType.Manual)
+                setSubGui(new GuiNpcQuestTypeManual(npc, quest, this));
 		}
 		if(button.id == 8)
 		{

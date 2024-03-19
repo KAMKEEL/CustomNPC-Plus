@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.IQuestLocation;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
@@ -370,7 +371,45 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
 			}
 		}
 
-		public int getMaxProgress() {
+        @Override
+        public void setPlayerProgress(String playerName, int progress) {
+            if (progress >= 0 && progress <= 1) {
+                EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
+                if(foundplayer != null && party == null){
+                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    QuestData questData = (QuestData)data.questData.activeQuests.get(this.parent.questId);
+                    boolean completed = questData.extraData.getBoolean	(this.nbtName);
+                    if ((!completed || progress != 1) && (completed || progress != 0)) {
+                        questData.extraData.setBoolean(this.nbtName, progress == 1);
+                        data.questData.checkQuestCompletion(data, EnumQuestType.values()[3]);
+                        data.save();
+                        data.updateClient = true;
+                    }
+                } else if (foundplayer != null){
+                    QuestData questData = party.getQuestData();
+                    boolean completed = questData.extraData.getBoolean	(this.nbtName);
+                    if ((!completed || progress != 1) && (completed || progress != 0)) {
+                        boolean setTo = progress == 1;
+                        questData.extraData.setBoolean(this.nbtName, setTo);
+                        if(questData.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All){
+                            if(setTo){
+                                if(!completedPlayers.contains(foundplayer.getCommandSenderName()))
+                                    completedPlayers.add(foundplayer.getCommandSenderName());
+                            } else {
+                                completedPlayers.remove(foundplayer.getCommandSenderName());
+                            }
+                            String locationKey = "Players" + nbtName;
+                            questData.extraData.setTag(locationKey, NBTTags.nbtStringList(completedPlayers));
+                        }
+                        PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[3]);
+                    }
+                }
+            } else {
+                throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
+            }
+        }
+
+        public int getMaxProgress() {
 			return 1;
 		}
 

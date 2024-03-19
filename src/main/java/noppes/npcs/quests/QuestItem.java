@@ -539,7 +539,12 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 			throw new CustomNPCsException("Cant set the progress of ItemQuests", new Object[0]);
 		}
 
-		public int getMaxProgress() {
+        @Override
+        public void setPlayerProgress(String playerName, int progress) {
+            throw new CustomNPCsException("Cant set the progress of ItemQuests", new Object[0]);
+        }
+
+        public int getMaxProgress() {
             if(party != null && party.getObjectiveRequirement() != null){
                 EnumPartyObjectives objectives = party.getObjectiveRequirement();
                 if(objectives == EnumPartyObjectives.All){

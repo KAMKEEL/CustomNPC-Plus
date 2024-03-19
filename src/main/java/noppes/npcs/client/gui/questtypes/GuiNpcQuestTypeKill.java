@@ -14,21 +14,22 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldListener, ICustomScrollListener
 {
 	private GuiScreen parent;
 	private GuiCustomScroll scroll;
-	
+
 	private QuestKill quest;
-	
+
 	private GuiNpcTextField lastSelected;
 
     public GuiNpcQuestTypeKill(EntityNPCInterface npc, Quest q,	GuiScreen parent) {
     	this.npc = npc;
     	this.parent = parent;
     	title = "Quest Kill Setup";
-    	
+
     	quest = (QuestKill) q.questInterface;
 
 		setBackground("largebg.png");
@@ -54,7 +55,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 			this.getTextField(i+12).setMinMaxDefault(1, Integer.MAX_VALUE, 1);
 			i++;
 		}
-		
+
 		for(;i < 12; i++){
 			this.addTextField(new GuiNpcTextField(i, this, fontRendererObj, guiLeft + 4, guiTop + 40 + i * 22, 180, 20, ""));
 			this.addTextField(new GuiNpcTextField(i + 12, this, fontRendererObj, guiLeft + 186, guiTop + 40 + i * 22, 24, 20, "1"));
@@ -72,7 +73,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 				e.printStackTrace();
 			} catch (NoSuchMethodException e) {
 			}
-        }   
+        }
         if(scroll == null)
         	scroll = new GuiCustomScroll(this,0);
         scroll.setList(list);
@@ -122,7 +123,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
 		saveTargets();
 	}
 	private void saveTargets(){
-		HashMap<String,Integer> map = new HashMap<String,Integer>(); 
+        TreeMap<String,Integer> map = new TreeMap<String,Integer>();
 		for(int i = 0; i< 12; i++){
 			String name = getTextField(i).getText();
 			if(name.isEmpty())

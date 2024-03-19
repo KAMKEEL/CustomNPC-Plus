@@ -595,6 +595,7 @@ quest.kill=Kill
 quest.areakill=AreaKill
 quest.dialog=Dialog
 quest.location=Location
+quest.manual=Manual
 quest.completedtext=Completed text
 quest.questlogtext=Questlog text
 quest.complete=Complete
