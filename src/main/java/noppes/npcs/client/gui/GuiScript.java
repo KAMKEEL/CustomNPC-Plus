@@ -2,10 +2,12 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
+import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
@@ -15,6 +17,7 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
@@ -146,12 +149,36 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		return builder.toString();
 	}
 
-	@Override
-	public void confirmClicked(boolean flag, int i){
-		if(flag)
-			openLink("https://kamkeel.github.io/CustomNPC-Plus/");
-		displayGuiScreen(this);
-	}
+
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if(!result)
+            return;
+        if(id == 0) {
+            openLink("https://kamkeel.github.io/CustomNPC-Plus/");
+        }
+        if(id == 101) {
+            getTextField(2).setText(NoppesStringUtils.getClipboardContents());
+        }
+        if(id == 102) {
+            getTextField(2).setText("");
+            if(!showScript){
+                if(activeConsole == 0){
+                    for(ScriptContainer container : script.getNPCScripts())
+                        container.console.clear();
+                }
+                else{
+                    ScriptContainer container = script.getNPCScript(activeConsole - 1);
+                    if(container != null)
+                        container.console.clear();
+                }
+            }
+        }
+
+
+        displayGuiScreen(this);
+    }
 
 	@Override
 	protected void actionPerformed(GuiButton guibutton) {
@@ -179,21 +206,12 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 			NoppesStringUtils.setClipboardContents(getTextField(2).getText());
 		}
 		if (guibutton.id == 101) {
-			getTextField(2).setText(NoppesStringUtils.getClipboardContents());
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.paste"), StatCollector.translateToLocal("gui.sure"), 101);
+            displayGuiScreen(guiyesno);
 		}
 		if (guibutton.id == 102) {
-			getTextField(2).setText("");
-			if(!showScript){
-				if(activeConsole == 0){
-					for(ScriptContainer container : script.getNPCScripts())
-						container.console.clear();
-				}
-				else{
-					ScriptContainer container = script.getNPCScript(activeConsole - 1);
-					if(container != null)
-						container.console.clear();
-				}
-			}
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.clear"), StatCollector.translateToLocal("gui.sure"), 102);
+            displayGuiScreen(guiyesno);
 		}
 		if (guibutton.id == 103) {
 			script.scriptLanguage = ((GuiNpcButton)guibutton).displayString;

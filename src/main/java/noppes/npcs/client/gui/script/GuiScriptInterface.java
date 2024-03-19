@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
@@ -201,10 +202,26 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             if(i == 3) {
                 this.openLink("http://www.minecraftforge.net/forum/index.php/board,122.0.html");
             }
-
             if(i == 10) {
                 this.handler.getScripts().remove(this.activeTab - 1);
                 this.activeTab = 0;
+            }
+            if(i == 101) {
+                (this.getTextField(2)).setText(NoppesStringUtils.getClipboardContents());
+                this.setScript();
+            }
+            if(i == 102) {
+                ScriptContainer container;
+                if(this.activeTab > 0) {
+                    container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+                    container.script = "";
+                } else {
+                    this.handler.clearConsole();
+                    if (this.handler instanceof ScriptCustomItem) {
+                        ((ScriptCustomItem) this.handler).saveScriptData();
+                    }
+                }
+                this.initGui();
             }
         }
 
@@ -246,23 +263,14 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if(guibutton.id == 101) {
-            (this.getTextField(2)).setText(NoppesStringUtils.getClipboardContents());
-            this.setScript();
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.paste"), StatCollector.translateToLocal("gui.sure"), 101);
+            displayGuiScreen(guiyesno);
         }
 
         ScriptContainer container;
         if(guibutton.id == 102) {
-            if(this.activeTab > 0) {
-                container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-                container.script = "";
-            } else {
-                this.handler.clearConsole();
-                if (this.handler instanceof ScriptCustomItem) {
-                    ((ScriptCustomItem) this.handler).saveScriptData();
-                }
-            }
-
-            this.initGui();
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.clear"), StatCollector.translateToLocal("gui.sure"), 102);
+            displayGuiScreen(guiyesno);
         }
 
         if(guibutton.id == 103) {

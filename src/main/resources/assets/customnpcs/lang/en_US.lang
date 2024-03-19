@@ -134,6 +134,7 @@ gui.deselectAll=Deselect All
 gui.loading=Loading
 gui.off=Off
 gui.on=On
+gui.sure=Are you sure?
 
 party.accept=Accept
 party.allowParty=Allow Partying
