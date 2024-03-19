@@ -1,8 +1,12 @@
 package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.SubGuiNpcDialog;
 import noppes.npcs.client.gui.util.*;
@@ -16,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener,ICustomScrollListener, IGuiData
+public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener,ICustomScrollListener, IGuiData, GuiYesNoCallback
 {
 	private GuiCustomScroll catScroll;
 	public GuiCustomScroll dialogScroll;
@@ -180,8 +184,8 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		// Remove Cat
 		if(id == 5){
         	if(catData.containsKey(catScroll.getSelected())) {
-				Client.sendData(EnumPacketServer.DialogCategoryRemove, category.id);
-				clearCategory();
+                GuiYesNo guiyesno = new GuiYesNo(this, catScroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 5);
+                displayGuiScreen(guiyesno);
         	}
 		}
 		if(category != null && category.id >= 0){
@@ -201,9 +205,8 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 			// Remove Dialog
 			if(id == 2) {
 				if (dialogData.containsKey(dialogScroll.getSelected())) {
-					Client.sendData(EnumPacketServer.DialogRemove, dialog.id, true);
-					dialog = new Dialog();
-					dialogData.clear();
+                    GuiYesNo guiyesno = new GuiYesNo(this, dialogScroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 2);
+                    displayGuiScreen(guiyesno);
 				}
 			}
 			// Edit Dialog
@@ -413,4 +416,25 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 
 	@Override
 	public void setSelectedGroup(String selected) {}
+
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if(!result)
+            return;
+        if(id == 5) {
+            if(catData.containsKey(catScroll.getSelected())) {
+                Client.sendData(EnumPacketServer.DialogCategoryRemove, category.id);
+                clearCategory();
+            }
+        }
+        if(id == 2) {
+            if (dialogData.containsKey(dialogScroll.getSelected())) {
+                Client.sendData(EnumPacketServer.DialogRemove, dialog.id, true);
+                dialog = new Dialog();
+                dialogData.clear();
+            }
+        }
+        updateButtons();
+    }
 }

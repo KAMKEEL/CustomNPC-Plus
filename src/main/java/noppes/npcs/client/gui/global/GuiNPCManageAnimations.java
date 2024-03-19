@@ -1,15 +1,15 @@
 package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener
+public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener, GuiYesNoCallback
 {
 	private GuiCustomScroll scrollAnimations;
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
@@ -167,9 +167,8 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         }
         if(button.id == 1){
         	if(data.containsKey(scrollAnimations.getSelected())) {
-        		Client.sendData(EnumPacketServer.AnimationRemove, data.get(selected));
-        		scrollAnimations.clear();
-        		animation = new Animation();
+                GuiYesNo guiyesno = new GuiYesNo(this, scrollAnimations.getSelected(), StatCollector.translateToLocal("gui.delete"), 1);
+                displayGuiScreen(guiyesno);
         	}
         }
 
@@ -263,6 +262,20 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 	}
 
 	@Override
-	public void subGuiClosed(SubGuiInterface subgui) {
-	}
+	public void subGuiClosed(SubGuiInterface subgui) {}
+
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if(!result)
+            return;
+        if(id == 1) {
+            if(data.containsKey(scrollAnimations.getSelected())) {
+                Client.sendData(EnumPacketServer.AnimationRemove, data.get(selected));
+                scrollAnimations.clear();
+                animation = new Animation();
+                initGui();
+            }
+        }
+    }
 }

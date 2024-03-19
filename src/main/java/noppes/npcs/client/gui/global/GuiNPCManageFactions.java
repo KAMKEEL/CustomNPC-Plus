@@ -1,25 +1,30 @@
 package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.SubGuiNpcFactionPoints;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
 
-public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener
+public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener, GuiYesNoCallback
 {
 	private GuiCustomScroll scrollFactions;
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private Faction faction = new Faction();
 	private String selected = null;
 	private String search = "";
-	
+
     public GuiNPCManageFactions(EntityNPCInterface npc)
     {
     	super(npc);
@@ -29,10 +34,10 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
     public void initGui()
     {
         super.initGui();
-        
+
        	this.addButton(new GuiNpcButton(0,guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
-        
+
     	if(scrollFactions == null){
 	        scrollFactions = new GuiCustomScroll(this,0, 0);
 	        scrollFactions.setSize(143, 185);
@@ -44,7 +49,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 
 		if (faction.id == -1)
     		return;
-           	
+
     	this.addTextField(new GuiNpcTextField(0, this, guiLeft + 40, guiTop + 4, 136, 20, faction.name));
     	getTextField(0).setMaxStringLength(20);
     	addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 8, guiTop + 9));
@@ -68,9 +73,9 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 
     	addLabel(new GuiNpcLabel(4,"faction.attacked", guiLeft + 8, guiTop + 97));
        	this.addButton(new GuiNpcButton(4,guiLeft + 100, guiTop + 92, 45, 20, new String[]{"gui.no","gui.yes"},faction.getsAttacked?1:0));
-    	
+
     	addLabel(new GuiNpcLabel(6,"faction.hostiles", guiLeft + 8, guiTop + 120));
-    	
+
 		ArrayList<String> hostileList = new ArrayList<String>(scrollFactions.getList());
 		hostileList.remove(faction.name);
 
@@ -79,7 +84,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 			if(!s.equals(faction.name) && faction.attackFactions.contains(data.get(s)))
 				set.add(s);
 		}
-		
+
     	GuiCustomScroll scrollHostileFactions = new GuiCustomScroll(this,1,true);
         scrollHostileFactions.setSize(163, 78);
         scrollHostileFactions.guiLeft = guiLeft + 4;
@@ -98,17 +103,15 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
         	while(data.containsKey(name))
         		name += "_";
         	Faction faction = new Faction(-1, name, 0x00FF00, 1000);
-        	
+
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
 			Client.sendData(EnumPacketServer.FactionSave, compound);
         }
         if(button.id == 1){
         	if(data.containsKey(scrollFactions.getSelected())) {
-        		Client.sendData(EnumPacketServer.FactionRemove, data.get(selected));
-        		scrollFactions.clear();
-        		faction = new Faction();
-        		initGui();
+                GuiYesNo guiyesno = new GuiYesNo(this, scrollFactions.getSelected(), StatCollector.translateToLocal("gui.delete"), 1);
+                displayGuiScreen(guiyesno);
         	}
         }
         if(button.id == 2){
@@ -129,7 +132,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 	public void setGuiData(NBTTagCompound compound) {
 		this.faction = new Faction();
 		faction.readNBT(compound);
-		
+
 		setSelected(faction.name);
 		initGui();
 	}
@@ -165,17 +168,17 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 		String name = scrollFactions.getSelected();
 		this.data = data;
 		scrollFactions.setList(getSearchList());
-		
+
 		if(name != null)
 			scrollFactions.setSelected(name);
 	}
-    
+
 	@Override
 	public void setSelected(String selected) {
 		this.selected = selected;
 		scrollFactions.setSelected(selected);
 	}
-    
+
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
@@ -195,21 +198,21 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 			save();
 		}
 	}
-	
+
 	public void save() {
 		if(selected != null && data.containsKey(selected) && faction != null){
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
-    	
+
 			Client.sendData(EnumPacketServer.FactionSave, compound);
 		}
 	}
-		
+
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		if(faction.id == -1) 
+		if(faction.id == -1)
 			return;
-		
+
 		if(guiNpcTextField.id == 0) {
 			String name = guiNpcTextField.getText();
 			if(!name.isEmpty() && !data.containsKey(name)){
@@ -230,8 +233,8 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 			}
 	    	faction.color = color;
 	    	guiNpcTextField.setTextColor(faction.color);
-		} 
-		
+		}
+
 	}
 
 	@Override
@@ -241,5 +244,20 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 	    	initGui();
 		}
 	}
+
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if(!result)
+            return;
+        if(id == 1) {
+            if(data.containsKey(scrollFactions.getSelected())) {
+                Client.sendData(EnumPacketServer.FactionRemove, data.get(selected));
+                scrollFactions.clear();
+                faction = new Faction();
+                initGui();
+            }
+        }
+    }
 
 }

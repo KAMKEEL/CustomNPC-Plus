@@ -2,12 +2,17 @@ package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.SubGuiNpcQuest;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -17,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData
+public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback
 {
 	private GuiCustomScroll catScroll;
 	public GuiCustomScroll questScroll;
@@ -184,8 +189,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		// Remove Cat
 		if(id == 5){
 			if(catData.containsKey(catScroll.getSelected())) {
-				Client.sendData(EnumPacketServer.QuestCategoryRemove, category.id);
-				clearCategory();
+                GuiYesNo guiyesno = new GuiYesNo(this, catScroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 5);
+                displayGuiScreen(guiyesno);
 			}
 		}
 		if(category != null && category.id >= 0){
@@ -205,9 +210,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 			// Remove Quest
 			if(id == 2) {
 				if (questData.containsKey(questScroll.getSelected())) {
-					Client.sendData(EnumPacketServer.QuestRemove, quest.id, true);
-					quest = new Quest();
-					questData.clear();
+                    GuiYesNo guiyesno = new GuiYesNo(this, questScroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 2);
+                    displayGuiScreen(guiyesno);
 				}
 			}
 			// Edit Quest
@@ -418,4 +422,22 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 	@Override
 	public void setSelectedGroup(String selected) {}
 
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if(!result)
+            return;
+        if(id == 5) {
+            if(catData.containsKey(catScroll.getSelected())) {
+                Client.sendData(EnumPacketServer.QuestCategoryRemove, category.id);
+                clearCategory();
+            }
+        }
+        if(id == 2) {
+            Client.sendData(EnumPacketServer.QuestRemove, quest.id, true);
+            quest = new Quest();
+            questData.clear();
+        }
+        updateButtons();
+    }
 }
