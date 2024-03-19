@@ -277,14 +277,17 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                 QuestData questdata = party.getQuestData();
                 if (questdata != null) {
                     if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
-                        int progress = 0;
+                        int howManyDone = 0;
                         for (String player : party.getPlayerNames()) {
                             HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
                             int currentProgress = !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
                             if(currentProgress >= this.amount)
-                                progress += 1;
+                                howManyDone += 1;
                         }
-                        return progress;
+                        if(howManyDone == party.getPlayerNames().size())
+                            return getMaxProgress();
+
+                        return 0;
                     } else {
                         HashMap<String, Integer> killed = this.parent.getKilled(questdata);
                         return !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
