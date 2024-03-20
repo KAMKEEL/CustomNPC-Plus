@@ -134,8 +134,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        float f7 = npc.rotationYawHead;
 	        float f5 = (float)(l) - i;
 	        float f6 = (float)(i1 - 50) - j;
-	        int rotation = npc.ai.orientation;
-	        npc.ai.orientation = 0;
+	        //int rotation = npc.ai.orientation;
+	        //npc.ai.orientation = 0;
 	        GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
 	        RenderHelper.enableStandardItemLighting();
 	        GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
@@ -152,7 +152,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	            RenderManager.instance.renderEntityWithPosYaw(npc, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
 	        } catch(Exception ignored){}
 
-	        npc.ai.orientation = rotation;
+	        //npc.ai.orientation = rotation;
 	        npc.renderYawOffset = f2;
 	        npc.rotationYaw = f3;
 	        npc.rotationPitch = f4;
@@ -509,19 +509,22 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		int screenPos = optionStart;
 		int y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
 		if (dialog.alignment == 1) {
-			height = count - totalRows + lineOffset + 1;
-			screenPos = optionStart - dialog.textHeight + ClientProxy.Font.height() + (totalRows - lineOffset);
+            int i = totalRows - lineBlocks.get(lineBlocks.size() - 1).lines.size() - 1;
+			height = count - totalRows + lineOffset - i + 1;
+			screenPos = ClientProxy.Font.height() * (totalRows - lineOffset);// dialog.textHeight + ClientProxy.Font.height() + (totalRows - lineOffset);
 
 			int scrollToOffset = 0;
 			if (totalRows * ClientProxy.Font.height() > dialog.textHeight) {
 				scrollToOffset = totalRows - lineBlocks.get(lineBlocks.size() - 1).lines.size() + (int) Math.floor(lineBlocks.size() / 2f);
 			}
 			y = ((count - scrollToOffset) * ClientProxy.Font.height()) + screenPos + scrollY + height;
+
+            y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
 		}
 
 		if (block.titlePos == 0 || mainDialogText) {
 			if (dialog.alignment == 1) {
-				if (y < optionStart - dialog.textHeight || y > optionStart - ClientProxy.Font.height()/2f) {
+				if (y > optionStart - ClientProxy.Font.height()/2f) {
 					return;
 				}
 			} else {
