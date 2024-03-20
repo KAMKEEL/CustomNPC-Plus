@@ -233,7 +233,7 @@ public class ScriptParticle implements IParticle {
     }
 
     public void setPosition(IPos pos) {
-        this.setPosition(pos.getX(),pos.getY(),pos.getZ());
+        this.setPosition(pos.getXD(),pos.getYD(),pos.getZD());
     }
     public void getPos() {
         NpcAPI.Instance().getIPos(x,y,z);

@@ -1,8 +1,5 @@
 package kamkeel.command;
 
-import java.util.Arrays;
-import java.util.List;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -11,6 +8,9 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerFactionData;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class FactionCommand extends CommandKamkeelBase {
 
@@ -47,24 +47,25 @@ public class FactionCommand extends CommandKamkeelBase {
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
-        } 
-        
+        }
+
         try{
             selectedFaction = FactionController.getInstance().getFaction(Integer.parseInt(factionname));
         }
         catch(NumberFormatException e){
             selectedFaction = FactionController.getInstance().getFactionFromName(factionname);
         }
-        
+
         if (selectedFaction == null) {
             sendError(sender, "Unknown faction: " + factionname);
             return;
         }
-        
+
         processSubCommand(sender, args[2], Arrays.copyOfRange(args, 3, args.length));
-        
+
         for(PlayerData playerdata : data){
             playerdata.save();
+            playerdata.updateClient = true;
         }
 	}
 
@@ -85,6 +86,7 @@ public class FactionCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
 	        PlayerFactionData playerfactiondata = playerdata.factionData;
 	        playerfactiondata.increasePoints(factionid, points, playerdata.player);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Added Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -105,6 +107,7 @@ public class FactionCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
         	playerfactiondata.increasePoints(factionid, -points, playerdata.player);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Subtracted Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -113,6 +116,7 @@ public class FactionCommand extends CommandKamkeelBase {
     public void reset(ICommandSender sender, String[] args) {
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Reset Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
@@ -132,18 +136,20 @@ public class FactionCommand extends CommandKamkeelBase {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
         	playerfactiondata.factionData.put(this.selectedFaction.id, points);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Set Points \u00A7a%d\u00A77, Faction \u00A7e%s (%d)\u00A77 for Player \u00A7b%s\u00A77", points, this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
-    
+
     @SubCommand(desc = "Drop relationship")
     public void drop(ICommandSender sender, String[] args){
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.remove(this.selectedFaction.id);
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Dropped Faction \u00A7e%s (%d)\u00A77 from Player \u00A7b%s\u00A77", this.selectedFaction.getName(), this.selectedFaction.id, playerdata.playername));
         }
     }
-    
+
     @Override
 	public List addTabCompletionOptions(ICommandSender par1, String[] args) {
 		if(args.length == 3){

@@ -17,7 +17,7 @@ import net.minecraftforge.event.world.ChunkDataEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
-import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.event.ForgeEvent;
 

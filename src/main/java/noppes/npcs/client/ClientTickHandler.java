@@ -3,18 +3,16 @@ package noppes.npcs.client;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
-import noppes.npcs.client.gui.player.GuiQuestLog;
+import noppes.npcs.client.gui.player.inventory.*;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumPlayerPacket;
 import org.lwjgl.input.Keyboard;
@@ -24,11 +22,13 @@ import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
 public class ClientTickHandler{
 	private World prevWorld;
+	private int prevWidth = 0;
+	private int prevHeight = 0;
 	private boolean otherContainer = false;
 	private int buttonPressed = -1;
 	private long buttonTime = 0L;
 	private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
-	
+
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onClientTick(TickEvent.ClientTickEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
@@ -57,6 +57,11 @@ public class ClientTickHandler{
 			MusicController.Instance.stopMusic();
 		}
 		ScriptSoundController.Instance.onUpdate();
+		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
+			prevWidth = mc.displayWidth;
+			prevHeight = mc.displayHeight;
+			NoppesUtilPlayer.sendData(EnumPlayerPacket.ScreenSize,mc.displayWidth,mc.displayHeight);
+		}
 	}
 
 	@SubscribeEvent
@@ -84,10 +89,24 @@ public class ClientTickHandler{
 
 	@SubscribeEvent
 	public void onKey(InputEvent.KeyInputEvent event){
-		if(ClientProxy.QuestLog.isPressed()){
+		if(ClientProxy.NPCButton.isPressed()){
 			Minecraft mc = Minecraft.getMinecraft();
-			if(mc.currentScreen == null)
-				NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog(mc.thePlayer));
+			if(mc.currentScreen == null){
+                switch (GuiCNPCInventory.activeTab){
+                    case 0:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog());
+                        break;
+                    case 1:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiParty());
+                        break;
+                    case 2:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiFaction());
+                        break;
+                    case 3:
+                        NoppesUtil.openGUI(mc.thePlayer, new GuiSettings());
+                        break;
+                }
+            }
 			else if(mc.currentScreen instanceof GuiQuestLog)
 				mc.setIngameFocus();
 		}

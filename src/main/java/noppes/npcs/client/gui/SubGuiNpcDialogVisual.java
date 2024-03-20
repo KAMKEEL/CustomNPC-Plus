@@ -1,11 +1,9 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketServer;
@@ -17,7 +15,6 @@ import java.util.Collections;
 
 public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiListener, ITextfieldListener, ICustomScrollListener {
     private final Dialog dialog;
-    public GuiScreen parent2;
 
     private GuiMenuTopButton[] topButtons;
     private int activeMenu = 1;
@@ -27,8 +24,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     private int lastColorClicked = -1;
     private int changedId = -1;
 
-    public SubGuiNpcDialogVisual(Dialog dialog, GuiScreen parent) {
-        this.parent2 = parent;
+    public SubGuiNpcDialogVisual(Dialog dialog) {
         this.dialog = dialog;
         setBackground("menubg.png");
         xSize = 256;
@@ -99,6 +95,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         } else if (activeMenu == 2) {
             addButton(new GuiNpcButton(10, guiLeft + 70, y += 22, 50, 20, new String[]{"gui.text", "gui.option", "display.fixed"}, dialog.titlePos));
             addLabel(new GuiNpcLabel(10, "dialog.titlePos", guiLeft + 4, y + 5));
+
+            addButton(new GuiNpcButton(24, guiLeft + 192, y, 50, 20, new String[]{"display.bottom", "display.top"}, dialog.alignment));
+            addLabel(new GuiNpcLabel(27, "display.alignment", guiLeft + 126, y + 5));
 
             addTextField(new GuiNpcTextField(11, this, guiLeft + 120, y += 25, 40, 20, String.valueOf(dialog.textWidth)));
             addTextField(new GuiNpcTextField(12, this, guiLeft + 165, y, 40, 20, String.valueOf(dialog.textHeight)));
@@ -269,8 +268,6 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         int id = button.id;
         if(id == 0){
             close();
-            if(parent2 != null)
-                NoppesUtil.openGUI(player, parent2);
             return;
         }
         save();
@@ -319,6 +316,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         if (activeMenu == 2) {
             if (button.id == 10) {
                 dialog.titlePos = button.getValue();
+            }
+            if (button.id == 24) {
+                dialog.alignment = (byte) button.getValue();
             }
         }
 
@@ -417,7 +417,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     public void save() {
         GuiNpcTextField.unfocus();
         if(dialog.id >= 0)
-            Client.sendData(EnumPacketServer.DialogSave, ((GuiNPCManageDialogs)parent2).category.id, dialog.writeToNBT(new NBTTagCompound()));
+            Client.sendData(EnumPacketServer.DialogSave, ((SubGuiNpcDialog)parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
     }
 
     private DialogImage getSelectedImage() {

@@ -59,6 +59,7 @@ Gakih
 Gareld
 Gharis
 Ghatroth
+Goodbird
 Grave
 Gyaku
 Hailinx
@@ -70,6 +71,7 @@ Ineald
 Issraya
 Itageray
 Kakaragon
+Kamkeel
 Kamkeel
 Kamoku
 Kaoz
@@ -88,6 +90,7 @@ Lenyx
 Leonardo
 Lily
 Louis
+Louis XIV
 Loxiku
 Lucas
 Lucien
@@ -109,6 +112,7 @@ Noppes
 Oldam
 Oldrake
 Pegato
+PopsicleNate
 Qua'an
 Ranler
 Raven

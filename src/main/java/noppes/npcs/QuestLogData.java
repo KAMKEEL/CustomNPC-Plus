@@ -2,9 +2,11 @@ package noppes.npcs;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
 
@@ -16,11 +18,13 @@ public class QuestLogData {
 	public HashMap<String,Vector<String>> categories = new HashMap<String,Vector<String>>();
 	public String selectedQuest = "";
 	public String selectedCategory = "";
-	public HashMap<String,String> questText = new HashMap<String,String>();
+	public HashMap<String,String> questText = new HashMap<>();
 	public HashMap<String,String> questAlerts = new HashMap<>();
-	public HashMap<String,Vector<String>> questStatus = new HashMap<String,Vector<String>>();
-	public HashMap<String,String> finish = new HashMap<String,String>();
-	
+	public HashMap<String,Vector<String>> questStatus = new HashMap<>();
+	public HashMap<String,String> finish = new HashMap<>();
+	public HashMap<String, Integer> partyQuests = new HashMap<>();
+    public HashMap<String,Vector<String>> partyOptions = new HashMap<>();
+
 	public NBTTagCompound writeNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setTag("Categories", NBTTags.nbtVectorMap(categories));
@@ -29,6 +33,8 @@ public class QuestLogData {
 		compound.setTag("Status", NBTTags.nbtVectorMap(questStatus));
 		compound.setTag("QuestFinisher", NBTTags.nbtStringStringMap(finish));
 		compound.setString("TrackedQuestID", trackedQuestKey);
+		compound.setTag("PartyQuests", NBTTags.nbtStringIntegerMap(partyQuests));
+        compound.setTag("PartyOptions", NBTTags.nbtVectorMap(partyOptions));
 		return compound;
 	}
 
@@ -39,7 +45,20 @@ public class QuestLogData {
 		questStatus = NBTTags.getVectorMap(compound.getTagList("Status", 10));
 		finish = NBTTags.getStringStringMap(compound.getTagList("QuestFinisher", 10));
 		trackedQuestKey = compound.getString("TrackedQuestID");
+		partyQuests = NBTTags.getStringIntegerMap(compound.getTagList("PartyQuests", 10));
+        partyOptions = NBTTags.getVectorMap(compound.getTagList("PartyOptions", 10));
 	}
+
+    public NBTTagCompound writeTrackedQuest(){
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setString("TrackedQuestID", trackedQuestKey);
+        return compound;
+    }
+
+    public void readTrackedQuest(NBTTagCompound compound){
+        trackedQuestKey = compound.getString("TrackedQuestID");
+    }
+
 	public void setData(EntityPlayer player){
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
@@ -50,20 +69,54 @@ public class QuestLogData {
     			categories.put(category, new Vector<String>());
     		Vector<String> list = categories.get(category);
     		list.add(quest.title);
-    		
-    		questText.put(category + ":" + quest.title, quest.logText);
-			questAlerts.put(category + ":" + quest.title, String.valueOf(playerData.questData.activeQuests.get(quest.id).sendAlerts));
-    		questStatus.put(category + ":" + quest.title, quest.questInterface.getQuestLogStatus(player));
+
+            String key = category + ":" + quest.title;
+    		questText.put(key, quest.logText);
+			questAlerts.put(key, String.valueOf(playerData.questData.activeQuests.get(quest.id).sendAlerts));
+    		questStatus.put(key, quest.questInterface.getQuestLogStatus(player));
     		if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isCompleted(playerData))
-    			finish.put(category + ":" + quest.title, quest.completerNpc);
+    			finish.put(key, quest.completerNpc);
 
 			if (playerData.questData.getTrackedQuest() != null) {
 				if (quest.id == playerData.questData.getTrackedQuest().getId()) {
-					trackedQuestKey = category + ":" + quest.title;
+					trackedQuestKey = key;
 				}
 			}
+
+			if (quest.partyOptions.allowParty) {
+				partyQuests.put(key, quest.id);
+                partyOptions.put(key, quest.partyOptions.getPartyOptionsList());
+			}
+        }
+
+        Party party = playerData.getPlayerParty();
+        if(party != null && party.getQuest() != null){
+            if (playerData.questData.getTrackedQuest() != null) {
+                if (party.getQuest().getId() == playerData.questData.getTrackedQuest().getId()) {
+                    trackedQuestKey = "P" + ":" + party.getQuest().getCategory().getName() + ":" + party.getQuest().getName();
+                }
+            }
         }
 	}
+
+    public void setTrackedQuestKey(EntityPlayer player){
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+
+        Party party = playerData.getPlayerParty();
+        if(party != null && party.getQuest() != null){
+            if (playerData.questData.getTrackedQuest() != null) {
+                if (party.getQuest().getId() == playerData.questData.getTrackedQuest().getId()) {
+                    trackedQuestKey = "P" + ":" + party.getQuest().getCategory().getName() + ":" + party.getQuest().getName();
+                }
+            }
+        } else if(playerData.questData != null && playerData.questData.getTrackedQuest() != null){
+            IQuest quest = playerData.questData.getTrackedQuest();
+            trackedQuestKey = quest.getCategory().getName() + ":" + quest.getName();
+        }
+        else {
+            trackedQuestKey = "";
+        }
+    }
 
 	public boolean hasSelectedQuest() {
 		return !selectedQuest.isEmpty();
@@ -88,4 +141,8 @@ public class QuestLogData {
 	public String getComplete() {
 		return finish.get(selectedCategory + ":" + selectedQuest);
 	}
+
+    public Vector<String> getPartyOptions() {
+        return partyOptions.get(selectedCategory + ":" + selectedQuest);
+    }
 }

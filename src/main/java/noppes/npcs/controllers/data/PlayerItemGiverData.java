@@ -4,11 +4,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IPlayerItemGiverData;
 import noppes.npcs.api.jobs.IJobItemGiver;
-import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.roles.JobItemGiver;
-import noppes.npcs.scripted.roles.ScriptJobItemGiver;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PlayerItemGiverData implements IPlayerItemGiverData {
@@ -32,7 +29,7 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 	public boolean hasInteractedBefore(JobItemGiver jobItemGiver) {
 		return itemgivers.containsKey(jobItemGiver.itemGiverId);
 	}
-	
+
 	public long getTime(JobItemGiver jobItemGiver){
 		return itemgivers.get(jobItemGiver.itemGiverId);
 	}
@@ -58,18 +55,5 @@ public class PlayerItemGiverData implements IPlayerItemGiverData {
 
 	public boolean hasInteractedBefore(IJobItemGiver jobItemGiver) {
 		return itemgivers.containsKey(((JobItemGiver) jobItemGiver).itemGiverId);
-	}
-
-	public IJobItemGiver[] getItemGivers() {
-		ArrayList<IJobItemGiver> list = new ArrayList<>();
-		for (JobItemGiver jobItemGiver : GlobalDataController.Instance.itemGivers.values()) {
-			if (jobItemGiver.npc != null) {
-				list.add(new ScriptJobItemGiver(jobItemGiver.npc));
-			} else {
-				list.add(new ScriptJobItemGiver(jobItemGiver));
-			}
-		}
-
-		return list.toArray(new IJobItemGiver[0]);
 	}
 }

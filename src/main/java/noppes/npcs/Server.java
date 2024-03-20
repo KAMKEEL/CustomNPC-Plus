@@ -13,7 +13,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.util.CustomNPCsThreader;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,7 +57,7 @@ public class Server {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static boolean fillBuffer(ByteBuf buffer, Enum enu, Object... obs) throws IOException{
 		buffer.writeInt(enu.ordinal());
 		for(Object ob : obs){
@@ -117,13 +116,13 @@ public class Server {
 		buffer.readBytes(bytes);
 		return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
 	}
-	
+
 	public static void writeString(ByteBuf buffer, String s){
         byte[] bytes = s.getBytes(Charsets.UTF_8);
 		buffer.writeShort((short)bytes.length);
 		buffer.writeBytes(bytes);
 	}
-	
+
 	public static String readString(ByteBuf buffer){
 		try{
 			byte[] bytes = new byte[buffer.readShort()];
@@ -134,5 +133,5 @@ public class Server {
 			return null;
 		}
 	}
-	
+
 }

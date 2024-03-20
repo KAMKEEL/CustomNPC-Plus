@@ -44,7 +44,7 @@ public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
     }
 
     public double getDistanceFrom(IPos pos){
-        return this.getDistanceFrom(pos.getX(),pos.getY(),pos.getZ());
+        return this.getDistanceFrom(pos.getXD(),pos.getYD(),pos.getZD());
     }
 
     public IBlock getBlockType(){

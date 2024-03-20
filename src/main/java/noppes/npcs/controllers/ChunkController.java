@@ -18,12 +18,12 @@ import java.util.Iterator;
 import java.util.List;
 
 public class ChunkController implements LoadingCallback{	
-	public static ChunkController instance;
+	public static ChunkController Instance;
 	
 	public HashMap<Entity,Ticket> tickets = new HashMap<Entity,Ticket>();
 	
 	public ChunkController(){
-		instance = this;
+		Instance = this;
 	}
 
 	public void clear(){

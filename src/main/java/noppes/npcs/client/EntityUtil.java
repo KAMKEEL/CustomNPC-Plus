@@ -1,5 +1,6 @@
 package noppes.npcs.client;
 
+import kamkeel.addon.GeckoAddon;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.passive.EntityChicken;
@@ -83,13 +84,14 @@ public class EntityUtil {
 		for(int i = 0; i < 5; i++){
 			entity.setCurrentItemOrArmor(i, copied.getEquipmentInSlot(i));
 		}
-		
+
+		GeckoAddon.instance.geckoCopyData(copied, entity);
+
 		if(copied instanceof EntityNPCInterface && entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) copied;
 			EntityNPCInterface target = (EntityNPCInterface) entity;
 
 			target.textureLocation = npc.textureLocation;
-			target.textureCloakLocation = npc.textureCloakLocation;
 			target.display = npc.display;
 			target.inventory = npc.inventory;
 			

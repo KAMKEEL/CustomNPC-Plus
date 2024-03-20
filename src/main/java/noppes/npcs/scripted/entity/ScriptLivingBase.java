@@ -17,16 +17,12 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.EntityType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T> implements IEntityLivingBase {
-	protected T entity;
-	
+
 	public ScriptLivingBase(T entity){
 		super(entity);
-		this.entity = entity;
 	}
 
 	/**
@@ -35,7 +31,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public float getHealth(){
 		return entity.getHealth();
 	}
-	
+
 	/**
 	 * @param health The new health of this entity
 	 */
@@ -112,7 +108,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public boolean isAttacking(){
 		return entity.getAITarget() != null;
 	}
-	
+
 	/**
 	 * @param living Entity which this entity will attack
 	 */
@@ -122,7 +118,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		else
 			entity.setRevengeTarget(living.getMCEntity());
 	}
-		
+
 	/**
 	 * @return The entity which this entity is attacking
 	 */
@@ -216,7 +212,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public IEntity[] getLookingAtEntities(int maxDistance, double offset, double range) {
 		return getLookingAtEntities(maxDistance,offset,range,true,false,true);
 	}
-		
+
 	/**
 	 * Expert use only
 	 * @return Returns the minecraft entity object
@@ -235,9 +231,9 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void swingHand(){
 		entity.swingItem();
 	}
-	
+
 	/**
-	 * Works the same as the <a href="http://minecraft.gamepedia.com/Commands#effect">/effect command</a>
+	 * Works the same as the <a href="http://minecraft.wiki/w/Commands#effect">/effect command</a>
 	 * @param effect
 	 * @param duration The duration in seconds
 	 * @param strength The amplifier of the potion effect
@@ -246,16 +242,16 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void addPotionEffect(int effect, int duration, int strength, boolean hideParticles){
         if (effect < 0 || effect >= Potion.potionTypes.length || Potion.potionTypes[effect] == null)
         	return;
-        
+
 		if(strength < 0)
 			strength = 0;
 
 		if(duration < 0)
 			duration = 0;
-		
+
 		if(!Potion.potionTypes[effect].isInstant())
 			duration *= 20;
-		
+
 		if(duration == 0)
 			entity.removePotionEffect(effect);
 		else
@@ -269,7 +265,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void clearPotionEffects(){
 		entity.clearActivePotions();
 	}
-	
+
 	/**
 	 * @since 1.7.10c
 	 * @param effect Potion effect to check
@@ -281,7 +277,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 			return -1;
 		return pf.getAmplifier();
 	}
-	
+
 	/**
 	 * Note not all Living Entities support this
 	 * @since 1.7.10c
@@ -290,7 +286,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public IItemStack getHeldItem(){
 		return NpcAPI.Instance().getIItemStack(entity.getHeldItem());
 	}
-	
+
 	/**
 	 * Note not all Living Entities support this
 	 * @since 1.7.10c
@@ -299,7 +295,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public void setHeldItem(IItemStack item){
 		entity.setCurrentItemOrArmor(0, item == null?null:item.getMCItemStack());
 	}
-	
+
 	/**
 	 * Note not all Living Entities support this
 	 * @param slot Slot of what armor piece to get, 0:boots, 1:pants, 2:body, 3:head
@@ -308,7 +304,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 	public IItemStack getArmor(int slot){
 		return NpcAPI.Instance().getIItemStack(entity.getEquipmentInSlot(slot + 1));
 	}
-	
+
 	/**
 	 * Note not all Living Entities support this
 	 * @since 1.7.10c

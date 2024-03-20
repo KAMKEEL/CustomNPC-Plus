@@ -1,11 +1,5 @@
 package kamkeel.command;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -25,20 +19,22 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.*;
+
 public class SlayCommand extends CommandKamkeelBase {
 	public Map<String, Class<?>> SlayMap = new LinkedHashMap<String, Class<?>>();
-	
+
 	public SlayCommand(){
         SlayMap.clear();
-		
+
 		SlayMap.put("all",EntityLivingBase.class);
 		SlayMap.put("mobs",EntityMob.class);
 		SlayMap.put("animals", EntityAnimal.class);
 		SlayMap.put("items", EntityItem.class);
 		SlayMap.put("xporbs", EntityXPOrb.class);
 		SlayMap.put("npcs", EntityNPCInterface.class);
-		
-		HashMap<String,Class<?>> list = new HashMap<String,Class<?>>(EntityList.stringToClassMapping);		
+
+		HashMap<String,Class<?>> list = new HashMap<String,Class<?>>(EntityList.stringToClassMapping);
 		for(String name : list.keySet()){
 			Class<?> cls = list.get(name);
 			if(EntityNPCInterface.class.isAssignableFrom(cls))
@@ -51,7 +47,7 @@ public class SlayCommand extends CommandKamkeelBase {
 		SlayMap.remove("monster");
 		SlayMap.remove("mob");
 	}
-	
+
 	@Override
 	public String getCommandName() {
 		return "slay";
@@ -90,11 +86,11 @@ public class SlayCommand extends CommandKamkeelBase {
 			range = Integer.parseInt(args[args.length - 1]);
 		}
 		catch(NumberFormatException ex){
-			
+
 		}
 		AxisAlignedBB box = player.boundingBox.expand(range, range, range);
 		List<? extends Entity> list = sender.getEntityWorld().getEntitiesWithinAABB(EntityLivingBase.class, box);
-		
+
 		for(Entity entity : list){
 			if(entity instanceof EntityPlayer)
 				continue;
@@ -119,10 +115,10 @@ public class SlayCommand extends CommandKamkeelBase {
 				count++;
 			}
 		}
-		
+
 		sendResult(sender, count + " entities deleted");
 	}
-	
+
     private boolean delete(Entity entity, ArrayList<Class<?>> toDelete) {
 		for(Class<?> delete : toDelete){
 			if(delete == EntityAnimal.class && (entity instanceof EntityHorse)){
@@ -135,7 +131,7 @@ public class SlayCommand extends CommandKamkeelBase {
 		}
 		return false;
 	}
-    
+
 	@Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args){
 		return CommandBase.getListOfStringsMatchingLastWord(args, SlayMap.keySet().toArray(new String[SlayMap.size()]));

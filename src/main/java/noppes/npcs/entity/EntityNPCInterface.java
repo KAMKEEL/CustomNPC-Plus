@@ -23,9 +23,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.play.server.S0BPacketAnimation;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -46,6 +48,7 @@ import noppes.npcs.ai.target.EntityAIClosestTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtByTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtTarget;
 import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.config.ConfigMain;
@@ -65,7 +68,7 @@ import noppes.npcs.util.GameProfileAlt;
 import java.io.IOException;
 import java.util.*;
 
-public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData{
+public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData {
 	public ICustomNpc wrappedNPC;
 
 	public static final GameProfileAlt chateventProfile = new GameProfileAlt();
@@ -78,6 +81,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public DataScript script;
 	public DataTransform transform;
 	public DataTimers timers;
+
+	public CombatHandler combatHandler = new CombatHandler(this);
 
 	public String linkedName = "";
 	public long linkedLast = 0;
@@ -94,7 +99,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public long totalTicksAlive = 0;
 	private int taskCount = 1;
 	public int lastInteract = 0;
-	public int itemGiverId = 0;
+    public boolean isDrawn = false;
 
 	public Faction faction; //should only be used server side
 
@@ -104,7 +109,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public List<EntityLivingBase> interactingEntities = new ArrayList<EntityLivingBase>();
 
 	public ResourceLocation textureLocation = null;
-	public ResourceLocation textureCloakLocation = null;
 
 	public EnumAnimation currentAnimation = EnumAnimation.NONE;
 
@@ -138,6 +142,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			setFaction(faction.id);
 			setSize(1, 1);
 			this.updateTasks();
+			this.func_110163_bv();
 
 			if (!this.isRemote() && this.wrappedNPC == null) {
 				this.wrappedNPC = new ScriptNpc<>(this);
@@ -197,6 +202,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			if (this.ticksExisted % 10 == 0) {
 				EventHooks.onNPCUpdate(this);
 			}
+			for(int i=1;i<3;i++){
+				ItemStack itemstack = inventory.prevWeapons.get(i);
+				ItemStack itemstack1 = inventory.weapons.get(i);
+				if (!ItemStack.areItemStacksEqual(itemstack1, itemstack))
+				{
+					NBTTagCompound itemNBT = new NBTTagCompound();
+					if(itemstack1!=null){
+						itemstack1.writeToNBT(itemNBT);
+					}
+					for(Object obj: MinecraftServer.getServer().getConfigurationManager().playerEntityList){
+						Server.sendData((EntityPlayerMP) obj, EnumPacketClient.SYNC_WEAPON, getEntityId(), i, itemNBT);
+					}
+					inventory.prevWeapons.put(i,itemstack1 == null ? null : itemstack1.copy());
+				}
+			}
 			this.timers.update();
 		}
 	}
@@ -250,6 +270,34 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	@Override
+	public void swingItem()
+	{
+		ItemStack stack = this.getHeldItem();
+		if (stack != null && stack.getItem() != null)
+		{
+			Item item = stack.getItem();
+			if (item.onEntitySwing(this, stack))
+			{
+				return;
+			}
+		}
+		if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
+		{
+			NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
+			if(EventHooks.onNPCMeleeSwing(this, event))
+				return;
+
+			this.swingProgressInt = -1;
+			this.isSwingInProgress = true;
+
+			if (this.worldObj instanceof WorldServer)
+			{
+				((WorldServer)this.worldObj).getEntityTracker().func_151247_a(this, new S0BPacketAnimation(this, 0));
+			}
+		}
+	}
+
+	@Override
 	public void onLivingUpdate(){
 		if(CustomNpcs.FreezeNPCs)
 			return;
@@ -294,10 +342,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				updateTasks();
 				updateHitbox();
 			}
-			setBoolFlag(this.getAttackTarget() != null, 4);
 			setBoolFlag(!getNavigator().noPath(), 1);
 			setBoolFlag(isInteracting(), 2);
-
+			combatHandler.update();
 			onCollide();
 		}
 
@@ -333,13 +380,18 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 	}
 
+	@Override
+	protected void damageEntity(DamageSource damageSrc, float damageAmount){
+		super.damageEntity(damageSrc, damageAmount);
+		combatHandler.damage(damageSrc, damageAmount);
+	}
+
 	public void updateClient() {
 		NBTTagCompound compound = writeSpawnData();
 		compound.setInteger("EntityId", getEntityId());
 		Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
 		updateClient = false;
 	}
-
 
 	@Override
 	public boolean interact(EntityPlayer player) {
@@ -372,7 +424,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		Dialog dialog = getDialog(player);
 		PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
 		QuestData data = playerdata.getQuestCompletion(player, this);
-		if (data != null){
+        Party partyCompleted = playerdata.getPartyQuestCompletion(player, this);
+        if(partyCompleted != null){
+            NoppesUtilPlayer.questPartyCompletion(partyCompleted);
+        }
+		else if (data != null){
 			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
 		}
@@ -471,17 +527,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if((float)this.hurtResistantTime > (float)this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
 			return false;
 
-		Entity entity = damagesource.getEntity();
-
+		Entity entity = NoppesUtilServer.GetDamageSource(damagesource);
 		EntityLivingBase attackingEntity = null;
 
 		if (entity instanceof EntityLivingBase)
 			attackingEntity = (EntityLivingBase) entity;
-
-		if ((entity instanceof EntityArrow) && ((EntityArrow) entity).shootingEntity instanceof EntityLivingBase)
-			attackingEntity = (EntityLivingBase) ((EntityArrow) entity).shootingEntity;
-		else if ((entity instanceof EntityThrowable))
-			attackingEntity = ((EntityThrowable) entity).getThrower();
 
 		if(attackingEntity != null && attackingEntity == getOwner())
 			return false;
@@ -507,13 +557,33 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		try{
 			if (isAttacking()){
-				if(getAttackTarget() != null && attackingEntity != null && this.getDistanceSqToEntity(getAttackTarget()) > this.getDistanceSqToEntity(attackingEntity)){
-					setAttackTarget(attackingEntity);
+				if (getAttackTarget() != null) {
+					if (ai.combatPolicy != EnumCombatPolicy.Brute) {
+						boolean closerTargetFound = this.getDistanceSqToEntity(getAttackTarget()) > this.getDistanceSqToEntity(attackingEntity);
+						switch (ai.combatPolicy) {
+							case Flip:
+								if (closerTargetFound) {
+									setAttackTarget(attackingEntity);
+								}
+								break;
+							case Stubborn:
+								if (closerTargetFound && combatHandler.shouldChangeTarget(ai.tacticalChance)) {
+									setAttackTarget(attackingEntity);
+								}
+								break;
+							case Tactical:
+								if (attackingEntity != getAttackTarget() && combatHandler.shouldSwitchTactically(getAttackTarget(), attackingEntity, ai.tacticalChance > 50)) {
+									setAttackTarget(attackingEntity);
+								}
+								break;
+							default:
+								break;
+						}
+					}
 				}
 				return super.attackEntityFrom(damagesource, i);
 			}
-
-			if (i > 0) {
+			if (i > 0){
 				List<EntityNPCInterface> inRange = worldObj.getEntitiesWithinAABB(EntityNPCInterface.class, this.boundingBox.expand(32D, 16D, 32D));
 				for (EntityNPCInterface npc : inRange) {
 					if (npc.isKilled() || !npc.advanced.defendFaction || npc.faction.id != faction.id)
@@ -605,18 +675,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	private void clearTasks(EntityAITasks tasks){
-		Iterator iterator = tasks.taskEntries.iterator();
-		List<EntityAITaskEntry> list = new ArrayList(tasks.taskEntries);
-		for (EntityAITaskEntry entityaitaskentry : list)
-		{
-			tasks.removeTask(entityaitaskentry.action);
-		}
-		tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
+        Iterator iterator = tasks.taskEntries.iterator();
+        List<EntityAITaskEntry> list = new ArrayList(tasks.taskEntries);
+        for (EntityAITaskEntry entityaitaskentry : list)
+        {
+            try {
+                tasks.removeTask(entityaitaskentry.action);
+            }
+            catch(Throwable e) {
+
+            }
+        }
+        tasks.taskEntries = new ArrayList<EntityAITaskEntry>();
 	}
 	public void updateTasks() {
 		if (worldObj == null || worldObj.isRemote)
 			return;
-		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
 
 		clearTasks(tasks);
 		clearTasks(targetTasks);
@@ -641,7 +715,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.seekShelter();
 		this.setResponse();
 		this.setMoveType();
-		this.addRegularEntries();
+        this.addRegularEntries();
 	}
 
 	private void removeTask(EntityAIBase task){
@@ -653,30 +727,29 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	 * Branch task function for setting how an NPC responds to a threat
 	 */
 	public void setResponse(){
-		removeTask(aiLeap);
-		removeTask(aiResponse);
-		removeTask(aiSprint);
-		removeTask(aiAttackTarget);
-		removeTask(aiRange);
-		aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
+        removeTask(aiLeap);
+        removeTask(aiResponse);
+        removeTask(aiSprint);
+        removeTask(aiAttackTarget);
+        removeTask(aiRange);
+        aiLeap = aiAttackTarget = aiResponse = aiSprint = aiRange = null;
+
+		if (this.ai.canSprint)
+			this.tasks.addTask(this.taskCount++, new EntityAISprintToTarget(this));
 
 		if (this.ai.onAttack == 1)
 			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
-
 		else if (this.ai.onAttack == 2)  {
 			this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
-			this.setCanSprint();
 		}
-
 		else if (this.ai.onAttack == 0) {
-			this.setCanLeap();
-			this.setCanSprint();
+			this.setLeapTask();
 			if (this.inventory.getProjectile() == null || this.ai.useRangeMelee == 2)
 			{
 				switch(this.ai.tacticalVariant)
 				{
-					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.0D, this.ai.tacticalRadius)); break;
-					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, this.ai.tacticalRadius, true)); break;
+					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIZigZagTarget(this, 1.2D, this.ai.tacticalRadius)); break;
+					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.2D, this.ai.tacticalRadius, true)); break;
 					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
 					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
 					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
@@ -688,11 +761,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				switch(this.ai.tacticalVariant)
 				{
 					case Dodge : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIDodgeShoot(this)); break;
-					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.0D, stats.rangedRange, false)); break;
+					case Surround : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIOrbitTarget(this, 1.2D, stats.rangedRange, false)); break;
 					case HitNRun : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this)); break;
 					case Ambush : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAmbushTarget(this, 1.2D, this.ai.tacticalRadius, false)); break;
 					case Stalk : this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIStalkTarget(this, this.ai.tacticalRadius)); break;
-					default :
+                    default :
 				}
 			}
 			this.tasks.addTask(this.taskCount, aiAttackTarget = new EntityAIAttackTarget(this));
@@ -756,17 +829,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	/*
 	 * Branch task function for leaping
 	 */
-	public void setCanLeap() {
-		if (this.ai.canLeap)
+	public void setLeapTask() {
+		if (this.ai.leapType == 1)
 			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAILeapAtTarget(this, 0.4F));
-	}
-
-	/*
-	 * Branch task function for sprinting
-	 */
-	public void setCanSprint() {
-		if (this.ai.canSprint)
-			this.tasks.addTask(this.taskCount++, aiSprint = new EntityAISprintToTarget(this));
+		if (this.ai.leapType == 2)
+			this.tasks.addTask(this.taskCount++, aiLeap = new EntityAIPounceTarget(this));
 	}
 
 	/*
@@ -914,28 +981,28 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return chateventPlayer;
 	}
 
-	public void saySurrounding(Line line) {
-		if (line == null || line.text == null || getFakePlayer() == null)
+	public void saySurrounding(ILine line) {
+		if (line == null || line.getText() == null || getFakePlayer() == null)
 			return;
-		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.text, new ChatComponentTranslation(line.text.replace("%", "%%")));
+		ServerChatEvent event = new ServerChatEvent(getFakePlayer(), line.getText(), new ChatComponentTranslation(line.getText().replace("%", "%%")));
 		if (MinecraftForge.EVENT_BUS.post(event) || event.component == null){
 			return;
 		}
-		line.text = event.component.getUnformattedText().replace("%%", "%");
+		line.setText(event.component.getUnformattedText().replace("%%", "%"));
 		List<EntityPlayer> inRange = worldObj.getEntitiesWithinAABB(
 				EntityPlayer.class, this.boundingBox.expand(20D, 20D, 20D));
 		for (EntityPlayer player : inRange)
 			say(player, line);
 	}
 
-	public void say(EntityPlayer player, Line line) {
-		if (line == null || !this.canSee(player) || line.text == null)
+	public void say(EntityPlayer player, ILine line) {
+		if (line == null || !this.canSee(player) || line.getText() == null)
 			return;
 
-		if(!line.sound.isEmpty()){
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.sound, (float)posX, (float)posY, (float)posZ);
+		if(!line.getSound().isEmpty()){
+			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.getSound(), (float)posX, (float)posY, (float)posZ);
 		}
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.text, !line.hideText);
+		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.getText(), !line.hideText());
 	}
 	public boolean getAlwaysRenderNameTagForRender(){
 		return true;
@@ -953,11 +1020,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		script.readFromNBT(compound);
 		script.readEventsFromNBT(compound);
 		timers.readFromNBT(compound);
-		if (compound.hasKey("ItemGiverId")) {
-			itemGiverId = compound.getInteger("ItemGiverId");
-		} else {
-			itemGiverId = -1;
-		}
 		advanced.readToNBT(compound);
 		if (advanced.role != EnumRoleType.None && roleInterface != null)
 			roleInterface.readFromNBT(compound);
@@ -978,6 +1040,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
 
 		this.updateTasks();
+		this.func_110163_bv();
 	}
 
 
@@ -1023,13 +1086,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		width = (width / 5f) * display.modelSize;
 		height = (height / 5f) * display.modelSize;
 
+        if(display.hitboxData.isHitboxEnabled()){
+            width = width * display.hitboxData.getWidthScale();
+            height = height * display.hitboxData.getHeightScale();
+        }
+
 		if(isKilled() && stats.hideKilledBody) {
 			width = 0.00001f;
 		}
 		if(width / 2 > worldObj.MAX_ENTITY_RADIUS) {
 			worldObj.MAX_ENTITY_RADIUS = width / 2;
 		}
-
 		this.setPosition(posX, posY, posZ);
 	}
 
@@ -1061,6 +1128,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		setHealth(getMaxHealth());
 		dataWatcher.updateObject(14, 0); // animation Normal
 		dataWatcher.updateObject(15, 0);
+
+		combatHandler.reset();
 		this.setAttackTarget(null);
 		this.setRevengeTarget(null);
 		this.deathTime = 0;
@@ -1460,6 +1529,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			this.motionY = 0.4000000059604645D;
 		}
 	}
+
 	@Override
 	public void addVelocity(double p_70024_1_, double p_70024_3_, double p_70024_5_) {
 		if (this.attackingPlayer != null) {
@@ -1545,6 +1615,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		compound.setInteger("StandingState", ai.standingType.ordinal());
 		compound.setInteger("MovingState", ai.movingType.ordinal());
 		compound.setInteger("Orientation", ai.orientation);
+		compound.setFloat("OffsetY",ai.bodyOffsetY);
 		compound.setInteger("Role", advanced.role.ordinal());
 		compound.setInteger("Job", advanced.job.ordinal());
 		if(advanced.job == EnumJobType.Bard){
@@ -1577,6 +1648,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ai.standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		ai.movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		ai.orientation = compound.getInteger("Orientation");
+		ai.bodyOffsetY=compound.getFloat("OffsetY");
 
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
 		inventory.setArmor(NBTTags.getItemStackList(compound.getTagList("Armor", 10)));
@@ -1661,8 +1733,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 	@Override
 	public void setInWeb(){
-		if(!ai.ignoreCobweb)
+		if(!stats.ignoreCobweb)
 			super.setInWeb();
+	}
+
+	public boolean isInRange(Entity entity, double range){
+		return this.isInRange(entity.posX, entity.posY, entity.posZ, range);
+	}
+
+	public boolean isInRange(double posX, double posY, double posZ, double range){
+		double y = Math.abs(this.posY - posY);
+		if(posY >= 0 && y > range)
+			return false;
+
+		double x = Math.abs(this.posX - posX);
+		double z = Math.abs(this.posZ - posZ);
+
+		return x <= range && z <= range;
 	}
 
 	@Override
@@ -1670,7 +1757,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		return !isKilled();
 	}
 
-	// obviously we dont want this
 	@Override
 	public boolean canBePushed() {
 		return this.display.collidesWith == 0;

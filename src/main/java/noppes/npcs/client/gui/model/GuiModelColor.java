@@ -4,11 +4,11 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.gui.util.GuiModelInterface;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -20,9 +20,9 @@ public class GuiModelColor extends GuiModelInterface implements ITextfieldListen
 
 	private GuiScreen parent;
 	private final static ResourceLocation color = new ResourceLocation("customnpcs:textures/gui/color.png");
-	
+
 	private int colorX, colorY;
-	
+
 	private GuiNpcTextField textfield;
 
 	private ModelPartData data;
@@ -42,7 +42,7 @@ public class GuiModelColor extends GuiModelInterface implements ITextfieldListen
 		this.addTextField(textfield = new GuiNpcTextField(0, this, guiLeft + 25, guiTop + 20, 70, 20, data.getColor()));
 		textfield.setTextColor(data.color);
     }
-    
+
     @Override
     public void keyTyped(char c, int i){
     	String prev = textfield.getText();
@@ -74,11 +74,11 @@ public class GuiModelColor extends GuiModelInterface implements ITextfieldListen
     public void drawScreen(int par1, int par2, float par3){
     	super.drawScreen(par1, par2, par3);
         mc.getTextureManager().bindTexture(color);
-        
+
         GL11.glColor4f(1, 1, 1, 1);
         this.drawTexturedModalRect(colorX, colorY, 0, 0, 120, 120);
     }
-    
+
 	@Override
     public void mouseClicked(int i, int j, int k)
     {
@@ -95,15 +95,15 @@ public class GuiModelColor extends GuiModelInterface implements ITextfieldListen
             	textfield.setTextColor(color);
             	textfield.setText(data.getColor());
             }
-			
+
 		} catch (IOException e) {
-		} 
+		}
 		finally{
 			if(stream != null){
 				try {
 					stream.close();
 				} catch (IOException e) {
-					
+
 				}
 			}
 		}

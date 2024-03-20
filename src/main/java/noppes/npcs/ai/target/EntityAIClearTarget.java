@@ -2,7 +2,6 @@ package noppes.npcs.ai.target;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAITarget;
-import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIClearTarget extends EntityAITarget
@@ -16,19 +15,15 @@ public class EntityAIClearTarget extends EntityAITarget
 
     @Override
     public boolean shouldExecute(){
-    	target = taskOwner.getAttackTarget();
+        target = npc.getAttackTarget();
         if (target == null)
             return false;
-        
-        if(target instanceof EntityPlayer && ((EntityPlayer)target).capabilities.disableDamage)
-        	return true;
-        
-        int distance = npc.stats.aggroRange * 2 * npc.stats.aggroRange;
-        if(npc.getOwner() != null && npc.getDistanceSqToEntity(npc.getOwner()) > distance){
-        	return true;
+
+        if(npc.getOwner() != null && !npc.isInRange(npc.getOwner(), npc.stats.aggroRange * 2)){
+            return true;
         }
-        
-        return npc.getDistanceSqToEntity(target) > distance;
+
+        return npc.combatHandler.checkTarget();
     }
 
     @Override

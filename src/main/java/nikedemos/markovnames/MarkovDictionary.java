@@ -1,8 +1,8 @@
 package nikedemos.markovnames;
 
-import net.minecraft.util.ResourceLocation;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
+import net.minecraft.util.ResourceLocation;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -86,7 +86,7 @@ public class MarkovDictionary {
 
 	public void incrementSafe(String str1, String str2) {
 		// so for instance, "_DUP_AUX", "_TOTAL" will count how many "DUP" seqCurrs we have
-		if (occurrences.containsKeys(str1, str2)) 
+		if (occurrences.containsKeys(str1, str2))
 		{
 			int curr = occurrences.get(str1, str2).intValue();
 			occurrences.put(str1, str2, Integer.valueOf(curr + 1));

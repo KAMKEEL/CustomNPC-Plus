@@ -6,27 +6,28 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
-import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelData;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class GuiModelInterface extends GuiNPCInterface{
 	public ModelData playerdata;
-		
+
 	private static float rotation = 0;
-	
+
 	private GuiNpcButton left,right,zoom,unzoom;
-	
+
 	private static float zoomed = 60;
-	
+
 	public int xOffset = 0;
     public int yOffset = 0;
-	
+    public boolean followMouse = true;
+
 	public EntityCustomNpc npc;
-	
+
 	public GuiModelInterface(EntityCustomNpc npc){
 		this.npc = npc;
 		playerdata = npc.modelData;
@@ -70,7 +71,7 @@ public class GuiModelInterface extends GuiNPCInterface{
 	    		zoomed+=par3 * 2;
 	    	else if(unzoom.mousePressed(mc, par1, par2) && zoomed > 10)
 	    		zoomed-=par3 * 2;
-    		
+
     	}
         this.drawDefaultBackground();
         GL11.glColor4f(1, 1, 1, 1);
@@ -78,16 +79,16 @@ public class GuiModelInterface extends GuiNPCInterface{
     	EntityLivingBase entity = playerdata.getEntity(npc);
     	if(entity == null)
     		entity = this.npc;
-    	
+
 		EntityUtil.Copy(npc, entity);
-    	
+
     	int l = guiLeft + 190 + xOffset;
     	int i1 =  guiTop + 180 + yOffset;
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glPushMatrix();
         GL11.glTranslatef(l, i1, 60F);
-   
-        
+
+
         GL11.glScalef(-zoomed, zoomed, zoomed);
         GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
         float f2 = entity.renderYawOffset;
@@ -102,8 +103,8 @@ public class GuiModelInterface extends GuiNPCInterface{
         GL11.glRotatef(-(float)Math.atan(f6 / 80F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
         entity.prevRotationYaw = entity.rotationYaw = (float)Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = -(float)Math.atan(f6 / 80F) * 20F;
-        entity.prevRotationYawHead = entity.rotationYawHead = entity.rotationYaw;
+        entity.rotationPitch = followMouse ? -(float)Math.atan(f6 / 80F) * 20F : 0;
+        entity.prevRotationYawHead = entity.rotationYawHead = followMouse ? entity.rotationYaw : rotation;
         GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
         RenderManager.instance.playerViewY = 180F;
 
@@ -128,7 +129,7 @@ public class GuiModelInterface extends GuiNPCInterface{
     	super.drawScreen(par1, par2, par3);
         GL11.glPopMatrix();
     }
-    
+
     @Override
     public void keyTyped(char par1, int par2)
     {
@@ -146,6 +147,6 @@ public class GuiModelInterface extends GuiNPCInterface{
 	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

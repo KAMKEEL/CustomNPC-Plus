@@ -12,24 +12,24 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIAttackTarget extends EntityAIBase
 {
-    World worldObj;
-    EntityNPCInterface attacker;
-    EntityLivingBase entityTarget;
+    private World world;
+    private EntityNPCInterface npc;
+    private EntityLivingBase entityTarget;
 
     /**
      * An amount of decrementing ticks that allows the entity to attack once the tick reaches 0.
      */
-    int attackTick;
+    private int attackTick;
 
     /** The PathEntity of our entity. */
-    PathEntity entityPathEntity;
+    private PathEntity entityPathEntity;
     private int field_75445_i;
 	private boolean navOverride = false;
     
     public EntityAIAttackTarget(EntityNPCInterface par1EntityLiving){
         this.attackTick = 0;
-        this.attacker = par1EntityLiving;
-        this.worldObj = par1EntityLiving.worldObj;
+        this.npc = par1EntityLiving;
+        this.world = par1EntityLiving.worldObj;
         this.setMutexBits(this.navOverride  ? AiMutex.PATHING : AiMutex.LOOK + AiMutex.PASSIVE);
     }
 
@@ -37,7 +37,7 @@ public class EntityAIAttackTarget extends EntityAIBase
      * Returns whether the EntityAIBase should begin execution.
      */
     public boolean shouldExecute(){
-    	EntityLivingBase entitylivingbase = this.attacker.getAttackTarget();
+    	EntityLivingBase entitylivingbase = this.npc.getAttackTarget();
 
         if (entitylivingbase == null){
             return false;
@@ -45,21 +45,21 @@ public class EntityAIAttackTarget extends EntityAIBase
         else if (!entitylivingbase.isEntityAlive()){
             return false;
         }
-        else if (this.attacker.inventory.getProjectile() != null && this.attacker.ai.useRangeMelee == 0){
+        else if (this.npc.inventory.getProjectile() != null && this.npc.ai.useRangeMelee == 0){
      	   return false;
         }
         
-        double var2 = this.attacker.getDistanceSq(entitylivingbase.posX, entitylivingbase.boundingBox.minY, entitylivingbase.posZ);
-        double var3 = this.attacker.ai.distanceToMelee * this.attacker.ai.distanceToMelee;
+        double var2 = this.npc.getDistanceSq(entitylivingbase.posX, entitylivingbase.boundingBox.minY, entitylivingbase.posZ);
+        double var3 = this.npc.ai.distanceToMelee * this.npc.ai.distanceToMelee;
         
-        if (this.attacker.ai.useRangeMelee == 1 && var2 > var3){
+        if (this.npc.ai.useRangeMelee == 1 && var2 > var3){
         	return false;
         }
         else{
         	this.entityTarget = entitylivingbase;
-            this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(((EntityNPCInterface) this.attacker).stats.aggroRange);
-            this.entityPathEntity = this.attacker.getNavigator().getPathToEntityLiving(entitylivingbase);
-            this.attacker.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
+            this.npc.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(((EntityNPCInterface) this.npc).stats.aggroRange);
+            this.entityPathEntity = this.npc.getNavigator().getPathToEntityLiving(entitylivingbase);
+            this.npc.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(ConfigMain.NpcNavRange);
             return this.entityPathEntity != null;
         }
     }
@@ -69,16 +69,16 @@ public class EntityAIAttackTarget extends EntityAIBase
      */
     public boolean continueExecuting()
     {
-    	this.entityTarget = this.attacker.getAttackTarget();
+    	this.entityTarget = this.npc.getAttackTarget();
     	
 		if(entityTarget == null || !entityTarget.isEntityAlive())
 			return false;
-		if(attacker.getDistanceToEntity(entityTarget) > attacker.stats.aggroRange)
+		if(npc.getDistanceToEntity(entityTarget) > npc.stats.aggroRange)
 			return false;
-		if (this.attacker.ai.useRangeMelee == 1 && attacker.getDistanceSqToEntity(entityTarget) > (this.attacker.ai.distanceToMelee * this.attacker.ai.distanceToMelee))
+		if (this.npc.ai.useRangeMelee == 1 && npc.getDistanceSqToEntity(entityTarget) > (this.npc.ai.distanceToMelee * this.npc.ai.distanceToMelee))
 			return false;
 		
-		return this.attacker.isWithinHomeDistance(MathHelper.floor_double(entityTarget.posX), MathHelper.floor_double(entityTarget.posY), MathHelper.floor_double(entityTarget.posZ));
+		return this.npc.isWithinHomeDistance(MathHelper.floor_double(entityTarget.posX), MathHelper.floor_double(entityTarget.posY), MathHelper.floor_double(entityTarget.posZ));
     }
 
     /**
@@ -86,11 +86,11 @@ public class EntityAIAttackTarget extends EntityAIBase
      */
     public void startExecuting(){
     	if(!navOverride)
-    		this.attacker.getNavigator().setPath(this.entityPathEntity, 1.3D);
+    		this.npc.getNavigator().setPath(this.entityPathEntity, 1.3D);
         this.field_75445_i = 0;
-        if (this.attacker.getRangedTask() != null && this.attacker.ai.useRangeMelee == 2)
+        if (this.npc.getRangedTask() != null && this.npc.ai.useRangeMelee == 2)
         {
-        	this.attacker.getRangedTask().navOverride(true);
+        	this.npc.getRangedTask().navOverride(true);
         }
     }
 
@@ -101,11 +101,11 @@ public class EntityAIAttackTarget extends EntityAIBase
     {
     	this.entityPathEntity = null;
     	this.entityTarget = null;
-    	this.attacker.setAttackTarget(null);
-        this.attacker.getNavigator().clearPathEntity();
-        if (this.attacker.getRangedTask() != null && this.attacker.ai.useRangeMelee == 2)
+    	this.npc.setAttackTarget(null);
+        this.npc.getNavigator().clearPathEntity();
+        if (this.npc.getRangedTask() != null && this.npc.ai.useRangeMelee == 2)
         {
-        	this.attacker.getRangedTask().navOverride(false);
+        	this.npc.getRangedTask().navOverride(false);
         }
     }
 
@@ -114,30 +114,35 @@ public class EntityAIAttackTarget extends EntityAIBase
      */
     public void updateTask()
     {
-        this.attacker.getLookHelper().setLookPositionWithEntity(this.entityTarget, 30.0F, 30.0F);
+        this.npc.getLookHelper().setLookPositionWithEntity(this.entityTarget, 30.0F, 30.0F);
+
+
         if (!navOverride && --this.field_75445_i <= 0)
         {
-            this.field_75445_i = 4 + this.attacker.getRNG().nextInt(7);
-            this.attacker.getNavigator().tryMoveToEntityLiving(this.entityTarget, 1.3f);
+            this.field_75445_i = 4 + this.npc.getRNG().nextInt(7);
+            this.npc.getNavigator().tryMoveToEntityLiving(this.entityTarget, 1.3f);
         }
-
         this.attackTick = Math.max(this.attackTick - 1, 0);
-        double distance = this.attacker.getDistanceSq(this.entityTarget.posX, this.entityTarget.boundingBox.minY, this.entityTarget.posZ);
-        double range = attacker.stats.attackRange * attacker.stats.attackRange + entityTarget.width;
-        double minRange = this.attacker.width * 2.0F * this.attacker.width * 2.0F + entityTarget.width;
+
+        double distance = this.npc.getDistanceSq(this.entityTarget.posX, this.entityTarget.boundingBox.minY, this.entityTarget.posZ);
+        double range = npc.stats.attackRange * npc.stats.attackRange + entityTarget.width;
+        double minRange = this.npc.width * 2.0F * this.npc.width * 2.0F + entityTarget.width;
         if(minRange > range)
         	range = minRange;
-        if (distance <= range && (attacker.canSee(this.entityTarget) || distance < minRange))
+        if (distance <= range && (npc.canSee(this.entityTarget) || distance < minRange))
         {
-            if (this.attackTick <= 0)
-            {
-                this.attackTick = this.attacker.stats.attackSpeed;
-                this.attacker.swingItem();
-                this.attacker.attackEntityAsMob(this.entityTarget);
+            if (this.attackTick <= 0) {
+                this.attackTick = this.npc.stats.attackSpeed;
+                if(this.npc.stats.swingWarmUp == 0)
+                    this.npc.attackEntityAsMob(this.entityTarget);
+                this.npc.swingItem();
+            } else if (this.npc.stats.swingWarmUp > 0 && this.attackTick == this.npc.stats.attackSpeed - this.npc.stats.swingWarmUp) {
+                // Perform the actual attack that deals damage
+                this.npc.attackEntityAsMob(this.entityTarget);
             }
         }
     }
-    
+
     public void navOverride(boolean nav){
     	this.navOverride = nav;
         this.setMutexBits(this.navOverride ? AiMutex.PATHING : AiMutex.LOOK + AiMutex.PASSIVE);

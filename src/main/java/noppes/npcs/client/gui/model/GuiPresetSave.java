@@ -2,17 +2,17 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.client.controllers.Preset;
 import noppes.npcs.client.controllers.PresetController;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.entity.data.ModelData;
 
 public class GuiPresetSave extends GuiNPCInterface{
 	private ModelData data;
 	private GuiScreen parent;
-	
+
 	public GuiPresetSave(GuiScreen parent, ModelData data){
 		this.data = data;
 		this.parent = parent;
@@ -44,6 +44,6 @@ public class GuiPresetSave extends GuiNPCInterface{
 	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

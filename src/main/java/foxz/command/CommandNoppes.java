@@ -1,9 +1,9 @@
 package foxz.command;
 
-import java.util.List;
-
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+
+import java.util.List;
 
 public class CommandNoppes extends CommandBase {
 

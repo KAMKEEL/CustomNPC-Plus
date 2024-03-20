@@ -6,6 +6,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -23,12 +24,12 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
     {
     	super(npc);
     	drawDefaultBackground = false;
-		title = "Select Dialog Category";
+		title = "Select Faction Category";
     	this.parent = parent;
     	this.factionId = dialog;
-    	
+
     	Client.sendData(EnumPacketServer.FactionsGet);
-    	
+
     	if(parent instanceof GuiSelectionListener){
     		listener = (GuiSelectionListener) parent;
     	}
@@ -40,9 +41,9 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
         Vector<String> list = new Vector<String>();
         slot = new GuiNPCStringSlot(list,this,false,18);
         slot.registerScrollButtons(4, 5);
-        
+
     	this.addButton(new GuiNpcButton(2, width / 2 -100, height - 41,98, 20, "gui.back"));
-    	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 41,98, 20, "mco.template.button.select"));
+    	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 41,98, 20, "gui.select"));
     }
 
 
@@ -71,7 +72,7 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
 		factionId = data.get(slot.selected);
 		close();
 		NoppesUtil.openGUI(player, parent);
-		
+
 	}
 	public void save() {
 		if(factionId >= 0){
@@ -92,8 +93,7 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
 
 	@Override
 	public void setSelected(String selected) {
-		
-	}
 
+	}
 
 }

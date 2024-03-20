@@ -14,15 +14,15 @@ public class DialogCategory implements IDialogCategory {
 	public int id = -1;
 	public String title = "";
 	public HashMap<Integer,Dialog> dialogs;
-	
+
 	public DialogCategory(){
 		dialogs = new HashMap<Integer, Dialog>();
 	}
-	
+
 	public void readNBT(NBTTagCompound compound){
         id = compound.getInteger("Slot");
         title = compound.getString("Title");
-        
+
         NBTTagList dialogsList = compound.getTagList("Dialogs", 10);
         if(dialogsList != null){
             for(int ii = 0; ii < dialogsList.tagCount(); ii++)
@@ -37,16 +37,27 @@ public class DialogCategory implements IDialogCategory {
         }
 	}
 
-	public NBTTagCompound writeNBT(NBTTagCompound nbtfactions) {
-        nbtfactions.setInteger("Slot", id);
-        nbtfactions.setString("Title", title);
+	public NBTTagCompound writeNBT(NBTTagCompound dialogCat) {
+        dialogCat.setInteger("Slot", id);
+        dialogCat.setString("Title", title);
         NBTTagList dialogs = new NBTTagList();
         for(Dialog dialog : this.dialogs.values()){
         	dialogs.appendTag(dialog.writeToNBT(new NBTTagCompound()));
         }
-        nbtfactions.setTag("Dialogs", dialogs);
-        return nbtfactions;
+        dialogCat.setTag("Dialogs", dialogs);
+        return dialogCat;
 	}
+
+    public NBTTagCompound writeSmallNBT(NBTTagCompound dialogCat) {
+        dialogCat.setInteger("Slot", id);
+        dialogCat.setString("Title", title);
+        return dialogCat;
+    }
+
+    public void readSmallNBT(NBTTagCompound compound){
+        id = compound.getInteger("Slot");
+        title = compound.getString("Title");
+    }
 
 	public List<IDialog> dialogs() {
 		return new ArrayList(this.dialogs.values());
@@ -60,5 +71,10 @@ public class DialogCategory implements IDialogCategory {
 		Dialog dialog = new Dialog();
 		dialog.category = this;
 		return dialog;
+	}
+
+	@Override
+	public int getId() {
+		return this.id;
 	}
 }

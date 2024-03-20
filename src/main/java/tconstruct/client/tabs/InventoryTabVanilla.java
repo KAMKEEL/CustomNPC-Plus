@@ -10,7 +10,7 @@ public class InventoryTabVanilla extends AbstractTab {
 
 	@Override
 	public void onTabClicked() {
-		TabRegistry.openInventoryGui();
+        TabRegistry.openInventoryGui();
 	}
 
 	@Override

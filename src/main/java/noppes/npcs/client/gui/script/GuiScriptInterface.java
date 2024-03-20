@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.client.gui.script;
 
 import net.minecraft.client.gui.GuiButton;
@@ -11,9 +6,9 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.swing.GuiJTextArea;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -94,9 +89,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             hookLabel.color = 0xaaaaaa;
             addLabel(hookLabel);
 
-            ScriptContainer var7 = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            GuiNpcTextArea left = new GuiNpcTextArea(2, this, this.guiLeft + yoffset, this.guiTop + yoffset, this.xSize - 110 - yoffset, (int)((double)this.ySize * 0.96D) - yoffset * 2, var7 == null?"":var7.script);
-            this.addTextField(left);
+            ScriptContainer container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+            GuiScriptTextArea ta = new GuiScriptTextArea(this,2, guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2, container == null?"":container.script);
+            ta.enableCodeHighlighting();
+            ta.setListener(this);
+
+            this.addTextField(ta);
+
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
@@ -107,8 +106,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             scroll.setSize(100, (int)((double)this.ySize * 0.54D) - yoffset * 2);
             scroll.guiLeft = left1;
             scroll.guiTop = this.guiTop + 88 + yoffset;
-            if(var7 != null) {
-                scroll.setList(var7.scripts);
+            if(container != null) {
+                scroll.setList(container.scripts);
             }
 
             this.addScroll(scroll);
@@ -203,10 +202,26 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             if(i == 3) {
                 this.openLink("http://www.minecraftforge.net/forum/index.php/board,122.0.html");
             }
-
             if(i == 10) {
                 this.handler.getScripts().remove(this.activeTab - 1);
                 this.activeTab = 0;
+            }
+            if(i == 101) {
+                (this.getTextField(2)).setText(NoppesStringUtils.getClipboardContents());
+                this.setScript();
+            }
+            if(i == 102) {
+                ScriptContainer container;
+                if(this.activeTab > 0) {
+                    container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
+                    container.script = "";
+                } else {
+                    this.handler.clearConsole();
+                    if (this.handler instanceof ScriptCustomItem) {
+                        ((ScriptCustomItem) this.handler).saveScriptData();
+                    }
+                }
+                this.initGui();
             }
         }
 
@@ -248,23 +263,14 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if(guibutton.id == 101) {
-            (this.getTextField(2)).setText(NoppesStringUtils.getClipboardContents());
-            this.setScript();
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.paste"), StatCollector.translateToLocal("gui.sure"), 101);
+            displayGuiScreen(guiyesno);
         }
 
         ScriptContainer container;
         if(guibutton.id == 102) {
-            if(this.activeTab > 0) {
-                container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-                container.script = "";
-            } else {
-                this.handler.clearConsole();
-                if (this.handler instanceof ScriptCustomItem) {
-                    ((ScriptCustomItem) this.handler).saveScriptData();
-                }
-            }
-
-            this.initGui();
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("gui.clear"), StatCollector.translateToLocal("gui.sure"), 102);
+            displayGuiScreen(guiyesno);
         }
 
         if(guibutton.id == 103) {
@@ -292,15 +298,6 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             this.setSubGui(new EventGuiScriptList((List)this.languages.get(this.handler.getLanguage()), container));
         }
-
-        if(guibutton.id == 108) {
-            container = (ScriptContainer)this.handler.getScripts().get(this.activeTab - 1);
-            if(container != null) {
-                this.setScript();
-                AWTWindow = new GuiJTextArea(container.script).setListener(this);
-            }
-        }
-
     }
 
     private void setScript() {

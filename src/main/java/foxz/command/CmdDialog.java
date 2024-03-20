@@ -1,21 +1,22 @@
 package foxz.command;
 
-import java.util.List;
-
-import net.minecraft.command.CommandBase;
-import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.client.EntityUtil;
-import noppes.npcs.controllers.data.Dialog;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.DialogOption;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.entity.EntityDialogNpc;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
+import net.minecraft.command.CommandBase;
+import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.client.EntityUtil;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.SyncController;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogOption;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.entity.EntityDialogNpc;
+
+import java.util.List;
 
 @Command(
         name="dialog",
@@ -27,8 +28,8 @@ public class CmdDialog extends ChMcLogger {
     public CmdDialog(Object sender) {
         super(sender);
     }
-    
-    
+
+
     @SubCommand(
             desc="force read",
             usage="<player> <dialog>",
@@ -48,18 +49,19 @@ public class CmdDialog extends ChMcLogger {
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        for(PlayerData playerdata : data){     
+        for(PlayerData playerdata : data){
 	        playerdata.dialogData.dialogsRead.add(diagid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
-    
+
     @SubCommand(
             desc="force unread dialog",
             usage="<player> <dialog>",
             permissions={OpOnly.class, ParamCheck.class}
-    )      
+    )
     public boolean unread(String args[]){
         String playername=args[0];
         int diagid;
@@ -74,34 +76,36 @@ public class CmdDialog extends ChMcLogger {
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        for(PlayerData playerdata : data){  
+        for(PlayerData playerdata : data){
 	        playerdata.dialogData.dialogsRead.remove(diagid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
     @SubCommand(
             desc="reload dialogs from disk",
             permissions={OpOnly.class}
-    )      
+    )
     public boolean reload(String args[]){
-    	new DialogController();
+    	new DialogController().load();
+        SyncController.syncAllDialogs();
     	return true;
     }
-    
+
 
     @SubCommand(
             desc="show dialog",
             usage="<player> <dialog> <name>",
             permissions={OpOnly.class}
-    )      
+    )
     public void show(String args[]){
     	EntityPlayer player = CommandBase.getPlayer(pcParam, args[0]);
     	if(player == null){
             sendmessage(String.format("Unknow player '%s'", args[0]));
             return;
     	}
-    		
+
         int diagid;
         try {
         	diagid = Integer.parseInt(args[1]);
@@ -109,12 +113,12 @@ public class CmdDialog extends ChMcLogger {
             sendmessage("DialogID must be an integer: " + args[1]);
             return;
         }
-        Dialog dialog = DialogController.instance.dialogs.get(diagid);
+        Dialog dialog = DialogController.Instance.dialogs.get(diagid);
         if(dialog == null){
             sendmessage("Unknown dialog id: " + args[1]);
             return;
         }
-        
+
     	EntityDialogNpc npc = new EntityDialogNpc(this.pcParam.getEntityWorld());
     	npc.display.name = args[2];
 		EntityUtil.Copy(player, npc);

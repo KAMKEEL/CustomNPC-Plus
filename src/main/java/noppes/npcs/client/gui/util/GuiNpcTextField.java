@@ -16,7 +16,7 @@ public class GuiNpcTextField extends GuiTextField{
     public int min = 0,max = Integer.MAX_VALUE,def = 0;
 	public double minDouble = 0, maxDouble = Double.MAX_VALUE, defDouble = 0;
 	public float minFloat = 0, maxFloat = Float.MAX_VALUE, defFloat = 0;
-    private static GuiNpcTextField activeTextfield = null;
+    protected static GuiNpcTextField activeTextfield = null;
 	public boolean canEdit = true;
     
     private final int[] allowedSpecialChars = {14,211,203,205};
@@ -40,7 +40,7 @@ public class GuiNpcTextField extends GuiTextField{
 		this(id, parent, Minecraft.getMinecraft().fontRenderer, i, j, k, l, s);
 	}
 
-	private boolean charAllowed(char c, int i){
+	protected boolean charAllowed(char c, int i){
 		if(!integersOnly || Character.isDigit(c))
 			return true;
 

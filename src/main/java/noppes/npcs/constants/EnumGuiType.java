@@ -30,6 +30,7 @@ public enum EnumGuiType {
 	ManageRecipes,
 	QuestItem,
 	NpcRemote,
+    GlobalRemote,
 	ScriptEvent,
 	MoneyBag,
 	MainMenuAI,
@@ -54,5 +55,6 @@ public enum EnumGuiType {
 	CompanionTrader,
 	ManageLinked,
 	CustomGui,
-	ScriptItem;
+	ScriptItem,
+	ScriptBlock;
 }

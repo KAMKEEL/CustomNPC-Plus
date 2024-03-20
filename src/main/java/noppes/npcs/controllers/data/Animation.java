@@ -13,12 +13,14 @@ import java.util.ArrayList;
 
 
 public class Animation implements IAnimation {
+	public AnimationData parent; //Client-sided only
+	public int id = -1; // Only for internal usage
 
 	public ArrayList<Frame> frames = new ArrayList<>();
 	public int currentFrame = 0;
 	public int currentFrameTime = 0;
 
-	public String name;
+	public String name = "";
 	public float speed = 1.0F;
 	public byte smooth = 0;
 	public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
@@ -33,14 +35,17 @@ public class Animation implements IAnimation {
 
 	public Animation(){}
 
-	public Animation(String name){
+	public Animation(int id, String name){
 		this.name = name;
+		this.id = id;
 	}
 
-	public Animation(String name, float speed, byte smooth){
+	public Animation(int id, String name, float speed, byte smooth){
 		this.name = name;
 		this.speed = speed;
 		this.smooth = smooth;
+
+		this.id = id;
 	}
 
 	public IFrame currentFrame() {
@@ -152,10 +157,27 @@ public class Animation implements IAnimation {
 	}
 
 	public IAnimation save() {
-		return AnimationController.instance.saveAnimation(this);
+		return AnimationController.Instance.saveAnimation(this);
+	}
+
+	@Override
+	public int getID() {
+		return id;
+	}
+
+	@Override
+	public void setID(int newID) {
+		id = newID;
 	}
 
 	public void readFromNBT(NBTTagCompound compound){
+		if(compound.hasKey("ID")){
+			id = compound.getInteger("ID");
+		}
+		else if (AnimationController.Instance != null) {
+			id = AnimationController.Instance.getUnusedId();
+		}
+
 		name = compound.getString("Name");
 		speed = compound.getFloat("Speed");
 		smooth = compound.getByte("Smooth");
@@ -181,6 +203,7 @@ public class Animation implements IAnimation {
 
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
+		compound.setInteger("ID", id);
 		compound.setString("Name", name);
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
@@ -206,6 +229,10 @@ public class Animation implements IAnimation {
 		if (paused)
 			return;
 
+		if (this.parent != null && this.currentFrame < this.frames.size()) {
+			this.parent.finishedFrame = this.currentFrame;
+		}
+
 		this.currentFrameTime++;
 		if (this.currentFrameTime == this.currentFrame().getDuration()) {
 			Frame prevFrame = (Frame) this.currentFrame();
@@ -222,6 +249,23 @@ public class Animation implements IAnimation {
 					if (prevFrame.frameParts.containsKey(part) && nextFrame.frameParts.containsKey(part)) {
 						nextFrame.frameParts.get(part).prevRotations = prevFrame.frameParts.get(part).prevRotations;
 						nextFrame.frameParts.get(part).prevPivots = prevFrame.frameParts.get(part).prevPivots;
+					}
+				}
+			} else if (this.parent != null && this.currentFrame > this.loop) {
+				this.parent.finishedTime = this.parent.animationEntity.getAge();
+			}
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	public void jumpToCurrentFrame() {
+		this.currentFrameTime = 0;
+		Frame frame = (Frame) this.currentFrame();
+		if(frame != null){
+			for (EnumAnimationPart part : EnumAnimationPart.values()) {
+				if(part != null){
+					if (frame.frameParts.containsKey(part)) {
+						frame.frameParts.get(part).jumpToCurrentFrame();
 					}
 				}
 			}

@@ -12,17 +12,23 @@ import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Bank;
+import noppes.npcs.controllers.data.PlayerBankData;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
-import static noppes.npcs.util.CustomNPCsThreader.playerDataThread;
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class PlayerDataController {
 	public static PlayerDataController Instance;
@@ -60,7 +66,7 @@ public class PlayerDataController {
 								}
 							}
 							if(file.getName().endsWith(".dat")){
-								NBTTagCompound compound = loadNBTData(file);
+								NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
 								if(compound.hasKey("PlayerName")){
 									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 4));
 								}
@@ -122,7 +128,7 @@ public class PlayerDataController {
 	}
 
 	public synchronized void savePlayerDataMap(){
-		playerDataThread.execute(() -> {
+		customNPCThread.execute(() -> {
 			try {
 				File saveDir = CustomNpcs.getWorldSaveDirectory();
 				File file = new File(saveDir, "playerdatamap.dat_new");
@@ -224,7 +230,7 @@ public class PlayerDataController {
 			File file = new File(saveDir, filename);
 			if(file.exists()){
 				if(ConfigMain.DatFormat){
-					return loadNBTData(file);
+					return NBTJsonUtil.loadNBTData(file);
 				} else {
 					return NBTJsonUtil.LoadFile(file);
 				}
@@ -236,16 +242,7 @@ public class PlayerDataController {
 		return new NBTTagCompound();
 	}
 
-	public NBTTagCompound loadNBTData(File file){
-		try {
-			return CompressedStreamTools.readCompressed(new FileInputStream(file));
-		} catch (Exception e) {
-			LogWriter.error("Error loading: " + file.getName(), e);
-		}
-		return new NBTTagCompound();
-	}
-
-	public void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
+    public void putPlayerDataCache(final String uuid, final PlayerData playerCompound) {
 		synchronized (playerDataCache) {
 			playerDataCache.put(uuid, new CacheHashMap.CachedObject<>(playerCompound));
 		}
@@ -281,10 +278,21 @@ public class PlayerDataController {
 		return data;
 	}
 
+	public ArrayList<PlayerData> getAllPlayerData() {
+		ArrayList<PlayerData> playerDataList = new ArrayList<>();
+		List<?> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+		for (Object o : list) {
+			if (o instanceof EntityPlayer) {
+				playerDataList.add(this.getPlayerData((EntityPlayer)o));
+			}
+		}
+		return playerDataList;
+	}
+
 	public PlayerData getPlayerData(EntityPlayer player){
 		PlayerData data = getPlayerDataCache(player.getUniqueID().toString());
 		if(data != null){
-			data.player = player;
+            data.player = player;
 			return data;
 		}
 
@@ -294,9 +302,26 @@ public class PlayerDataController {
 			data.player = player;
 			data.load();
 		}
-		data.player = player;
+
+        data.player = player;
 		return data;
 	}
+
+	public static EntityPlayer getPlayerFromUUID(UUID uuid) {
+		MinecraftServer server = MinecraftServer.getServer();
+		if (server != null) {
+			for (Object playerObj : server.getConfigurationManager().playerEntityList) {
+				if (playerObj instanceof EntityPlayer) {
+					EntityPlayer player = (EntityPlayer) playerObj;
+					if (player.getUniqueID().equals(uuid)) {
+						return player;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	public String hasPlayer(String username) {
 		for(String name : nameUUIDs.keySet()){
 			if(name.equalsIgnoreCase(username))
@@ -305,6 +330,15 @@ public class PlayerDataController {
 
 		return "";
 	}
+
+    public String getPlayerUUIDFromName(String username) {
+        for(String name : nameUUIDs.keySet()){
+            if(name.equalsIgnoreCase(username))
+                return nameUUIDs.get(name);
+        }
+
+        return "";
+    }
 
 	public PlayerData getDataFromUsername(String username){
 		EntityPlayer player = MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
@@ -420,7 +454,7 @@ public class PlayerDataController {
 								}
 							}
 							if(file.getName().endsWith(".dat")){
-								NBTTagCompound compound = loadNBTData(file);
+								NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
 								if(compound.hasKey("PlayerName")){
 									map.put(compound.getString("PlayerName"), file.getName().substring(0, file.getName().length() - 4));
 								}
@@ -503,7 +537,7 @@ public class PlayerDataController {
 								}
 							} else {
 								if(file.getName().endsWith(".dat")){
-									compound = loadNBTData(file);
+									compound = NBTJsonUtil.loadNBTData(file);
 									if(compound.hasKey("PlayerName")){
 										filename = file.getName().substring(0, file.getName().length() - 4);
 										valid = true;

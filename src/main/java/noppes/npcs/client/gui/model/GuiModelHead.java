@@ -2,11 +2,11 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.gui.util.GuiModelInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class GuiModelHead extends GuiModelInterface{
 
@@ -90,7 +90,7 @@ public class GuiModelHead extends GuiModelInterface{
     		return 4;
     	if(data.type == 1)
     		return 3;
-    	
+
     	return 0;
 	}
 
@@ -107,7 +107,7 @@ public class GuiModelHead extends GuiModelInterface{
     protected void actionPerformed(GuiButton btn) {
     	super.actionPerformed(btn);
     	GuiNpcButton button = (GuiNpcButton) btn;
-    	
+
     	if(button.id == 0){
     		playerdata.headwear = (byte) button.getValue();
     	}

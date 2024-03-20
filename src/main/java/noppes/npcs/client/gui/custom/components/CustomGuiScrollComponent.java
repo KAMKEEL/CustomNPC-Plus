@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.client.gui.custom.components;
 
 import net.minecraft.client.Minecraft;
@@ -85,7 +80,7 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
     }
 
     public ICustomGuiComponent toComponent() {
-        ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.width, this.height, (String[])this.getList().toArray(new String[0]));
+        ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.xSize, this.ySize, (String[])this.getList().toArray(new String[0]));
         component.setHoverText(this.hoverText);
         component.setColor(color);
         component.setAlpha(alpha);

@@ -22,15 +22,15 @@ public class RecipeController implements IRecipeHandler {
 	private static Collection<RecipeCarpentry> prevRecipes;
 	public HashMap<Integer,RecipeCarpentry> globalRecipes = new HashMap<Integer, RecipeCarpentry>();
 	public HashMap<Integer,RecipeCarpentry> anvilRecipes = new HashMap<Integer, RecipeCarpentry>();
-	public static RecipeController instance;
+	public static RecipeController Instance;
 
 	public static final int version = 1;
 	public int nextId = 1;
-	
+
 	public static HashMap<Integer,RecipeCarpentry> syncRecipes = new HashMap<Integer, RecipeCarpentry>();
-	
+
 	public RecipeController(){
-		instance = this;
+		Instance = this;
 	}
 	public void load(){
 		loadCategories();
@@ -41,7 +41,7 @@ public class RecipeController implements IRecipeHandler {
 		if(prevRecipes != null){
 			list.removeAll(prevRecipes);
 		}
-		
+
 		prevRecipes = new HashSet<RecipeCarpentry>();
 		for(RecipeCarpentry recipe : globalRecipes.values()){
 			if(recipe.isValid())
@@ -49,7 +49,7 @@ public class RecipeController implements IRecipeHandler {
 		}
 		list.addAll(prevRecipes);
 	}
-	
+
 	private void loadCategories(){
 		File saveDir = CustomNpcs.getWorldSaveDirectory();
 		try {
@@ -139,7 +139,7 @@ public class RecipeController implements IRecipeHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
     public RecipeCarpentry findMatchingRecipe(InventoryCrafting par1InventoryCrafting){
     	for(RecipeCarpentry recipe : anvilRecipes.values()){
     		if(recipe.isValid() && recipe.matches(par1InventoryCrafting,null))
@@ -158,13 +158,13 @@ public class RecipeController implements IRecipeHandler {
 
 	public RecipeCarpentry saveRecipe(NBTTagCompound compound) throws IOException {
 		RecipeCarpentry recipe = RecipeCarpentry.read(compound);
-		
+
 		RecipeCarpentry current = getRecipe(recipe.id);
 		if(current != null && !current.name.equals(recipe.name)){
 			while(containsRecipeName(recipe.name))
 				recipe.name += "_";
 		}
-		
+
 		if(recipe.id == -1){
 			recipe.id = getUniqueId();
 			while(containsRecipeName(recipe.name))
@@ -201,6 +201,8 @@ public class RecipeController implements IRecipeHandler {
 
 	public RecipeCarpentry delete(int id) {
 		RecipeCarpentry recipe = getRecipe(id);
+        if(recipe == null)
+            return null;
 		globalRecipes.remove(recipe.id);
 		anvilRecipes.remove(recipe.id);
 		saveCategories();
@@ -210,9 +212,9 @@ public class RecipeController implements IRecipeHandler {
 	public void addRecipe(RecipeCarpentry recipeAnvil) {
 		recipeAnvil.id = getUniqueId();
 		if(!recipeAnvil.isGlobal)
-			RecipeController.instance.anvilRecipes.put(recipeAnvil.id, recipeAnvil);
+			RecipeController.Instance.anvilRecipes.put(recipeAnvil.id, recipeAnvil);
 		else{
-			RecipeController.instance.globalRecipes.put(recipeAnvil.id, recipeAnvil);
+			RecipeController.Instance.globalRecipes.put(recipeAnvil.id, recipeAnvil);
 		}
 	}
 

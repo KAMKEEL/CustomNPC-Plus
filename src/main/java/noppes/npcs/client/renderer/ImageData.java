@@ -1,13 +1,11 @@
 package noppes.npcs.client.renderer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -74,7 +72,18 @@ public class ImageData {
         }
     }
 
-    private ResourceLocation getLocation() {
+    public void renderEngineBind() {
+        ResourceLocation location = this.getLocation();
+        if (location != null && !this.invalid) {
+            try {
+                RenderNPCInterface.staticRenderManager.renderEngine.bindTexture(location);
+            } catch (Exception exception) {
+                this.invalid = true;
+            }
+        }
+    }
+
+    public ResourceLocation getLocation() {
         return this.isUrl && this.imageDownloadAlt.getBufferedImage() == null ? null : this.location;
     }
 

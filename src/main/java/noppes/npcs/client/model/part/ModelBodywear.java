@@ -5,35 +5,35 @@ import net.minecraft.client.model.ModelRenderer;
 import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 
-public class ModelBodywear extends ModelScaleRenderer{
+public class ModelBodywear extends ModelScaleRenderer {
 
-	public ModelBodywear(ModelBase base) {
+	public ModelBodywear(ModelBase base, int height, int width) {
 		super(base);
 
 		float thick = 0.50f;
 
-		Model2DRenderer front = new Model2DRenderer(base, 20, 36, 8, 12, 64, 64);
+		Model2DRenderer front = new Model2DRenderer(base, 20, 36, 8, 12, width, height);
 		front.setRotationPoint(-4.53f, 12.535f, -2.52f);
 		front.setScale(0.85f,0.8175f);
 		front.setThickness(thick);
 		setRotation(front, 0, 0, 0);
 		this.addChild(front);
 
-		Model2DRenderer back = new Model2DRenderer(base, 32, 36, 8, 12, 64, 64);
+		Model2DRenderer back = new Model2DRenderer(base, 32, 36, 8, 12, width, height);
 		back.setRotationPoint(4.53f, 12.535f, 2.52f);
 		back.setScale(0.85f,0.8175f);
 		back.setThickness(thick);
 		setRotation(back, 0, (float)(Math.PI), 0);
 		this.addChild(back);
 
-		Model2DRenderer right = new Model2DRenderer(base, 28, 36, 4, 12, 64, 64);
+		Model2DRenderer right = new Model2DRenderer(base, 28, 36, 4, 12, width, height);
 		right.setRotationPoint(4.03f, 12.55f, 2.55f);
 		right.setScale(0.96f,0.82f);
 		right.setThickness(thick);
 		setRotation(right, 0, (float)(Math.PI/2f), 0);
 		this.addChild(right);
 
-		Model2DRenderer left = new Model2DRenderer(base, 16, 36, 4, 12, 64, 64);
+		Model2DRenderer left = new Model2DRenderer(base, 16, 36, 4, 12, width, height);
 		left.setRotationPoint(-4.03f, 12.55f, -2.55f);
 		left.setScale(0.96f,0.82f);
 		left.setThickness(thick);
@@ -41,14 +41,14 @@ public class ModelBodywear extends ModelScaleRenderer{
 		this.addChild(left);
 
 
-		Model2DRenderer top = new Model2DRenderer(base, 20, 32, 8, 4, 64, 64);
+		Model2DRenderer top = new Model2DRenderer(base, 20, 32, 8, 4, width, height);
 		top.setRotationPoint(-4.5f, -0.6f, -2.525f);
 		top.setScale(0.2815f,0.315f);
 		top.setThickness(thick);
 		setRotation(top, (float)(Math.PI / -2), 0, 0);
 		this.addChild(top);
 
-		Model2DRenderer bottom = new Model2DRenderer(base, 28, 32, 8, 4, 64, 64);
+		Model2DRenderer bottom = new Model2DRenderer(base, 28, 32, 8, 4, width, height);
 		bottom.setRotationPoint(-4.5f, 12.11f, -2.525f);
 		bottom.setScale(0.2815f,0.315f);
 		bottom.setThickness(thick);

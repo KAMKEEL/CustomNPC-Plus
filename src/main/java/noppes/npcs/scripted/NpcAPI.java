@@ -1,13 +1,7 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
-import jdk.nashorn.internal.ir.debug.ObjectSizeCalculator;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -18,7 +12,9 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
+import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
@@ -45,6 +41,7 @@ import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
@@ -61,10 +58,7 @@ import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.util.CacheHashMap;
-import noppes.npcs.util.JsonException;
-import noppes.npcs.util.LRUHashMap;
-import noppes.npcs.util.NBTJsonUtil;
+import noppes.npcs.util.*;
 
 import java.io.File;
 import java.util.*;
@@ -109,7 +103,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public long sizeOfObject(Object obj) {
-        return ObjectSizeCalculator.getObjectSize(obj);
+        return SizeOfObjectUtil.sizeOfObject(obj);
     }
 
     public void stopServer() {
@@ -147,23 +141,23 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IRecipeHandler getRecipes() {
         this.checkWorld();
-        return RecipeController.instance;
+        return RecipeController.Instance;
     }
 
     public IQuestHandler getQuests() {
         this.checkWorld();
-        return QuestController.instance;
+        return QuestController.Instance;
     }
 
     public IDialogHandler getDialogs() {
-        return DialogController.instance;
+        return DialogController.Instance;
     }
 
     public ICloneHandler getClones() {
         return ServerCloneController.Instance;
     }
 
-    public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.instance; }
+    public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.Instance; }
 
     public ITransportHandler getLocations() {
         return TransportController.getInstance();
@@ -171,7 +165,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IAnimationHandler getAnimations() {
         this.checkWorld();
-        return AnimationController.instance;
+        return AnimationController.Instance;
     }
 
     @Override
@@ -203,6 +197,8 @@ public class NpcAPI extends AbstractNpcAPI {
                 data = new ScriptEntityData(new ScriptAnimal<>((EntityAnimal) entity));
             else if(entity instanceof EntityMob)
                 data = new ScriptEntityData(new ScriptMonster<>((EntityMob) entity));
+            else if(entity instanceof EntityVillager)
+                data = new ScriptEntityData(new ScriptVillager<>((EntityVillager) entity));
             else if(entity instanceof EntityLiving)
                 data = new ScriptEntityData(new ScriptLiving<>((EntityLiving) entity));
             else if(entity instanceof EntityLivingBase)
@@ -220,7 +216,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public INpc[] getChunkLoadingNPCs() {
         ArrayList<INpc> list = new ArrayList<>();
-        Set<Entity> npcSet = ChunkController.instance.tickets.keySet();
+        Set<Entity> npcSet = ChunkController.Instance.tickets.keySet();
         for (Entity entity : npcSet) {
             if (entity instanceof EntityNPCInterface) {
                 list.add((INpc) NpcAPI.Instance().getIEntity(entity));
@@ -276,16 +272,16 @@ public class NpcAPI extends AbstractNpcAPI {
         return new ScriptBlockPos(pos);
     }
 
-    public IPos getIPos(int x, int y, int z) {
-        return new ScriptBlockPos(new BlockPos(x,y,z));
+    public IPos getIPos(double x, double y, double z) {
+        return this.getIPos(new BlockPos(x,y,z));
     }
 
-    public IPos getIPos(double x, double y, double z) {
-        return this.getIPos((int)x,(int)y,(int)z);
+    public IPos getIPos(int x, int y, int z) {
+        return this.getIPos((double) x, (double) y, (double) z);
     }
 
     public IPos getIPos(float x, float y, float z) {
-        return this.getIPos((int)x,(int)y,(int)z);
+        return this.getIPos((double) x, (double) y, (double) z);
     }
 
     public IPos getIPos(long serializedPos) {
@@ -377,7 +373,7 @@ public class NpcAPI extends AbstractNpcAPI {
                     scriptStack = new ScriptCustomItem(itemstack);
                 } else if (itemstack.getItem() instanceof ItemArmor) {
                     scriptStack = new ScriptItemArmor(itemstack);
-                } else if (itemstack.getItem() instanceof ItemBook) {
+                } else if (itemstack.getItem() instanceof ItemWritableBook || itemstack.getItem() instanceof ItemEditableBook || itemstack.getItem() == Items.written_book || itemstack.getItem() == Items.writable_book) {
                     scriptStack = new ScriptItemBook(itemstack);
                 } else if (itemstack.getItem() instanceof ItemBlock) {
                     scriptStack = new ScriptItemBlock(itemstack);
@@ -420,6 +416,22 @@ public class NpcAPI extends AbstractNpcAPI {
             if (world.provider.dimensionId == dimensionId) {
                 return this.getIWorld(world);
             }
+        }
+
+        throw new CustomNPCsException("Unknown dimension id: " + dimensionId);
+    }
+
+    public IWorld getIWorldLoad(int dimensionId) {
+        try {
+            IWorld iWorld = this.getIWorld(dimensionId);
+            if(iWorld != null)
+                return iWorld;
+        }
+        catch (CustomNPCsException ignored){}
+
+        WorldServer worldServer = CustomNpcs.getServer().worldServerForDimension(dimensionId);
+        if (worldServer != null) {
+            return this.getIWorld(worldServer);
         }
 
         throw new CustomNPCsException("Unknown dimension id: " + dimensionId);
@@ -605,11 +617,11 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IAnimation createAnimation(String name) {
-        return new Animation(name);
+        return new Animation(-1, name);
     }
 
     public IAnimation createAnimation(String name, float speed, byte smooth) {
-        return new Animation(name, speed, smooth);
+        return new Animation(-1, name, speed, smooth);
     }
 
     public IFrame createFrame(int duration) {

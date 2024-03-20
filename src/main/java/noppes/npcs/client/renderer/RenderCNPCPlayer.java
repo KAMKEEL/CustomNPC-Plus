@@ -9,13 +9,13 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -44,12 +44,16 @@ public class RenderCNPCPlayer extends RenderPlayer {
     }
 
     private boolean preRenderOverlay(SkinOverlay overlayData, EntityPlayer player) {
-        if (overlayData.location.getResourcePath().isEmpty())
+        if (overlayData.texture.isEmpty())
+            return false;
+
+        ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+        if (!imageData.imageLoaded())
             return false;
 
         try {
-            this.bindTexture(overlayData.location);
-        } catch (Exception exception) {
+            imageData.bindTexture();
+        } catch (Exception e) {
             return false;
         }
 
@@ -108,17 +112,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
         {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
+                    if (((SkinOverlay)overlayData).texture.isEmpty())
                         continue;
 
-                    if (overlayData.location == null) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    } else {
-                        String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
-                        if (!str.equals(overlayData.texture)) {
-                            overlayData.location = new ResourceLocation(overlayData.texture);
-                        }
-                    }
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                    if (!imageData.imageLoaded())
+                        continue;
 
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
@@ -135,10 +134,25 @@ public class RenderCNPCPlayer extends RenderPlayer {
         return -1;
     }
 
-    protected void passSpecialRender(EntityLivingBase p_77033_1_, double p_77033_2_, double p_77033_4_, double p_77033_6_) {}
+    public void passSpecialRender(EntityLivingBase p_77033_1_, double p_77033_2_, double p_77033_4_, double p_77033_6_) {
+        Render render = RenderManager.instance.getEntityRenderObject(p_77033_1_);
+        if (render instanceof RenderPlayer) {
+            RenderPlayer renderPlayer = (RenderPlayer) render;
+            renderPlayer.passSpecialRender(p_77033_1_, p_77033_2_, p_77033_4_, p_77033_6_);
+        }
+    }
+
+    @Override
+    public void rotateCorpse(EntityLivingBase p_77043_1_, float p_77043_2_, float p_77043_3_, float p_77043_4_) {
+        Render render = RenderManager.instance.getEntityRenderObject(p_77043_1_);
+        if (render instanceof RenderPlayer) {
+            RenderPlayer renderPlayer = (RenderPlayer) render;
+            renderPlayer.rotateCorpse(p_77043_1_, p_77043_2_, p_77043_3_, p_77043_4_);
+        }
+    }
 
     protected void func_96449_a(AbstractClientPlayer p_96449_1_, double p_96449_2_, double p_96449_4_, double p_96449_6_, String p_96449_8_, float p_96449_9_, double p_96449_10_) {}
-    
+
     public void renderHand(float partialTicks, int renderPass) {
         Minecraft mc = Minecraft.getMinecraft();
         EntityRenderer entityRenderer = mc.entityRenderer;
@@ -273,17 +287,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
             for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                if (overlayData.texture.isEmpty())
+                if (((SkinOverlay)overlayData).texture.isEmpty())
                     continue;
 
-                if (overlayData.location == null) {
-                    overlayData.location = new ResourceLocation(overlayData.texture);
-                } else {
-                    String str = overlayData.location.getResourceDomain()+":"+overlayData.location.getResourcePath();
-                    if (!str.equals(overlayData.texture)) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    }
-                }
+                ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                if (!imageData.imageLoaded())
+                    continue;
 
                 if (!this.preRenderOverlay(overlayData, player))
                     continue;
@@ -400,17 +409,16 @@ public class RenderCNPCPlayer extends RenderPlayer {
         try {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
+                    if (((SkinOverlay)overlayData).texture.isEmpty())
                         continue;
 
-                    if (overlayData.location == null) {
-                        overlayData.location = new ResourceLocation(overlayData.texture);
-                    } else {
-                        String str = overlayData.location.getResourceDomain() + ":" + overlayData.location.getResourcePath();
-                        if (!str.equals(overlayData.texture)) {
-                            overlayData.location = new ResourceLocation(overlayData.texture);
-                        }
-                    }
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                    if (!imageData.imageLoaded())
+                        continue;
+
+                    try {
+                        imageData.bindTexture();
+                    } catch (Exception e) { continue; }
 
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;

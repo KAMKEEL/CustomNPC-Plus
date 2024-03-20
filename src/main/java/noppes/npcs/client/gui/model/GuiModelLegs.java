@@ -2,11 +2,11 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.gui.util.GuiModelInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class GuiModelLegs extends GuiModelInterface{
 
@@ -83,7 +83,7 @@ public class GuiModelLegs extends GuiModelInterface{
 			return 9;
 		if(data.type == 6)
 			return 10;
-    	
+
     	return 0;
     }
 
@@ -169,7 +169,7 @@ public class GuiModelLegs extends GuiModelInterface{
     		this.mc.displayGuiScreen(new GuiModelColor(this, playerdata.getPartData("tail"), npc));
     	}
     }
-    
+
     @Override
     public void close(){
         this.mc.displayGuiScreen(parent);

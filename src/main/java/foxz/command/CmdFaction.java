@@ -1,15 +1,15 @@
 package foxz.command;
 
-import java.util.List;
-
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerFactionData;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerFactionData;
+
+import java.util.List;
 
 @Command(
         name = "faction",
@@ -44,6 +44,7 @@ public class CmdFaction extends ChMcLogger {
         for(PlayerData playerdata : data){
 	        PlayerFactionData playerfactiondata = playerdata.factionData;
             playerfactiondata.increasePoints(factionid, points, playerdata.player);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -65,6 +66,7 @@ public class CmdFaction extends ChMcLogger {
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
             playerfactiondata.increasePoints(factionid, -points, playerdata.player);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -77,6 +79,7 @@ public class CmdFaction extends ChMcLogger {
     public Boolean reset(String[] args) {
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -96,11 +99,12 @@ public class CmdFaction extends ChMcLogger {
         }
         for(PlayerData playerdata : data){
         	PlayerFactionData playerfactiondata = playerdata.factionData;
-        	playerfactiondata.factionData.put(this.selectedFaction.id,points);      
+        	playerfactiondata.factionData.put(this.selectedFaction.id,points);
+            playerdata.updateClient = true;
         }
         return true;
     }
-    
+
     @SubCommand(
             desc="Drop relationship",
             usage="",
@@ -109,6 +113,7 @@ public class CmdFaction extends ChMcLogger {
     public Boolean drop(String[] args){
         for(PlayerData playerdata : data){
         	playerdata.factionData.factionData.remove(this.selectedFaction.id);
+            playerdata.updateClient = true;
         }
         return true;
     }

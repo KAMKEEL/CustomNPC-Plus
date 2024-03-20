@@ -1,209 +1,39 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "https://maven.minecraftforge.net/"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-        maven {
-            name = "jitpack"
-            url = "https://jitpack.io"
-        }
-    }
-    dependencies {
-        classpath ('com.anatawa12.forge:ForgeGradle:1.2-1.0.+') {
-            changing = true
-        }
-    }
+//version: 1707058017
+
+plugins {
+    id 'com.gtnewhorizons.gtnhconvention'
+    id 'idea'
 }
 
-task submodulesUpdate(type:Exec) {
-    description 'Updates (and inits) git submodules'
-    commandLine 'git', 'submodule', 'update', '--init', '--recursive'
-    group 'Build Setup'
-}
-
-configurations {
-    embed
-    compile.extendsFrom(embed)
-    shade
-    compile.extendsFrom(shade)
-}
-
-apply plugin: 'forge'
-
-version = "1.8.6"
-group= "com.kamkeel.customnpc-plus" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "1.9-beta8"
+group= "kamkeel.customnpc-plus"
 archivesBaseName = "CustomNPC-Plus"
 
-minecraft {
-    version = "1.7.10-10.13.4.1614-1.7.10"
-    runDir = "eclipse"
-
-    sourceSets {
-        api {
-            java {
-                srcDir 'src/api/java'
-            }
-        }
-    }
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-dependencies {
-    // you may put jars on which you depend on in ./libs
-    // or you may define them like so..
-    //compile "some.group:artifact:version:classifier"
-    //compile "some.group:artifact:version"
-
-    // real examples
-    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
-
-    // for more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
-}
-
-processResources
-        {
-            // this will ensure that this task is redone when the versions change.
-            inputs.property "version", project.version
-            inputs.property "mcversion", project.minecraft.version
-
-            // replace stuff in mcmod.info, nothing else
-            from(sourceSets.main.resources.srcDirs) {
-                include 'mcmod.info'
-
-                // replace version and mcversion
-                expand 'version':project.version, 'mcversion':project.minecraft.version
-            }
-
-            // copy everything else, thats not the mcmod.info
-            from(sourceSets.main.resources.srcDirs) {
-                exclude 'mcmod.info'
-            }
-        }
-
-jar {
-    from sourceSets.api.output
-
-    manifest {
-        attributes(
-            'FMLAT': "customnpcs_at.cfg",
-        )
-    }
-}
-
-//##########################################################################################################
-//########################################    Mixin  Part   ################################################
-//##########################################################################################################
-//Add
-//--tweakClass org.spongepowered.asm.launch.MixinTweaker --mixin customnpcs.mixins.json
-//to your client and server program arguments if working in a dev environment.
 def embedMixin = !project.hasProperty("nomixin");
-def yourMixinConfig = 'customnpcs.mixins.json'
-def refMapForYourConfig = 'customnpcs.refmap.json'
-def relativePathToMixinAP = 'tools/mixin-0.8-SNAPSHOT.jar'
-
 if(!embedMixin){
     version += "-nomixin"
 }
 
-repositories {
-    maven {
-        name = "sponge"
-        url = "https://repo.spongepowered.org/maven/"
-    }
+// API Task
+tasks.create('updateAPI', Exec) {
+    description 'Updates (and Inits) git submodules'
+    commandLine 'git', 'submodule', 'update', '--init', '--recursive'
+    group 'CustomNPC+'
 }
 
-dependencies {
-    if(embedMixin){
-        embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
-            // Mixin includes a lot of dependencies that are too up-to-date
-            exclude module: 'launchwrapper'
-            exclude module: 'guava'
-            exclude module: 'gson'
-            exclude module: 'commons-io'
-            exclude module: 'log4j-core'
-        }
-    } else {
-        implementation('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
-            // Mixin includes a lot of dependencies that are too up-to-date
-            exclude module: 'launchwrapper'
-            exclude module: 'guava'
-            exclude module: 'gson'
-            exclude module: 'commons-io'
-            exclude module: 'log4j-core'
-        }
-    }
-}
-
-def refMap = "${tasks.compileJava.temporaryDir}" + File.separator + refMapForYourConfig
-
-def mixinSrg = "${tasks.reobf.temporaryDir}" + File.separator + "mixins.srg"
-
-jar {
-    configurations.shade.each { dep ->
-        from(project.zipTree(dep)){
-            exclude 'META-INF', 'META-INF/**'
-        }
-    }
-
-    from refMap
-    manifest {
-        attributes.put("TweakClass", "org.spongepowered.asm.launch.MixinTweaker")
-        attributes.put("FMLCorePluginContainsFMLMod", true)
-        attributes.put("ForceLoadAsMod", true)
-        attributes.put("MixinConfigs", yourMixinConfig)
-    }
-
-    // embed libraries in jar
-    from configurations.embed.collect {
-        exclude '**/LICENSE.txt'
-        it.isDirectory() ? it : zipTree(it)
-    }
-}
-
-reobf {
-    addExtraSrgFile mixinSrg
-}
-
-afterEvaluate {
-    def fixedRelPathToAP = relativePathToMixinAP
-    if(fixedRelPathToAP.startsWith('./') || fixedRelPathToAP.startsWith('.\\')){
-        fixedRelPathToAP = fixedRelPathToAP.substring(2)
-    } else if(fixedRelPathToAP.startsWith('/') || fixedRelPathToAP.startsWith('\\')){
-        fixedRelPathToAP = fixedRelPathToAP.substring(1)
-    }
-
-    tasks.compileJava {
-        println "Path: " + projectDir.absolutePath
-        options.compilerArgs += [
-                // There's a bug in the AnnotationProcessor for 0.7.11 that will generate the annotations pointing to the parent class instead of subclass
-                // resulting in the mixin not being applied.  This is fixed in 0.8, however 0.8 needs guava > 21.0, and minecraft ships with 17.0.
-                // So as a hacky workaround... ship with 0.7.11, but use the AP from 0.8 for compiling
-                "-processorpath", projectDir.absolutePath + '/' + fixedRelPathToAP,
-                "-processor", "org.spongepowered.tools.obfuscation.MixinObfuscationProcessorInjection,org.spongepowered.tools.obfuscation.MixinObfuscationProcessorTargets",
-                "-Xlint:-sunapi", "-XDenableSunApiLintControl", "-XDignore.symbol.file",
-                "-AreobfSrgFile=${tasks.reobf.srg}", "-AoutSrgFile=${mixinSrg}", "-AoutRefMapFile=${refMap}"
-        ]
-    }
-}
-
-task deobfJar(type: Jar) {
-    classifier = 'dev'
-    from sourceSets.main.output
+// No Mixin Build Task
+tasks.create('buildNoMixin', Exec) {
+    description 'Builds mod without embed'
+    group 'CustomNPC+'
+    commandLine 'build', '-Pnomixin'
 }
 
 sourceSets {
-    main {
-        ext.refMap = refMapForYourConfig
+    named("main").configure {
+        java {
+            srcDirs += ['src/api/java']
+        }
     }
 }
+
+

@@ -3,10 +3,9 @@ package noppes.npcs.client.fx;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.IResource;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
@@ -14,16 +13,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.ClientProxy;
-import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.opengl.GL11;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class CustomFX extends EntityFX {
     private final Entity entity;
@@ -93,6 +85,10 @@ public class CustomFX extends EntityFX {
     }
 
     public static CustomFX fromScriptedParticle(ScriptParticle particle, World worldObj, Entity entity) {
+        EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
+        if (entity == player) {
+            particle.y -= player.yOffset;
+        }
         CustomFX customFX = new CustomFX(worldObj, entity, particle.directory, particle.x, particle.y, particle.z, particle.motionX, particle.motionY, particle.motionZ);
 
         customFX.HEXColor = particle.HEXColor;
@@ -372,7 +368,7 @@ public class CustomFX extends EntityFX {
 
         return (int)(((int)rr << 16) + ((int)rg << 8) + (rb));
     }
-    
+
     public int getFXLayer(){
     	return 0;
     }

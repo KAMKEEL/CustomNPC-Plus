@@ -40,12 +40,6 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 26;
         addScroll(scroll);
-
-//        GuiMenuTopButton button;
-//        addTopButton(button = new GuiMenuTopButton(3,guiLeft + 4, guiTop - 17, "spawner.clones"));
-//        button.active = !isServer;
-//        addTopButton(button = new GuiMenuTopButton(4, button, "gui.server"));
-//        button.active = isServer;
         
     	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 165, 20, search));
 

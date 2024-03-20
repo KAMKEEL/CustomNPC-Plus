@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
@@ -223,6 +218,28 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
          */
         public boolean isRange(){
             return false;
+        }
+    }
+
+    @Cancelable
+    public static class SwingEvent extends NpcEvent implements INpcEvent.SwingEvent {
+        public final IItemStack itemStack;
+
+        public SwingEvent(ICustomNpc npc, ItemStack itemStack) {
+            super(npc);
+            this.itemStack = (IItemStack)NpcAPI.Instance().getIItemStack(itemStack);
+        }
+
+        public String getHookName() {
+            return EnumScriptType.ATTACK_SWING.function;
+        }
+
+        /**
+         * @return Returns the swung item
+         */
+        @Override
+        public IItemStack getItemStack() {
+            return itemStack;
         }
     }
 

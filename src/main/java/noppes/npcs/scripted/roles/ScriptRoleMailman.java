@@ -12,6 +12,6 @@ public class ScriptRoleMailman extends ScriptRoleInterface implements IRoleMailm
 
 	@Override
 	public int getType(){
-		return RoleType.MAILMAN;
+		return RoleType.POSTMAN;
 	}
 }

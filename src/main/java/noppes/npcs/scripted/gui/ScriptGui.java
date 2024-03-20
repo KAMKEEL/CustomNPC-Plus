@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.scripted.gui;
 
 import net.minecraft.nbt.NBTBase;
@@ -256,18 +251,26 @@ public class ScriptGui implements ICustomGui {
         for(int i = 0; i < list.tagCount(); i++){
             NBTBase b = list.getCompoundTagAt(i);
             ScriptGuiComponent component = ScriptGuiComponent.createFromNBT((NBTTagCompound)b);
-            if (component != null) {
+            if (component != null && !(component instanceof ScriptGuiItemSlot)) {
                 components.put(component.getID(), component);
             }
         }
 
-        List<IItemSlot> slots = new ArrayList();
+        List<IItemSlot> slots = new ArrayList<>();
         list = tag.getTagList("slots", 10);
 
         for(int i = 0; i < list.tagCount(); i++){
-            NBTBase b = list.getCompoundTagAt(i);
-            ScriptGuiItemSlot component = (ScriptGuiItemSlot)ScriptGuiComponent.createFromNBT((NBTTagCompound)b);
-            slots.add(component);
+            NBTTagCompound slotNbt = list.getCompoundTagAt(i);
+
+            int id = slotNbt.getInteger("id");
+            if (!components.containsKey(id)) {
+                components.put(id, ScriptGuiComponent.createFromNBT(slotNbt));
+            } else {
+                components.get(id).fromNBT(slotNbt);
+            }
+
+            ScriptGuiItemSlot slot = (ScriptGuiItemSlot) components.get(id);
+            slots.add(slot);
         }
 
         this.slots = slots;

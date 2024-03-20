@@ -1,14 +1,10 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
 import noppes.npcs.api.AbstractNpcAPI;
 import noppes.npcs.api.IPos;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.api.event.ICustomNPCsEvent;
 import noppes.npcs.api.handler.data.INaturalSpawn;
 import noppes.npcs.constants.EnumScriptType;
@@ -78,6 +74,58 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
 
         public boolean airSpawnPassed() {
             return this.airSpawnPassed;
+        }
+    }
+
+    public static class ScriptedCommandEvent extends CustomNPCsEvent implements ICustomNPCsEvent.ScriptedCommandEvent {
+
+        public IWorld world;
+        public IPos pos;
+        public String senderName;
+        public String id;
+        public String[] args;
+        public String replyMessage = "";
+
+        public ScriptedCommandEvent(IWorld world, IPos pos, String senderName, String id, String[] args){
+            this.world = world;
+            this.pos = pos;
+            this.senderName = senderName;
+            this.id = id;
+            this.args = args;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.SCRIPT_COMMAND.function;
+        }
+
+        @Override
+        public IWorld getSenderWorld() {
+            return world;
+        }
+
+        @Override
+        public IPos getSenderPosition() {
+            return pos;
+        }
+
+        @Override
+        public String getSenderName() {
+            return senderName;
+        }
+
+        @Override
+        public void setReplyMessage(String message) {
+            replyMessage = message;
+        }
+
+        @Override
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public String[] getArgs() {
+            return args;
         }
     }
 }

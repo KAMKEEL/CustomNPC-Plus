@@ -20,6 +20,7 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
         hookList.add("damaged");
         hookList.add("killed");
         hookList.add("meleeAttack");
+        hookList.add("meleeSwing");
         hookList.add("rangedLaunched");
         hookList.add("target");
         hookList.add("collide");

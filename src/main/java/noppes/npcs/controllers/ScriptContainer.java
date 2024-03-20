@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.Event;
@@ -13,7 +8,10 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.NpcAPI;
 
-import javax.script.*;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -147,7 +145,7 @@ public class ScriptContainer {
     }
 
     public void run(String type, Object event) {
-        if(errored || !hasCode() || unknownFunctions.contains(type) || !ConfigScript.ScriptingEnabled)
+        if(!ConfigScript.ScriptingEnabled || errored || !hasCode() || unknownFunctions.contains(type))
             return;
 
         this.setEngine(handler.getLanguage());

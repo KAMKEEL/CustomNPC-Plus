@@ -4,9 +4,13 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
+import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.SyncController;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -18,11 +22,12 @@ public class ServerTickHandler {
 			NPCSpawning.findChunksForSpawning((WorldServer) event.world);
 		}
 	}
-	
+
 	private String serverName = null;
 
 	@SubscribeEvent
 	public void playerLogin(PlayerEvent.PlayerLoggedInEvent event){
+        EntityPlayerMP player = (EntityPlayerMP) event.player;
 		if(serverName == null){
 			String e = "local";
 			MinecraftServer server = MinecraftServer.getServer();
@@ -40,5 +45,20 @@ public class ServerTickHandler {
 			serverName = e;
 		}
 		AnalyticsTracking.sendData(event.player, "join", serverName);
+
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+		if (playerData != null) {
+			playerData.onLogin();
+		}
+
+        SyncController.syncPlayer(player);
+	}
+
+	@SubscribeEvent
+	public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+		if (playerData != null) {
+			playerData.onLogout();
+		}
 	}
 }

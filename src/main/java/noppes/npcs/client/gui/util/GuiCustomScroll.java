@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util;
 
+import kamkeel.util.TextSplitter;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -21,6 +22,9 @@ public class GuiCustomScroll extends GuiScreen
     public int selected;
     protected HashSet<String> selectedList;
     protected int hover;
+    protected int oldHover;
+    private int hoverCount = 0;
+    protected boolean hoverableText = false;
     private int listHeight;
     protected int scrollY;
     protected int maxScrollY;
@@ -31,7 +35,11 @@ public class GuiCustomScroll extends GuiScreen
     private boolean isSorted = true;
 	public boolean visible = true;
 	private boolean selectable = true;
-    
+    private boolean hasSubGUI = false;
+
+    private int lastClickedItem;
+    private long lastClickedTime = 0;
+
     public GuiCustomScroll(GuiScreen parent, int id)
     {
         width = 176;
@@ -55,22 +63,30 @@ public class GuiCustomScroll extends GuiScreen
     	this(parent,id);
     	this.multipleSelection = multipleSelection;
     }
+
+    public GuiCustomScroll(GuiScreen parent, int id, int allowHover)
+    {
+        this(parent,id);
+        this.hoverableText = true;
+    }
+
     public void setSize(int x, int y){
     	ySize = y;
     	xSize = x;
         listHeight = 14 * list.size();
-        
+
         if(listHeight > 0)
         	scrollHeight = (int) (((double)(ySize - 8) / (double)listHeight) * (ySize-8));
         else
         	scrollHeight = Integer.MAX_VALUE;
-        
+
         maxScrollY = listHeight - (ySize - 8) - 1;
     }
 
     public void drawScreen(int i, int j, float f, int mouseScrolled){
     	if(!visible)
     		return;
+
         drawGradientRect(guiLeft, guiTop, xSize+guiLeft ,ySize+guiTop, 0xc0101010, 0xd0101010);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);
@@ -84,24 +100,41 @@ public class GuiCustomScroll extends GuiScreen
         GL11.glPushMatrix();
         GL11.glTranslatef(guiLeft, guiTop, 0.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        
+
         if(selectable)
-        	hover = getMouseOver(i,j);
-        	
+            hover = getMouseOver(i,j);
+
         drawItems();
-        
+
+        if(oldHover != hover){
+            oldHover = hover;
+            hoverCount = 0;
+        }
+        else {
+            if(hoverCount < 110)
+                hoverCount++;
+        }
+
+        if(!hasSubGUI && hover != -1 && hoverableText && hoverCount > 100){
+            String displayString = StatCollector.translateToLocal(list.get(hover));
+            GL11.glColor4f(1, 1, 1, 1);
+            List<String> lines = TextSplitter.splitText(displayString, 30);
+            super.drawHoveringText(lines, i-guiLeft, j-guiTop, this.fontRendererObj);
+            GL11.glDisable(GL11.GL_LIGHTING);
+        }
+
         GL11.glPopMatrix();
         if(scrollHeight < ySize - 8){
         	i -= guiLeft;
         	j -= guiTop;
             if(Mouse.isButtonDown(0)){
-                if(i >= xSize-11 && i < xSize-6 && j >= 4 && j < ySize){
+                if(i >= xSize-9 && i < xSize-4 && j >= 4 && j < ySize){
                     isScrolling = true;
                 }
-            } 
+            }
             else
                 isScrolling = false;
-            
+
             if(isScrolling){
                 scrollY = (((j - 8) * listHeight) / (ySize-8)) - (scrollHeight);
                 if(scrollY < 0){
@@ -111,15 +144,46 @@ public class GuiCustomScroll extends GuiScreen
                     scrollY = maxScrollY;
                 }
             }
-            
+
             if(mouseScrolled != 0){
                 scrollY += mouseScrolled > 0?-14:14;
                 if(scrollY > maxScrollY)
                     scrollY = maxScrollY;
                 if(scrollY < 0)
                     scrollY = 0;
-            } 
+            }
         }
+    }
+
+    public void drawHover(int i, int j){
+        if(!visible)
+            return;
+
+        if(!hoverableText)
+            return;
+
+        GL11.glPushMatrix();
+        GL11.glTranslatef(guiLeft, guiTop, 0.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+
+        if(oldHover != hover){
+            oldHover = hover;
+            hoverCount = 0;
+        }
+        else {
+            if(hoverCount < 110)
+                hoverCount++;
+        }
+
+        if(!hasSubGUI && hover != -1 && hoverableText && hoverCount > 100){
+            String displayString = StatCollector.translateToLocal(list.get(hover));
+            GL11.glColor4f(1, 1, 1, 1);
+            List<String> lines = TextSplitter.splitText(displayString, 30);
+            super.drawHoveringText(lines, i-guiLeft, j-guiTop, this.fontRendererObj);
+            GL11.glDisable(GL11.GL_LIGHTING);
+        }
+
+        GL11.glPopMatrix();
     }
 
     public boolean mouseInOption(int i, int j, int k)
@@ -161,14 +225,16 @@ public class GuiCustomScroll extends GuiScreen
             		drawHorizontalLine(j - 2, j + xSize - 18 + xOffset, k + 10 , 0xffffffff);
             		fontRendererObj.drawString(text, j , k, 0xffffff);
             	}
-            	else if(i == hover)
-            		fontRendererObj.drawString(text, j , k, 0x00ff00);
+            	else if(i == hover){
+                    fontRendererObj.drawString(text, j , k, 0x00ff00);
+                }
             	else
             		fontRendererObj.drawString(text, j , k, 0xffffff);
             }
         }
 
     }
+
     public String getSelected(){
     	if(selected == -1 || selected >= list.size() )
     		return null;
@@ -186,12 +252,12 @@ public class GuiCustomScroll extends GuiScreen
                 {
                     continue;
                 }
-                
+
                 return j1;
             }
 
         }
-    	
+
     	return -1;
     }
 
@@ -210,8 +276,16 @@ public class GuiCustomScroll extends GuiScreen
     			selected = hover;
     		hover = -1;
     	}
-		if(listener != null)
-			listener.customScrollClicked(i, j, k,this);
+
+        if(listener != null) {
+            long time = System.currentTimeMillis();
+            listener.customScrollClicked(i, j, k, this);
+            if(selected >= 0 && selected == lastClickedItem && time - lastClickedTime < 500) {
+                listener.customScrollDoubleClicked(list.get(selected), this);
+            }
+            lastClickedTime = time;
+            lastClickedItem = selected;
+        }
     }
 
     private void drawScrollBar()
@@ -234,7 +308,8 @@ public class GuiCustomScroll extends GuiScreen
 
     public void setList(List<String> list){
 		isSorted = true;
-		Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
+        list.removeAll(Collections.singleton(null));
+        Collections.sort(list, String.CASE_INSENSITIVE_ORDER);
 		this.list = list;
 		setSize(xSize,ySize);
 	}
@@ -264,7 +339,7 @@ public class GuiCustomScroll extends GuiScreen
 			Collections.sort(list,String.CASE_INSENSITIVE_ORDER);
 		if(old.equals(select))
 			select = name;
-		
+
 		selected = list.indexOf(select);
 		setSize(xSize,ySize);
 	}
@@ -293,5 +368,14 @@ public class GuiCustomScroll extends GuiScreen
 
     public boolean isMouseOver(int x, int y) {
         return x >= this.guiLeft && x <= this.guiLeft + this.xSize && y >= this.guiTop && y <= this.guiTop + this.ySize;
+    }
+
+    public void resetScroll(){
+        scrollY = 0;
+    }
+
+    public void updateSubGUI(boolean hasSubGUI)
+    {
+        this.hasSubGUI = hasSubGUI;
     }
 }

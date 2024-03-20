@@ -39,6 +39,9 @@ public class Dialog implements ICompatibilty, IDialog {
 	public boolean darkenScreen = true;
 	public boolean showOptionLine = true;
 
+	//0 - Bottom, 1 - Top, 2 - Center [Unimplemented]
+	public byte alignment = 0;
+
 	public boolean renderGradual = false;
 	public boolean showPreviousBlocks = true;
 
@@ -95,6 +98,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		else {
 			darkenScreen = true;
 		}
+
+		alignment = compound.getByte("DialogAlignment");
 
 
 		NBTTagList options = compound.getTagList("Options", 10);
@@ -181,7 +186,8 @@ public class Dialog implements ICompatibilty, IDialog {
 		compound.setBoolean("DialogDisableEsc", disableEsc);
 
 		compound.setBoolean("DialogDarkScreen", darkenScreen);
-		
+		compound.setByte("DialogAlignment", alignment);
+
 		if(sound != null && !sound.isEmpty())
 			compound.setString("DialogSound", sound);
 
@@ -260,6 +266,7 @@ public class Dialog implements ICompatibilty, IDialog {
 		dialog.renderGradual = renderGradual;
 		dialog.showPreviousBlocks = showPreviousBlocks;
 		dialog.showOptionLine = showOptionLine;
+		dialog.alignment = alignment;
 		dialog.textSound = textSound;
 		dialog.textPitch = textPitch;
 		dialog.textWidth = textWidth;
@@ -325,7 +332,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public void save() {
-		DialogController.instance.saveDialog(this.category.id, this);
+		DialogController.Instance.saveDialog(this.category.id, this);
 	}
 
 	public void setName(String name) {
@@ -354,7 +361,7 @@ public class Dialog implements ICompatibilty, IDialog {
 	}
 
 	public Quest getQuest() {
-		return QuestController.instance == null ? null : (Quest)QuestController.instance.quests.get(this.quest);
+		return QuestController.Instance == null ? null : (Quest)QuestController.Instance.quests.get(this.quest);
 	}
 
 	public String getCommand() {

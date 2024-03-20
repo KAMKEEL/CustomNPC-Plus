@@ -10,7 +10,7 @@ public enum EnumNavType {
 	Ambush("aitactics.ambush"),
 	Stalk("aitactics.stalk"),
 	None("gui.none");
-	
+
 	String name;
 	EnumNavType(String name){
 		this.name = name;
@@ -19,7 +19,7 @@ public enum EnumNavType {
 		ArrayList<String> list = new ArrayList<String>();
 		for(EnumNavType e : values())
 			list.add(e.name);
-		
+
 		return list.toArray(new String[list.size()]);
 	}
 }

@@ -3,8 +3,7 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.global.GuiNPCQuestSelection;
+import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAvailabilityQuest;
 import noppes.npcs.constants.EnumPacketServer;
@@ -13,16 +12,15 @@ import noppes.npcs.controllers.data.Quest;
 
 public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSelectionListener, IGuiData {
 	private Availability availabitily;
-	private boolean selectFaction = false;
 	private int slot = 0;
-	
+
     public SubGuiNpcAvailabilityQuest(Availability availabitily){
     	this.availabitily = availabitily;
 		setBackground("menubg.png");
 		xSize = 316;
 		ySize = 216;
 		closeOnEsc = true;
-    }
+	}
 
     @Override
     public void initGui(){
@@ -30,7 +28,7 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
         addLabel(new GuiNpcLabel(1,"availability.available", guiLeft, guiTop + 4));
         getLabel(1).center(xSize);
 
-        int y = guiTop + 12;        
+        int y = guiTop + 12;
     	this.addButton(new GuiNpcButton(0, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive"},availabitily.questAvailable.ordinal()));
     	this.addButton(new GuiNpcButton(10, guiLeft + 96, y, 192, 20, "availability.selectquest"));
     	getButton(10).setEnabled(availabitily.questAvailable != EnumAvailabilityQuest.Always);
@@ -53,10 +51,10 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
     	this.addButton(new GuiNpcButton(13, guiLeft + 96, y, 192, 20, "availability.selectquest"));
     	getButton(13).setEnabled(availabitily.quest4Available != EnumAvailabilityQuest.Always);
     	this.addButton(new GuiNpcButton(23, guiLeft + 290, y, 20, 20, "X"));
-    	
-    	
+
+
     	this.addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 192,98, 20, "gui.done"));
-    	
+
     	updateGuiButtons();
     }
 
@@ -66,6 +64,7 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
 		getButton(11).setDisplayText("availability.selectquest");
 		getButton(12).setDisplayText("availability.selectquest");
 		getButton(13).setDisplayText("availability.selectquest");
+
 		if(availabitily.questId >= 0){
 			Client.sendData(EnumPacketServer.QuestGet, availabitily.questId);
 		}
@@ -108,30 +107,21 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
         		availabitily.quest4Id = -1;
         	initGui();
         }
-
         if(button.id == 10){
         	slot = 1;
-        	GuiNPCQuestSelection gui = new GuiNPCQuestSelection(npc, getParent(), availabitily.questId);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiQuestSelection(availabitily.questId));
         }
         if(button.id == 11){
         	slot = 2;
-        	GuiNPCQuestSelection gui = new GuiNPCQuestSelection(npc, getParent(), availabitily.quest2Id);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiQuestSelection(availabitily.quest2Id));
         }
         if(button.id == 12){
         	slot = 3;
-        	GuiNPCQuestSelection gui = new GuiNPCQuestSelection(npc, getParent(), availabitily.quest3Id);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiQuestSelection(availabitily.quest3Id));
         }
         if(button.id == 13){
         	slot = 4;
-        	GuiNPCQuestSelection gui = new GuiNPCQuestSelection(npc, getParent(), availabitily.quest4Id);
-        	gui.listener = this;
-        	NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiQuestSelection(availabitily.quest4Id));
         }
 
         if(button.id == 20){
@@ -166,6 +156,7 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
 			availabitily.quest3Id = id;
 		if(slot == 4)
 			availabitily.quest4Id = id;
+        updateGuiButtons();
 	}
 
 	@Override
@@ -180,7 +171,7 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
 			getButton(12).setDisplayText(quest.title);
 		if(availabitily.quest4Id == quest.id)
 			getButton(13).setDisplayText(quest.title);
-		
+
 	}
 
 }

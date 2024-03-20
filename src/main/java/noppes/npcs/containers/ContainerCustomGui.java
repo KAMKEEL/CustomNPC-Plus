@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.containers;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,8 +12,6 @@ import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.client.gui.custom.components.CustomGuiSlot;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.gui.ScriptGui;
-
-import java.util.Iterator;
 
 public class ContainerCustomGui extends Container {
     public ScriptGui customGui;
@@ -35,14 +28,14 @@ public class ContainerCustomGui extends Container {
     public void setGui(ScriptGui gui, EntityPlayer player) {
         this.customGui = gui;
 
+
+        slotCount=0;
+        inventorySlots.clear();
         if (this.customGui.getShowPlayerInv()) {
             this.addPlayerInventory(player, this.customGui.getPlayerInvX(), this.customGui.getPlayerInvY());
         }
 
-        Iterator var3 = this.customGui.getSlots().iterator();
-
-        while(var3.hasNext()) {
-            IItemSlot slot = (IItemSlot)var3.next();
+        for (IItemSlot slot : this.customGui.getSlots()) {
             if (slot.hasStack()) {
                 this.addSlot(player, slot.getPosX(), slot.getPosY(), slot, slot.getStack().getMCItemStack(), player.worldObj.isRemote);
             } else {
@@ -109,40 +102,59 @@ public class ContainerCustomGui extends Container {
         if(slotId < 0)
             return super.slotClick(slotId, dragType, clickTypeIn, player);
 
-        if (slotId >= this.inventorySlots.size()) {
-            return null;
-        }
-
-        Slot mcSlot = (Slot)this.inventorySlots.get(slotId);
-        if(!player.worldObj.isRemote && mcSlot != null) {
+        if(!player.worldObj.isRemote) {
             IItemSlot slot = null;
             if (this.getSlot(slotId) instanceof CustomGuiSlot) {
                 slot = ((CustomGuiSlot)this.getSlot(slotId)).slot;
             }
             if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, slot, dragType, clickTypeIn)) {
-                ItemStack prevStack = mcSlot.getStack();
-                if (slot != null) {
-                    prevStack = slot.getStack() == null ? null : slot.getStack().getMCItemStack();
-                }
                 ItemStack item = super.slotClick(slotId, dragType, clickTypeIn, player);
 
-                if (!ItemStack.areItemStacksEqual(prevStack,item)) {
-                    if (slot != null) {
-                        slot.setStack(NpcAPI.Instance().getIItemStack(mcSlot.getStack()));
-                    }
-                    if (player.openContainer instanceof ContainerCustomGui) {
-                        EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui,
-                                mcSlot.slotNumber, prevStack, slot);
-                    }
-                }
 
                 EntityPlayerMP p = (EntityPlayerMP) player;
                 p.sendContainerToPlayer(this);
                 return item;
             }
         }
-
         return null;
+
+//        if(slotId < 0)
+//            return super.slotClick(slotId, dragType, clickTypeIn, player);
+//
+//        if (slotId >= this.inventorySlots.size()) {
+//            return null;
+//        }
+//
+//        Slot mcSlot = (Slot)this.inventorySlots.get(slotId);
+//        if(!player.worldObj.isRemote && mcSlot != null) {
+//            IItemSlot slot = null;
+//            if (this.getSlot(slotId) instanceof CustomGuiSlot) {
+//                slot = ((CustomGuiSlot)this.getSlot(slotId)).slot;
+//            }
+//            if(!EventHooks.onCustomGuiSlotClicked((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui, slotId, slot, dragType, clickTypeIn)) {
+//                ItemStack prevStack = mcSlot.getStack();
+//                if (slot != null) {
+//                    prevStack = slot.getStack() == null ? null : slot.getStack().getMCItemStack();
+//                }
+//                ItemStack item = super.slotClick(slotId, dragType, clickTypeIn, player);
+//
+//                if (!ItemStack.areItemStacksEqual(prevStack,item)) {
+//                    if (slot != null) {
+//                        slot.setStack(NpcAPI.Instance().getIItemStack(mcSlot.getStack()));
+//                    }
+//                    if (player.openContainer instanceof ContainerCustomGui) {
+//                        EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui,
+//                                mcSlot.slotNumber, prevStack, slot);
+//                    }
+//                }
+//
+//                EntityPlayerMP p = (EntityPlayerMP) player;
+//                p.sendContainerToPlayer(this);
+//                return item;
+//            }
+//        }
+//
+//        return null;
     }
 
     public boolean canDragIntoSlot(Slot p_94531_1_) { return true; }

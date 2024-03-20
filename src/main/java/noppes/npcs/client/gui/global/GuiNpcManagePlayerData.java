@@ -3,10 +3,7 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.constants.EnumPlayerData;
@@ -25,7 +22,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private EnumPlayerData selection = EnumPlayerData.Players;
 	private String search = "";
-	
+
     public GuiNpcManagePlayerData(EntityNPCInterface npc)
     {
     	super(npc);
@@ -34,13 +31,13 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 
     public void initGui()
     {
-        super.initGui();        
-        scroll = new GuiCustomScroll(this,0);
+        super.initGui();
+        scroll = new GuiCustomScroll(this,0, 0);
         scroll.setSize(303, 175);
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 16;
         addScroll(scroll);
-        
+
         addLabel(new GuiNpcLabel(0,"All Players", guiLeft + 10, guiTop + 6));
 
         this.addButton(new GuiNpcButton(0, guiLeft + 313, guiTop + 10,98, 20, "selectWorld.deleteButton"));
@@ -55,7 +52,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 
     	addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 193, 303, 20, search));
     	getTextField(0).enabled = selection == EnumPlayerData.Players;
-    	
+
         initButtons();
     }
 
@@ -66,7 +63,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     	getButton(4).setEnabled(selection != EnumPlayerData.Transport);
     	getButton(5).setEnabled(selection != EnumPlayerData.Bank);
     	getButton(6).setEnabled(selection != EnumPlayerData.Factions);
-    	
+
     	if(selection == EnumPlayerData.Players)
     		getLabel(0).label = "All Players";
     	else
@@ -84,21 +81,18 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     	if(k == 0 && scroll != null)
     		scroll.mouseClicked(i, j, k);
     }
-    
+
     public void keyTyped(char c, int i)
     {
     	super.keyTyped(c, i);
 
-    	if(selection != EnumPlayerData.Players)
-    		return;
-    	
-    	if(search.equals(getTextField(0).getText()))
-    		return;
-    	search = getTextField(0).getText().toLowerCase();
-    	scroll.setList(getSearchList());
+		if(search.equals(getTextField(0).getText()))
+			return;
+		search = getTextField(0).getText().toLowerCase();
+		scroll.setList(getSearchList());
     }
     private List<String> getSearchList(){
-    	if(search.isEmpty() || selection != EnumPlayerData.Players)
+    	if(search.isEmpty())
     		return new ArrayList<String>(this.data.keySet());
     	List<String> list = new ArrayList<String>();
     	for(String name : data.keySet()){
@@ -107,37 +101,44 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     	}
     	return list;
     }
-    
+
 	protected void actionPerformed(GuiButton guibutton)
     {
 		int id = guibutton.id;
-        if(id == 0)
-        {
-        	if(selected != null){
-        		if(selection == EnumPlayerData.Players)
-        			Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,selected);
-        		else
-        			Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,data.get(selected));
-        		data.clear();
-        	}
-        	selected = null;
-        }
-        if(id >= 1 && id <= 6)
-        {
-        	if(selectedPlayer == null && id != 1)
-        		return;
-        	selection = EnumPlayerData.values()[id - 1];
-        	initButtons();
-        	scroll.clear();
-        	data.clear();
-        	Client.sendData(EnumPacketServer.PlayerDataGet, selection, selectedPlayer);
-        	selected = null;
-        }
+		if(id < 7){
+			GuiNpcTextField tf = getTextField(0);
+			if(tf != null){
+				tf.setText("");
+			}
+			search = "";
+			if(id == 0)
+			{
+				if(selected != null){
+					if(selection == EnumPlayerData.Players)
+						Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,selected);
+					else
+						Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,data.get(selected));
+					data.clear();
+				}
+				selected = null;
+			}
+			if(id >= 1 && id <= 6)
+			{
+				if(selectedPlayer == null && id != 1)
+					return;
+				selection = EnumPlayerData.values()[id - 1];
+				initButtons();
+				scroll.clear();
+				data.clear();
+				Client.sendData(EnumPacketServer.PlayerDataGet, selection, selectedPlayer);
+				selected = null;
+			}
+		}
 		if(id == 7){
 			displayGuiScreen(new GuiYesNo(this, "Warning", "Do not operate on PlayerData as its regenerating", 1));
 		}
     }
-	
+
 	@Override
 	public void save() {
 	}
@@ -145,9 +146,9 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		this.data.putAll(data);
-		
+
     	scroll.setList(getSearchList());
-    	
+
 		if(selection == EnumPlayerData.Players && selectedPlayer != null){
 			scroll.setSelected(selectedPlayer);
 			selected = selectedPlayer;
@@ -168,7 +169,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	@Override
 	public void confirmClicked(boolean confirm, int id){
 		if(confirm){
-			Client.sendData(EnumPacketServer.PlayerDataRegen);
+			Client.sendData(EnumPacketServer.PlayerDataMapRegen);
 			close();
 		}
 		else

@@ -10,13 +10,16 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.data.IModelData;
 import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.api.handler.data.IAnimationData;
+import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IFaction;
+import noppes.npcs.api.handler.data.ILines;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.roles.IRole;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -326,7 +329,49 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return;
 		npc.say((EntityPlayer) player.getMCEntity(), new Line(message));
 	}
-	
+
+	public IDialog getDialog(int slot) {
+		return NpcAPI.Instance().getDialogs().get(this.getDialogId(slot));
+	}
+
+	public int getDialogId(int slot) {
+		if (npc.dialogs.containsKey(slot)) {
+			DialogOption option = npc.dialogs.get(slot);
+			if (option.hasDialog()) {
+				return option.dialogId;
+			}
+		}
+		return -1;
+	}
+
+	public void setDialog(int slot, IDialog dialog) {
+		this.setDialog(slot, dialog.getId());
+	}
+
+	public void setDialog(int slot, int dialogId) {
+		NoppesUtilServer.setNpcDialog(slot,dialogId, this.npc);
+	}
+
+	public ILines getInteractLines() {
+		return this.npc.advanced.interactLines;
+	}
+
+	public ILines getWorldLines() {
+		return this.npc.advanced.worldLines;
+	}
+
+	public ILines getAttackLines() {
+		return this.npc.advanced.attackLines;
+	}
+
+	public ILines getKilledLines() {
+		return this.npc.advanced.killedLines;
+	}
+
+	public ILines getKillLines() {
+		return this.npc.advanced.killLines;
+	}
+
 	/**
 	 * Kill the npc, doesnt't despawn it
 	 */
@@ -359,6 +404,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return new ScriptRoleTrader(npc);
 		else if(npc.advanced.role == EnumRoleType.Transporter)
 			return new ScriptRoleTransporter(npc);
+		else if(npc.advanced.role == EnumRoleType.Companion)
+			return new ScriptRoleCompanion(npc);
 		return new ScriptRoleInterface(npc);
 	}
 
@@ -436,7 +483,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.inventory.setOffHand(null);
 		else
 			npc.inventory.setOffHand(item.getMCItemStack());
-		npc.script.clientNeedsUpdate = true;
+		//npc.script.clientNeedsUpdate = true;
 	}
 	
 	/**
@@ -679,6 +726,34 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		return npc.ai.tacticalVariant.name();
 	}
 
+	public void setCombatPolicy(int variant){
+		if(variant > EnumCombatPolicy.values().length-1 || variant < 0)
+			return;
+
+		npc.ai.combatPolicy = EnumCombatPolicy.values()[variant];
+	}
+
+	public int getCombatPolicy(){
+		return npc.ai.combatPolicy.ordinal();
+	}
+
+	public void setCombatPolicy(String variant){
+		boolean found = false;
+		for(String s : EnumCombatPolicy.names()){
+			if(s.equals(variant))
+				found = true;
+		}
+
+		if(!found)
+			return;
+
+		npc.ai.combatPolicy = EnumCombatPolicy.valueOf(variant);
+	}
+
+	public String getCombatPolicyName(){
+		return npc.ai.combatPolicy.name();
+	}
+
 	public void setTacticalRadius(int tacticalRadius){
 		if(tacticalRadius < 0)
 			tacticalRadius = 0;
@@ -691,11 +766,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setIgnoreCobweb(boolean ignore){
-		npc.ai.ignoreCobweb = ignore;
+		npc.stats.ignoreCobweb = ignore;
 	}
 
 	public boolean getIgnoreCobweb(){
-		return npc.ai.ignoreCobweb;
+		return npc.stats.ignoreCobweb;
 	}
 
 	public void setOnFoundEnemy(int onAttack){
@@ -815,6 +890,62 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 */
 	public void setMeleeSpeed(int speed){
 		npc.stats.attackSpeed = speed;
+	}
+
+	/**
+	 * @return The melee range
+	 */
+	public int getMeleeRange(){
+		return npc.stats.attackRange;
+	}
+
+	/**
+	 * @param range The melee range
+	 */
+	public void setMeleeRange(int range){
+		npc.stats.attackRange = range;
+	}
+
+	/**
+	 * @return The swing warmup time in ticks
+	 */
+	public int getSwingWarmup(){
+		return npc.stats.swingWarmUp;
+	}
+
+	/**
+	 * @param ticks The amount of time before damage to swing arm
+	 */
+	public void setSwingWarmup(int ticks){
+		npc.stats.swingWarmUp = ticks;
+	}
+
+	/**
+	 * @return The knockback strength
+	 */
+	public int getKnockback(){
+		return npc.stats.knockback;
+	}
+
+	/**
+	 * @param knockback The melee range
+	 */
+	public void setKnockback(int knockback){
+		npc.stats.knockback = knockback;
+	}
+
+	/**
+	 * @return The aggro range
+	 */
+	public int getAggroRange(){
+		return npc.stats.aggroRange;
+	}
+
+	/**
+	 * @param aggroRange The new aggro range
+	 */
+	public void setAggroRange(int aggroRange){
+		npc.stats.aggroRange = aggroRange;
 	}
 
 	/**

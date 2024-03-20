@@ -6,6 +6,7 @@ import noppes.npcs.DataAI;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.SubGuiNpcMovement;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumCombatPolicy;
 import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -22,7 +23,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     {
         super.initGui();
         addLabel(new GuiNpcLabel(0,"ai.enemyresponse", guiLeft + 5, guiTop + 17));
-    	addButton(new GuiNpcButton(0,guiLeft + 86, guiTop + 10, 60, 20, new String[]{"gui.retaliate","gui.panic","gui.retreat","gui.nothing"} ,npc.ai.onAttack));   	
+    	addButton(new GuiNpcButton(0,guiLeft + 86, guiTop + 10, 60, 20, new String[]{"gui.retaliate","gui.panic","gui.retreat","gui.nothing"} ,npc.ai.onAttack));
     	addLabel(new GuiNpcLabel(1,"ai.door", guiLeft + 5, guiTop + 40));
     	addButton(new GuiNpcButton(1,guiLeft + 86, guiTop + 35, 60, 20, new String[]{"gui.break","gui.open","gui.disabled"} ,npc.ai.doorInteract));
     	addLabel(new GuiNpcLabel(12,"ai.swim", guiLeft + 5, guiTop + 65));
@@ -39,7 +40,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
     	addLabel(new GuiNpcLabel(11,"ai.return", guiLeft + 150, guiTop + 40));
     	addButton(new GuiNpcButton(6, guiLeft + 230, guiTop + 35, 60, 20, new String[]{"gui.no","gui.yes"} ,npc.ai.returnToStart ? 1:0));
     	addLabel(new GuiNpcLabel(17,"ai.leapattarget", guiLeft + 150, guiTop + 65));
-        addButton(new GuiNpcButton(15,guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ai.canLeap ? 1:0));   	
+        addButton(new GuiNpcButton(15,guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "ai.jump", "ai.pounce"} ,npc.ai.leapType));
 		addLabel(new GuiNpcLabel(15, "ai.indirect", guiLeft + 150, guiTop + 90));
     	addButton(new GuiNpcButton(13, guiLeft + 230, guiTop + 85, 60, 20, new String[]{"gui.no", "gui.whendistant", "gui.whenhidden"}, ai.canFireIndirect));
 		addLabel(new GuiNpcLabel(16, "ai.rangemelee", guiLeft + 150, guiTop + 115));
@@ -68,30 +69,46 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 	    	getTextField(3).integersOnly = true;
 	        getTextField(3).setMinMaxDefault(1, npc.stats.aggroRange, 5);
     	}
+		addLabel(new GuiNpcLabel(25,"ai.combatpolicy", guiLeft + 150, guiTop + 165));
+		addButton(new GuiNpcButton(25 ,guiLeft + 230, guiTop + 160, 60, 20, EnumCombatPolicy.names(), ai.combatPolicy.ordinal()));
+		if (ai.combatPolicy == EnumCombatPolicy.Stubborn)
+		{
+			String label = "";
+            label = "gui.combatchance";
+            addLabel(new GuiNpcLabel(21, label, guiLeft + 300, guiTop + 165));
+			addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 380, guiTop + 160, 30, 20, ai.tacticalChance + ""));
+			getTextField(4).integersOnly = true;
+			getTextField(4).setMinMaxDefault(1, 100, 5);
+		}
+        else if (ai.combatPolicy == EnumCombatPolicy.Tactical)
+        {
+            addButton(new GuiNpcButton(40, guiLeft + 295, guiTop + 160, 60, 20, new String[]{"stats.normal","stats.reverse"}, npc.ai.tacticalChance > 50 ? 1:0));
+        }
 
-		addLabel(new GuiNpcLabel(22,"ai.cobwebAffected", guiLeft + 150, guiTop + 165));
-    	addButton(new GuiNpcButton(22 ,guiLeft + 230, guiTop + 160, 60, 20,  new String[]{"gui.no", "gui.yes"}, npc.ai.ignoreCobweb ? 0:1));
-    	
-    	getButton(17).setEnabled(this.ai.onAttack == 0);
+		getButton(17).setEnabled(this.ai.onAttack == 0);
     	getButton(15).setEnabled(this.ai.onAttack == 0);
+		getButton(25).setEnabled(this.ai.onAttack == 0);
     	getButton(13).setEnabled(this.npc.inventory.getProjectile() != null);
     	getButton(14).setEnabled(this.npc.inventory.getProjectile() != null);
-    	getButton(10).setEnabled(ai.tacticalVariant != EnumNavType.Stalk || ai.tacticalVariant != EnumNavType.None);
+    	getButton(10).setEnabled(ai.tacticalVariant != EnumNavType.Stalk && ai.tacticalVariant != EnumNavType.None);
 
     	addLabel(new GuiNpcLabel(2,"ai.movement", guiLeft + 4, guiTop + 165));
-    	addButton(new GuiNpcButton(2, guiLeft + 86, guiTop + 160, 60, 20, "selectServer.edit")); 	
-    }
-    
+    	addButton(new GuiNpcButton(2, guiLeft + 86, guiTop + 160, 60, 20, "selectServer.edit"));
+	}
+
 	@Override
 	public void unFocused(GuiNpcTextField textfield){
 		if(textfield.id == 3){
 			ai.tacticalRadius = textfield.getInteger();
 		}
+		if(textfield.id == 4){
+			ai.tacticalChance = textfield.getInteger();
+		}
 		if(textfield.id == 6){
 			ai.distanceToMelee = textfield.getInteger();
 		}
 	}
-	
+
     @Override
 	protected void actionPerformed(GuiButton guibutton)
     {
@@ -129,7 +146,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			initGui();
 		}
 		else if (button.id == 15) {
-			ai.canLeap = (button.getValue() == 1);
+			ai.leapType = (byte) button.getValue();
 		}
 		else if (button.id == 16) {
 			ai.canSprint = (button.getValue() == 1);
@@ -139,11 +156,21 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 			ai.directLOS = EnumNavType.values()[button.getValue()] != EnumNavType.Stalk && this.ai.directLOS;
 			initGui();
 		}
-		else if (button.id == 22) {
-			ai.ignoreCobweb = (button.getValue() == 0);
+		else if (button.id == 25) {
+			ai.combatPolicy = EnumCombatPolicy.values()[button.getValue()];
+            initGui();
 		}
+        else if (button.id == 40) {
+            int val = button.getValue();
+            if(val == 0){
+                ai.tacticalChance = 0;
+            } else {
+                ai.tacticalChance = 100;
+            }
+            initGui();
+        }
     }
-    
+
 	@Override
 	public void save() {
 		Client.sendData(EnumPacketServer.MainmenuAISave, ai.writeToNBT(new NBTTagCompound()));

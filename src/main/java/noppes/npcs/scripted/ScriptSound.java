@@ -143,9 +143,9 @@ public class ScriptSound implements ISound {
     }
 
     public void setPosition(IPos pos) {
-        this.xPosF = pos.getX();
-        this.yPosF = pos.getY();
-        this.zPosF = pos.getZ();
+        this.xPosF = (float) pos.getXD();
+        this.yPosF = (float) pos.getYD();
+        this.zPosF = (float) pos.getZD();
     }
 
     public void setPosition(float x, float y, float z) {

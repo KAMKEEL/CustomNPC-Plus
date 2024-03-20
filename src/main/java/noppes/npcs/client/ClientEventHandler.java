@@ -2,7 +2,6 @@ package noppes.npcs.client;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
@@ -10,14 +9,17 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.client.event.*;
+import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import noppes.npcs.AnimationData;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.constants.MarkType;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.reflect.Field;
@@ -29,6 +31,7 @@ public class ClientEventHandler {
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
+    public static boolean firstPersonAnimation;
 
     public static float partialRenderTick;
     public static RendererLivingEntity renderer;
@@ -90,6 +93,17 @@ public class ClientEventHandler {
         AnimationData data = null;
         if (event.entity instanceof EntityNPCInterface) {
             data = ClientEventHandler.renderingNpc.display.animationData;
+
+            MarkData markData = MarkData.get((EntityNPCInterface) event.entity);
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            if(PlayerData.get(player) != null){
+                for(MarkData.Mark m : markData.marks){
+                    if(m.getType() != MarkType.NONE && m.availability.isAvailable(player)){
+                        MarkRenderer.render(event.entity, event.x, event.y, event.z, m);
+                        break;
+                    }
+                }
+            }
         } else if (event.entity instanceof EntityPlayer) {
             if (ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
                 data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
@@ -109,12 +123,13 @@ public class ClientEventHandler {
             ClientEventHandler.playerModel = null;
         }
 
-        if (data != null && data.isActive()) {
+        if (data != null && data.isActive() && !Minecraft.getMinecraft().isGamePaused()) {
             Animation animation = data.animation;
             if (data.isActive() && animation.currentFrame().useRenderTicks()) {
                 animation.increaseTime();
             }
         }
+
         ClientEventHandler.renderingNpc = null;
     }
 
@@ -192,11 +207,6 @@ public class ClientEventHandler {
 
             renderCNPCPlayer.renderDBCModel(event);
         }
-    }
-
-    @SubscribeEvent
-    public void onRenderHand(RenderHandEvent event) {
-        partialHandTicks = event.partialTicks;
     }
 
     public static boolean hasOverlays(EntityPlayer player) {

@@ -1,14 +1,10 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.entity.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.ITimers;
+import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -185,6 +181,9 @@ public class DataTimers implements ITimers {
                 }
                 else if(ob instanceof PlayerData) {
                     EventHooks.onPlayerTimer((PlayerData)ob, this.id);
+                }
+                else if(ob instanceof TileScripted) {
+                    EventHooks.onScriptBlockTimer((TileScripted)ob, this.id);
                 }
             }
         }

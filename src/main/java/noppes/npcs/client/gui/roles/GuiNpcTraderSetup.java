@@ -14,17 +14,17 @@ import noppes.npcs.roles.RoleTrader;
 import org.lwjgl.opengl.GL11;
 
 public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITextfieldListener{
-	
+
 	private final ResourceLocation slot = new ResourceLocation("customnpcs","textures/gui/slot.png");
 	private RoleTrader role;
-	
+
     public GuiNpcTraderSetup(EntityNPCInterface npc, ContainerNPCTraderSetup container){
         super(npc, container);
     	ySize = 220;
     	menuYOffset = 10;
     	role = container.role;
     }
-    
+
 	@Override
     public void initGui(){
     	super.initGui();
@@ -35,9 +35,12 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
 
         addLabel(new GuiNpcLabel(1, "gui.ignoreDamage", guiLeft + 260, guiTop + 29));
         addButton(new GuiNpcButtonYesNo(1, guiLeft + 340, guiTop + 24, role.ignoreDamage));
-        
+
         addLabel(new GuiNpcLabel(2, "gui.ignoreNBT", guiLeft + 260, guiTop + 51));
         addButton(new GuiNpcButtonYesNo(2, guiLeft + 340, guiTop + 46, role.ignoreNBT));
+
+        addLabel(new GuiNpcLabel(3, "gui.recordHistory", guiLeft + 260, guiTop + 73));
+        addButton(new GuiNpcButtonYesNo(3, guiLeft + 340, guiTop + 68, role.recordHistory));
     }
 
 	@Override
@@ -55,6 +58,9 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
     	if(guibutton.id == 2){
     		role.ignoreNBT = ((GuiNpcButtonYesNo)guibutton).getBoolean();
     	}
+        if(guibutton.id == 3){
+            role.recordHistory = ((GuiNpcButtonYesNo)guibutton).getBoolean();
+        }
     }
 
 	@Override
@@ -69,20 +75,20 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
 	        GL11.glColor4f(1, 1, 1, 1);
 	        drawTexturedModalRect(x - 1, y, 0, 0, 18, 18);
 	        drawTexturedModalRect(x + 17, y, 0, 0, 18, 18);
-			
+
             fontRendererObj.drawString("=", x + 36, y + 5, CustomNpcResourceListener.DefaultTextColor);
 	        mc.renderEngine.bindTexture(this.slot);
 	        GL11.glColor4f(1, 1, 1, 1);
 	        drawTexturedModalRect(x + 42, y, 0, 0, 18, 18);
 		}
     }
-	
+
 	@Override
 	public void save() {
 		Client.sendData(EnumPacketServer.TraderMarketSave, role.marketName, false);
 		Client.sendData(EnumPacketServer.RoleSave, role.writeToNBT(new NBTTagCompound()));
 	}
-	
+
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
 		String name = guiNpcTextField.getText();
@@ -90,6 +96,6 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
 			role.marketName = name;
 			Client.sendData(EnumPacketServer.TraderMarketSave, role.marketName, true);
 		}
-			
+
 	}
 }

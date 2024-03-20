@@ -5,19 +5,20 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.part.tails.*;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
 import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.controllers.data.TintData;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
 
 public class ModelTail extends ModelScaleRenderer {
 	private EntityCustomNpc entity;
 	private ModelMPM base;
-	
+
 	private ModelRenderer tail;
 	private ModelRenderer dragon;
 	private ModelRenderer squirrel;
@@ -25,11 +26,11 @@ public class ModelTail extends ModelScaleRenderer {
 	private ModelRenderer fin;
 	private ModelRenderer rodent;
 	private ModelRenderer feather;
-	
+
 	private int color = 0xFFFFFF;
-	
+
 	private ResourceLocation location = null;
-	
+
 	public ModelTail(ModelMPM base) {
 		super(base);
 		this.base = base;
@@ -41,7 +42,7 @@ public class ModelTail extends ModelScaleRenderer {
 		tail.setRotationPoint(0F, 0, 1F);
 		setRotation(tail, 0.8714253F, 0F, 0F);
 		this.addChild(tail);
-		
+
 		horse = new ModelRenderer(base);
 		horse.setTextureSize(32, 32);
 		horse.setRotationPoint(0, -1, 1);
@@ -79,12 +80,14 @@ public class ModelTail extends ModelScaleRenderer {
 		this.entity = entity;
 		initData(entity);
 	}
-	
+
 	public void setRotationAngles(float par1, float par2, float par3,
 			float par4, float par5, float par6, Entity entity) {
+		if(this.entity==null) return;
+
 		rotateAngleY = MathHelper.cos(par1 * 0.6662F) * 0.3f * par2;
         rotateAngleX = MathHelper.sin(par3 * 0.067F) * 0.05F;
-        
+
         if(this.entity.modelData.legParts.type == 2){
         	rotationPointY = 13f;
         	rotationPointZ = 14 * this.entity.modelData.modelScale.legs.scaleZ;
@@ -148,7 +151,9 @@ public class ModelTail extends ModelScaleRenderer {
 	            base.currentlyPlayerTexture = true;
 			}
 		}
-    	boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0;
+        TintData tintData = entity.display.tintData;
+        boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
+            !(tintData.isTintEnabled() && tintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (color >> 16 & 255) / 255f;
 	    	float green = (color >> 8  & 255) / 255f;

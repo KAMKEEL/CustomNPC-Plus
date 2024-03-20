@@ -8,12 +8,12 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.entity.*;
+import noppes.npcs.entity.data.ModelData;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Collections;
@@ -26,7 +26,7 @@ public class GuiEntitySelection extends GuiNPCInterface
 	private Class<? extends EntityLivingBase> prevModel;
 	private ModelData playerdata;
 	private EntityCustomNpc npc;
-	
+
     public GuiEntitySelection(GuiCreationScreen parent, ModelData playerdata, EntityCustomNpc npc)
     {
     	this.parent = parent;
@@ -35,7 +35,7 @@ public class GuiEntitySelection extends GuiNPCInterface
     	drawDefaultBackground = false;
 		prevModel = playerdata.getEntityClass();
     }
-    
+
     @Override
     public void initGui()
     {
@@ -51,7 +51,7 @@ public class GuiEntitySelection extends GuiNPCInterface
         	slot.selected = "CustomNPC";
         }
         slot.registerScrollButtons(4, 5);
-        
+
     	this.buttonList.add(new GuiNpcButton(2, width / 2 - 100, height - 44,98, 20, "gui.back"));
     }
 
@@ -63,18 +63,18 @@ public class GuiEntitySelection extends GuiNPCInterface
     		entity = this.npc;
     	else
     		EntityUtil.Copy(npc, entity);
-    	
+
     	int l = (width/2)-180;
     	int i1 =  (height/2) - 90;
         GL11.glEnable(32826 /*GL_RESCALE_NORMAL_EXT*/);
         GL11.glEnable(2903 /*GL_COLOR_MATERIAL*/);
         GL11.glPushMatrix();
         GL11.glTranslatef(l + 33, i1 + 131, 50F);
-        
+
         float scale = 1;
         if(entity.height > 2.4)
         	scale = 2 / entity.height;
-        
+
         GL11.glScalef(-50 * scale, 50 * scale, 50 * scale);
         GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
         float f2 = entity.renderYawOffset;
@@ -160,11 +160,11 @@ public class GuiEntitySelection extends GuiNPCInterface
             close();
         }
     }
-    public void close() {		
+    public void close() {
 		this.mc.displayGuiScreen(parent);
 	}
 
-    
+
 	protected void actionPerformed(GuiButton guibutton)
     {
 		close();
@@ -173,7 +173,7 @@ public class GuiEntitySelection extends GuiNPCInterface
 	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 

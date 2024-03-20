@@ -1,8 +1,8 @@
 package foxz.commandhelper.permissions;
 
+import foxz.commandhelper.AbstractCommandHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
-import foxz.commandhelper.AbstractCommandHelper;
 
 public class OpOnly extends AbstractPermission {
 

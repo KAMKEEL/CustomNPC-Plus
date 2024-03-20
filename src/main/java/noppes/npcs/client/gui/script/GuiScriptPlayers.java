@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.client.gui.script;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,7 +6,6 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.client.Client;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.util.List;
@@ -71,6 +65,13 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         hookList.add("customGuiSlotClicked");
         hookList.add("customGuiScroll");
         hookList.add("customGuiTextfield");
+        hookList.add("partyQuestCompleted");
+        hookList.add("partyQuestSet");
+        hookList.add("partyQuestTurnedIn");
+        hookList.add("partyInvite");
+        hookList.add("partyKick");
+        hookList.add("partyLeave");
+        hookList.add("partyDisband");
 
         this.handler = this.script;
         Client.sendData(EnumPacketServer.ScriptPlayerGet);

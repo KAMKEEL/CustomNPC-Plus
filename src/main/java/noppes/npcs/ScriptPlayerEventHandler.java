@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -25,13 +20,12 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -66,11 +60,20 @@ public class ScriptPlayerEventHandler {
             if (PlayerDataController.Instance != null) {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
+                if(playerData.updateClient) {
+                    Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNC_END, SyncType.PLAYER_DATA, playerData.getSyncNBT());
+                    // VisibilityController.instance.onUpdate((EntityPlayerMP) player);
+                    playerData.updateClient = false;
+                }
+
                 if (playerData.timers.size() > 0) {
                     playerData.timers.update();
                 }
 
-                if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId())) {
+
+                Party party = playerData.getPlayerParty();
+                boolean trackingPartyQuest = playerData.questData.getTrackedQuest() != null && party != null && party.getQuest() != null && party.getQuest().getId() == playerData.questData.getTrackedQuest().getId();
+                if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId()) && !trackingPartyQuest) {
                     PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
                 }
 
@@ -82,7 +85,12 @@ public class ScriptPlayerEventHandler {
                     PlayerQuestData questData = playerData.questData;
                     if(questData != null){
                         if (questData.getTrackedQuest() != null && ((Quest) questData.getTrackedQuest()).type == EnumQuestType.Item) {
-                            NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                            if(trackingPartyQuest){
+                                NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) event.player, party);
+                            }
+                            else {
+                                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                            }
                         }
                     }
                 }
@@ -394,7 +402,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 try {
@@ -417,7 +425,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.AttackedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
@@ -437,7 +445,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
-            Entity source = NoppesUtilServer.GetDamageSourcee(event.source);
+            Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
@@ -475,9 +483,16 @@ public class ScriptPlayerEventHandler {
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
 
-            Quest quest = (Quest) PlayerDataController.Instance.getPlayerData(event.player).questData.getTrackedQuest();
+            PlayerData playerData =  PlayerDataController.Instance.getPlayerData(event.player);
+            Quest quest = (Quest) playerData.questData.getTrackedQuest();
             if (quest != null) {
-                NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                Party party = playerData.getPlayerParty();
+                if(party != null && party.getQuest() != null && party.getQuest().getId() == quest.getId()){
+                    NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) event.player, party);
+                }
+                else {
+                    NoppesUtilPlayer.sendTrackedQuestData((EntityPlayerMP) event.player);
+                }
             }
 
             PlayerDataController.Instance.getPlayerData(event.player).skinOverlays.updateClient();

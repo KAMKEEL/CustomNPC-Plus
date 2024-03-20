@@ -67,6 +67,51 @@ public class ScriptRoleFollower extends ScriptRoleInterface implements IRoleFoll
 		role.disableGui = disabled;
 	}
 
+
+	/**
+	 * @param index Index of Rate [0 - 2]
+	 * @param amount Amount hired for
+	 */
+	public void setRate(int index, int amount){
+		role.setRate(index, amount);
+	}
+
+	/**
+	 * @param index Index of Rate [0 - 2]
+	 * @return amount fired for
+	 */
+	public int getRate(int index){
+		return role.getRate(index);
+	}
+
+	/**
+	 * @param dialogHire New dialog hire string
+	 */
+	public void setDialogHire(String dialogHire){
+		role.setDialogHire(dialogHire);
+	}
+
+	/**
+	 * @return dialog hire string
+	 */
+	public String getDialogHire(){
+		return role.getDialogHire();
+	}
+
+	/**
+	 * @param dialogFarewell New dialog farewell string
+	 */
+	public void setDialogFarewell(String dialogFarewell){
+		role.setDialogFarewell(dialogFarewell);
+	}
+
+	/**
+	 * @return dialog farewell string
+	 */
+	public String getDialogFarewell(){
+		return role.getDialogFarewell();
+	}
+
 	@Override
 	public int getType(){
 		return RoleType.FOLLOWER;

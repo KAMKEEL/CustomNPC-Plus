@@ -55,7 +55,7 @@ public class ContainerCarpentryBench extends Container
 
         this.onCraftMatrixChanged(this.craftMatrix);
     }
-    
+
     public int getMetadata(){
     	return worldObj.getBlockMetadata(posX, posY, posZ);
     }
@@ -67,13 +67,13 @@ public class ContainerCarpentryBench extends Container
     public void onCraftMatrixChanged(IInventory par1IInventory)
     {
     	if(!this.worldObj.isRemote){
-    		RecipeCarpentry recipe = RecipeController.instance.findMatchingRecipe(this.craftMatrix);
-    		
+    		RecipeCarpentry recipe = RecipeController.Instance.findMatchingRecipe(this.craftMatrix);
+
     		ItemStack item = null;
     		if(recipe != null && recipe.availability.isAvailable(player)){
     			item = recipe.getCraftingResult(this.craftMatrix);
     		}
-    		
+
     		this.craftResult.setInventorySlotContents(0, item);
     		EntityPlayerMP plmp = (EntityPlayerMP) player;
     		plmp.playerNetServerHandler.sendPacket(new S2FPacketSetSlot(this.windowId, 0, item));
@@ -166,6 +166,16 @@ public class ContainerCarpentryBench extends Container
             var3.onPickupFromSlot(par1EntityPlayer, var4);
         }
 
+        // Update client-side inventory
+        if (!this.worldObj.isRemote && player instanceof EntityPlayerMP) {
+            ((EntityPlayerMP) player).sendContainerToPlayer(this);
+        }
+
         return var2;
+    }
+
+    @Override
+    public boolean func_94530_a(ItemStack stack, Slot slotIn) {
+        return slotIn.inventory != this.craftResult && super.func_94530_a(stack, slotIn);
     }
 }

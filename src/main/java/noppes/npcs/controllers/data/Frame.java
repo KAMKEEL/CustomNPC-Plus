@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -19,6 +18,8 @@ public class Frame implements IFrame {
 	public float speed = 1.0F;
 	public byte smooth = 0;
 	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
+
+	private int colorMarker = 0xFFFFFF;
 
 	public Frame(){}
 
@@ -110,8 +111,19 @@ public class Frame implements IFrame {
 		return this.renderTicks;
 	}
 
+	public int getColorMarker() {
+		return this.colorMarker;
+	}
+
+	public void setColorMarker(int color) {
+		this.colorMarker = color;
+	}
+
 	public void readFromNBT(NBTTagCompound compound){
 		duration = compound.getInteger("Duration");
+		if (compound.hasKey("ColorMarker")) {
+			this.setColorMarker(compound.getInteger("ColorMarker"));
+		}
 
 		// Customized = TRUE if Speed or Smooth Exist
 		if(compound.hasKey("Speed")){
@@ -151,6 +163,8 @@ public class Frame implements IFrame {
 	public NBTTagCompound writeToNBT(){
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setInteger("Duration", duration);
+		compound.setInteger("ColorMarker", this.colorMarker);
+
 		if(customized){
 			compound.setFloat("Speed", speed);
 			compound.setByte("Smooth", smooth);
@@ -178,6 +192,7 @@ public class Frame implements IFrame {
 		frame.speed = this.speed;
 		frame.smooth = this.smooth;
 		frame.renderTicks = this.renderTicks;
+		frame.colorMarker = this.colorMarker;
 		return frame;
 	}
 }

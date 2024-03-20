@@ -2,338 +2,442 @@ package noppes.npcs.client.gui.global;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.gui.SubGuiMailmanSendSetup;
-import noppes.npcs.client.gui.SubGuiNpcCommand;
-import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
-import noppes.npcs.client.gui.SubGuiNpcTextArea;
-import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
-import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
-import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
+import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.SubGuiEditText;
+import noppes.npcs.client.gui.SubGuiNpcQuest;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.*;
+import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, GuiSelectionListener,ICustomScrollListener,ITextfieldListener, IGuiData
+public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback
 {
-	private GuiCustomScroll scroll;
-	private HashMap<String,Integer> data = new HashMap<String,Integer>();
+	private GuiCustomScroll catScroll;
+	public GuiCustomScroll questScroll;
+
+	private String prevCatName = "";
+	private String prevQuestName = "";
+
+	public QuestCategory category = new QuestCategory();
 	public static Quest quest = new Quest();
-	private QuestCategory category = new QuestCategory();
-	private boolean categorySelection = true;
-	private boolean questlogTA = false;
-	
+	public String nextQuestName = "";
+
+	private HashMap<String,Integer> catData = new HashMap<String,Integer>();
+	public HashMap<String,Integer> questData = new HashMap<String,Integer>();
+
+	private String catSearch = "";
+	private String questSearch = "";
+
 	public static GuiScreen Instance;
-	
-    public GuiNPCManageQuest(EntityNPCInterface npc)
-    {
-    	super(npc);
-    	Instance = this;
+
+	public GuiNPCManageQuest(EntityNPCInterface npc)
+	{
+		super(npc);
+		Instance = this;
+		quest = new Quest();
 		Client.sendData(EnumPacketServer.QuestCategoriesGet);
-    }
-
-    public void initGui()
-    {
-        super.initGui();
-       	this.addButton(new GuiNpcButton(0,guiLeft + 358, guiTop + 8, 58, 20,categorySelection?"quest.quests":"gui.categories"));
-        
-       	this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
-    	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
-    	
-        if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0);
-	        scroll.setSize(143, 208);
-        }
-        scroll.guiLeft = guiLeft + 214;
-        scroll.guiTop = guiTop + 4;
-        this.addScroll(scroll);
-        
-        if(categorySelection && category.id >= 0)
-        	categoryGuiInit();
-        if(!categorySelection && quest.id >= 0)
-        	dialogGuiInit();
-        
-    }
-
-	private void dialogGuiInit() {
-		addLabel(new GuiNpcLabel(1,"gui.title", guiLeft + 4, guiTop + 8));
-		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 36 , guiTop + 3, 140, 20, quest.title));
-
-		addLabel(new GuiNpcLabel(0,"ID", guiLeft + 178, guiTop + 4));
-		addLabel(new GuiNpcLabel(2,	quest.id + "", guiLeft + 178, guiTop + 14));
-		
-		addLabel(new GuiNpcLabel(3, "quest.completedtext", guiLeft + 4, guiTop + 30));
-    	addButton(new GuiNpcButton(3, guiLeft + 120, guiTop + 25, 50, 20, "selectServer.edit"));
-    	
-		addLabel(new GuiNpcLabel(4, "quest.questlogtext", guiLeft + 4, guiTop + 51));
-		addButton(new GuiNpcButton(4, guiLeft + 120, guiTop + 46, 50, 20, "selectServer.edit"));
-
-		addLabel(new GuiNpcLabel(5, "quest.reward", guiLeft + 4, guiTop + 72));
-    	addButton(new GuiNpcButton(5, guiLeft + 120, guiTop + 67, 50, 20, "selectServer.edit"));
-
-		addLabel(new GuiNpcLabel(6, "gui.type", guiLeft + 4, guiTop + 93));
-    	addButton(new GuiNpcButton(6, guiLeft + 90, guiTop + 88, 70, 20, new String[]{"quest.item","quest.dialog","quest.kill","quest.location","quest.areakill"},quest.type.ordinal()));
-    	addButton(new GuiNpcButton(7, guiLeft + 162, guiTop + 88,50, 20, "selectServer.edit"));
-
-
-		addLabel(new GuiNpcLabel(8, "quest.repeatable", guiLeft + 4, guiTop + 114));
-    	this.addButton(new GuiNpcButton(8, guiLeft + 110, guiTop + 109,70, 20, new String[]{"gui.no","gui.yes","quest.mcdaily","quest.mcweekly","quest.rldaily","quest.rlweekly"}, quest.repeat.ordinal()));
-
-    	this.addButton(new GuiNpcButton(9, guiLeft + 4, guiTop + 131,90, 20, new String[]{"quest.npc","quest.instant"},quest.completion.ordinal()));
-
-    	if(quest.completerNpc.isEmpty() && npc != null)
-    		quest.completerNpc = npc.display.name;
-    	
-		this.addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft + 96, guiTop + 131, 114, 20, quest.completerNpc));
-		this.getTextField(2).enabled = quest.completion == EnumQuestCompletion.Npc;
-
-		addLabel(new GuiNpcLabel(10, "menu.advanced", guiLeft + 4, guiTop + 158));
-		addButton(new GuiNpcButton(10, guiLeft + 120, guiTop + 153, 50, 20, "selectServer.edit"));
-		
 	}
 
-	private void categoryGuiInit() {
-        addTextField(new GuiNpcTextField(0,this, this.fontRendererObj, guiLeft+8, guiTop + 8, 160, 16, category.title));
+	public void initGui()
+	{
+		super.initGui();
+
+		if(questScroll == null){
+			questScroll = new GuiCustomScroll(this,1, 0);
+			questScroll.setSize(143, 185);
+		}
+		questScroll.guiLeft = guiLeft + 212;
+		questScroll.guiTop = guiTop + 4;
+		this.addScroll(questScroll);
+
+		if(catScroll == null){
+			catScroll = new GuiCustomScroll(this,0, 0);
+			catScroll.setSize(143, 185);
+		}
+		catScroll.guiLeft = guiLeft + 64;
+		catScroll.guiTop = guiTop + 4;
+		this.addScroll(catScroll);
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 64, guiTop + 4 + 3 + 185, 143, 20, catSearch));
+
+		this.addButton(new GuiNpcButton(44,guiLeft + 3, guiTop + 8, 58, 20, "gui.categories"));
+		getButton(44).setEnabled(false);
+		this.addButton(new GuiNpcButton(4,guiLeft + 3, guiTop + 38, 58, 20, "gui.add"));
+		this.addButton(new GuiNpcButton(5,guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
+		this.addButton(new GuiNpcButton(6,guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
+
+		addTextField(new GuiNpcTextField(66, this, fontRendererObj, guiLeft + 212, guiTop + 4 + 3 + 185, 143, 20, questSearch));
+
+		this.addButton(new GuiNpcButton(33,guiLeft + 358, guiTop + 8, 58, 20, "quest.quests"));
+		getButton(33).setEnabled(false);
+		this.addButton(new GuiNpcButton(0,guiLeft + 358, guiTop + 94, 58, 20, "gui.edit"));
+		this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
+		this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
+		this.addButton(new GuiNpcButton(3,guiLeft + 358, guiTop + 117, 58, 20, "gui.copy"));
+
+		if(quest != null) {
+			if(quest.id != -1){
+				addLabel(new GuiNpcLabel(0, "ID", guiLeft + 358, guiTop + 4 + 3 + 185));
+				addLabel(new GuiNpcLabel(1, quest.id + "", guiLeft + 358, guiTop + 4 + 3 + 195));
+			}
+		}
+
+		updateButtons();
+	}
+
+	@Override
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(catSearch.equals(getTextField(55).getText()))
+					return;
+				catSearch = getTextField(55).getText().toLowerCase();
+				catScroll.setList(getCatSearch());
+			}
+		}
+		if(getTextField(66) != null){
+			if(getTextField(66).isFocused()){
+				if(questSearch.equals(getTextField(66).getText()))
+					return;
+				questSearch = getTextField(66).getText().toLowerCase();
+				questScroll.setList(getQuestSearch());
+			}
+		}
+	}
+
+	public void resetQuestList(){
+		if(questScroll != null){
+			questSearch = "";
+			if(getTextField(66) != null){
+				getTextField(66).setText("");
+			}
+			questScroll.setList(getQuestSearch());
+		}
+	}
+
+	private List<String> getCatSearch(){
+		if(catSearch.isEmpty()){
+			return new ArrayList<String>(this.catData.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.catData.keySet()){
+			if(name.toLowerCase().contains(catSearch))
+				list.add(name);
+		}
+		return list;
+	}
+
+	private List<String> getQuestSearch(){
+		if(category != null){
+			if(category.id < 0){
+				return new ArrayList<String>();
+			}
+		}
+		else {
+			return new ArrayList<String>();
+		}
+
+		if(questSearch.isEmpty()){
+			return new ArrayList<String>(this.questData.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.questData.keySet()){
+			if(name.toLowerCase().contains(questSearch))
+				list.add(name);
+		}
+		return list;
 	}
 
 	public void buttonEvent(GuiButton guibutton)
-    {
-		GuiNpcButton button = (GuiNpcButton) guibutton;
-        if(button.id == 0)
-        {
-        	save();
-        	if(categorySelection){
-        		if(category.id < 0)
-        			return;
-            	quest = new Quest();
-            	Client.sendData(EnumPacketServer.QuestsGet, category.id);
-        	}
-        	else if(!categorySelection){
-            	quest = new Quest();
-            	category = new QuestCategory();
-            	Client.sendData(EnumPacketServer.QuestCategoriesGet);
-        	}
-        	categorySelection = !categorySelection;
-        	getButton(0).setEnabled(false);
-    		scroll.clear();
-    		data.clear();
-        }
-        if(button.id == 1)
-        {
-        	save();
-        	String name = "New";
-        	while(data.containsKey(name))
-        		name += "_";
-        	if(categorySelection){
-        		QuestCategory category = new QuestCategory();
-        		category.title = name;
-        		Client.sendData(EnumPacketServer.QuestCategorySave, category.writeNBT(new NBTTagCompound()));
-        	}
-        	else{
-        		Quest quest = new Quest();
-        		quest.title = name;
-        		Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()));
-        	}
-        }
-        if(button.id == 2)
-        {
-        	if(data.containsKey(scroll.getSelected())) {
-				if(categorySelection){
-					Client.sendData(EnumPacketServer.QuestCategoryRemove, category.id);
-					category = new QuestCategory();
-				}
-				else{
-					Client.sendData(EnumPacketServer.QuestRemove, quest.id);
-					quest = new Quest();
-				}
-        		scroll.clear();
-        	}
-        }
-        if(button.id == 3 && quest.id >= 0){
-        	questlogTA = false;
-        	setSubGui(new SubGuiNpcTextArea(quest.completeText));
-        }
-        if(button.id == 4 && quest.id >= 0){
-        	questlogTA = true;
-        	setSubGui(new SubGuiNpcTextArea(quest.logText));
-        }
-        if(button.id == 5 && quest.id >= 0){
-        	Client.sendData(EnumPacketServer.QuestOpenGui, EnumGuiType.QuestReward, quest.writeToNBT(new NBTTagCompound()));
-        }
-        if(button.id == 6 && quest.id >= 0){
-        	quest.setType(EnumQuestType.values()[button.getValue()]);
-        }
-        if(button.id == 7)
-        {
-        	if(quest.type == EnumQuestType.Item)
-        		Client.sendData(EnumPacketServer.QuestOpenGui, EnumGuiType.QuestItem, quest.writeToNBT(new NBTTagCompound()));
-        	
-        	if(quest.type == EnumQuestType.Dialog)
-        		setSubGui(new GuiNpcQuestTypeDialog(npc, quest, this)); 
-        	
-        	if(quest.type == EnumQuestType.Kill)
-        		setSubGui(new GuiNpcQuestTypeKill(npc, quest, this)); 
-        	
-        	if(quest.type == EnumQuestType.Location)
-        		setSubGui(new GuiNpcQuestTypeLocation(npc, quest, this)); 
-        	
-        	if(quest.type == EnumQuestType.AreaKill)
-        		setSubGui(new GuiNpcQuestTypeKill(npc, quest, this)); 
-        }
-        if(button.id == 8)
-        {
-        	quest.repeat = EnumQuestRepeat.values()[button.getValue()];
-        }
-        if(button.id == 9)
-        {	
-        	quest.completion = EnumQuestCompletion.values()[button.getValue()];
-    		this.getTextField(2).enabled = quest.completion == EnumQuestCompletion.Npc;
-        }
-        if(button.id == 10)
-        {	
-			setSubGui(new SubGuiNpcQuestAdvanced(quest, this));
-        }
-        
-    }
-	
-	@Override
-	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		if(guiNpcTextField.id == 0) {
-			if(category.id < 0)
-				guiNpcTextField.setText("");
-			else{
-				String name = guiNpcTextField.getText();
-				if(name.isEmpty() || data.containsKey(name)){
-					guiNpcTextField.setText(category.title);
-				}
-				else if(categorySelection && category.id >= 0){
-					String old = category.title;
-					data.remove(category.title);
-					category.title = name;
-					data.put(category.title, category.id);
-					scroll.replace(old,category.title);
-				}
+	{
+		int id = guibutton.id;
+		// Edit Cat
+		if(id == 6){
+			if(category != null && category.id > -1){
+				setSubGui(new SubGuiEditText(category.title));
+			}
+			else {
+				getCategory(false);
 			}
 		}
-		if(guiNpcTextField.id == 1) {
-			if(quest.id < 0)
-				guiNpcTextField.setText("");
-			else{
-				String name = guiNpcTextField.getText();
-				if(name.isEmpty() || data.containsKey(name)){
-					guiNpcTextField.setText(quest.title);
+		// Add Cat
+		if(id == 4){
+			String name = "New";
+			while(catData.containsKey(name))
+				name += "_";
+
+			if(catScroll != null){
+				setPrevCatName(name);
+			}
+			QuestCategory category = new QuestCategory();
+			category.title = name;
+			Client.sendData(EnumPacketServer.QuestCategorySave, category.writeNBT(new NBTTagCompound()));
+		}
+		// Remove Cat
+		if(id == 5){
+			if(catData.containsKey(catScroll.getSelected())) {
+                GuiYesNo guiyesno = new GuiYesNo(this, catScroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 5);
+                displayGuiScreen(guiyesno);
+			}
+		}
+		if(category != null && category.id >= 0){
+			// Add Quest
+			if(id == 1){
+				String name = "New";
+				while(questData.containsKey(name))
+					name += "_";
+
+				if(questScroll != null){
+					setPrevQuestName(name);
 				}
-				else if(!categorySelection && quest.id >= 0){
-					String old = quest.title;
-					data.remove(old);
+				Quest quest = new Quest();
+				quest.title = name;
+				Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()), true);
+			}
+			// Remove Quest
+			if(id == 2) {
+				if (questData.containsKey(questScroll.getSelected())) {
+                    GuiYesNo guiyesno = new GuiYesNo(this, questScroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 2);
+                    displayGuiScreen(guiyesno);
+				}
+			}
+			// Edit Quest
+			if(id == 0) {
+				if (questData.containsKey(questScroll.getSelected()) && quest != null && quest.id >= 0) {
+					setSubGui(new SubGuiNpcQuest(this, quest, category.id));
+				}
+			}
+			// Clone Quest
+			if(id == 3) {
+				if (questData.containsKey(questScroll.getSelected()) && quest != null && quest.id >= 0) {
+					String name = quest.title;
+					while(questData.containsKey(name))
+						name += "_";
+
+					if(questScroll != null){
+						setPrevQuestName(name);
+					}
+
+					Quest quest = new Quest();
+					quest.readNBTPartial(this.quest.writeToNBT(new NBTTagCompound()));
 					quest.title = name;
-					data.put(quest.title, quest.id);
-					scroll.replace(old, quest.title);
+					Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()), true);
 				}
 			}
 		}
-		if(guiNpcTextField.id == 2){
-	    	quest.completerNpc = guiNpcTextField.getText();
+		updateButtons();
+	}
+
+	public void updateButtons(){
+		boolean enabled = category != null;
+		if(enabled){
+			if(!(category.id >= 0)){
+				enabled = false;
+			}
 		}
-		
+
+		boolean questEnabled = questData != null;
+		if(questEnabled){
+			if(quest == null || !(quest.id >= 0)){
+				questEnabled = false;
+			}
+		}
+		getButton(6).setEnabled(enabled);
+
+		getButton(1).setEnabled(enabled);
+		getButton(2).setEnabled(enabled);
+
+		getButton(0).setEnabled(enabled && questEnabled);
+		getButton(3).setEnabled(enabled && questEnabled);
 	}
 
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
-		if(categorySelection){
-			category.readNBT(compound);
-			setSelected(category.title);
-			initGui();
-		}
-		else{
+		if(compound.hasKey("NextQuestId")){
 			quest.readNBT(compound);
-			setSelected(quest.title);
-			initGui();
+			setPrevQuestName(quest.title);
+			if(compound.hasKey("NextQuestTitle")){
+				nextQuestName = compound.getString("NextQuestTitle");
+			}
+			else {
+				nextQuestName = "";
+			}
 		}
+		else {
+			category.readNBT(compound);
+			setPrevCatName(category.title);
+			Client.sendData(EnumPacketServer.QuestsGet, category.id, true);
+			resetQuestList();
+		}
+		initGui();
 	}
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui){
-		if(subgui instanceof SubGuiNpcTextArea){
-			SubGuiNpcTextArea gui = (SubGuiNpcTextArea) subgui;
-			if(questlogTA)
-				quest.logText = gui.text;
-			else
-				quest.completeText = gui.text;
+		if(subgui instanceof SubGuiEditText){
+			if(!((SubGuiEditText)subgui).cancelled){
+				if(category != null && category.id > -1){
+					String name = ((SubGuiEditText)subgui).text;
+					if(name != null && !name.equalsIgnoreCase(category.title)){
+						if(!(name.isEmpty() || catData.containsKey(name))){
+							String old = category.title;
+							catData.remove(category.title);
+							category.title = name;
+							catData.put(category.title, category.id);
+							catScroll.replace(old,category.title);
+						}
+                        saveType(false);
+					}
+				}
+			}
+			clearCategory();
 		}
-		else if(subgui instanceof SubGuiNpcFactionOptions || subgui instanceof SubGuiMailmanSendSetup){
-			setSubGui(new SubGuiNpcQuestAdvanced(quest, this));
-		}
-		else if(subgui instanceof SubGuiNpcCommand){
-			SubGuiNpcCommand sub = (SubGuiNpcCommand) subgui;
-			quest.command = sub.command;
-			setSubGui(new SubGuiNpcQuestAdvanced(quest, this));
-		}
-		else{
-			initGui();
+		if(subgui instanceof SubGuiNpcQuest){
+			saveType(true);
 		}
 	}
 
-	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
-		getButton(0).setEnabled(true);
-		String name = scroll.getSelected();
-		this.data = data;
-		scroll.setList(list);
-		
-		if(name != null)
-			scroll.setSelected(name);
-		initGui();
+	public void setPrevCatName(String selectedCat){
+		prevCatName = selectedCat;
+		this.catScroll.setSelected(prevCatName);
 	}
-	
-	@Override
-	public void selected(int id, String name) {
-		quest.nextQuestid = id;
-		quest.nextQuestTitle = name;
+
+	public void setPrevQuestName(String selectedCat){
+		prevQuestName = selectedCat;
+		this.questScroll.setSelected(prevQuestName);
 	}
-	
+
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
 		{
-			save();
-			String selected = scroll.getSelected();
-			if(categorySelection){
-				category = new QuestCategory();
-				Client.sendData(EnumPacketServer.QuestCategoryGet, data.get(selected));
-			}
-			else{
-				quest = new Quest();
-				Client.sendData(EnumPacketServer.QuestGet, data.get(selected));
-			}
-			
+			getCategory(false);
+		}
+		if(guiCustomScroll.id == 1)
+		{
+			getQuest(false);
 		}
 	}
-	
+
+	public void getCategory(boolean override){
+		if(catScroll.selected != -1){
+			String selected = catScroll.getSelected();
+			if(!selected.equals(prevCatName) || override){
+				category = new QuestCategory();
+
+                questScroll.selected = -1;
+                questScroll.resetScroll();
+                questSearch = "";
+                quest = null;
+                getTextField(66).setText("");
+
+				Client.sendData(EnumPacketServer.QuestCategoryGet, catData.get(selected));
+				setPrevCatName(selected);
+			}
+		}
+	}
+
+	public void getQuest(boolean override){
+		if(questScroll.selected != -1){
+			String selected = questScroll.getSelected();
+			if(!selected.equals(prevQuestName) || override){
+				quest = new Quest();
+				Client.sendData(EnumPacketServer.QuestGet, questData.get(selected));
+				setPrevQuestName(selected);
+			}
+		}
+	}
+
+	public void clearCategory(){
+		catScroll.setList(getCatSearch());
+		catScroll.selected = -1;
+		prevCatName = "";
+		category = new QuestCategory();
+		this.questData.clear();
+		resetQuestList();
+	}
+
+	public void saveType(boolean saveQuest){
+		if(saveQuest){
+			if(questScroll.selected != -1 && quest.id >= 0){
+				if(catScroll.selected != -1 && category.id >= 0){
+					Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()), true);
+				}
+			}
+		}
+		else{
+			if(catScroll.selected != -1 && category.id >= 0)
+				Client.sendData(EnumPacketServer.QuestCategorySave, category.writeNBT(new NBTTagCompound()));
+		}
+	}
+
+	public void save() {}
+
 	@Override
-	public void close(){
-		super.close();
-		quest = new Quest();
+	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+		String name = catScroll.getSelected();
+		this.catData = data;
+		catScroll.setList(getCatSearch());
+		if(name != null){
+			catScroll.setSelected(name);
+			getCategory(false);
+		} else {
+			catScroll.setSelected(prevCatName);
+			getCategory(true);
+		}
+		initGui();
 	}
 
 	@Override
-	public void save() {
-    	GuiNpcTextField.unfocus();
-		if(!categorySelection && quest.id >= 0)
-			Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()));
-		else if(categorySelection && category.id >= 0)
-			Client.sendData(EnumPacketServer.QuestCategorySave, category.writeNBT(new NBTTagCompound()));
+	public void setSelected(String selected) {}
+
+	@Override
+	public void setScrollGroup(Vector<String> list, HashMap<String, Integer> data) {
+		String name = questScroll.getSelected();
+		this.questData = data;
+		questScroll.setList(getQuestSearch());
+		if(name != null){
+			questScroll.setSelected(name);
+			getQuest(false);
+		} else {
+			questScroll.setSelected(prevQuestName);
+			getQuest(true);
+		}
+		initGui();
 	}
 
 	@Override
-	public void setSelected(String selected) {
-		
-	}
+	public void setSelectedGroup(String selected) {}
 
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if(!result)
+            return;
+        if(id == 5) {
+            if(catData.containsKey(catScroll.getSelected())) {
+                Client.sendData(EnumPacketServer.QuestCategoryRemove, category.id);
+                clearCategory();
+            }
+        }
+        if(id == 2) {
+            Client.sendData(EnumPacketServer.QuestRemove, quest.id, true);
+            quest = new Quest();
+            questData.clear();
+        }
+        updateButtons();
+    }
 }

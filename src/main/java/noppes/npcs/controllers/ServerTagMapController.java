@@ -2,10 +2,8 @@ package noppes.npcs.controllers;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.TagMap;
 
 import java.io.*;

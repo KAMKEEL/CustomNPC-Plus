@@ -2,16 +2,21 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
-import noppes.npcs.AnimationData;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.PacketHandlerServer;
+import noppes.npcs.Server;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -19,11 +24,14 @@ import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScreenSize;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.HashSet;
+import java.util.UUID;
 
 public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerDialogData dialogData = new PlayerDialogData(this);
@@ -40,7 +48,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public EntityNPCInterface editingNpc;
 	public NBTTagCompound cloned;
-	
+
+	public UUID partyUUID = null;
+	private final HashSet<UUID> partyInvites = new HashSet<>();
+
 	public EntityPlayer player;
 
 	public String playername = "";
@@ -50,6 +61,20 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public int companionID = 0;
 
 	public boolean isGUIOpen = false;
+    public boolean hadInteract = true;
+
+    public boolean updateClient = false;
+
+    public ScreenSize screenSize = new ScreenSize(-1,-1);
+
+	public void onLogin() {
+        this.animationData.clearCache();
+	}
+
+	public void onLogout() {
+		this.partyInvites.clear();
+        this.animationData.clearCache();
+	}
 
 	@Override
 	public void saveNBTData(NBTTagCompound nbtTagCompound) {
@@ -113,7 +138,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		compound.setString("UUID", uuid);
 		compound.setInteger("PlayerCompanionId", companionID);
 		compound.setBoolean("isGUIOpen",isGUIOpen);
-		
+
 		if(hasCompanion()){
 			NBTTagCompound nbt = new NBTTagCompound();
 			if(activeCompanion.writeToNBTOptional(nbt))
@@ -122,9 +147,18 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		return compound;
 	}
 
+    public NBTTagCompound getSyncNBT(){
+        NBTTagCompound compound = new NBTTagCompound();
+        dialogData.saveNBTData(compound);
+        questData.saveNBTData(compound);
+        factionData.saveNBTData(compound);
+
+        return compound;
+    }
+
 	@Override
 	public void init(Entity entity, World world) {
-		
+
 	}
 
 	public void setGUIOpen(boolean bool) {
@@ -133,6 +167,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public boolean getGUIOpen() {
 		return this.isGUIOpen;
+	}
+
+	public ScreenSize getScreenSize(){
+		return screenSize;
+	}
+
+	public void setScreenSize(ScreenSize size){
+		screenSize = size;
 	}
 
 	public boolean hasCompanion(){
@@ -166,6 +208,45 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		setCompanion(npc);
 		((RoleCompanion)npc.roleInterface).setSitting(false);
 		world.spawnEntityInWorld(npc);
+	}
+
+	public void inviteToParty(Party party) {
+		if (party != null && this.partyUUID == null && !this.partyInvites.contains(party.getPartyUUID())) {
+			this.partyInvites.add(party.getPartyUUID());
+			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.PARTY_MESSAGE, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
+			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.CHAT, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
+		}
+	}
+
+	public void ignoreInvite(UUID uuid) {
+		if (uuid != null) {
+			this.partyInvites.remove(uuid);
+			PacketHandlerServer.sendInviteData((EntityPlayerMP) player);
+		}
+	}
+
+	public void acceptInvite(UUID uuid) {
+		if (uuid != null) {
+			this.partyInvites.remove(uuid);
+			Party party = PartyController.Instance().getParty(uuid);
+            if(party != null){
+                if (!party.getIsLocked()) {
+                    party.addPlayer(player);
+                    PartyController.Instance().pingPartyUpdate(party);
+                }
+            }
+		}
+	}
+
+    public Party getPlayerParty() {
+        if (partyUUID != null) {
+            return PartyController.Instance().getParty(partyUUID);
+        }
+        return null;
+    }
+
+	public HashSet<UUID> getPartyInvites() {
+		return (HashSet<UUID>) this.partyInvites.clone();
 	}
 
 	public void setCompanion(ICustomNpc npc) {
@@ -218,7 +299,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		PlayerDataController.Instance.putPlayerMap(playername, uuid);
 		PlayerDataController.Instance.putPlayerDataCache(uuid, this);
-		CustomNPCsThreader.playerDataThread.execute(() -> {
+		CustomNPCsThreader.customNPCThread.execute(() -> {
 			try {
 				File saveDir = PlayerDataController.Instance.getSaveDir();
 				File file = new File(saveDir, filename + "_new");
@@ -245,4 +326,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		setNBT(data);
 	}
+
+    public static PlayerData get(EntityPlayer player) {
+        if(player.worldObj.isRemote)
+            return CustomNpcs.proxy.getPlayerData(player);
+
+        return PlayerDataController.Instance.getPlayerData(player);
+    }
 }

@@ -22,7 +22,7 @@ public class RecipesDefault {
 		RecipeCarpentry recipeAnvil = new RecipeCarpentry(name);
 		recipeAnvil.isGlobal = isGlobal;
 		recipeAnvil = RecipeCarpentry.saveRecipe(recipeAnvil, item, recipe);
-		RecipeController.instance.addRecipe(recipeAnvil);
+		RecipeController.Instance.addRecipe(recipeAnvil);
 	}
 	public static void loadDefaultRecipes(int i) {
 		if(i < 0){

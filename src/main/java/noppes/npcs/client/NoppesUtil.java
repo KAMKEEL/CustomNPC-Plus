@@ -20,9 +20,9 @@ import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.IScrollGroup;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -54,7 +54,7 @@ public class NoppesUtil {
 		float height = buffer.readFloat();
 		float width = buffer.readFloat();
 		float yOffset = buffer.readFloat();
-		
+
 		String particle = Server.readString(buffer);
 		World worldObj = Minecraft.getMinecraft().theWorld;
 
@@ -109,6 +109,7 @@ public class NoppesUtil {
 			entity = worldObj.getEntityByID(compound.getInteger("EntityID"));
 			if (entity != null)
 				worldObj = entity.worldObj;
+			else return;
 		}
 
 		CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
@@ -119,7 +120,7 @@ public class NoppesUtil {
 	}
 
 	public static void clickSound() {
-        Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));    	
+        Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
 	}
 
 	private static EntityNPCInterface lastNpc;
@@ -133,7 +134,7 @@ public class NoppesUtil {
 	public static void openGUI(EntityPlayer player, Object guiscreen) {
 		CustomNpcs.proxy.openGui(player, guiscreen);
 	}
-	
+
 	public static void openFolder(File dir){
         String s = dir.getAbsolutePath();
 
@@ -194,20 +195,57 @@ public class NoppesUtil {
 			return;
 		Vector<String> data = new Vector<String>();
 		String line;
-		
+
 		try {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				data.add(Server.readString(buffer));
 			}
 		} catch (Exception e) {
-			
+
 		}
-		
+
 		((IScrollData)gui).setData(data,null);
 	}
-	
+
 	private static HashMap<String,Integer> data = new HashMap<String,Integer>();
+	private static HashMap<String,Integer> group = new HashMap<String,Integer>();
+
+	public static void addScrollGroup(ByteBuf buffer) {
+		try {
+			int size = buffer.readInt();
+			for(int i = 0; i < size; i++){
+				int id = buffer.readInt();
+				String name = Server.readString(buffer);
+				group.put(name, id);
+			}
+		} catch (Exception ignored) {
+		}
+	}
+
+	public static void setScrollGroup(ByteBuf buffer) {
+		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
+		if(gui == null)
+			return;
+		try {
+			int size = buffer.readInt();
+			for(int i = 0; i < size; i++){
+				int id = buffer.readInt();
+				String name = Server.readString(buffer);
+				group.put(name, id);
+			}
+		} catch (Exception ignored) {
+		}
+		if(gui instanceof GuiNPCInterface && ((GuiNPCInterface)gui).hasSubGui()){
+			gui = (GuiScreen) ((GuiNPCInterface)gui).getSubGui();
+		}
+		if(gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface)gui).hasSubGui()){
+			gui = (GuiScreen) ((GuiContainerNPCInterface)gui).getSubGui();
+		}
+		if(gui instanceof IScrollGroup)
+			((IScrollGroup)gui).setScrollGroup(new Vector<String>(group.keySet()), group);
+		group = new HashMap<String,Integer>();
+	}
 
 	public static void addScrollData(ByteBuf buffer) {
 		try {
@@ -220,7 +258,7 @@ public class NoppesUtil {
 		} catch (Exception e) {
 		}
 	}
-	
+
 	public static void setScrollData(ByteBuf buffer) {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 		if(gui == null)
@@ -252,10 +290,8 @@ public class NoppesUtil {
 			NoppesUtil.openGUI(player, new GuiQuestCompletion(quest));
 		}
 	}
-	
+
 	public static void openDialog(NBTTagCompound compound, EntityNPCInterface npc, EntityPlayer player){
-		if(DialogController.instance == null)
-			DialogController.instance = new DialogController();
 		Dialog dialog = new Dialog();
 		dialog.readNBT(compound);
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
@@ -270,20 +306,20 @@ public class NoppesUtil {
 		int x = compound.getInteger("x");
 		int y = compound.getInteger("y");
 		int z = compound.getInteger("z");
-		
+
 		TileEntity tile = player.worldObj.getTileEntity(x, y, z);
 		tile.readFromNBT(compound);
-		
+
 		CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.RedstoneBlock, player);
 	}
 	public static void saveWayPointBlock(EntityPlayer player, NBTTagCompound compound){
 		int x = compound.getInteger("x");
 		int y = compound.getInteger("y");
 		int z = compound.getInteger("z");
-		
+
 		TileEntity tile = player.worldObj.getTileEntity(x, y, z);
 		tile.readFromNBT(compound);
-		
+
 		CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Waypoint, player);
 	}
 

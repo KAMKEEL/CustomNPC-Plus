@@ -1,10 +1,10 @@
 package foxz.command;
 
-import noppes.npcs.controllers.ScriptController;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
+import noppes.npcs.controllers.ScriptController;
 
 @Command(
         name = "script",

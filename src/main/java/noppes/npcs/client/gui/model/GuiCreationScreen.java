@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.model;
 
+import kamkeel.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -15,8 +16,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.PixelmonHelper;
 import noppes.npcs.entity.*;
 
 import java.lang.reflect.Method;
@@ -42,9 +43,34 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 		for(Object name : mapping.keySet()){
 			Class<?> c = (Class<?>) mapping.get(name);
 			try {
-				if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[] {World.class}) != null && !Modifier.isAbstract(c.getModifiers())){
-					if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity)
-						data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
+				if(!EntityCustomNpc.class.isAssignableFrom(c) && EntityLiving.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers())){
+					if(RenderManager.instance.getEntityClassRenderObject(c) instanceof RendererLivingEntity){
+						if(EntityNpcSlime.class.isAssignableFrom(c)){
+							data.put("CustomNPC Slime",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNpcDragon.class.isAssignableFrom(c)){
+							data.put("CustomNPC Dragon",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNpcPony.class.isAssignableFrom(c)){
+							data.put("CustomNPC Pony",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNPCGolem.class.isAssignableFrom(c)){
+							data.put("CustomNPC Golem",c.asSubclass(EntityLivingBase.class));
+						}
+						else if(EntityNpcCrystal.class.isAssignableFrom(c)){
+							data.put("CustomNPC Crystal",c.asSubclass(EntityLivingBase.class));
+						}
+						else {
+							String className = name.toString();
+							if(className.equals("npcgecko.CustomModelEntity")){
+								data.put("CustomNPC GeoModel",c.asSubclass(EntityLivingBase.class));
+							}
+							else {
+								data.put(name.toString(),c.asSubclass(EntityLivingBase.class));
+							}
+
+						}
+					}
 				}
 			} catch (SecurityException e) {
 				e.printStackTrace();
@@ -166,6 +192,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 			addLabel(new GuiNpcLabel(201, "Breed", guiLeft, y + 5 + i * 22, 0xFFFFFF));
 			addButton(new GuiNpcButton(201, guiLeft + 80, y + i * 22, 50, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"}, breed));
 		}
+
+		GeckoAddonClient.Instance.showGeckoButtons(this, entity);
 	}
 	private boolean isIgnored(String tag){
 		for(String s : ignoredTags)
@@ -316,6 +344,8 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 				updateTexture();
 			} catch (Exception ignored) {}
 		}
+
+		GeckoAddonClient.Instance.geckoGuiCreationScreenActionPerformed(this, button);
 	}
 
 	private void updateTexture(){

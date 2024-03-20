@@ -4,11 +4,12 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.model.ModelMPM;
+import noppes.npcs.controllers.data.TintData;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
 
 public abstract class ModelPartInterface extends ModelRenderer {
@@ -18,7 +19,7 @@ public abstract class ModelPartInterface extends ModelRenderer {
 	public float scale = 1;
 	protected ResourceLocation location;
 	public int color = 0xFFFFFF;
-	
+
 	public ModelMPM base;
 
 	public ModelPartInterface(ModelMPM par1ModelBase) {
@@ -59,7 +60,9 @@ public abstract class ModelPartInterface extends ModelRenderer {
 	            base.currentlyPlayerTexture = true;
 			}
     	}
-    	boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor;
+        TintData tintData = entity.display.tintData;
+        boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
+            !(tintData.isTintEnabled() && tintData.isGeneralTintEnabled());
     	if(bo){
 	    	float red = (color >> 16 & 255) / 255f;
 	    	float green = (color >> 8  & 255) / 255f;

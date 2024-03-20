@@ -17,7 +17,7 @@ import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
 import java.util.*;
 
-public class GlobalNPCDataScript implements IScriptHandler {
+public class GlobalNPCDataScript implements INpcScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;
@@ -60,7 +60,16 @@ public class GlobalNPCDataScript implements IScriptHandler {
         return compound;
     }
 
+    public boolean isEnabled() {
+        return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
+    }
+
     public void callScript(EnumScriptType type, Event event) {
+        this.callScript(type.function, event);
+    }
+
+    @Override
+    public void callScript(String hookName, Event event) {
         if (this.isEnabled()) {
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastGlobalNpcUpdate > this.lastNpcUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
@@ -75,14 +84,11 @@ public class GlobalNPCDataScript implements IScriptHandler {
                 if(script == null || script.errored || !script.hasCode() )
                     continue;
 
-                script.run(type, event);
+                script.run(hookName, event);
             }
         }
     }
 
-    public boolean isEnabled() {
-        return ConfigScript.GlobalNPCScripts && this.enabled && ScriptController.HasStart && this.scripts.size() > 0;
-    }
     public boolean isClient() {
         return this.npc.isClientWorld();
     }

@@ -9,12 +9,12 @@ import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.INpcScriptHandler;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.*;
 
-public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IScriptHandler {
+public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, INpcScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
@@ -66,11 +66,20 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
         return 6;
     }
 
+    private boolean isEnabled() {
+        return this.enabled && ScriptController.HasStart;
+    }
+
     public void callScript(EnumScriptType type, Event event) {
+        this.callScript(type.function, event);
+    }
+
+    @Override
+    public void callScript(String hookName, Event event) {
         if (!this.loaded) {
             this.loadScriptData();
             this.loaded = true;
-            if (type != EnumScriptType.INIT) {
+            if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
                 EventHooks.onScriptItemInit(this);
             }
         }
@@ -82,7 +91,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
                     if(script == null || script.errored || !script.hasCode())
                         continue;
 
-                    script.run(type, event);
+                    script.run(hookName, event);
 
                     if (script.errored) {
                         this.errored.add(i);
@@ -90,10 +99,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IS
                 }
             }
         }
-    }
-
-    private boolean isEnabled() {
-        return this.enabled && ScriptController.HasStart;
     }
 
     public boolean isClient() {

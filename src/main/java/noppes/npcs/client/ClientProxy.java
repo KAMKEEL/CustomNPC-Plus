@@ -27,7 +27,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
-import noppes.npcs.*;
+import noppes.npcs.CommonProxy;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
+import noppes.npcs.PacketHandlerPlayer;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.*;
@@ -43,8 +46,8 @@ import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionStats;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
-import noppes.npcs.client.gui.GuiNpcRemoteEditor;
 import noppes.npcs.client.gui.roles.*;
+import noppes.npcs.client.gui.script.GuiScriptBlock;
 import noppes.npcs.client.gui.script.GuiScriptGlobal;
 import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
@@ -53,7 +56,6 @@ import noppes.npcs.client.renderer.blocks.*;
 import noppes.npcs.client.renderer.customitem.CustomItemRenderer;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
@@ -63,8 +65,7 @@ import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
-import tconstruct.client.tabs.InventoryTabFactions;
-import tconstruct.client.tabs.InventoryTabQuests;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.InventoryTabVanilla;
 import tconstruct.client.tabs.TabRegistry;
 
@@ -75,7 +76,7 @@ import java.io.IOException;
 import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
-	public static KeyBinding QuestLog;
+	public static KeyBinding NPCButton;
 
 	public static FontContainer Font;
 
@@ -101,7 +102,8 @@ public class ClientProxy extends CommonProxy {
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileBlockAnvil.class, new BlockCarpentryBenchRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
-		RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileScripted.class, new BlockScriptedRenderer());
+        RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
 
 		if(!ConfigMain.DisableExtraBlock){
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
@@ -129,9 +131,9 @@ public class ClientProxy extends CommonProxy {
 		}
 		Minecraft mc = Minecraft.getMinecraft();
 
-		QuestLog = new KeyBinding("Quest Log", Keyboard.KEY_L, "key.categories.gameplay");
+		NPCButton = new KeyBinding("CustomNPC+", Keyboard.KEY_L, "key.categories.gameplay");
 
-		ClientRegistry.registerKeyBinding(QuestLog);
+		ClientRegistry.registerKeyBinding(NPCButton);
 		mc.gameSettings.loadOptions();
 
 		new PresetController(CustomNpcs.Dir);
@@ -148,12 +150,10 @@ public class ClientProxy extends CommonProxy {
 
 		if(ConfigClient.InventoryGuiEnabled){
 			MinecraftForge.EVENT_BUS.register(new TabRegistry());
-
-			if (TabRegistry.getTabList().size() < 2){
+			if (TabRegistry.getTabList().isEmpty()){
 				TabRegistry.registerTab(new InventoryTabVanilla());
 			}
-			TabRegistry.registerTab(new InventoryTabFactions());
-			TabRegistry.registerTab(new InventoryTabQuests());
+			TabRegistry.registerTab(new InventoryTabCustomNpc());
 		}
 	}
 
@@ -191,18 +191,19 @@ public class ClientProxy extends CommonProxy {
 		((IReloadableResourceManager)Minecraft.getMinecraft().getResourceManager()).registerReloadListener(new CustomNpcResourceListener());
 	}
 
-	public static PlayerData playerData = new PlayerData();
+
 	@Override
 	public PlayerData getPlayerData(EntityPlayer player) {
 		if (player.getUniqueID() == Minecraft.getMinecraft().thePlayer.getUniqueID()) {
-			if (playerData.player != player) {
-				playerData.player = player;
-			}
+            if(ClientCacheHandler.playerData != null){
+                if (ClientCacheHandler.playerData.player != player) {
+                    ClientCacheHandler.playerData.player = player;
+                }
 
-			return playerData;
-		} else {
-			return null;
+                return ClientCacheHandler.playerData;
+            }
 		}
+        return null;
 	}
 
 	@Override
@@ -250,17 +251,21 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.ManageAnimations) {
 			EntityCustomNpc animNpc;
+			boolean save;
 			if (npc != null) {
 				animNpc = new EntityCustomNpc(npc.worldObj);
 				animNpc.copyDataFrom(npc, true);
 				animNpc.display.showName = 1;
 				animNpc.display.showBossBar = 0;
+				save = true;
 			} else {
 				animNpc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
 				animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
+				save = false;
 			}
-			return new GuiNPCManageAnimations(animNpc);
-		} else if (gui == EnumGuiType.ManageLinked)
+			return new GuiNPCManageAnimations(animNpc, save);
+		}
+		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinkedNpc(npc);
 
 		else if (gui == EnumGuiType.ManageTransport)
@@ -299,7 +304,7 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.PlayerTransporter)
 			return new GuiTransportSelection(npc);
 
-		else if (gui == EnumGuiType.Script && ConfigScript.ScriptingEnabled)
+		else if (gui == EnumGuiType.Script)
 			return new GuiScript(npc);
 
 		else if (gui == EnumGuiType.ScriptItem)
@@ -373,6 +378,12 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.CustomGui)
 			return new GuiCustom((ContainerCustomGui)container);
+
+		else if (gui == EnumGuiType.ScriptBlock)
+			return new GuiScriptBlock(x,y,z);
+
+        else if (gui == EnumGuiType.GlobalRemote)
+            return new GuiNPCGlobalMainMenu(null);
 
 		return null;
 	}

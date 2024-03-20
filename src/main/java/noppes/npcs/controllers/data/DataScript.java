@@ -29,7 +29,7 @@ import noppes.npcs.scripted.entity.ScriptNpc;
 import javax.script.ScriptEngine;
 import java.util.*;
 
-public class DataScript implements IScriptHandler {
+public class DataScript implements INpcScriptHandler {
 	public List<ScriptContainer> eventScripts = new ArrayList<>();
 
 	private HashMap<EnumScriptType,ScriptContainer> scripts = new HashMap<>();
@@ -116,9 +116,12 @@ public class DataScript implements IScriptHandler {
 		NBTTagList list = new NBTTagList();
 		for (Map.Entry<EnumScriptType,ScriptContainer> entry : scripts.entrySet()) {
 			NBTTagCompound tagCompound = new NBTTagCompound();
-			tagCompound.setInteger("Type", entry.getKey().ordinal());
-			entry.getValue().writeToNBT(tagCompound);
-			list.appendTag(tagCompound);
+			ScriptContainer container = entry.getValue();
+			if (container.hasCode()) {
+				tagCompound.setInteger("Type", entry.getKey().ordinal());
+				container.writeToNBT(tagCompound);
+				list.appendTag(tagCompound);
+			}
 		}
 		return list;
 	}
@@ -234,6 +237,14 @@ public class DataScript implements IScriptHandler {
 	@Override
 	public void callScript(EnumScriptType type, Event event) {
 		callScript(type, event, "$$IGNORED$$", null);
+	}
+
+	@Override
+	public void callScript(String hookName, Event event) {
+		try {
+			EnumScriptType enumScriptType = EnumScriptType.valueOf(hookName);
+			this.callScript(enumScriptType, event);
+		} catch (IllegalArgumentException ignored) {}
 	}
 
 	public boolean isClient() {

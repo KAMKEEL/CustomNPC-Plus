@@ -14,7 +14,6 @@ import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.QuestData;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 public class QuestCategoryCommand extends CommandKamkeelBase {
@@ -40,7 +39,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
 
         String catName = String.join(" ", args).toLowerCase();
-        final Collection<QuestCategory> questCats = QuestController.instance.categories.values();
+        final Collection<QuestCategory> questCats = QuestController.Instance.categories.values();
         int count = 0;
         for(QuestCategory cat : questCats){
             if(cat.getName().toLowerCase().contains(catName)){
@@ -53,7 +52,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
     }
 
-    
+
     @SubCommand(
             desc = "Finish a quest category for a player",
             usage = "<player> <questcatid>"
@@ -63,19 +62,19 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         int questcatid;
         try {
         	questcatid = Integer.parseInt(args[1]);
-        } 
+        }
         catch (NumberFormatException ex) {
         	sendError(sender, "QuestCatID must be an integer: " + args[1]);
             return;
         }
-        
+
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
-        
-        QuestCategory questCategory = QuestController.instance.categories.get(questcatid);
+
+        QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
         if (questCategory == null){
         	sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
@@ -101,6 +100,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Completed Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Completed a total of \u00A7b%d \u00A77quests", count));
         }
@@ -127,7 +127,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
-        QuestCategory questCategory = QuestController.instance.categories.get(questcatid);
+        QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
         if (questCategory == null){
             sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
@@ -143,6 +143,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Stopped Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Stopped a total of \u00A7b%d \u00A77quests", count));
         }
@@ -169,7 +170,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
-        QuestCategory questCategory = QuestController.instance.categories.get(questcatid);
+        QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
         if (questCategory == null){
             sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
@@ -191,12 +192,13 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Started Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Started a total of \u00A7b%d \u00A77quests", count));
         }
     }
 
-    
+
     @SubCommand(
             desc = "Remove a quest cat from active/finished",
             usage = "<player> <questcatid>"
@@ -218,7 +220,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
-        QuestCategory questCategory = QuestController.instance.categories.get(questcatid);
+        QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
         if (questCategory == null){
             sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
@@ -233,6 +235,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Cleared Quest Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questCategory.getName(), questcatid, playerdata.playername));
             sendResult(sender, String.format("Cleared a total of \u00A7b%d \u00A77quests", count));
         }

@@ -9,6 +9,7 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
+import kamkeel.addon.AddonManager;
 import kamkeel.command.CommandKamkeel;
 import kamkeel.developer.Developer;
 import net.minecraft.block.Block;
@@ -22,6 +23,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
 import noppes.npcs.config.legacy.LegacyConfig;
@@ -34,7 +36,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.8.6")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9-beta8")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -71,6 +73,8 @@ public class CustomNpcs {
     public static boolean legacyExist;
 
     public static LegacyConfig legacyConfig;
+
+    public static MinecraftServer Server;
 
     public CustomNpcs() {
         instance = this;
@@ -167,7 +171,9 @@ public class CustomNpcs {
         new CustomNpcsPermissions();
         new Developer();
 
+        // Load Mod Support
         PixelmonHelper.load();
+        new AddonManager();
     }
 
     @EventHandler
@@ -188,10 +194,11 @@ public class CustomNpcs {
 
     @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
-        ChunkController.instance.clear();
-        new QuestController();
+        Server = event.getServer();
+        ChunkController.Instance.clear();
+        FactionController.getInstance().load();
+        // VisibilityController.instance = new VisibilityController();
         new PlayerDataController();
-        new FactionController();
         new TagController();
         new TransportController();
         new GlobalDataController();
@@ -224,10 +231,10 @@ public class CustomNpcs {
     //Loading items in the about to start event was corrupting items with a damage value
     @EventHandler
     public void started(FMLServerStartedEvent event) {
-        RecipeController.instance.load();
-        new DialogController();
+        RecipeController.Instance.load();
         new BankController();
-        QuestController.instance.load();
+        DialogController.Instance.load();
+        QuestController.Instance.load();
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
@@ -256,7 +263,6 @@ public class CustomNpcs {
     private void registerNewEntity(Class<? extends Entity> cl, String name, int range, int update, boolean velocity) {
         EntityRegistry.registerModEntity(cl, name, NewEntityStartId++, this, range, update, velocity);
     }
-
 
     public static File getWorldSaveDirectory() {
         MinecraftServer server = MinecraftServer.getServer();

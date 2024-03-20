@@ -75,7 +75,7 @@ public class NoppesUtilServer {
     	NBTTagCompound comp = new NBTTagCompound();
     	npc.roleInterface.writeToNBT(comp);
     	comp.setInteger("EntityId", npc.getEntityId());
-    	comp.setInteger("Role", npc.advanced.role.ordinal());        
+    	comp.setInteger("Role", npc.advanced.role.ordinal());
         Server.sendData((EntityPlayerMP)player, EnumPacketClient.ROLE, comp);
     }
 
@@ -87,6 +87,14 @@ public class NoppesUtilServer {
 		sendScrollData(player, map);
 	}
 
+	public static void sendAnimationDataAll(EntityPlayerMP player) {
+		Map<String,Integer> map = new HashMap<String,Integer>();
+		for(Animation animation : AnimationController.getInstance().animations.values()){
+			map.put(animation.name, animation.id);
+		}
+		sendScrollData(player, map);
+	}
+
 	public static void sendTagDataAll(EntityPlayerMP player) {
 		Map<String,Integer> map = new HashMap<String,Integer>();
 		for(Tag tag : TagController.getInstance().tags.values()){
@@ -94,7 +102,7 @@ public class NoppesUtilServer {
 		}
 		sendScrollData(player, map);
 	}
-	
+
 	public static void sendBankDataAll(EntityPlayerMP player) {
 		Map<String,Integer> map = new HashMap<String,Integer>();
 		for(Bank bank : BankController.getInstance().banks.values()){
@@ -102,7 +110,7 @@ public class NoppesUtilServer {
 		}
 		sendScrollData(player, map);
 	}
-	
+
     public static NBTTagCompound writeItem(ItemStack item, NBTTagCompound nbt){
         String resourcelocation = Item.itemRegistry.getNameForObject(item.getItem());
         nbt.setString("id", resourcelocation == null ? "minecraft:air" : resourcelocation.toString());
@@ -140,7 +148,7 @@ public class NoppesUtilServer {
         }
         return itemstack;
     }
-    
+
     public static Item getByNameOrId(String id)
     {
         Item item = (Item)Item.itemRegistry.getObject(id);
@@ -159,9 +167,10 @@ public class NoppesUtilServer {
 
         return item;
     }
-	
+
 	public static void openDialog(EntityPlayer player, EntityNPCInterface npc, Dialog dia, int optionId){
 		Dialog dialog = dia.copy(player);
+        PlayerData playerdata = PlayerData.get(player);
 
 		if (!npc.isRemote()) {
 			if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
@@ -181,59 +190,78 @@ public class NoppesUtilServer {
 		dia.factionOptions.addPoints(player);
         if(dialog.hasQuest())
         	PlayerQuestController.addActiveQuest(new QuestData(dialog.getQuest()),player);
-        if(!dialog.command.isEmpty()){            
+        if(!dialog.command.isEmpty()){
             runCommand(player, npc.getCommandSenderName(), dialog.command);
         }
         if(dialog.mail.isValid())
         	PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), dialog.mail);
         PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
-        if(!data.dialogsRead.contains(dialog.id))
-        	data.dialogsRead.add(dialog.id);
+        if(!data.dialogsRead.contains(dialog.id) && dialog.id >= 0){
+            data.dialogsRead.add(dialog.id);
+            playerdata.updateClient = true;
+        }
 		setEditingNpc(player, npc);
 	}
 	public static void runCommand(EntityPlayer player, String name, String command){
         runCommand(player, name, command, player);
 	}
-	
-	public static void runCommand(EntityLivingBase executer, String name, String command, EntityPlayer player){
+
+    public static void runCommand(EntityLivingBase executer, String name, String command, EntityPlayer player) {
         if(player != null)
-        	command = command.replace("@dp", player.getCommandSenderName());
-    	command = command.replace("@npc", name);
+            command = command.replace("@dp", player.getCommandSenderName());
+        command = command.replace("@npc", name);
+
+        // Trim the command to remove leading/trailing spaces
+        command = command.trim();
+
+        String[] commands = command.split("@x"); // Split the command by @x
+
+        // Create TileEntityCommandBlock instance outside the loop
         TileEntityCommandBlock tile = new TileEntityCommandBlock();
         tile.setWorldObj(executer.worldObj);
         tile.xCoord = MathHelper.floor_double(executer.posX);
         tile.yCoord = MathHelper.floor_double(executer.posY);
         tile.zCoord = MathHelper.floor_double(executer.posZ);
-        
-        CommandBlockLogic logic = tile.func_145993_a();
-        logic.func_145752_a(command);
-        logic.func_145754_b("@"+name);
-        logic.func_145755_a(executer.worldObj);
-	}
 
-	public static void runCommand(World world, String name, String command) {
+        // Create CommandBlockLogic instance outside the loop
+        CommandBlockLogic logic = tile.func_145993_a();
+        for (String cmd : commands) {
+            logic.func_145752_a(cmd.trim()); // Trim the command to remove any leading/trailing spaces
+            logic.func_145754_b("@" + name);
+            logic.func_145755_a(executer.worldObj);
+        }
+    }
+
+
+
+    public static void runCommand(World world, String name, String command) {
 		TileEntityCommandBlock tile = new TileEntityCommandBlock();
 		tile.setWorldObj(world.provider.worldObj);
 		tile.xCoord = 0;
 		tile.yCoord = 0;
 		tile.zCoord = 0;
 
-		CommandBlockLogic logic = tile.func_145993_a();
-		logic.func_145752_a(command);
-		logic.func_145754_b("@"+name);
-		logic.func_145755_a(world);
+        // Trim the command to remove leading/trailing spaces
+        command = command.trim();
+        String[] commands = command.split("@x"); // Split the command by @x
+        CommandBlockLogic logic = tile.func_145993_a();
+        for (String cmd : commands) {
+            logic.func_145752_a(cmd.trim()); // Trim the command to remove any leading/trailing spaces
+            logic.func_145754_b("@" + name);
+            logic.func_145755_a(world);
+        }
 	}
-	
+
 	public static void consumeItemStack(int i, EntityPlayer player){
 		ItemStack item = player.inventory.getCurrentItem();
 		if(player.capabilities.isCreativeMode || item == null)
 			return;
-		
+
         --item.stackSize;
         if (item.stackSize <= 0)
         	player.destroyCurrentEquippedItem();
 	}
-	
+
 	public static DataOutputStream getDataOutputStream(ByteArrayOutputStream stream) throws IOException{
         return new DataOutputStream(new GZIPOutputStream(stream));
 	}
@@ -251,7 +279,7 @@ public class NoppesUtilServer {
 								   final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
 		if(!(player instanceof EntityPlayerMP))
 			return;
-				
+
 		setEditingNpc(player, npc);
 		sendExtraData(player, npc,gui, i, j, k);
 
@@ -390,17 +418,17 @@ public class NoppesUtilServer {
 			player.addChatMessage(new ChatComponentTranslation("Currently you cant create horse spawner, its a minecraft bug"));
 			return;
 		}
-		
+
 		player.worldObj.setBlock(x, y, z, Blocks.mob_spawner); //setBlock
 		TileEntityMobSpawner tile = (TileEntityMobSpawner) player.worldObj.getTileEntity(x, y, z);
 		MobSpawnerBaseLogic logic = tile.func_145881_a();
-		
+
 		logic.setRandomEntity(logic.new WeightedRandomMinecart(comp, comp.getString("id")));
 	}
 
 	public static void sendQuestCategoryData(EntityPlayerMP player) {
 		Map<String,Integer> map = new HashMap<String,Integer>();
-		for(QuestCategory category : QuestController.instance.categories.values()){
+		for(QuestCategory category : QuestController.Instance.categories.values()){
 			map.put(category.title, category.id);
 		}
 		sendScrollData(player, map);
@@ -408,7 +436,7 @@ public class NoppesUtilServer {
 
 	public static void sendPlayerData(EnumPlayerData type, EntityPlayerMP player, String name) throws IOException {
 		Map<String,Integer> map = new HashMap<String,Integer>();
-        
+
 		if(type == EnumPlayerData.Players){
 			for(String username : PlayerDataController.Instance.nameUUIDs.keySet()){
 				map.put(username, 0);
@@ -421,9 +449,9 @@ public class NoppesUtilServer {
 			PlayerData playerdata = PlayerDataController.Instance.getDataFromUsername(name);
 			if(type == EnumPlayerData.Dialog){
 				PlayerDialogData data = playerdata.dialogData;
-				
+
 		        for(int questId : data.dialogsRead){
-		        	Dialog dialog = DialogController.instance.dialogs.get(questId);
+		        	Dialog dialog = DialogController.Instance.dialogs.get(questId);
 		        	if(dialog == null)
 		        		continue;
 		        	map.put(dialog.category.title + ": " + dialog.title,questId);
@@ -431,23 +459,23 @@ public class NoppesUtilServer {
 			}
 			else if(type == EnumPlayerData.Quest){
 				PlayerQuestData data = playerdata.questData;
-	
+
 		        for(int questId : data.activeQuests.keySet()){
-		        	Quest quest = QuestController.instance.quests.get(questId);
+		        	Quest quest = QuestController.Instance.quests.get(questId);
 		        	if(quest == null)
 		        		continue;
-		        	map.put(quest.category.title + ": " + quest.title + "(Active quest)",questId);
+		        	map.put(quest.category.title + ": " + quest.title + " (Active)",questId);
 		        }
 		        for(int questId : data.finishedQuests.keySet()){
-		        	Quest quest = QuestController.instance.quests.get(questId);
+		        	Quest quest = QuestController.Instance.quests.get(questId);
 		        	if(quest == null)
 		        		continue;
-		        	map.put(quest.category.title + ": " + quest.title + "(Finished quest)",questId);
+		        	map.put(quest.category.title + ": " + quest.title + " (Finished)",questId);
 		        }
 			}
 			else if(type == EnumPlayerData.Transport){
 				PlayerTransportData data = playerdata.transportData;
-	
+
 		        for(int questId : data.transports){
 		        	TransportLocation location = TransportController.getInstance().getTransport(questId);
 		        	if(location == null)
@@ -457,7 +485,7 @@ public class NoppesUtilServer {
 			}
 			else if(type == EnumPlayerData.Bank){
 				PlayerBankData data = playerdata.bankData;
-	
+
 		        for(int bankId : data.banks.keySet()){
 		        	Bank bank = BankController.getInstance().banks.get(bankId);
 		        	if(bank == null)
@@ -475,10 +503,10 @@ public class NoppesUtilServer {
 		        }
 			}
 		}
-		
+
 		NoppesUtilServer.sendScrollData(player, map);
 	}
-	
+
 	public static void removePlayerData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		int id = buffer.readInt();
 		if(EnumPlayerData.values().length <= id)
@@ -540,22 +568,25 @@ public class NoppesUtilServer {
         	data.factionData.remove(buffer.readInt());
             playerdata.save();
         }
+        if(pl != null) {
+            SyncController.syncPlayer((EntityPlayerMP) pl);
+        }
         sendPlayerData(type, player, name);
 	}
 
 	public static void regenPlayerData(EntityPlayerMP player) throws IOException {
 		PlayerDataController.Instance.generatePlayerMap(player);
 	}
-	
+
 	public static void sendRecipeData(EntityPlayerMP player, int size) {
 		HashMap<String,Integer> map = new HashMap<String,Integer>();
 		if(size == 3){
-			for(RecipeCarpentry recipe : RecipeController.instance.globalRecipes.values()){
+			for(RecipeCarpentry recipe : RecipeController.Instance.globalRecipes.values()){
 				map.put(recipe.name, recipe.id);
 			}
 		}
 		else{
-			for(RecipeCarpentry recipe : RecipeController.instance.anvilRecipes.values()){
+			for(RecipeCarpentry recipe : RecipeController.Instance.anvilRecipes.values()){
 				map.put(recipe.name, recipe.id);
 			}
 		}
@@ -573,6 +604,18 @@ public class NoppesUtilServer {
 		Server.sendData(player, EnumPacketClient.SCROLL_DATA, send);
 	}
 
+	public static void sendScrollGroup(EntityPlayerMP player, Map<String,Integer> map){
+		Map<String, Integer> send = new HashMap<String, Integer>();
+		for(String key : map.keySet()){
+			send.put(key, map.get(key));
+			if(send.size() == 100){
+				Server.sendData(player, EnumPacketClient.SCROLL_GROUP_PART, send);
+				send = new HashMap<String, Integer>();
+			}
+		}
+		Server.sendData(player, EnumPacketClient.SCROLL_GROUP, send);
+	}
+
 	public static void sendDialogData(EntityPlayerMP player, DialogCategory category) {
 		if(category == null)
 			return;
@@ -583,6 +626,17 @@ public class NoppesUtilServer {
 		sendScrollData(player, map);
 	}
 
+	public static void sendDialogGroup(EntityPlayerMP player, DialogCategory category) {
+		if(category == null)
+			return;
+		HashMap<String,Integer> map = new HashMap<String,Integer>();
+		for(Dialog dialog : category.dialogs.values()){
+			map.put(dialog.title, dialog.id);
+		}
+
+		sendScrollGroup(player, map);
+	}
+
 	public static void sendQuestData(EntityPlayerMP player, QuestCategory category) {
 		if(category == null)
 			return;
@@ -591,6 +645,17 @@ public class NoppesUtilServer {
 			map.put(quest.title, quest.id);
 		}
 		sendScrollData(player, map);
+	}
+
+	public static void sendQuestGroup(EntityPlayerMP player, QuestCategory category) {
+		if(category == null)
+			return;
+		HashMap<String,Integer> map = new HashMap<String,Integer>();
+		for(Quest quest : category.quests.values()){
+			map.put(quest.title, quest.id);
+		}
+
+		sendScrollGroup(player, map);
 	}
 
 	public static void sendTransportCategoryData(EntityPlayerMP player) {
@@ -611,7 +676,7 @@ public class NoppesUtilServer {
 		}
 		sendScrollData(player, map);
 	}
-	
+
 
 	public static void sendNpcDialogs(EntityPlayer player) {
 		EntityNPCInterface npc = getEditingNpc(player);
@@ -621,26 +686,29 @@ public class NoppesUtilServer {
 			DialogOption option = npc.dialogs.get(pos);
 			if(option == null || !option.hasDialog())
 				continue;
-				
+
 			NBTTagCompound compound = option.writeNBT();
 			compound.setInteger("Position", pos);
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_DATA, compound);
-			
+
 		}
 	}
 
 	public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {
-		EntityNPCInterface npc = getEditingNpc(player);
+		return setNpcDialog(slot, dialogId, getEditingNpc(player));
+	}
+
+	public static DialogOption setNpcDialog(int slot, int dialogId, EntityNPCInterface npc) {
 		if(npc == null)
 			return null;
 		if(!npc.dialogs.containsKey(slot))
 			npc.dialogs.put(slot, new DialogOption());
-		
+
 		DialogOption option = npc.dialogs.get(slot);
 		option.dialogId = dialogId;
 		if(option.hasDialog())
 			option.title = option.getDialog().title;
-		
+
 		return option;
 	}
 
@@ -648,22 +716,34 @@ public class NoppesUtilServer {
 		int x = compound.getInteger("x");
 		int y = compound.getInteger("y");
 		int z = compound.getInteger("z");
-		
+
 		TileEntity tile = player.worldObj.getTileEntity(x, y, z);
 		if(tile != null)
 			tile.readFromNBT(compound);
-		
+
 	}
+
+    public static void setClonerGui(EntityPlayerMP player, int x, int y, int z){
+        if(player == null)
+            return;
+        Server.sendData(player, EnumPacketClient.CLONER, x, y, z);
+    }
+
+    public static void setTeleporterGUI(EntityPlayerMP player){
+        if(player == null)
+            return;
+        Server.sendData(player, EnumPacketClient.TELEPORTER);
+    }
 
 	public static void setRecipeGui(EntityPlayerMP player, RecipeCarpentry recipe){
 		if(recipe == null)
 			return;
 		if(!(player.openContainer instanceof ContainerManageRecipes))
 			return;
-		
+
 		ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
 		container.setRecipe(recipe);
-		
+
 		Server.sendData(player, EnumPacketClient.GUI_DATA, recipe.writeNBT());
 	}
 
@@ -749,14 +829,15 @@ public class NoppesUtilServer {
 		if(entity == null){
 			return null;
 		}
+
+		entity.dimension = worldObj.provider.dimensionId;
 		int i = MathHelper.floor_double(entity.posX / 16.0D);
 		int j = MathHelper.floor_double(entity.posZ / 16.0D);
 		if (!entity.forceSpawn && !worldObj.checkChunksExist(
-				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ
-			))
-		{
+				(int)entity.posX,(int)entity.posY,(int)entity.posZ,(int)entity.posX,(int)entity.posY,(int)entity.posZ)) {
 			return null;
-		} else {
+		}
+		else {
 			worldObj.getChunkFromChunkCoords(i, j).addEntity(entity);
 			worldObj.loadedEntityList.add(entity);
 			worldObj.onEntityAdded(entity);
@@ -804,8 +885,24 @@ public class NoppesUtilServer {
         return null;
 	}
 
-	public static Entity GetDamageSourcee(DamageSource damagesource) {
-		Object entity = damagesource.getEntity();
+    public static Entity getEntityFromUUID(World world, UUID uuid) {
+        for (Object obj : world.loadedEntityList) {
+            if (obj instanceof Entity) {
+                Entity entity = (Entity) obj;
+                if (entity.getUniqueID().equals(uuid)) {
+                    return entity;
+                }
+            }
+        }
+        return null;
+    }
+
+	static public EntityPlayer getPlayerByName(String playername){
+		return MinecraftServer.getServer().getConfigurationManager().func_152612_a(playername);
+	}
+
+	public static Entity GetDamageSource(DamageSource damagesource) {
+		Entity entity = damagesource.getEntity();
 		if(entity == null) {
 			entity = damagesource.getSourceOfDamage();
 		}
@@ -816,7 +913,7 @@ public class NoppesUtilServer {
 			entity = ((EntityThrowable)entity).getThrower();
 		}
 
-		return (Entity)entity;
+		return entity;
 	}
 
 	public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {

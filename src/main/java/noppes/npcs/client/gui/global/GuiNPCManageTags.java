@@ -9,7 +9,9 @@ import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener
@@ -18,6 +20,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private Tag tag = new Tag();
 	private String selected = null;
+	private String search = "";
 	
     public GuiNPCManageTags(EntityNPCInterface npc)
     {
@@ -33,14 +36,15 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
         
     	if(scrollTags == null){
-	        scrollTags = new GuiCustomScroll(this,0);
-	        scrollTags.setSize(143, 208);
+	        scrollTags = new GuiCustomScroll(this,0, 0);
+			scrollTags.setSize(143, 185);
     	}
         scrollTags.guiLeft = guiLeft + 220;
         scrollTags.guiTop = guiTop + 4;
     	addScroll(scrollTags);
-        
-    	if (tag.id == -1)
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 4 + 3 + 185, 143, 20, search));
+
+		if (tag.id == -1)
     		return;
            	
     	this.addTextField(new GuiNpcTextField(0, this, guiLeft + 40, guiTop + 4, 136, 20, tag.name));
@@ -60,6 +64,32 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     	addLabel(new GuiNpcLabel(3,"faction.hidden", guiLeft + 8, guiTop + 59));
        	this.addButton(new GuiNpcButton(3,guiLeft + 50, guiTop + 54, 60, 20, new String[]{"gui.no","gui.yes"},tag.hideTag?1:0));
     }
+
+	@Override
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(search.equals(getTextField(55).getText()))
+					return;
+				search = getTextField(55).getText().toLowerCase();
+				scrollTags.setList(getSearchList());
+			}
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(this.data.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.data.keySet()){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
+	}
 
     @Override
 	protected void actionPerformed(GuiButton guibutton){
@@ -105,7 +135,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scrollTags.getSelected();
 		this.data = data;
-		scrollTags.setList(list);
+		scrollTags.setList(getSearchList());
 		
 		if(name != null)
 			scrollTags.setSelected(name);

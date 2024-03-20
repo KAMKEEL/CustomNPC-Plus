@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.client.gui.custom.components;
 
 import com.ibm.icu.text.ArabicShaping;
@@ -13,6 +8,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
+import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.scripted.gui.ScriptGuiLabel;
@@ -115,14 +111,10 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     }
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
-        boolean hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + this.field_146167_a && mouseY < this.y + this.field_146161_f;
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0F,0.0F,(float)this.id);
-        this.drawLabel();
+        this.drawLabel(mouseX,mouseY);
         GL11.glPopMatrix();
-        if (hovered && this.hoverText != null && this.hoverText.length > 0) {
-            this.parent.hoverText = this.hoverText;
-        }
     }
 
     public int getID() {
@@ -161,7 +153,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         return component;
     }
 
-    public void drawLabel()
+    public void drawLabel(int mouseX, int mouseY)
     {
         GL11.glPushMatrix();
             red = (color >> 16 & 255) / 255f;
@@ -171,23 +163,23 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
             GL11.glTranslatef(this.x,this.y,0.0F);
             GL11.glRotated(rotation,0.0D,0.0D,1.0D);
             GL11.glScalef(this.scale, this.scale, this.scale);
-            this.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled);
+            this.drawString(fullLabel, 0, 0, this.color, this.labelShadowEnabled, mouseX, mouseY);
         GL11.glPopMatrix();
     }
 
-    public int drawString(String p_85187_1_, int p_85187_2_, int p_85187_3_, int p_85187_4_, boolean p_85187_5_)
+    public int drawString(String p_85187_1_, int p_85187_2_, int p_85187_3_, int p_85187_4_, boolean p_85187_5_, int mouseX, int mouseY)
     {
         this.resetStyles();
         int l;
 
         if (p_85187_5_)
         {
-            l = this.renderString(p_85187_1_, p_85187_2_ + 1, p_85187_3_ + 1, p_85187_4_, true);
-            l = Math.max(l, this.renderString(p_85187_1_, p_85187_2_, p_85187_3_, p_85187_4_, false));
+            l = this.renderString(p_85187_1_, p_85187_2_ + 1, p_85187_3_ + 1, p_85187_4_, true, mouseX, mouseY);
+            l = Math.max(l, this.renderString(p_85187_1_, p_85187_2_, p_85187_3_, p_85187_4_, false, mouseX, mouseY));
         }
         else
         {
-            l = this.renderString(p_85187_1_, p_85187_2_, p_85187_3_, p_85187_4_, false);
+            l = this.renderString(p_85187_1_, p_85187_2_, p_85187_3_, p_85187_4_, false, mouseX, mouseY);
         }
 
         return l;
@@ -202,7 +194,7 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
         this.strikethroughStyle = false;
     }
 
-    private int renderString(String p_78258_1_, int p_78258_2_, int p_78258_3_, int p_78258_4_, boolean p_78258_5_)
+    private int renderString(String p_78258_1_, int p_78258_2_, int p_78258_3_, int p_78258_4_, boolean p_78258_5_, int mouseX, int mouseY)
     {
         if (p_78258_1_ == null)
         {
@@ -215,10 +207,63 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
                 p_78258_1_ = this.bidiReorder(p_78258_1_);
             }
 
-            setColor(this.red, this.green, this.blue, this.alpha);
-            this.posX = (float)p_78258_2_;
-            this.posY = (float)p_78258_3_;
-            this.renderStringAtPos(p_78258_1_, p_78258_5_);
+            float endX = this.posX;
+            float endY = this.posY;
+
+            int height = 0;
+            StringBuilder formatting = new StringBuilder();
+            while (!p_78258_1_.isEmpty()) {
+                StringBuilder s = new StringBuilder();
+                int i;
+                for (i = 0; i < p_78258_1_.length(); i++) {
+                    char c = p_78258_1_.charAt(i);
+
+                    boolean formatSymbol = c == '&' && i < p_78258_1_.length() - 1
+                            && "0123456789abcdefklmnor".indexOf(p_78258_1_.toLowerCase().charAt(i + 1)) != -1;
+                    if (formatSymbol) {
+                        String format = "" + c + p_78258_1_.toLowerCase().charAt(i + 1);
+                        if (!format.equals("&r")) {
+                            formatting.append(format);
+                        } else {
+                            formatting = new StringBuilder();
+                        }
+                        i++;
+                        continue;
+                    }
+
+                    if (formatting.length() > 0) {
+                        s.append(formatting);
+                    }
+                    s.append(c);
+                    if (!Character.isLetterOrDigit(c)) {
+                        if (ClientProxy.Font.width(s.toString()) >= this.width) {
+                            break;
+                        }
+                    }
+                }
+                setColor(this.red, this.green, this.blue, this.alpha);
+                this.posX = (float)p_78258_2_;
+                this.posY = (float)p_78258_3_ + height * ClientProxy.Font.height() * 0.75F;
+
+                endX = Math.max(endX,this.posX + ClientProxy.Font.width(s.toString()));
+                endY = this.posY + ClientProxy.Font.height() * 0.75F;
+
+                this.renderStringAtPos(s.toString().trim(), p_78258_5_);
+                height++;
+                if (i >= p_78258_1_.length()-1 || height * ClientProxy.Font.height() * 0.75F >= this.height) {
+                    break;
+                }
+                p_78258_1_ = p_78258_1_.substring(i+1);
+            }
+
+            float textWidth = this.scale * endX;
+            float textHeight = this.scale * endY;
+
+            boolean hovered = mouseX >= this.x && mouseY >= this.y && mouseX < this.x + textWidth && mouseY < this.y + textHeight;
+            if (hovered && this.hoverText != null && this.hoverText.length > 0) {
+                this.parent.hoverText = this.hoverText;
+            }
+
             return (int)this.posX;
         }
     }

@@ -90,7 +90,7 @@ public class PlayerMail implements IInventory, IPlayerMail {
 		return getQuest() != null;
 	}
 	public Quest getQuest() {
-		return  QuestController.instance != null?QuestController.instance.quests.get(questId):null;
+		return  QuestController.Instance != null?QuestController.Instance.quests.get(questId):null;
 	}
 
 	@Override

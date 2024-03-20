@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by FernFlower decompiler)
-//
-
 package noppes.npcs.client.gui.custom.components;
 
 import net.minecraft.client.Minecraft;
@@ -63,7 +58,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     }
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
-        boolean hovered = mouseX >= this.x + GuiCustom.guiLeft && mouseY >= this.y + GuiCustom.guiTop && mouseX < this.x + GuiCustom.guiLeft + this.width && mouseY < this.y + GuiCustom.guiTop + this.height;
+        boolean hovered = mouseX >= this.x + GuiCustom.guiLeft && mouseY >= this.y + GuiCustom.guiTop && mouseX < this.x + GuiCustom.guiLeft + this.width*scale && mouseY < this.y + GuiCustom.guiTop + this.height*scale;
 
         if (this.imageData != null && this.imageData.imageLoaded()) {
             int totalWidth = this.imageData.getTotalWidth();
@@ -80,7 +75,7 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             float blue = (color & 255) / 255f;
             GL11.glColor4f(red, green, blue, this.alpha);
 
-            GL11.glTranslatef(GuiCustom.guiLeft + this.x - u1 * totalWidth, GuiCustom.guiTop + this.y - v1 * totalHeight, (float) this.id);
+            GL11.glTranslatef(GuiCustom.guiLeft + this.x, GuiCustom.guiTop + this.y, (float) this.id);
             GL11.glRotatef(this.rotation, 0.0F, 0.0F, 1.0F);
             GL11.glScalef(this.scale, this.scale, this.scale);
 
@@ -89,10 +84,10 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
             tessellator.startDrawingQuads();
             tessellator.setColorOpaque_F(1, 1, 1);
             tessellator.setColorRGBA_F(red, green, blue, alpha);
-            tessellator.addVertexWithUV(u2 * totalWidth, v2 * totalHeight, 0, u2, v2);
-            tessellator.addVertexWithUV(u2 * totalWidth, v1 * totalHeight, 0, u2, v1);
-            tessellator.addVertexWithUV(u1 * totalWidth, v1 * totalHeight, 0, u1, v1);
-            tessellator.addVertexWithUV(u1 * totalWidth, v2 * totalHeight, 0, u1, v2);
+            tessellator.addVertexWithUV(0, height, 0, u1, v2);
+            tessellator.addVertexWithUV(width, height, 0, u2, v2);
+            tessellator.addVertexWithUV(width, 0, 0, u2, v1);
+            tessellator.addVertexWithUV(0, 0, 0, u1, v1);
             tessellator.draw();
             GL11.glPopMatrix();
         }

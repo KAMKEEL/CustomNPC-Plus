@@ -29,6 +29,7 @@ import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
+import noppes.npcs.scripted.event.PartyEvent;
 import noppes.npcs.scripted.event.QuestEvent;
 
 import java.io.IOException;
@@ -39,12 +40,12 @@ public class NoppesUtilPlayer {
 	public static void changeFollowerState(EntityPlayerMP player, EntityNPCInterface npc) {
 		if(npc.advanced.role != EnumRoleType.Follower)
 			return;
-		
+
 		RoleFollower role = (RoleFollower) npc.roleInterface;
 		EntityPlayer owner = role.owner;
 		if(owner == null || !owner.getCommandSenderName().equals(player.getCommandSenderName()))
 			return;
-		
+
 		role.isFollowing = !role.isFollowing;
 	}
 	public static void hireFollower(EntityPlayerMP player, EntityNPCInterface npc) {
@@ -53,7 +54,7 @@ public class NoppesUtilPlayer {
 		Container con = player.openContainer;
 		if(con == null || !(con instanceof ContainerNPCFollowerHire))
 			return;
-		
+
 		ContainerNPCFollowerHire container = (ContainerNPCFollowerHire) con;
 		RoleFollower role = (RoleFollower) npc.roleInterface;
 		followerBuy(role, container.currencyMatrix, player, npc);
@@ -64,7 +65,7 @@ public class NoppesUtilPlayer {
 		Container con = player.openContainer;
 		if(con == null || !(con instanceof ContainerNPCFollower))
 			return;
-		
+
 		ContainerNPCFollower container = (ContainerNPCFollower) con;
 		RoleFollower role = (RoleFollower) npc.roleInterface;
 		followerBuy(role, container.currencyMatrix, player, npc);
@@ -75,10 +76,10 @@ public class NoppesUtilPlayer {
 
 		if(loc == null || !loc.isDefault() && !playerdata.transports.contains(loc.id))
 			return;
-		
+
 		teleportPlayer(player, loc.posX, loc.posY, loc.posZ, loc.dimension);
 	}
-	
+
 	public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, int dimension){
 		if(player.dimension != dimension){
 			int dim = player.dimension;
@@ -138,7 +139,7 @@ public class NoppesUtilPlayer {
 	public static void swingPlayerArm(EntityPlayerMP player){
 		Server.sendData(player, EnumPacketClient.SWING_PLAYER_ARM);
 	}
-	
+
 	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
     	ItemStack currency = currencyInv.getStackInSlot(0);
 		if(currency == null)
@@ -151,14 +152,14 @@ public class NoppesUtilPlayer {
     		int days = 1;
     		if(role.rates.containsKey(i))
     			days = role.rates.get(i);
-    		
+
     		cd.put(is,days);
     	}
     	if(cd.size() == 0)
     		return;
     	int stackSize = currency.stackSize;
     	int days = 0;
-    	
+
     	int possibleDays = 0;
     	int possibleSize = stackSize;
     	while(true){
@@ -187,7 +188,7 @@ public class NoppesUtilPlayer {
     		currencyInv.setInventorySlotContents(0, null);
     	else
     		currency = currency.splitStack(stackSize);
-    	
+
     	npc.say(player, new Line(NoppesStringUtils.formatText(role.dialogHire.replace("{days}", days+""), player, npc)));
     	role.setOwner(player);
     	role.addDays(days);
@@ -199,7 +200,7 @@ public class NoppesUtilPlayer {
 		Container con = player.openContainer;
 		if(con == null || !(con instanceof ContainerNPCBankInterface))
 			return;
-		
+
 		ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
 		Bank bank = BankController.getInstance().getBank(container.bankid);
 		ItemStack item = bank.upgradeInventory.getStackInSlot(container.slot);
@@ -229,11 +230,11 @@ public class NoppesUtilPlayer {
 			return;
 		ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
 		Bank bank = BankController.getInstance().getBank(container.bankid);
-		
+
 		ItemStack item = bank.currencyInventory.getStackInSlot(container.slot);
 		if(item == null)
 			return;
-		
+
 		int price = item.stackSize;
 		ItemStack currency = container.currencyMatrix.getStackInSlot(0);
 		if(currency == null || price > currency.stackSize)
@@ -247,7 +248,7 @@ public class NoppesUtilPlayer {
         BankData bankData = data.getBank(bank.id);
 		if(bankData.unlockedSlots + 1 <= bank.maxSlots)
 			bankData.unlockedSlots++;
-		
+
 		bankData.openBankGui(player, npc, bank.id, container.slot);
 	}
 	public static void sendData(EnumPlayerPacket enu, Object... obs) {
@@ -262,7 +263,7 @@ public class NoppesUtilPlayer {
 	}
 
 	public static void dialogSelected(int dialogId, int optionId, EntityPlayerMP player, EntityNPCInterface npc) {
-		Dialog dialog = DialogController.instance.dialogs.get(dialogId);
+		Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
 		if(dialog == null)
 			return;
 		DialogOption option = dialog.options.get(optionId);
@@ -319,16 +320,40 @@ public class NoppesUtilPlayer {
 		}
 	}
 
+    public static void clearTrackQuest(EntityPlayerMP player) throws IOException {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        playerData.questData.untrackQuest();
+    }
+
+
+    public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        String trackedQuestString = Server.readString(buffer);
+        Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
+        if (trackedQuest != null) {
+            playerData.questData.trackParty(playerData.getPlayerParty());
+        } else {
+            playerData.questData.untrackQuest();
+        }
+    }
+
 	private static Quest getQuestFromStringKey(String string) {
 		if (string != null && string.contains(":")) {
 			String[] splitString = string.split(":");
-			if(splitString.length < 2){
-				return null;
-			}
-			String categoryName = splitString[0];
-			String questName = splitString[1];
 
-			for (QuestCategory category : QuestController.instance.categories.values()) {
+            String categoryName;
+            String questName;
+            if (splitString.length == 3 && splitString[0].equals("P")) {
+                categoryName = splitString[1];
+                questName = splitString[2];
+            } else if (splitString.length < 2) {
+                return null;
+            } else {
+                categoryName = splitString[0];
+                questName = splitString[1];
+            }
+
+			for (QuestCategory category : QuestController.Instance.categories.values()) {
 				if (category.title.equals(categoryName)) {
 					for (Quest quest : category.quests.values()) {
 						if (quest.title.equals(questName)) {
@@ -347,7 +372,12 @@ public class NoppesUtilPlayer {
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
 			compound.setString("CategoryName", trackedQuest.getCategory().getName());
-			compound.setString("TurnInNPC", trackedQuest.getNpcName());
+			if(trackedQuest.completion == EnumQuestCompletion.Instant){
+				compound.setBoolean("Instant", true);
+			}
+			else {
+				compound.setString("TurnInNPC", trackedQuest.getNpcName());
+			}
 			NBTTagList nbtTagList = new NBTTagList();
 			for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
 				nbtTagList.appendTag(new NBTTagString(objective.getText()));
@@ -358,6 +388,30 @@ public class NoppesUtilPlayer {
 		}
 	}
 
+    public static void sendPartyTrackedQuestData(EntityPlayerMP player, Party party) {
+        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        if(trackedQuest != null){
+            NBTTagCompound compound = new NBTTagCompound();
+            compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
+            compound.setString("CategoryName", trackedQuest.getCategory().getName());
+            if(trackedQuest.completion == EnumQuestCompletion.Instant){
+                compound.setBoolean("Instant", true);
+            }
+            else {
+                compound.setString("TurnInNPC", trackedQuest.getNpcName());
+            }
+            NBTTagList nbtTagList = new NBTTagList();
+            for (IQuestObjective objective : trackedQuest.questInterface.getPartyObjectives(party)) {
+                nbtTagList.appendTag(new NBTTagString(objective.getText()));
+                if(objective.getAdditionalText() != null)
+                    nbtTagList.appendTag(new NBTTagString(objective.getAdditionalText()));
+            }
+            compound.setTag("ObjectiveList",nbtTagList);
+
+            Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+        }
+    }
+
 	public static void sendQuestLogData(EntityPlayerMP player) {
         if(!PlayerQuestController.hasActiveQuests(player)){
         	return;
@@ -366,6 +420,13 @@ public class NoppesUtilPlayer {
         data.setData(player);
         Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
 	}
+
+    public static void sendTrackedQuest(EntityPlayerMP player) {
+        QuestLogData data = new QuestLogData();
+        data.setTrackedQuestKey(player);
+        Server.sendData(player, EnumPacketClient.PARTY_DATA, data.writeTrackedQuest());
+    }
+
 	public static boolean questCompletion(EntityPlayerMP player, int questId) {
 		if(player == null)
 			return false;
@@ -445,7 +506,174 @@ public class NoppesUtilPlayer {
 
 		return true;
 	}
-	
+
+
+    public static boolean questPartyCompletion(Party party) {
+        if(party == null)
+            return false;
+
+        QuestData data = party.getQuestData();
+        if (data == null)
+            return false;
+
+        if (!data.quest.questInterface.isPartyCompleted(party))
+            return false;
+
+
+        Quest quest = data.quest;
+        if(quest == null)
+            return false;
+
+        if (data.quest.completion == EnumQuestCompletion.Instant)
+            EventHooks.onPartyFinished(party, data.quest);
+
+        PartyEvent.PartyQuestTurnedInEvent partyEv = new PartyEvent.PartyQuestTurnedInEvent(party, data.quest);
+        EventHooks.onPartyTurnIn(partyEv);
+        if (partyEv.isCancelled())
+            return false;
+
+        boolean hasNextQuest = data.quest.hasNewQuest();
+        PartyOptions partyOptions = quest.partyOptions;
+        EnumPartyExchange complete = partyOptions.completeFor;
+        EnumPartyExchange reward = partyOptions.rewardControl;
+        EnumPartyExchange command = partyOptions.executeCommand;
+        for(String name : party.getPlayerNames()){
+            EntityPlayer player = NoppesUtilServer.getPlayerByName(name);
+            if(player == null)
+                continue;
+
+            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            if(playerData == null)
+                continue;
+
+            boolean isLeader = party.getLeaderUUID().equals(player.getUniqueID());
+            boolean hasActiveQuest = playerData.questData.hasActiveQuest(quest.getId());
+            boolean hasFinishedQuest = playerData.questData.hasFinishedQuest(quest.getId());
+
+            boolean meetsComplete = meetsPartyExchange(complete, hasActiveQuest, hasFinishedQuest, isLeader);
+            boolean meetsReward = meetsPartyExchange(reward, hasActiveQuest, hasFinishedQuest, isLeader);
+            boolean meetsCommand = meetsPartyExchange(command, hasActiveQuest, hasFinishedQuest, isLeader);
+
+            if(meetsComplete){
+                if (data.quest.completion == EnumQuestCompletion.Instant) {
+                    EventHooks.onQuestFinished(player, data.quest);
+                }
+            }
+
+            if(meetsReward){
+                QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
+
+                event.expReward = data.quest.rewardExp;
+                List<IItemStack> list = new ArrayList();
+                Iterator var8 = data.quest.rewardItems.items.values().iterator();
+
+                while(var8.hasNext()) {
+                    ItemStack item = (ItemStack)var8.next();
+                    if (item != null && item.stackSize > 0) {
+                        IItemStack iStack = NpcAPI.Instance().getIItemStack(item);
+                        if (iStack != null){
+                            list.add(iStack);
+                        }
+                    }
+                }
+
+                if (!data.quest.randomReward) {
+                    event.itemRewards = (IItemStack[])list.toArray(new IItemStack[list.size()]);
+                } else if (!list.isEmpty()) {
+                    event.itemRewards = new IItemStack[]{(IItemStack)list.get(player.getRNG().nextInt(list.size()))};
+                }
+
+                EventHooks.onQuestTurnedIn(event);
+                if (event.isCancelled())
+                    continue;
+
+                IItemStack[] var12 = event.itemRewards;
+                int var14 = var12.length;
+                for(int var10 = 0; var10 < var14; ++var10) {
+                    IItemStack item = var12[var10];
+                    if (item != null) {
+                        NoppesUtilServer.GivePlayerItem(player, player, item.getMCItemStack());
+                    }
+                }
+            }
+            data.quest.questInterface.handlePartyComplete(player, party, isLeader, partyOptions.objectiveRequirement);
+            if(meetsReward){
+                if(data.quest.rewardExp > 0){
+                    player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
+                    player.addExperience(data.quest.rewardExp);
+                }
+
+                data.quest.factionOptions.addPoints(player);
+                if(data.quest.mail.isValid()){
+                    PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
+                }
+            }
+
+            if(meetsCommand){
+                if(!data.quest.command.isEmpty()){
+                    NoppesUtilServer.runCommand(player, "QuestCompletion", data.quest.command);
+                }
+            }
+
+            if(meetsComplete){
+                PlayerQuestController.setQuestPartyFinished(data.quest, player, data);
+            }
+
+            if (hasNextQuest && meetsComplete) {
+                QuestData nextQuest = new QuestData(data.quest.getNextQuest());
+                nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
+                PlayerQuestController.addActiveQuest(nextQuest, player);
+            }
+
+            playerData.save();
+            Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+        }
+
+        if(quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared){
+            quest.questInterface.removePartyItems(party);
+        }
+
+        if (hasNextQuest) {
+            if(party.validateQuest(data.quest.getNextQuest().getId(), true)){
+                party.setQuest(data.quest.getNextQuest());
+                for(String name : party.getPlayerNames()) {
+                    EntityPlayer player = NoppesUtilServer.getPlayerByName(name);
+                    if (player == null)
+                        continue;
+
+                    PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                    if (playerData == null)
+                        continue;
+
+                    playerData.questData.trackParty(party);
+                }
+            }
+            else {
+                party.setQuest(null);
+            }
+        } else {
+            party.setQuest(null);
+        }
+
+        if(data.quest.completion == EnumQuestCompletion.Npc){
+            PartyController.Instance().sendQuestChat(party, "party.completeChat");
+            PartyController.Instance().pingPartyUpdate(party);
+        }
+
+        return true;
+    }
+
+    public static boolean meetsPartyExchange(EnumPartyExchange exchange, boolean hasActive, boolean hasFinished, boolean isLeader){
+        if(exchange == EnumPartyExchange.All){
+            return true;
+        } else if (isLeader){
+            return true;
+        } else if(exchange == EnumPartyExchange.Enrolled && hasActive){
+            return true;
+        } else return exchange == EnumPartyExchange.Valid && (hasActive || hasFinished);
+    }
+
+
 	public static boolean compareItems(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT){
         if (item2 == null || item == null){
             return false;
@@ -488,7 +716,7 @@ public class NoppesUtilPlayer {
 	public static boolean compareItems(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT){
 		int size = 0;
 		for(ItemStack is : player.inventory.mainInventory){
-			if(is != null && compareItems(item, is, ignoreDamage, ignoreNBT)) 
+			if(is != null && compareItems(item, is, ignoreDamage, ignoreNBT))
 				size += is.stackSize;
 		}
 		return size >= item.stackSize;

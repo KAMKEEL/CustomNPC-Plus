@@ -10,7 +10,6 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import org.lwjgl.opengl.GL11;
@@ -34,7 +33,7 @@ public class GuiRecipes extends GuiNPCInterface
         this.xSize = 256;
         setBackground("recipes.png");
         this.closeOnEsc = true;
-		recipes.addAll(RecipeController.instance.anvilRecipes.values());
+		recipes.addAll(RecipeController.Instance.anvilRecipes.values());
     }
     @Override
     public void initGui(){
@@ -68,10 +67,10 @@ public class GuiRecipes extends GuiNPCInterface
 
 	private List<IRecipe> getSearchList(){
 		if(search.isEmpty()){
-			return new ArrayList<IRecipe>(RecipeController.instance.anvilRecipes.values());
+			return new ArrayList<IRecipe>(RecipeController.Instance.anvilRecipes.values());
 		}
 		List<IRecipe> list = new ArrayList<IRecipe>();
-		for(IRecipe recipe : RecipeController.instance.anvilRecipes.values()){
+		for(IRecipe recipe : RecipeController.Instance.anvilRecipes.values()){
 			if(recipe.getRecipeOutput() == null)
 				continue;
 

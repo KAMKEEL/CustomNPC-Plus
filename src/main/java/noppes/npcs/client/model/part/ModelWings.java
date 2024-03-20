@@ -2,27 +2,27 @@ package noppes.npcs.client.model.part;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.client.model.util.ModelPartInterface;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelWings extends ModelPartInterface {
-	
+
 	private Model2DRenderer lWing;
 	private Model2DRenderer rWing;
-	
+
 	public ModelWings(ModelMPM base) {
 		super(base);
-		
+
 		lWing = new Model2DRenderer(base, 48, 32, 16, 32, 64, 32);
 		lWing.mirror = true;
 		lWing.setRotationPoint(2F, 4, 2F);
 		lWing.setRotationOffset(-16, -12);
         setRotation(lWing, 0.7141593F, -0.5235988F, -0.5090659F);
         this.addChild(lWing);
-        
+
         rWing = new Model2DRenderer(base, 48, 32, 16, 32, 64, 32);
         rWing.setRotationPoint(-2F, 4F, 2F);
         rWing.setRotationOffset(-16, -12);
@@ -35,7 +35,7 @@ public class ModelWings extends ModelPartInterface {
 			float par4, float par5, float par6, Entity entity) {
 		rWing.rotateAngleX = 0.7141593F;
 		rWing.rotateAngleZ = 0.5090659F;
-		
+
 		lWing.rotateAngleX = 0.7141593F;
 		lWing.rotateAngleZ = -0.5090659F;
 

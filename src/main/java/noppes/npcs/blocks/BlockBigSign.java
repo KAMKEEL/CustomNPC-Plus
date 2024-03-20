@@ -24,27 +24,27 @@ import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.constants.EnumGuiType;
 
 public class BlockBigSign extends BlockContainer{
-	
+
 	public int renderId = -1;
 
 	public BlockBigSign() {
         super(Material.wood);
 	}
 
-    @Override   
+    @Override
     public int damageDropped(int par1){
         return par1;
     }
-    
+
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World p_149668_1_, int p_149668_2_, int p_149668_3_, int p_149668_4_){
     	return null;
     }
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	if(par1World.isRemote)
     		return false;
 		ItemStack currentItem = player.inventory.getCurrentItem();
-		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)) {
+		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BIGSIGN)) {
 			TileBigSign tile = (TileBigSign) par1World.getTileEntity(i, j, k);
 			tile.canEdit = true;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.BigSign, null, i, j, k);
@@ -52,14 +52,14 @@ public class BlockBigSign extends BlockContainer{
 		}
 		return false;
     }
-    @Override   
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
     	int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
         l %= 4;
 
         TileBigSign tile = (TileBigSign) par1World.getTileEntity(par2, par3, par4);
     	tile.rotation = l;
-    	
+
         par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
 
     	if(par5EntityLivingBase instanceof EntityPlayer && par1World.isRemote){
@@ -67,7 +67,7 @@ public class BlockBigSign extends BlockContainer{
     	}
     }
 
-    @Override 
+    @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
     	TileEntity tileentity = world.getTileEntity(x, y, z);
     	if(!(tileentity instanceof TileColorable)){
@@ -91,25 +91,25 @@ public class BlockBigSign extends BlockContainer{
         setBlockBounds(xStart, 0, zStart, xEnd, 1, zEnd);
     }
 
-    @Override   
+    @Override
 	public boolean isOpaqueCube(){
 		return false;
 	}
 
-    @Override   
+    @Override
 	public boolean renderAsNormalBlock(){
 		return false;
 	}
-    @Override   
+    @Override
 	public int getRenderType(){
-		return renderId; 	
+		return renderId;
 	}
 
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister par1IconRegister)
     {
-    	
+
     }
     @Override
     @SideOnly(Side.CLIENT)

@@ -267,14 +267,14 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 
     public void save() {
         try {
-            RecipeController.instance.saveRecipe(this.writeNBT());
+            RecipeController.Instance.saveRecipe(this.writeNBT());
         } catch (IOException var2) {
         }
 
     }
 
     public void delete() {
-        RecipeController.instance.delete(this.id);
+        RecipeController.Instance.delete(this.id);
     }
 
     public ItemStack[] getRecipe() {

@@ -3,6 +3,7 @@ package noppes.npcs;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemEditableBook;
@@ -16,6 +17,7 @@ import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.blocks.tiles.TileBook;
 import noppes.npcs.constants.*;
 import noppes.npcs.containers.ContainerMail;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.ScriptController;
@@ -25,9 +27,10 @@ import noppes.npcs.roles.RoleCompanion;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.UUID;
 
 public class PacketHandlerPlayer{
-	
+
 	@SubscribeEvent
 	public void onServerPacket(ServerCustomPacketEvent event) {
 		EntityPlayerMP player = ((NetHandlerPlayServer)event.handler).playerEntity;
@@ -40,7 +43,17 @@ public class PacketHandlerPlayer{
 	}
 
 	private void player(ByteBuf buffer, EntityPlayerMP player, EnumPlayerPacket type) throws IOException {
-		if(type == EnumPlayerPacket.CompanionTalentExp){
+        if(type == EnumPlayerPacket.MarkData){
+            String uuid = Server.readString(buffer);
+            if(uuid == null)
+                return;
+
+            Entity entity = NoppesUtilServer.getEntityFromUUID(player.worldObj, UUID.fromString(uuid));
+            if(!(entity instanceof EntityNPCInterface))
+                return;
+            MarkData data = MarkData.get((EntityNPCInterface) entity);
+        }
+		else if(type == EnumPlayerPacket.CompanionTalentExp){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
 				return;
@@ -185,11 +198,18 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.CheckQuestCompletion){
 			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 			PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
+            Party playerParty = playerData.getPlayerParty();
+            if(playerParty != null)
+                PartyController.Instance().checkQuestCompletion(playerParty, null);
+
 			questData.checkQuestCompletion(playerData, null);
 		}
 		else if(type == EnumPlayerPacket.QuestLog){
 			NoppesUtilPlayer.sendQuestLogData(player);
 		}
+        else if(type == EnumPlayerPacket.TrackedQuest){
+            NoppesUtilPlayer.sendTrackedQuest(player);
+        }
 		else if(type == EnumPlayerPacket.FactionsGet){
 			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 			Server.sendData(player, EnumPacketClient.GUI_DATA, data.getPlayerGuiData());
@@ -202,7 +222,7 @@ public class PacketHandlerPlayer{
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			
+
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();
@@ -220,7 +240,7 @@ public class PacketHandlerPlayer{
 				NoppesUtilServer.sendGuiError(player, 0);
 				return;
 			}
-			
+
 			PlayerMail mail = new PlayerMail();
             //String s = player.func_145748_c_().getFormattedText();
             String s = player.getDisplayName();
@@ -235,7 +255,7 @@ public class PacketHandlerPlayer{
 				return;
 			}
 			PlayerDataController.Instance.addPlayerMessage(username, mail);
-			
+
 			NBTTagCompound comp = new NBTTagCompound();
 			comp.setString("username", username);
 			NoppesUtilServer.sendGuiClose(player, 1,comp);
@@ -245,7 +265,7 @@ public class PacketHandlerPlayer{
 			String username = Server.readString(buffer);
 			player.closeContainer();
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			
+
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();
@@ -260,7 +280,7 @@ public class PacketHandlerPlayer{
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			
+
 			Iterator<PlayerMail> it = data.playermail.iterator();
 			while(it.hasNext()){
 				PlayerMail mail = it.next();
@@ -271,39 +291,47 @@ public class PacketHandlerPlayer{
 				}
 			}
 		}
-		else if(type == EnumPlayerPacket.SignSave){
+		else if(type == EnumPlayerPacket.SignSave) {
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
-			TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-			if(tile == null || !(tile instanceof TileBigSign))
-				return;
-			TileBigSign sign = (TileBigSign) tile;
-			if(sign.canEdit){
-				sign.setText(Server.readString(buffer));
-				sign.canEdit = false;
-				player.worldObj.markBlockForUpdate(x, y, z);
+			if (player.worldObj.blockExists(x, y, z)) {
+				TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+				if(!(tile instanceof TileBigSign))
+					return;
+				TileBigSign sign = (TileBigSign) tile;
+				if (sign.canEdit) {
+					sign.setText(Server.readString(buffer));
+					sign.canEdit = false;
+					player.worldObj.markBlockForUpdate(x, y, z);
+				}
 			}
 		}
-		else if(type == EnumPlayerPacket.SaveBook){
+		else if(type == EnumPlayerPacket.SaveBook) {
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
-			TileEntity tileentity = player.worldObj.getTileEntity(x, y, z);
-			if(!(tileentity instanceof TileBook))
-				return;
-			TileBook tile = (TileBook) tileentity;
-			if(tile.book.getItem() == Items.written_book)
-				return;
-			boolean sign = buffer.readBoolean();
-			ItemStack book = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
-			if(book == null)
-				return;
-			if(book.getItem() == Items.writable_book && !sign && ItemWritableBook.func_150930_a(book.getTagCompound())){
-				tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
+			if (player.worldObj.blockExists(x, y, z)) {
+				TileEntity tileentity = player.worldObj.getTileEntity(x, y, z);
+				if (!(tileentity instanceof TileBook))
+					return;
+				TileBook tile = (TileBook) tileentity;
+				if (tile.book.getItem() == Items.written_book)
+					return;
+				boolean sign = buffer.readBoolean();
+				ItemStack book = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
+				if (book == null)
+					return;
+				if (book.getItem() == Items.writable_book && !sign && ItemWritableBook.func_150930_a(book.getTagCompound())) {
+					tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
+				}
+				if (book.getItem() == Items.written_book && sign && ItemEditableBook.validBookTagContents(book.getTagCompound())) {
+					tile.book.setTagInfo("author", new NBTTagString(player.getCommandSenderName()));
+					tile.book.setTagInfo("title", new NBTTagString(book.getTagCompound().getString("title")));
+					tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
+					tile.book.func_150996_a(Items.written_book);
+				}
 			}
-			if(book.getItem() == Items.written_book && sign && ItemEditableBook.validBookTagContents(book.getTagCompound())){
-				tile.book.setTagInfo("author", new NBTTagString(player.getCommandSenderName()));
-				tile.book.setTagInfo("title", new NBTTagString(book.getTagCompound().getString("title")));
-                tile.book.setTagInfo("pages", book.getTagCompound().getTagList("pages", 8));
-                tile.book.func_150996_a(Items.written_book);
-			}
+		}
+		else if(type == EnumPlayerPacket.ScreenSize){
+			int width = buffer.readInt(), height = buffer.readInt();
+			PlayerDataController.Instance.getPlayerData(player).screenSize.setSize(width,height);
 		}
 	}
 }

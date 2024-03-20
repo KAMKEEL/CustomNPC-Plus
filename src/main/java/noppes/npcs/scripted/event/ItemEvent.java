@@ -139,6 +139,40 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     }
 
     @Cancelable
+    public static class RightClickEvent extends ItemEvent implements IItemEvent.RightClickEvent {
+
+        /**
+         * 0:air, 1:entity, 2:block
+         */
+        public final int type;
+        public final Object target;
+        public final IPlayer player;
+
+        public RightClickEvent(IItemCustom item, IPlayer player, int type, Object target) {
+            super(item);
+            this.type = type;
+            this.target = target;
+            this.player = player;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.INTERACT.function;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public Object getTarget() {
+            return target;
+        }
+
+        public IPlayer getPlayer() {
+            return player;
+        }
+    }
+
+    @Cancelable
     public static class AttackEvent extends ItemEvent implements IItemEvent.AttackEvent {
         public final int type;//1: Hit, 2: Whiff
         public final IEntity target;

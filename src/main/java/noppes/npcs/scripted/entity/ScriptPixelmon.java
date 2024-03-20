@@ -3,7 +3,8 @@ package noppes.npcs.scripted.entity;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.entity.IPixelmon;
-import noppes.npcs.controllers.PixelmonHelper;
+import noppes.npcs.compat.PixelmonHelper;
+import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> implements IPixelmon {
@@ -19,25 +20,25 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 		this(pixelmon);
 		this.compound = compound;
 	}
-	
+
 	public boolean getIsShiny(){
 		return compound.getBoolean("IsShiny");
 	}
-	
+
 	public void setIsShiny(boolean bo){
 		compound.setBoolean("IsShiny", bo);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	public int getLevel(){
 		return compound.getInteger("Level");
 	}
-	
+
 	public void setLevel(int level){
 		compound.setInteger("Level", level);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @param type 0:HP, 1:Attack, 2:Defense, 3:SpAttack, 4:SpDefense, 5:Speed
 	 */
@@ -54,11 +55,11 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 			return compound.getInteger("IVSpDef");
 		if(type == 5)
 			return compound.getInteger("IVSpeed");
-		
+
 		return -1;
 	}
 
-	
+
 	/**
 	 * @param type 0:HP, 1:Attack, 2:Defense, 3:SpAttack, 4:SpDefense, 5:Speed
 	 */
@@ -77,7 +78,7 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 			compound.setInteger("IVSpeed", value);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @param type 0:HP, 1:Attack, 2:Defense, 3:SpAttack, 4:SpDefense, 5:Speed
 	 */
@@ -94,11 +95,11 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 			return compound.getInteger("EVSpecialDefence");
 		if(type == 5)
 			return compound.getInteger("EVSpeed");
-		
+
 		return -1;
 	}
 
-	
+
 	/**
 	 * @param type 0:HP, 1:Attack, 2:Defense, 3:SpAttack, 4:SpDefense, 5:Speed
 	 */
@@ -117,7 +118,7 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 			compound.setInteger("EVSpeed", value);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @param type 0:HP, 1:Attack, 2:Defense, 3:SpAttack, 4:SpDefense, 5:Speed
 	 */
@@ -134,11 +135,11 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 			return compound.getInteger("StatsSpecialDefence");
 		if(type == 5)
 			return compound.getInteger("StatsSpeed");
-		
+
 		return -1;
 	}
 
-	
+
 	/**
 	 * @param type 0:HP, 1:Attack, 2:Defense, 3:SpAttack, 4:SpDefense, 5:Speed
 	 */
@@ -157,14 +158,14 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 			compound.setInteger("StatsSpeed", value);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @return type 0:Pygmy, 1:Runt, 2:Small, 3:Normal, 4:Huge, 5:Giant, 6:Enormous, 7:Ginormous, 8:Microscopic
 	 */
 	public int getSize(){
 		return compound.getShort("Growth");
 	}
-	
+
 	/**
 	 * @param type 0:Pygmy, 1:Runt, 2:Small, 3:Normal, 4:Huge, 5:Giant, 6:Enormous, 7:Ginormous, 8:Microscopic
 	 */
@@ -172,14 +173,14 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 		compound.setShort("Growth", (short) type);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @return 0-255
 	 */
 	public int getHapiness(){
 		return compound.getInteger("Friendship");
 	}
-	
+
 	/**
 	 * @param value 0-255
 	 */
@@ -188,14 +189,14 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 		compound.setInteger("Friendship", value);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @return 0:Hardy, 1:Serious, 2:Docile, 3:Bashful, 4:Quirky, 5:Lonely, 6:Brave, 7:Adamant, 8:Naughty, 9:Bold, 10:Relaxed, 11:Impish, 12:Lax, 13:Timid, 14:Hasty, 15:Jolly, 16:Naive, 17:Modest, 18:Mild, 19:Quiet, 20:Rash, 21:Calm, 22:Gentle, 23:Sassy, 24:Careful
 	 */
 	public int getNature(){
 		return compound.getShort("Nature");
 	}
-	
+
 	/**
 	 * @param type 0:Hardy, 1:Serious, 2:Docile, 3:Bashful, 4:Quirky, 5:Lonely, 6:Brave, 7:Adamant, 8:Naughty, 9:Bold, 10:Relaxed, 11:Impish, 12:Lax, 13:Timid, 14:Hasty, 15:Jolly, 16:Naive, 17:Modest, 18:Mild, 19:Quiet, 20:Rash, 21:Calm, 22:Gentle, 23:Sassy, 24:Careful
 	 */
@@ -203,7 +204,7 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 		compound.setShort("Nature", (short) type);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	/**
 	 * @return -1:Uncaught, 0:Pokeball, 1:GreatBall, 2:UltraBall, 3:MasterBall, 4:LevelBall, 5:MoonBall, 6:FriendBall, 7:LoveBall, 8:SafariBall, 9:HeavyBall, 10:FastBall, 11:RepeatBall, 12:TimerBall, 13:NestBall, 14:NetBall, 15:DiveBall, 16:LuxuryBall, 17:HealBall, 18:DuskBall, 19:PremierBall, 20:SportBall, 21:QuickBall, 22:ParkBall, 23:LureBall, 24:CherishBall, 25:GSBall
 	 */
@@ -220,26 +221,26 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 		compound.setInteger("CaughtBall", type);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	public String getNickname(){
 		return compound.getString("Nickname");
 	}
-	
+
 	public boolean hasNickname(){
 		return !getNickname().isEmpty();
 	}
-	
+
 	public void setNickname(String name){
 		compound.setString("Nickname", name);
 		pixelmon.readEntityFromNBT(compound);
 	}
-	
+
 	public String getMove(int slot){
 		if(!compound.hasKey("PixelmonMoveID" + slot))
 			return null;
 		return PixelmonHelper.getAttackName(compound.getInteger("PixelmonMoveID" + slot));
 	}
-	
+
 	public void setMove(int slot, String move){
 		slot = ValueUtil.clamp(slot, 0, 3);
 		int id = PixelmonHelper.getAttackID(move);
@@ -257,7 +258,17 @@ public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> im
 				size++;
 		}
 		compound.setInteger("PixelmonNumberMoves", size);
-		
+
 		pixelmon.readEntityFromNBT(compound);
 	}
+
+    @Override
+    public int getType(){
+        return EntityType.PIXELMON;
+    }
+
+    @Override
+    public boolean typeOf(int type){
+        return type == EntityType.PIXELMON || super.typeOf(type);
+    }
 }

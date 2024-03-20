@@ -2,7 +2,6 @@ package noppes.npcs.scripted;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAir;
-import net.minecraft.block.BlockLiquid;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.player.EntityPlayer;
@@ -1125,7 +1124,7 @@ public class ScriptWorld implements IWorld {
 
 	/**
 	 * Sends a packet from the server to the client everytime its called. Probably should not use this too much.
-	 * @param particle Particle name. Particle name list: http://minecraft.gamepedia.com/Particles
+	 * @param particle Particle name. Particle name list: http://minecraft.wiki/w/Particles
 	 * @param x The x position
 	 * @param y The y position
 	 * @param z The z position
@@ -1260,7 +1259,13 @@ public class ScriptWorld implements IWorld {
 	public String[] getStoredDataKeys() {
 		NBTTagCompound compound = ScriptController.Instance.compound;
 		if (compound != null) {
-			return (String[]) compound.func_150296_c().toArray();
+			Set keySet = compound.func_150296_c();
+			List<String> list = new ArrayList<>();
+			for(Object o : keySet){
+				list.add((String) o);
+			}
+			String[] array = list.toArray(new String[list.size()]);
+			return array;
 		}
 		return new String[0];
 	}

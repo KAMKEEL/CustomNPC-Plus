@@ -1,7 +1,5 @@
 package kamkeel.command;
 
-import java.util.List;
-
 import foxz.utils.Utils;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandBase;
@@ -17,6 +15,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
 
 public class CloneCommand extends CommandKamkeelBase {
 
@@ -69,8 +69,8 @@ public class CloneCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-    		desc = "List NPC from clone storage", 
-    		usage = "<tab>", 
+    		desc = "List NPC from clone storage",
+    		usage = "<tab>",
     		permission = 2
     )
     public void list(ICommandSender sender, String[] args) {
@@ -95,11 +95,11 @@ public class CloneCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-    		desc = "Remove NPC from clone storage", 
-    		usage = "<name> <tab>", 
+    		desc = "Remove NPC from clone storage",
+    		usage = "<name> <tab>",
     		permission = 4
-    ) 
-    public void del(ICommandSender sender, String[] args) throws CommandException {       
+    )
+    public void del(ICommandSender sender, String[] args) throws CommandException {
         String nametodel = args[0];
         int tab = 0;
         try{
@@ -121,7 +121,7 @@ public class CloneCommand extends CommandKamkeelBase {
         		deleted = true;
         		break;
         	}
-        }      
+        }
         if (!ServerCloneController.Instance.removeClone(nametodel, tab)) {
             sendError(sender, String.format("NPC '%s' was not found", nametodel));
         } else {
@@ -130,8 +130,8 @@ public class CloneCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-    		desc = "Spawn cloned NPC", 
-    		usage = "<name> <tab> [[world:]x,y,z]] [newname]", 
+    		desc = "Spawn cloned NPC",
+    		usage = "<name> <tab> [[world:]x,y,z]] [newname]",
     		permission = 2
     )
     public void spawn(ICommandSender sender, String[] args) throws CommandException {

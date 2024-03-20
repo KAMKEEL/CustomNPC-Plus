@@ -3,10 +3,7 @@ package noppes.npcs;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.constants.EnumAnimation;
-import noppes.npcs.constants.EnumMovingType;
-import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumStandingType;
+import noppes.npcs.constants.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -26,12 +23,14 @@ public class DataAI {
 	public boolean avoidsSun = false;
 	public boolean returnToStart = true;
 	public boolean directLOS = true;
-	public boolean canLeap = false;
+	public int leapType = 0;
 	public boolean canSprint = false;
 	public boolean stopAndInteract = true;
 	public EnumNavType tacticalVariant = EnumNavType.Default;
+	public EnumCombatPolicy combatPolicy = EnumCombatPolicy.Flip;
 	public int useRangeMelee = 0;
 	public int tacticalRadius = 8;
+	public int tacticalChance = 5;
 	
 	public int movementType = 0;
 	public double flySpeed = 1.0D;
@@ -56,8 +55,6 @@ public class DataAI {
 
 	public boolean movingPause = true;
 
-	public boolean ignoreCobweb = false;
-	
 	public DataAI(EntityNPCInterface npc){
 		this.npc = npc;
 	}
@@ -72,14 +69,14 @@ public class DataAI {
 		doorInteract = compound.getInteger("DoorInteract");
 		findShelter = compound.getInteger("FindShelter");
 		directLOS = compound.getBoolean("DirectLOS");
-		canLeap = compound.getBoolean("CanLeap");
+		leapType = compound.getInteger("LeapType");
 		canSprint = compound.getBoolean("CanSprint");
 		canFireIndirect = compound.getInteger("FireIndirect");
 		useRangeMelee = compound.getInteger("RangeAndMelee");
 		distanceToMelee = compound.getInteger("DistanceToMelee");
-		tacticalRadius = compound.getInteger("TacticalRadius");	
+		tacticalRadius = compound.getInteger("TacticalRadius");
+		tacticalChance = compound.getInteger("TacticalChance");
 		movingPause = compound.getBoolean("MovingPause");
-		ignoreCobweb = compound.getBoolean("IgnoreCobweb");
 		npcInteracting = compound.getBoolean("npcInteracting");
 		stopAndInteract = compound.getBoolean("stopAndInteract");
 		
@@ -88,6 +85,7 @@ public class DataAI {
 		standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		tacticalVariant = EnumNavType.values()[compound.getInteger("TacticalVariant") % EnumNavType.values().length];
+		combatPolicy = EnumCombatPolicy.values()[compound.getInteger("CombatPolicy") % EnumCombatPolicy.values().length];
 	
 		orientation = compound.getInteger("Orientation");
 		bodyOffsetY = compound.getFloat("PositionOffsetY");
@@ -140,14 +138,14 @@ public class DataAI {
 		compound.setInteger("DoorInteract", doorInteract);
 		compound.setInteger("FindShelter", findShelter);
 		compound.setBoolean("DirectLOS", directLOS);
-		compound.setBoolean("CanLeap", canLeap);
+		compound.setInteger("LeapType", leapType);
 		compound.setBoolean("CanSprint", canSprint);
 		compound.setInteger("FireIndirect", canFireIndirect);
 		compound.setInteger("RangeAndMelee", useRangeMelee);
 		compound.setInteger("DistanceToMelee", distanceToMelee);
 		compound.setInteger("TacticalRadius", tacticalRadius);
+		compound.setInteger("TacticalChance", tacticalChance);
 		compound.setBoolean("MovingPause", movingPause);
-		compound.setBoolean("IgnoreCobweb", ignoreCobweb);
 		compound.setBoolean("npcInteracting", npcInteracting);
 		compound.setBoolean("stopAndInteract", stopAndInteract);
 
@@ -155,6 +153,7 @@ public class DataAI {
 		compound.setInteger("StandingState", standingType.ordinal());
 		compound.setInteger("MovingState", movingType.ordinal());
 		compound.setInteger("TacticalVariant", tacticalVariant.ordinal());
+		compound.setInteger("CombatPolicy", combatPolicy.ordinal());
 		
 		compound.setInteger("Orientation", orientation);
 		compound.setFloat("PositionOffsetX", bodyOffsetX);

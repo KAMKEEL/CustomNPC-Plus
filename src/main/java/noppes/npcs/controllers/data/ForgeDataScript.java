@@ -1,8 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
-
 package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.eventhandler.Event;
@@ -14,10 +9,13 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
-public class ForgeDataScript implements IScriptHandler {
+public class ForgeDataScript implements INpcScriptHandler {
     private List<ScriptContainer> scripts = new ArrayList();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
@@ -60,7 +58,7 @@ public class ForgeDataScript implements IScriptHandler {
 
     @Override
     public void callScript(EnumScriptType var1, Event var2) {
-        callScript(var1.function, var2);
+        this.callScript(var1.function, var2);
     }
 
     public void callScript(String type, Event event) {

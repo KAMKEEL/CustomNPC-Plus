@@ -19,12 +19,12 @@ public class SpawnController implements INaturalSpawnsHandler {
 	public ArrayList<SpawnData> data = new ArrayList<SpawnData>();
 	public Random random = new Random();
 	
-	public static SpawnController instance;
+	public static SpawnController Instance;
 
 	private int lastUsedID = 0;
 	
 	public SpawnController(){
-		instance = this;
+		Instance = this;
 		loadData();
 	}
 

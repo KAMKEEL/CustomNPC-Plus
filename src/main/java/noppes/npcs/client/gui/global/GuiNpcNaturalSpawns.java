@@ -10,7 +10,6 @@ import noppes.npcs.client.gui.SubGuiNpcDimensions;
 import noppes.npcs.client.gui.SubGuiSpawningOptions;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.data.DialogImage;
 import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -20,32 +19,34 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	private GuiCustomScroll scrollNaturalSpawns;
 	private final GuiCustomScroll spawnEntryScroll = new GuiCustomScroll(this, 20, false);
 	private HashMap<String, Integer> data = new HashMap<String, Integer>();
+	private String search = "";
 
 	private SpawnData spawn = new SpawnData();
-	
+
 	public GuiNpcNaturalSpawns(EntityNPCInterface npc) {
 		super(npc);
     	Client.sendData(EnumPacketServer.NaturalSpawnGetAll);
 	}
-	
+
 	@Override
 	public void initGui(){
 		super.initGui();
         if(this.scrollNaturalSpawns == null){
-			this.scrollNaturalSpawns = new GuiCustomScroll(this,0);
-			this.scrollNaturalSpawns.setSize(143, 208);
+			this.scrollNaturalSpawns = new GuiCustomScroll(this,0,0);
+			this.scrollNaturalSpawns.setSize(143, 185);
         }
 		this.scrollNaturalSpawns.guiLeft = guiLeft + 214;
 		this.scrollNaturalSpawns.guiTop = guiTop + 4;
         this.addScroll(this.scrollNaturalSpawns);
+		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 214, guiTop + 4 + 3 + 185, 143, 20, search));
 
        	this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
-    	
+
     	if(this.spawn.id >= 0)
     		showSpawn();
 	}
-	
+
 	private void showSpawn() {
 		addLabel(new GuiNpcLabel(1,"gui.title", guiLeft + 4, guiTop + 8));
 		addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 60, guiTop + 3, 140, 20, this.spawn.name));
@@ -83,6 +84,33 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			addButton(new GuiNpcButton(26, guiLeft + 92, y, 100, 20, this.getTitle(this.spawn.spawnCompounds.get(selected))));
 		}
 	}
+
+	@Override
+	public void keyTyped(char c, int i)
+	{
+		super.keyTyped(c, i);
+		if(getTextField(55) != null){
+			if(getTextField(55).isFocused()){
+				if(search.equals(getTextField(55).getText()))
+					return;
+				search = getTextField(55).getText().toLowerCase();
+				scrollNaturalSpawns.setList(getSearchList());
+			}
+		}
+	}
+
+	private List<String> getSearchList(){
+		if(search.isEmpty()){
+			return new ArrayList<String>(this.data.keySet());
+		}
+		List<String> list = new ArrayList<String>();
+		for(String name : this.data.keySet()){
+			if(name.toLowerCase().contains(search))
+				list.add(name);
+		}
+		return list;
+	}
+
     private String getTitle(NBTTagCompound compound) {
 		if(compound != null && compound.hasKey("ClonedName"))
 			return compound.getString("ClonedName");
@@ -97,7 +125,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         	String name = "New";
         	while(data.containsKey(name))
         		name += "_";
-        	
+
         	SpawnData spawn = new SpawnData();
         	spawn.name = name;
         	Client.sendData(EnumPacketServer.NaturalSpawnSave, spawn.writeNBT(new NBTTagCompound()));
@@ -177,13 +205,13 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			initGui();
 		}
 	}
-	
+
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scrollNaturalSpawns.getSelected();
 		this.data = data;
-		scrollNaturalSpawns.setList(list);
-		
+		scrollNaturalSpawns.setList(getSearchList());
+
 		if(name != null)
 			scrollNaturalSpawns.setSelected(name);
 		initGui();
@@ -222,7 +250,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			initGui();
 		}
 	}
-	
+
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		spawn.readNBT(compound);

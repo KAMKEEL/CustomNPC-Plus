@@ -7,42 +7,27 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAISprintToTarget extends EntityAIBase
 {
-    /** The entity that is leaping. */
-    EntityNPCInterface runner;
+    private EntityNPCInterface npc;
 
-    /** The entity that the leaper is leaping towards. */
-    EntityLivingBase runTarget;
-
-    public EntityAISprintToTarget(EntityNPCInterface par1EntityLiving)
-    {
-        this.runner = par1EntityLiving;
-        this.setMutexBits(AiMutex.PASSIVE + AiMutex.PATHING);
+    public EntityAISprintToTarget(EntityNPCInterface par1EntityLiving){
+        this.npc = par1EntityLiving;
+        this.setMutexBits(AiMutex.PASSIVE);
     }
 
-    /**
-     * Returns whether the EntityAIBase should begin execution.
-     */
-    public boolean shouldExecute()
-    {
-        this.runTarget = this.runner.getAttackTarget();
+    @Override
+    public boolean shouldExecute(){
+        EntityLivingBase runTarget = this.npc.getAttackTarget();
 
-        if (this.runTarget == null)
-        {
+        if (runTarget == null || this.npc.getNavigator().noPath()){
             return false;
         }
-        else if (this.runner.getNavigator().noPath())
-        {
-        	return false;
+
+        switch(this.npc.ai.onAttack){
+            case 0 : return !this.npc.isInRange(runTarget, 8)? (!this.npc.onGround ? false : true) : false;
+            case 2 : return this.npc.isInRange(runTarget, 7)? (!this.npc.onGround ? false : true) : false;
+            default : return false;
         }
-        else
-        {
-        	switch(this.runner.ai.onAttack)
-        	{       	
-        		case 0 : return this.runner.getDistanceSqToEntity(this.runTarget) >= 64.0D ? (!this.runner.onGround ? false : true) : false;
-        		case 2 : return this.runner.getDistanceSqToEntity(this.runTarget) <= 49.0D ? (!this.runner.onGround ? false : true) : false;
-        		default : return false;
-        	}
-        }
+
     }
 
     /**
@@ -50,22 +35,22 @@ public class EntityAISprintToTarget extends EntityAIBase
      */
     public boolean continueExecuting()
     {
-        return this.runner.isEntityAlive() && this.runner.onGround && this.runner.hurtTime <= 0 && (this.runner.motionX != 0.0D && this.runner.motionZ != 0.0D);
+        return this.npc.isEntityAlive() && this.npc.onGround && this.npc.hurtTime <= 0 && (this.npc.motionX != 0.0D && this.npc.motionZ != 0.0D);
     }
 
     /**
      * Execute a one shot task or start executing a continuous task
      */
-    public void startExecuting()
-    {
-    	this.runner.setSprinting(true);
+    @Override
+    public void startExecuting(){
+        this.npc.setSprinting(true);
     }
-    
+
     /**
      * Resets the task
      */
-    public void resetTask()
-    {
-        this.runner.setSprinting(false);
+    @Override
+    public void resetTask(){
+        this.npc.setSprinting(false);
     }
 }

@@ -3,7 +3,7 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumOptionType;
 import noppes.npcs.constants.EnumPacketServer;
@@ -13,7 +13,7 @@ import noppes.npcs.controllers.data.DialogOption;
 public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, ITextfieldListener, GuiSelectionListener, ISubGuiListener{
 	private DialogOption option;
 	public static int LastColor = 0xe0e0e0;
-	
+
     public SubGuiNpcDialogOption(DialogOption option){
     	this.option = option;
 		setBackground("menubg.png");
@@ -27,17 +27,17 @@ public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, 
         super.initGui();
         this.addLabel(new GuiNpcLabel(66, "dialog.editoption", guiLeft, guiTop + 4));
         this.getLabel(66).center(xSize);
-        
+
         this.addLabel(new GuiNpcLabel(0, "gui.title", guiLeft + 4, guiTop + 20));
         this.addTextField(new GuiNpcTextField(0, this, this.fontRendererObj, guiLeft + 40, guiTop + 15, 196, 20, option.title));
-        
+
         String color = Integer.toHexString(option.optionColor);
     	while(color.length() < 6)
     		color = 0 + color;
         addLabel(new GuiNpcLabel(2, "gui.color", guiLeft + 4, guiTop + 45));
     	this.addButton(new GuiNpcButton(2, guiLeft + 62, guiTop + 40, 92, 20, color));
     	this.getButton(2).setTextColor(option.optionColor);
-    	
+
         this.addLabel(new GuiNpcLabel(1, "dialog.optiontype", guiLeft + 4, guiTop + 67));
     	this.addButton(new GuiNpcButton(1, guiLeft + 62, guiTop + 62, 92, 20, new String[]{"gui.close","dialog.dialog","gui.disabled","menu.role","tile.commandBlock.name"},option.optionType.ordinal()));
 
@@ -50,15 +50,15 @@ public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, 
 	    	this.addTextField(new GuiNpcTextField(4, this, this.fontRendererObj, guiLeft + 4,  guiTop + 84, 248, 20, option.command));
 	    	this.getTextField(4).setMaxStringLength(32767);
 
-	    	this.addLabel(new GuiNpcLabel(4, "advMode.command", guiLeft + 4, guiTop + 110));
-	    	this.addLabel(new GuiNpcLabel(5, "advMode.nearestPlayer", guiLeft + 4, guiTop + 125));
-	    	this.addLabel(new GuiNpcLabel(6, "advMode.randomPlayer", guiLeft + 4, guiTop + 140));
-	    	this.addLabel(new GuiNpcLabel(7, "advMode.allPlayers", guiLeft + 4, guiTop + 155));
-	    	this.addLabel(new GuiNpcLabel(8, "dialog.commandoptionplayer", guiLeft + 4, guiTop + 170));
+            this.addLabel(new GuiNpcLabel(5, "advMode.nearestPlayer", guiLeft + 4, guiTop + 110));
+            this.addLabel(new GuiNpcLabel(6, "advMode.randomPlayer", guiLeft + 4, guiTop + 125));
+            this.addLabel(new GuiNpcLabel(7, "advMode.allPlayers", guiLeft + 4, guiTop + 140));
+            this.addLabel(new GuiNpcLabel(8, "dialog.commandoptionplayer", guiLeft + 4, guiTop + 155));
+            this.addLabel(new GuiNpcLabel(9, "dialog.commandmultiple", guiLeft + 4, guiTop + 170));
     	}
 
     	this.addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 190,98, 20, "gui.done"));
-    	
+
     }
 
     @Override
@@ -73,9 +73,7 @@ public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, 
         	this.setSubGui(new SubGuiColorSelector(option.optionColor));
     	}
     	if(button.id == 3){
-    		GuiNPCDialogSelection gui = new GuiNPCDialogSelection(npc, getParent(), option.dialogId);
-    		gui.listener = this;
-			NoppesUtil.openGUI(player, gui);
+            setSubGui(new GuiDialogSelection(option.dialogId));
     	}
         if(button.id == 66)
         {
@@ -115,8 +113,16 @@ public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, 
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
-		LastColor = option.optionColor = ((SubGuiColorSelector)subgui).color;
-    	initGui();
+        if(subgui instanceof SubGuiColorSelector) {
+            LastColor = option.optionColor = ((SubGuiColorSelector)subgui).color;
+        }
+        if(subgui instanceof GuiDialogSelection) {
+            Dialog dialog = ((GuiDialogSelection)subgui).selectedDialog;
+            if(dialog != null) {
+                option.dialogId = dialog.id;
+            }
+        }
+        initGui();
 	}
 
 }

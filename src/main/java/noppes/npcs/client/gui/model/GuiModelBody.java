@@ -2,11 +2,11 @@ package noppes.npcs.client.gui.model;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.gui.util.GuiModelInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class GuiModelBody extends GuiModelInterface{
 
@@ -19,7 +19,7 @@ public class GuiModelBody extends GuiModelInterface{
 	private final String[] arrParticles = new String[]{"gui.no","Player","Type1", "Type2", "Rainbow", "Type3", "Type4", "Type5", "Type6", "Type7"};
 	private final String[] arrfins = new String[]{"gui.no","Player","Type1","Type2","Type3","Type4","Type5","Type6"};
 	private final String[] arrskirt = new String[]{"gui.no","Player","Type1"};
-	
+
 	public GuiModelBody(GuiScreen parent, EntityCustomNpc npc){
 		super(npc);
 		this.parent = parent;
@@ -137,7 +137,7 @@ public class GuiModelBody extends GuiModelInterface{
     	if(particles.type == 1){
     		return 4;
     	}
-    				
+
 		return 0;
 	}
 
@@ -246,7 +246,7 @@ public class GuiModelBody extends GuiModelInterface{
             this.mc.displayGuiScreen(new GuiModelColor(this, playerdata.getPartData("skirt"), npc));
         }
     }
-    
+
     @Override
     public void close(){
         this.mc.displayGuiScreen(parent);

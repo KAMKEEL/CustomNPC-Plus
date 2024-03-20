@@ -8,21 +8,18 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
-import net.minecraft.util.ResourceLocation;
-import noppes.npcs.*;
+import noppes.npcs.CustomItems;
 import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.model.animation.AniCrawling;
 import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
 import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
-import noppes.npcs.client.renderer.RenderNPCInterface;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.controllers.data.FramePart;
-import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.entity.data.ModelScalePart;
@@ -103,7 +100,9 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBodywear = (new ModelScaleRenderer(this, 16, 32));
 		this.bipedBodywear.addBox(-4.0F, 0.0F, -2.0F, 8, 12, 4, par1 + 0.5F);
 		this.bipedBody.addChild(this.bipedBodywear);
-		// this.bipedBodywear.setRotationPoint(0.0F, 0.0F + par2, 0.0F);
+
+		bodywear = new ModelBodywear(this, 64, 64);
+		this.bipedBody.addChild(bodywear);
 
 		// Steve 64x64 Model or Alex 64x64 Model
 		if (alex){
@@ -174,7 +173,6 @@ public class ModelMPM extends ModelNPCMale{
 
 		headwear = new ModelHeadwear(this);
 		legs = new ModelLegs(this, (ModelScaleRenderer)bipedRightLeg, (ModelScaleRenderer)bipedLeftLeg, 64, 64);
-		bodywear = new ModelBodywear(this);
 
 		this.bipedBody.addChild(breasts = new ModelBreasts(this, 64, 64));
 		if(!isArmor){
@@ -268,6 +266,9 @@ public class ModelMPM extends ModelNPCMale{
 		this.bipedBodywear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedBody.addChild(this.bipedBodywear);
 
+		bodywear = new ModelBodywear(this, 0, 0);
+		this.bipedBody.addChild(bodywear);
+
 		// Arms
 		this.bipedRightArmWear = (new ModelScaleRenderer(this, 0, 0));
 		this.bipedRightArm.addChild(this.bipedRightArmWear);
@@ -350,8 +351,10 @@ public class ModelMPM extends ModelNPCMale{
 				Frame frame = animation.frames.get(animation.currentFrame);
 				if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
 					FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
-					part.interpolateOffset();
-					part.interpolateAngles();
+                    if (!this.isArmor) {
+                        part.interpolateOffset();
+                        part.interpolateAngles();
+                    }
 					float pi = 180 / (float) Math.PI;
 					GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
 					GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
@@ -375,21 +378,15 @@ public class ModelMPM extends ModelNPCMale{
 				if (!npc.display.skinOverlayData.overlayList.isEmpty()) {
 					for (ISkinOverlay overlayData : npc.display.skinOverlayData.overlayList.values()) {
 						try {
-							if (((SkinOverlay)overlayData).getLocation() == null) {
-								((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
-							} else {
-								String str = ((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourceDomain()+":"+((SkinOverlay)npc.display.skinOverlayData.overlayList.get(0)).getLocation().getResourcePath();
-								if (!str.equals(overlayData.getTexture())) {
-									((SkinOverlay)overlayData).setLocation(new ResourceLocation(overlayData.getTexture()));
-								}
-							}
+							if (((SkinOverlay)overlayData).texture.isEmpty())
+								continue;
 
-							if (overlayData.getTexture().isEmpty() || ((SkinOverlay)overlayData).getLocation() == null
-									|| ((SkinOverlay)overlayData).getLocation().getResourcePath().isEmpty())
+							ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+							if (!imageData.imageLoaded())
 								continue;
 
 							try {
-								RenderNPCInterface.staticRenderManager.renderEngine.bindTexture(((SkinOverlay)overlayData).getLocation());
+								imageData.renderEngineBind();
 							} catch (Exception e) { continue; }
 
 							// Overlay & Glow
@@ -655,11 +652,13 @@ public class ModelMPM extends ModelNPCMale{
 				if (part != null) {
 					if (part.part != EnumAnimationPart.FULL_MODEL) {
 						ModelRenderer modelRenderer = animPartToModel.get(part.part);
-						part.interpolateAngles();
+                        if (!this.isArmor) {
+                            part.interpolateAngles();
+                        }
 						modelRenderer.rotateAngleX = part.prevRotations[0];
 						modelRenderer.rotateAngleY = part.prevRotations[1];
 						modelRenderer.rotateAngleZ = part.prevRotations[2];
-					} else {
+					} else if (!this.isArmor) {
 						part.interpolateAngles();
 					}
 				}
@@ -670,20 +669,24 @@ public class ModelMPM extends ModelNPCMale{
 				if (part != null) {
 					if (part.part != EnumAnimationPart.FULL_MODEL) {
 						ModelRenderer modelRenderer = animPartToModel.get(part.part);
-						part.interpolateOffset();
+                        if (!this.isArmor) {
+                            part.interpolateOffset();
+                        }
 						modelRenderer.rotationPointX += part.prevPivots[0];
 						modelRenderer.rotationPointY += part.prevPivots[1];
 						modelRenderer.rotationPointZ += part.prevPivots[2];
-					} else {
+					} else if (!this.isArmor)  {
 						part.interpolateOffset();
 					}
 				}
 			}
 
-			if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
+			if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL) && !this.isArmor) {
 				FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
-				part.interpolateOffset();
-				part.interpolateAngles();
+                if (!this.isArmor) {
+                    part.interpolateOffset();
+                    part.interpolateAngles();
+                }
 				float pi = 180 / (float) Math.PI;
 				GL11.glTranslatef(part.prevPivots[0],part.prevPivots[1],part.prevPivots[2]);
 				GL11.glRotatef(part.prevRotations[0] * pi,1,0,0);
@@ -780,29 +783,13 @@ public class ModelMPM extends ModelNPCMale{
 		((ModelScaleRenderer)this.bipedBody).isHidden = entity.modelData.hideBody == 1;
 
 		// Hide Bodywear
-		((ModelScaleRenderer)this.bipedBodywear).isHidden = entity.modelData.bodywear == 0;
-
-		if(bipedBodywear.showModel && !bipedBodywear.isHidden){
-			if(entity.modelData.bodywear == 1 || isArmor){
-				((ModelScaleRenderer)this.bipedBodywear).setConfig(entity.modelData.modelScale.body,x,y,z);
-				((ModelScaleRenderer)this.bipedBodywear).render(f);
-			}
-			else if(entity.modelData.bodywear == 2){
-				this.bodywear.rotateAngleX = bipedBodywear.rotateAngleX;
-				this.bodywear.rotateAngleY = bipedBodywear.rotateAngleY;
-				this.bodywear.rotateAngleZ = bipedBodywear.rotateAngleZ;
-				this.bodywear.rotationPointX = bipedBodywear.rotationPointX;
-				this.bodywear.rotationPointY = bipedBodywear.rotationPointY;
-				this.bodywear.rotationPointZ = bipedBodywear.rotationPointZ;
-				this.bodywear.setConfig(entity.modelData.modelScale.body,x,y,z);
-				this.bodywear.render(f);
-			}
-		}
+		this.bipedBodywear.isHidden = entity.modelData.bodywear != 1;
+		this.bodywear.isHidden = entity.modelData.bodywear != 2;
 
 		((ModelScaleRenderer)this.bipedBody).setConfig(body,x,y,z);
 		((ModelScaleRenderer)this.bipedBody).render(f);
-		GL11.glPopMatrix();
 
+		GL11.glPopMatrix();
 	}
 	public void renderArms(EntityCustomNpc entity, float f, boolean bo){
 		loadPlayerTexture(entity);
@@ -953,10 +940,15 @@ public class ModelMPM extends ModelNPCMale{
 	public void renderCloak(EntityCustomNpc npc, float f){
 		if (!npc.display.cloakTexture.isEmpty() && !isArmor)
 		{
-			if(npc.textureCloakLocation == null){
-				npc.textureCloakLocation = new ResourceLocation(npc.display.cloakTexture);
+			ImageData imageData = ClientCacheHandler.getImageData(npc.display.cloakTexture);
+			if (!imageData.imageLoaded())
+				return;
+
+			try {
+				imageData.bindTexture();
+			} catch (Exception e) { return;
 			}
-			bindTexture((ResourceLocation) npc.textureCloakLocation);
+
 			GL11.glPushMatrix();
 			GL11.glTranslatef(0.0F, 0.0F, 0.125F);
 			double d = (npc.field_20066_r + (npc.field_20063_u - npc.field_20066_r) * (double)f) - (npc.prevPosX + (npc.posX - npc.prevPosX) * (double)f);

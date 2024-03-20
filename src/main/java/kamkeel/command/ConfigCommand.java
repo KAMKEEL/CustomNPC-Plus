@@ -1,5 +1,6 @@
 package kamkeel.command;
 
+import foxz.utils.Market;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -30,7 +31,7 @@ public class ConfigCommand extends CommandKamkeelBase {
 	public String getDescription() {
 		return "Some config things you can set";
 	}
-    
+
     @SubCommand(
     		desc = "Disable/Enable the natural leaves decay",
             usage = "[true/false]",
@@ -56,7 +57,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             sendResult(sender, "LeavesDecay is now \u00A7c" + ConfigMain.LeavesDecayEnabled);
     	}
     }
-    
+
     @SubCommand(
     		desc = "Disable/Enable the vines growing",
             usage = "[true/false]",
@@ -82,7 +83,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             sendResult(sender, "VineGrowth is now \u00A7c" + ConfigMain.VineGrowthEnabled);
     	}
     }
-    
+
     @SubCommand(
     		desc = "Disable/Enable the ice melting",
             usage = "[true/false]",
@@ -127,7 +128,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             sendResult(sender, "GunsEnabled is now \u00A7c" + ConfigMain.GunsEnabled);
     	}
     }
-    
+
     @SubCommand(
     		desc = "Freezes/Unfreezes npcs",
             usage = "[true/false]",
@@ -142,7 +143,7 @@ public class ConfigCommand extends CommandKamkeelBase {
             sendResult(sender, "FrozenNPCs is now \u00A7c" + CustomNpcs.FreezeNPCs);
     	}
     }
-    
+
     @SubCommand(
     		desc = "Set number of active chunkloaders",
             usage = "<number>",
@@ -150,7 +151,7 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void chunkloaders(ICommandSender sender, String[] args) throws CommandException{
     	if(args.length == 0){
-    		sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
+    		sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.Instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     	else{
     		try{
@@ -165,12 +166,12 @@ public class ConfigCommand extends CommandKamkeelBase {
 				ConfigMain.config.save();
 			}
 
-			int size = ChunkController.instance.size();
+			int size = ChunkController.Instance.size();
 			if(size > ConfigMain.ChunkLoaders){
-				ChunkController.instance.unload(size - ConfigMain.ChunkLoaders);
+				ChunkController.Instance.unload(size - ConfigMain.ChunkLoaders);
 				sendResult(sender, size - ConfigMain.ChunkLoaders + " chunksloaders unloaded");
 			}
-			sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
+			sendResult(sender, "ChunkLoaders: \u00A7c" + ChunkController.Instance.size() + "\u00A77/\u00A7c" + ConfigMain.ChunkLoaders);
     	}
     }
 
@@ -220,7 +221,54 @@ public class ConfigCommand extends CommandKamkeelBase {
 			PlayerDataController.Instance.convertPlayerFiles(send, convertToDat);
 		}
 	}
-    
+
+    @SubCommand(
+        desc = "Generate Market to JSON/DAT",
+        usage = "[fileType] [convert]",
+        permission = 4
+    )
+    public void market(ICommandSender sender, String[] args) throws CommandException{
+        String fileType;
+        if(ConfigMain.MarketDatFormat){
+            fileType = "DAT";
+        }
+        else {
+            fileType = "JSON";
+        }
+        if(args.length == 0){
+            sendResult(sender, "Market Filetype: \u00A7c" + fileType);
+        }
+        else if(args.length == 1){
+            sendResult(sender, "Please write the word 'convert' at the end to confirm.  \u00A7c<dat/json> convert");
+        }
+        else{
+            if(args.length != 2){
+                sendError(sender, "Two many arguments");
+                return;
+            }
+            String formatType = args[0].toLowerCase();
+            if(!formatType.equals("dat") && !formatType.equals("json")){
+                sendError(sender, "Invalid Format Type - Please use dat or json");
+                return;
+            }
+
+            String convert = args[1].toLowerCase();
+            if(!convert.equals("convert")){
+                sendError(sender, "Please enter the word 'convert' at the end");
+                return;
+            }
+
+            boolean convertToDat = formatType.equals("dat");
+            EntityPlayerMP send = null;
+            if(sender instanceof EntityPlayerMP){
+                send = (EntityPlayerMP) sender;
+            }
+
+            sendResult(sender, "Started Conversion Process for Market");
+            Market.convertMarketFiles(send, convertToDat);
+        }
+    }
+
     @SubCommand(
     		desc = "Get/Set font",
             usage = "[type] [size]",
@@ -236,7 +284,7 @@ public class ConfigCommand extends CommandKamkeelBase {
 				args = Arrays.copyOfRange(args, 0, args.length - 1);
     		}
     		catch(Exception e){
-    			
+
     		}
     	}
 		String font = "";
@@ -245,6 +293,6 @@ public class ConfigCommand extends CommandKamkeelBase {
 		}
     	Server.sendData((EntityPlayerMP)sender, EnumPacketClient.CONFIG, 0, font.trim(), size);
     }
-    
+
 }
 

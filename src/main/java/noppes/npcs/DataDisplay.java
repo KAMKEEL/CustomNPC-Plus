@@ -10,7 +10,10 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.HitboxData;
 import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.controllers.data.TintData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
@@ -20,184 +23,188 @@ import java.util.Random;
 import java.util.UUID;
 
 public class DataDisplay {
-	public EntityNPCInterface npc;
+    public EntityNPCInterface npc;
 
-	public String name;
-	public String title = "";
+    public String name;
+    public String title = "";
 
-	private int markovGeneratorId = 8; //roman,japanese,slavic,welsh,sami,oldnorse,ancientgreek,aztec,classic,spanish (0 - 9 inclusively)
-	private int markovGender = 0; //0:random, 1:male, 2:female
+    private int markovGeneratorId = 8; //roman,japanese,slavic,welsh,sami,oldnorse,ancientgreek,aztec,classic,spanish (0 - 9 inclusively)
+    private int markovGender = 0; //0:random, 1:male, 2:female
 
-	public byte skinType = 0;	//0:normal, 1:player, 2:url, 3:url64
+    public byte skinType = 0;	//0:normal, 1:player, 2:url, 3:url64
 
-	public String url = "";
+    public String url = "";
 
-	public GameProfile playerProfile;
-	public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
-	public String cloakTexture = "";
+    public GameProfile playerProfile;
+    public String texture = "customnpcs:textures/entity/humanmale/Steve.png";
+    public String cloakTexture = "";
 
-	public DataSkinOverlays skinOverlayData;
-	public long overlayRenderTicks = 0;
+    public DataSkinOverlays skinOverlayData;
+    public long overlayRenderTicks = 0;
 
-	public AnimationData animationData;
+    public AnimationData animationData;
+    public HitboxData hitboxData;
+    public TintData tintData;
 
-	public String glowTexture = "";
+    public String glowTexture = "";
 
-	public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
-	
-	public int modelSize = 5;
+    public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
+    public int modelSize = 5;
+    public int showName = 0;
+    public int modelType = 0;
 
-	public int showName = 0;
+    public boolean disableLivingAnimation = false;
+    public byte showBossBar = 0;
 
-	public int modelType = 0;
+    public ArrayList<UUID> invisibleToList = new ArrayList<>();
 
-	public boolean disableLivingAnimation = false;
-	
-	public byte showBossBar = 0;
+    // 0 - Yes, 1 - No, 2 - Only NPCs, 3 - Only Players, 4 - NPCs and Players
+    public int collidesWith = 1;
 
-	public ArrayList<UUID> invisibleToList = new ArrayList<>();
+    public DataDisplay(EntityNPCInterface npc){
+        this.npc = npc;
+        markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
+        skinOverlayData = new DataSkinOverlays(npc);
+        name = getRandomName();
+        animationData = new AnimationData(this);
+        hitboxData = new HitboxData();
+        tintData = new TintData();
+    }
 
-	//0 - Yes, 1 - No, 2 - Only NPCs, 3 - Only Players, 4 - NPCs and Players
-	public int collidesWith = 1;
+    public String getRandomName() {
+        return CustomNpcs.MARKOV_GENERATOR[markovGeneratorId].fetch(markovGender);
+    }
 
-	public DataDisplay(EntityNPCInterface npc){
-		this.npc = npc;
-		markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
-		skinOverlayData = new DataSkinOverlays(npc);
-		name = getRandomName();
-		animationData = new AnimationData(this);
-	}
+    public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
+        nbttagcompound.setString("Name", name);
+        nbttagcompound.setInteger("MarkovGeneratorId", markovGeneratorId);
+        nbttagcompound.setInteger("MarkovGender", markovGender);
+        nbttagcompound.setString("Title", title);
+        nbttagcompound.setString("SkinUrl", url);
+        nbttagcompound.setString("Texture", texture);
 
-	public String getRandomName() {
-		return CustomNpcs.MARKOV_GENERATOR[markovGeneratorId].fetch(markovGender);
-	}
+        nbttagcompound.setString("CloakTexture", cloakTexture);
+        nbttagcompound.setByte("UsingSkinUrl", skinType);
+        nbttagcompound.setString("GlowTexture", glowTexture);
 
-	public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
-		nbttagcompound.setString("Name", name);
-		nbttagcompound.setInteger("MarkovGeneratorId", markovGeneratorId);
-		nbttagcompound.setInteger("MarkovGender", markovGender);
-		nbttagcompound.setString("Title", title);
-		nbttagcompound.setString("SkinUrl", url);
-		nbttagcompound.setString("Texture", texture);
-		nbttagcompound.setString("CloakTexture", cloakTexture);
-		nbttagcompound.setByte("UsingSkinUrl", skinType);
-		nbttagcompound.setString("GlowTexture", glowTexture);
+        nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
 
-		nbttagcompound = skinOverlayData.writeToNBT(nbttagcompound);
+        nbttagcompound = animationData.writeToNBT(nbttagcompound);
+        nbttagcompound = hitboxData.writeToNBT(nbttagcompound);
+        nbttagcompound = tintData.writeToNBT(nbttagcompound);
 
-		nbttagcompound = animationData.writeToNBT(nbttagcompound);
-
-		if (this.playerProfile != null)
+        if (this.playerProfile != null)
         {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
             NBTUtil.func_152460_a(nbttagcompound1, this.playerProfile);
             nbttagcompound.setTag("SkinUsername", nbttagcompound1);
         }
-		
-		nbttagcompound.setInteger("Size", modelSize);
-		nbttagcompound.setInteger("modelType", modelType);
 
-		nbttagcompound.setInteger("ShowName", showName);
-		nbttagcompound.setInteger("NpcVisible", visible);
+        nbttagcompound.setInteger("Size", modelSize);
+        nbttagcompound.setInteger("modelType", modelType);
 
-		nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
-		nbttagcompound.setByte("BossBar", showBossBar);
+        nbttagcompound.setInteger("ShowName", showName);
+        nbttagcompound.setInteger("NpcVisible", visible);
 
-		nbttagcompound.setInteger("CollidesWith",collidesWith);
+        nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
+        nbttagcompound.setByte("BossBar", showBossBar);
 
-		NBTTagList list = new NBTTagList();
-		for(UUID uuid : invisibleToList){
-			list.appendTag(new NBTTagString(uuid.toString()));
-		}
+        nbttagcompound.setInteger("CollidesWith",collidesWith);
 
-		nbttagcompound.setTag("InvisibleToList", list);
+        NBTTagList list = new NBTTagList();
+        for(UUID uuid : invisibleToList){
+            list.appendTag(new NBTTagString(uuid.toString()));
+        }
 
-		return nbttagcompound;
-	}
-	public void readToNBT(NBTTagCompound nbttagcompound) {
-		setName(nbttagcompound.getString("Name"));
-		setMarkovGeneratorId(nbttagcompound.getInteger("MarkovGeneratorId"));
-		setMarkovGender(nbttagcompound.getInteger("MarkovGender"));
+        nbttagcompound.setTag("InvisibleToList", list);
+        return nbttagcompound;
+    }
+    public void readToNBT(NBTTagCompound nbttagcompound) {
+        setName(nbttagcompound.getString("Name"));
+        setMarkovGeneratorId(nbttagcompound.getInteger("MarkovGeneratorId"));
+        setMarkovGender(nbttagcompound.getInteger("MarkovGender"));
 
-		title = nbttagcompound.getString("Title");
-		
-		url = nbttagcompound.getString("SkinUrl");
+        title = nbttagcompound.getString("Title");
 
-		int prevSkinType = skinType;
-		skinType = nbttagcompound.getByte("UsingSkinUrl");
-		
-		this.playerProfile = null;
-		if(skinType == 1){
-	        if (nbttagcompound.hasKey("SkinUsername", 10)){
-	            this.playerProfile = NBTUtil.func_152459_a(nbttagcompound.getCompoundTag("SkinUsername"));
-	        }
-	        else if (nbttagcompound.hasKey("SkinUsername", 8) && !StringUtils.isNullOrEmpty(nbttagcompound.getString("SkinUsername"))){
-	            this.playerProfile = new GameProfile(null, nbttagcompound.getString("SkinUsername"));
-	        }
-	        this.loadProfile();
-		}
+        url = nbttagcompound.getString("SkinUrl");
+
+        int prevSkinType = skinType;
+        skinType = nbttagcompound.getByte("UsingSkinUrl");
+
+        this.playerProfile = null;
+        if(skinType == 1){
+            if (nbttagcompound.hasKey("SkinUsername", 10)){
+                this.playerProfile = NBTUtil.func_152459_a(nbttagcompound.getCompoundTag("SkinUsername"));
+            }
+            else if (nbttagcompound.hasKey("SkinUsername", 8) && !StringUtils.isNullOrEmpty(nbttagcompound.getString("SkinUsername"))){
+                this.playerProfile = new GameProfile(null, nbttagcompound.getString("SkinUsername"));
+            }
+            this.loadProfile();
+        }
 
         String prevTexture = texture;
-        
-		texture = nbttagcompound.getString("Texture");
-		cloakTexture = nbttagcompound.getString("CloakTexture");
-		glowTexture = nbttagcompound.getString("GlowTexture");
 
-		if (!nbttagcompound.hasKey("SkinOverlayData") && !glowTexture.isEmpty()) {
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
+        texture = nbttagcompound.getString("Texture");
 
-			(new SkinOverlay(glowTexture)).writeToNBT(compound);
+        cloakTexture = nbttagcompound.getString("CloakTexture");
+        glowTexture = nbttagcompound.getString("GlowTexture");
 
-			if (!nbttagcompound.hasKey("SkinOverlayData")) {
-				NBTTagList tagList = new NBTTagList();
-				tagList.appendTag(compound);
-				nbttagcompound.setTag("SkinOverlayData", tagList);
-			} else if (!glowTexture.isEmpty()) {
-				nbttagcompound.getTagList("SkinOverlayData", 10).appendTag(compound);
-				glowTexture = "";
-			}
-		}
+        if (!nbttagcompound.hasKey("SkinOverlayData") && !glowTexture.isEmpty()) {
+            NBTTagCompound compound = new NBTTagCompound();
+            compound.setInteger("SkinOverlayID", 0); //unique glow texture ID
 
-		skinOverlayData.readFromNBT(nbttagcompound);
+            (new SkinOverlay(glowTexture)).writeToNBT(compound);
 
-		animationData.readFromNBT(nbttagcompound);
+            if (!nbttagcompound.hasKey("SkinOverlayData")) {
+                NBTTagList tagList = new NBTTagList();
+                tagList.appendTag(compound);
+                nbttagcompound.setTag("SkinOverlayData", tagList);
+            } else if (!glowTexture.isEmpty()) {
+                nbttagcompound.getTagList("SkinOverlayData", 10).appendTag(compound);
+                glowTexture = "";
+            }
+        }
 
-		modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
-		if(modelSize > ConfigMain.NpcSizeLimit)
-			modelSize = ConfigMain.NpcSizeLimit;
+        skinOverlayData.readFromNBT(nbttagcompound);
 
-		modelType = nbttagcompound.getInteger("modelType");
-		
-		showName = nbttagcompound.getInteger("ShowName");
-		visible = nbttagcompound.getInteger("NpcVisible");
+        animationData.readFromNBT(nbttagcompound);
+        hitboxData.readFromNBT(nbttagcompound);
+        tintData.readFromNBT(nbttagcompound);
 
-		disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
-		showBossBar = nbttagcompound.getByte("BossBar");
+        modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
+        if(modelSize > ConfigMain.NpcSizeLimit)
+            modelSize = ConfigMain.NpcSizeLimit;
 
-		NBTTagList tagList = (NBTTagList)nbttagcompound.getTag("InvisibleToList");
-		if(tagList != null) {
-			invisibleToList.clear();
-			for (int i = 0; i < tagList.tagCount(); i++) {
-				String nbtTagString = tagList.getStringTagAt(i);
-				invisibleToList.add(UUID.fromString(nbtTagString));
-			}
-		}
-		else {
-			invisibleToList = new ArrayList<>();
-		}
+        modelType = nbttagcompound.getInteger("modelType");
 
-		if(nbttagcompound.hasKey("CollidesWith"))
-			collidesWith = nbttagcompound.getInteger("CollidesWith");
-		else
-			collidesWith = 1;
+        showName = nbttagcompound.getInteger("ShowName");
+        visible = nbttagcompound.getInteger("NpcVisible");
 
-		if(prevSkinType != skinType || !texture.equals(prevTexture))
-			npc.textureLocation = null;
-		npc.textureCloakLocation = null;
-		npc.updateHitbox();
-	}
-	
+        disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
+        showBossBar = nbttagcompound.getByte("BossBar");
+
+        NBTTagList tagList = (NBTTagList)nbttagcompound.getTag("InvisibleToList");
+        if(tagList != null) {
+            invisibleToList.clear();
+            for (int i = 0; i < tagList.tagCount(); i++) {
+                String nbtTagString = tagList.getStringTagAt(i);
+                invisibleToList.add(UUID.fromString(nbtTagString));
+            }
+        }
+        else {
+            invisibleToList = new ArrayList<>();
+        }
+
+        if(nbttagcompound.hasKey("CollidesWith"))
+            collidesWith = nbttagcompound.getInteger("CollidesWith");
+        else
+            collidesWith = 1;
+
+        if(prevSkinType != skinType || !texture.equals(prevTexture))
+            npc.textureLocation = null;
+        npc.updateHitbox();
+    }
+
     public void loadProfile(){
         if (this.playerProfile != null && !StringUtils.isNullOrEmpty(this.playerProfile.getName()) && MinecraftServer.getServer() != null){
             if (!this.playerProfile.isComplete() || !this.playerProfile.getProperties().containsKey("textures")){
@@ -215,55 +222,54 @@ public class DataDisplay {
             }
         }
     }
-	
-	public boolean showName() {
-		if(npc.isKilled())
-			return false;
-		return showName == 0 || (showName == 2 && npc.isAttacking());
-	}
 
-	public String getSkinTexture(){
-		return texture;
-	}
+    public boolean showName() {
+        if(npc.isKilled())
+            return false;
+        return showName == 0 || (showName == 2 && npc.isAttacking());
+    }
 
-	public void setSkinTexture(String texture){
-		if(this.texture.equals(texture))
-			return;
-		this.texture = texture;
-		npc.textureLocation = null;
-		skinType = 0;
-		npc.updateClient = true;
-	}
+    public String getSkinTexture(){
+        return texture;
+    }
 
-	public String getName(){
-		return name;
-	}
+    public void setSkinTexture(String texture){
+        if(this.texture.equals(texture))
+            return;
+        this.texture = texture;
+        npc.textureLocation = null;
+        skinType = 0;
+        npc.updateClient = true;
+    }
 
-	public void setName(String name){
-		if(this.name.equals(name))
-			return;
-		this.name = name;
-		npc.updateClient = true;
-	}
+    public String getName(){
+        return name;
+    }
 
-	public int getMarkovGender(){
-		return markovGender;
-	}
+    public void setName(String name){
+        if(this.name.equals(name))
+            return;
+        this.name = name;
+        npc.updateClient = true;
+    }
 
-	public void setMarkovGender(int gender) {
-		if(markovGender == gender)
-			return;
-		this.markovGender = ValueUtil.clamp(gender, 0, 2);
-	}
+    public int getMarkovGender(){
+        return markovGender;
+    }
 
-	public int getMarkovGeneratorId(){
-		return markovGeneratorId;
-	}
+    public void setMarkovGender(int gender) {
+        if(markovGender == gender)
+            return;
+        this.markovGender = ValueUtil.clamp(gender, 0, 2);
+    }
 
-	public void setMarkovGeneratorId(int id) {
-		if(markovGeneratorId == id)
-			return;
-		this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
-	}
+    public int getMarkovGeneratorId(){
+        return markovGeneratorId;
+    }
 
+    public void setMarkovGeneratorId(int id) {
+        if(markovGeneratorId == id)
+            return;
+        this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
+    }
 }

@@ -1,15 +1,15 @@
 package kamkeel.command;
 
-import java.lang.reflect.Method;
-import java.util.Map.Entry;
-
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentTranslation;
 
+import java.lang.reflect.Method;
+import java.util.Map.Entry;
+
 public class HelpCommand extends CommandKamkeelBase{
 	private CommandKamkeel parent;
-	
+
 	public HelpCommand(CommandKamkeel parent){
 		this.parent = parent;
 	}
@@ -34,7 +34,7 @@ public class HelpCommand extends CommandKamkeelBase{
 			}
 			return;
 		}
-		
+
 		CommandKamkeelBase command = parent.getCommand(args);
 		if(command == null){
 			sendError(sender, "Unknown command " + args[0]);
@@ -45,7 +45,7 @@ public class HelpCommand extends CommandKamkeelBase{
 			sender.addChatMessage(new ChatComponentTranslation(command.getCommandUsage(sender)));
 			return;
 		}
-		
+
 		Method m = null;
 		if(args.length > 1){
 			m = command.subcommands.get(args[1].toLowerCase());

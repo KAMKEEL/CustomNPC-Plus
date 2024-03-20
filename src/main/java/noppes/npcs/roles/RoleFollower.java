@@ -15,7 +15,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class RoleFollower extends RoleInterface{
+public class RoleFollower extends RoleInterface {
 	
 	private String ownerUUID;
 	public boolean isFollowing = true;
@@ -153,6 +153,40 @@ public class RoleFollower extends RoleInterface{
 		ownerUUID = id.toString();
 		npc.stats.canDespawn = false;
 	}
-	
-	
+
+	public void setRate(int index, int amount) {
+		if(index > 2 || index < 0)
+			return;
+
+		if(amount < 1)
+			return;
+
+		rates.put(index, amount);
+	}
+
+	public int getRate(int index) {
+		if(index > 2 || index < 0)
+			return -1;
+
+		if(!rates.containsKey(index))
+			return -1;
+
+		return rates.get(index);
+	}
+
+	public void setDialogHire(String dialogHire) {
+		this.dialogHire = dialogHire;
+	}
+
+	public String getDialogHire() {
+		return dialogHire;
+	}
+
+	public void setDialogFarewell(String dialogFarewell){
+		this.dialogFarewell = dialogFarewell;
+	}
+
+	public String getDialogFarewell(){
+		return this.dialogFarewell;
+	}
 }

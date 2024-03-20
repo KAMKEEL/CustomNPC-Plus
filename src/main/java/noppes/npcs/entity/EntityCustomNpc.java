@@ -5,10 +5,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.client.EntityUtil;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class EntityCustomNpc extends EntityNPCFlying {
 	public ModelData modelData = new ModelData();
@@ -47,7 +47,7 @@ public class EntityCustomNpc extends EntityNPCFlying {
 	    			entity.onUpdate();
 	    		}
 	    		catch(Exception e){
-	    			
+
 	    		}
 				EntityUtil.Copy(this, entity);
 	    	}
@@ -59,7 +59,7 @@ public class EntityCustomNpc extends EntityNPCFlying {
     	super.mountEntity(par1Entity);
     	updateHitbox();
     }
-	
+
 	@Override
 	public void updateHitbox() {
 		Entity entity = modelData.getEntity(this);
@@ -72,14 +72,24 @@ public class EntityCustomNpc extends EntityNPCFlying {
 				((EntityNPCInterface)entity).updateHitbox();
 			width = (entity.width / 5f) * display.modelSize;
 			height = (entity.height / 5f) * display.modelSize;
+            if(display.hitboxData.isHitboxEnabled()){
+                width = width * display.hitboxData.getWidthScale();
+                height = height * display.hitboxData.getHeightScale();
+            }
 
 			if(width < 0.1f)
 				width = 0.1f;
 			if(height < 0.1f)
 				height = 0.1f;
+            if(isKilled() && stats.hideKilledBody){
+                width = 0.00001f;
+            }
+            if(width / 2 > worldObj.MAX_ENTITY_RADIUS) {
+                worldObj.MAX_ENTITY_RADIUS = width / 2;
+            }
+
 			this.setPosition(posX, posY, posZ);
 		}
 	}
 
 }
-	

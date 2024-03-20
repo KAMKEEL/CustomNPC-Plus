@@ -1,8 +1,6 @@
 package kamkeel.developer;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 public class Developer {
@@ -11,10 +9,10 @@ public class Developer {
     public static HashSet<UUID> ScriptUser = new HashSet<>();
     public static HashSet<UUID> WandUser = new HashSet<>();
     public static HashSet<UUID> QuestMaker = new HashSet<>();
-    public static Developer instance;
+    public static Developer Instance;
 
     public Developer(){
-        instance = this;
+        Instance = this;
         // Temp for testing
         Universal.add(UUID.fromString("29cc52dd-2c50-4e8f-a388-be6c497cf0b4"));
     }

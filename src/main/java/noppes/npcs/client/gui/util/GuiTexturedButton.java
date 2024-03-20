@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ImageDownloadAlt;
-import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import org.lwjgl.opengl.GL11;
 
@@ -148,7 +147,7 @@ public class GuiTexturedButton extends GuiNpcButton {
             v2 = v1 + (float)height/(float)totalHeight;
         }
 
-        GL11.glTranslatef(x + this.xPosition - u1 * totalWidth * this.scale, y + this.yPosition - v1 * totalHeight * this.scale, (float)this.id);
+        GL11.glTranslatef(x + this.xPosition - u1 * totalWidth * this.scale, y + this.yPosition - v1 * totalHeight * this.scale, this.zLevel);
 
         GL11.glScalef(this.scale,this.scale,1.0F);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);

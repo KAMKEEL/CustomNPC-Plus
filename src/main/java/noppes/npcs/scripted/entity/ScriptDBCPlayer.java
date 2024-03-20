@@ -258,7 +258,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                         if (bonus.length() == 0) {
                             bonus = bonusID + ";" + bonusValueString;
                         } else {
-                            bonus = bonus + "|" + bonusID + ";" + bonusValueString;
+                            bonus = bonus + (bonus.charAt(bonus.length() - 1) == '|' ? "" : "|") + bonusID + ";" + bonusValueString;
                         }
                     } else {
                         if (bonus.length() == 0) {
@@ -371,6 +371,15 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
     public int getBody(){
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcBdy");
     }
+
+    public void setHP(int hp){
+        setBody(hp);
+    }
+    public int getHP()
+    {
+        return getBody();
+    }
+
 
     public void setStamina(int stamina){
         player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcStamina",stamina);

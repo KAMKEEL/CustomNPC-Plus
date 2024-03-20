@@ -221,4 +221,19 @@ public class FramePart implements IFramePart {
 			}
 		}
 	}
+
+	@SideOnly(Side.CLIENT)
+	public void jumpToCurrentFrame() {
+		this.partialRotationTick = ClientEventHandler.partialRenderTick;
+		this.partialPivotTick = ClientEventHandler.partialRenderTick;
+
+		this.prevPivots[0] = this.pivot[0];
+		this.prevPivots[1] = this.pivot[1];
+		this.prevPivots[2] = this.pivot[2];
+
+		float pi = (float) Math.PI / 180;
+		this.prevRotations[0] = this.rotation[0] * pi;
+		this.prevRotations[1] = this.rotation[1] * pi;
+		this.prevRotations[2] = this.rotation[2] * pi;
+	}
 }

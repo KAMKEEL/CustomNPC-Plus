@@ -24,6 +24,7 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
     	this.xSize = 420;
     	this.menu = new GuiNpcMenu(this,activeMenu,npc);
     	title = "";
+        drawDefaultBackground = true;
     }
     public void setBackground(String texture){
     	background = new ResourceLocation("customnpcs","textures/gui/" + texture);
@@ -56,13 +57,12 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
-    	drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(background);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 256, 256);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(defaultBackground2);
-        drawTexturedModalRect(guiLeft + xSize-256, guiTop, 0, 0, 256, 220);
+        drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 256, 220);
         
         menu.drawElements(fontRendererObj, i, j, mc, f);
         

@@ -2,14 +2,11 @@ package kamkeel.command;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogCategory;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +34,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         }
 
         String catName = String.join(" ", args).toLowerCase();
-        final Collection<DialogCategory> dialogCats = DialogController.instance.categories.values();
+        final Collection<DialogCategory> dialogCats = DialogController.Instance.categories.values();
         int count = 0;
         for(DialogCategory cat : dialogCats){
             if(cat.getName().toLowerCase().contains(catName)){
@@ -50,7 +47,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         }
     }
 
-    
+
     @SubCommand(
             desc = "Read a dialog category for a player",
             usage = "<player> <dialogcatid>"
@@ -60,19 +57,19 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         int dialogCatId;
         try {
         	dialogCatId = Integer.parseInt(args[1]);
-        } 
+        }
         catch (NumberFormatException ex) {
         	sendError(sender, "DialogCatID must be an integer: " + args[1]);
             return;
         }
-        
+
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
         	sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
-        
-        DialogCategory dialogCategory = DialogController.instance.categories.get(dialogCatId);
+
+        DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
         if (dialogCategory == null){
         	sendError(sender, "Unknown DialogCatID: " + dialogCatId);
             return;
@@ -86,6 +83,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Read Dialog Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", dialogCategory.getName(), dialogCatId, playerdata.playername));
             sendResult(sender, String.format("Read a total of \u00A7b%d \u00A77dialogs", count));
         }
@@ -113,7 +111,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             return;
         }
 
-        DialogCategory dialogCategory = DialogController.instance.categories.get(dialogCatId);
+        DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
         if (dialogCategory == null){
             sendError(sender, "Unknown DialogCatID: " + dialogCatId);
             return;
@@ -127,6 +125,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
             }
 
             playerdata.save();
+            playerdata.updateClient = true;
             sendResult(sender, String.format("Unread Dialog Cat \u00A7c'%s' \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", dialogCategory.getName(), dialogCatId, playerdata.playername));
             sendResult(sender, String.format("Unread a total of \u00A7b%d \u00A77dialogs", count));
         }

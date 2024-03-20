@@ -1,6 +1,8 @@
 package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import jdk.nashorn.api.scripting.ClassFilter;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -9,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
@@ -17,6 +20,7 @@ import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
@@ -24,16 +28,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScriptController {
 
 	public static ScriptController Instance;
 	public static boolean HasStart = false;
 	private final ScriptEngineManager manager;
+	private ScriptEngineFactory nashornFactory;
 	public Map<String, String> languages = new HashMap<String, String>();
 	public Map<String, String> scripts = new HashMap<String, String>();
 	public long lastLoaded = 0;
@@ -56,10 +58,19 @@ public class ScriptController {
 		loaded = false;
 		Instance = this;
 		manager = new ScriptEngineManager();
+		if(!ConfigScript.ScriptingEnabled)
+			return;
 		LogWriter.info("Script Engines Available:");
+
+		ScriptEngine engine = manager.getEngineByName("nashorn");
+		if (engine != null) {
+			this.nashornFactory = engine.getFactory();
+		}
+
 		for(ScriptEngineFactory fac : manager.getEngineFactories()){
 			if(fac.getExtensions().isEmpty())
 				continue;
+
 			ScriptEngine scriptEngine = fac.getScriptEngine();
 			try {
 				scriptEngine.put("$RunTest",null);
@@ -236,8 +247,35 @@ public class ScriptController {
 		}
 	}
 
+	private static final List<String> nashornNames = immutableList("nashorn", "Nashorn", "js", "JS", "JavaScript", "javascript", "ECMAScript", "ecmascript");
 	public ScriptEngine getEngineByName(String language) {
+		if (nashornNames.contains(language) && this.nashornFactory != null) {
+            ScriptEngine scriptEngine;
+            if(ConfigScript.EnableBannedClasses){
+                try {
+                    ClassFilter filter = s -> {
+                        for (String className : ConfigScript.BannedClasses) {
+                            if (s.compareTo(className) == 0) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    };
+                    NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.nashornFactory;
+                    scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
+                } catch (Exception e) {
+                    scriptEngine = this.nashornFactory.getScriptEngine();
+                }
+            } else {
+                scriptEngine = this.nashornFactory.getScriptEngine();
+            }
+			scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
+			return scriptEngine;
+		}
 		return manager.getEngineByName(language);
+	}
+	private static List<String> immutableList(String... elements) {
+		return Collections.unmodifiableList(Arrays.asList(elements));
 	}
 
 	public NBTTagList nbtLanguages() {

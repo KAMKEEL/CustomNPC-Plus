@@ -1,11 +1,11 @@
 package noppes.npcs.client.model.part;
 
 import net.minecraft.entity.Entity;
-import noppes.npcs.entity.data.ModelData;
-import noppes.npcs.entity.data.ModelPartData;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.client.model.util.ModelPartInterface;
+import noppes.npcs.entity.data.ModelData;
+import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelMohawk extends ModelPartInterface {
 	private Model2DRenderer model;
@@ -22,7 +22,7 @@ public class ModelMohawk extends ModelPartInterface {
 	@Override
 	public void setRotationAngles(float par1, float par2, float par3,
 			float par4, float par5, float par6, Entity entity) {
-		
+
 	}
 
 
@@ -37,7 +37,7 @@ public class ModelMohawk extends ModelPartInterface {
 		color = config.color;
 		isHidden = false;
 		location = config.getResource();
-		
+
 	}
 
 }

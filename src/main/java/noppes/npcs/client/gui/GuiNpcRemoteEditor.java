@@ -7,7 +7,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.mainmenu.GuiNPCGlobalMainMenu;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -16,7 +15,7 @@ import java.util.HashMap;
 import java.util.Vector;
 
 public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, GuiYesNoCallback{
-    
+
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> data = new HashMap<String, Integer>();
 	public GuiNpcRemoteEditor() {
@@ -24,21 +23,22 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
         xSize = 256;
         setBackground("menubg.png");
         Client.sendData(EnumPacketServer.RemoteNpcsGet);
+        Client.sendData(EnumPacketServer.RemoteFreezeGet);
 	}
     public void initGui()
     {
         super.initGui();
         if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0);
+	        scroll = new GuiCustomScroll(this,0, 0);
 	        scroll.setSize(165, 208);
         }
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 4;
         addScroll(scroll);
-        
+
         String title = StatCollector.translateToLocal("remote.title");
         int x = (xSize - this.fontRendererObj.getStringWidth(title)) / 2;
-        
+
         this.addLabel(new GuiNpcLabel(0, title, guiLeft + x, guiTop - 8));
 
         this.addButton(new GuiNpcButton(0, guiLeft + 170, guiTop + 6,82,20, "selectServer.edit"));
@@ -73,12 +73,12 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     	}
 		if(id == 6){
 			NoppesUtil.setLastNpc(null);
-			NoppesUtil.openGUI(player, new GuiNPCGlobalMainMenu(null));
+            Client.sendData(EnumPacketServer.RemoteGlobalMenu);
 		}
-    	
+
     	if(!data.containsKey(scroll.getSelected()))
     		return;
-    	
+
     	if(id == 0){
     		Client.sendData(EnumPacketServer.RemoteMainMenu,data.get(scroll.getSelected()));
     	}
@@ -97,7 +97,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     		close();
     	}
     }
-	
+
     @Override
     public void mouseClicked(int i, int j, int k)
     {
@@ -115,7 +115,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
 	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-		
+
 	}
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {

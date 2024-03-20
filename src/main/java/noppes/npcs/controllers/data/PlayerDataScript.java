@@ -1,7 +1,3 @@
-//
-// Source code recreated from a .class file by IntelliJ IDEA
-// (powered by Fernflower decompiler)
-//
 package noppes.npcs.controllers.data;
 
 import com.google.common.base.Preconditions;
@@ -23,7 +19,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class PlayerDataScript implements IScriptHandler {
+public class PlayerDataScript implements INpcScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     private EntityPlayer player;
@@ -66,7 +62,16 @@ public class PlayerDataScript implements IScriptHandler {
         return compound;
     }
 
+    public boolean isEnabled() {
+        return ConfigScript.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
+    }
+
     public void callScript(EnumScriptType type, Event event) {
+        this.callScript(type.function, event);
+    }
+
+    @Override
+    public void callScript(String hookName, Event event) {
         if (this.isEnabled()) {
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
@@ -76,7 +81,7 @@ public class PlayerDataScript implements IScriptHandler {
                     scriptContainer.errored = false;
                 }
 
-                if (type != EnumScriptType.INIT) {
+                if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
                     noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent)event;
                     EventHooks.onPlayerInit(this, playerEvent.player);
                 }
@@ -86,14 +91,11 @@ public class PlayerDataScript implements IScriptHandler {
                 if(script == null || script.errored || !script.hasCode() )
                     continue;
 
-                script.run(type, event);
+                script.run(hookName, event);
             }
         }
     }
 
-    public boolean isEnabled() {
-        return ConfigScript.GlobalPlayerScripts && ScriptController.Instance.playerScripts.enabled && ScriptController.HasStart && (this.player == null || !this.player.worldObj.isRemote);
-    }
     public boolean isClient() {
         return this.player.isClientWorld();
     }

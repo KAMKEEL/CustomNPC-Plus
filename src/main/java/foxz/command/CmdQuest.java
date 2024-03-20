@@ -1,20 +1,20 @@
 package foxz.command;
 
-import java.util.List;
-
-import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.controllers.DialogController;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.Quest;
-import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.data.QuestData;
 import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
+import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.Server;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.SyncController;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
+
+import java.util.List;
 
 @Command(
         name = "quest",
@@ -46,25 +46,26 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
         }
-        for(PlayerData playerdata : data){  
+        for(PlayerData playerdata : data){
 	        if(playerdata.questData.activeQuests.containsKey(questid))
 	        	continue;
-	        QuestData questdata = new QuestData(quest);    
+	        QuestData questdata = new QuestData(quest);
 	        playerdata.questData.activeQuests.put(questid, questdata);
 	        playerdata.save();
 	        if(playerdata.player != null){
 				Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 				Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
 	        }
+            playerdata.updateClient = true;
         }
         return true;
     }
-    
+
     @SubCommand(
             desc = "Finish a quest",
             usage = "<player> <quest>",
@@ -75,7 +76,7 @@ public class CmdQuest extends ChMcLogger{
         int questid;
         try {
         	questid = Integer.parseInt(args[1]);
-        } 
+        }
         catch (NumberFormatException ex) {
             sendmessage("QuestID must be an integer");
             return false;
@@ -85,15 +86,16 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        
-        Quest quest = QuestController.instance.quests.get(questid);
+
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
-        }             
-        for(PlayerData playerdata : data){  
-	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());    
+        }
+        for(PlayerData playerdata : data){
+	        playerdata.questData.finishedQuests.put(questid, System.currentTimeMillis());
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
@@ -117,18 +119,19 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
-        }       
-        for(PlayerData playerdata : data){  
+        }
+        for(PlayerData playerdata : data){
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
-    
+
     @SubCommand(
             desc = "Removes a quest from finished and active quests",
             usage = "<player> <quest>",
@@ -148,24 +151,26 @@ public class CmdQuest extends ChMcLogger{
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        Quest quest = QuestController.instance.quests.get(questid);
+        Quest quest = QuestController.Instance.quests.get(questid);
         if (quest == null){
             sendmessage("Unknown QuestID");
             return false;
-        }     
-        for(PlayerData playerdata : data){  
+        }
+        for(PlayerData playerdata : data){
 	        playerdata.questData.activeQuests.remove(questid);
 	        playerdata.questData.finishedQuests.remove(questid);
 	        playerdata.save();
+            playerdata.updateClient = true;
         }
         return true;
     }
     @SubCommand(
             desc="reload quests from disk",
             permissions={OpOnly.class}
-    )      
+    )
     public boolean reload(String args[]){
-    	new DialogController();
+    	new QuestController().load();
+        SyncController.syncAllQuests();
     	return true;
     }
 }

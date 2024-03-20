@@ -25,6 +25,7 @@ import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
+import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
@@ -54,14 +55,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		super(player);
 		this.player = player;
 	}
-	
+
 	/**
 	 * @return Returns the displayed name of the player
 	 */
 	public String getDisplayName(){
 		return player.getDisplayName();
-	}	
-	
+	}
+
 	/**
 	 * @return Returns the players name
 	 */
@@ -87,7 +88,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void setPosition(IPos pos) {
-		this.setPosition(pos.getX(),pos.getY(),pos.getZ());
+		this.setPosition(pos.getXD(),pos.getYD(),pos.getZD());
 	}
 	public void setPos(IPos pos) {
 		this.setPosition(pos);
@@ -110,13 +111,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void setPosition(IPos pos, int dimensionId) {
-		this.setPosition(pos.getX(),pos.getY(),pos.getZ(), dimensionId);
+		this.setPosition(pos.getXD(),pos.getYD(),pos.getZD(), dimensionId);
 	}
 	public void setPos(IPos pos, int dimensionId) {
 		this.setPosition(pos,dimensionId);
 	}
 	public void setPosition(IPos pos, IWorld world) {
-		this.setPosition(pos.getX(),pos.getY(),pos.getZ(),world.getDimensionID());
+		this.setPosition(pos.getXD(),pos.getYD(),pos.getZD(),world.getDimensionID());
 	}
 	public void setPos(IPos pos, IWorld world) {
 		this.setPosition(pos,world.getDimensionID());
@@ -179,7 +180,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void showDialog(int id){
-		Dialog dialog = (Dialog) DialogController.instance.get(id);
+		Dialog dialog = (Dialog) DialogController.Instance.get(id);
 		if(dialog == null)
 			return;
 
@@ -192,11 +193,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void readDialog(int id) {
-		PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.add(id);
+        PlayerData playerData = PlayerData.get(player);
+        playerData.dialogData.dialogsRead.add(id);
+        playerData.updateClient = true;
 	}
 
 	public void unreadDialog(int id) {
-		PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.remove(id);
+        PlayerData playerData = PlayerData.get(player);
+		playerData.dialogData.dialogsRead.remove(id);
+        playerData.updateClient = true;
 	}
 
 	public boolean hasFinishedQuest(IQuest quest) {
@@ -234,12 +239,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 			return;
 		removeQuest(quest.getId());
 	}
-	
+
 	public boolean hasFinishedQuest(int id){
 		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.finishedQuests.containsKey(id);
 	}
-	
+
 	public boolean hasActiveQuest(int id){
 		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
 		return data.activeQuests.containsKey(id);
@@ -250,7 +255,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void startQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
@@ -260,6 +265,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         data.questData.activeQuests.put(id, questdata);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
 		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+        data.updateClient = true;
 	}
 
 	/**
@@ -267,15 +273,15 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void finishQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-
+		PlayerData data = PlayerData.get(player);
 		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
 			data.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
 		else
 			data.questData.finishedQuests.put(quest.id, player.worldObj.getTotalWorldTime());
+        data.updateClient = true;
 	}
 
 	/**
@@ -283,11 +289,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void stopQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
 		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 		data.questData.activeQuests.remove(id);
+        data.updateClient = true;
 	}
 
 	/**
@@ -295,12 +302,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param id The Quest ID
 	 */
 	public void removeQuest(int id){
-        Quest quest = QuestController.instance.quests.get(id);
+        Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
         	return;
-		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+		PlayerData data = PlayerData.get(player);
 		data.questData.activeQuests.remove(id);
 		data.questData.finishedQuests.remove(id);
+        data.updateClient = true;
 	}
 
 	@Override
@@ -329,7 +337,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		data.factionData.increasePoints(faction, points-getFactionPoints(faction), player);
 	}
 
-    /**         
+    /**
      * @param faction The faction id
      * @return  points
      */
@@ -341,11 +349,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public void sendMessage(String message){
 		player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));
 	}
-	
+
 	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean underlined) {
 		sendMessage(message, color, bold, italic, underlined, false, false);
 	}
-	
+
 	public void sendMessage(String message, String color, boolean bold, boolean italic, boolean obfuscated, boolean strikethrough, boolean underlined) {
 		EnumChatFormatting c = getColor(color);
 
@@ -364,7 +372,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		player.addChatMessage(chat);
 	}
-	
+
 	private EnumChatFormatting getColor(String color) {
 		switch (color) {
 		case "black": return EnumChatFormatting.BLACK;
@@ -393,14 +401,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public int getMode(){
 		return player.theItemInWorldManager.getGameType().getID();
 	}
-	
+
 	/**
 	 * @param type The gamemode type. 0:SURVIVAL, 1:CREATIVE, 2:ADVENTURE
 	 */
 	public void setMode(int type){
 		player.setGameType(WorldSettings.getGameTypeById(type));
 	}
-	
+
 	/**
 	 * @since 1.7.10d
 	 * @return Returns a IItemStack array size 36
@@ -518,7 +526,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 			return false;
 		}
 	}
-	
+
 	/**
 	 * @since 1.7.10c
 	 * @param id The items name
@@ -529,10 +537,10 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public boolean giveItem(String id, int damage, int amount){
 		Item item = (Item)Item.itemRegistry.getObject(id);
 		if(item == null)
-			return false;		
+			return false;
 		return player.inventory.addItemStackToInventory(new ItemStack(item, amount, damage));
 	}
-	
+
 	/**
 	 * Same as the /spawnpoint command
 	 * @param x The x position
@@ -549,7 +557,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public void setSpawnpoint(IPos pos){
 		this.setSpawnpoint(pos.getX(),pos.getY(),pos.getZ());
 	}
-	
+
 	public void resetSpawnpoint(){
 		player.setSpawnChunk(null, false);
 	}
@@ -628,7 +636,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	/**
-	 * @param achievement The achievement id. For a complete list see http://minecraft.gamepedia.com/Achievements
+	 * @param achievement The achievement id. For a complete list see http://minecraft.wiki/w/Achievements
 	 * @return Returns whether or not the player has this achievement
 	 */
 	public boolean hasAchievement(String achievement){
@@ -638,7 +646,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         }
 		return player.func_147099_x().hasAchievementUnlocked((Achievement) statbase);
 	}
-	
+
 	/**
 	 * @param permission Bukkit/Cauldron permission
 	 * @return Returns whether or not the player has the permission
@@ -654,7 +662,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public int getExpLevel(){
 		return player.experienceLevel;
 	}
-	
+
 	/**
 	 * @since 1.7.10c
 	 * @param level The new exp level you want to set
@@ -663,7 +671,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		player.experienceLevel = level;
 		player.addExperienceLevel(0);
 	}
-	
+
 	/**
 	 * Requires pixelmon to be installed
 	 * @since 1.7.10d
@@ -678,10 +686,20 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return PlayerDataController.Instance.getPlayerData(player).timers;
 	}
 
+	@Override
+	public IScreenSize getScreenSize() {
+		PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+		return data.getScreenSize() ;
+	}
+
 	public void updatePlayerInventory() {
 		((EntityPlayerMP)this.entity).inventoryContainer.detectAndSendChanges();
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 		PlayerQuestData questData = playerData.questData;
+        Party playerParty = playerData.getPlayerParty();
+        if(playerParty != null)
+            PartyController.Instance().checkQuestCompletion(playerParty, EnumQuestType.Item);
+
 		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
 	}
 
@@ -728,7 +746,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		while(var3.hasNext()) {
 			int id = (Integer)var3.next();
-			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			IQuest quest = (IQuest)QuestController.Instance.quests.get(id);
 			if (quest != null) {
 				quests.add(quest);
 			}
@@ -777,7 +795,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 		while(var3.hasNext()) {
 			int id = (Integer)var3.next();
-			IQuest quest = (IQuest)QuestController.instance.quests.get(id);
+			IQuest quest = (IQuest)QuestController.Instance.quests.get(id);
 			if (quest != null) {
 				quests.add(quest);
 			}

@@ -117,7 +117,6 @@ public class ImageDownloadAlt extends SimpleTexture
     {
         this.imageThread = new Thread("Texture Downloader #" + threadDownloadCounter.incrementAndGet())
         {
-            private static final String __OBFID = "CL_00001050";
             public void run()
             {
                 HttpURLConnection connection = null;
@@ -125,13 +124,20 @@ public class ImageDownloadAlt extends SimpleTexture
 
                 try
                 {
-                    connection = (HttpURLConnection)(new URL(ImageDownloadAlt.this.imageUrl)).openConnection(Minecraft.getMinecraft().getProxy());
+                    URL url = new URL(ImageDownloadAlt.this.imageUrl);
+                    connection = (HttpURLConnection)(url).openConnection(Minecraft.getMinecraft().getProxy());
                     connection.setDoInput(true);
                     connection.setDoOutput(false);
                     connection.setRequestProperty("Content-Type", "image/png");
                     connection.setRequestProperty("Expect", "100-continue");
                     //connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0");
                     connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+                    // Modify Accept Redirect
+                    if (isImgurLink(url)) {
+                        connection.setRequestProperty("Accept", "*/*");
+                    }
+
                     connection.connect();
 
                     if (connection.getResponseCode() / 100 != 2)
@@ -162,7 +168,7 @@ public class ImageDownloadAlt extends SimpleTexture
                 }
                 catch (Exception exception)
                 {
-                	ImageDownloadAlt.logger.error("Couldn\'t download http texture", exception);
+                    ImageDownloadAlt.logger.error("Couldn\'t download http texture", exception);
                 }
                 finally
                 {
@@ -175,5 +181,11 @@ public class ImageDownloadAlt extends SimpleTexture
         };
         this.imageThread.setDaemon(true);
         this.imageThread.start();
+    }
+
+
+    // Check if the URL is an Imgur link
+    private static boolean isImgurLink(URL url) {
+        return url.getHost().endsWith("imgur.com");
     }
 }

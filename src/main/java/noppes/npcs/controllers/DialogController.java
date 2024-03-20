@@ -6,10 +6,13 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.Server;
 import noppes.npcs.api.handler.IDialogHandler;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IDialogCategory;
 import noppes.npcs.constants.EnumOptionType;
+import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.controllers.data.DialogOption;
@@ -20,31 +23,31 @@ import java.io.FileInputStream;
 import java.util.*;
 
 public class DialogController implements IDialogHandler {
+    public HashMap<Integer,DialogCategory> categoriesSync = new HashMap<Integer, DialogCategory>();
 	public HashMap<Integer,DialogCategory> categories = new HashMap<Integer, DialogCategory>();
 	public HashMap<Integer,Dialog> dialogs = new HashMap<Integer, Dialog>();
-	public static DialogController instance;
+	public static DialogController Instance = new DialogController();;
 
 	private int lastUsedDialogID = 0;
 	private int lastUsedCatID = 0;
-	
+
 	public DialogController(){
-		instance = this;
-		load();
+		Instance = this;
 	}
-	
+
 	public void load(){
 		LogWriter.info("Loading Dialogs");
 		loadCategories();
 		LogWriter.info("Done loading Dialogs");
 	}
-	
+
 	private void loadCategories(){
 		categories.clear();
 		dialogs.clear();
 
 		lastUsedCatID = 0;
 		lastUsedDialogID = 0;
-		
+
 		try {
 	        File file = new File(CustomNpcs.getWorldSaveDirectory(), "dialog.dat");
 	        if(file.exists()){
@@ -118,7 +121,7 @@ public class DialogController implements IDialogHandler {
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);
         if(list == null)
         	return;
-        
+
         for(int i = 0; i < list.tagCount(); i++){
             DialogCategory category = new DialogCategory();
             category.readNBT(list.getCompoundTagAt(i));
@@ -135,7 +138,7 @@ public class DialogController implements IDialogHandler {
             		saveDialog(category.id, dialog);
             	}
             }
-            
+
         }
 	}
 
@@ -143,35 +146,35 @@ public class DialogController implements IDialogHandler {
 		DialogCategory cat = new DialogCategory();
 		cat.id = lastUsedCatID++;
 		cat.title = "Villager";
-		
+
 		Dialog dia1 = new Dialog();
 		dia1.id = 1;
 		dia1.category = cat;
 		dia1.title = "Start";
 		dia1.text = "Hello {player}, "+'\n'+'\n'+"Welcome to our village. I hope you enjoy your stay";
-		
+
 		Dialog dia2 = new Dialog();
 		dia2.id = 2;
 		dia2.category = cat;
 		dia2.title = "Ask about village";
 		dia2.text = "This village has been around for ages. Enjoy your stay here.";
-		
+
 		Dialog dia3 = new Dialog();
 		dia3.id = 3;
 		dia3.category = cat;
 		dia3.title = "Who are you";
 		dia3.text = "I'm a villager here. I have lived in this village my whole life.";
-		
+
 		cat.dialogs.put(dia1.id, dia1);
 		cat.dialogs.put(dia2.id, dia2);
 		cat.dialogs.put(dia3.id, dia3);
-		
+
 
 		DialogOption option = new DialogOption();
 		option.title = "Tell me something about this village";
 		option.dialogId = 2;
 		option.optionType = EnumOptionType.DialogOption;
-		
+
 		DialogOption option2 = new DialogOption();
 		option2.title = "Who are you?";
 		option2.dialogId = 3;
@@ -180,11 +183,11 @@ public class DialogController implements IDialogHandler {
 		DialogOption option3 = new DialogOption();
 		option3.title = "Goodbye";
 		option3.optionType = EnumOptionType.QuitOption;
-		
+
 		dia1.options.put(0, option2);
 		dia1.options.put(1, option);
 		dia1.options.put(2, option3);
-		
+
 
 		DialogOption option4 = new DialogOption();
 		option4.title = "Back";
@@ -198,7 +201,7 @@ public class DialogController implements IDialogHandler {
 		saveDialog(cat.id, dia2);
 		saveDialog(cat.id, dia3);
 	}
-	
+
 	public void saveCategory(DialogCategory category){
 		category.title = NoppesStringUtils.cleanFileName(category.title);
 		if(categories.containsKey(category.id)){
@@ -227,8 +230,9 @@ public class DialogController implements IDialogHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
+        SyncController.updateDialogCat(category);
 	}
-	
+
 	public void removeCategory(int category){
 		DialogCategory cat = categories.get(category);
 		if(cat == null)
@@ -239,8 +243,9 @@ public class DialogController implements IDialogHandler {
 		for(int dia : cat.dialogs.keySet())
 			dialogs.remove(dia);
 		categories.remove(category);
+        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.DIALOG_CATEGORY, category);
 	}
-	
+
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
 		for(DialogCategory cat : categories.values()){
@@ -269,28 +274,30 @@ public class DialogController implements IDialogHandler {
 			lastUsedDialogID++;
 			dialog.id = lastUsedDialogID;
 		}
-		
+
     	dialogs.put(dialog.id, dialog);
     	category.dialogs.put(dialog.id, dialog);
-    	
+
     	File dir = new File(getDir(), category.title);
     	if(!dir.exists())
     		dir.mkdirs();
 
     	File file = new File(dir, dialog.id + ".json_new");
     	File file2 = new File(dir, dialog.id + ".json");
-    	
+
     	try {
-			NBTJsonUtil.SaveFile(file, dialog.writeToNBTPartial(new NBTTagCompound()));
+            NBTTagCompound compound = dialog.writeToNBTPartial(new NBTTagCompound());
+			NBTJsonUtil.SaveFile(file, compound);
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
+            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG, dialog.writeToNBT(new NBTTagCompound()), category.id);
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
 		return dialog;
 	}
-	
+
 	public void removeDialog(Dialog dialog) {
 		DialogCategory category = dialog.category;
 		File file = new File(new File(getDir(), category.title), dialog.id + ".json");
@@ -298,9 +305,9 @@ public class DialogController implements IDialogHandler {
 			return;
 		category.dialogs.remove(dialog.id);
 		dialogs.remove(dialog.id);
-		
+        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.DIALOG, dialog.id);
 	}
-	
+
 	private File getDir(){
 		return new File(CustomNpcs.getWorldSaveDirectory(), "dialogs");
 	}

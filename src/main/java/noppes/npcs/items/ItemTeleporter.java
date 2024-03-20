@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -17,15 +18,14 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesUtilServer;
 
 import java.util.List;
 
 
 public class ItemTeleporter extends Item{
-	
+
     public ItemTeleporter(){
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
@@ -33,9 +33,10 @@ public class ItemTeleporter extends Item{
 
     @Override
     public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer){
-		if(!par2World.isRemote)
-			return par1ItemStack;
-    	CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);
+        if(par2World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(par3EntityPlayer, CustomNpcsPermissions.TOOL_TELEPORTER))
+            return par1ItemStack;
+
+        NoppesUtilServer.setTeleporterGUI((EntityPlayerMP) par3EntityPlayer);
         return par1ItemStack;
     }
 
@@ -61,7 +62,7 @@ public class ItemTeleporter extends Item{
         MovingObjectPosition movingobjectposition = par3EntityPlayer.worldObj.rayTraceBlocks(vec3, vec31, true);
         if (movingobjectposition == null)
             return false;
-        
+
         Vec3 vec32 = par3EntityPlayer.getLook(f);
         boolean flag = false;
         float f9 = 1.0F;
@@ -82,88 +83,32 @@ public class ItemTeleporter extends Item{
 
         if (flag)
             return false;
-        
+
         if (movingobjectposition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK){
             int i = movingobjectposition.blockX;
             int j = movingobjectposition.blockY;
             int k = movingobjectposition.blockZ;
-            
+
             while(par3EntityPlayer.worldObj.getBlock(i, j, k) != Blocks.air){
             	j++;
             }
             par3EntityPlayer.setPositionAndUpdate(i + 0.5F, j + 1.0F, k + 0.5F);
         }
-        
-    	
+
+
     	return true;
     }
-//    protected static MovingObjectPosition rayTraceBlocks(EntityPlayer entityPlayer, int radius) {
-//    	Vec3 vec3 = Vec3.createVectorHelper(entityPlayer.posX, entityPlayer.height * 0.8 + entityPlayer.boundingBox.minY, entityPlayer.posZ);
-//    	Vec3 vec3a = entityPlayer.getLookVec();
-//    	Vec3 vec3b = vec3.addVector(vec3a.xCoord * radius, vec3a.yCoord * radius, vec3a.zCoord * radius);
-//
-//    	return entityPlayer.worldObj.func_147447_a(vec3, vec3b, false, false, true);
-//    }
-//    	
-//    protected static MovingObjectPosition getPointingEntity(EntityPlayer entityPlayer, int radius) {
-//    	MovingObjectPosition block = rayTraceBlocks(entityPlayer, radius);
-//    	Vec3 vec3 = Vec3.createVectorHelper(entityPlayer.posX, entityPlayer.height * 0.8 + entityPlayer.boundingBox.minY, entityPlayer.posZ);
-//            
-//    	Vec3 vec31 = entityPlayer.getLookVec();
-//    	Vec3 vec32 = vec3.addVector(vec31.xCoord * radius, vec31.yCoord * radius, vec31.zCoord * radius);
-//    	Vec3 vec33 = null;
-//    	List<Entity> entities = entityPlayer.worldObj.getEntitiesWithinAABBExcludingEntity(entityPlayer, entityPlayer.boundingBox.addCoord(vec31.xCoord * radius, vec31.yCoord * radius, vec31.zCoord * radius).expand(1.0D, 1.0D, 1.0D));
-//    	Entity pointedEntity = null;
-//    	double d = radius;
-//            
-//    	for (Entity entity : entities) {
-//    		if (entity.canBeCollidedWith()) {
-//    			float f = entity.getCollisionBorderSize();
-//    			AxisAlignedBB axisalignedbb = entity.boundingBox.expand((double)f, (double)f, (double)f);
-//    			MovingObjectPosition movingObjectPosition = axisalignedbb.calculateIntercept(vec3, vec32);
-//
-//    			if (axisalignedbb.isVecInside(vec3)) {
-//    				if (0.0D < radius || radius == 0.0D) {
-//    					pointedEntity = entity;
-//    					vec33 = movingObjectPosition == null ? vec3 : movingObjectPosition.hitVec;
-//    					d = 0.0D;
-//    				}
-//    			} else if (movingObjectPosition != null) {
-//    				double d2 = vec3.distanceTo(movingObjectPosition.hitVec);
-//
-//    				if (d2 < radius || radius == 0.0D) {
-//    					if (entity == entityPlayer.ridingEntity && !entity.canRiderInteract()) {
-//    						if (radius == 0.0D) {
-//    							pointedEntity = entity;
-//    							vec33 = movingObjectPosition.hitVec;
-//    						}
-//    					} else {
-//    						pointedEntity = entity;
-//    						vec33 = movingObjectPosition.hitVec;
-//    						d = d2;
-//    					}
-//    				}
-//    			}
-//    		}
-//    	}
-//            
-//    	if (pointedEntity != null && (d < radius)) {
-//    		return new MovingObjectPosition(pointedEntity, vec33);
-//    	}
-//            
-//    	return null;
-//    }
-	
+
     @Override
     public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
 		return 0x8B4513;
     }
-    
+
     @Override
     public boolean requiresMultipleRenderPasses(){
         return true;
     }
-    
+
     @SideOnly(Side.CLIENT)
     @Override
     public void registerIcons(IIconRegister par1IconRegister){

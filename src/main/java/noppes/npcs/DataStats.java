@@ -11,7 +11,7 @@ import noppes.npcs.util.ValueUtil;
 public class DataStats {
 	
 	private float attackStrength = 5;
-	public int attackSpeed = 20, attackRange = 2, knockback = 0;
+	public int attackSpeed = 20, swingWarmUp = 0, attackRange = 2, knockback = 0;
 	public int minDelay = 20, maxDelay = 40, rangedRange = 15, fireRate = 5, burstCount = 1, shotCount = 1, accuracy = 60;
 	public int aggroRange = 16;
 	
@@ -28,6 +28,7 @@ public class DataStats {
 	
 	public Resistances resistances = new Resistances();
 
+	public boolean ignoreCobweb = false;
 	public boolean immuneToFire = false;
 	public boolean potionImmune = false;
 	public int drowningType = 1; // 0 - Never, 1 - Water,  2 - Air
@@ -64,12 +65,14 @@ public class DataStats {
 		compound.setInteger("RespawnTime", respawnTime);
 		compound.setInteger("SpawnCycle", spawnCycle);
 		compound.setInteger("CreatureType", creatureType.ordinal());
+		compound.setBoolean("IgnoreCobweb", ignoreCobweb);
 		compound.setFloat("HealthRegen", healthRegen);
 		compound.setFloat("CombatRegen", combatRegen);
 		
 		compound.setFloat("AttackStrenght", attackStrength);
 		compound.setInteger("AttackRange", attackRange);
 		compound.setInteger("AttackSpeed", attackSpeed);
+		compound.setInteger("SwingWarmup", swingWarmUp);
 		compound.setInteger("KnockBack", knockback);
 		compound.setInteger("PotionEffect", potionType.ordinal());
 		compound.setInteger("PotionDuration", potionDuration);
@@ -123,11 +126,13 @@ public class DataStats {
 		respawnTime = compound.getInteger("RespawnTime");
 		spawnCycle = compound.getInteger("SpawnCycle");
 		creatureType = EnumCreatureAttribute.values()[compound.getInteger("CreatureType") % EnumPotionType.values().length];
+		ignoreCobweb = compound.getBoolean("IgnoreCobweb");
 		healthRegen = compound.getFloat("HealthRegen");
 		combatRegen = compound.getFloat("CombatRegen");
 
 		setAttackStrength(compound.getFloat("AttackStrenght"));
 		attackSpeed = compound.getInteger("AttackSpeed");
+		swingWarmUp = ValueUtil.clamp(compound.getInteger("SwingWarmup"), 0, 1000);
 		attackRange = compound.getInteger("AttackRange");
 		knockback = compound.getInteger("KnockBack");
 		potionType = EnumPotionType.values()[compound.getInteger("PotionEffect") % EnumPotionType.values().length];

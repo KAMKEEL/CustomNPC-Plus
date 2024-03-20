@@ -95,7 +95,7 @@ public class JobConversation extends JobInterface{
 	public Quest getQuest() {
 		if(npc.isRemote())
 			return null;
-		return QuestController.instance.quests.get(quest);
+		return QuestController.Instance.quests.get(quest);
 	}
 	@Override
 	public void aiUpdateTask() {
