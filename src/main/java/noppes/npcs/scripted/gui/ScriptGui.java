@@ -256,14 +256,21 @@ public class ScriptGui implements ICustomGui {
             }
         }
 
-        List<IItemSlot> slots = new ArrayList();
+        List<IItemSlot> slots = new ArrayList<>();
         list = tag.getTagList("slots", 10);
 
         for(int i = 0; i < list.tagCount(); i++){
-            NBTBase b = list.getCompoundTagAt(i);
-            ScriptGuiItemSlot component = (ScriptGuiItemSlot)ScriptGuiComponent.createFromNBT((NBTTagCompound)b);
-            components.put(component.getID(), component);
-            slots.add(component);
+            NBTTagCompound slotNbt = list.getCompoundTagAt(i);
+
+            int id = slotNbt.getInteger("id");
+            if (!components.containsKey(id)) {
+                components.put(id, ScriptGuiComponent.createFromNBT(slotNbt));
+            } else {
+                components.get(id).fromNBT(slotNbt);
+            }
+
+            ScriptGuiItemSlot slot = (ScriptGuiItemSlot) components.get(id);
+            slots.add(slot);
         }
 
         this.slots = slots;
