@@ -1143,8 +1143,11 @@ model.legs=Legs
 model.scale=Scale
 model.animation=Animation
 model.rotate=Rotate
+model.pivot=Pivot
 model.load=Model Load
 model.save=Model Save
+model.sliders=Sliders
+model.manual=Manual
 
 puppet.standing=While standing
 puppet.walking=While walking
