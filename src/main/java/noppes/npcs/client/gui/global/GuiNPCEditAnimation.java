@@ -43,6 +43,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     public GuiNPCEditAnimation(GuiScreen parent, Animation animation, EntityNPCInterface npc) {
         super((EntityCustomNpc) npc);
         this.parent = parent;
+        this.followMouse = false;
         xOffset = 0;
         yOffset = -21;
 
@@ -252,7 +253,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 this.addLabel(new GuiNpcLabel(67, editingPart.part.name(), guiLeft + bodyPartX + 65, guiTop + bodyPartY + 20, 0xFFFFFF));
                 this.addButton(new GuiNpcButton(67, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 35, 60, 20, "gui.remove"));
 
-                this.addButton(new GuiNpcButton(68, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 57, 60, 20, new String[] {"Sliders","Manual"}, partEditMode));
+                this.addButton(new GuiNpcButton(68, guiLeft + bodyPartX + 45, guiTop + bodyPartY + 57, 60, 20, new String[] {"model.sliders","model.manual"}, partEditMode));
 
                 if (partEditMode == 0) {
                     this.addButton(new GuiNpcButton(69, guiLeft + bodyPartX, guiTop + bodyPartY + 80, 60, 20, "model.rotate"));

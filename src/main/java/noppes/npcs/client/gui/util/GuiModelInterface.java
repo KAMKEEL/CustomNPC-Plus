@@ -24,6 +24,7 @@ public class GuiModelInterface extends GuiNPCInterface{
 
 	public int xOffset = 0;
     public int yOffset = 0;
+    public boolean followMouse = true;
 
 	public EntityCustomNpc npc;
 
@@ -102,8 +103,8 @@ public class GuiModelInterface extends GuiNPCInterface{
         GL11.glRotatef(-(float)Math.atan(f6 / 80F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
         entity.prevRotationYaw = entity.rotationYaw = (float)Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = -(float)Math.atan(f6 / 80F) * 20F;
-        entity.prevRotationYawHead = entity.rotationYawHead = entity.rotationYaw;
+        entity.rotationPitch = followMouse ? -(float)Math.atan(f6 / 80F) * 20F : 0;
+        entity.prevRotationYawHead = entity.rotationYawHead = followMouse ? entity.rotationYaw : rotation;
         GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
         RenderManager.instance.playerViewY = 180F;
 
