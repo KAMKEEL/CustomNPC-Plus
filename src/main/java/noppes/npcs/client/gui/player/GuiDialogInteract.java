@@ -134,8 +134,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        float f7 = npc.rotationYawHead;
 	        float f5 = (float)(l) - i;
 	        float f6 = (float)(i1 - 50) - j;
-	        //int rotation = npc.ai.orientation;
-	        //npc.ai.orientation = 0;
+	        int rotation = npc.ai.orientation;
+	        npc.ai.orientation = 0;
 	        GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
 	        RenderHelper.enableStandardItemLighting();
 	        GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
@@ -152,7 +152,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	            RenderManager.instance.renderEntityWithPosYaw(npc, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
 	        } catch(Exception ignored){}
 
-	        //npc.ai.orientation = rotation;
+	        npc.ai.orientation = rotation;
 	        npc.renderYawOffset = f2;
 	        npc.rotationYaw = f3;
 	        npc.rotationPitch = f4;
