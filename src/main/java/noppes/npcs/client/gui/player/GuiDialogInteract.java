@@ -511,14 +511,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 		if (dialog.alignment == 1) {
             int i = totalRows - lineBlocks.get(lineBlocks.size() - 1).lines.size() - 1;
 			height = count - totalRows + lineOffset - i + 1;
-			screenPos = ClientProxy.Font.height() * (totalRows - lineOffset);// dialog.textHeight + ClientProxy.Font.height() + (totalRows - lineOffset);
-
-			int scrollToOffset = 0;
-			if (totalRows * ClientProxy.Font.height() > dialog.textHeight) {
-				scrollToOffset = totalRows - lineBlocks.get(lineBlocks.size() - 1).lines.size() + (int) Math.floor(lineBlocks.size() / 2f);
-			}
-			y = ((count - scrollToOffset) * ClientProxy.Font.height()) + screenPos + scrollY + height;
-
+			screenPos = ClientProxy.Font.height() * (totalRows - lineOffset);
             y = (height * ClientProxy.Font.height()) + screenPos + scrollY;
 		}
 

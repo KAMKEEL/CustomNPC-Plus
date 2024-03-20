@@ -43,22 +43,4 @@ public class ScriptGuiItemSlot extends ScriptGuiComponent implements IItemSlot {
     public int getType() {
         return 5;
     }
-
-    public NBTTagCompound toNBT(NBTTagCompound nbt) {
-        super.toNBT(nbt);
-        if (this.hasStack()) {
-            nbt.setTag("stack", this.stack.getItemNbt().getMCNBT());
-        }
-
-        return nbt;
-    }
-
-    public ScriptGuiComponent fromNBT(NBTTagCompound nbt) {
-        super.fromNBT(nbt);
-        if (nbt.hasKey("stack")) {
-            this.setStack(NpcAPI.Instance().getIItemStack(ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stack"))));
-        }
-
-        return this;
-    }
 }
