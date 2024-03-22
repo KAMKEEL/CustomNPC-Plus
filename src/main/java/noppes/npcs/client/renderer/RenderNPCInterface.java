@@ -68,7 +68,7 @@ public class RenderNPCInterface extends RenderLiving{
 			float height = ((npc.baseHeight / 5f) * npc.display.modelSize);
 			float offset = npc.height * (1.2f + (!npc.display.showName()?0:npc.display.title.isEmpty()?0.15f:0.25f));
 
-			npc.messages.renderMessages(d, d1 + offset, d2, 0.666667F * height);
+			npc.messages.renderMessages(d, d1 + offset, d2, 0.666667F * height, npc.isInRange(renderManager.livingPlayer, 4));
 		}
 		float scale = (npc.baseHeight / 5f) * npc.display.modelSize;
 		int height = 0;

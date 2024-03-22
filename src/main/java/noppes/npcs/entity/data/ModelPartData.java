@@ -7,6 +7,7 @@ public class ModelPartData {
 	public int color = 0xFFFFFF;
 	public String texture;
 	public byte type = 0;
+    public byte pattern = 0;
 	public boolean playerTexture;
 
 	private ResourceLocation location;
@@ -24,6 +25,7 @@ public class ModelPartData {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setByte("Type", type);
 		compound.setInteger("Color", color);
+        compound.setByte("Pattern", pattern);
 		if(texture != null && !texture.isEmpty()) {
 			compound.setString("Texture", texture);
 		}
@@ -35,6 +37,7 @@ public class ModelPartData {
 		type = compound.getByte("Type");
 		color = compound.getInteger("Color");
 		texture = compound.getString("Texture");
+        pattern = compound.getByte("Pattern");
 		playerTexture = compound.getBoolean("PlayerTexture");
 		location = null;
 	}

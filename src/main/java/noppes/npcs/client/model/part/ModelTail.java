@@ -26,6 +26,8 @@ public class ModelTail extends ModelScaleRenderer {
 	private ModelRenderer fin;
 	private ModelRenderer rodent;
 	private ModelRenderer feather;
+    private ModelCanineTail fox;
+    private ModelMonkeyTail monkey;
 
 	private int color = 0xFFFFFF;
 
@@ -65,15 +67,13 @@ public class ModelTail extends ModelScaleRenderer {
         horse.addChild(tailTip);
         horse.rotateAngleX = 0.5f;
 
-
 		this.addChild(dragon = new ModelDragonTail(base));
-
 		this.addChild(squirrel = new ModelSquirrelTail(base));
-
 		this.addChild(fin = new ModelTailFin(base));
 		this.addChild(rodent = new ModelRodentTail(base));
-
 		this.addChild(feather = new ModelFeatherTail(base));
+        this.addChild(fox = new ModelCanineTail(base));
+        this.addChild(monkey = new ModelMonkeyTail(base));
 	}
 
 	public void setData(EntityCustomNpc entity) {
@@ -85,30 +85,54 @@ public class ModelTail extends ModelScaleRenderer {
 			float par4, float par5, float par6, Entity entity) {
 		if(this.entity==null) return;
 
-		rotateAngleY = MathHelper.cos(par1 * 0.6662F) * 0.3f * par2;
-        rotateAngleX = MathHelper.sin(par3 * 0.067F) * 0.05F;
+        float rotateAngleY = MathHelper.cos(par1 * 0.6662F) * 0.3f * par2;
+        float rotateAngleX = MathHelper.sin(par3 * 0.067F) * 0.05F;
 
+        rotationPointY = 11;
         if(this.entity.modelData.legParts.type == 2){
         	rotationPointY = 13f;
         	rotationPointZ = 14 * this.entity.modelData.modelScale.legs.scaleZ;
 
 	        if(base.isSleeping(entity) || this.entity.currentAnimation == EnumAnimation.CRAWLING){
 	        	rotationPointY = 12 + 16 * this.entity.modelData.modelScale.legs.scaleZ;
-	        	rotationPointZ = 1f * this.entity.modelData.modelScale.legs.scaleY;
+	        	rotationPointZ = this.entity.modelData.modelScale.legs.scaleY;
 
 				rotateAngleX = (float) (Math.PI / -4);
 	        }
         }
         else if(this.entity.modelData.legParts.type == 3){
-        	rotationPointY = 8.6f;
-        	rotationPointZ = 19 * this.entity.modelData.modelScale.legs.scaleZ;
+        	// rotationPointY = 8.6f;
+            rotationPointY = 10;
+            rotationPointZ = 19 * this.entity.modelData.modelScale.legs.scaleZ;
         }
-        else{
-        	rotationPointY = 11;
-        	this.rotationPointZ = -1;
+        else {
+        	// this.rotationPointZ = -1;
+            rotationPointZ = -1;
+        }
+        ModelPartData partTail = this.entity.modelData.getPartData("tail");
+        if(partTail != null){
+            if(partTail.type == 2) {
+                rotateAngleX += 0.5F;
+            }
+            if(partTail.type == 0) {
+                rotateAngleX += 0.87F;
+            }
+            if(partTail.type == 7){
+                rotationPointY -= 1;
+                fox.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            }
+            if(partTail.type == 8){
+                monkey.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+                if(partTail.pattern == 1){
+                    rotationPointZ += 1;
+                    rotateAngleX = 0;
+                }
+            }
         }
         this.rotationPointZ += base.bipedRightLeg.rotationPointZ + 0.5f;
-	}
+        monkey.rotateAngleX = fox.rotateAngleX = tail.rotateAngleX = feather.rotateAngleX = dragon.rotateAngleX = squirrel.rotateAngleX = horse.rotateAngleX = fin.rotateAngleX = rodent.rotateAngleX = rotateAngleX;
+        monkey.rotateAngleY = fox.rotateAngleY = tail.rotateAngleY = feather.rotateAngleY = dragon.rotateAngleY = squirrel.rotateAngleY = horse.rotateAngleY = fin.rotateAngleY = rodent.rotateAngleY = rotateAngleY;
+    }
 
     public void setLivingAnimations(ModelPartData data, EntityLivingBase entity, float par2, float par3, float par4) {
     }
@@ -129,6 +153,13 @@ public class ModelTail extends ModelScaleRenderer {
         fin.isHidden = config.type != 4;
         rodent.isHidden = config.type != 5;
 		feather.isHidden = config.type != 6;
+        fox.isHidden = config.type != 7;
+
+        monkey.isHidden = config.type != 8;
+        monkey.monkey.isHidden = config.pattern != 0;
+        monkey.monkey_wrapped.isHidden = config.pattern != 1;
+        monkey.monkey_large.isHidden = config.pattern != 2;
+
 		if(!config.playerTexture){
 			location = config.getResource();
 		}

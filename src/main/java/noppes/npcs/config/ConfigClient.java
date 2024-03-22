@@ -42,6 +42,9 @@ public class ConfigClient
     public static Property FontSizeProperty;
     public static int FontSize = 18;
 
+    public static Property ChatBubblesFontTypeProperty;
+    public static boolean ChatBubblesFontType = false;
+
     /**
      *  Questing Properties
      **/
@@ -96,6 +99,9 @@ public class ConfigClient
 
             FontSizeProperty = config.get(VISUAL, "Font Size", 18, "Font size for custom fonts (doesn't work with minecrafts font)");
             FontSize = FontSizeProperty.getInt(18);
+
+            ChatBubblesFontTypeProperty = config.get(VISUAL, "Chat Bubbles Font Type", false, "Enable the use of Custom Font for Chat Bubbles");
+            ChatBubblesFontType = ChatBubblesFontTypeProperty.getBoolean(false);
 
             // Questing
             TrackingInfoAlignmentProperty = config.get(QUESTING, "Tracking Info Alignment", 3, "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8. Default: 3");

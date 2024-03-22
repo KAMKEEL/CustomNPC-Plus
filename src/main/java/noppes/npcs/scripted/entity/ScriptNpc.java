@@ -39,14 +39,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		super(npc);
 		this.npc = npc;
 	}
-		
+
 	/**
 	 * @return Returns the current npcs size
 	 */
 	public int getSize(){
 		return npc.display.modelSize;
 	}
-	
+
 	/**
 	 * @param size The size of the npc. Default is 5
 	 */
@@ -78,7 +78,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.display.modelType = modelType;
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @return The npcs name
 	 */
@@ -134,8 +134,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setName(String name){
 		npc.display.name = name;
 		npc.script.clientNeedsUpdate = true;
-	}	
-	
+	}
+
 	/**
 	 * @since 1.7.10
 	 * @return The npcs title
@@ -143,7 +143,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public String getTitle(){
 		return npc.display.title;
 	}
-	
+
 	/**
 	 * @since 1.7.10
 	 * @param title The title of the npc
@@ -152,14 +152,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.display.title = title;
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @return The npcs texture
 	 */
 	public String getTexture(){
 		return npc.display.texture;
 	}
-	
+
 	/**
 	 * @param texture The texture of the npc
 	 */
@@ -178,42 +178,42 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public int getHomeX(){
 		return npc.getStartPos()[0];
 	}
-	
+
 	/**
 	 * @param x The home x position
 	 */
 	public void setHomeX(int x){
 		npc.ai.startPos[0] = x;
 	}
-	
+
 	/**
 	 * @return Home position x
 	 */
 	public int getHomeY(){
 		return npc.getStartPos()[1];
 	}
-	
+
 	/**
 	 * @param y The home y position
 	 */
 	public void setHomeY(int y){
 		npc.ai.startPos[1] = y;
 	}
-	
+
 	/**
 	 * @return Home position x
 	 */
 	public int getHomeZ(){
 		return npc.getStartPos()[2];
 	}
-	
+
 	/**
 	 * @param z The home x position
 	 */
 	public void setHomeZ(int z){
 		npc.ai.startPos[2] = z;
 	}
-	
+
 	/**
 	 * @param x The home x position
 	 * @param y The home y position
@@ -234,28 +234,28 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.stats.setMaxHealth(health);
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @param bo Whether or not the npc will try to return to his home position
 	 */
 	public void setReturnToHome(boolean bo){
 		npc.ai.returnToStart = bo;
 	}
-	
+
 	/**
 	 * @return Whether or not the npc returns home
 	 */
 	public boolean getReturnToHome(){
 		return npc.ai.returnToStart;
 	}
-	
+
 	/**
 	 * @return The faction of the npc
 	 */
 	public IFaction getFaction(){
 		return FactionController.getInstance().get(this.npc.faction.id);
 	}
-	
+
 	/**
 	 * @param id The id of the new faction
 	 */
@@ -288,9 +288,9 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public boolean typeOf(int type){
 		return type == EntityType.NPC?true:super.typeOf(type);
 	}
-	
+
 	/**
-	 * @param target The targeted npc 
+	 * @param target The targeted npc
 	 * @param item The item you want to shoot
 	 * @param accuracy Accuracy of the shot (0-100)
 	 */
@@ -303,7 +303,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			accuracy = 100;
 		npc.shoot(target.getMCEntity(), accuracy, item.getMCItemStack(), false);
 	}
-	
+
 	public void setProjectilesKeepTerrain(boolean t) {
 		npc.stats.projectilesKeepTerrain = t;
 	}
@@ -320,7 +320,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void say(String message){
 		npc.saySurrounding(new Line(message));
 	}
-	
+
 	/**
 	 * @param message The message the npc will say
 	 */
@@ -378,7 +378,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void kill(){
 		npc.setDead();
 	}
-	
+
 	/**
 	 * Basically completely resets the npc. This will also call the Init script
 	 */
@@ -449,14 +449,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			}
 		}
 	}
-	
+
 	/**
 	 * @return The item held in the right hand
 	 */
 	public IItemStack getRightItem(){
 		return NpcAPI.Instance().getIItemStack(npc.inventory.getWeapon());
 	}
-	
+
 	/**
 	 * @param item Item to be held in the right hand
 	 */
@@ -467,14 +467,22 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.inventory.setWeapon(item.getMCItemStack());
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
+     * Was an old typo
 	 * @return The item held in the left hand
 	 */
 	public IItemStack getLefttItem(){
 		return NpcAPI.Instance().getIItemStack(npc.getOffHand());
 	}
-	
+
+    /**
+     * @return The item held in the left hand
+     */
+    public IItemStack getLeftItem(){
+        return getLefttItem();
+    }
+
 	/**
 	 * @param item Item to be held in the left hand
 	 */
@@ -485,14 +493,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.inventory.setOffHand(item.getMCItemStack());
 		//npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @return Returns the projectile the npc uses
 	 */
 	public IItemStack getProjectileItem(){
 		return NpcAPI.Instance().getIItemStack(npc.inventory.getProjectile());
 	}
-	
+
 	/**
 	 * @param item Item to be used as projectile
 	 */
@@ -570,7 +578,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setFireSound(String fireSound) {
 		npc.stats.fireSound = fireSound;
 	}
-	
+
 	/**
 	 * @param slot The armor slot to return. 0:head, 1:body, 2:legs, 3:boots
 	 * @return Returns the worn armor in slot
@@ -579,7 +587,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public IItemStack getArmor(int slot){
 		return NpcAPI.Instance().getIItemStack(npc.inventory.armor.get(slot));
 	}
-	
+
 	/**
 	 * @param slot The armor slot to set. 0:head, 1:body, 2:legs, 3:boots
 	 * @param item Item to be set as armor
@@ -590,7 +598,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.inventory.armor.put(slot, null);
 		else
 			npc.inventory.armor.put(slot, item.getMCItemStack());
-		
+
 		npc.script.clientNeedsUpdate = true;
 	}
 
@@ -678,7 +686,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public int getMaxLootXP(){
 		return npc.inventory.maxExp;
 	}
-	
+
 	/**
 	 * @param type The AnimationType
 	 */
@@ -800,7 +808,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setLivingAnimation(boolean livingAnimation) {
 		npc.display.disableLivingAnimation = !livingAnimation;
 	}
-	
+
 	/**
 	 * @param type The visibility type of the npc, 0:visible, 1:invisible, 2:semi-visible
 	 */
@@ -808,7 +816,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.display.visible = type;
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @return The visibility type of the npc, 0:visible, 1:invisible, 2:semi-visible
 	 */
@@ -833,7 +841,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public boolean isVisibleTo(IPlayer player) {
 		return !npc.scriptInvisibleToPlayer((EntityPlayer) player.getMCEntity());
 	}
-	
+
 	/**
 	 * @param type The visibility type of the name, 0:visible, 1:invisible, 2:when-attacking
 	 */
@@ -841,21 +849,21 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.display.showName = type;
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @return Returns the visibility type of the name, 0:visible, 1:invisible, 2:when-attacking
 	 */
 	public int getShowName(){
 		return npc.display.showName;
 	}
-	
+
 	/**
 	 * @return Returns the visiblity of the boss bar, 0:invisible, 1:visible, 2:when-attacking
 	 */
 	public int getShowBossBar(){
 		return npc.display.showBossBar;
 	}
-	
+
 	/**
 	 * @param type The visibility type of the boss bar, 0:invisible, 1:visible, 2:when-attacking
 	 */
@@ -863,28 +871,28 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.display.showBossBar = (byte) type;
 		npc.script.clientNeedsUpdate = true;
 	}
-	
+
 	/**
 	 * @return The melee strength
 	 */
 	public double getMeleeStrength(){
 		return npc.stats.getAttackStrength();
 	}
-	
+
 	/**
 	 * @param strength The melee strength
 	 */
 	public void setMeleeStrength(double strength){
 		npc.stats.setAttackStrength(strength);
 	}
-	
+
 	/**
 	 * @return The melee speed
 	 */
 	public int getMeleeSpeed(){
 		return npc.stats.attackSpeed;
 	}
-	
+
 	/**
 	 * @param speed The melee speed
 	 */
@@ -954,35 +962,35 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public float getRangedStrength(){
 		return npc.stats.pDamage;
 	}
-	
+
 	/**
 	 * @param strength The ranged strength
 	 */
 	public void setRangedStrength(float strength){
 		npc.stats.pDamage = (float)(Math.floor(strength));
 	}
-	
+
 	/**
 	 * @return The ranged speed
 	 */
 	public int getRangedSpeed(){
 		return npc.stats.pSpeed;
 	}
-	
+
 	/**
 	 * @param speed The ranged speed
 	 */
 	public void setRangedSpeed(int speed){
 		npc.stats.pSpeed = speed;
 	}
-	
+
 	/**
 	 * @return The ranged burst count
 	 */
 	public int getRangedBurst(){
 		return npc.stats.burstCount;
 	}
-	
+
 	/**
 	 * @param count The ranged burst count
 	 */
@@ -1027,31 +1035,31 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.stats.canDespawn = canDespawn;
 		npc.stats.playerSetCanDespawn = canDespawn;
 	}
-	
+
 	public boolean spawnedFromSoulStone() {
 		return !npc.advanced.soulStonePlayerName.equals("");
 	}
-	
+
 	public String getSoulStonePlayerName() {
 		return npc.advanced.soulStonePlayerName;
 	}
-	
+
 	public boolean getRefuseSoulStone() {
 		return npc.advanced.refuseSoulStone;
 	}
-	
+
 	public void setRefuseSoulStone(boolean refuse) {
 		npc.advanced.refuseSoulStone = refuse;
 	}
-	
+
 	public boolean isSoulStoneInit() {
 		return npc.advanced.soulStoneInit;
 	}
-	
+
 	public int getMinPointsToSoulStone() {
 		return npc.advanced.minFactionPointsToSoulStone;
 	}
-	
+
 	public void setMinPointsToSoulStone(int points) {
 		npc.advanced.minFactionPointsToSoulStone = points;
 	}
@@ -1087,7 +1095,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.script.clientNeedsUpdate = true;
 		}
 	}
-	
+
 	public void setArmsScale(float x, float y, float z){
 		if(npc instanceof EntityCustomNpc) {
 			((EntityCustomNpc) this.npc).modelData.modelScale.arms.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
@@ -1097,7 +1105,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			npc.script.clientNeedsUpdate = true;
 		}
 	}
-	
+
 	public void setLegsScale(float x, float y, float z){
 		if(npc instanceof EntityCustomNpc) {
 			((EntityCustomNpc) this.npc).modelData.modelScale.legs.scaleX = ValueUtil.clamp(x, 0.5f, 1.5f);
@@ -1165,7 +1173,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public double getKnockbackResistance(){
 		return npc.stats.resistances.knockback;
 	}
-	
+
 	/**
 	 * @param type Retaliation type. 0:normal, 1:panic, 2:retreat, 3:nothing
 	 */
@@ -1178,35 +1186,35 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		npc.ai.onAttack = type;
 		npc.updateTasks();
 	}
-	
+
 	/**
 	 * @return Returns the combat health regen per second
 	 */
 	public float getCombatRegen(){
 		return npc.stats.combatRegen;
 	}
-	
+
 	/**
 	 * @param regen The combat health regen per second
 	 */
 	public void setCombatRegen(float regen){
 		npc.stats.combatRegen = (float)(Math.floor(regen));
 	}
-	
+
 	/**
 	 * @return Returns the health regen per second when not in combat
 	 */
 	public float getHealthRegen(){
 		return npc.stats.healthRegen;
 	}
-	
+
 	/**
 	 * @param regen The health regen per second when not in combat
 	 */
 	public void setHealthRegen(float regen){
 		npc.stats.healthRegen = (float)(Math.floor(regen));
 	}
-	
+
 	public boolean getCanDrown() {
 		return npc.stats.drowningType > 0;
 	}

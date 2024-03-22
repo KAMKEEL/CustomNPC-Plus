@@ -20,6 +20,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
@@ -459,7 +460,7 @@ public class ServerEventsHandler {
 
 	@SubscribeEvent
 	public void pickUp(EntityItemPickupEvent event){
-		if(event.entityPlayer.worldObj.isRemote)
+		if(event.entityPlayer.worldObj.isRemote || event.entityPlayer instanceof FakePlayer)
 			return;
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
 		PlayerQuestData questData = playerData.questData;

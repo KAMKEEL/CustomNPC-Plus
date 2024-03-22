@@ -9,7 +9,7 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
 {
 	private DataStats stats;
 	private String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
-	
+
     public SubGuiNpcMeleeProperties(DataStats stats)
     {
     	this.stats = stats;
@@ -34,11 +34,6 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
         addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 85, guiTop + 70, 40, 18, stats.attackSpeed+""));
         getTextField(3).integersOnly = true;
         getTextField(3).setMinMaxDefault(1, Integer.MAX_VALUE, 20);
-
-		addLabel(new GuiNpcLabel(8,"stats.swingwarmup", guiLeft + 130, guiTop + 75));
-		addTextField(new GuiNpcTextField(8,this, fontRendererObj, guiLeft + 220, guiTop + 70, 30, 18, stats.swingWarmUp +""));
-		getTextField(8).integersOnly = true;
-		getTextField(8).setMinMaxDefault(0, 1000, 0);
 
         addLabel(new GuiNpcLabel(4,"enchantment.knockback", guiLeft + 5, guiTop + 105));
 		addTextField(new GuiNpcTextField(4,this, fontRendererObj, guiLeft + 85, guiTop + 100, 40, 18, stats.knockback + ""));
@@ -75,11 +70,8 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
 		else if(textfield.id == 6){
 			stats.potionDuration = textfield.getInteger();
 		}
-		else if(textfield.id == 8){
-			stats.swingWarmUp = textfield.getInteger();
-		}
 	}
-    
+
 	protected void actionPerformed(GuiButton guibutton)
     {
 		GuiNpcButton button = (GuiNpcButton) guibutton;
