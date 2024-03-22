@@ -61,7 +61,14 @@ public class RenderChatMessages implements IChatMessages{
         int size = 0;
         for (TextBlockClient block : messages.values())
             size += block.lines.size();
-        int textYSize = (int) (size * font.FONT_HEIGHT * scale);
+
+        int fontHeight;
+        if(ConfigClient.ChatBubblesFontType)
+            fontHeight = ClientProxy.Font.height();
+        else
+            fontHeight = font.FONT_HEIGHT;
+
+        int textYSize = (int) (size * fontHeight * scale);
         GL11.glTranslatef((float)par3 + 0.0F, (float)par5 + textYSize * textscale * var14, (float)par7);
         GL11.glScalef(textscale, textscale, textscale);
         GL11.glNormal3f(0.0F, 1.0F, 0.0F);
@@ -116,11 +123,14 @@ public class RenderChatMessages implements IChatMessages{
         GL11.glScalef(scale, scale, scale);
         int index = 0;
         for(TextBlockClient block : messages.values()){
-        	for(IChatComponent chat : block.lines){
-	        	String message = chat.getFormattedText();
-	        	font.drawString(message, -font.getStringWidth(message) / 2, index * font.FONT_HEIGHT, black);
-	        	index++;
-        	}
+            for(IChatComponent chat : block.lines){
+                String message = chat.getFormattedText();
+                if(ConfigClient.ChatBubblesFontType)
+                    ClientProxy.Font.drawString(message, -ClientProxy.Font.width(message) / 2, index * fontHeight, black);
+                else
+                    font.drawString(message, -font.getStringWidth(message) / 2, index * fontHeight, black);
+                index++;
+            }
             GL11.glDisable(GL11.GL_CULL_FACE);
         }
         GL11.glEnable(GL11.GL_LIGHTING);
