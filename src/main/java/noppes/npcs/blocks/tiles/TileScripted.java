@@ -89,10 +89,6 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         setNBT(compound);
         setDisplayNBT(compound);
         timers.readFromNBT(compound);
-        NBTTagCompound extraData = compound.getCompoundTag("ExtraData");
-        if(!extraData.hasNoTags()){
-            getTileData().setTag("CustomNPCsData", extraData);
-        }
     }
 
     public void setNBT(NBTTagCompound compound){
@@ -153,7 +149,6 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         getNBT(compound);
         getDisplayNBT(compound);
         timers.writeToNBT(compound);
-        compound.setTag("ExtraData",getTileData().getTag("CustomNPCsData"));
     }
 
     public NBTTagCompound getNBT(NBTTagCompound compound){
