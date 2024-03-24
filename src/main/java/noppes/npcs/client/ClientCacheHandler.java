@@ -1,6 +1,7 @@
 package noppes.npcs.client;
 
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.CommonProxy;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.ImageData;
@@ -21,7 +22,6 @@ public class ClientCacheHandler {
     public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
 
     public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
-    public static HashSet<Animation> playingAnimations = new HashSet<>();
 
     public static Party party;
 
@@ -57,7 +57,7 @@ public class ClientCacheHandler {
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();
         ClientCacheHandler.playerData.animationData.clearCache();
-        ClientCacheHandler.playingAnimations.clear();
+        CommonProxy.clientPlayingAnimations.clear();
     }
 
     public static void clearSkinCache() {

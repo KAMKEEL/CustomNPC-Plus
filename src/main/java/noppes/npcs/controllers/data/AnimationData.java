@@ -9,6 +9,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
+import noppes.npcs.CommonProxy;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IAnimation;
@@ -56,6 +58,10 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
+            if (!CustomNpcs.proxy.hasClient()) {
+                CommonProxy.serverPlayingAnimations.add(this.animation);
+            }
+
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(
                 sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
                 sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));
@@ -153,18 +159,20 @@ public class AnimationData implements IAnimationData {
     }
 
     public void setAnimation(IAnimation animation) {
-        if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
-            this.animation = (Animation) animation;
-        } else {
-            this.clientSetAnimation(animation);
+        Animation newAnim = null;
+        if (animation != null) {
+            newAnim = new Animation();
+            newAnim.readFromNBT(((Animation) animation).writeToNBT());
+            newAnim.parent = this;
         }
-    }
 
-    @SideOnly(Side.CLIENT)
-    private void clientSetAnimation(IAnimation animation) {
-        Animation newAnim = new Animation();
-        newAnim.readFromNBT(((Animation) animation).writeToNBT());
-        if (this.isActive() && !newAnim.frames.isEmpty()) {
+        if (CustomNpcs.proxy.hasClient() && newAnim != null) {
+            CommonProxy.clientPlayingAnimations.remove(this.animation);
+            CommonProxy.clientPlayingAnimations.add(newAnim);
+        }
+        this.animation = newAnim;
+
+        if (this.isActive() && newAnim != null && !newAnim.frames.isEmpty()) {
             Frame frame = (Frame) this.animation.currentFrame();
             if (frame != null) {
                 Frame firstFrame = newAnim.frames.get(0);
@@ -180,9 +188,6 @@ public class AnimationData implements IAnimationData {
                 }
             }
         }
-        this.animation = newAnim;
-        newAnim.parent = this;
-        ClientCacheHandler.playingAnimations.add(newAnim);
     }
 
     public IAnimation getAnimation() {

@@ -23,7 +23,6 @@ import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Timer;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
@@ -60,7 +59,6 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.data.ModelData;
@@ -82,33 +80,8 @@ public class ClientProxy extends CommonProxy {
 
 	public static FontContainer Font;
 
-    private static Timer animationTimer = new Timer(1000);
-    private static long totalTicks;
-
 	public void load() {
-        Thread thread = (new Thread("Animation Thread") { public void run() {
-            while (true) {
-                if (!Minecraft.getMinecraft().isGamePaused()) {
-                    animationTimer.updateTimer();
-                }
-
-                try {
-                    for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
-                        for (Animation animation : ClientCacheHandler.playingAnimations) {
-                            if (animation.parent.isActive() && totalTicks % animation.currentFrame().tickDuration() == 0) {
-                                animation.increaseTime();
-                            }
-                        }
-                        totalTicks++;
-                    }
-                    totalTicks %= 60 * 60 * 1000;
-                    ClientCacheHandler.playingAnimations.removeIf(animation ->
-                        animation.parent.animation != animation || !animation.parent.isActive());
-                } catch (Exception ignored) {}
-            }
-        }});
-        thread.setDaemon(true);
-        thread.start();
+        this.createAnimationThread();
 
 		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();

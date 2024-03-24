@@ -220,7 +220,6 @@ public class Animation implements IAnimation {
 		return compound;
 	}
 
-	@SideOnly(Side.CLIENT)
 	public void increaseTime() {
 		if (paused)
 			return;

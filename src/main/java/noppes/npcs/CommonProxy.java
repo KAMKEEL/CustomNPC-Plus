@@ -1,7 +1,11 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.network.IGuiHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -14,18 +18,79 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
+import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.util.MillisTimer;
+
+import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
-
-	public boolean newVersionAvailable = false;
-	public int revision = 1;
+    public static HashSet<Animation> clientPlayingAnimations = new HashSet<>();
+    public static HashSet<Animation> serverPlayingAnimations = new HashSet<>();
+    protected MillisTimer animationTimer = new MillisTimer(1000);
+    protected long totalTicks;
 
 	public void load() {
+        this.createAnimationThread();
+
 		CustomNpcs.Channel.register(new PacketHandlerServer());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 	}
+
+    protected void createAnimationThread() {
+        Thread thread = (new Thread("Animation Thread") { public void run() {
+            while (true) {
+                if (!CustomNpcs.proxy.hasClient() || !Minecraft.getMinecraft().isGamePaused()) {
+                    animationTimer.updateTimer();
+                }
+
+                HashSet<Animation> playingAnimations = CustomNpcs.proxy.hasClient() ? clientPlayingAnimations : serverPlayingAnimations;
+                for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
+                    for (Animation animation : playingAnimations) {
+                        if (animation.parent.isActive() && totalTicks % animation.currentFrame().tickDuration() == 0) {
+                            animation.increaseTime();
+                        }
+                    }
+                    totalTicks++;
+                }
+                totalTicks %= 60 * 60 * 1000;
+                clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+                serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+            }
+        }});
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private boolean removeAnimation(Animation animation) {
+        if (animation.parent == null || animation.parent.animation != animation) return true;
+
+        Entity entity = null;
+        if (animation.parent.parent instanceof DataDisplay) {
+            entity = ((DataDisplay)animation.parent.parent).npc;
+        } else {
+            if (animation.parent.parent instanceof PlayerData) {
+                entity = ((PlayerData) animation.parent.parent).player;
+            } else if (animation.parent.parent instanceof EntityPlayer) {
+                entity = (EntityPlayer) animation.parent.parent;
+            }
+        }
+
+        if (entity == null) return true;
+
+        if (CustomNpcs.proxy.hasClient()) {
+            return clientRemoveAnimation(entity);
+        } else {
+            return entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity);
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private boolean clientRemoveAnimation(Entity entity) {
+        return Minecraft.getMinecraft().currentScreen == null
+            && !Minecraft.getMinecraft().theWorld.loadedEntityList.contains(entity);
+    }
 
 	public PlayerData getPlayerData(EntityPlayer player) {
 		return null;
