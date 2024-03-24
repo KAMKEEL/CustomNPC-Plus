@@ -64,7 +64,9 @@ public class CommonProxy implements IGuiHandler {
     }
 
     private boolean removeAnimation(Animation animation) {
-        if (animation.parent == null || animation.parent.animation != animation) return true;
+        if (animation.currentFrame() == null || animation.parent == null || animation.parent.animation != animation) {
+            return true;
+        }
 
         Entity entity = null;
         if (animation.parent.parent instanceof DataDisplay) {
