@@ -77,7 +77,7 @@ public class Frame implements IFrame {
 	}
 
     public int tickDuration() {
-        return this.tickDuration;
+        return !this.customized && this.parent != null ? this.parent.tickDuration : this.tickDuration;
     }
 
     public IFrame setTickDuration(int tickDuration) {

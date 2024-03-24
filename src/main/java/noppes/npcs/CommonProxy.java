@@ -49,7 +49,8 @@ public class CommonProxy implements IGuiHandler {
                 HashSet<Animation> playingAnimations = CustomNpcs.proxy.hasClient() ? clientPlayingAnimations : serverPlayingAnimations;
                 for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
                     for (Animation animation : playingAnimations) {
-                        if (animation.parent.isActive() && totalTicks % animation.currentFrame().tickDuration() == 0) {
+                        int tickDuration = animation.currentFrame().tickDuration();
+                        if (animation.parent.isActive() && totalTicks % tickDuration == 0) {
                             animation.increaseTime();
                         }
                     }
