@@ -183,6 +183,12 @@ public class Animation implements IAnimation {
 		smooth = compound.getByte("Smooth");
 		loop = compound.getInteger("Loop");
 
+        if (compound.hasKey("TickDuration")) {
+            this.tickDuration = compound.getInteger("TickDuration");
+        } else if(compound.hasKey("RenderTicks")){
+            this.tickDuration = compound.getBoolean("RenderTicks") ? 20 : 50;
+        }
+
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		NBTTagList list = compound.getTagList("Frames", 10);
 		for (int i = 0; i < list.tagCount(); i++) {
@@ -206,6 +212,7 @@ public class Animation implements IAnimation {
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
 		compound.setInteger("Loop",loop);
+        compound.setInteger("TickDuration", tickDuration);
 
 		NBTTagList list = new NBTTagList();
 		for(Frame frame : frames){
