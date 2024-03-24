@@ -9,6 +9,7 @@ import noppes.npcs.controllers.data.*;
 import noppes.npcs.util.CacheHashMap;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class ClientCacheHandler {
@@ -18,7 +19,9 @@ public class ClientCacheHandler {
     public static OverlayQuestTracking questTrackingOverlay = null;
     public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
     public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
+
     public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
+    public static HashSet<Animation> playingAnimations = new HashSet<>();
 
     public static Party party;
 
@@ -54,6 +57,7 @@ public class ClientCacheHandler {
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();
         ClientCacheHandler.playerData.animationData.clearCache();
+        ClientCacheHandler.playingAnimations.clear();
     }
 
     public static void clearSkinCache() {

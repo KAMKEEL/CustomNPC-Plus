@@ -20,7 +20,6 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         //
         //ticks - button
         this.addLabel(new GuiNpcLabel(10, "animation.tickType", guiLeft + 5, guiTop + 16));
-        this.addButton(new GuiNpcButton(10, guiLeft + 60, guiTop + 10, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, animation.renderTicks ? 0 : 1));
         //
         //whileStanding - button
         this.addLabel(new GuiNpcLabel(11, "animation.whileStanding", guiLeft + 5, guiTop + 36));
@@ -41,7 +40,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         int value = ((GuiNpcButton)guibutton).getValue();
 
         if (guibutton.id == 10) {
-            animation.renderTicks = value == 0;
+
         } else if (guibutton.id == 11) {
             animation.whileStanding = value == 0;
         } else if (guibutton.id == 12) {

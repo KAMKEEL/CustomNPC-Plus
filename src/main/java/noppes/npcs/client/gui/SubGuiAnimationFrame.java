@@ -6,12 +6,12 @@ import noppes.npcs.controllers.data.Frame;
 
 public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldListener {
     private final Frame editingFrame;
-    
+
     public SubGuiAnimationFrame(Frame editingFrame) {
         this.editingFrame = editingFrame;
         setBackground("smallbg.png");
     }
-    
+
     @Override
     public void initGui() {
         super.initGui();
@@ -33,7 +33,7 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
             //
             //ticks - button
             this.addLabel(new GuiNpcLabel(13, "animation.tickType", guiLeft + 5, guiTop + 78));
-            this.addButton(new GuiNpcButton(13, guiLeft + 65, guiTop + 72, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, editingFrame.renderTicks ? 0 : 1));
+            //this.addButton(new GuiNpcButton(13, guiLeft + 65, guiTop + 72, 75, 20, new String[]{"animation.renderTicks", "animation.mcTicks"}, editingFrame.renderTicks ? 0 : 1));
         }
     }
 
@@ -46,8 +46,6 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
             editingFrame.setCustomized(!editingFrame.isCustomized());
         } else if (guibutton.id == 12 && editingFrame != null) {
             editingFrame.smooth = (byte) value;
-        } else if (guibutton.id == 13 && editingFrame != null) {
-            editingFrame.renderTicks = value == 0;
         }
 
         initGui();

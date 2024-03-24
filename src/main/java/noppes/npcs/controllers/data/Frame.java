@@ -14,10 +14,11 @@ public class Frame implements IFrame {
 	public Animation parent;
 	public HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
 	public int duration = 0;
+    public int tickDuration = 50;
+
 	boolean customized = false;
 	public float speed = 1.0F;
 	public byte smooth = 0;
-	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
 
 	private int colorMarker = 0xFFFFFF;
 
@@ -75,6 +76,15 @@ public class Frame implements IFrame {
 		return this;
 	}
 
+    public int tickDuration() {
+        return this.tickDuration;
+    }
+
+    public IFrame setTickDuration(int tickDuration) {
+        this.tickDuration = tickDuration;
+        return this;
+    }
+
 	public boolean isCustomized() {
 		return customized;
 	}
@@ -102,15 +112,6 @@ public class Frame implements IFrame {
 		return this;
 	}
 
-	public IFrame useRenderTicks(boolean renderTicks) {
-		this.renderTicks = renderTicks;
-		return this;
-	}
-
-	public boolean useRenderTicks() {
-		return this.renderTicks;
-	}
-
 	public int getColorMarker() {
 		return this.colorMarker;
 	}
@@ -136,13 +137,13 @@ public class Frame implements IFrame {
 		}
 		if(compound.hasKey("RenderTicks")){
 			customized = true;
-			renderTicks = compound.getBoolean("RenderTicks");
+            this.tickDuration = 20;
 		}
 
 		if (!customized) {
 			this.speed = parent.speed;
 			this.smooth = parent.smooth;
-			this.renderTicks = parent.renderTicks;
+			this.tickDuration = parent.tickDuration;
 		}
 
 		HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
@@ -168,7 +169,7 @@ public class Frame implements IFrame {
 		if(customized){
 			compound.setFloat("Speed", speed);
 			compound.setByte("Smooth", smooth);
-			compound.setBoolean("RenderTicks", renderTicks);
+			compound.setInteger("TickDuration", tickDuration);
 		}
 
 		NBTTagList list = new NBTTagList();
@@ -191,7 +192,7 @@ public class Frame implements IFrame {
 		frame.customized = this.customized;
 		frame.speed = this.speed;
 		frame.smooth = this.smooth;
-		frame.renderTicks = this.renderTicks;
+		frame.tickDuration = this.tickDuration;
 		frame.colorMarker = this.colorMarker;
 		return frame;
 	}

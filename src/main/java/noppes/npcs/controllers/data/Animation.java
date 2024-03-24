@@ -24,7 +24,7 @@ public class Animation implements IAnimation {
 	public float speed = 1.0F;
 	public byte smooth = 0;
 	public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
-	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
+	public int tickDuration = 50;
 
 	public boolean whileStanding = true;
 	public boolean whileAttacking = true;
@@ -93,6 +93,15 @@ public class Animation implements IAnimation {
 		return this.name;
 	}
 
+    public int tickDuration() {
+        return this.tickDuration;
+    }
+
+    public IAnimation setTickDuration(int tickDuration) {
+        this.tickDuration = tickDuration;
+        return this;
+    }
+
 	public IAnimation setSpeed(float speed) {
 		this.speed = speed;
 		return this;
@@ -109,15 +118,6 @@ public class Animation implements IAnimation {
 
 	public byte isSmooth() {
 		return this.smooth;
-	}
-
-	public IAnimation useRenderTicks(boolean renderTicks) {
-		this.renderTicks = renderTicks;
-		return this;
-	}
-
-	public boolean useRenderTicks() {
-		return this.renderTicks;
 	}
 
 	public IAnimation doWhileStanding(boolean whileStanding) {
@@ -183,8 +183,6 @@ public class Animation implements IAnimation {
 		smooth = compound.getByte("Smooth");
 		loop = compound.getInteger("Loop");
 
-		renderTicks = compound.getBoolean("RenderTicks");
-
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		NBTTagList list = compound.getTagList("Frames", 10);
 		for (int i = 0; i < list.tagCount(); i++) {
@@ -208,8 +206,6 @@ public class Animation implements IAnimation {
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
 		compound.setInteger("Loop",loop);
-
-		compound.setBoolean("RenderTicks", renderTicks);
 
 		NBTTagList list = new NBTTagList();
 		for(Frame frame : frames){

@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.Client;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
@@ -49,7 +50,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
         this.animation = animation;
         AnimationData data = npc.display.animationData;
-        data.animation = animation;
+        data.setAnimation(animation);
         data.setEnabled(true);
 
         int bodyPartX = 280;
@@ -92,9 +93,9 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
         AnimationData data = npc.display.animationData;
         if (!playingAnimation) {
-            data.animation = new Animation();
+            data.setAnimation(new Animation());
             data.animation.smooth = animation.smooth;
-            data.animation.renderTicks = animation.renderTicks;
+            data.animation.tickDuration = 50;
             data.animation.loop = 0;
             if (editingFrame != null) {
                 data.animation.frames.add(editingFrame);
@@ -107,7 +108,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             if (!frame.isCustomized()) {
                 frame.speed = animation.speed;
                 frame.smooth = animation.smooth;
-                frame.renderTicks = animation.renderTicks;
+                frame.tickDuration = animation.tickDuration();
             }
             for (Map.Entry<EnumAnimationPart,FramePart> entry : frame.frameParts.entrySet()) {
                 FramePart part = entry.getValue();
@@ -475,7 +476,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 }
             }
             this.playingAnimation = true;
-            data.animation = animation;
+            data.setAnimation(this.animation);
             data.animation.paused = false;
         } else if (guibutton.id == 201) {
             data.animation.paused = true;
@@ -510,12 +511,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.playingAnimation = false;
             initGui();
         } else if (data.isActive()) {
-            Frame currentFrame = (Frame) data.animation.currentFrame();
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
-                if (currentFrame != null && !currentFrame.renderTicks) {
-                    data.animation.increaseTime();
-                }
                 GuiNpcLabel label = this.getLabel(213);
                 if (label != null) {
                     label.label += ".";
