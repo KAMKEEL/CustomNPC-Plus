@@ -167,10 +167,8 @@ public class AnimationData implements IAnimationData {
         }
 
         if (CustomNpcs.proxy.hasClient() && newAnim != null) {
-            synchronized (CommonProxy.clientPlayingAnimations) {
-                CommonProxy.clientPlayingAnimations.remove(this.animation);
-                CommonProxy.clientPlayingAnimations.add(newAnim);
-            }
+            CommonProxy.clientPlayingAnimations.remove(this.animation);
+            CommonProxy.clientPlayingAnimations.add(newAnim);
         }
         this.animation = newAnim;
 
