@@ -135,10 +135,7 @@ public class Frame implements IFrame {
 			customized = true;
 			smooth = compound.getByte("Smooth");
 		}
-
-        if (compound.hasKey("TickDuration")) {
-            this.tickDuration = compound.getInteger("TickDuration");
-        } else if(compound.hasKey("RenderTicks")){
+		if(compound.hasKey("RenderTicks")){
 			customized = true;
             this.tickDuration = 20;
 		}
