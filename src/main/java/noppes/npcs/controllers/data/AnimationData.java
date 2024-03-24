@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 
-import net.minecraft.entity.Entity;
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -10,7 +10,6 @@ import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.*;
 import noppes.npcs.api.entity.IAnimatable;
 import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IAnimationData;
@@ -33,7 +32,7 @@ public class AnimationData implements IAnimationData {
     public Animation animation;
     public boolean allowAnimation = false;
 
-    public Animation currentClientAnimation;
+    private Animation sentAnimation;
     private boolean isClientAnimating;
 
     private final HashSet<Integer> cachedAnimationIDs = new HashSet<>();
@@ -49,16 +48,6 @@ public class AnimationData implements IAnimationData {
             this.animationEntity = ((DataDisplay) parent).npc;
         } else if (parent instanceof EntityPlayer) {
             this.animationEntity = (EntityLivingBase) parent;
-        }
-    }
-
-    public static AnimationData getData(Entity entity) {
-        if (entity instanceof EntityPlayerMP) {
-            return PlayerData.get((EntityPlayer) entity).animationData;
-        } else if (entity instanceof EntityNPCInterface) {
-            return ((EntityNPCInterface)entity).display.animationData;
-        } else {
-            return null;
         }
     }
 
@@ -85,13 +74,13 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
-            boolean prevIsClientAnimating = this.isClientAnimating && this.currentClientAnimation.currentFrame() != null;
+            boolean prevIsClientAnimating = this.isClientAnimating && this.sentAnimation.currentFrame() != null;
             this.isClientAnimating = this.allowAnimation && this.animation != null;
-            if (prevIsClientAnimating && (!this.isClientAnimating || this.animation != this.currentClientAnimation)) {
-                EventHooks.onAnimationEnded(this.currentClientAnimation);
+            if (prevIsClientAnimating && (!this.isClientAnimating || this.animation != this.sentAnimation)) {
+                EventHooks.onAnimationEnded(this.sentAnimation);
             }
             if (this.isClientAnimating) {
-                this.currentClientAnimation = this.animation;
+                this.sentAnimation = this.animation;
             }
 
             if (this.animation != null && this.allowAnimation) {
@@ -116,13 +105,9 @@ public class AnimationData implements IAnimationData {
                 if (animationNBT == null && this.animation != null && !animationData.isCached(this.animation.getID())) {
                     animationNBT = this.animation.writeToNBT();
                 }
-                animationData.viewAnimation(this.animation, this, animationNBT);
+                animationData.viewAnimation(this.animation, sendingEntity, this, animationNBT);
             }
         }
-    }
-
-    public boolean isClientAnimating() {
-        return this.isClientAnimating;
     }
 
     public boolean isActive() {
@@ -167,63 +152,27 @@ public class AnimationData implements IAnimationData {
         this.cachedAnimationIDs.clear();
     }
 
-    public void viewAnimation(Animation animation, AnimationData animationData, NBTTagCompound animationNBT) {
-        this.viewAnimation(animation, animationData, animationNBT, animationData.allowAnimation, -1, -1);
-    }
-
-    public void viewAnimation(Animation animation, AnimationData animationData, NBTTagCompound animationNBT, boolean enabled, int currentFrame, int time) {
-        boolean prevEnabled = animationData.allowAnimation;
-        animationData.allowAnimation = enabled;
-        NBTTagCompound data = animationData.viewWriteNBT(new NBTTagCompound());
-        animationData.allowAnimation = prevEnabled;
-
-
-        if (animation != null && currentFrame >= 0 && currentFrame < animation.frames.size()) {
-            data.setInteger("Frame", currentFrame);
-            data.setInteger("Time", time);
-        }
-
+    public void viewAnimation(Animation animation, EntityLivingBase entity, AnimationData animationData, NBTTagCompound animationNBT) {
+        NBTTagCompound data = animationData.writeToNBT(new NBTTagCompound());
         if (animation != null) {
-            if (this.cachedAnimationIDs.contains(animation.getID()) && !data.hasKey("Frame")) {
+            if (this.cachedAnimationIDs.contains(animation.getID())) {
                 data.setInteger("AnimationID", animation.getID());
             } else {
                 data.setTag("Animation", animationNBT);
             }
         }
-
-        IAnimatable animatable = animationData.getEntity();
-        Entity entity = ((IEntity<?>) animatable).getMCEntity();
         if (!(entity instanceof EntityPlayer)) {
             data.setInteger("EntityId", entity.getEntityId());
         }
-
         Server.sendData((EntityPlayerMP) ((PlayerData) parent).player, EnumPacketClient.UPDATE_ANIMATIONS, data, entity.getCommandSenderName());
     }
 
-    public NBTTagCompound viewWriteNBT(NBTTagCompound compound) {
-        compound.setBoolean("AllowAnimation", allowAnimation);
-        return compound;
-    }
-
-    public void viewReadFromNBT(NBTTagCompound compound) {
-        this.setEnabled(compound.getBoolean("AllowAnimation"));
-    }
-
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        if (this.currentClientAnimation != null) {
-            compound.setTag("CurrentAnimation", currentClientAnimation.writeToNBT());
-            compound.setBoolean("IsClientAnimating", isClientAnimating);
-        }
         compound.setBoolean("AllowAnimation", allowAnimation);
         return compound;
     }
 
     public void readFromNBT(NBTTagCompound compound) {
-        if (compound.hasKey("CurrentAnimation")) {
-            this.currentClientAnimation = new Animation();
-            this.currentClientAnimation.readFromNBT(compound.getCompoundTag("CurrentAnimation"));
-            this.isClientAnimating = compound.getBoolean("IsClientAnimating");
-        }
         this.setEnabled(compound.getBoolean("AllowAnimation"));
     }
 
@@ -245,12 +194,11 @@ public class AnimationData implements IAnimationData {
         if (animation != null) {
             newAnim = new Animation();
             newAnim.readFromNBT(((Animation) animation).writeToNBT());
-            newAnim.currentFrame = 0;
-            newAnim.currentFrameTime = 0;
             newAnim.parent = this;
         }
 
         if (CustomNpcs.proxy.hasClient() && newAnim != null) {
+            CommonProxy.clientPlayingAnimations.remove(this.animation);
             CommonProxy.clientPlayingAnimations.add(newAnim);
         }
         this.animation = newAnim;

@@ -32,7 +32,7 @@ public class ClientTickHandler{
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onClientTick(TickEvent.ClientTickEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
-		if (mc.theWorld != null && this.prevWorld != mc.theWorld) {
+		if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
 			ClientCacheHandler.clearCache();
 			this.prevWorld = mc.theWorld;
 		}
