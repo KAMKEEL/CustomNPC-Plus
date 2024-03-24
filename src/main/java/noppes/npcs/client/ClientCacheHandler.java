@@ -57,7 +57,6 @@ public class ClientCacheHandler {
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();
         ClientCacheHandler.playerData.animationData.clearCache();
-        CommonProxy.clientPlayingAnimations.clear();
     }
 
     public static void clearSkinCache() {

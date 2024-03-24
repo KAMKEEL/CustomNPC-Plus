@@ -95,8 +95,10 @@ public class CommonProxy implements IGuiHandler {
 
     @SideOnly(Side.CLIENT)
     private boolean clientRemoveAnimation(Entity entity) {
-        return Minecraft.getMinecraft().currentScreen == null
-            && !Minecraft.getMinecraft().theWorld.loadedEntityList.contains(entity);
+        if (Minecraft.getMinecraft().currentScreen == null && !Minecraft.getMinecraft().theWorld.loadedEntityList.contains(entity)) {
+            return true;
+        }
+        return false;
     }
 
 	public PlayerData getPlayerData(EntityPlayer player) {

@@ -210,6 +210,9 @@ public class Animation implements IAnimation {
 		this.whileStanding = compound.getBoolean("WhileStanding");
 		this.whileMoving = compound.getBoolean("WhileWalking");
 		this.whileAttacking = compound.getBoolean("WhileAttacking");
+
+        this.currentFrame = compound.getInteger("CurrentFrame");
+        this.currentFrameTime = compound.getInteger("CurrentFrameTime");
 	}
 
 	public NBTTagCompound writeToNBT(){
@@ -231,6 +234,9 @@ public class Animation implements IAnimation {
 		compound.setBoolean("WhileStanding", whileStanding);
 		compound.setBoolean("WhileWalking", whileMoving);
 		compound.setBoolean("WhileAttacking", whileAttacking);
+
+        compound.setInteger("CurrentFrame", currentFrame);
+        compound.setInteger("CurrentFrameTime", currentFrameTime);
 		return compound;
 	}
 
@@ -277,16 +283,23 @@ public class Animation implements IAnimation {
 
 	@SideOnly(Side.CLIENT)
 	public void jumpToCurrentFrame() {
-		this.currentFrameTime = 0;
-		Frame frame = (Frame) this.currentFrame();
-		if(frame != null){
-			for (EnumAnimationPart part : EnumAnimationPart.values()) {
-				if(part != null){
-					if (frame.frameParts.containsKey(part)) {
-						frame.frameParts.get(part).jumpToCurrentFrame();
-					}
-				}
-			}
-		}
+        this.jumpToFrameAtTime(this.currentFrame, 0);
 	}
+
+    @SideOnly(Side.CLIENT)
+    public void jumpToFrameAtTime(int frameIndex, int time) {
+        this.currentFrame = frameIndex;
+        this.currentFrameTime = time;
+
+        Frame frame = (Frame) this.currentFrame();
+        if(frame != null){
+            for (EnumAnimationPart part : EnumAnimationPart.values()) {
+                if(part != null){
+                    if (frame.frameParts.containsKey(part)) {
+                        frame.frameParts.get(part).jumpToCurrentFrame();
+                    }
+                }
+            }
+        }
+    }
 }
