@@ -18,7 +18,7 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
-public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
+public abstract class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public final IPlayer player;
 
     public PlayerEvent(IPlayer player) {
