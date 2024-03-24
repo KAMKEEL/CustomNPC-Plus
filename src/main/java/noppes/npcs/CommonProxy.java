@@ -23,11 +23,12 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.MillisTimer;
 
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
-    public static HashSet<Animation> clientPlayingAnimations = new HashSet<>();
-    public static HashSet<Animation> serverPlayingAnimations = new HashSet<>();
+    public final static HashSet<Animation> clientPlayingAnimations = new HashSet<>();
+    public final static HashSet<Animation> serverPlayingAnimations = new HashSet<>();
     protected MillisTimer animationTimer = new MillisTimer(1000);
     protected long totalTicks;
 
@@ -55,8 +56,11 @@ public class CommonProxy implements IGuiHandler {
                     totalTicks++;
                 }
                 totalTicks %= 60 * 60 * 1000;
-                clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
-                serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+
+                try {
+                    clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+                    serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+                } catch (ConcurrentModificationException ignored) {}
             }
         }});
         thread.setDaemon(true);
