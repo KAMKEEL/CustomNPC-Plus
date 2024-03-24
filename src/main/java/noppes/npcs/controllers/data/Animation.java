@@ -182,6 +182,7 @@ public class Animation implements IAnimation {
 		speed = compound.getFloat("Speed");
 		smooth = compound.getByte("Smooth");
 		loop = compound.getInteger("Loop");
+        tickDuration = compound.getInteger("TickDuration");
 
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		NBTTagList list = compound.getTagList("Frames", 10);
@@ -206,6 +207,7 @@ public class Animation implements IAnimation {
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
 		compound.setInteger("Loop",loop);
+        compound.setInteger("TickDuration", tickDuration);
 
 		NBTTagList list = new NBTTagList();
 		for(Frame frame : frames){
