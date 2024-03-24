@@ -99,13 +99,27 @@ public enum EnumScriptType {
     PARTY_INVITE("partyInvite"),
     PARTY_KICK("partyKick"),
     PARTY_LEAVE("partyLeave"),
-    PARTY_DISBAND("partyDisband");
+    PARTY_DISBAND("partyDisband"),
+
+    ANIMATION_START("animationStart"),
+    ANIMATION_END("animationEnd"),
+    ANIMATION_FRAME_ENTER("frameEnter"),
+    ANIMATION_FRAME_EXIT("frameExit");
 
 	public String function;
 
 	public static EnumScriptType valueOfIgnoreCase(String channelName) {
 		channelName = channelName.toUpperCase();
-		return valueOf(channelName);
+        try {
+            return valueOf(channelName);
+        } catch (IllegalArgumentException exception) {
+            for (EnumScriptType value : EnumScriptType.values()) {
+                if (value.function.toUpperCase().equals(channelName)) {
+                    return value;
+                }
+            }
+            throw exception;
+        }
 	}
 
 	private EnumScriptType(String function) {

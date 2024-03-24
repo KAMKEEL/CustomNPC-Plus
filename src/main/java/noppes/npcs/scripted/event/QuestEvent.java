@@ -7,7 +7,7 @@ import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 
-public class QuestEvent extends CustomNPCsEvent implements IQuestEvent {
+public abstract class QuestEvent extends CustomNPCsEvent implements IQuestEvent {
     public final IQuest quest;
     public final IPlayer player;
 

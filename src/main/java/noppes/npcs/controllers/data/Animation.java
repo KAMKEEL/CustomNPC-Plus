@@ -1,10 +1,13 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
@@ -47,6 +50,10 @@ public class Animation implements IAnimation {
 
 		this.id = id;
 	}
+
+    public IAnimationData getParent() {
+        return this.parent;
+    }
 
 	public IFrame currentFrame() {
 		return currentFrame < frames.size() ? frames.get(currentFrame) : null;
@@ -237,6 +244,8 @@ public class Animation implements IAnimation {
 
 		this.currentFrameTime++;
 		if (this.currentFrameTime == this.currentFrame().getDuration()) {
+            EventHooks.onAnimationFrameExited(this, this.currentFrame());
+
 			Frame prevFrame = (Frame) this.currentFrame();
 			Frame nextFrame = null;
 			this.currentFrameTime = 0;
@@ -246,6 +255,13 @@ public class Animation implements IAnimation {
 			} else if (this.loop >= 0 && this.loop < this.frames.size()) {
 				this.currentFrame = this.loop;
 			}
+
+            if (this.currentFrame() != null) {
+                EventHooks.onAnimationFrameEntered(this, this.currentFrame());
+            } else {
+                EventHooks.onAnimationEnded(this);
+            }
+
 			if (nextFrame != null) {
 				for (EnumAnimationPart part : EnumAnimationPart.values()) {
 					if (prevFrame.frameParts.containsKey(part) && nextFrame.frameParts.containsKey(part)) {

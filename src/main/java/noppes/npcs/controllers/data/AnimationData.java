@@ -2,24 +2,22 @@ package noppes.npcs.controllers.data;
 
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import noppes.npcs.CommonProxy;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.DataDisplay;
-import noppes.npcs.Server;
+import noppes.npcs.*;
+import noppes.npcs.api.entity.IAnimatable;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IAnimationData;
-import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,6 +31,9 @@ public class AnimationData implements IAnimationData {
 
     public Animation animation;
     public boolean allowAnimation = false;
+
+    private Animation sentAnimation;
+    private boolean isClientAnimating;
 
     private final HashSet<Integer> cachedAnimationIDs = new HashSet<>();
 
@@ -50,6 +51,21 @@ public class AnimationData implements IAnimationData {
         }
     }
 
+    public IAnimatable getEntity() {
+        if (this.parent instanceof DataDisplay) {
+            EntityNPCInterface npc = ((DataDisplay)this.parent).npc;
+            return (ICustomNpc<?>) NpcAPI.Instance().getIEntity(npc);
+        } else {
+            EntityPlayer player;
+            if (this.parent instanceof PlayerData) {
+                player = ((PlayerData) this.parent).player;
+            } else {
+                player = (EntityPlayer) this.parent;
+            }
+            return (IPlayer<?>) NpcAPI.Instance().getIEntity(player);
+        }
+    }
+
     public void updateClient() {
         this.updateClient(new EntityPlayer[0]);
     }
@@ -58,6 +74,21 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
+            boolean prevIsClientAnimating = this.isClientAnimating && this.sentAnimation.currentFrame() != null;
+            this.isClientAnimating = this.allowAnimation && this.animation != null;
+            if (prevIsClientAnimating && (!this.isClientAnimating || this.animation != this.sentAnimation)) {
+                EventHooks.onAnimationEnded(this.sentAnimation);
+            }
+            if (this.isClientAnimating) {
+                this.sentAnimation = this.animation;
+            }
+
+            if (this.animation != null && this.allowAnimation) {
+                if (EventHooks.onAnimationStarted(this.animation))
+                    return;
+                EventHooks.onAnimationFrameEntered(this.animation, this.animation.currentFrame());
+            }
+
             if (!CustomNpcs.proxy.hasClient()) {
                 CommonProxy.serverPlayingAnimations.add(this.animation);
             }
