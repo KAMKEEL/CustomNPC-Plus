@@ -1,12 +1,10 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.data.Animation;
 
-public class SubGuiAnimationOptions extends SubGuiInterface {
+public class SubGuiAnimationOptions extends SubGuiInterface implements ITextfieldListener {
     private final Animation animation;
 
     public SubGuiAnimationOptions(Animation animation) {
@@ -19,7 +17,10 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         super.initGui();
         //
         //ticks - button
-        this.addLabel(new GuiNpcLabel(10, "animation.tickType", guiLeft + 5, guiTop + 16));
+        this.addLabel(new GuiNpcLabel(10, "animation.tickDuration", guiLeft + 5, guiTop + 16));
+        this.addTextField(new GuiNpcTextField(10, this, guiLeft + 80, guiTop + 12, 40, 15, animation.tickDuration + ""));
+        this.getTextField(10).integersOnly = true;
+        this.getTextField(10).setMinMaxDefault(1, Integer.MAX_VALUE, 50);
         //
         //whileStanding - button
         this.addLabel(new GuiNpcLabel(11, "animation.whileStanding", guiLeft + 5, guiTop + 36));
@@ -39,9 +40,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         super.actionPerformed(guibutton);
         int value = ((GuiNpcButton)guibutton).getValue();
 
-        if (guibutton.id == 10) {
-
-        } else if (guibutton.id == 11) {
+        if (guibutton.id == 11) {
             animation.whileStanding = value == 0;
         } else if (guibutton.id == 12) {
             animation.whileAttacking = value == 0;
@@ -50,5 +49,12 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         }
 
         initGui();
+    }
+
+    @Override
+    public void unFocused(GuiNpcTextField textfield) {
+        if (textfield.id == 10) {
+            animation.tickDuration = textfield.getInteger();
+        }
     }
 }
