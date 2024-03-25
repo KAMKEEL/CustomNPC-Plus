@@ -429,7 +429,6 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
                 this.trackedQuestKey = compound.getString("QuestName");
             }
             this.isLeader = ClientCacheHandler.party.getPartyLeaderName().equals(this.player.getCommandSenderName());
-            System.out.println("KEY:" + trackedQuestKey);
         } else if (compound.hasKey("Disband")) {
             this.isLeader = false;
         } else if (compound.hasKey("PartyInvites")) {
