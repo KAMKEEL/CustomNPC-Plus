@@ -32,9 +32,9 @@ public class ItemSoulstoneEmpty extends Item {
 		GameRegistry.registerItem(this, name);
     	return this;
     }
-    
+
 	public boolean store(EntityLivingBase entity, ItemStack stack, EntityPlayer player) {
-		if(!hasPermission(entity, player) || entity instanceof EntityPlayer)
+		if(!canSoulStone(entity, player) || entity instanceof EntityPlayer)
 			return false;
 		ItemStack stone = new ItemStack(CustomItems.soulstoneFull);
 		NBTTagCompound compound = new NBTTagCompound();
@@ -44,7 +44,7 @@ public class ItemSoulstoneEmpty extends Item {
 		if(stone.stackTagCompound == null)
 			stone.stackTagCompound = new NBTTagCompound();
 		stone.stackTagCompound.setTag("Entity", compound);
-		
+
         String name = EntityList.getEntityString(entity);
         if (name == null)
         	name = "generic";
@@ -60,18 +60,18 @@ public class ItemSoulstoneEmpty extends Item {
         else if(entity instanceof EntityLiving && ((EntityLiving)entity).hasCustomNameTag())
     		stone.stackTagCompound.setString("DisplayName", ((EntityLiving)entity).getCustomNameTag());
 		NoppesUtilServer.GivePlayerItem(player, player, stone);
-		
+
 		if(!player.capabilities.isCreativeMode){
 			stack.splitStack(1);
 			if(stack.stackSize <= 0)
 				player.destroyCurrentEquippedItem();
 		}
-		
+
 		entity.isDead = true;
 		return true;
 	}
-	
-	public boolean hasPermission(EntityLivingBase entity, EntityPlayer player){
+
+	public boolean canSoulStone(EntityLivingBase entity, EntityPlayer player){
 		if(NoppesUtilServer.isOp(player) && player.capabilities.isCreativeMode)
 			return true;
 		if(CustomNpcsPermissions.enabled() && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.SOULSTONE_ALL))

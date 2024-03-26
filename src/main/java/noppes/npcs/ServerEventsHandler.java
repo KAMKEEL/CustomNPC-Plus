@@ -69,7 +69,7 @@ public class ServerEventsHandler {
 			return;
 		}
 
-		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && event.target instanceof EntityLivingBase) {
+		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && npcInteracted) {
 			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
 			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
@@ -77,7 +77,7 @@ public class ServerEventsHandler {
 		}
 
 		if(item.getItem() == CustomItems.wand && npcInteracted && !isRemote){
-			if (!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI)){
+			if (!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI)){
 				return;
 			}
 			event.setCanceled(true);
@@ -87,7 +87,7 @@ public class ServerEventsHandler {
 			}
 		}
 		else if(item.getItem() == CustomItems.cloner && !isRemote && !(event.target instanceof EntityPlayer)){
-            if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_CLONER))
+            if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_CLONER))
                 return;
 			NBTTagCompound compound = new NBTTagCompound();
 			if(!event.target.writeToNBTOptional(compound))
