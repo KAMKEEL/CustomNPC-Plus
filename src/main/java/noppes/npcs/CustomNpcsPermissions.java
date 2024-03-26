@@ -108,9 +108,10 @@ public class CustomNpcsPermissions{
 
 	public static boolean hasPermission(EntityPlayer player, Permission permission){
 		if(player != null){
-			if(Developer.Instance.hasUniversal(player.getUniqueID())){
+            if(NoppesUtilServer.isOp(player))
+                return true;
+			if(Developer.Instance.hasUniversal(player.getUniqueID()))
 				return true;
-			}
 			if(permission != null){
 				if(Instance.bukkit != null){
 					return Instance.bukkitPermission(player.getCommandSenderName(), permission.name);
