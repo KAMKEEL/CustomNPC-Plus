@@ -329,16 +329,40 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 }
 
                 int addId = 0;
-                if (selected != -1 && imageScroll.getSelected() != null) {
-                    DialogImage selectedImage = (DialogImage) dialog.dialogImages.get(Integer.valueOf(imageScroll.getSelected()));
+                if (!dialog.dialogImages.isEmpty()) {
                     ArrayList<Integer> keys = new ArrayList<>(dialog.dialogImages.keySet());
-                    int keyIndex = keys.indexOf(selectedImage.id);
-                    do {
-                        addId = keys.get(keyIndex) + 1;
-                        keyIndex++;
-                    } while (dialog.dialogImages.containsKey(addId));
-                } else if (dialog.dialogImages.size() > 0) {
-                    addId = (Integer) dialog.dialogImages.keySet().toArray()[dialog.dialogImages.size() - 1] + 1;
+                    if (selected != -1 && imageScroll.getSelected() != null) {
+                        DialogImage selectedImage = (DialogImage) dialog.dialogImages.get(Integer.valueOf(imageScroll.getSelected()));
+                        int keyIndex = keys.indexOf(selectedImage.id);
+                        if (keyIndex < keys.size() - 1 && keys.get(keyIndex + 1) != selectedImage.id + 1) {
+                            addId = selectedImage.id + 1;
+                        } else {
+                            for (int i = keyIndex + 1; i < keys.size(); i++) {
+                                if (!dialog.dialogImages.containsKey(keys.get(i) + 1)) {
+                                    addId = keys.get(i) + 1;
+                                    break;
+                                }
+                            }
+                        }
+                        // If there's no gap, increment the selected ID
+                        if (addId == 0) {
+                            addId = selectedImage.id + 1;
+                        }
+                    } else {
+                        for (int i = 0; i < keys.size() - 1; i++) {
+                            if (keys.get(i + 1) - keys.get(i) > 1) {
+                                addId = keys.get(i) + 1;
+                                break;
+                            }
+                        }
+                        // If no gap is found, add the next ID after the highest existing ID
+                        if (addId == 0) {
+                            int highestId = Collections.max(dialog.dialogImages.keySet());
+                            addId = highestId + 1;
+                        }
+                    }
+                } else {
+                    addId = 1; // Start with ID 1 if there are no existing images
                 }
 
                 dialog.dialogImages.put(addId, new DialogImage(addId));
