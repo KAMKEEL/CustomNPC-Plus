@@ -103,7 +103,7 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 		}
 		else if(item.getItem() == CustomItems.scripter && !isRemote && npcInteracted){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
@@ -113,15 +113,15 @@ public class ServerEventsHandler {
 			}
 		}
 		else if(item.getItem() == CustomItems.mount){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
 				return;
 			event.setCanceled(true);
 			mounted = event.target;
 			if(isRemote)
 				CustomNpcs.proxy.openGui(MathHelper.floor_double(mounted.posX), MathHelper.floor_double(mounted.posY), MathHelper.floor_double(mounted.posZ), EnumGuiType.MobSpawnerMounter, event.entityPlayer);
 		}
-		else if(item.getItem() == CustomItems.wand && event.target instanceof EntityVillager){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
+		else if(item.getItem() == CustomItems.wand && !isRemote && event.target instanceof EntityVillager){
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
 				return;
 			event.setCanceled(true);
 			Merchant = (EntityVillager)event.target;
