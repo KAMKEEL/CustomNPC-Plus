@@ -805,4 +805,10 @@ public class EventHooks {
         handler.callScript(EnumScriptType.PARTY_DISBAND, event);
         NpcAPI.EVENT_BUS.post(event);
     }
+
+    public static void onWorldScriptEvent(noppes.npcs.scripted.event.WorldEvent.ScriptCommandEvent event) {
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        handler.callScript(EnumScriptType.SCRIPT_COMMAND, event);
+        NpcAPI.EVENT_BUS.post(event);
+    }
 }

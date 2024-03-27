@@ -14,16 +14,14 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
 import noppes.npcs.api.entity.IEntity;
@@ -1373,4 +1371,13 @@ public class ScriptWorld implements IWorld {
 	public String toString() {
 		return "DIM" + this.getDimensionID();
 	}
+
+    public void broadcast(String message) {
+        List<EntityPlayer> all = world.playerEntities; //(List<EntityPlayer>) MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+        for(EntityPlayer player : all)
+        {
+            player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));
+        }
+
+    }
 }

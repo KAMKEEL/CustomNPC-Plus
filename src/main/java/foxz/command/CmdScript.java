@@ -4,7 +4,11 @@ import foxz.commandhelper.ChMcLogger;
 import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
+import noppes.npcs.EventHooks;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.WorldEvent;
 
 @Command(
         name = "script",
@@ -25,6 +29,17 @@ public class CmdScript extends ChMcLogger {
     		sendmessage("Reload succesful");
     	else
     		sendmessage("Failed reloading stored data");
+        return true;
+    }
+
+    @SubCommand(
+        desc = "Run scriopt command event.",
+        permissions={OpOnly.class}
+    )
+    public Boolean run(String args[]) {
+        IWorld world = NpcAPI.Instance().getIWorld(pcParam.getEntityWorld());
+        WorldEvent.ScriptCommandEvent event = new WorldEvent.ScriptCommandEvent(world, null, args);
+        EventHooks.onWorldScriptEvent(event);
         return true;
     }
 }
