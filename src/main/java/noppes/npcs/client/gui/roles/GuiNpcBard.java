@@ -100,6 +100,7 @@ public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener
         if(gss.selectedResource != null) {
             job.song = gss.selectedResource.toString();
             getLabel(0).label = job.song;
+            initGui();
         }
     }
 }

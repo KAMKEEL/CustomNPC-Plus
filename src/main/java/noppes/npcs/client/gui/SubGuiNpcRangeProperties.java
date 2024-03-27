@@ -134,6 +134,7 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
         if(gss.selectedResource != null) {
             soundSelected.setText(gss.selectedResource.toString());
             unFocused(soundSelected);
+            initGui();
         }
     }
 }
