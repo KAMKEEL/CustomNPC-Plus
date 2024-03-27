@@ -1373,7 +1373,7 @@ public class ScriptWorld implements IWorld {
 	}
 
     public void broadcast(String message) {
-        List<EntityPlayer> all = world.playerEntities; //(List<EntityPlayer>) MinecraftServer.getServer().getConfigurationManager().playerEntityList;
+        List<EntityPlayer> all = world.playerEntities;
         for(EntityPlayer player : all)
         {
             player.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(message,player)));
