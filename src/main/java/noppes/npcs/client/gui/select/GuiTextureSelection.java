@@ -121,9 +121,6 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     		}
     		int i = selectedResource.getResourcePath().lastIndexOf('/');
     		location = selectedResource.getResourcePath().substring(0, i + 1);
-    		if(location.startsWith("textures/")){
-    			location = location.substring(9);
-			}
     	}
     }
     private File decodeFile(String url) {
@@ -294,7 +291,6 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 	                ZipEntry zipentry = entries.nextElement();
 	                String entryName = zipentry.getName();
 	        		addFile(entryName);
-
 	            }
 	            zip.close();
 	        }
@@ -341,7 +337,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 		name = name.substring(7);
 		int i = name.indexOf('/');
 		String domain = name.substring(0, i);
-		name = name.substring(i + 10);
+		name = name.substring(i + 1);
 
 		List<TextureData> list = domains.get(domain);
 		if(list == null) {
@@ -357,7 +353,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 		if(!contains)
 			list.add(new TextureData(domain, name));
 	}
-
+    
     static class TextureData {
 		String domain;
 		String absoluteName;
@@ -368,7 +364,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 			int i = absoluteName.lastIndexOf('/');
 			name = absoluteName.substring(i + 1);
 			path = absoluteName.substring(0, i + 1);
-			this.absoluteName = "textures/" + absoluteName;
+			this.absoluteName = absoluteName;
 		}
 	}
 }

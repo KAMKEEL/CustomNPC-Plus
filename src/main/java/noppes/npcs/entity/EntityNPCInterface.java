@@ -400,7 +400,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ItemStack currentItem = player.inventory.getCurrentItem();
 		if (currentItem != null) {
 			Item item = currentItem.getItem();
-			if (item == CustomItems.cloner || item == CustomItems.wand || item == CustomItems.mount || item == CustomItems.scripter) {
+			if (item == CustomItems.cloner || item == CustomItems.wand || item == CustomItems.mount || item == CustomItems.scripter || item == CustomItems.soulstoneEmpty) {
 				setAttackTarget(null);
 				setRevengeTarget(null);
 				return true;

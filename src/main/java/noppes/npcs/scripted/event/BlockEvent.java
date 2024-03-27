@@ -19,7 +19,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
 
     @Override
     public IBlock getBlock() {
-        return null;
+        return this.block;
     }
 
     /**
