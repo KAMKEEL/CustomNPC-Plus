@@ -360,6 +360,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 						ClientCacheHandler.playerAnimations.put(sendingPlayer.getUniqueID(), new AnimationData(sendingPlayer));
 					}
 					animationData = ClientCacheHandler.playerAnimations.get(sendingPlayer.getUniqueID());
+                    animationData.parent = sendingPlayer;
 				}
 			}
 
