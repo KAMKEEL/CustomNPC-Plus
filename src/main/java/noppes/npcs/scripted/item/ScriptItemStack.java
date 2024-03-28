@@ -6,10 +6,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemFood;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemSword;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,6 +16,7 @@ import net.minecraftforge.common.IPlantable;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptNbt;
@@ -309,6 +307,33 @@ public class ScriptItemStack implements IItemStack {
 			return false;
 		}
 	}
+
+    private static ScriptItemStack createNew(ItemStack item){
+        if(item == null)
+            return null;
+
+        if(item.getItem() instanceof ItemScripted) {
+            return new ScriptCustomItem(item);
+        }
+        if(item.getItem() == Items.written_book || item.getItem() == Items.writable_book || item.getItem() instanceof ItemWritableBook || item.getItem() instanceof ItemEditableBook)
+            return new ScriptItemBook(item);
+        if(item.getItem() instanceof ItemArmor)
+            return new ScriptItemArmor(item);
+        if (item.getItem() instanceof ItemBlock)
+            return new ScriptItemBlock(item);
+
+        return new ScriptItemStack(item);
+    }
+
+    @Override
+    public IItemStack copy() {
+        return createNew(item.copy());
+    }
+
+    @Override
+    public int getMaxItemDamage(){
+        return item.getMaxDamage();
+    }
 
 	/**
 	 * @since 1.7.10d
