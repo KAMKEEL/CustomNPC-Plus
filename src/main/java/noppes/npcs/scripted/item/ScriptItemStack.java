@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraftforge.common.IPlantable;
+import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -48,35 +49,35 @@ public class ScriptItemStack implements IItemStack {
 	public String getName(){
 		return Item.itemRegistry.getNameForObject(item.getItem());
 	}
-	
+
 	/**
 	 * @return Returns the stacksize
 	 */
 	public int getStackSize(){
 		return item.stackSize;
 	}
-	
+
 	/**
 	 * @return Return whether or not the item has a custom name
 	 */
 	public boolean hasCustomName(){
 		return item.hasDisplayName();
 	}
-	
+
 	/**
 	 * @param name The custom name this item will get
 	 */
 	public void setCustomName(String name){
 		item.setStackDisplayName(name);
 	}
-		
+
 	/**
 	 * @return Return the ingame displayed name. This is either the item name or the custom name if it has one.
 	 */
 	public String getDisplayName(){
 		return item.getDisplayName();
 	}
-	
+
 	/**
 	 * @return Get the items ingame name. Use this incase the item ingame has custom name and you want the original name.
 	 */
@@ -99,21 +100,21 @@ public class ScriptItemStack implements IItemStack {
 			size = 64;
 		item.stackSize = size;
 	}
-	
+
 	/**
 	 * @return Returns the item damage of this item. For tools this is the durability for other items the color and more.
 	 */
 	public int getItemDamage(){
 		return item.getItemDamage();
 	}
-	
+
 	/**
 	 * @param value The value to be set as item damage. For tools this is the durability for other items the color and more.
 	 */
 	public void setItemDamage(int value){
 		item.setItemDamage(value);
 	}
-	
+
 	/**
 	 * @param key The key of this NBTTag
 	 * @param value The value to be stored. Can be a Number or String
@@ -123,9 +124,9 @@ public class ScriptItemStack implements IItemStack {
 			getTag().setDouble(key, ((Number) value).doubleValue());
 		else if(value instanceof String)
 			getTag().setString(key, (String) value);
-			
+
 	}
-	
+
 	/**
 	 * @param key The key of the NBTTag
 	 * @return Returns whether or not the key exists
@@ -135,7 +136,7 @@ public class ScriptItemStack implements IItemStack {
 			return false;
 		return getTag().hasKey(key);
 	}
-	
+
 	/**
 	 * @param key The key of the NBTTag
 	 * @return Returns the value associated with the key. Returns null of it doesnt exist
@@ -159,11 +160,11 @@ public class ScriptItemStack implements IItemStack {
 		item.stackTagCompound = null;
 		return nbt;
 	}
-	
+
 	public boolean isEnchanted(){
 		return item.isItemEnchanted();
 	}
-	
+
 	/**
 	 * @since 1.7.10d
 	 * @param id The enchantment id
@@ -278,19 +279,17 @@ public class ScriptItemStack implements IItemStack {
 			this.item.setTagCompound(compound = new NBTTagCompound());
 		}
 
-		NBTTagList nbttaglist = compound.getTagList("display", 10);
-		NBTTagList newList = new NBTTagList();
-		String[] var4 = lore;
-		int var5 = lore.length;
+        NBTTagCompound display = compound.getCompoundTag("display");
+        if(lore == null || lore.length == 0) {
+            display.removeTag("Lore");
+            return;
+        }
 
-		for(int var6 = 0; var6 < var5; ++var6) {
-			String s = var4[var6];
-			newList.appendTag(new NBTTagString(s));
-		}
-
-		NBTTagCompound nbttagcompound = new NBTTagCompound();
-		nbttagcompound.setTag("Lore", newList);
-		compound.setTag("display", nbttagcompound);
+        NBTTagList nbtlist = new NBTTagList();
+        for(String s : lore) {
+            nbtlist.appendTag(new NBTTagString(s));
+        }
+        display.setTag("Lore", nbtlist);
 	}
 
 	public boolean hasAttribute(String name) {
@@ -310,7 +309,7 @@ public class ScriptItemStack implements IItemStack {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * @since 1.7.10d
 	 * @return Returns whether this item is a book
@@ -318,7 +317,7 @@ public class ScriptItemStack implements IItemStack {
 	public boolean isWrittenBook(){
 		return item.getItem() == Items.written_book || item.getItem() == Items.writable_book;
 	}
-	
+
 	/**
 	 * @since 1.7.10d
 	 * @return Returns the books title
@@ -334,28 +333,28 @@ public class ScriptItemStack implements IItemStack {
 	public String getBookAuthor(){
 		return item.getTagCompound().getString("author");
 	}
-	
+
 	/**
 	 * @since 1.7.10d
 	 * @return If the item is a book, returns a string array with book pages
 	 */
-	public String[] getBookText(){	
+	public String[] getBookText(){
 		if(!isWrittenBook())
 			return null;
 		List<String> list = new ArrayList<String>();
         NBTTagList pages = item.getTagCompound().getTagList("pages", 8);
         for (int i = 0; i < pages.tagCount(); ++i){
-        	list.add(pages.getStringTagAt(i));            
-        }        
+        	list.add(pages.getStringTagAt(i));
+        }
         return list.toArray(new String[list.size()]);
 	}
-	
+
 	private NBTTagCompound getTag(){
 		if(item.stackTagCompound == null)
 			item.stackTagCompound = new NBTTagCompound();
 		return item.stackTagCompound;
 	}
-	
+
 	/**
 	 * @return Returns whether or not this item is a block
 	 */
@@ -365,11 +364,11 @@ public class ScriptItemStack implements IItemStack {
 			return false;
 		return true;
 	}
-	
+
 	public boolean isFood() {
 		return item.getItem() instanceof ItemFood;
 	}
-	
+
 	public int getFoodPoints() {
 		if (isFood()) return ((ItemFood)item.getItem()).func_150905_g(item);
 		return -1;
@@ -413,4 +412,14 @@ public class ScriptItemStack implements IItemStack {
 	public boolean equals(Object object) {
 		return object instanceof ScriptItemStack && ((ScriptItemStack) object).getMCItemStack().equals(this.getMCItemStack());
 	}
+
+    @Override
+    public boolean compare(IItemStack item, boolean ignoreNBT) {
+        return NoppesUtilPlayer.compareItems(getMCItemStack(), item.getMCItemStack(), false, ignoreNBT);
+    }
+
+    @Override
+    public boolean compare(IItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
+        return NoppesUtilPlayer.compareItems(getMCItemStack(), item.getMCItemStack(), ignoreDamage, ignoreNBT);
+    }
 }
