@@ -494,7 +494,6 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             z = ValueUtil.clamp(z, -1, 1);
             if(offsetZ == z)
                 return;
-            System.out.println(rotationZ);
             offsetZ = z;
             needsClientUpdate = true;
         }
