@@ -23,7 +23,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 
 	private final ModelWallBanner model = new ModelWallBanner();
 	private final ModelWallBannerFlag flag = new ModelWallBannerFlag();
-    
+
     public BlockWallBannerRenderer(){
 		((BlockWallBanner)CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -40,7 +40,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         //GL11.glScalef(0.95f, 0.95f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
-        
+
         setMaterialTexture(var1.getBlockMetadata());
         GL11.glColor3f(1, 1, 1);
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -60,10 +60,10 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
     {
         GL11.glPushMatrix();
         bindTexture(TextureMap.locationItemsTexture);
-        GL11.glTranslatef((float)par2 + 0.5f, (float)par4 +1.3f, (float)par6 + 0.5f);
+        GL11.glTranslatef((float)par2 + 0.5f, (float)par4 +0.2f, (float)par6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * meta, 0, 1, 0);
-        GL11.glTranslatef(0, 0, -0.14f);
+        GL11.glTranslatef(0, 0, 0.26f);
         GL11.glDepthMask(false);
         float f2 = 0.05f;
         Minecraft mc = Minecraft.getMinecraft();
@@ -145,7 +145,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 	public int getRenderId() {
 		return CustomItems.wallBanner.getRenderType();
 	}
-	
+
 	public int specialRenderDistance(){
 		return 26;
 	}
