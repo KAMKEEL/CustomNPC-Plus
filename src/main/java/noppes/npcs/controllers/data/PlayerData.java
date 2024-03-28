@@ -156,6 +156,12 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         return compound;
     }
 
+    public void setSyncNBT(NBTTagCompound data){
+        dialogData.loadNBTData(data);
+        questData.loadNBTData(data);
+        factionData.loadNBTData(data);
+    }
+
 	@Override
 	public void init(Entity entity, World world) {
 

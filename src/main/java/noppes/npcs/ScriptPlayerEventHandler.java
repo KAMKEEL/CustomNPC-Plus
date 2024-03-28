@@ -61,7 +61,7 @@ public class ScriptPlayerEventHandler {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
                 if(playerData.updateClient) {
-                    Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNC_END, SyncType.PLAYER_DATA, playerData.getSyncNBT());
+                    NoppesUtilServer.sendPlayerDataCompound((EntityPlayerMP)player, playerData.getSyncNBT(), true);
                     // VisibilityController.instance.onUpdate((EntityPlayerMP) player);
                     playerData.updateClient = false;
                 }
