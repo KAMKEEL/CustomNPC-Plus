@@ -288,6 +288,7 @@ public class ScriptItemStack implements IItemStack {
             nbtlist.appendTag(new NBTTagString(s));
         }
         display.setTag("Lore", nbtlist);
+        compound.setTag("display", display);
 	}
 
 	public boolean hasAttribute(String name) {
