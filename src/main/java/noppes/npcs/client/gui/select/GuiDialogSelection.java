@@ -102,6 +102,7 @@ public class GuiDialogSelection extends SubGuiInterface implements ICustomScroll
                     return;
                 catSearch = getTextField(33).getText().toLowerCase();
                 scrollCategories.setList(getCatSearch());
+                scrollCategories.resetScroll();
             }
         }
         if(getTextField(44) != null){
@@ -110,6 +111,7 @@ public class GuiDialogSelection extends SubGuiInterface implements ICustomScroll
                     return;
                 dialogSearch = getTextField(44).getText().toLowerCase();
                 scrollDialogs.setList(getDialogSearch());
+                scrollDialogs.resetScroll();
             }
         }
     }

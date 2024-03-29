@@ -139,6 +139,7 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
                     return;
                 catSearch = getTextField(55).getText().toLowerCase();
                 scrollCategories.setList(getCatSearch());
+                scrollCategories.resetScroll();
             }
         }
         if(getTextField(66) != null){
@@ -147,6 +148,7 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
                     return;
                 soundSearch = getTextField(66).getText().toLowerCase();
                 scrollSounds.setList(getSoundSearch());
+                scrollSounds.resetScroll();
             }
         }
     }

@@ -95,6 +95,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 					return;
 				search = getTextField(55).getText().toLowerCase();
 				scrollNaturalSpawns.setList(getSearchList());
+                scrollNaturalSpawns.resetScroll();
 			}
 		}
 	}

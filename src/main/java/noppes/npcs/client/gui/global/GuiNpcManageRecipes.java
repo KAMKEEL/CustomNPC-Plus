@@ -25,7 +25,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 	private String selected = null;
 	private ResourceLocation slot;
 	private String search = "";
-	
+
     public GuiNpcManageRecipes(EntityNPCInterface npc,ContainerManageRecipes container){
     	super(npc,container);
     	this.container = container;
@@ -39,7 +39,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 	@Override
     public void initGui(){
         super.initGui();
-        
+
         if(scroll == null)
         	scroll = new GuiCustomScroll(this,0,0);
         scroll.setSize(130, 180);
@@ -57,7 +57,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
     	this.addLabel(new GuiNpcLabel(0, "gui.ignoreDamage", guiLeft + 86, guiTop + 32));
     	this.addButton(new GuiNpcButtonYesNo(5,guiLeft + 114, guiTop + 40, 50, 20, container.recipe.ignoreDamage));
-    	
+
     	this.addLabel(new GuiNpcLabel(1, "gui.ignoreNBT", guiLeft + 86, guiTop + 82));
     	this.addButton(new GuiNpcButtonYesNo(6,guiLeft + 114, guiTop + 90, 50, 20, container.recipe.ignoreNBT));
 
@@ -120,6 +120,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 					return;
 				search = getTextField(55).getText().toLowerCase();
 				scroll.setList(getSearchList());
+                scroll.resetScroll();
 			}
 		}
 	}
@@ -154,7 +155,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
     	super.drawGuiContainerBackgroundLayer(f, x, y);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(slot);
-    	
+
     	for(int i = 0; i < container.width;i++){
         	for(int j = 0; j < container.width;j++){
         		drawTexturedModalRect(guiLeft + i*18 + 7, guiTop + j*18 + 34, 0, 0, 18, 18);
@@ -170,11 +171,11 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
 		this.getTextField(0).enabled = name != null;
 		this.getButton(5).setEnabled(name != null);
-		
+
 		if(name != null)
 			scroll.setSelected(name);
 	}
-	
+
 	@Override
 	public void setSelected(String selected) {
 		this.selected = selected;

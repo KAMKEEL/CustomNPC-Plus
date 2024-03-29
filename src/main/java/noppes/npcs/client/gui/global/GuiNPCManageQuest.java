@@ -106,6 +106,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 					return;
 				catSearch = getTextField(55).getText().toLowerCase();
 				catScroll.setList(getCatSearch());
+                catScroll.resetScroll();
 			}
 		}
 		if(getTextField(66) != null){
@@ -114,6 +115,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 					return;
 				questSearch = getTextField(66).getText().toLowerCase();
 				questScroll.setList(getQuestSearch());
+                questScroll.resetScroll();
 			}
 		}
 	}

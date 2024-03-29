@@ -101,6 +101,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 					return;
 				catSearch = getTextField(55).getText().toLowerCase();
 				catScroll.setList(getCatSearch());
+                catScroll.resetScroll();
 			}
 		}
 		if(getTextField(66) != null){
@@ -109,6 +110,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 					return;
 				diagSearch = getTextField(66).getText().toLowerCase();
 				dialogScroll.setList(getDiagSearch());
+                dialogScroll.resetScroll();
 			}
 		}
 	}
