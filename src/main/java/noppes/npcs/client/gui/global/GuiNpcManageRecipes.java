@@ -119,8 +119,8 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 				if(search.equals(getTextField(55).getText()))
 					return;
 				search = getTextField(55).getText().toLowerCase();
-				scroll.setList(getSearchList());
                 scroll.resetScroll();
+				scroll.setList(getSearchList());
 			}
 		}
 	}

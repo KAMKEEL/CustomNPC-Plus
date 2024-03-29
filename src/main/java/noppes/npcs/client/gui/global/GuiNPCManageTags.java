@@ -74,8 +74,8 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 				if(search.equals(getTextField(55).getText()))
 					return;
 				search = getTextField(55).getText().toLowerCase();
-				scrollTags.setList(getSearchList());
                 scrollTags.resetScroll();
+				scrollTags.setList(getSearchList());
 			}
 		}
 	}

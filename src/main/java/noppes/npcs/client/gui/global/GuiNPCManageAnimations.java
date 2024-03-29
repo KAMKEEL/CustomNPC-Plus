@@ -136,8 +136,8 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 				if(search.equals(getTextField(55).getText()))
 					return;
 				search = getTextField(55).getText().toLowerCase();
-				scrollAnimations.setList(getSearchList());
                 scrollAnimations.resetScroll();
+				scrollAnimations.setList(getSearchList());
 			}
 		}
 	}
