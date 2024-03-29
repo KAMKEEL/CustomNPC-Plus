@@ -2,12 +2,15 @@ package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockColored;
+import net.minecraft.block.material.MapColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
@@ -93,6 +96,23 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         }
 
         l = item.getItem().getColorFromItemStack(item, 0);
+
+        Item loadingItem = item.getItem();
+        if(loadingItem instanceof ItemBlock) {
+            Block block = ((ItemBlock) loadingItem).field_150939_a;
+            if(block != null){
+                if(block == Blocks.enchanting_table || block == Blocks.end_portal_frame){
+                    object = block.getIcon(1, item.getItemDamage());
+                }
+                else if (block == Blocks.furnace || block == Blocks.tnt){
+                    object = block.getIcon(2, 1);
+                }
+                else {
+                    object = block.getIcon(0, item.getItemDamage());
+                }
+            }
+        }
+
         f3 = (float)(l >> 16 & 255) / 255.0F;
         f4 = (float)(l >> 8 & 255) / 255.0F;
         f = (float)(l & 255) / 255.0F;
