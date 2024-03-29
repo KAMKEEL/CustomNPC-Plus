@@ -59,6 +59,7 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         hookList.add("dialogOpen");
         hookList.add("dialogOption");
         hookList.add("dialogClose");
+        hookList.add("scriptCommand");
         hookList.add("customGuiClosed");
         hookList.add("customGuiButton");
         hookList.add("customGuiSlot");
