@@ -283,15 +283,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
 		{
-			NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
-			if(EventHooks.onNPCMeleeSwing(this, event))
-				return;
-
 			this.swingProgressInt = -1;
 			this.isSwingInProgress = true;
 
 			if (this.worldObj instanceof WorldServer)
 			{
+                NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
+                if(EventHooks.onNPCMeleeSwing(this, event))
+                    return;
+
 				((WorldServer)this.worldObj).getEntityTracker().func_151247_a(this, new S0BPacketAnimation(this, 0));
 			}
 		}
