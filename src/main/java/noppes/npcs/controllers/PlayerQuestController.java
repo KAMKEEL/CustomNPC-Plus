@@ -108,7 +108,11 @@ public class PlayerQuestController {
 		if(quest == null)
 			return false;
 
-		PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerData playerData = PlayerData.get(player);
+        if(playerData == null)
+            return false;
+
+		PlayerQuestData data = playerData.questData;
 		if(data.activeQuests.containsKey(quest.id))
 			return false;
 

@@ -29,25 +29,25 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
         getLabel(1).center(xSize);
 
         int y = guiTop + 12;
-    	this.addButton(new GuiNpcButton(0, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive"},availabitily.questAvailable.ordinal()));
+    	this.addButton(new GuiNpcButton(0, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive", "availability.acceptable", "availability.notacceptable"},availabitily.questAvailable.ordinal()));
     	this.addButton(new GuiNpcButton(10, guiLeft + 96, y, 192, 20, "availability.selectquest"));
     	getButton(10).setEnabled(availabitily.questAvailable != EnumAvailabilityQuest.Always);
     	this.addButton(new GuiNpcButton(20, guiLeft + 290, y, 20, 20, "X"));
 
     	y += 23;
-    	this.addButton(new GuiNpcButton(1, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive"},availabitily.quest2Available.ordinal()));
+    	this.addButton(new GuiNpcButton(1, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive", "availability.acceptable", "availability.notacceptable"},availabitily.quest2Available.ordinal()));
     	this.addButton(new GuiNpcButton(11, guiLeft + 96, y, 192, 20, "availability.selectquest"));
     	getButton(11).setEnabled(availabitily.quest2Available != EnumAvailabilityQuest.Always);
     	this.addButton(new GuiNpcButton(21, guiLeft + 290, y, 20, 20, "X"));
 
     	y += 23;
-    	this.addButton(new GuiNpcButton(2, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive"},availabitily.quest3Available.ordinal()));
+    	this.addButton(new GuiNpcButton(2, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive", "availability.acceptable", "availability.notacceptable"},availabitily.quest3Available.ordinal()));
     	this.addButton(new GuiNpcButton(12, guiLeft + 96, y, 192, 20, "availability.selectquest"));
     	getButton(12).setEnabled(availabitily.quest3Available != EnumAvailabilityQuest.Always);
     	this.addButton(new GuiNpcButton(22, guiLeft + 290, y, 20, 20, "X"));
 
     	y += 23;
-    	this.addButton(new GuiNpcButton(3, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive"},availabitily.quest4Available.ordinal()));
+    	this.addButton(new GuiNpcButton(3, guiLeft + 4, y, 90, 20, new String[]{"availability.always","availability.after","availability.before","availability.whenactive", "availability.whennotactive", "availability.acceptable", "availability.notacceptable"},availabitily.quest4Available.ordinal()));
     	this.addButton(new GuiNpcButton(13, guiLeft + 96, y, 192, 20, "availability.selectquest"));
     	getButton(13).setEnabled(availabitily.quest4Available != EnumAvailabilityQuest.Always);
     	this.addButton(new GuiNpcButton(23, guiLeft + 290, y, 20, 20, "X"));

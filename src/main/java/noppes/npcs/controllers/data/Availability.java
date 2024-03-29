@@ -10,6 +10,7 @@ import noppes.npcs.api.handler.data.IAvailability;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.scripted.CustomNPCsException;
 
 public class Availability implements ICompatibilty, IAvailability {
@@ -230,6 +231,13 @@ public class Availability implements ICompatibilty, IAvailability {
 			return true;
 		else if(en == EnumAvailabilityQuest.NotActive && !PlayerQuestController.isQuestActive(player, id))
 			return true;
+        else if(en == EnumAvailabilityQuest.Acceptable || en == EnumAvailabilityQuest.NotAcceptable){
+            Quest quest = QuestController.Instance.quests.get(id);
+            if(quest == null)
+                return true;
+            boolean result = PlayerQuestController.canQuestBeAccepted(quest, player);
+            return (result && en == EnumAvailabilityQuest.Acceptable) || (!result && en == EnumAvailabilityQuest.NotAcceptable);
+        }
 		return false;
 	}
 	@Override
