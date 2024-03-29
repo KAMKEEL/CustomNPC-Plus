@@ -1,5 +1,6 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IGuiHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -23,7 +24,6 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.MillisTimer;
 
-import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
@@ -42,34 +42,46 @@ public class CommonProxy implements IGuiHandler {
     protected void createAnimationThread() {
         Thread thread = (new Thread("Animation Thread") { public void run() {
             while (true) {
-                if (!CustomNpcs.proxy.hasClient() || !Minecraft.getMinecraft().isGamePaused()) {
-                    animationTimer.updateTimer();
-                }
-
-                HashSet<Animation> playingAnimations = CustomNpcs.proxy.hasClient() ? clientPlayingAnimations : serverPlayingAnimations;
-                for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
-                    for (Animation animation : playingAnimations) {
-                        int tickDuration = animation.currentFrame().tickDuration();
-                        if (animation.parent.isActive() && totalTicks % tickDuration == 0) {
-                            animation.increaseTime();
-                        }
-                    }
-                    totalTicks++;
-                }
-                totalTicks %= 60 * 60 * 1000;
-
                 try {
-                    clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
-                    serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
-                } catch (ConcurrentModificationException ignored) {}
+                    if (!CustomNpcs.proxy.hasClient() || !Minecraft.getMinecraft().isGamePaused()) {
+                        animationTimer.updateTimer();
+                    }
+
+                    for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
+                        updateAnimations(clientPlayingAnimations);
+                        updateAnimations(serverPlayingAnimations);
+                        totalTicks++;
+                    }
+                    totalTicks %= 60 * 60 * 1000;
+
+                    synchronized (clientPlayingAnimations) {
+                        clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+                    }
+                    synchronized (serverPlayingAnimations) {
+                        serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
+                    }
+                } catch (Exception ignored) {
+                    //Must ignore exceptions in this thread so a single animation error doesn't break all animations.
+                }
             }
         }});
         thread.setDaemon(true);
         thread.start();
     }
 
+    private void updateAnimations(HashSet<Animation> playingAnimations) {
+        for (Animation animation : playingAnimations) {
+            int tickDuration = animation.currentFrame().tickDuration();
+            if ((animation.parent.isActive()
+                || animation.parent.animation == null && animation.parent.isActive(animation.parent.currentClientAnimation))
+                && totalTicks % tickDuration == 0) {
+                animation.increaseTime();
+            }
+        }
+    }
+
     private boolean removeAnimation(Animation animation) {
-        if (animation.currentFrame() == null || animation.parent == null || animation.parent.animation != animation) {
+        if (animation.currentFrame() == null || animation.parent == null) {
             return true;
         }
 
@@ -86,17 +98,19 @@ public class CommonProxy implements IGuiHandler {
 
         if (entity == null) return true;
 
-        if (CustomNpcs.proxy.hasClient()) {
-            return clientRemoveAnimation(entity);
+        if (entity.worldObj != null && entity.worldObj.isRemote) {
+            return animation.parent.animation != animation || clientRemoveAnimation(entity);
         } else {
-            return entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity);
+            return animation.parent.animation != animation && animation.parent.currentClientAnimation != animation
+                || entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity)
+                || CustomNpcs.getServer().isServerStopped();
         }
     }
 
     @SideOnly(Side.CLIENT)
     private boolean clientRemoveAnimation(Entity entity) {
-        return Minecraft.getMinecraft().currentScreen == null
-            && !Minecraft.getMinecraft().theWorld.loadedEntityList.contains(entity);
+        return Minecraft.getMinecraft().theWorld == null
+            || Minecraft.getMinecraft().currentScreen == null && !Minecraft.getMinecraft().theWorld.loadedEntityList.contains(entity);
     }
 
 	public PlayerData getPlayerData(EntityPlayer player) {
