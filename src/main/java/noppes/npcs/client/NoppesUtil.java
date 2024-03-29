@@ -345,7 +345,7 @@ public class NoppesUtil {
                 ClientCacheHandler.playerData.setSyncNBT(compound);
             }
             else {
-                ClientCacheHandler.playerData.setNBT(compound);
+                ClientCacheHandler.playerData.setSyncNBTFull(compound);
             }
         } catch (IOException e) {
             e.printStackTrace();

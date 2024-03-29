@@ -86,7 +86,7 @@ public class SyncController {
 
 		PlayerData data = PlayerData.get(player);
         if(data != null){
-            NoppesUtilServer.sendPlayerDataCompound(player, data.getNBT(), false);
+            NoppesUtilServer.sendPlayerDataCompound(player, data.getSyncNBTFull(), false);
         }
 	}
 

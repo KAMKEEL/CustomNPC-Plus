@@ -62,7 +62,6 @@ public class ScriptPlayerEventHandler {
 
                 if(playerData.updateClient) {
                     NoppesUtilServer.sendPlayerDataCompound((EntityPlayerMP)player, playerData.getSyncNBT(), true);
-                    // VisibilityController.instance.onUpdate((EntityPlayerMP) player);
                     playerData.updateClient = false;
                 }
 

@@ -117,35 +117,35 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		}
 		isGUIOpen = data.getBoolean("isGUIOpen");
 	}
-	public NBTTagCompound getNBT() {
-		if(player != null){
-			playername = player.getCommandSenderName();
-			uuid = player.getPersistentID().toString();
-		}
-		NBTTagCompound compound = new NBTTagCompound();
-		dialogData.saveNBTData(compound);
-		bankData.saveNBTData(compound);
-		questData.saveNBTData(compound);
-		transportData.saveNBTData(compound);
-		factionData.saveNBTData(compound);
-		itemgiverData.saveNBTData(compound);
-		mailData.saveNBTData(compound);
-		timers.writeToNBT(compound);
-		skinOverlays.writeToNBT(compound);
-		animationData.writeToNBT(compound);
+    public NBTTagCompound getNBT() {
+        if(player != null){
+            playername = player.getCommandSenderName();
+            uuid = player.getPersistentID().toString();
+        }
+        NBTTagCompound compound = new NBTTagCompound();
+        dialogData.saveNBTData(compound);
+        bankData.saveNBTData(compound);
+        questData.saveNBTData(compound);
+        transportData.saveNBTData(compound);
+        factionData.saveNBTData(compound);
+        itemgiverData.saveNBTData(compound);
+        mailData.saveNBTData(compound);
+        timers.writeToNBT(compound);
+        skinOverlays.writeToNBT(compound);
+        animationData.writeToNBT(compound);
 
-		compound.setString("PlayerName", playername);
-		compound.setString("UUID", uuid);
-		compound.setInteger("PlayerCompanionId", companionID);
-		compound.setBoolean("isGUIOpen",isGUIOpen);
+        compound.setString("PlayerName", playername);
+        compound.setString("UUID", uuid);
+        compound.setInteger("PlayerCompanionId", companionID);
+        compound.setBoolean("isGUIOpen",isGUIOpen);
 
-		if(hasCompanion()){
-			NBTTagCompound nbt = new NBTTagCompound();
-			if(activeCompanion.writeToNBTOptional(nbt))
-				compound.setTag("PlayerCompanion", nbt);
-		}
-		return compound;
-	}
+        if(hasCompanion()){
+            NBTTagCompound nbt = new NBTTagCompound();
+            if(activeCompanion.writeToNBTOptional(nbt))
+                compound.setTag("PlayerCompanion", nbt);
+        }
+        return compound;
+    }
 
     public NBTTagCompound getSyncNBT(){
         NBTTagCompound compound = new NBTTagCompound();
@@ -160,6 +160,40 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.loadNBTData(data);
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
+    }
+
+    public NBTTagCompound getSyncNBTFull() {
+        if(player != null){
+            playername = player.getCommandSenderName();
+            uuid = player.getPersistentID().toString();
+        }
+        NBTTagCompound compound = new NBTTagCompound();
+        dialogData.saveNBTData(compound);
+        bankData.saveNBTData(compound);
+        questData.saveNBTData(compound);
+        transportData.saveNBTData(compound);
+        factionData.saveNBTData(compound);
+        mailData.saveNBTData(compound);
+        compound.setString("PlayerName", playername);
+        compound.setString("UUID", uuid);
+        return compound;
+    }
+
+    public void setSyncNBTFull(NBTTagCompound data){
+        dialogData.loadNBTData(data);
+        bankData.loadNBTData(data);
+        questData.loadNBTData(data);
+        transportData.loadNBTData(data);
+        factionData.loadNBTData(data);
+        mailData.loadNBTData(data);
+        if(player != null){
+            playername = player.getCommandSenderName();
+            uuid = player.getPersistentID().toString();
+        }
+        else{
+            playername = data.getString("PlayerName");
+            uuid = data.getString("UUID");
+        }
     }
 
 	@Override
