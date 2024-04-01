@@ -1319,7 +1319,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return;
 		this.npc.display.url = url;
 		npc.textureLocation = null;
-		npc.display.skinType = 2;
+        if(npc.display.skinType < 2)
+            npc.display.skinType = 2;
 		npc.script.clientNeedsUpdate = true;
 	}
 

@@ -288,9 +288,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 			if (this.worldObj instanceof WorldServer)
 			{
-                NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
-                if(EventHooks.onNPCMeleeSwing(this, event))
-                    return;
+                if(!isRemote()){
+                    NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
+                    if(EventHooks.onNPCMeleeSwing(this, event))
+                        return;
+                }
 
 				((WorldServer)this.worldObj).getEntityTracker().func_151247_a(this, new S0BPacketAnimation(this, 0));
 			}
