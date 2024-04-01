@@ -21,6 +21,7 @@ public class Frame implements IFrame {
 	public byte smooth = 0;
 
 	private int colorMarker = 0xFFFFFF;
+    private String comment = "";
 
 	public Frame(){}
 
@@ -120,11 +121,22 @@ public class Frame implements IFrame {
 		this.colorMarker = color;
 	}
 
+    public String getComment() {
+        return this.comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
 	public void readFromNBT(NBTTagCompound compound){
 		duration = compound.getInteger("Duration");
 		if (compound.hasKey("ColorMarker")) {
 			this.setColorMarker(compound.getInteger("ColorMarker"));
 		}
+        if (compound.hasKey("Comment")) {
+            this.comment = compound.getString("Comment");
+        }
 
 		// Customized = TRUE if Speed or Smooth Exist
 		if(compound.hasKey("Speed")){
@@ -169,6 +181,7 @@ public class Frame implements IFrame {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setInteger("Duration", duration);
 		compound.setInteger("ColorMarker", this.colorMarker);
+        compound.setString("Comment", this.comment);
 
 		if(customized){
 			compound.setFloat("Speed", speed);

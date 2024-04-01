@@ -37,6 +37,9 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
             this.getTextField(13).integersOnly = true;
             this.getTextField(13).setMinMaxDefault(1, Integer.MAX_VALUE, 50);
         }
+
+        this.addLabel(new GuiNpcLabel(14, "Comment", guiLeft + 5, guiTop + 106));
+        this.addTextField(new GuiNpcTextField(14, this, guiLeft + 50, guiTop + 101, 120, 15, editingFrame.getComment()));
     }
 
     @Override
@@ -66,6 +69,8 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
             this.editingFrame.speed = textfield.getFloat();
         } else if (textfield.id == 13) {
             this.editingFrame.tickDuration = textfield.getInteger();
+        } else if (textfield.id == 14) {
+            this.editingFrame.setComment(textfield.getText());
         }
     }
 }
