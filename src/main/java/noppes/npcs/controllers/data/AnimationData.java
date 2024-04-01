@@ -85,6 +85,9 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
+            if(sendingEntity.dimension != sendingEntity.worldObj.provider.dimensionId)
+                sendingEntity.dimension = sendingEntity.worldObj.provider.dimensionId;
+
             boolean prevIsClientAnimating = this.isClientAnimating && this.currentClientAnimation.currentFrame() != null;
             this.isClientAnimating = this.allowAnimation && this.animation != null;
             if (prevIsClientAnimating && (!this.isClientAnimating || this.animation != this.currentClientAnimation)) {

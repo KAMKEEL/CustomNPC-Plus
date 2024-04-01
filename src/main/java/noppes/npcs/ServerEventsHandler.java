@@ -69,7 +69,7 @@ public class ServerEventsHandler {
 			return;
 		}
 
-		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && event.target instanceof EntityLivingBase) {
+		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && npcInteracted) {
 			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
 			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
@@ -77,7 +77,7 @@ public class ServerEventsHandler {
 		}
 
 		if(item.getItem() == CustomItems.wand && npcInteracted && !isRemote){
-			if (!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI)){
+			if (!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.NPC_GUI)){
 				return;
 			}
 			event.setCanceled(true);
@@ -87,7 +87,7 @@ public class ServerEventsHandler {
 			}
 		}
 		else if(item.getItem() == CustomItems.cloner && !isRemote && !(event.target instanceof EntityPlayer)){
-            if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_CLONER))
+            if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_CLONER))
                 return;
 			NBTTagCompound compound = new NBTTagCompound();
 			if(!event.target.writeToNBTOptional(compound))
@@ -103,7 +103,7 @@ public class ServerEventsHandler {
 			event.setCanceled(true);
 		}
 		else if(item.getItem() == CustomItems.scripter && !isRemote && npcInteracted){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_SCRIPTER))
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
@@ -113,15 +113,15 @@ public class ServerEventsHandler {
 			}
 		}
 		else if(item.getItem() == CustomItems.mount){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
 				return;
 			event.setCanceled(true);
 			mounted = event.target;
 			if(isRemote)
 				CustomNpcs.proxy.openGui(MathHelper.floor_double(mounted.posX), MathHelper.floor_double(mounted.posY), MathHelper.floor_double(mounted.posZ), EnumGuiType.MobSpawnerMounter, event.entityPlayer);
 		}
-		else if(item.getItem() == CustomItems.wand && event.target instanceof EntityVillager){
-			if(!CustomNpcsPermissions.Instance.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
+		else if(item.getItem() == CustomItems.wand && !isRemote && event.target instanceof EntityVillager){
+			if(!CustomNpcsPermissions.hasPermission(event.entityPlayer, CustomNpcsPermissions.EDIT_VILLAGER))
 				return;
 			event.setCanceled(true);
 			Merchant = (EntityVillager)event.target;

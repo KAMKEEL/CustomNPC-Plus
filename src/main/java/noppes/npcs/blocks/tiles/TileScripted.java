@@ -133,14 +133,18 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         if(scaleZ <= 0)
             scaleZ = 1;
 
-        if(compound.hasKey("Text3")) {
+        if(compound.hasKey("Text1"))
             text1.setNBT(compound.getCompoundTag("Text1"));
+        if(compound.hasKey("Text2"))
             text2.setNBT(compound.getCompoundTag("Text2"));
+        if(compound.hasKey("Text3"))
             text3.setNBT(compound.getCompoundTag("Text3"));
+        if(compound.hasKey("Text4"))
             text4.setNBT(compound.getCompoundTag("Text4"));
+        if(compound.hasKey("Text5"))
             text5.setNBT(compound.getCompoundTag("Text5"));
+        if(compound.hasKey("Text6"))
             text6.setNBT(compound.getCompoundTag("Text6"));
-        }
     }
 
     @Override
@@ -494,7 +498,6 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             z = ValueUtil.clamp(z, -1, 1);
             if(offsetZ == z)
                 return;
-            System.out.println(rotationZ);
             offsetZ = z;
             needsClientUpdate = true;
         }

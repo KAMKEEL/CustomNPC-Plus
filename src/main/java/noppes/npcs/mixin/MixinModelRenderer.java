@@ -271,6 +271,9 @@ public abstract class MixinModelRenderer {
         try {
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
             Object model = renderer.baseModel;
+            if(!(model instanceof ModelBiped))
+                return null;
+
             Field[] declared;
             if (ClientEventHandler.declaredFieldCache.containsKey(ModelBipedBody)) {
                 declared = ClientEventHandler.declaredFieldCache.get(ModelBipedBody);

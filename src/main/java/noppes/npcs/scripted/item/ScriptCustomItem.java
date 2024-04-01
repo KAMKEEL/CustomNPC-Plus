@@ -30,6 +30,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
     public int maxItemUseDuration = 20;
     public int itemUseAction = 0; //0: none, 1: block, 2: bow, 3: eat, 4: drink
 
+    public boolean isNormalItem = false;
     public boolean isTool = false;
     public int digSpeed = 1;
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
@@ -109,8 +110,8 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         return this.enabled;
     }
 
-    public void setEnabled(boolean bo) {
-        this.enabled = bo;
+    public void setEnabled(boolean enable) {
+        this.enabled = enable;
     }
 
     public String getLanguage() {
@@ -172,6 +173,16 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
     public boolean isTool(){
         return this.isTool;
     }
+
+    public void setIsNormalItem(boolean normalItem){
+        this.isNormalItem = normalItem;
+        saveItemData();
+    }
+
+    public boolean isNormalItem(){
+        return this.isNormalItem;
+    }
+
 
     public void setDigSpeed(int digSpeed){
         this.digSpeed = digSpeed;
@@ -367,6 +378,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         compound.setFloat("TranslateZ",this.translateZ);
 
         compound.setBoolean("IsTool", this.isTool);
+        compound.setBoolean("IsNormalItem", this.isNormalItem);
         compound.setInteger("DigSpeed", this.digSpeed);
         compound.setInteger("ArmorType", this.armorType);
         compound.setInteger("Enchantability", this.enchantability);
@@ -403,6 +415,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         this.translateZ = compound.getFloat("TranslateZ");
 
         this.isTool = compound.getBoolean("IsTool");
+        this.isNormalItem = compound.getBoolean("IsNormalItem");
         this.digSpeed = compound.getInteger("DigSpeed");
         this.armorType = compound.getInteger("ArmorType");
         this.enchantability = compound.getInteger("Enchantability");

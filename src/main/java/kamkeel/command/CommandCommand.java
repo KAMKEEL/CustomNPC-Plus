@@ -31,7 +31,6 @@ public class CommandCommand extends CommandKamkeelBase {
         }
 
         String commandId = args[0];
-
         String[] commandArgs = new String[args.length - 1];
         System.arraycopy(args, 1, commandArgs, 0, args.length - 1);
 

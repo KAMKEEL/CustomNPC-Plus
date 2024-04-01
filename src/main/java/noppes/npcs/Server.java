@@ -95,6 +95,12 @@ public class Server {
 				buffer.writeLong((Long) ob);
 			else if(ob instanceof Double)
 				buffer.writeDouble((Double) ob);
+            else if (ob instanceof byte[]) {
+                // Write byte array length followed by bytes
+                byte[] byteArray = (byte[]) ob;
+                buffer.writeShort((short) byteArray.length);
+                buffer.writeBytes(byteArray);
+            }
 			else if(ob instanceof NBTTagCompound)
 				writeNBT(buffer, (NBTTagCompound) ob);
 		}

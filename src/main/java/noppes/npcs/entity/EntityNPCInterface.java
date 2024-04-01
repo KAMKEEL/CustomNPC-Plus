@@ -283,15 +283,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
 		{
-			NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
-			if(EventHooks.onNPCMeleeSwing(this, event))
-				return;
-
 			this.swingProgressInt = -1;
 			this.isSwingInProgress = true;
 
 			if (this.worldObj instanceof WorldServer)
 			{
+                if(!isRemote()){
+                    NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
+                    if(EventHooks.onNPCMeleeSwing(this, event))
+                        return;
+                }
+
 				((WorldServer)this.worldObj).getEntityTracker().func_151247_a(this, new S0BPacketAnimation(this, 0));
 			}
 		}
@@ -400,7 +402,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		ItemStack currentItem = player.inventory.getCurrentItem();
 		if (currentItem != null) {
 			Item item = currentItem.getItem();
-			if (item == CustomItems.cloner || item == CustomItems.wand || item == CustomItems.mount || item == CustomItems.scripter) {
+			if (item == CustomItems.cloner || item == CustomItems.wand || item == CustomItems.mount || item == CustomItems.scripter || item == CustomItems.soulstoneEmpty) {
 				setAttackTarget(null);
 				setRevengeTarget(null);
 				return true;

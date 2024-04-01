@@ -43,15 +43,14 @@ public class GuiNPCSoundsMenu extends GuiNPCInterface2 implements  ITextfieldLis
 
     }
     public void buttonEvent(GuiButton button){
-
 		if(button.id == 6)
 			npc.advanced.disablePitch =((GuiNpcButton)button).getValue() == 0;
 		else{
             selectedField = getTextField(button.id);
             setSubGui(new GuiSoundSelection(selectedField.getText()));
 		}
-
     }
+
 	@Override
 	public void unFocused(GuiNpcTextField textfield) {
 		if(textfield.id == 0)
@@ -72,6 +71,7 @@ public class GuiNPCSoundsMenu extends GuiNPCInterface2 implements  ITextfieldLis
         if(gss.selectedResource != null) {
             selectedField.setText(gss.selectedResource.toString());
             unFocused(selectedField);
+            initGui();
         }
     }
 

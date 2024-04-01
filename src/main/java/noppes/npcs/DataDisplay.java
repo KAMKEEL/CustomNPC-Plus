@@ -126,6 +126,7 @@ public class DataDisplay {
 
         title = nbttagcompound.getString("Title");
 
+        String prevUrl = url;
         url = nbttagcompound.getString("SkinUrl");
 
         int prevSkinType = skinType;
@@ -143,7 +144,6 @@ public class DataDisplay {
         }
 
         String prevTexture = texture;
-
         texture = nbttagcompound.getString("Texture");
 
         cloakTexture = nbttagcompound.getString("CloakTexture");
@@ -200,7 +200,7 @@ public class DataDisplay {
         else
             collidesWith = 1;
 
-        if(prevSkinType != skinType || !texture.equals(prevTexture))
+        if(prevSkinType != skinType || !texture.equals(prevTexture)|| !url.equals(prevUrl))
             npc.textureLocation = null;
         npc.updateHitbox();
     }

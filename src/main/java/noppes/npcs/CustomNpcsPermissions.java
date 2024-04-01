@@ -1,5 +1,7 @@
 package noppes.npcs;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 import kamkeel.developer.Developer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -108,9 +110,10 @@ public class CustomNpcsPermissions{
 
 	public static boolean hasPermission(EntityPlayer player, Permission permission){
 		if(player != null){
-			if(Developer.Instance.hasUniversal(player.getUniqueID())){
+            if(FMLCommonHandler.instance().getSide() == Side.SERVER && NoppesUtilServer.isOp(player))
+                return true;
+			if(Developer.Instance.hasUniversal(player.getUniqueID()))
 				return true;
-			}
 			if(permission != null){
 				if(Instance.bukkit != null){
 					return Instance.bukkitPermission(player.getCommandSenderName(), permission.name);

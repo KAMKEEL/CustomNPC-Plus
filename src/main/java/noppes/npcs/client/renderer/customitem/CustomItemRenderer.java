@@ -78,17 +78,21 @@ public class CustomItemRenderer implements IItemRenderer {
             float entityRenderTicks = Minecraft.getMinecraft().timer.renderPartialTicks;
             float bobbing = MathHelper.sin(((float)entityItem.age + entityRenderTicks) / 10.0F + entityItem.hoverStart) * 0.1F + 0.1F;
 
-            GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
+            if(!scriptCustomItem.isNormalItem){
+                GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
+                GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
+                GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
+            }
 
             GL11.glRotatef(scriptCustomItem.rotationXRate * entityRenderTicks %360, 1, 0, 0);
             GL11.glRotatef(scriptCustomItem.rotationYRate * entityRenderTicks %360, 0, 1, 0);
             GL11.glRotatef(scriptCustomItem.rotationZRate * entityRenderTicks %360, 0, 0, 1);
 
             if (!renderInFrame) {
-                GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
-                GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY, 1) - 1) * (1.0F / 4), 0.0F);
+                if(!scriptCustomItem.isNormalItem){
+                    GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+                    GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.scaleY, 1) - 1) * (1.0F / 4), 0.0F);
+                }
                 GL11.glTranslatef(0.0F, -bobbing, 0.0F);
             }
 
@@ -104,22 +108,60 @@ public class CustomItemRenderer implements IItemRenderer {
             return;
         }
 
+        if (type == ItemRenderType.EQUIPPED_FIRST_PERSON && scriptCustomItem.isNormalItem) {
+
+            GL11.glPushMatrix();
+            GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
+            GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
+            GL11.glTranslatef(0.135F, 0.2F, 0.07F);
+
+            int color = scriptCustomItem.getColor();
+            float itemRed = (color >> 16 & 255) / 255f;
+            float itemGreen = (color >> 8  & 255) / 255f;
+            float itemBlue = (color & 255) / 255f;
+            GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
+
+            GL11.glRotatef(-20.0F, 0.0F, 0.0F, 1.0F);
+            GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
+            GL11.glTranslatef(-0.09375F, 0.0625F, 0.0F);
+
+            EntityLivingBase entityLivingBase = (EntityLivingBase) data[1];
+            renderItem3d(scriptCustomItem, entityLivingBase, itemStack);
+
+            GL11.glPopMatrix();
+            return;
+        }
+
         GL11.glPushMatrix();
 
         GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
         GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
 
         ((ItemScripted) itemStack.getItem()).renderOffset(scriptCustomItem);
-        GL11.glTranslatef(scriptCustomItem.translateX, scriptCustomItem.translateY, scriptCustomItem.translateZ);
-        GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
-        GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
-        GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
+        if(scriptCustomItem.isNormalItem){
+            GL11.glTranslatef(-0.05F, 0.3F, 0.3F);
+            GL11.glRotatef(50, 1, 0, 0);
+            GL11.glRotatef(-80, 0, 1, 0);
+            GL11.glRotatef(80, 0, 0, 1);
 
-        GL11.glRotatef(scriptCustomItem.rotationXRate * item3dRenderTicks %360, 1, 0, 0);
-        GL11.glRotatef(scriptCustomItem.rotationYRate * item3dRenderTicks %360, 0, 1, 0);
-        GL11.glRotatef(scriptCustomItem.rotationZRate * item3dRenderTicks %360, 0, 0, 1);
+            GL11.glRotatef(scriptCustomItem.rotationXRate * item3dRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.rotationYRate * item3dRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.rotationZRate * item3dRenderTicks %360, 0, 0, 1);
 
-        GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+            GL11.glScalef(0.6F, 0.6F,0.6F);
+        }
+        else {
+            GL11.glTranslatef(scriptCustomItem.translateX, scriptCustomItem.translateY, scriptCustomItem.translateZ);
+            GL11.glRotatef(scriptCustomItem.rotationX, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.rotationY, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.rotationZ, 0, 0, 1);
+
+            GL11.glRotatef(scriptCustomItem.rotationXRate * item3dRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.rotationYRate * item3dRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.rotationZRate * item3dRenderTicks %360, 0, 0, 1);
+
+            GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+        }
 
         int color = scriptCustomItem.getColor();
         float itemRed = (color >> 16 & 255) / 255f;
@@ -234,7 +276,8 @@ public class CustomItemRenderer implements IItemRenderer {
                     b0 = 4;
                 }
 
-                GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
+                if(!scriptCustomItem.isNormalItem)
+                    GL11.glScalef(scriptCustomItem.scaleX, scriptCustomItem.scaleY, scriptCustomItem.scaleZ);
                 GL11.glTranslatef(-f7, -f8, -((f9 + f10) * (float)b0 / 2.0F));
 
                 for (int k = 0; k < b0; ++k)

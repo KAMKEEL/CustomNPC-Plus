@@ -5,10 +5,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderLivingEvent;
@@ -32,6 +34,10 @@ public class ClientEventHandler {
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
     public static boolean firstPersonAnimation;
+    public static ModelBiped firstPersonModel;
+
+    public static final ResourceLocation steveTextures = new ResourceLocation("textures/entity/steve.png");
+    public static final ResourceLocation fem = new ResourceLocation("jinryuufamilyc:fem.png");
 
     public static float partialRenderTick;
     public static RendererLivingEntity renderer;

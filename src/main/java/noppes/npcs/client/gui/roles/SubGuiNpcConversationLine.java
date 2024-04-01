@@ -55,6 +55,7 @@ public class SubGuiNpcConversationLine extends SubGuiInterface implements ITextf
         GuiSoundSelection gss = (GuiSoundSelection) subgui;
         if(gss.selectedResource != null) {
             sound = gss.selectedResource.toString();
+            initGui();
         }
     }
 

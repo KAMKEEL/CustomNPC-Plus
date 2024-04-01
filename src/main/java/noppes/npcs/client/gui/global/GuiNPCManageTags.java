@@ -21,7 +21,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 	private Tag tag = new Tag();
 	private String selected = null;
 	private String search = "";
-	
+
     public GuiNPCManageTags(EntityNPCInterface npc)
     {
     	super(npc);
@@ -31,10 +31,10 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     public void initGui()
     {
         super.initGui();
-        
+
        	this.addButton(new GuiNpcButton(0,guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
-        
+
     	if(scrollTags == null){
 	        scrollTags = new GuiCustomScroll(this,0, 0);
 			scrollTags.setSize(143, 185);
@@ -46,7 +46,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 
 		if (tag.id == -1)
     		return;
-           	
+
     	this.addTextField(new GuiNpcTextField(0, this, guiLeft + 40, guiTop + 4, 136, 20, tag.name));
     	getTextField(0).setMaxStringLength(20);
     	addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 8, guiTop + 9));
@@ -60,7 +60,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     	addButton(new GuiNpcButton(10, guiLeft + 50, guiTop + 30, 60, 20, color));
     	addLabel(new GuiNpcLabel(1,"gui.color", guiLeft + 8, guiTop + 35));
     	getButton(10).setTextColor(tag.color);
-		
+
     	addLabel(new GuiNpcLabel(3,"faction.hidden", guiLeft + 8, guiTop + 59));
        	this.addButton(new GuiNpcButton(3,guiLeft + 50, guiTop + 54, 60, 20, new String[]{"gui.no","gui.yes"},tag.hideTag?1:0));
     }
@@ -74,6 +74,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 				if(search.equals(getTextField(55).getText()))
 					return;
 				search = getTextField(55).getText().toLowerCase();
+                scrollTags.resetScroll();
 				scrollTags.setList(getSearchList());
 			}
 		}
@@ -100,7 +101,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
         	while(data.containsKey(name))
         		name += "_";
         	Tag tag = new Tag(-1, name, 0x00FF00);
-        	
+
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
 			Client.sendData(EnumPacketServer.TagSave, compound);
@@ -125,28 +126,28 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 	public void setGuiData(NBTTagCompound compound) {
 		this.tag = new Tag();
 		tag.readNBT(compound);
-		
+
 		setSelected(tag.name);
 		initGui();
 	}
-	
+
 
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
 		String name = scrollTags.getSelected();
 		this.data = data;
 		scrollTags.setList(getSearchList());
-		
+
 		if(name != null)
 			scrollTags.setSelected(name);
 	}
-    
+
 	@Override
 	public void setSelected(String selected) {
 		this.selected = selected;
 		scrollTags.setSelected(selected);
 	}
-    
+
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
@@ -156,21 +157,21 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 			Client.sendData(EnumPacketServer.TagGet, data.get(selected));
 		}
 	}
-	
+
 	public void save() {
 		if(selected != null && data.containsKey(selected) && tag != null){
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
-    	
+
 			Client.sendData(EnumPacketServer.TagSave, compound);
 		}
 	}
-		
+
 	@Override
 	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		if(tag.id == -1) 
+		if(tag.id == -1)
 			return;
-		
+
 		if(guiNpcTextField.id == 0) {
 			String name = guiNpcTextField.getText();
 			if(!name.isEmpty() && !data.containsKey(name)){
@@ -191,8 +192,8 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 			}
 	    	tag.color = color;
 	    	guiNpcTextField.setTextColor(tag.color);
-		} 
-		
+		}
+
 	}
 
 	@Override

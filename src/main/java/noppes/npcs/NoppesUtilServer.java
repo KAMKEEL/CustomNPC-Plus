@@ -13,6 +13,7 @@ import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.MobSpawnerBaseLogic;
@@ -844,8 +845,29 @@ public class NoppesUtilServer {
 			return entity;
 		}
 	}
+    public static void sendPlayerDataCompound(EntityPlayerMP player, NBTTagCompound compound, boolean sync) {
+        try {
+            byte[] bytes = CompressedStreamTools.compress(compound);
 
-	public static boolean isOp(EntityPlayer player) {
+            // Split byte array into chunks and send each chunk
+            int chunkSize = 16000;
+            int totalChunks = (int) Math.ceil((double) bytes.length / chunkSize);
+            for (int i = 0; i < totalChunks; i++) {
+                int start = i * chunkSize;
+                int length = Math.min(bytes.length - start, chunkSize);
+                byte[] chunk = new byte[length];
+                System.arraycopy(bytes, start, chunk, 0, length);
+                Server.sendData(player, EnumPacketClient.LARGE_NBT_PART, (Object) chunk);
+            }
+            // Send end packet
+            Server.sendData(player, EnumPacketClient.SYNC_PLAYER, sync);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static boolean isOp(EntityPlayer player) {
 		return MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
 	}
 

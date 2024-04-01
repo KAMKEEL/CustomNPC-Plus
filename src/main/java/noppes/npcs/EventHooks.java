@@ -562,11 +562,9 @@ public class EventHooks {
         return false;
     }
 
-    public static void onScriptedCommand(CustomNPCsEvent.ScriptedCommandEvent event) {
-        ForgeDataScript handler = ScriptController.Instance.forgeScripts;
-        if (handler.isEnabled()) {
-            handler.callScript(EnumScriptType.SCRIPT_COMMAND, event);
-        }
+    public static boolean onScriptedCommand(CustomNPCsEvent.ScriptedCommandEvent event) {
+        ScriptController.Instance.playerScripts.callScript(EnumScriptType.SCRIPT_COMMAND, event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onCustomGuiButton(IPlayer player, ICustomGui gui, int buttonId) {

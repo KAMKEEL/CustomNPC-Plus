@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util;
 
 import net.minecraft.inventory.Container;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 
@@ -32,13 +33,13 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
     public ResourceLocation getResource(String texture){
     	return new ResourceLocation("customnpcs","textures/gui/" + texture);
     }
-    
+
 	@Override
     public void initGui()
     {
     	super.initGui();
         menu.initGui(guiLeft, guiTop + menuYOffset, xSize);
-    }   
+    }
 
     @Override
     protected void mouseClicked(int i, int j, int k)
@@ -47,7 +48,7 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
     	if(!hasSubGui())
 	    	menu.mouseClicked(i, j, k);
     }
-    
+
     public void delete(){
     	npc.delete();
         displayGuiScreen(null);
@@ -62,10 +63,13 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 256, 256);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(defaultBackground2);
-        drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 256, 220);
-        
+        if(this instanceof GuiNpcTraderSetup)
+            drawTexturedModalRect(guiLeft + xSize-210, guiTop, 46, 0, 256, 220);
+        else
+            drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 256, 220);
+
         menu.drawElements(fontRendererObj, i, j, mc, f);
-        
+
         super.drawGuiContainerBackgroundLayer(f, i, j);
     }
 

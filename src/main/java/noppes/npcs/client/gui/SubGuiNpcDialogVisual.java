@@ -333,10 +333,12 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                     DialogImage selectedImage = (DialogImage) dialog.dialogImages.get(Integer.valueOf(imageScroll.getSelected()));
                     ArrayList<Integer> keys = new ArrayList<>(dialog.dialogImages.keySet());
                     int keyIndex = keys.indexOf(selectedImage.id);
-                    do {
-                        addId = keys.get(keyIndex) + 1;
-                        keyIndex++;
-                    } while (dialog.dialogImages.containsKey(addId));
+                    if (keyIndex >= 0 && keyIndex < keys.size() - 1) {
+                        do {
+                            addId = keys.get(keyIndex) + 1;
+                            keyIndex++;
+                        } while (keyIndex < keys.size() && dialog.dialogImages.containsKey(addId));
+                    }
                 } else if (dialog.dialogImages.size() > 0) {
                     addId = (Integer) dialog.dialogImages.keySet().toArray()[dialog.dialogImages.size() - 1] + 1;
                 }
