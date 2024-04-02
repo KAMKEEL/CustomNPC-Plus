@@ -760,8 +760,16 @@ enchantment.poison=中毒
 
 entity.CustomNpc.name=自定义NPC
 
-item.npcWoodenBroadsword.name=木质阔剑item.npcStoneBroadsword.name=石质阔剑item.npcIronBroadsword.name=铁质阔剑item.npcGoldenBroadsword.name=金质阔剑item.npcDiamondBroadsword.name=钻石阔剑item.npcBronzeBroadsword.name=青铜阔剑
-item.npcEmeraldBroadsword.name=绿宝石阔剑item.npcCursedBroadsword.name=被诅咒的阔剑item.npcDemonicBroadsword.name=魔化阔剑item.npcFrostBroadsword.name=霜冻阔剑
+item.npcWoodenBroadsword.name=木质阔剑
+item.npcStoneBroadsword.name=石质阔剑
+item.npcIronBroadsword.name=铁质阔剑
+item.npcGoldenBroadsword.name=金质阔剑
+item.npcDiamondBroadsword.name=钻石阔剑
+item.npcBronzeBroadsword.name=青铜阔剑
+item.npcEmeraldBroadsword.name=绿宝石阔剑
+item.npcCursedBroadsword.name=被诅咒的阔剑
+item.npcDemonicBroadsword.name=魔化阔剑
+item.npcFrostBroadsword.name=霜冻阔剑
 job.chunkloader=区块载入者
 job.conversation=群体对话
 stats.mindelay=最快攻速
