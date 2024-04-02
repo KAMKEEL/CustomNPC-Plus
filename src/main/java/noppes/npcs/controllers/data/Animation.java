@@ -278,7 +278,7 @@ public class Animation implements IAnimation {
 					}
 				}
 			} else if (this.parent != null && this.currentFrame > this.loop) {
-				this.parent.finishedTime = this.parent.animationEntity.getAge();
+				this.parent.finishedTime = this.parent.getMCEntity().getAge();
 			}
 		}
 	}

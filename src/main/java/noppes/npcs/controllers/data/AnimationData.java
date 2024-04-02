@@ -39,13 +39,11 @@ public class AnimationData implements IAnimationData {
     private final HashSet<Integer> cachedAnimationIDs = new HashSet<>();
 
     //Client-side values
-    public EntityLivingBase animationEntity;
     public int finishedTime = -1;
     public int finishedFrame = -1;
 
     public AnimationData(Object parent){
         this.parent = parent;
-        this.animationEntity = this.getMCEntity();
     }
 
     public static AnimationData getData(Entity entity) {
@@ -67,20 +65,14 @@ public class AnimationData implements IAnimationData {
     }
 
     public EntityLivingBase getMCEntity() {
-        if (this.animationEntity != null) {
-            return this.animationEntity;
-        }
-
         if (this.parent instanceof DataDisplay) {
-            return ((DataDisplay) this.parent).npc;
+            return  ((DataDisplay) this.parent).npc;
         } else {
-            EntityPlayer player;
             if (this.parent instanceof PlayerData) {
-                player = ((PlayerData) this.parent).player;
+                return ((PlayerData) this.parent).player;
             } else {
-                player = (EntityPlayer) this.parent;
+                return (EntityPlayer) this.parent;
             }
-            return player;
         }
     }
 
@@ -111,8 +103,8 @@ public class AnimationData implements IAnimationData {
             }
 
             synchronized (CommonProxy.serverPlayingAnimations) {
-                if (this.isClientAnimating && this.animationEntity != null &&
-                    !this.animationEntity.worldObj.isRemote && this.animation != null) {
+                if (this.isClientAnimating && this.getMCEntity() != null &&
+                    !this.getMCEntity().worldObj.isRemote && this.animation != null) {
                     CommonProxy.serverPlayingAnimations.add(this.animation);
                 }
             }
@@ -268,7 +260,7 @@ public class AnimationData implements IAnimationData {
         }
 
         synchronized (CommonProxy.clientPlayingAnimations) {
-            if (this.animationEntity != null && this.animationEntity.worldObj.isRemote && newAnim != null) {
+            if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote && newAnim != null) {
                 CommonProxy.clientPlayingAnimations.add(newAnim);
             }
         }
