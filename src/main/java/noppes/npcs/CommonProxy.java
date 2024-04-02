@@ -60,7 +60,8 @@ public class CommonProxy implements IGuiHandler {
                     synchronized (serverPlayingAnimations) {
                         serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
                     }
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }});
@@ -100,7 +101,8 @@ public class CommonProxy implements IGuiHandler {
         if (entity.worldObj != null && entity.worldObj.isRemote) {
             return animation.parent.animation != animation || clientRemoveAnimation(entity);
         } else {
-            return animation.parent.animation != animation && animation.parent.currentClientAnimation != animation
+            return !animation.parent.isClientAnimating()
+                || animation.parent.animation != animation && animation.parent.currentClientAnimation != animation
                 || entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity)
                 || CustomNpcs.getServer().isServerStopped();
         }

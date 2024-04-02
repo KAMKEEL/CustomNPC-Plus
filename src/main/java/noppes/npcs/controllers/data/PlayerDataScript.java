@@ -98,7 +98,7 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public boolean isClient() {
-        return FMLCommonHandler.instance().getEffectiveSide().isClient();
+        return false;
     }
     public boolean getEnabled() {
         return ScriptController.Instance.playerScripts.enabled;
