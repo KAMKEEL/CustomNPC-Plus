@@ -110,6 +110,13 @@ public class AnimationData implements IAnimationData {
                 EventHooks.onAnimationFrameEntered(this.animation, this.animation.currentFrame());
             }
 
+            synchronized (CommonProxy.serverPlayingAnimations) {
+                if (this.isClientAnimating && this.animationEntity != null &&
+                    !this.animationEntity.worldObj.isRemote && this.animation != null) {
+                    CommonProxy.serverPlayingAnimations.add(this.animation);
+                }
+            }
+
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(
                 sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
                 sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));
@@ -186,12 +193,6 @@ public class AnimationData implements IAnimationData {
         animationData.allowAnimation = enabled;
         NBTTagCompound data = animationData.viewWriteNBT(new NBTTagCompound());
         animationData.allowAnimation = prevEnabled;
-
-        synchronized (CommonProxy.serverPlayingAnimations) {
-            if (animationData.animationEntity != null && !animationData.animationEntity.worldObj.isRemote && animation != null) {
-                CommonProxy.serverPlayingAnimations.add(animation);
-            }
-        }
 
         if (animation != null && currentFrame >= 0 && currentFrame < animation.frames.size()) {
             data.setInteger("Frame", currentFrame);
