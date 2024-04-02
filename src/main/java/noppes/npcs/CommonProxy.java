@@ -61,7 +61,6 @@ public class CommonProxy implements IGuiHandler {
                         serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
                     }
                 } catch (Exception ignored) {
-                    //Must ignore exceptions in this thread so a single animation error doesn't break all animations.
                 }
             }
         }});

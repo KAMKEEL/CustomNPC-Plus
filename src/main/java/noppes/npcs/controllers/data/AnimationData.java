@@ -63,9 +63,16 @@ public class AnimationData implements IAnimationData {
     }
 
     public IAnimatable getEntity() {
+        IEntity<?> entity = NpcAPI.Instance().getIEntity(this.getMCEntity());
+        if (entity instanceof IAnimatable) {
+            return (IAnimatable) entity;
+        }
+        return null;
+    }
+
+    public EntityLivingBase getMCEntity() {
         if (this.parent instanceof DataDisplay) {
-            EntityNPCInterface npc = ((DataDisplay)this.parent).npc;
-            return (ICustomNpc<?>) NpcAPI.Instance().getIEntity(npc);
+            return ((DataDisplay) this.parent).npc;
         } else {
             EntityPlayer player;
             if (this.parent instanceof PlayerData) {
@@ -73,7 +80,7 @@ public class AnimationData implements IAnimationData {
             } else {
                 player = (EntityPlayer) this.parent;
             }
-            return (IPlayer<?>) NpcAPI.Instance().getIEntity(player);
+            return player;
         }
     }
 
@@ -181,7 +188,7 @@ public class AnimationData implements IAnimationData {
         animationData.allowAnimation = prevEnabled;
 
         synchronized (CommonProxy.serverPlayingAnimations) {
-            if (animationData.animationEntity != null && !animationData.animationEntity.worldObj.isRemote) {
+            if (animationData.animationEntity != null && !animationData.animationEntity.worldObj.isRemote && animation != null) {
                 CommonProxy.serverPlayingAnimations.add(animation);
             }
         }
