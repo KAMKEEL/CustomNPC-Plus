@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -40,7 +41,7 @@ public class BlockScripted extends BlockContainer {
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
-        if (tile != null && tile.isPassible)
+        if (tile != null && tile.isPassible && (tile.blockModel == null || tile.blockModel == Blocks.air))
             return AABB_EMPTY;
         return AABB.getOffsetBoundingBox(x,y,z);
     }
@@ -51,6 +52,13 @@ public class BlockScripted extends BlockContainer {
         if (tile != null && tile.isPassible)
             return AABB_EMPTY;
         return AABB.getOffsetBoundingBox(x,y,z);
+    }
+
+    @Override
+    public boolean getBlocksMovement(IBlockAccess worldIn, int x, int y, int z)
+    {
+        TileScripted tile = (TileScripted) worldIn.getTileEntity(x, y, z);
+        return tile != null && tile.isPassible;
     }
 
     @Override
