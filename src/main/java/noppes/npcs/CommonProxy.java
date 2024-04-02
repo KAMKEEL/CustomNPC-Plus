@@ -1,6 +1,5 @@
 package noppes.npcs;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IGuiHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -30,7 +29,8 @@ public class CommonProxy implements IGuiHandler {
     public final static HashSet<Animation> clientPlayingAnimations = new HashSet<>();
     public final static HashSet<Animation> serverPlayingAnimations = new HashSet<>();
     protected MillisTimer animationTimer = new MillisTimer(1000);
-    protected long totalTicks;
+    protected static long totalServerTicks;
+    protected static long totalClientTicks;
 
 	public void load() {
         this.createAnimationThread();
@@ -48,11 +48,25 @@ public class CommonProxy implements IGuiHandler {
                     }
 
                     for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
-                        updateAnimations(clientPlayingAnimations);
-                        updateAnimations(serverPlayingAnimations);
-                        totalTicks++;
+                        for (Animation animation : clientPlayingAnimations) {
+                            int tickDuration = animation.currentFrame().tickDuration();
+                            if (updateAnimation(animation) && totalClientTicks % tickDuration == 0) {
+                                animation.increaseTime();
+                            }
+                        }
+                        totalClientTicks++;
+
+                        for (Animation animation : serverPlayingAnimations) {
+                            int tickDuration = animation.currentFrame().tickDuration();
+                            if (updateAnimation(animation) && totalServerTicks % tickDuration == 0) {
+                                animation.increaseTime();
+                            }
+                        }
+                        totalServerTicks++;
                     }
-                    totalTicks %= 60 * 60 * 1000;
+
+                    totalClientTicks %= Long.MAX_VALUE;
+                    totalServerTicks %= Long.MAX_VALUE;
 
                     synchronized (clientPlayingAnimations) {
                         clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
@@ -69,15 +83,10 @@ public class CommonProxy implements IGuiHandler {
         thread.start();
     }
 
-    private void updateAnimations(HashSet<Animation> playingAnimations) {
-        for (Animation animation : playingAnimations) {
-            int tickDuration = animation.currentFrame().tickDuration();
-            if ((animation.parent.isActive()
-                || animation.parent.animation == null && animation.parent.isActive(animation.parent.currentClientAnimation))
-                && totalTicks % tickDuration == 0) {
-                animation.increaseTime();
-            }
-        }
+    private boolean updateAnimation(Animation animation) {
+        return animation.parent.isActive()
+            || animation.parent.animation == null
+            && animation.parent.isActive(animation.parent.currentClientAnimation);
     }
 
     private boolean removeAnimation(Animation animation) {
