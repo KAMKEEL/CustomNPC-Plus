@@ -45,11 +45,7 @@ public class AnimationData implements IAnimationData {
 
     public AnimationData(Object parent){
         this.parent = parent;
-        if (parent instanceof DataDisplay) {
-            this.animationEntity = ((DataDisplay) parent).npc;
-        } else if (parent instanceof EntityPlayer) {
-            this.animationEntity = (EntityLivingBase) parent;
-        }
+        this.animationEntity = this.getMCEntity();
     }
 
     public static AnimationData getData(Entity entity) {
@@ -71,6 +67,10 @@ public class AnimationData implements IAnimationData {
     }
 
     public EntityLivingBase getMCEntity() {
+        if (this.animationEntity != null) {
+            return this.animationEntity;
+        }
+
         if (this.parent instanceof DataDisplay) {
             return ((DataDisplay) this.parent).npc;
         } else {
