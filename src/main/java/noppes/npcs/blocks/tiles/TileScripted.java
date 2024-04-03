@@ -15,6 +15,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import noppes.npcs.*;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.block.ITextPlane;
@@ -48,6 +49,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     public ItemStack itemModel = new ItemStack(CustomItems.scripted);
     public Block blockModel = null;
+    private int metadata;
 
     public boolean needsClientUpdate = false;
 
@@ -68,6 +70,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     public TileEntity renderTile;
     public boolean renderTileErrored = true;
+    public boolean renderFullBlock = true;
     public ITickable renderTileUpdate = null;
 
     public TextPlane text1 = new TextPlane();
@@ -219,9 +222,14 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             EventHooks.onScriptBlockUpdate(this);
             ticksExisted = 0;
             if(needsClientUpdate){
-                markDirty();
+                worldObj.func_147451_t(xCoord, yCoord, zCoord);
                 worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-                worldObj.notifyBlocksOfNeighborChange(xCoord,yCoord,zCoord,getBlockType(),3);
+                worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, CustomItems.scripted);
+
+                Chunk chunk = worldObj.getChunkFromChunkCoords(xCoord >> 4, zCoord >> 4);
+                chunk.setBlockMetadata(xCoord & 15, yCoord, zCoord & 15, metadata);
+                blockMetadata = metadata;
+
                 needsClientUpdate = false;
             }
         }
@@ -272,6 +280,11 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         }
         if(NoppesUtilPlayer.compareItems(item, itemModel, false, false) && b != blockModel)
             return;
+
+        boolean blockChanged = b != blockModel;
+        int meta = item.getItemDamage();
+        metadata = (meta == 0 || meta == metadata) && blockChanged ? metadata + 1 : meta;
+        this.blockMetadata = metadata;
 
         itemModel = item;
         blockModel = b;
