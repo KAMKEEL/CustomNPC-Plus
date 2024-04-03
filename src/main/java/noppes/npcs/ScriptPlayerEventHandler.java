@@ -453,7 +453,7 @@ public class ScriptPlayerEventHandler {
             }
 
             if(source instanceof EntityPlayer) {
-                noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
+                noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent((IPlayer)NpcAPI.Instance().getIEntity(source), event.entityLiving, event.ammount, event.source);
                 event.setCanceled(EventHooks.onPlayerDamagedEntity(handler, pevent1));
                 event.ammount = pevent1.damage;
             }
