@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.src.FMLRenderAccessLibrary;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
@@ -51,6 +50,9 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
                 tile.renderFullBlock = true;
             }
             GL11.glPopMatrix();
+        } else {
+            renderer.renderStandardBlock(CustomItems.scripted, x, y, z);
+            tile.renderFullBlock = true;
         }
 
         return true;
@@ -63,22 +65,20 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
     @Override
     public void renderTileEntityAt(TileEntity te, double x, double y, double z, float partialTicks) {
         TileScripted tile = (TileScripted) te;
-        GL11.glPushMatrix();
-        GL11.glDisable(GL11.GL_BLEND);
 
-        RenderHelper.enableStandardItemLighting();
-        GL11.glTranslatef((float) (x + 0.5), (float) y, (float) (z + 0.5));
-        if (overrideModel()) {
-            GL11.glTranslatef(0, 0.5F, 0);
-        } else if (!tile.renderFullBlock) {
+        if (!tile.renderFullBlock) {
+            GL11.glPushMatrix();
+            GL11.glDisable(GL11.GL_BLEND);
+            RenderHelper.enableStandardItemLighting();
+            GL11.glTranslatef((float) (x + 0.5), (float) y, (float) (z + 0.5));
             GL11.glRotatef(tile.rotationY, 0, 1, 0);
             GL11.glRotatef(tile.rotationX, 1, 0, 0);
             GL11.glRotatef(tile.rotationZ, 0, 0, 1);
             GL11.glScalef(tile.scaleX, tile.scaleY, tile.scaleZ);
             GL11.glTranslatef(0, 0.5F, 0);
             renderItem(te, tile.itemModel);
+            GL11.glPopMatrix();
         }
-        GL11.glPopMatrix();
 
         if (!tile.text1.text.isEmpty()) {
             drawText(tile.text1, x, y, z);
@@ -183,7 +183,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
         GL11.glPopMatrix();
     }
 
-    private boolean overrideModel() {
+    public static boolean overrideModel() {
         ItemStack held = Minecraft.getMinecraft().thePlayer.getHeldItem();
         if (held == null)
             return false;
