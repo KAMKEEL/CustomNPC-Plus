@@ -25,8 +25,6 @@ import noppes.npcs.constants.EnumGuiType;
 import java.util.Random;
 
 public class BlockScripted extends BlockContainer {
-
-    public int renderId = -1;
     public static final AxisAlignedBB AABB = AxisAlignedBB.getBoundingBox(0.001f, 0.001f, 0.001f, 0.998f, 0.998f, 0.998f);
     public static final AxisAlignedBB AABB_EMPTY = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
 
@@ -111,12 +109,12 @@ public class BlockScripted extends BlockContainer {
 
     @Override
     public boolean canRenderInPass(int pass) {
-        return super.canRenderInPass(pass);
+        return false;
     }
 
     @Override
     public int getRenderType() {
-        return renderId;
+        return 0;
     }
     @Override
     public boolean isOpaqueCube() {
