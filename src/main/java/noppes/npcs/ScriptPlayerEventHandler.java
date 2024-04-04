@@ -410,7 +410,7 @@ public class ScriptPlayerEventHandler {
                 } catch (Exception ignored) {}
             }
 
-            if(source instanceof EntityPlayer) {
+            if(event.source.getEntity() instanceof EntityPlayer) {
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.source.getEntity());
                 EventHooks.onPlayerKills(handler,scriptPlayer, event.entityLiving);
             }
