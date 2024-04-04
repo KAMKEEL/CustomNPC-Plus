@@ -466,8 +466,11 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptPlayerGet) {
 			getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptPlayerSave) {
+            int tab = buffer.getInt(buffer.readerIndex());
 			saveScripts(data,buffer,player);
 			ScriptController.Instance.lastPlayerUpdate = System.currentTimeMillis();
+            if(tab == -1)
+                ScriptController.Instance.savePlayerScriptsSync();
 		}
 	}
 
@@ -476,8 +479,11 @@ public class PacketHandlerServer{
 		if (type == EnumPacketServer.ScriptForgeGet) {
 			getScripts(data,buffer,player);
 		} else if (type == EnumPacketServer.ScriptForgeSave) {
+            int tab = buffer.getInt(buffer.readerIndex());
 			saveScripts(data,buffer,player);
 			ScriptController.Instance.lastForgeUpdate = System.currentTimeMillis();
+            if(tab == -1)
+                ScriptController.Instance.saveForgeScriptsSync();
 		}
 	}
 
@@ -486,8 +492,11 @@ public class PacketHandlerServer{
 		if(type == EnumPacketServer.ScriptGlobalNPCGet) {
 			getScripts(data,buffer,player);
 		} else if(type == EnumPacketServer.ScriptGlobalNPCSave) {
+            int tab = buffer.getInt(buffer.readerIndex());
 			saveScripts(data,buffer,player);
 			ScriptController.Instance.lastGlobalNpcUpdate = System.currentTimeMillis();
+            if(tab == -1)
+                ScriptController.Instance.saveGlobalScriptsSync();
 		}
 	}
 
