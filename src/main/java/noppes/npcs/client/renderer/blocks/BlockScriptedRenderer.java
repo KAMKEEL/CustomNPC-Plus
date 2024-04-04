@@ -1,18 +1,18 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.src.FMLRenderAccessLibrary;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.ForgeHooksClient;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockScripted;
@@ -28,6 +28,38 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
     private static final RenderBlocks renderBlocks = new RenderBlocks();
     private static final Random random = new Random();
 
+    public BlockScriptedRenderer() {
+        ((BlockScripted) CustomItems.scripted).renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(this);
+    }
+
+    @Override
+    public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
+        TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
+        Block blockModel = tile.blockModel;
+
+        if (!overrideModel() && blockModel != null) {
+            GL11.glPushMatrix();
+            GL11.glRotatef(tile.rotationY, 0, 1, 0);
+            GL11.glRotatef(tile.rotationX, 1, 0, 0);
+            GL11.glRotatef(tile.rotationZ, 0, 0, 1);
+            GL11.glScalef(tile.scaleX, tile.scaleY, tile.scaleZ);
+            if (blockModel != CustomItems.scripted) {
+                tile.renderFullBlock = renderer.renderBlockByRenderType(blockModel, x, y, z);
+            } else {
+                renderer.renderStandardBlock(blockModel, x, y, z);
+                tile.renderFullBlock = true;
+            }
+            GL11.glPopMatrix();
+        }
+
+        return true;
+    }
+
+    public int getRenderId() {
+        return CustomItems.scripted.getRenderType();
+    }
+
     @Override
     public void renderTileEntityAt(TileEntity te, double x, double y, double z, float partialTicks) {
         TileScripted tile = (TileScripted) te;
@@ -38,8 +70,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
         GL11.glTranslatef((float) (x + 0.5), (float) y, (float) (z + 0.5));
         if (overrideModel()) {
             GL11.glTranslatef(0, 0.5F, 0);
-            renderItem(te, new ItemStack(CustomItems.scripted));
-        } else {
+        } else if (!tile.renderFullBlock) {
             GL11.glRotatef(tile.rotationY, 0, 1, 0);
             GL11.glRotatef(tile.rotationX, 1, 0, 0);
             GL11.glRotatef(tile.rotationZ, 0, 0, 1);
@@ -166,7 +197,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
     }
 
     @Override
-    public int getRenderId() {
-        return 0;
+    public boolean shouldRender3DInInventory(int modelId) {
+        return false;
     }
 }
