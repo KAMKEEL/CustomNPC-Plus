@@ -1,18 +1,17 @@
 package noppes.npcs.client.renderer.blocks;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.ForgeHooksClient;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockScripted;
@@ -28,26 +27,58 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
     private static final RenderBlocks renderBlocks = new RenderBlocks();
     private static final Random random = new Random();
 
+    public BlockScriptedRenderer() {
+        ((BlockScripted) CustomItems.scripted).renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(this);
+    }
+
+    @Override
+    public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
+        TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
+        Block blockModel = tile.blockModel;
+
+        if (!overrideModel() && blockModel != null) {
+            GL11.glPushMatrix();
+            GL11.glRotatef(tile.rotationY, 0, 1, 0);
+            GL11.glRotatef(tile.rotationX, 1, 0, 0);
+            GL11.glRotatef(tile.rotationZ, 0, 0, 1);
+            GL11.glScalef(tile.scaleX, tile.scaleY, tile.scaleZ);
+            if (blockModel != CustomItems.scripted) {
+                tile.renderFullBlock = renderer.renderBlockByRenderType(blockModel, x, y, z);
+            } else {
+                renderer.renderStandardBlock(blockModel, x, y, z);
+                tile.renderFullBlock = true;
+            }
+            GL11.glPopMatrix();
+        } else {
+            renderer.renderStandardBlock(CustomItems.scripted, x, y, z);
+            tile.renderFullBlock = true;
+        }
+
+        return true;
+    }
+
+    public int getRenderId() {
+        return CustomItems.scripted.getRenderType();
+    }
+
     @Override
     public void renderTileEntityAt(TileEntity te, double x, double y, double z, float partialTicks) {
         TileScripted tile = (TileScripted) te;
-        GL11.glPushMatrix();
-        GL11.glDisable(GL11.GL_BLEND);
 
-        RenderHelper.enableStandardItemLighting();
-        GL11.glTranslatef((float) (x + 0.5), (float) y, (float) (z + 0.5));
-        if (overrideModel()) {
-            GL11.glTranslatef(0, 0.5F, 0);
-            renderItem(te, new ItemStack(CustomItems.scripted));
-        } else {
+        if (!tile.renderFullBlock) {
+            GL11.glPushMatrix();
+            GL11.glDisable(GL11.GL_BLEND);
+            RenderHelper.enableStandardItemLighting();
+            GL11.glTranslatef((float) (x + 0.5), (float) y, (float) (z + 0.5));
             GL11.glRotatef(tile.rotationY, 0, 1, 0);
             GL11.glRotatef(tile.rotationX, 1, 0, 0);
             GL11.glRotatef(tile.rotationZ, 0, 0, 1);
             GL11.glScalef(tile.scaleX, tile.scaleY, tile.scaleZ);
             GL11.glTranslatef(0, 0.5F, 0);
             renderItem(te, tile.itemModel);
+            GL11.glPopMatrix();
         }
-        GL11.glPopMatrix();
 
         if (!tile.text1.text.isEmpty()) {
             drawText(tile.text1, x, y, z);
@@ -152,7 +183,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
         GL11.glPopMatrix();
     }
 
-    private boolean overrideModel() {
+    public static boolean overrideModel() {
         ItemStack held = Minecraft.getMinecraft().thePlayer.getHeldItem();
         if (held == null)
             return false;
@@ -166,7 +197,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
     }
 
     @Override
-    public int getRenderId() {
-        return 0;
+    public boolean shouldRender3DInInventory(int modelId) {
+        return false;
     }
 }
