@@ -431,7 +431,7 @@ public class ScriptPlayerEventHandler {
                 event.setCanceled(EventHooks.onPlayerAttacked(handler, pevent));
             }
 
-            if(source instanceof EntityPlayer) {
+            if(event.source.getEntity() instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
                 event.setCanceled(EventHooks.onPlayerAttack(handler, pevent1));
             }
