@@ -20,10 +20,12 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.MillisTimer;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
@@ -49,24 +51,10 @@ public class CommonProxy implements IGuiHandler {
                     }
 
                     for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
-                        for (AnimationData data : clientPlayingAnimations) {
-                            if (data.animation != null) {
-                                int tickDuration = data.animation.currentFrame().tickDuration();
-                                if (totalClientTicks % tickDuration == 0) {
-                                    data.increaseTime();
-                                }
-                            }
-                        }
+                        updateData(totalClientTicks, clientPlayingAnimations);
                         totalClientTicks++;
 
-                        for (AnimationData data : serverPlayingAnimations) {
-                            if (data.animation != null) {
-                                int tickDuration = data.animation.currentFrame().tickDuration();
-                                if (totalServerTicks % tickDuration == 0) {
-                                    data.increaseTime();
-                                }
-                            }
-                        }
+                        updateData(totalServerTicks, serverPlayingAnimations);
                         totalServerTicks++;
                     }
 
@@ -86,6 +74,19 @@ public class CommonProxy implements IGuiHandler {
         }});
         thread.setDaemon(true);
         thread.start();
+    }
+
+    private void updateData(long ticks, Collection<AnimationData> animationData) {
+        for (AnimationData data : animationData) {
+            Frame frame = data.animation != null && data.animation.currentFrame() != null
+                ? (Frame) data.animation.currentFrame() : null;
+            if (frame != null) {
+                int tickDuration = frame.tickDuration();
+                if (ticks % tickDuration == 0) {
+                    data.increaseTime();
+                }
+            }
+        }
     }
 
     private boolean removeAnimation(AnimationData data) {
