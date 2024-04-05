@@ -19,6 +19,7 @@ import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.MillisTimer;
@@ -26,8 +27,8 @@ import noppes.npcs.util.MillisTimer;
 import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
-    public final static HashSet<Animation> clientPlayingAnimations = new HashSet<>();
-    public final static HashSet<Animation> serverPlayingAnimations = new HashSet<>();
+    public final static HashSet<AnimationData> clientPlayingAnimations = new HashSet<>();
+    public final static HashSet<AnimationData> serverPlayingAnimations = new HashSet<>();
     protected MillisTimer animationTimer = new MillisTimer(1000);
     protected static long totalServerTicks;
     protected static long totalClientTicks;
@@ -48,18 +49,22 @@ public class CommonProxy implements IGuiHandler {
                     }
 
                     for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
-                        for (Animation animation : clientPlayingAnimations) {
-                            int tickDuration = animation.currentFrame().tickDuration();
-                            if (updateAnimation(animation) && totalClientTicks % tickDuration == 0) {
-                                animation.increaseTime();
+                        for (AnimationData data : clientPlayingAnimations) {
+                            if (data.animation != null) {
+                                int tickDuration = data.animation.currentFrame().tickDuration();
+                                if (totalClientTicks % tickDuration == 0) {
+                                    data.increaseTime();
+                                }
                             }
                         }
                         totalClientTicks++;
 
-                        for (Animation animation : serverPlayingAnimations) {
-                            int tickDuration = animation.currentFrame().tickDuration();
-                            if (updateAnimation(animation) && totalServerTicks % tickDuration == 0) {
-                                animation.increaseTime();
+                        for (AnimationData data : serverPlayingAnimations) {
+                            if (data.animation != null) {
+                                int tickDuration = data.animation.currentFrame().tickDuration();
+                                if (totalServerTicks % tickDuration == 0) {
+                                    data.increaseTime();
+                                }
                             }
                         }
                         totalServerTicks++;
@@ -83,44 +88,33 @@ public class CommonProxy implements IGuiHandler {
         thread.start();
     }
 
-    private boolean updateAnimation(Animation animation) {
-        return animation.parent.isActive()
-            || animation.parent.animation == null
-            && animation.parent.isActive(animation.parent.currentClientAnimation);
-    }
-
-    private boolean removeAnimation(Animation animation) {
-        if (animation.currentFrame() == null || animation.parent == null) {
-            return true;
-        }
-
+    private boolean removeAnimation(AnimationData data) {
         Entity entity = null;
-        if (animation.parent.parent instanceof DataDisplay) {
-            entity = ((DataDisplay)animation.parent.parent).npc;
+        if (data.parent instanceof DataDisplay) {
+            entity = ((DataDisplay)data.parent).npc;
         } else {
-            if (animation.parent.parent instanceof PlayerData) {
-                entity = ((PlayerData) animation.parent.parent).player;
-            } else if (animation.parent.parent instanceof EntityPlayer) {
-                entity = (EntityPlayer) animation.parent.parent;
+            if (data.parent instanceof PlayerData) {
+                entity = ((PlayerData) data.parent).player;
+            } else if (data.parent instanceof EntityPlayer) {
+                entity = (EntityPlayer) data.parent;
             }
         }
 
         if (entity == null) return true;
 
         if (entity.worldObj != null && entity.worldObj.isRemote) {
-            return animation.parent.animation != animation || clientRemoveAnimation(entity);
+            return clientRemoveAnimation(entity);
         } else {
-            return !animation.parent.isClientAnimating()
-                || animation.parent.animation != animation && animation.parent.currentClientAnimation != animation
-                || entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity)
+            return entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity)
                 || CustomNpcs.getServer().isServerStopped();
         }
     }
 
     @SideOnly(Side.CLIENT)
     private boolean clientRemoveAnimation(Entity entity) {
-        return Minecraft.getMinecraft().theWorld == null
-            || Minecraft.getMinecraft().currentScreen == null && !Minecraft.getMinecraft().theWorld.loadedEntityList.contains(entity);
+        Minecraft mc = Minecraft.getMinecraft();
+        return mc.theWorld == null
+            || mc.currentScreen == null && entity != mc.thePlayer  && !mc.theWorld.loadedEntityList.contains(entity);
     }
 
 	public PlayerData getPlayerData(EntityPlayer player) {

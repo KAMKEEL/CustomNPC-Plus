@@ -179,6 +179,14 @@ public class Animation implements IAnimation {
 		id = newID;
 	}
 
+    public long getTotalTime() {
+        long time = 0;
+        for (Frame frame : this.frames) {
+            time += (long) frame.duration * (frame.customized ? frame.tickDuration : this.tickDuration);
+        }
+        return time;
+    }
+
 	public void readFromNBT(NBTTagCompound compound){
 		if(compound.hasKey("ID")){
 			id = compound.getInteger("ID");

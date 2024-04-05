@@ -32,6 +32,7 @@ public class AnimationData implements IAnimationData {
 
     public Animation animation;
     public boolean allowAnimation = false;
+    public long animatingTime = 0;
 
     public Animation currentClientAnimation;
     private boolean isClientAnimating;
@@ -93,6 +94,7 @@ public class AnimationData implements IAnimationData {
                 EventHooks.onAnimationEnded(this.currentClientAnimation);
             }
             if (this.isClientAnimating) {
+                this.animatingTime = 0;
                 this.currentClientAnimation = this.animation;
             }
 
@@ -105,7 +107,7 @@ public class AnimationData implements IAnimationData {
             synchronized (CommonProxy.serverPlayingAnimations) {
                 if (this.isClientAnimating && this.getMCEntity() != null &&
                     !this.getMCEntity().worldObj.isRemote && this.animation != null) {
-                    CommonProxy.serverPlayingAnimations.add(this.animation);
+                    CommonProxy.serverPlayingAnimations.add(this);
                 }
             }
 
@@ -157,6 +159,14 @@ public class AnimationData implements IAnimationData {
             boolean moving = Math.sqrt(player.motionX*player.motionX + player.motionY*player.motionY + player.motionZ*player.motionZ) != 0.0D;
 
             return animation.whileAttacking && player.getLastAttackerTime() - player.ticksExisted < 20 || animation.whileMoving && moving || animation.whileStanding && !moving;
+        }
+    }
+
+    public void increaseTime() {
+        if (this.isActive()) {
+            this.animation.increaseTime();
+        } else if (this.isActive(animation.parent.currentClientAnimation)) {
+            this.currentClientAnimation.increaseTime();
         }
     }
 
@@ -259,9 +269,11 @@ public class AnimationData implements IAnimationData {
             newAnim.parent = this;
         }
 
-        synchronized (CommonProxy.clientPlayingAnimations) {
-            if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote && newAnim != null) {
-                CommonProxy.clientPlayingAnimations.add(newAnim);
+
+        if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote && newAnim != null) {
+            this.animatingTime = 0;
+            synchronized (CommonProxy.clientPlayingAnimations) {
+                CommonProxy.clientPlayingAnimations.add(this);
             }
         }
 
@@ -289,5 +301,9 @@ public class AnimationData implements IAnimationData {
 
     public IAnimation getAnimation() {
         return animation;
+    }
+
+    public long getAnimatingTime() {
+        return this.animatingTime;
     }
 }
