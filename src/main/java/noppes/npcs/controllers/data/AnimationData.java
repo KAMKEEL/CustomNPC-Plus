@@ -264,10 +264,13 @@ public class AnimationData implements IAnimationData {
                 CommonProxy.clientPlayingAnimations.add(newAnim);
             }
         }
+
+        Animation prevAnim = this.animation;
         this.animation = newAnim;
 
-        if (this.isActive() && newAnim != null && !newAnim.frames.isEmpty()) {
-            Frame frame = (Frame) this.animation.currentFrame();
+        if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote &&
+            this.isActive() && prevAnim != null && newAnim != null && !newAnim.frames.isEmpty()) {
+            Frame frame = (Frame) prevAnim.currentFrame();
             if (frame != null) {
                 Frame firstFrame = newAnim.frames.get(0);
                 for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {

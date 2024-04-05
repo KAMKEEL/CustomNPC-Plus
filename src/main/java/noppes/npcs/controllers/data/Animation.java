@@ -251,7 +251,7 @@ public class Animation implements IAnimation {
 		}
 
 		this.currentFrameTime++;
-		if (this.currentFrameTime == this.currentFrame().getDuration()) {
+		if (this.currentFrame() != null && this.currentFrameTime == this.currentFrame().getDuration()) {
             EventHooks.onAnimationFrameExited(this, this.currentFrame());
 
 			Frame prevFrame = (Frame) this.currentFrame();
