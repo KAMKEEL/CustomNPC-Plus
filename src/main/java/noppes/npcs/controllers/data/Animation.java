@@ -250,9 +250,9 @@ public class Animation implements IAnimation {
 		return compound;
 	}
 
-	public void increaseTime() {
+	public boolean increaseTime() {
 		if (paused)
-			return;
+			return false;
 
 		if (this.parent != null && this.currentFrame < this.frames.size()) {
 			this.parent.finishedFrame = this.currentFrame;
@@ -289,6 +289,8 @@ public class Animation implements IAnimation {
 				this.parent.finishedTime = this.parent.getMCEntity().getAge();
 			}
 		}
+
+        return true;
 	}
 
 	@SideOnly(Side.CLIENT)

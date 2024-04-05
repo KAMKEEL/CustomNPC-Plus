@@ -88,13 +88,14 @@ public class AnimationData implements IAnimationData {
             if(sendingEntity.dimension != sendingEntity.worldObj.provider.dimensionId)
                 sendingEntity.dimension = sendingEntity.worldObj.provider.dimensionId;
 
+            this.animatingTime = 0;
+
             boolean prevIsClientAnimating = this.isClientAnimating && this.currentClientAnimation.currentFrame() != null;
             this.isClientAnimating = this.allowAnimation && this.animation != null;
             if (prevIsClientAnimating && (!this.isClientAnimating || this.animation != this.currentClientAnimation)) {
                 EventHooks.onAnimationEnded(this.currentClientAnimation);
             }
             if (this.isClientAnimating) {
-                this.animatingTime = 0;
                 this.currentClientAnimation = this.animation;
             }
 
@@ -163,10 +164,18 @@ public class AnimationData implements IAnimationData {
     }
 
     public void increaseTime() {
+        Animation updateAnimation = null;
         if (this.isActive()) {
-            this.animation.increaseTime();
+            updateAnimation = this.animation;
         } else if (this.isActive(animation.parent.currentClientAnimation)) {
-            this.currentClientAnimation.increaseTime();
+            updateAnimation = this.currentClientAnimation;
+        }
+
+        if (updateAnimation != null && updateAnimation.increaseTime()) {
+            Frame frame = (Frame) updateAnimation.currentFrame();
+            if (frame != null) {
+                this.animatingTime += frame.customized ? frame.tickDuration : updateAnimation.tickDuration;
+            }
         }
     }
 
