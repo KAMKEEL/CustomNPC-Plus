@@ -1,5 +1,6 @@
 package noppes.npcs.client;
 
+import kamkeel.addon.DBCAddon;
 import kamkeel.addon.GeckoAddon;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
@@ -11,7 +12,7 @@ public class EntityUtil {
 
 	public static void Copy(EntityLivingBase copied, EntityLivingBase entity){
 		entity.worldObj = copied.worldObj;
-		
+
 		entity.deathTime = copied.deathTime;
 		entity.distanceWalkedModified = copied.distanceWalkedModified;
 		entity.prevDistanceWalkedModified = copied.distanceWalkedModified;
@@ -20,18 +21,18 @@ public class EntityUtil {
 
 		entity.moveForward = copied.moveForward;
 		entity.moveStrafing = copied.moveStrafing;
-		
+
 		entity.setPosition(copied.posX, copied.posY, copied.posZ);
 		entity.boundingBox.setBB(copied.boundingBox);
-		
+
 		entity.prevPosX = copied.prevPosX;
 		entity.prevPosY = copied.prevPosY;
 		entity.prevPosZ = copied.prevPosZ;
-		
+
 		entity.motionX = copied.motionX;
 		entity.motionY = copied.motionY;
 		entity.motionZ = copied.motionZ;
-		
+
 		entity.rotationYaw = copied.rotationYaw;
 		entity.rotationPitch = copied.rotationPitch;
 		entity.prevRotationYaw = copied.prevRotationYaw;
@@ -41,9 +42,9 @@ public class EntityUtil {
 		entity.prevRenderYawOffset = copied.prevRenderYawOffset;
 		entity.cameraPitch = copied.cameraPitch;
 		entity.prevCameraPitch = copied.prevCameraPitch;
-		
+
 		entity.renderYawOffset = copied.renderYawOffset;
-				
+
 		entity.lastTickPosX = copied.lastTickPosX;
 		entity.lastTickPosY = copied.lastTickPosY;
 		entity.lastTickPosZ = copied.lastTickPosZ;
@@ -56,9 +57,9 @@ public class EntityUtil {
 		entity.prevSwingProgress = copied.prevSwingProgress;
 		entity.isSwingInProgress = copied.isSwingInProgress;
 		entity.swingProgressInt = copied.swingProgressInt;
-		
+
 		entity.ticksExisted = copied.ticksExisted;
-		
+
 		if(entity instanceof EntityPlayer && copied instanceof EntityPlayer){
 			EntityPlayer ePlayer = (EntityPlayer) entity;
 			EntityPlayer cPlayer = (EntityPlayer) copied;
@@ -73,19 +74,20 @@ public class EntityUtil {
 			ePlayer.field_71095_bQ = cPlayer.field_71095_bQ;
 			ePlayer.field_71085_bR = cPlayer.field_71085_bR;
 		}
-		
+
 		if(entity instanceof EntityDragon){
 			entity.rotationYaw += 180;
 		}
 		if(entity instanceof EntityChicken){
 			((EntityChicken)entity).destPos = copied.onGround?0:1;
 		}
-		
+
 		for(int i = 0; i < 5; i++){
 			entity.setCurrentItemOrArmor(i, copied.getEquipmentInSlot(i));
 		}
 
 		GeckoAddon.instance.geckoCopyData(copied, entity);
+        DBCAddon.instance.dbcCopyData(copied, entity);
 
 		if(copied instanceof EntityNPCInterface && entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) copied;
@@ -94,9 +96,9 @@ public class EntityUtil {
 			target.textureLocation = npc.textureLocation;
 			target.display = npc.display;
 			target.inventory = npc.inventory;
-			
+
 			target.currentAnimation = npc.currentAnimation;
-			
+
 			target.setDataWatcher(npc.getDataWatcher());
 		}
 	}
