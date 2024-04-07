@@ -228,6 +228,8 @@ public class ScriptContainer {
     }
 
     public boolean hasCode() {
+        if(!scripts.isEmpty())
+            return true;
         return !this.getFullCode().isEmpty();
     }
 

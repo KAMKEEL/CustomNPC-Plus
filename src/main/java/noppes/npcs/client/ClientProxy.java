@@ -27,10 +27,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
-import noppes.npcs.CommonProxy;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.LogWriter;
-import noppes.npcs.PacketHandlerPlayer;
+import noppes.npcs.*;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.*;
@@ -53,7 +50,8 @@ import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.*;
-import noppes.npcs.client.renderer.customitem.CustomItemRenderer;
+import noppes.npcs.client.renderer.items.CustomItemRenderer;
+import noppes.npcs.client.renderer.items.ScriptedBlockItemRenderer;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
@@ -105,6 +103,7 @@ public class ClientProxy extends CommonProxy {
 		ClientRegistry.bindTileEntitySpecialRenderer(TileBlockAnvil.class, new BlockCarpentryBenchRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileMailbox.class, new BlockMailboxRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileScripted.class, new BlockScriptedRenderer());
+        MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.scripted), new ScriptedBlockItemRenderer());
         RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
 
 		if(!ConfigMain.DisableExtraBlock){

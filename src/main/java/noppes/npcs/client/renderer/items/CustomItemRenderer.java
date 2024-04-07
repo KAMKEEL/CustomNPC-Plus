@@ -1,4 +1,4 @@
-package noppes.npcs.client.renderer.customitem;
+package noppes.npcs.client.renderer.items;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemRenderer;

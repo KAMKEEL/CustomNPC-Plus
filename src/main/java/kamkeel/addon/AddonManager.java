@@ -1,5 +1,6 @@
 package kamkeel.addon;
 
+import kamkeel.addon.client.DBCClient;
 import kamkeel.addon.client.GeckoAddonClient;
 
 public class AddonManager {
@@ -17,5 +18,9 @@ public class AddonManager {
         // Gecko Addon Initialization
         new GeckoAddon();
         new GeckoAddonClient();
+
+        // DBC Addon
+        new DBCAddon();
+        new DBCClient();
     }
 }

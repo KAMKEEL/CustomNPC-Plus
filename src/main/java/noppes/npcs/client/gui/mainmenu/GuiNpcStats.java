@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import kamkeel.addon.DBCAddon;
+import kamkeel.addon.client.DBCClient;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.nbt.NBTTagCompound;
@@ -70,6 +72,8 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     	addLabel(new GuiNpcLabel(18,"stats.attackInvisible", guiLeft + 140, y + 5));
 		addLabel(new GuiNpcLabel(34,"stats.creaturetype", guiLeft + 275, y + 5));
 		addButton(new GuiNpcButton(8,guiLeft + 358, y, 56, 20, new String[]{"stats.normal","stats.undead","stats.arthropod"} ,stats.creatureType.ordinal()));
+
+        DBCClient.Instance.showDBCStatButtons(this, npc);
 	}
 
 	@Override
@@ -134,6 +138,10 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 		else if (button.id == 22) {
 			stats.ignoreCobweb = (button.getValue() == 0);
 		}
+
+        // Button 300
+        if(guibutton instanceof  GuiNpcButton)
+            DBCClient.Instance.showDBCStatActionPerformed(this, (GuiNpcButton) guibutton);
     }
 	@Override
 	public void save() {

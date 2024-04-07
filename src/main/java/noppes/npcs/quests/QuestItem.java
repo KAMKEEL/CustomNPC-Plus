@@ -18,6 +18,7 @@ import java.util.*;
 
 public class QuestItem extends QuestInterface implements IQuestItem {
 	public NpcMiscInventory items = new NpcMiscInventory(3);
+    public static EntityPlayer pickedUpPlayerSolo;
 	public static ItemStack pickedUp;
 
     public static ItemStack pickedUpParty;
