@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
@@ -23,10 +24,12 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.SyncType;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
@@ -235,6 +238,21 @@ public class ScriptPlayerEventHandler {
     public void invoke(PlayerEvent.ItemPickupEvent event) {
         if(event.player == null || event.player.worldObj == null)
             return;
+
+        if(!event.player.worldObj.isRemote && !(event.player instanceof FakePlayer)){
+            PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+            PlayerQuestData questData = playerData.questData;
+            QuestItem.pickedUp = event.pickedUp.getEntityItem();
+
+            Party playerParty = playerData.getPlayerParty();
+            if(playerParty != null){
+                QuestItem.pickedUpParty = event.pickedUp.getEntityItem();
+                QuestItem.pickedUpPlayer = event.player;
+                PartyController.Instance().checkQuestCompletion(playerParty, EnumQuestType.Item);
+            }
+
+            questData.checkQuestCompletion(playerData, EnumQuestType.Item);
+        }
 
         if(event.player.worldObj instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
