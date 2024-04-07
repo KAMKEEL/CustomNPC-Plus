@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.global;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.Client;
-import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
@@ -24,14 +23,16 @@ import java.util.Map;
 public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener, ISliderListener, ISubGuiListener {
     private final Animation animation;
 
+    private static int partEditMode;
+    private static int sliderSelection = 0;
+    private static Frame copiedFrame;
+
     private EnumAnimationPart editingPart = EnumAnimationPart.HEAD;
     private int frameIndex = 0;
     public boolean playingAnimation = false;
     private Frame prevFrame;
     private final GuiScreen parent;
     private long prevTick;
-    private static int partEditMode;
-    private static int sliderSelection = 0;
 
     private final GuiNpcSlider[] rotationSliders = new GuiNpcSlider[3];
     private final GuiNpcSlider[] pivotSliders = new GuiNpcSlider[3];
@@ -402,13 +403,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         AnimationData data = npc.display.animationData;
 
         if (guibutton.id == 11) {
-            if (frameIndex < animation.frames.size() - 1) {
-                animation.frames.add(frameIndex + 1, new Frame(10));
-            } else {
-                animation.frames.add(new Frame(10));
-            }
-            this.frameIndex = frameIndex + 1;
-            updateFrameSlider();
+            this.addFrame();
         } else if (guibutton.id == 12) {
             animation.frames.remove(frameIndex);
             updateFrameSlider();
@@ -500,6 +495,20 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         }
 
         initGui();
+    }
+
+    private void addFrame() {
+        this.addFrame(new Frame(10));
+    }
+
+    private void addFrame(Frame frame) {
+        if (frameIndex < animation.frames.size() - 1) {
+            animation.frames.add(frameIndex + 1, frame);
+        } else {
+            animation.frames.add(frame);
+        }
+        this.frameIndex = frameIndex + 1;
+        updateFrameSlider();
     }
 
     @Override
@@ -638,6 +647,30 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         Frame editingFrame = this.editingFrame();
         if (subgui instanceof SubGuiColorSelector && editingFrame != null) {
             editingFrame.setColorMarker(((SubGuiColorSelector) subgui).color);
+        }
+    }
+
+    @Override
+    public void keyTyped(char par1, int par2) {
+        super.keyTyped(par1, par2);
+
+        if (GuiScreen.isCtrlKeyDown() && par2 != 29 && !GuiNpcTextField.isFieldActive()) {
+            switch (par2) {
+                case 46:
+                    if (this.editingFrame() != null) {
+                        copiedFrame = this.editingFrame();
+                    }
+                    break;
+                case 47:
+                    if (copiedFrame != null) {
+                        Frame frame = new Frame(10);
+                        frame.parent = this.animation;
+                        frame.readFromNBT(copiedFrame.writeToNBT());
+                        this.addFrame(frame);
+                        this.initGui();
+                    }
+                    break;
+            }
         }
     }
 }

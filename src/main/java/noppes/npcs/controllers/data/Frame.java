@@ -156,7 +156,7 @@ public class Frame implements IFrame {
             this.tickDuration = compound.getBoolean("RenderTicks") ? 20 : 50;
 		}
 
-		if (!customized) {
+		if (!customized && parent != null) {
 			this.speed = parent.speed;
 			this.smooth = parent.smooth;
 			this.tickDuration = parent.tickDuration;

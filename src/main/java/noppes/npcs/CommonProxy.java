@@ -18,7 +18,6 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
-import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.PlayerData;
@@ -26,6 +25,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.MillisTimer;
 
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
@@ -68,7 +68,9 @@ public class CommonProxy implements IGuiHandler {
                         serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    if (!(e instanceof ConcurrentModificationException)) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }});
