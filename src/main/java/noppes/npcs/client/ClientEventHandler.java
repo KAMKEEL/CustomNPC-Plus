@@ -1,9 +1,11 @@
 package noppes.npcs.client;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
@@ -11,10 +13,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.MarkRenderer;
@@ -30,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClientEventHandler {
+    public static final RenderCNPCPlayer renderCNPCSelf = new RenderCNPCPlayer();
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
@@ -161,6 +161,16 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
         ClientEventHandler.renderingPlayer = event.entityPlayer;
+    }
+
+    @SubscribeEvent(priority= EventPriority.LOWEST)
+    public void pre(RenderPlayerEvent.Pre event){
+        if(!(event.entity instanceof AbstractClientPlayer))
+            return;
+
+        renderCNPCPlayer.modelBipedMain = event.renderer.modelBipedMain;
+        renderCNPCPlayer.modelArmor = event.renderer.modelArmor;
+        renderCNPCPlayer.modelArmorChestplate = event.renderer.modelArmorChestplate;
     }
 
     @SubscribeEvent
