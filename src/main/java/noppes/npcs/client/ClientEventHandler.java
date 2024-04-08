@@ -216,6 +216,6 @@ public class ClientEventHandler {
     }
 
     public static boolean hasOverlays(EntityPlayer player) {
-        return ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID()) && ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values().size() > 0;
+        return ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID()) && !ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values().isEmpty();
     }
 }

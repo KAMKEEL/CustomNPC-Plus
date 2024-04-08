@@ -105,10 +105,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
     }
 
     @Override
-    protected void renderModel(EntityLivingBase p_77036_1_, float p_77036_2_, float p_77036_3_, float p_77036_4_, float p_77036_5_, float p_77036_6_, float p_77036_7_) {
-        EntityPlayer player = (EntityPlayer) p_77036_1_;
-
-        if (!p_77036_1_.isInvisible())
+    protected void renderModel(EntityLivingBase entity, float p_77036_2_, float p_77036_3_, float p_77036_4_, float p_77036_5_, float p_77036_6_, float p_77036_7_) {
+        EntityPlayer player = (EntityPlayer) entity;
+        if (!entity.isInvisible())
         {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
@@ -122,7 +121,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
 
-                    this.modelBipedMain.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
+                    this.modelBipedMain.render(entity, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
                     postRenderOverlay();
                 }
             }
