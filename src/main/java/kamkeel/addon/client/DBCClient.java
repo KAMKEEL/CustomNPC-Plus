@@ -29,5 +29,5 @@ public class DBCClient {
     public void showDBCStatActionPerformed(GuiNpcStats stats, GuiNpcButton btn){}
 
     // Render Auras
-    public void showDBCStatActionPerformed(EntityNPCInterface npcInterface){}
+    public void renderDBCAuras(EntityNPCInterface npcInterface){}
 }

@@ -3,6 +3,7 @@ package noppes.npcs.entity;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import io.netty.buffer.ByteBuf;
 import kamkeel.addon.DBCAddon;
+import kamkeel.addon.client.DBCClient;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.command.ICommandSender;
@@ -388,6 +389,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 			if(advanced.job == EnumJobType.Bard)
 				((JobBard)jobInterface).onLivingUpdate();
+
+            DBCClient.Instance.renderDBCAuras(this);
 		}
 	}
 
