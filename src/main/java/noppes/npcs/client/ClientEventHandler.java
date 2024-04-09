@@ -167,10 +167,6 @@ public class ClientEventHandler {
     public void pre(RenderPlayerEvent.Pre event){
         if(!(event.entity instanceof AbstractClientPlayer))
             return;
-
-        renderCNPCPlayer.modelBipedMain = event.renderer.modelBipedMain;
-        renderCNPCPlayer.modelArmor = event.renderer.modelArmor;
-        renderCNPCPlayer.modelArmorChestplate = event.renderer.modelArmorChestplate;
     }
 
     @SubscribeEvent
@@ -186,6 +182,10 @@ public class ClientEventHandler {
             } catch (ClassNotFoundException ignored) {}
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
+                renderCNPCPlayer.mainModel = event.renderer.mainModel;
+                renderCNPCPlayer.modelBipedMain = event.renderer.modelBipedMain;
+                renderCNPCPlayer.modelArmor = event.renderer.modelArmor;
+                renderCNPCPlayer.modelArmorChestplate = event.renderer.modelArmorChestplate;
                 renderCNPCPlayer.tempRenderPartialTicks = event.partialRenderTick;
                 double d0 = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double) event.partialRenderTick - RenderManager.renderPosX;
                 double d1 = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double) event.partialRenderTick - RenderManager.renderPosY;
