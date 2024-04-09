@@ -127,11 +127,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
 
-                    if(hasMPM)
-                        renderMorePlayerModel(true);
-                    this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
-                    if(hasMPM)
-                        renderMorePlayerModel(false);
+                    if(hasMPM){
+                        renderMorePlayerModel(entity, par2, par3, par4, par5, par6, par7);
+                    } else {
+                        this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
+                    }
                     postRenderOverlay();
                 }
             }
@@ -319,7 +319,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
     }
 
-    public void renderMorePlayerModel(boolean setField){
+    public void renderMorePlayerModel(EntityLivingBase entity, float par2, float par3, float par4, float par5, float par6, float par7){
         Class<?> ModelMPMClass = null;
         Field isArmor = null;
 
@@ -333,7 +333,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
             try {
                 // Set isArmor field to false
                 if (isArmor != null) {
-                    isArmor.setBoolean(this.modelBipedMain, setField);
+                    isArmor.setBoolean(this.modelBipedMain, true);
+                    this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
+                    isArmor.setBoolean(this.modelBipedMain, false);
                 }
             } catch (IllegalAccessException ignored) {}
         }
