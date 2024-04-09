@@ -388,16 +388,15 @@ public class ModelLegs extends ModelScaleRenderer{
 			}
 		}
         TintData tintData = entity.display.tintData;
-		boolean bo = entity.hurtTime <= 0 && entity.deathTime <= 0 && !base.isArmor &&
-            !(tintData.isTintEnabled() && tintData.isGeneralTintEnabled());
-    	if(bo){
+        boolean showColor = !base.isArmor && tintData.processColor(entity.hurtTime > 0 || entity.deathTime > 0);
+    	if(showColor){
 	    	float red = (entity.modelData.legParts.color >> 16 & 255) / 255f;
 	    	float green = (entity.modelData.legParts.color >> 8  & 255) / 255f;
 	    	float blue = (entity.modelData.legParts.color & 255) / 255f;
 	    	GL11.glColor4f(red, green, blue, base.alpha);
     	}
 		super.render(par1);
-		if(bo){
+		if(showColor){
 			GL11.glColor4f(1, 1, 1, base.alpha);
 		}
 		GL11.glPopMatrix();
