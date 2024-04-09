@@ -27,4 +27,7 @@ public class DBCClient {
     // Stat Buttons
     public void showDBCStatButtons(GuiNpcStats stats, EntityLivingBase entity){}
     public void showDBCStatActionPerformed(GuiNpcStats stats, GuiNpcButton btn){}
+
+    // Render Auras
+    public void showDBCStatActionPerformed(EntityNPCInterface npcInterface){}
 }
