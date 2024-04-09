@@ -15,9 +15,11 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import noppes.npcs.*;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.block.ITextPlane;
+import noppes.npcs.client.renderer.blocks.BlockScriptedRenderer;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
@@ -48,6 +50,8 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     public ItemStack itemModel = new ItemStack(CustomItems.scripted);
     public Block blockModel = null;
+    private boolean hideModel;
+    private int metadata;
 
     public boolean needsClientUpdate = false;
 
@@ -68,6 +72,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     public TileEntity renderTile;
     public boolean renderTileErrored = true;
+    public boolean renderFullBlock = true;
     public ITickable renderTileUpdate = null;
 
     public TextPlane text1 = new TextPlane();
@@ -133,14 +138,18 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         if(scaleZ <= 0)
             scaleZ = 1;
 
-        if(compound.hasKey("Text3")) {
+        if(compound.hasKey("Text1"))
             text1.setNBT(compound.getCompoundTag("Text1"));
+        if(compound.hasKey("Text2"))
             text2.setNBT(compound.getCompoundTag("Text2"));
+        if(compound.hasKey("Text3"))
             text3.setNBT(compound.getCompoundTag("Text3"));
+        if(compound.hasKey("Text4"))
             text4.setNBT(compound.getCompoundTag("Text4"));
+        if(compound.hasKey("Text5"))
             text5.setNBT(compound.getCompoundTag("Text5"));
+        if(compound.hasKey("Text6"))
             text6.setNBT(compound.getCompoundTag("Text6"));
-        }
     }
 
     @Override
@@ -215,10 +224,30 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             EventHooks.onScriptBlockUpdate(this);
             ticksExisted = 0;
             if(needsClientUpdate){
-                markDirty();
+                worldObj.func_147451_t(xCoord, yCoord, zCoord);
                 worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-                worldObj.notifyBlocksOfNeighborChange(xCoord,yCoord,zCoord,getBlockType(),3);
+                worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, CustomItems.scripted);
+
+                Chunk chunk = worldObj.getChunkFromChunkCoords(xCoord >> 4, zCoord >> 4);
+                chunk.setBlockMetadata(xCoord & 15, yCoord, zCoord & 15, metadata);
+                blockMetadata = metadata;
+
                 needsClientUpdate = false;
+            }
+        }
+
+        if (worldObj.isRemote) {
+            boolean markForUpdate = false;
+            boolean prevHideModel = this.hideModel;
+            boolean hideModel = BlockScriptedRenderer.overrideModel();
+
+            if (hideModel != prevHideModel) {
+                this.hideModel = hideModel;
+                markForUpdate = true;
+            }
+
+            if (markForUpdate) {
+                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
             }
         }
     }
@@ -228,11 +257,22 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         handleUpdateTag(pkt.func_148857_g());
     }
 
+    @Override
+    @SideOnly(Side.CLIENT)
+    public boolean shouldRenderInPass(int arg0) {
+        if (blockModel != null && blockModel.isOpaqueCube()
+            && !BlockScriptedRenderer.overrideModel()) {
+            return true;
+        }
+        return super.shouldRenderInPass(arg0);
+    }
+
     public void handleUpdateTag(NBTTagCompound tag){
         int light = lightValue;
         setDisplayNBT(tag);
         if(light != lightValue)
             checkLight(worldObj,xCoord,yCoord,zCoord);
+        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
     }
 
     public boolean checkLight(World world, int x, int y, int z)
@@ -268,6 +308,9 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         }
         if(NoppesUtilPlayer.compareItems(item, itemModel, false, false) && b != blockModel)
             return;
+
+        metadata = item.getItemDamage();
+        blockMetadata = metadata;
 
         itemModel = item;
         blockModel = b;
@@ -404,6 +447,11 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         return this.customTileData;
     }
 
+    @Override
+    public void markDirty() {
+        super.markDirty();
+    }
+
     public class TextPlane implements ITextPlane {
         public boolean textHasChanged = true;
         public TextBlock textBlock;
@@ -494,7 +542,6 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
             z = ValueUtil.clamp(z, -1, 1);
             if(offsetZ == z)
                 return;
-            System.out.println(rotationZ);
             offsetZ = z;
             needsClientUpdate = true;
         }

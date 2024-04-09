@@ -19,7 +19,7 @@ public abstract class MixinEntityRenderer {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (ClientEventHandler.hasOverlays(player)) {
             GL11.glPushMatrix();
-            ClientEventHandler.renderCNPCPlayer.renderHand(p_78476_1_,0);
+            ClientEventHandler.renderCNPCSelf.renderHand(p_78476_1_,0);
             GL11.glPopMatrix();
         }
     }

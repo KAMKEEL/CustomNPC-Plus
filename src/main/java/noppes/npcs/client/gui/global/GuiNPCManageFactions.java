@@ -146,6 +146,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 				if(search.equals(getTextField(55).getText()))
 					return;
 				search = getTextField(55).getText().toLowerCase();
+                scrollFactions.resetScroll();
 				scrollFactions.setList(getSearchList());
 			}
 		}

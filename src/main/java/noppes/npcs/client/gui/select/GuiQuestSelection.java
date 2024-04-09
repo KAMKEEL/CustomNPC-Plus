@@ -101,6 +101,7 @@ public class GuiQuestSelection extends SubGuiInterface implements ICustomScrollL
                 if(catSearch.equals(getTextField(33).getText()))
                     return;
                 catSearch = getTextField(33).getText().toLowerCase();
+                scrollCategories.resetScroll();
                 scrollCategories.setList(getCatSearch());
             }
         }
@@ -109,6 +110,7 @@ public class GuiQuestSelection extends SubGuiInterface implements ICustomScrollL
                 if(questSearch.equals(getTextField(44).getText()))
                     return;
                 questSearch = getTextField(44).getText().toLowerCase();
+                scrollQuests.resetScroll();
                 scrollQuests.setList(getQuestSearch());
             }
         }

@@ -14,10 +14,8 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.BlockSnapshot;
@@ -1373,4 +1371,9 @@ public class ScriptWorld implements IWorld {
 	public String toString() {
 		return "DIM" + this.getDimensionID();
 	}
+
+    @Override
+    public void broadcast(String message){
+        world.func_73046_m().getConfigurationManager().sendChatMsg(new ChatComponentText(message));
+    }
 }

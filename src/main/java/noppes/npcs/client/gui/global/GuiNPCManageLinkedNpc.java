@@ -17,9 +17,9 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
 	private GuiCustomScroll scroll;
 	private List<String> data = new ArrayList<String>();
 	private String search = "";
-	
+
 	public static GuiScreen Instance;
-	
+
     public GuiNPCManageLinkedNpc(EntityNPCInterface npc){
     	super(npc);
     	Instance = this;
@@ -29,10 +29,10 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
     @Override
     public void initGui(){
         super.initGui();
-        
+
        	this.addButton(new GuiNpcButton(1,guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(2,guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
-    	
+
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0,0);
 	        scroll.setSize(143, 185);
@@ -54,6 +54,7 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
 					return;
 				search = getTextField(55).getText().toLowerCase();
 				scroll.setList(getSearchList());
+                scroll.resetScroll();
 			}
 		}
 	}
@@ -80,7 +81,7 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
         	if(scroll.hasSelected())
         		Client.sendData(EnumPacketServer.LinkedRemove, scroll.getSelected());
         }
-        
+
     }
 
 	@Override
@@ -99,12 +100,12 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
 
 	@Override
 	public void setSelected(String selected) {
-		
+
 	}
 
 	@Override
 	public void save() {
-		
+
 	}
 
 }

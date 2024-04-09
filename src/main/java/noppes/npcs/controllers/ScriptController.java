@@ -4,6 +4,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -24,11 +25,10 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
+
+import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class ScriptController {
 
@@ -42,9 +42,7 @@ public class ScriptController {
 	public File dir;
 	public NBTTagCompound compound = new NBTTagCompound();
 
-	private boolean loaded = false;
 	public boolean shouldSave = false;
-
 	public PlayerDataScript playerScripts = new PlayerDataScript((EntityPlayer)null);
 	public long lastPlayerUpdate = 0L;
 
@@ -55,7 +53,6 @@ public class ScriptController {
 	public long lastGlobalNpcUpdate = 0L;
 
 	public ScriptController(){
-		loaded = false;
 		Instance = this;
 		manager = new ScriptEngineManager();
 		if(!ConfigScript.ScriptingEnabled)
@@ -175,6 +172,26 @@ public class ScriptController {
 			var4.printStackTrace();
 		}
 	}
+
+    public synchronized void saveForgeScriptsSync(){
+        customNPCThread.execute(this::saveForgeScripts);
+    }
+
+    public synchronized void savePlayerScriptsSync(){
+        customNPCThread.execute(() -> {
+            File file = this.playerScriptsFile();
+            try {
+                NBTJsonUtil.SaveFile(file, this.playerScripts.writeToNBT(new NBTTagCompound()));
+                this.playerScripts.lastInited = -1L;
+            } catch (IOException | JsonException var4) {
+                var4.printStackTrace();
+            }
+        });
+    }
+
+    public synchronized void saveGlobalScriptsSync(){
+        customNPCThread.execute(this::saveGlobalNpcScripts);
+    }
 
 	public void loadCategories(){
 		dir = new File(CustomNpcs.getWorldSaveDirectory(), "scripts");

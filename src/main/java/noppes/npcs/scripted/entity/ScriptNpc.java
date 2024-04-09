@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITimers;
@@ -617,7 +618,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param item The item the drop list slot will be changed to
 	 */
 	public void setLootItem(int slot, IItemStack item) {
-		npc.inventory.setInventorySlotContents(slot+7, item.getMCItemStack());
+        if(item == null || item.getMCItemStack() == null){
+            npc.inventory.setInventorySlotContents(slot+7, (ItemStack) null);
+        } else {
+            npc.inventory.setInventorySlotContents(slot+7, item.getMCItemStack());
+        }
 	}
 
 	/**
@@ -1319,7 +1324,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			return;
 		this.npc.display.url = url;
 		npc.textureLocation = null;
-		npc.display.skinType = 2;
+        if(npc.display.skinType < 2)
+            npc.display.skinType = 2;
 		npc.script.clientNeedsUpdate = true;
 	}
 

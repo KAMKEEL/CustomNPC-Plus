@@ -81,12 +81,24 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
 
     @Override
     public void setIsPassible(boolean bo){
+        setIsPassable(bo);
+    }
+
+    @Override
+    public boolean getIsPassible(){
+        return getIsPassable();
+    }
+
+    @Override
+    public void setIsPassable(boolean bo){
         tile.isPassible = bo;
         tile.needsClientUpdate = true;
     }
 
     @Override
-    public boolean getIsPassible(){
+    public boolean getIsPassable(){
+        if(tile == null)
+            return false;
         return tile.isPassible;
     }
 
@@ -97,6 +109,8 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
 
     @Override
     public int getLight(){
+        if(tile == null)
+            return 0;
         return tile.lightValue;
     }
 

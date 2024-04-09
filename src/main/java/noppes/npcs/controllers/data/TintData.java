@@ -80,4 +80,12 @@ public class TintData {
     public void setGeneralAlpha(int generalAlpha) {
         this.generalAlpha = generalAlpha;
     }
+
+    public boolean processColor(boolean isHurt){
+        if(isHurt){
+            return (isTintEnabled() && (!isHurtTintEnabled() && !isGeneralTintEnabled()));
+        } else {
+            return !(isTintEnabled() && isGeneralTintEnabled());
+        }
+    }
 }

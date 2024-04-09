@@ -6,10 +6,15 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import static noppes.npcs.client.ClientEventHandler.renderCNPCSelf;
 
 public class RenderCNPCHand extends ItemRenderer {
     /** A reference to the Minecraft object. */
@@ -45,8 +50,6 @@ public class RenderCNPCHand extends ItemRenderer {
         GL11.glRotatef((entityclientplayermp.rotationYaw - f4) * 0.1F, 0.0F, 1.0F, 0.0F);
 
         ItemStack itemstack = this.itemToRender;
-        RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
-
         int i = this.mc.theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(entityclientplayermp.posX), MathHelper.floor_double(entityclientplayermp.posY), MathHelper.floor_double(entityclientplayermp.posZ), 0);
         int j = i % 65536;
         int k = i / 65536;
@@ -58,6 +61,8 @@ public class RenderCNPCHand extends ItemRenderer {
 
         float f10;
         float f13;
+        Render render;
+        RenderPlayer renderplayer;
 
         if (itemstack == null && !entityclientplayermp.isInvisible())
         {
@@ -84,7 +89,12 @@ public class RenderCNPCHand extends ItemRenderer {
 
             f10 = 1.0F;
             GL11.glScalef(f10, f10, f10);
-            renderCNPCPlayer.renderFirstPersonArmOverlay(this.mc.thePlayer);
+            render = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
+            renderplayer = (RenderPlayer) render;
+            renderCNPCSelf.modelBipedMain = renderplayer.modelBipedMain;
+            renderCNPCSelf.modelArmor = renderplayer.modelArmor;
+            renderCNPCSelf.modelArmorChestplate = renderplayer.modelArmorChestplate;
+            renderCNPCSelf.renderFirstPersonArmOverlay(this.mc.thePlayer);
             GL11.glPopMatrix();
         }
 

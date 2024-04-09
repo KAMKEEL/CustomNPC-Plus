@@ -339,14 +339,19 @@ public class ServerCloneController implements ICloneHandler {
 		}
 	}
 
-	public void set(int tab, String name, IEntity entity) {
+    public boolean has(int tab, String name) {
+        NBTTagCompound compound = this.getCloneData((ICommandSender)null, name, tab);
+        return compound != null;
+    }
+
+
+    public void set(int tab, String name, IEntity entity) {
 		NBTTagCompound compound = new NBTTagCompound();
-		if (!entity.getMCEntity().isEntityAlive()) {
+		if (!entity.getMCEntity().writeMountToNBT(compound))
 			throw new CustomNPCsException("Cannot save dead entities", new Object[0]);
-		} else {
-			this.cleanTags(compound);
-			this.saveClone(tab, name, compound);
-		}
+
+        this.cleanTags(compound);
+        this.saveClone(tab, name, compound);
 	}
 
 	public void remove(int tab, String name) {

@@ -156,7 +156,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         }
 
         public String getHookName() {
-            return EnumScriptType.INTERACT.function;
+            return EnumScriptType.RIGHT_CLICK.function;
         }
 
         public int getType() {

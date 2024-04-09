@@ -457,25 +457,7 @@ public class ServerEventsHandler {
         PartyController.Instance().pingPartyQuestObjectiveUpdate(party);
         PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
     }
-
-	@SubscribeEvent
-	public void pickUp(EntityItemPickupEvent event){
-		if(event.entityPlayer.worldObj.isRemote || event.entityPlayer instanceof FakePlayer)
-			return;
-		PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
-		PlayerQuestData questData = playerData.questData;
-		QuestItem.pickedUp = event.item.getEntityItem();
-
-        Party playerParty = playerData.getPlayerParty();
-        if(playerParty != null){
-            QuestItem.pickedUpParty = event.item.getEntityItem();
-            QuestItem.pickedUpPlayer = event.entityPlayer;
-            PartyController.Instance().checkQuestCompletion(playerParty, EnumQuestType.Item);
-        }
-
-		questData.checkQuestCompletion(playerData, EnumQuestType.Item);
-	}
-
+    
 	@SubscribeEvent
 	public void world(PlayerEvent.SaveToFile event){
 		PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entity);

@@ -6,6 +6,8 @@ import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
@@ -30,6 +32,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -326,4 +329,38 @@ public class NoppesUtil {
 	public static void isGUIOpen(boolean isGUIOpen) {
 		Client.sendData(EnumPacketServer.IsGuiOpen, isGUIOpen);
 	}
+
+
+    private static byte[] accumulatedData = new byte[0];
+    public static void handleLargeData(byte[] chunk) {
+        // Append the chunk to the accumulated data
+        accumulatedData = concatByteArrays(accumulatedData, chunk);
+    }
+
+    public static void handlePlayerDataEnd(boolean sync) {
+        NBTTagCompound compound;
+        try {
+            compound = CompressedStreamTools.func_152457_a(accumulatedData, new NBTSizeTracker(2097152L));
+            if(sync){
+                ClientCacheHandler.playerData.setSyncNBT(compound);
+            }
+            else {
+                ClientCacheHandler.playerData.setSyncNBTFull(compound);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            // Reset the accumulated data after processing
+            accumulatedData = new byte[0];
+        }
+    }
+
+    // Utility method to concatenate two byte arrays
+    private static byte[] concatByteArrays(byte[] a, byte[] b) {
+        byte[] result = new byte[a.length + b.length];
+        System.arraycopy(a, 0, result, 0, a.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
+    }
 }

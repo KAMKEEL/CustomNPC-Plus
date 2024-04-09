@@ -1,5 +1,6 @@
 package noppes.npcs.client.renderer;
 
+import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -18,6 +19,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
@@ -26,6 +28,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class RenderCNPCPlayer extends RenderPlayer {
+    public static boolean hasMPM = false;
     public Minecraft mc = Minecraft.getMinecraft();
     public RenderCNPCHand itemRenderer = new RenderCNPCHand(mc);
     public float tempRenderPartialTicks;
@@ -41,6 +44,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
         this.modelArmorChestplate = new ModelBiped(1.0F);
         this.modelArmor = new ModelBiped(0.5F);
         this.setRenderManager(RenderManager.instance);
+
+        if(Loader.isModLoaded("moreplayermodels"))
+            hasMPM = true;
     }
 
     private boolean preRenderOverlay(SkinOverlay overlayData, EntityPlayer player) {
@@ -105,10 +111,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
     }
 
     @Override
-    protected void renderModel(EntityLivingBase p_77036_1_, float p_77036_2_, float p_77036_3_, float p_77036_4_, float p_77036_5_, float p_77036_6_, float p_77036_7_) {
-        EntityPlayer player = (EntityPlayer) p_77036_1_;
-
-        if (!p_77036_1_.isInvisible())
+    protected void renderModel(EntityLivingBase entity, float par2, float par3, float par4, float par5, float par6, float par7) {
+        EntityPlayer player = (EntityPlayer) entity;
+        if (!entity.isInvisible())
         {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
@@ -122,7 +127,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
 
-                    this.modelBipedMain.render(p_77036_1_, p_77036_2_, p_77036_3_, p_77036_4_, p_77036_5_, p_77036_6_, p_77036_7_);
+                    if(hasMPM){
+                        renderMorePlayerModel(entity, par2, par3, par4, par5, par6, par7);
+                    } else {
+                        this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
+                    }
                     postRenderOverlay();
                 }
             }
@@ -307,6 +316,28 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                 postRenderOverlay();
             }
+        }
+    }
+
+    public void renderMorePlayerModel(EntityLivingBase entity, float par2, float par3, float par4, float par5, float par6, float par7){
+        Class<?> ModelMPMClass = null;
+        Field isArmor = null;
+
+        try {
+            ModelMPMClass = Class.forName("noppes.mpm.client.model.ModelMPM");
+            isArmor = ModelMPMClass.getDeclaredField("isArmor");
+        } catch (Exception ignored) {}
+
+        // Assuming this.modelBipedMain is an instance of ModelMPM
+        if (ModelMPMClass != null && ModelMPMClass.isInstance(this.modelBipedMain)) {
+            try {
+                // Set isArmor field to false
+                if (isArmor != null) {
+                    isArmor.setBoolean(this.modelBipedMain, true);
+                    this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
+                    isArmor.setBoolean(this.modelBipedMain, false);
+                }
+            } catch (IllegalAccessException ignored) {}
         }
     }
 

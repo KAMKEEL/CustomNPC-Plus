@@ -2,6 +2,8 @@ package noppes.npcs.entity;
 
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import io.netty.buffer.ByteBuf;
+import kamkeel.addon.DBCAddon;
+import kamkeel.addon.client.DBCClient;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.command.ICommandSender;
@@ -232,41 +234,49 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	@Override
-	public boolean attackEntityAsMob(Entity par1Entity){
+	public boolean attackEntityAsMob(Entity receiver){
 		float f = stats.getAttackStrength();
 
 		if (stats.attackSpeed < 10){
-			par1Entity.hurtResistantTime = 0;
+			receiver.hurtResistantTime = 0;
 		}
-		if(par1Entity instanceof EntityLivingBase && !isRemote()){
-			NpcEvent.MeleeAttackEvent event = new NpcEvent.MeleeAttackEvent(wrappedNPC, f, (EntityLivingBase)par1Entity);
+		if(receiver instanceof EntityLivingBase && !isRemote()){
+			NpcEvent.MeleeAttackEvent event = new NpcEvent.MeleeAttackEvent(wrappedNPC, f, (EntityLivingBase)receiver);
 			if(EventHooks.onNPCMeleeAttack(this, event))
 				return false;
 			f = event.getDamage();
 		}
 
-		boolean var4 = par1Entity.attackEntityFrom(new NpcDamageSource("mob", this), f);
+		boolean didAttack = false;
+        if(DBCAddon.instance.canDBCAttack(this, f, receiver)){
+            didAttack = receiver.attackEntityFrom(new NpcDamageSource("mob", this), 1.0f);
+            if(didAttack)
+                DBCAddon.instance.doDBCDamage(this, f, receiver);
+        }
+        else
+            didAttack = receiver.attackEntityFrom(new NpcDamageSource("mob", this), f);
 
-		if (var4){
+
+		if (didAttack){
 			if(getOwner() instanceof EntityPlayer)
-				NPCEntityHelper.setRecentlyHit((EntityLivingBase)par1Entity);
+				NPCEntityHelper.setRecentlyHit((EntityLivingBase)receiver);
 			if (stats.knockback > 0){
-				par1Entity.addVelocity((double)(-MathHelper.sin(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F), 0.1D, (double)(MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F));
+				receiver.addVelocity((double)(-MathHelper.sin(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F), 0.1D, (double)(MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0F) * (float)stats.knockback * 0.5F));
 				this.motionX *= 0.6D;
 				this.motionZ *= 0.6D;
 			}
 			if(advanced.role == EnumRoleType.Companion){
-				((RoleCompanion)roleInterface).attackedEntity(par1Entity);
+				((RoleCompanion)roleInterface).attackedEntity(receiver);
 			}
 		}
 
 		if (stats.potionType != EnumPotionType.None){
 			if (stats.potionType != EnumPotionType.Fire)
-				((EntityLivingBase)par1Entity).addPotionEffect(new PotionEffect(this.getPotionEffect(stats.potionType), stats.potionDuration * 20, stats.potionAmp));
+				((EntityLivingBase)receiver).addPotionEffect(new PotionEffect(this.getPotionEffect(stats.potionType), stats.potionDuration * 20, stats.potionAmp));
 			else
-				par1Entity.setFire(stats.potionDuration);
+				receiver.setFire(stats.potionDuration);
 		}
-		return var4;
+		return didAttack;
 	}
 
 	@Override
@@ -283,15 +293,17 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		}
 		if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
 		{
-			NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
-			if(EventHooks.onNPCMeleeSwing(this, event))
-				return;
-
 			this.swingProgressInt = -1;
 			this.isSwingInProgress = true;
 
 			if (this.worldObj instanceof WorldServer)
 			{
+                if(!isRemote()){
+                    NpcEvent.SwingEvent event = new NpcEvent.SwingEvent(wrappedNPC, stack);
+                    if(EventHooks.onNPCMeleeSwing(this, event))
+                        return;
+                }
+
 				((WorldServer)this.worldObj).getEntityTracker().func_151247_a(this, new S0BPacketAnimation(this, 0));
 			}
 		}
@@ -377,6 +389,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 			}
 			if(advanced.job == EnumJobType.Bard)
 				((JobBard)jobInterface).onLivingUpdate();
+
+            DBCClient.Instance.renderDBCAuras(this);
 		}
 	}
 

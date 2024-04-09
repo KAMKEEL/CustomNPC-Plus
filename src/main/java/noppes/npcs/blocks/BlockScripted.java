@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -24,6 +25,8 @@ import noppes.npcs.constants.EnumGuiType;
 import java.util.Random;
 
 public class BlockScripted extends BlockContainer {
+
+    public int renderId = -1;
     public static final AxisAlignedBB AABB = AxisAlignedBB.getBoundingBox(0.001f, 0.001f, 0.001f, 0.998f, 0.998f, 0.998f);
     public static final AxisAlignedBB AABB_EMPTY = AxisAlignedBB.getBoundingBox(0, 0, 0, 0, 0, 0);
 
@@ -40,7 +43,7 @@ public class BlockScripted extends BlockContainer {
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
-        if (tile != null && tile.isPassible)
+        if (tile != null && tile.isPassible && (tile.blockModel == null || tile.blockModel == Blocks.air))
             return AABB_EMPTY;
         return AABB.getOffsetBoundingBox(x,y,z);
     }
@@ -51,6 +54,13 @@ public class BlockScripted extends BlockContainer {
         if (tile != null && tile.isPassible)
             return AABB_EMPTY;
         return AABB.getOffsetBoundingBox(x,y,z);
+    }
+
+    @Override
+    public boolean getBlocksMovement(IBlockAccess worldIn, int x, int y, int z)
+    {
+        TileScripted tile = (TileScripted) worldIn.getTileEntity(x, y, z);
+        return tile != null && tile.isPassible;
     }
 
     @Override
@@ -101,12 +111,12 @@ public class BlockScripted extends BlockContainer {
 
     @Override
     public boolean canRenderInPass(int pass) {
-        return false;
+        return super.canRenderInPass(pass);
     }
 
     @Override
     public int getRenderType() {
-        return 0;
+        return renderId;
     }
     @Override
     public boolean isOpaqueCube() {

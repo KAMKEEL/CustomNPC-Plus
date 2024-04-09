@@ -2,12 +2,15 @@ package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockColored;
+import net.minecraft.block.material.MapColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.*;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
@@ -23,7 +26,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 
 	private final ModelWallBanner model = new ModelWallBanner();
 	private final ModelWallBannerFlag flag = new ModelWallBannerFlag();
-    
+
     public BlockWallBannerRenderer(){
 		((BlockWallBanner)CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -40,7 +43,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         //GL11.glScalef(0.95f, 0.95f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
-        
+
         setMaterialTexture(var1.getBlockMetadata());
         GL11.glColor3f(1, 1, 1);
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -60,10 +63,10 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
     {
         GL11.glPushMatrix();
         bindTexture(TextureMap.locationItemsTexture);
-        GL11.glTranslatef((float)par2 + 0.5f, (float)par4 +1.3f, (float)par6 + 0.5f);
+        GL11.glTranslatef((float)par2 + 0.5f, (float)par4 +0.2f, (float)par6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * meta, 0, 1, 0);
-        GL11.glTranslatef(0, 0, -0.14f);
+        GL11.glTranslatef(0, 0, 0.26f);
         GL11.glDepthMask(false);
         float f2 = 0.05f;
         Minecraft mc = Minecraft.getMinecraft();
@@ -93,6 +96,23 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         }
 
         l = item.getItem().getColorFromItemStack(item, 0);
+
+        Item loadingItem = item.getItem();
+        if(loadingItem instanceof ItemBlock) {
+            Block block = ((ItemBlock) loadingItem).field_150939_a;
+            if(block != null){
+                if(block == Blocks.enchanting_table || block == Blocks.end_portal_frame){
+                    object = block.getIcon(1, item.getItemDamage());
+                }
+                else if (block == Blocks.furnace || block == Blocks.tnt){
+                    object = block.getIcon(2, 1);
+                }
+                else {
+                    object = block.getIcon(0, item.getItemDamage());
+                }
+            }
+        }
+
         f3 = (float)(l >> 16 & 255) / 255.0F;
         f4 = (float)(l >> 8 & 255) / 255.0F;
         f = (float)(l & 255) / 255.0F;
@@ -145,7 +165,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 	public int getRenderId() {
 		return CustomItems.wallBanner.getRenderType();
 	}
-	
+
 	public int specialRenderDistance(){
 		return 26;
 	}

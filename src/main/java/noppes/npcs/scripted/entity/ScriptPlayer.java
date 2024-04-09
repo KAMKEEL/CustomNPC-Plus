@@ -464,34 +464,29 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	 * @param amount How many will be removed
 	 * @return Returns true if the items were removed succesfully. Returns false incase a bigger amount than what the player has was given
 	 */
-	public boolean removeItem(IItemStack item, int amount, boolean ignoreNBT, boolean ignoreDamage) {
-		int count = inventoryItemCount(item);
-		if(amount  > count)
-			return false;
-		else if(count == amount)
-			removeAllItems(item);
-		else{
-			for(int i = 0; i < player.inventory.mainInventory.length; i++){
-				ItemStack is = player.inventory.mainInventory[i];
-				if (is != null && NoppesUtilPlayer.compareItems(is, item.getMCItemStack(), ignoreDamage, ignoreNBT)) {
-					if(amount > is.stackSize){
-						player.inventory.mainInventory[i] = null;
-						amount -= is.stackSize;
-					}
-					else{
-						is.splitStack(amount);
-						break;
-					}
-				}
-			}
-		}
-		this.updatePlayerInventory();
-		return true;
-	}
-
-	public void removeAllItems(IItemStack item){
-		removeAllItems(item, true, true);
-	}
+    public boolean removeItem(IItemStack item, int amount, boolean ignoreNBT, boolean ignoreDamage) {
+        int count = inventoryItemCount(item,ignoreNBT,ignoreDamage);
+        if(amount > count) {
+            return false;
+        } else if(count == amount) {
+            removeAllItems(item, ignoreNBT, ignoreDamage);
+        } else {
+            for(int i = 0; i < player.inventory.mainInventory.length; i++) {
+                ItemStack is = player.inventory.mainInventory[i];
+                if (is != null && NoppesUtilPlayer.compareItems(is, item.getMCItemStack(), ignoreDamage, ignoreNBT)) {
+                    if(amount > is.stackSize){
+                        player.inventory.mainInventory[i] = null;
+                        amount -= is.stackSize;
+                    } else{
+                        is.splitStack(amount);
+                        break;
+                    }
+                }
+            }
+        }
+        this.updatePlayerInventory();
+        return true;
+    }
 
 	/**
 	 * @param item The item to be removed from the players inventory
