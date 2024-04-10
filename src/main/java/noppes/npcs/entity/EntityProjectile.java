@@ -2,6 +2,7 @@ package noppes.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.addon.DBCAddon;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -26,6 +27,7 @@ import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import noppes.npcs.DataStats;
 import noppes.npcs.EventHooks;
+import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
@@ -473,8 +475,18 @@ public class EntityProjectile extends EntityThrowable {
     		if(damage == 0)
     			damage = 0.001f;
 
+            boolean didDBCAttack = false;
+            if(npc != null){
+                if(DBCAddon.instance.canDBCAttack(npc, this.damage, movingobjectposition.entityHit)){
+                    damage = 0.001f;
+                    didDBCAttack = true;
+                }
+            }
             if (movingobjectposition.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), damage))
             {
+                if(didDBCAttack)
+                    DBCAddon.instance.doDBCDamage(npc, this.damage,  movingobjectposition.entityHit);
+
 	            if (movingobjectposition.entityHit instanceof EntityLivingBase && (this.isArrow() || this.sticksToWalls()))
 	            {
 	            	EntityLivingBase entityliving = (EntityLivingBase)movingobjectposition.entityHit;
