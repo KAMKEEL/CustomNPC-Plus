@@ -58,9 +58,6 @@ public class DataDisplay {
 
     public ArrayList<UUID> invisibleToList = new ArrayList<>();
 
-    // 0 - Yes, 1 - No, 2 - Only NPCs, 3 - Only Players, 4 - NPCs and Players
-    public int collidesWith = 1;
-
     public DataDisplay(EntityNPCInterface npc){
         this.npc = npc;
         markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
@@ -108,8 +105,6 @@ public class DataDisplay {
 
         nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
         nbttagcompound.setByte("BossBar", showBossBar);
-
-        nbttagcompound.setInteger("CollidesWith",collidesWith);
 
         NBTTagList list = new NBTTagList();
         for(UUID uuid : invisibleToList){
@@ -194,11 +189,6 @@ public class DataDisplay {
         else {
             invisibleToList = new ArrayList<>();
         }
-
-        if(nbttagcompound.hasKey("CollidesWith"))
-            collidesWith = nbttagcompound.getInteger("CollidesWith");
-        else
-            collidesWith = 1;
 
         if(prevSkinType != skinType || !texture.equals(prevTexture)|| !url.equals(prevUrl))
             npc.textureLocation = null;

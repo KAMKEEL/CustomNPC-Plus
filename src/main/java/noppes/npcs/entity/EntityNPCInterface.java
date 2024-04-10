@@ -249,7 +249,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 		boolean didAttack = false;
         if(DBCAddon.instance.canDBCAttack(this, f, receiver)){
-            didAttack = receiver.attackEntityFrom(new NpcDamageSource("mob", this), 1.0f);
+            didAttack = receiver.attackEntityFrom(new NpcDamageSource("mob", this), 0.001f);
             if(didAttack)
                 DBCAddon.instance.doDBCDamage(this, f, receiver);
         }
@@ -1773,13 +1773,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	@Override
 	public boolean canBePushed() {
-		return this.display.collidesWith == 0;
+		return this.stats.collidesWith == 0;
 	}
 
 	// checks for any entity within a certain boundingbox, eg minecarts
 	@Override
 	protected void collideWithNearbyEntities() {
-		if(this.display.collidesWith != 1) {
+		if(this.stats.collidesWith != 1) {
 			List list = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, this.boundingBox.expand(0.20000000298023224D, 0.0D, 0.20000000298023224D));
 
 			if (list != null && !list.isEmpty()) {
@@ -1787,8 +1787,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 					Entity entity = (Entity) list.get(i);
 
 					if (this.canBePushed() ||
-							(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
-							(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
+							(entity instanceof EntityNPCInterface && (this.stats.collidesWith == 2 || this.stats.collidesWith == 4)) ||
+							(entity instanceof EntityPlayerMP && (this.stats.collidesWith == 3 || this.stats.collidesWith == 4))
 					) {
 						super.collideWithEntity(entity);
 					}
@@ -1824,8 +1824,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 				d0 *= (double)(1.0F - this.entityCollisionReduction);
 				d1 *= (double)(1.0F - this.entityCollisionReduction);
 				if (this.canBePushed() ||
-						(entity instanceof EntityNPCInterface && (this.display.collidesWith == 2 || this.display.collidesWith == 4)) ||
-						(entity instanceof EntityPlayerMP && (this.display.collidesWith == 3 || this.display.collidesWith == 4))
+						(entity instanceof EntityNPCInterface && (this.stats.collidesWith == 2 || this.stats.collidesWith == 4)) ||
+						(entity instanceof EntityPlayerMP && (this.stats.collidesWith == 3 || this.stats.collidesWith == 4))
 				)
 					this.addVelocity(-d0, 0.0D, -d1);
 				entity.addVelocity(d0, 0.0D, d1);

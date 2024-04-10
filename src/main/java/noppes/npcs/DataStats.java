@@ -9,12 +9,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
 
 public class DataStats {
-	
+
 	private float attackStrength = 5;
 	public int attackSpeed = 20, swingWarmUp = 0, attackRange = 2, knockback = 0;
 	public int minDelay = 20, maxDelay = 40, rangedRange = 15, fireRate = 5, burstCount = 1, shotCount = 1, accuracy = 60;
 	public int aggroRange = 16;
-	
+
 	public EnumPotionType potionType = EnumPotionType.None;
 	public int potionDuration = 5; //20 = 1 second
 	public int potionAmp = 0;
@@ -25,7 +25,7 @@ public class DataStats {
 	public boolean hideKilledBody = false;
 	public boolean canDespawn = false;
 	public boolean playerSetCanDespawn = false;
-	
+
 	public Resistances resistances = new Resistances();
 
 	public boolean ignoreCobweb = false;
@@ -47,17 +47,20 @@ public class DataStats {
     public String fireSound = "random.bow";
 	public boolean aimWhileShooting = false;
 	public boolean projectilesKeepTerrain = false;
-	
+
 	public EnumCreatureAttribute creatureType = EnumCreatureAttribute.UNDEFINED;
-	
+
 	private EntityNPCInterface npc;
 	public boolean attackInvisible = false;
-	
+
+    // 0 - Yes, 1 - No, 2 - Only NPCs, 3 - Only Players, 4 - NPCs and Players
+    public int collidesWith = 1;
+
 	public DataStats(EntityNPCInterface npc){
 		this.npc = npc;
 	}
 	public NBTTagCompound writeToNBT(NBTTagCompound compound)
-	{	
+	{
 		compound.setTag("Resistances", resistances.writeToNBT());
 		compound.setDouble("MaxHealth", maxHealth);
 		compound.setInteger("AggroRange", aggroRange);
@@ -68,7 +71,7 @@ public class DataStats {
 		compound.setBoolean("IgnoreCobweb", ignoreCobweb);
 		compound.setFloat("HealthRegen", healthRegen);
 		compound.setFloat("CombatRegen", combatRegen);
-		
+
 		compound.setFloat("AttackStrenght", attackStrength);
 		compound.setInteger("AttackRange", attackRange);
 		compound.setInteger("AttackSpeed", attackSpeed);
@@ -77,7 +80,7 @@ public class DataStats {
 		compound.setInteger("PotionEffect", potionType.ordinal());
 		compound.setInteger("PotionDuration", potionDuration);
 		compound.setInteger("PotionAmp", potionAmp);
-		
+
 		compound.setInteger("MaxFiringRange", rangedRange);
 		compound.setInteger("FireRate", fireRate);
 		compound.setInteger("minDelay", minDelay);
@@ -85,7 +88,7 @@ public class DataStats {
 		compound.setInteger("BurstCount", burstCount);
 		compound.setInteger("ShotCount", shotCount);
 		compound.setInteger("Accuracy", accuracy);
-		
+
 		compound.setFloat("pDamage", pDamage);
 		compound.setInteger("pImpact", pImpact);
 		compound.setInteger("pSize", pSize);
@@ -114,7 +117,8 @@ public class DataStats {
 		compound.setBoolean("AttackInvisible", attackInvisible);
 		compound.setBoolean("CanDespawn", canDespawn);
 		compound.setBoolean("PlayerSetCanDespawn", playerSetCanDespawn);
-		
+        compound.setInteger("CollidesWith",collidesWith);
+
 		return compound;
 	}
 
@@ -176,8 +180,13 @@ public class DataStats {
 		attackInvisible = compound.getBoolean("AttackInvisible");
 		canDespawn = compound.getBoolean("CanDespawn");
 		playerSetCanDespawn = compound.getBoolean("PlayerSetCanDespawn");
-		
+
 		npc.setImmuneToFire(immuneToFire);
+
+        if(compound.hasKey("CollidesWith"))
+            collidesWith = compound.getInteger("CollidesWith");
+        else
+            collidesWith = 1;
 	}
 
 	public float getAttackStrength(){
@@ -187,7 +196,7 @@ public class DataStats {
 		attackStrength = (float)(Math.floor(strength));
 		npc.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(attackStrength);
 	}
-	
+
 	public void setMaxHealth(double maxHealth) {
 		this.maxHealth = Math.floor(maxHealth);
 		npc.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(maxHealth);

@@ -79,15 +79,12 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         y+=23;
         addLabel(new GuiNpcLabel(5,"display.livingAnimation", guiLeft + 5, y + 5));
         this.addButton(new GuiNpcButton(5, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no"}, display.disableLivingAnimation?1:0));
-
-        addLabel(new GuiNpcLabel(6,"display.collides", guiLeft + 185, y + 5));
-        this.addButton(new GuiNpcButton(6, guiLeft + 300, y, 100, 20, new String[]{"gui.yes","gui.no","Only CNPCs","Only Players","CNPCs & Players"}, display.collidesWith));
+        this.addButton(new GuiNpcButton(13, guiLeft + 185, y , 100, 20, "display.tintsettings"));
+        this.addButton(new GuiNpcButton(12,guiLeft + 300, y, 100, 20, "display.hitboxsettings"));
 
         y+=23;
         addLabel(new GuiNpcLabel(7,"display.visible", guiLeft + 5, y + 5));
         this.addButton(new GuiNpcButton(7, guiLeft + 120, y, 50, 20, new String[]{"gui.yes","gui.no","gui.partly"}, display.visible));
-        this.addButton(new GuiNpcButton(13, guiLeft + 185, y , 100, 20, "display.tintsettings"));
-        this.addButton(new GuiNpcButton(12,guiLeft + 300, y, 100, 20, "display.hitboxsettings"));
 
         y+=23;
         addLabel(new GuiNpcLabel(10,"display.bossbar", guiLeft + 5, y + 5));
@@ -130,7 +127,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
                 boolean isGlow = true;
                 if(npc.display.skinOverlayData.has(0))
                     isGlow = npc.display.skinOverlayData.overlayList.get(0).getGlow();
-                
+
                 SkinOverlay skinOverlay = new SkinOverlay(textfield.getText());
                 skinOverlay.setGlow(isGlow);
                 skinOverlay.setBlend(isGlow);
@@ -165,9 +162,6 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         }
         else if(button.id == 5){
             display.disableLivingAnimation = button.getValue() == 1;
-        }
-        else if(button.id == 6){
-            display.collidesWith = button.getValue();
         }
         else if(button.id == 7){
             display.visible = button.getValue();

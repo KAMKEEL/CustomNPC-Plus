@@ -58,8 +58,10 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     	addLabel(new GuiNpcLabel(10,"stats.fireimmune", guiLeft + 5, y + 5));
     	addButton(new GuiNpcButton(5,guiLeft + 217, y, 56, 20, new String[]{"stats.never","stats.inWater","stats.inAir"} , stats.drowningType));
     	addLabel(new GuiNpcLabel(11,"stats.candrown", guiLeft + 140, y + 5));
+        addButton(new GuiNpcButton(23, guiLeft + 358, y, 56, 20, new String[]{"display.all","gui.none","NPCs","Players","Both"}, stats.collidesWith));
+        addLabel(new GuiNpcLabel(23,"stats.collides", guiLeft + 275, y + 5));
 
-    	addButton(new GuiNpcButton(6,guiLeft + 82, y+=22, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.burnInSun? 1:0));
+        addButton(new GuiNpcButton(6,guiLeft + 82, y+=22, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.burnInSun? 1:0));
     	addLabel(new GuiNpcLabel(12,"stats.burninsun", guiLeft + 5, y + 5));
     	addButton(new GuiNpcButton(7,guiLeft + 217, y, 56, 20, new String[]{"gui.no","gui.yes"} ,stats.noFallDamage? 1:0));
     	addLabel(new GuiNpcLabel(13,"stats.nofalldamage", guiLeft + 140, y + 5));
@@ -138,6 +140,9 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 		else if (button.id == 22) {
 			stats.ignoreCobweb = (button.getValue() == 0);
 		}
+        else if(button.id == 23){
+            stats.collidesWith = button.getValue();
+        }
 
         // Button 300
         if(guibutton instanceof  GuiNpcButton)

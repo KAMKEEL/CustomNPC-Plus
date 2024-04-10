@@ -263,7 +263,6 @@ display.overlay=Overlay
 display.player=Player
 display.selectTexture=Select Texture
 display.livingAnimation=Has a living animation
-display.collides=Collides With Entities
 display.visible=Visible
 display.bossbar=BossBar
 display.squareTexture=Square Texture
@@ -402,6 +401,7 @@ stats.attackInvisible=Attack Invi
 stats.never=Never
 stats.inWater=In Water
 stats.inAir=In Air
+stats.collides=CollisionWith
 
 stats.size=Size
 stats.speed=Speed

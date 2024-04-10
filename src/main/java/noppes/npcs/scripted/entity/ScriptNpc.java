@@ -1363,10 +1363,10 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setCollisionType(int type){
-		npc.display.collidesWith = type;
+		npc.stats.collidesWith = type;
 	}
 	public int getCollisionType(){
-		return npc.display.collidesWith;
+		return npc.stats.collidesWith;
 	}
 
 	public void updateClient() { this.npc.updateClient(); }
