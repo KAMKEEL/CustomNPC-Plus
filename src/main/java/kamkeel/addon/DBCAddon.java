@@ -26,7 +26,7 @@ public class DBCAddon {
 
     public void doDBCDamage(EntityNPCInterface npc, float attackStrength, Entity receiver){}
 
-    public boolean isKO(EntityPlayer player){
+    public boolean isKO(EntityNPCInterface npc, EntityPlayer player){
         return false;
     }
 }
