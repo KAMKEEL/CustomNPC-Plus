@@ -2,6 +2,7 @@ package kamkeel.addon;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class DBCAddon {
@@ -24,4 +25,8 @@ public class DBCAddon {
     }
 
     public void doDBCDamage(EntityNPCInterface npc, float attackStrength, Entity receiver){}
+
+    public boolean isKO(EntityPlayer player){
+        return false;
+    }
 }
