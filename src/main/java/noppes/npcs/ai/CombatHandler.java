@@ -1,5 +1,6 @@
 package noppes.npcs.ai;
 
+import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -111,7 +112,7 @@ public class CombatHandler {
 		if(target == null || !target.isEntityAlive())
 			return false;
 
-        if(target instanceof EntityPlayer && ((EntityPlayer)target).capabilities.disableDamage)
+        if(target instanceof EntityPlayer && (((EntityPlayer)target).capabilities.disableDamage ||  DBCAddon.instance.isKO(npc, (EntityPlayer) target)))
         	return false;
 
 		return npc.isInRange(target, npc.stats.aggroRange);

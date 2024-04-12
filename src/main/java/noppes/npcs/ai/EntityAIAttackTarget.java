@@ -1,8 +1,10 @@
 package noppes.npcs.ai;
 
+import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -25,7 +27,7 @@ public class EntityAIAttackTarget extends EntityAIBase
     private PathEntity entityPathEntity;
     private int field_75445_i;
 	private boolean navOverride = false;
-    
+
     public EntityAIAttackTarget(EntityNPCInterface par1EntityLiving){
         this.attackTick = 0;
         this.npc = par1EntityLiving;
@@ -48,10 +50,10 @@ public class EntityAIAttackTarget extends EntityAIBase
         else if (this.npc.inventory.getProjectile() != null && this.npc.ai.useRangeMelee == 0){
      	   return false;
         }
-        
+
         double var2 = this.npc.getDistanceSq(entitylivingbase.posX, entitylivingbase.boundingBox.minY, entitylivingbase.posZ);
         double var3 = this.npc.ai.distanceToMelee * this.npc.ai.distanceToMelee;
-        
+
         if (this.npc.ai.useRangeMelee == 1 && var2 > var3){
         	return false;
         }
@@ -70,14 +72,18 @@ public class EntityAIAttackTarget extends EntityAIBase
     public boolean continueExecuting()
     {
     	this.entityTarget = this.npc.getAttackTarget();
-    	
+
 		if(entityTarget == null || !entityTarget.isEntityAlive())
 			return false;
+
+        if(entityTarget instanceof EntityPlayer && DBCAddon.instance.isKO(npc, (EntityPlayer) this.entityTarget))
+            return false;
+
 		if(npc.getDistanceToEntity(entityTarget) > npc.stats.aggroRange)
 			return false;
 		if (this.npc.ai.useRangeMelee == 1 && npc.getDistanceSqToEntity(entityTarget) > (this.npc.ai.distanceToMelee * this.npc.ai.distanceToMelee))
 			return false;
-		
+
 		return this.npc.isWithinHomeDistance(MathHelper.floor_double(entityTarget.posX), MathHelper.floor_double(entityTarget.posY), MathHelper.floor_double(entityTarget.posZ));
     }
 

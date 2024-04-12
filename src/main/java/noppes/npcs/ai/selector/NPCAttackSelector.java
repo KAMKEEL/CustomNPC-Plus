@@ -1,5 +1,6 @@
 package noppes.npcs.ai.selector;
 
+import kamkeel.addon.DBCAddon;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -63,6 +64,10 @@ public class NPCAttackSelector implements IEntitySelector
     		if(npc.faction.isAggressiveToPlayer((EntityPlayer) entity)){
     			if(PixelmonHelper.Enabled && npc.advanced.job == EnumJobType.Spawner)
     				return PixelmonHelper.canBattle((EntityPlayerMP)entity, npc);
+
+                if(DBCAddon.instance.isKO(npc, (EntityPlayer) entity))
+                    return false;
+
     			return !((EntityPlayerMP)entity).capabilities.disableDamage;
     		}
     		return false;
