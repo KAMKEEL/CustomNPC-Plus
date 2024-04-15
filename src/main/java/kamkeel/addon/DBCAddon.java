@@ -3,6 +3,7 @@ package kamkeel.addon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class DBCAddon {
@@ -29,4 +30,8 @@ public class DBCAddon {
     public boolean isKO(EntityNPCInterface npc, EntityPlayer player){
         return false;
     }
+
+    public void writeToNBT(NBTTagCompound nbtTagCompound){}
+
+    public void readFromNBT(NBTTagCompound nbtTagCompound){}
 }

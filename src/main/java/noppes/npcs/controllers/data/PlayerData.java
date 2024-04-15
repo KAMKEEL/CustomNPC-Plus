@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -116,6 +117,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			}
 		}
 		isGUIOpen = data.getBoolean("isGUIOpen");
+        DBCAddon.instance.readFromNBT(data);
 	}
     public NBTTagCompound getNBT() {
         if(player != null){
@@ -144,6 +146,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             if(activeCompanion.writeToNBTOptional(nbt))
                 compound.setTag("PlayerCompanion", nbt);
         }
+        DBCAddon.instance.writeToNBT(compound);
         return compound;
     }
 
@@ -152,7 +155,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.saveNBTData(compound);
         questData.saveNBTData(compound);
         factionData.saveNBTData(compound);
-
+        DBCAddon.instance.writeToNBT(compound);
         return compound;
     }
 
@@ -160,6 +163,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.loadNBTData(data);
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
+        DBCAddon.instance.readFromNBT(data);
     }
 
     public NBTTagCompound getSyncNBTFull() {
@@ -176,6 +180,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         mailData.saveNBTData(compound);
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
+        DBCAddon.instance.writeToNBT(compound);
         return compound;
     }
 
@@ -194,6 +199,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             playername = data.getString("PlayerName");
             uuid = data.getString("UUID");
         }
+        DBCAddon.instance.readFromNBT(data);
     }
 
 	@Override
