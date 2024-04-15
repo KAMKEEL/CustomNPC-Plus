@@ -117,7 +117,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			}
 		}
 		isGUIOpen = data.getBoolean("isGUIOpen");
-        DBCAddon.instance.readFromNBT(data);
+        DBCAddon.instance.readFromNBT(this, data);
 	}
     public NBTTagCompound getNBT() {
         if(player != null){
@@ -146,7 +146,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             if(activeCompanion.writeToNBTOptional(nbt))
                 compound.setTag("PlayerCompanion", nbt);
         }
-        DBCAddon.instance.writeToNBT(compound);
+        DBCAddon.instance.writeToNBT(this, compound);
         return compound;
     }
 
@@ -155,7 +155,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.saveNBTData(compound);
         questData.saveNBTData(compound);
         factionData.saveNBTData(compound);
-        DBCAddon.instance.writeToNBT(compound);
+        DBCAddon.instance.writeToNBT(this, compound);
         return compound;
     }
 
@@ -163,7 +163,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.loadNBTData(data);
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
-        DBCAddon.instance.readFromNBT(data);
+        DBCAddon.instance.readFromNBT(this, data);
     }
 
     public NBTTagCompound getSyncNBTFull() {
@@ -180,7 +180,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         mailData.saveNBTData(compound);
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
-        DBCAddon.instance.writeToNBT(compound);
+        DBCAddon.instance.writeToNBT(this, compound);
         return compound;
     }
 
@@ -199,7 +199,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             playername = data.getString("PlayerName");
             uuid = data.getString("UUID");
         }
-        DBCAddon.instance.readFromNBT(data);
+        DBCAddon.instance.readFromNBT(this, data);
     }
 
 	@Override
