@@ -1,6 +1,7 @@
 package noppes.npcs.controllers;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -83,6 +84,8 @@ public class SyncController {
         }
         Server.sendData(player, EnumPacketClient.SYNC_END, SyncType.DIALOG_CATEGORY, new NBTTagCompound());
         ////////////////////////////////////////////////////////////////////////////////
+
+        DBCAddon.instance.syncPlayer(player);
 
 		PlayerData data = PlayerData.get(player);
         if(data != null){
@@ -250,6 +253,9 @@ public class SyncController {
 	        	DialogController.Instance.categoriesSync = new HashMap<Integer, DialogCategory>();
 	        }
 		}
+        else if(synctype == SyncType.CUSTOM_FORM){
+            DBCAddon.instance.clientSync(compound, syncEnd);
+        }
 	}
 
 	public static void clientSyncUpdate(int synctype, NBTTagCompound compound, ByteBuf buffer) {
@@ -308,6 +314,9 @@ public class SyncController {
             }
 			QuestController.Instance.categories.put(category.id, category);
 		}
+        else if(synctype == SyncType.CUSTOM_FORM){
+            DBCAddon.instance.syncUpdate(compound, buffer);
+        }
 	}
 
 	public static void clientSyncRemove(int synctype, int id) {
@@ -338,6 +347,9 @@ public class SyncController {
 				QuestController.Instance.quests.keySet().removeAll(category.quests.keySet());
 			}
 		}
+        else if(synctype == SyncType.CUSTOM_FORM){
+            DBCAddon.instance.syncRemove(id);
+        }
 	}
 
 }
