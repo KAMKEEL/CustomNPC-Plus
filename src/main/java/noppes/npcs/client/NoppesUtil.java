@@ -356,6 +356,19 @@ public class NoppesUtil {
         }
     }
 
+    public static void handleFormEnd() {
+        NBTTagCompound compound;
+        try {
+            compound = CompressedStreamTools.func_152457_a(accumulatedData, new NBTSizeTracker(2097152L));
+            ClientCacheHandler.playerData.setDBCSync(compound);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            accumulatedData = new byte[0];
+        }
+    }
+
     // Utility method to concatenate two byte arrays
     private static byte[] concatByteArrays(byte[] a, byte[] b) {
         byte[] result = new byte[a.length + b.length];

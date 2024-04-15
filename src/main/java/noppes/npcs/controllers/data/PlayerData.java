@@ -155,7 +155,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.saveNBTData(compound);
         questData.saveNBTData(compound);
         factionData.saveNBTData(compound);
-        DBCAddon.instance.writeToNBT(this, compound);
         return compound;
     }
 
@@ -163,7 +162,6 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.loadNBTData(data);
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
-        DBCAddon.instance.readFromNBT(this, data);
     }
 
     public NBTTagCompound getSyncNBTFull() {
@@ -199,6 +197,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             playername = data.getString("PlayerName");
             uuid = data.getString("UUID");
         }
+        DBCAddon.instance.readFromNBT(this, data);
+    }
+
+    public void getDBCSync(NBTTagCompound compound){
+        DBCAddon.instance.writeToNBT(this, compound);
+    }
+
+    public void setDBCSync(NBTTagCompound data){
         DBCAddon.instance.readFromNBT(this, data);
     }
 

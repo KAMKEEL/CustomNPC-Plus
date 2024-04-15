@@ -448,5 +448,8 @@ public class PacketHandlerClient extends PacketHandlerServer{
             if(gui instanceof IPartyData)
                 ((IPartyData)gui).setPartyData(Server.readNBT(buffer));
         }
+        else if(type == EnumPacketClient.DBC_FORM){
+            NoppesUtil.handleFormEnd();
+        }
 	}
 }
