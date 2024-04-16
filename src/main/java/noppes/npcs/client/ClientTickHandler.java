@@ -5,6 +5,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import kamkeel.addon.DBCAddon;
+import kamkeel.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
@@ -104,6 +106,9 @@ public class ClientTickHandler{
                         break;
                     case 3:
                         NoppesUtil.openGUI(mc.thePlayer, new GuiSettings());
+                        break;
+                    case 4:
+                        NoppesUtil.openGUI(mc.thePlayer, DBCClient.Instance.inventoryGUI());
                         break;
                 }
             }

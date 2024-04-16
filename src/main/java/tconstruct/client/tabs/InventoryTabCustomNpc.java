@@ -42,7 +42,7 @@ public class InventoryTabCustomNpc extends AbstractTab {
                     case 3:
                         mc.displayGuiScreen(new GuiSettings());
                         break;
-                    case 200:
+                    case 4:
                         mc.displayGuiScreen(DBCClient.Instance.inventoryGUI());
                         break;
                 }

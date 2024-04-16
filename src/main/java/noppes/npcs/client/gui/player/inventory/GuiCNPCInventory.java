@@ -59,7 +59,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
 
         if(Loader.isModLoaded("npcdbc")){
             y += 21;
-            GuiMenuSideButton dbcButton = new GuiMenuSideButton(200, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
+            GuiMenuSideButton dbcButton = new GuiMenuSideButton(104, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             dbcButton.rightSided = true;
             dbcButton.active = activeTab == 200;
             dbcButton.renderIconPosX = 64;
@@ -95,8 +95,8 @@ public class GuiCNPCInventory extends GuiNPCInterface {
                 activeTab = 3;
                 mc.displayGuiScreen(new GuiSettings());
             }
-            if (guibutton.id == 200 && activeTab != 200) {
-                activeTab = 200;
+            if (guibutton.id == 104 && activeTab != 4) {
+                activeTab = 4;
                 mc.displayGuiScreen(DBCClient.Instance.inventoryGUI());
             }
         }
