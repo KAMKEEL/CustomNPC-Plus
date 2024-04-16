@@ -521,6 +521,7 @@ global.playerdata=PlayerData
 global.recipes=Recipes
 global.naturalspawn=Natural Spawns
 global.linked=Linked
+global.customforms=Custom Forms
 
 bank.slot=Slot
 bank.unlock=Unlock

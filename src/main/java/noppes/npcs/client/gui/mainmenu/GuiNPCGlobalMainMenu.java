@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import cpw.mods.fml.common.Loader;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
@@ -31,8 +32,10 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		y = guiTop + 10;
 		this.addButton(new GuiNpcButton(18, guiLeft + 210, y, "menu.animations"));
 		this.addButton(new GuiNpcButton(17, guiLeft + 210, y += 22, "menu.tags"));
+        if(Loader.isModLoaded("npcdbc"))
+            this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "menu.customforms"));
     }
-    
+
     @Override
 	protected void actionPerformed(GuiButton guibutton) {
 		int id = guibutton.id;
@@ -69,10 +72,15 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		if (id == 16) {
 			NoppesUtil.requestOpenGUI(EnumGuiType.ManageLinked);
 		}
+
+        // DBC Addon
+        if (id == 200) {
+            NoppesUtil.requestOpenGUI(EnumGuiType.ManageCustomForms);
+        }
 	}
 	@Override
 	public void save() {
 	}
-    
+
 
 }
