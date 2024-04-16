@@ -1,7 +1,9 @@
 package kamkeel.addon.client;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.client.gui.mainmenu.GuiNpcStats;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
@@ -30,4 +32,7 @@ public class DBCClient {
 
     // Render Auras
     public void renderDBCAuras(EntityNPCInterface npcInterface){}
+
+    // Manage Custom Forms
+    public GuiNPCInterface2 manageCustomForms(EntityNPCInterface npcInterface){ return null; }
 }

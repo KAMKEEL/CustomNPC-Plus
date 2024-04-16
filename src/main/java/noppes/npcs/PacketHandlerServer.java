@@ -6,6 +6,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
+import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -1205,6 +1206,18 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendAnimationDataAll(player);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
 		}
+        else if(type == EnumPacketServer.CustomFormsGet){
+            DBCAddon.instance.formPacketGets(player, buffer);
+        }
+        else if(type == EnumPacketServer.CustomFormGet){
+            DBCAddon.instance.formPacketGet(player, buffer);
+        }
+        else if(type == EnumPacketServer.CustomFormRemove){
+            DBCAddon.instance.formPacketRemove(player, buffer);
+        }
+        else if(type == EnumPacketServer.CustomFormSave){
+            DBCAddon.instance.formPacketSave(player, buffer);
+        }
 		else
 			blockPackets(type, buffer, player);
 

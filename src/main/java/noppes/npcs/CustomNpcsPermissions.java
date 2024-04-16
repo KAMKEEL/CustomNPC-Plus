@@ -49,8 +49,10 @@ public class CustomNpcsPermissions{
 	public static final Permission GLOBAL_NATURALSPAWN = new Permission("customnpcs.global.naturalspawn");
 	public static final Permission GLOBAL_TAG = new Permission("customnpcs.global.tag");
     public static final Permission GLOBAL_ANIMATION = new Permission("customnpcs.global.animation");
+    public static final Permission GLOBAL_CUSTOMFORM = new Permission("customnpcs.global.customform");
 
-	public static final Permission SPAWNER_MOB = new Permission("customnpcs.spawner.mob");
+
+    public static final Permission SPAWNER_MOB = new Permission("customnpcs.spawner.mob");
 	public static final Permission SPAWNER_CREATE = new Permission("customnpcs.spawner.create");
 
     // Open / Use Wands
