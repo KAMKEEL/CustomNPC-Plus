@@ -29,10 +29,7 @@ public class DBCClient {
     // Stat Buttons
     public void showDBCStatButtons(GuiNpcStats stats, EntityLivingBase entity){}
     public void showDBCStatActionPerformed(GuiNpcStats stats, GuiNpcButton btn){}
-
-
-    // Global Button
-    public void showManageCustomFormButton(GuiNpcStats stats, EntityLivingBase entity){}
+    
 
     // Render Auras
     public void renderDBCAuras(EntityNPCInterface npcInterface){}
