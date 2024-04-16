@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import cpw.mods.fml.common.Loader;
+import kamkeel.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
@@ -55,6 +57,16 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             addButton(factionButton);
         }
 
+        if(Loader.isModLoaded("npcdbc")){
+            y += 21;
+            GuiMenuSideButton dbcButton = new GuiMenuSideButton(200, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
+            dbcButton.rightSided = true;
+            dbcButton.active = activeTab == 200;
+            dbcButton.renderIconPosX = 64;
+            dbcButton.renderResource = specialIcons;
+            addButton(dbcButton);
+        }
+
         y += 21;
         GuiMenuSideButton clientButton = new GuiMenuSideButton(103, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
         clientButton.rightSided = true;
@@ -82,6 +94,10 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             if (guibutton.id == 103 && activeTab != 3) {
                 activeTab = 3;
                 mc.displayGuiScreen(new GuiSettings());
+            }
+            if (guibutton.id == 200 && activeTab != 200) {
+                activeTab = 200;
+                mc.displayGuiScreen(DBCClient.Instance.inventoryGUI());
             }
         }
     }

@@ -1,5 +1,7 @@
 package tconstruct.client.tabs;
 
+import kamkeel.addon.DBCAddon;
+import kamkeel.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -39,6 +41,9 @@ public class InventoryTabCustomNpc extends AbstractTab {
                         break;
                     case 3:
                         mc.displayGuiScreen(new GuiSettings());
+                        break;
+                    case 200:
+                        mc.displayGuiScreen(DBCClient.Instance.inventoryGUI());
                         break;
                 }
 			}

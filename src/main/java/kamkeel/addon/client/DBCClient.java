@@ -6,6 +6,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.client.gui.mainmenu.GuiNpcStats;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
+import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.model.ModelMPM;
@@ -29,11 +30,14 @@ public class DBCClient {
     // Stat Buttons
     public void showDBCStatButtons(GuiNpcStats stats, EntityLivingBase entity){}
     public void showDBCStatActionPerformed(GuiNpcStats stats, GuiNpcButton btn){}
-    
+
 
     // Render Auras
     public void renderDBCAuras(EntityNPCInterface npcInterface){}
 
     // Manage Custom Forms
     public GuiNPCInterface2 manageCustomForms(EntityNPCInterface npcInterface){ return null; }
+
+    // Inventory GUI
+    public GuiCNPCInventory inventoryGUI(){ return null; }
 }
