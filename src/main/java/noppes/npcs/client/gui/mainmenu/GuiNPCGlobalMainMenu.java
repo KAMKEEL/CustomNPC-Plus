@@ -33,7 +33,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		this.addButton(new GuiNpcButton(18, guiLeft + 210, y, "menu.animations"));
 		this.addButton(new GuiNpcButton(17, guiLeft + 210, y += 22, "menu.tags"));
         if(Loader.isModLoaded("npcdbc"))
-            this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "menu.customforms"));
+            this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "global.customforms"));
     }
 
     @Override
