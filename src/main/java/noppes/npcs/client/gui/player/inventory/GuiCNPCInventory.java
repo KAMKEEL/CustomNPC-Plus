@@ -61,7 +61,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             y += 21;
             GuiMenuSideButton dbcButton = new GuiMenuSideButton(104, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             dbcButton.rightSided = true;
-            dbcButton.active = activeTab == 200;
+            dbcButton.active = activeTab == 4;
             dbcButton.renderIconPosX = 64;
             dbcButton.renderResource = specialIcons;
             addButton(dbcButton);
