@@ -1218,6 +1218,9 @@ public class PacketHandlerServer{
         else if(type == EnumPacketServer.CustomFormSave){
             DBCAddon.instance.formPacketSave(player, buffer);
         }
+        else if(type == EnumPacketServer.CustomFormSet){
+            DBCAddon.instance.formPacketSet(player, buffer);
+        }
 		else
 			blockPackets(type, buffer, player);
 

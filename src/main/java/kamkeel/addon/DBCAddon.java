@@ -49,5 +49,6 @@ public class DBCAddon {
     public void formPacketGets(EntityPlayer player, ByteBuf buffer){}
     public void formPacketRemove(EntityPlayer player, ByteBuf buffer){}
     public void formPacketSave(EntityPlayer player, ByteBuf buffer){}
+    public void formPacketSet(EntityPlayer player, ByteBuf buffer){}
     public void formPacketPlayers(EntityPlayer player){}
 }
