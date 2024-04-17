@@ -112,7 +112,7 @@ public class ClientTickHandler{
                         break;
                 }
             }
-			else if(mc.currentScreen instanceof GuiQuestLog)
+			else if(mc.currentScreen instanceof GuiCNPCInventory)
 				mc.setIngameFocus();
 		}
 
