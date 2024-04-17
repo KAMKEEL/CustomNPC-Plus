@@ -98,7 +98,7 @@ public enum EnumPacketServer {
 	AnimationsGet, AnimationGet,
     AnimationRemove(CustomNpcsPermissions.GLOBAL_ANIMATION), AnimationSave(CustomNpcsPermissions.GLOBAL_ANIMATION),
 
-    CustomFormsGet, CustomFormGet, CustomFormSet,
+    CustomFormsGet, CustomFormGet,
     CustomFormRemove(CustomNpcsPermissions.GLOBAL_CUSTOMFORM), CustomFormSave(CustomNpcsPermissions.GLOBAL_CUSTOMFORM),
 
     RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, QuestLogToServer, PartyLogToServer, UntrackQuest,

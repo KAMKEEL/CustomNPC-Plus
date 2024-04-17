@@ -3,6 +3,7 @@ package noppes.npcs;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
+import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
@@ -218,6 +219,9 @@ public class PacketHandlerPlayer{
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			Server.sendData(player, EnumPacketClient.GUI_DATA, data.saveNBTData(new NBTTagCompound()));
 		}
+        else if(type == EnumPlayerPacket.CustomFormsGet){
+            DBCAddon.instance.formPacketPlayers(player);
+        }
 		else if(type == EnumPlayerPacket.MailDelete){
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);
