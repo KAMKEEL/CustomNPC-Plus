@@ -323,6 +323,19 @@ public class NBTTags {
 		return nbttaglist;
 	}
 
+    public static NBTTagList nbtIntegerFloatMap(Map<Integer, Float> lines) {
+        NBTTagList nbttaglist = new NBTTagList();
+        if(lines == null)
+            return nbttaglist;
+        for (int slot : lines.keySet()) {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setInteger("Slot", slot);
+            nbttagcompound.setDouble("Float", lines.get(slot));
+            nbttaglist.appendTag(nbttagcompound);
+        }
+        return nbttaglist;
+    }
+
 	public static NBTTagList nbtIntegerDoubleMap(Map<Integer, Double> lines) {
 		NBTTagList nbttaglist = new NBTTagList();
 		if(lines == null)
