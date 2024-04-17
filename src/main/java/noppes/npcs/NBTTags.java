@@ -70,6 +70,17 @@ public class NBTTags {
 		return list;
 	}
 
+    public static HashMap<Integer, Float> getIntegerFloatMap(
+        NBTTagList tagList) {
+        HashMap<Integer, Float> list = new HashMap<Integer, Float>();
+        for(int i = 0; i < tagList.tagCount(); i++)
+        {
+            NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getFloat("Float"));
+        }
+        return list;
+    }
+
 	public static HashMap<Integer, Double> getIntegerDoubleMap(
 			NBTTagList tagList) {
 		HashMap<Integer, Double> list = new HashMap<Integer, Double>();
