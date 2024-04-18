@@ -51,7 +51,4 @@ public class DBCAddon {
     public void formPacketSave(EntityPlayer player, ByteBuf buffer){}
     public void formPacketSet(EntityPlayer player, ByteBuf buffer){}
     public void formPacketPlayers(EntityPlayer player){}
-
-    // DBC DATA
-    public void receiveDBCData(EntityPlayer player, ByteBuf buffer){}
 }

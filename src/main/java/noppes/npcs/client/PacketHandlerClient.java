@@ -4,7 +4,6 @@ import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
-import kamkeel.addon.DBCAddon;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.achievement.GuiAchievement;
@@ -451,9 +450,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
         }
         else if(type == EnumPacketClient.DBC_FORM){
             NoppesUtil.handleFormEnd();
-        }
-        else if(type == EnumPacketClient.DBC_DATA){
-            DBCAddon.instance.receiveDBCData(player, buffer);
         }
 	}
 }
