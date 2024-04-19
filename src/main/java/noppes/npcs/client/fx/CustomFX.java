@@ -75,7 +75,7 @@ public class CustomFX extends EntityFX {
     public float HEXColorRate = 0.0F;
     public int HEXColorStart = 0;
 
-    double renderPosX, renderPosY, renderPosZ;
+    public double renderPosX, renderPosY, renderPosZ;
 
     public CustomFX(World worldObj, Entity entity, String directory, double x, double y, double z, double motionX, double motionY, double motionZ) {
         super(worldObj, x, y, z, motionX, motionY, motionZ);
