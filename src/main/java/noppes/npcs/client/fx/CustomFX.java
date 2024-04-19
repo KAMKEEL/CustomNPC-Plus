@@ -18,11 +18,11 @@ import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.opengl.GL11;
 
 public class CustomFX extends EntityFX {
-    private final Entity entity;
-    private final String directory;
-    private final ImageData imageData;
-    private static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
-    private float startX = 0, startY = 0, startZ = 0;
+    protected final Entity entity;
+    protected final String directory;
+    protected final ImageData imageData;
+    protected static final ResourceLocation resource = new ResourceLocation("textures/particle/particles.png");
+    protected float startX = 0, startY = 0, startZ = 0;
 
     public float scaleX1 = 1.0F;
     public float scaleX2 = 1.0F;
@@ -63,12 +63,12 @@ public class CustomFX extends EntityFX {
     public int width, height;
     public int offsetX, offsetY;
 
-    private int timeSinceStart;
+    protected int timeSinceStart;
     public int animRate;
     public boolean animLoop;
     public int animStart,animEnd;
-    private int animPosX;
-    private int animPosY;
+    protected int animPosX;
+    protected int animPosY;
 
     public int HEXColor = 0xFFFFFF;
     public int HEXColor2 = 0xFFFFFF;
