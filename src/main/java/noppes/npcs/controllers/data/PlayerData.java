@@ -376,6 +376,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		if(data.hasNoTags()){
 			data = PlayerDataController.Instance.loadPlayerDataOld(player.getCommandSenderName());
 		}
+        if(data.hasNoTags()){
+            data = getNBT();
+        }
 		setNBT(data);
 	}
 
