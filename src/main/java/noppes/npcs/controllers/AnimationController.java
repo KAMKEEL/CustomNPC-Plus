@@ -36,6 +36,8 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public void load(){
+        bootOrder = new HashMap<>();
+        animations = new HashMap<>();
         LogWriter.info("Loading animations...");
         readAnimationMap();
         loadAnimations();

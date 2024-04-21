@@ -41,7 +41,8 @@ public class FactionController implements IFactionHandler {
 	}
 
 	public void load(){
-
+        factions = new HashMap<Integer, Faction>();
+        lastUsedID = 0;
 		File saveDir = CustomNpcs.getWorldSaveDirectory();
 		if(saveDir == null){
 			return;
