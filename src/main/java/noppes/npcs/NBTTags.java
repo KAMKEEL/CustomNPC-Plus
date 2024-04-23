@@ -113,6 +113,30 @@ public class NBTTags {
 		return list;
 	}
 
+    public static HashMap<Integer, Byte> getIntegerByteMap(
+        NBTTagList tagList) {
+        HashMap<Integer, Byte> list = new HashMap<Integer, Byte>();
+        for(int i = 0; i < tagList.tagCount(); i++)
+        {
+            NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+            list.put(nbttagcompound.getInteger("Slot"), nbttagcompound.getByte("Byte"));
+        }
+        return list;
+    }
+
+    public static NBTTagList nbtIntegerByteMap(Map<Integer, Byte> lines) {
+        NBTTagList nbttaglist = new NBTTagList();
+        if(lines == null)
+            return nbttaglist;
+        for (int slot : lines.keySet()) {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setInteger("Slot", slot);
+            nbttagcompound.setByte("Byte", lines.get(slot));
+            nbttaglist.appendTag(nbttagcompound);
+        }
+        return nbttaglist;
+    }
+
 	public static NBTTagList nbtStringSet(HashSet<String> collection) {
 		NBTTagList nbttaglist = new NBTTagList();
 		if(collection == null)
