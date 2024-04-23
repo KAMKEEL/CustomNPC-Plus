@@ -124,7 +124,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
         else if(type == EnumPacketClient.SYNC_ADD || type == EnumPacketClient.SYNC_END){
             int synctype = buffer.readInt();
             NBTTagCompound compound = Server.readNBT(buffer);
-
             SyncController.clientSync(synctype, compound, type == EnumPacketClient.SYNC_END);
         }
         else if(type == EnumPacketClient.SYNC_UPDATE){

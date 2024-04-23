@@ -39,9 +39,6 @@ public class DBCAddon {
 
     // Client Sync
     public void syncPlayer(EntityPlayerMP playerMP){}
-    public void clientSync(NBTTagCompound compound, boolean syncEnd){}
-    public void syncUpdate(NBTTagCompound compound, ByteBuf buffer){}
-    public void syncRemove(int id){}
 
 
     // Packet Handling
