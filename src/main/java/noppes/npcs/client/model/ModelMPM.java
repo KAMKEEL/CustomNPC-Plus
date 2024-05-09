@@ -792,7 +792,6 @@ public class ModelMPM extends ModelNPCMale{
 		GL11.glPopMatrix();
 	}
 	public void renderArms(EntityCustomNpc entity, float f, boolean bo){
-		loadPlayerTexture(entity);
 		ModelScalePart arms = entity.modelData.modelScale.arms;
 
 		float x = (1 - entity.modelData.modelScale.body.scaleX) * 0.25f + (1 - arms.scaleX) * 0.075f;
@@ -857,9 +856,12 @@ public class ModelMPM extends ModelNPCMale{
 			this.solidLeftArmWear.isHidden = true;
 		}
 
+        loadPlayerTexture(entity);
 		if(!bo){
 			((ModelScaleRenderer)this.bipedLeftArm).setConfig(arms,-x,y,z);
 			((ModelScaleRenderer)this.bipedLeftArm).render(f);
+
+            loadPlayerTexture(entity);
 			((ModelScaleRenderer)this.bipedRightArm).setConfig(arms,x,y,z);
 			((ModelScaleRenderer)this.bipedRightArm).render(f);
 		}
