@@ -132,8 +132,6 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
 		addButton(new GuiNpcButton(44, guiLeft + 310, guiTop + 14, 80, 20, "Save Model"));
 		addButton(new GuiNpcButton(45, guiLeft + 310, guiTop + 36, 80, 20, "Load Model"));
-
-
 	}
 
 	private void showPixelmonMenu(EntityLivingBase entity) {
