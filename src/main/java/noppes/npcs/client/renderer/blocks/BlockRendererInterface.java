@@ -24,9 +24,17 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	protected static final ResourceLocation PlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
 	protected static final ResourceLocation PlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
 
+
+    protected static final ResourceLocation MCPlanksOak = new ResourceLocation("customnpcs","textures/cache/planks_oak.png");
+    protected static final ResourceLocation MCPlanksBigOak = new ResourceLocation("customnpcs","textures/cache/planks_big_oak.png");
+    protected static final ResourceLocation MCPlanksSpruce = new ResourceLocation("customnpcs","textures/cache/planks_spruce.png");
+    protected static final ResourceLocation MCPlanksBirch = new ResourceLocation("customnpcs","textures/cache/planks_birch.png");
+    protected static final ResourceLocation MCPlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
+    protected static final ResourceLocation MCPlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
+
 	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/Steel.png");
 	protected static final RenderItem renderer = new RenderItem();
-	
+
     public static float colorTable[][] = {
         {
             1.0F, 1.0F, 1.0F
@@ -73,8 +81,8 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	public boolean shouldRender3DInInventory(int modelId) {
 		return true;
 	}
-	
-	
+
+
 	public boolean playerTooFar(TileEntity tile){
 		Minecraft mc = Minecraft.getMinecraft();
         double d6 = mc.renderViewEntity.posX - tile.xCoord;
@@ -83,7 +91,7 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 
         return d6 * d6 + d7 * d7 + d8 * d8 > specialRenderDistance() * specialRenderDistance();
 	}
-	
+
 	public int specialRenderDistance(){
 		return 20;
 	}
@@ -103,6 +111,22 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
         	manager.bindTexture(PlanksOak);
     }
 
+    public void setDefaultWoodTexture(int meta){
+        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+        if(meta == 1)
+            manager.bindTexture(PlanksSpruce);
+        else if(meta == 2)
+            manager.bindTexture(PlanksBirch);
+        else if(meta == 3)
+            manager.bindTexture(PlanksJungle);
+        else if(meta == 4)
+            manager.bindTexture(PlanksAcacia);
+        else if(meta == 5)
+            manager.bindTexture(PlanksBigOak);
+        else
+            manager.bindTexture(PlanksOak);
+    }
+
     public static void setMaterialTexture(int meta){
     	TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
@@ -115,6 +139,5 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
         	manager.bindTexture(Diamond);
         else
         	manager.bindTexture(PlanksOak);
-        
     }
 }
