@@ -236,13 +236,14 @@ public class DataScript implements INpcScriptHandler {
 
 	@Override
 	public void callScript(EnumScriptType type, Event event) {
+        ScriptController.Instance.globalNpcScripts.callScript(type, event);
 		callScript(type, event, "$$IGNORED$$", null);
 	}
 
 	@Override
 	public void callScript(String hookName, Event event) {
 		try {
-			EnumScriptType enumScriptType = EnumScriptType.valueOf(hookName);
+			EnumScriptType enumScriptType = EnumScriptType.valueOfIgnoreCase(hookName);
 			this.callScript(enumScriptType, event);
 		} catch (IllegalArgumentException ignored) {}
 	}

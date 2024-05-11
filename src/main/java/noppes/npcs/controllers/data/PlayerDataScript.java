@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import com.google.common.base.Preconditions;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -97,7 +98,7 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public boolean isClient() {
-        return this.player.isClientWorld();
+        return false;
     }
     public boolean getEnabled() {
         return ScriptController.Instance.playerScripts.enabled;

@@ -129,33 +129,7 @@ public class ClientEventHandler {
             ClientEventHandler.playerModel = null;
         }
 
-        if (data != null && data.isActive() && !Minecraft.getMinecraft().isGamePaused()) {
-            Animation animation = data.animation;
-            if (data.isActive() && animation.currentFrame().useRenderTicks()) {
-                animation.increaseTime();
-            }
-        }
-
         ClientEventHandler.renderingNpc = null;
-    }
-
-    @SubscribeEvent
-    public void onUpdateEntity(LivingEvent.LivingUpdateEvent event) {
-        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-            AnimationData data = null;
-            if (event.entity instanceof EntityNPCInterface) {
-                data = ((EntityNPCInterface) event.entity).display.animationData;
-            } else if (event.entity instanceof EntityPlayer && ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
-            }
-
-            if (data != null && data.isActive()) {
-                Animation animation = data.animation;
-                if (data.isActive() && !animation.currentFrame().useRenderTicks()) {
-                    animation.increaseTime();
-                }
-            }
-        }
     }
 
     @SubscribeEvent

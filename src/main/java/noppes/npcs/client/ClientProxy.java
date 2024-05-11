@@ -80,6 +80,8 @@ public class ClientProxy extends CommonProxy {
 	public static FontContainer Font;
 
 	public void load() {
+        this.createAnimationThread();
+
 		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
 		CustomNpcs.Channel.register(new PacketHandlerClient());
