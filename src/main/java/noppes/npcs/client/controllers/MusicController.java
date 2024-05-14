@@ -9,6 +9,7 @@ import net.minecraft.util.ResourceLocation;
 public class MusicController {
 	public static MusicController Instance;
     public ScriptClientSound sound;
+    private Entity entity;
 
 	public MusicController(){
 		Instance = this;
@@ -33,6 +34,7 @@ public class MusicController {
         clientSound.setVolume(4.0F);
         clientSound.setAttenuationType(ISound.AttenuationType.LINEAR);
         this.sound = clientSound;
+        this.entity = entity;
 
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.playSound(clientSound);
@@ -45,9 +47,11 @@ public class MusicController {
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
         clientSound.setEntity(entity);
+        this.sound = clientSound;
+        this.entity = entity;
+
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.playSound(clientSound);
-        this.sound = clientSound;
 	}
 
 	public boolean isPlaying(String music) {
@@ -64,6 +68,10 @@ public class MusicController {
 
     public boolean isPlaying() {
         return this.sound != null;
+    }
+
+    public Entity getEntity() {
+        return this.entity;
     }
 
 	public void playSound(String music, float x, float y, float z) {

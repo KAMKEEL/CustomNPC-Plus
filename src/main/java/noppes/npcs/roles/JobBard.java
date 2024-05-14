@@ -95,7 +95,7 @@ public class JobBard extends JobInterface{
         if(!MusicController.Instance.isPlaying()){
             this.play();
 		}
-        else if(MusicController.Instance.sound.getEntity() != npc){
+        else if(MusicController.Instance.getEntity() != npc){
 			EntityPlayer player = CustomNpcs.proxy.getPlayer();
 			if(npc.getDistanceToEntity(player) < MusicController.Instance.sound.getDistance()){
                 MusicController.Instance.stopMusic();
