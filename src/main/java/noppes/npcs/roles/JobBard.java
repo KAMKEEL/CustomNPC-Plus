@@ -92,21 +92,15 @@ public class JobBard extends JobInterface{
 		if(!npc.isRemote() || song.isEmpty())
 			return;
 
-        if(!MusicController.Instance.isPlaying(song)){
-			List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(minRange, minRange/2, minRange));
-			if(!list.contains(CustomNpcs.proxy.getPlayer()))
-				return;
-			if(isStreamer)
-				MusicController.Instance.playStreaming(song, npc);
-			else
-				MusicController.Instance.playMusic(song, npc);
+        if(!MusicController.Instance.isPlaying()){
+            this.play();
 		}
-        else if(MusicController.Instance.playingEntity != npc){
+        else if(MusicController.Instance.sound.getEntity() != npc){
 			EntityPlayer player = CustomNpcs.proxy.getPlayer();
-			if(npc.getDistanceSqToEntity(player) < MusicController.Instance.playingEntity.getDistanceSqToEntity(player)){
-				MusicController.Instance.playingEntity = npc;
+			if(npc.getDistanceSqToEntity(player) < MusicController.Instance.sound.getDistanceSq()){
+                MusicController.Instance.stopMusic();
+                this.play();
 			}
-
 		}
         else if(hasOffRange){
 			List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(maxRange, maxRange/2, maxRange));
@@ -118,6 +112,16 @@ public class JobBard extends JobInterface{
             Minecraft.getMinecraft().mcMusicTicker.field_147676_d = 12000;
         }
 	}
+
+    private void play() {
+        List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(minRange, minRange/2, minRange));
+        if(!list.contains(CustomNpcs.proxy.getPlayer()))
+            return;
+        if(isStreamer)
+            MusicController.Instance.playStreaming(song, npc);
+        else
+            MusicController.Instance.playMusic(song, npc);
+    }
 
 	@Override
 	public void killed() {

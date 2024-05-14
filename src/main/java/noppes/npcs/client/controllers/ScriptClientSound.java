@@ -1,5 +1,6 @@
 package noppes.npcs.client.controllers;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ITickableSound;
 import net.minecraft.client.audio.MovingSound;
 import net.minecraft.entity.Entity;
@@ -9,16 +10,18 @@ import net.minecraft.world.World;
 import noppes.npcs.scripted.ScriptSound;
 
 public class ScriptClientSound extends MovingSound implements ITickableSound {
+    public final String sound;
     private Entity entity;
     public boolean paused;
 
-    protected ScriptClientSound(ResourceLocation location) {
-        super(location);
+    public ScriptClientSound(String sound) {
+        super(new ResourceLocation(sound));
+        this.sound = sound;
     }
 
     public static ScriptClientSound fromScriptSound(NBTTagCompound compound, World world) {
         ScriptSound sound = ScriptSound.fromNBT(compound);
-        ScriptClientSound clientSound = new ScriptClientSound(new ResourceLocation(sound.directory));
+        ScriptClientSound clientSound = new ScriptClientSound(sound.directory);
         clientSound.xPosF = sound.xPosF;
         clientSound.yPosF = sound.yPosF;
         clientSound.zPosF = sound.zPosF;
@@ -27,10 +30,23 @@ public class ScriptClientSound extends MovingSound implements ITickableSound {
         clientSound.repeat = sound.repeat;
         clientSound.field_147665_h = sound.repeatDelay;
         if (compound.hasKey("EntityID")) {
-            clientSound.entity = world.getEntityByID(compound.getInteger("EntityID"));
+            clientSound.setEntity(world.getEntityByID(compound.getInteger("EntityID")));
             clientSound.field_147666_i = AttenuationType.NONE;
         }
         return clientSound;
+    }
+
+    public void setEntity(Entity entity) {
+        this.entity = entity;
+        if (entity != null) {
+            this.xPosF = (float) (this.entity.posX);
+            this.yPosF = (float) (this.entity.posY);
+            this.zPosF = (float) (this.entity.posZ);
+        }
+    }
+
+    public Entity getEntity() {
+        return this.entity;
     }
 
     public void stopSound() {
@@ -49,5 +65,23 @@ public class ScriptClientSound extends MovingSound implements ITickableSound {
                 this.zPosF = (float) (this.entity.posZ);
             }
         }
+    }
+
+    public void setPos(float x, float y, float z) {
+        this.xPosF = x;
+        this.yPosF = y;
+        this.zPosF = z;
+    }
+
+    public double getDistanceSq() {
+        return Minecraft.getMinecraft().thePlayer.getDistanceSq(this.xPosF, this.yPosF, this.zPosF);
+    }
+
+    public void setVolume(float volume) {
+        this.volume = volume;
+    }
+
+    public void setAttenuationType(AttenuationType attenuationType) {
+        this.field_147666_i = attenuationType;
     }
 }
