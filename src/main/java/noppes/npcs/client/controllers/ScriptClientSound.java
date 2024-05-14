@@ -73,8 +73,8 @@ public class ScriptClientSound extends MovingSound implements ITickableSound {
         this.zPosF = z;
     }
 
-    public double getDistanceSq() {
-        return Minecraft.getMinecraft().thePlayer.getDistanceSq(this.xPosF, this.yPosF, this.zPosF);
+    public double getDistance() {
+        return Minecraft.getMinecraft().thePlayer.getDistance(this.xPosF, this.yPosF, this.zPosF);
     }
 
     public void setVolume(float volume) {
