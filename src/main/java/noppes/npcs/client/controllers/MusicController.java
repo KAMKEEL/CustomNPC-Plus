@@ -13,6 +13,7 @@ public class MusicController {
     public PositionedSoundRecord playing;
     public ResourceLocation playingResource;
     public Entity playingEntity;
+    public int musicChangeTick = 0;
 
 	public MusicController(){
 		Instance = this;
@@ -29,9 +30,11 @@ public class MusicController {
 	}
 
 	public void playStreaming(String music, Entity entity){
-		if(isPlaying(music)){
-			return;
+		if(isPlaying(music) || musicChangeTick < 100){
+            musicChangeTick++;
+            return;
 		}
+        musicChangeTick = 0;
 		stopMusic();
 		playingEntity = entity;
 		playingResource = new ResourceLocation(music);
@@ -41,8 +44,11 @@ public class MusicController {
 	}
 
 	public void playMusic(String music, Entity entity) {
-		if(isPlaying(music))
-			return;
+		if(isPlaying(music) || musicChangeTick < 100){
+            musicChangeTick++;
+            return;
+        }
+        musicChangeTick = 0;
 		stopMusic();
 		playingResource = new ResourceLocation(music);
 
