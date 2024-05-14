@@ -118,9 +118,9 @@ public class JobBard extends JobInterface{
         if(!list.contains(CustomNpcs.proxy.getPlayer()))
             return;
         if(isStreamer)
-            MusicController.Instance.playStreaming(song, npc);
+            MusicController.Instance.playMusicJukebox(song, npc, hasOffRange ? maxRange : 0);
         else
-            MusicController.Instance.playMusic(song, npc);
+            MusicController.Instance.playMusicBackground(song, npc, hasOffRange ? maxRange : 0);
     }
 
 	@Override

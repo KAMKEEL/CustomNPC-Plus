@@ -32,7 +32,6 @@ import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Animation;
@@ -166,7 +165,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			NoppesUtil.setLastNpc((EntityNPCInterface) entity);
 		}
 		else if(type == EnumPacketClient.PLAY_MUSIC){
-			MusicController.Instance.playMusic(Server.readString(buffer), player);
+			MusicController.Instance.playMusicBackground(Server.readString(buffer), player, Integer.MAX_VALUE);
 		}
 		else if(type == EnumPacketClient.PLAY_SOUND){
 			MusicController.Instance.playSound(Server.readString(buffer),buffer.readFloat(),buffer.readFloat(),buffer.readFloat());

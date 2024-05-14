@@ -9,7 +9,9 @@ import net.minecraft.util.ResourceLocation;
 public class MusicController {
 	public static MusicController Instance;
     public ScriptClientSound sound;
+
     private Entity entity;
+    private int offRange;
 
 	public MusicController(){
 		Instance = this;
@@ -24,31 +26,37 @@ public class MusicController {
         }
 	}
 
-	public void playStreaming(String music, Entity entity){
+	public void playMusicJukebox(String music, Entity entity, int offRange){
 		if (this.isPlaying(music)) {
 			return;
 		}
+        this.stopMusic();
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
         clientSound.setPos((float)entity.posX, (float)entity.posY, (float)entity.posZ);
         clientSound.setVolume(4.0F);
         clientSound.setAttenuationType(ISound.AttenuationType.LINEAR);
+        clientSound.setRepeat(true);
         this.sound = clientSound;
         this.entity = entity;
+        this.offRange = offRange;
 
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.playSound(clientSound);
 	}
 
-	public void playMusic(String music, Entity entity) {
+	public void playMusicBackground(String music, Entity entity, int offRange) {
         if (this.isPlaying(music)) {
             return;
         }
+        this.stopMusic();
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
-        clientSound.setEntity(entity);
+        clientSound.setEntity(Minecraft.getMinecraft().thePlayer);
+        clientSound.setRepeat(true);
         this.sound = clientSound;
         this.entity = entity;
+        this.offRange = offRange;
 
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.playSound(clientSound);
@@ -72,6 +80,10 @@ public class MusicController {
 
     public Entity getEntity() {
         return this.entity;
+    }
+
+    public int getOffRange() {
+        return this.offRange;
     }
 
 	public void playSound(String music, float x, float y, float z) {

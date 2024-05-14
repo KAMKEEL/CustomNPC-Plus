@@ -8,6 +8,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.addon.DBCAddon;
 import kamkeel.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
@@ -57,7 +58,14 @@ public class ClientTickHandler{
 		if(prevWorld != mc.theWorld){
 			prevWorld = mc.theWorld;
 			MusicController.Instance.stopMusic();
-		}
+		} else if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
+            Entity entity = MusicController.Instance.getEntity();
+            if (MusicController.Instance.getOffRange() > 0 &&
+                (Minecraft.getMinecraft().thePlayer.getDistanceToEntity(entity) > MusicController.Instance.getOffRange()
+                ||  entity.dimension != Minecraft.getMinecraft().thePlayer.dimension)) {
+                MusicController.Instance.stopMusic();
+            }
+        }
 		ScriptSoundController.Instance.onUpdate();
 		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
 			prevWidth = mc.displayWidth;

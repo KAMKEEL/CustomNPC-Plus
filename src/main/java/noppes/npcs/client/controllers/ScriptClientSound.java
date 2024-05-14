@@ -84,4 +84,8 @@ public class ScriptClientSound extends MovingSound implements ITickableSound {
     public void setAttenuationType(AttenuationType attenuationType) {
         this.field_147666_i = attenuationType;
     }
+
+    public void setRepeat(boolean repeat) {
+        this.repeat = repeat;
+    }
 }
