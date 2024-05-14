@@ -17,8 +17,10 @@ public class MusicController {
 	public void stopMusic(){
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.stopSounds();
-        this.sound.stopSound();
-        this.sound = null;
+        if (this.isPlaying()) {
+            this.sound.stopSound();
+            this.sound = null;
+        }
 	}
 
 	public void playStreaming(String music, Entity entity){
