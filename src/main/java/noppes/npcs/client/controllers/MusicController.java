@@ -8,7 +8,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class MusicController {
 	public static MusicController Instance;
-    public ScriptClientSound sound;
+    public ScriptClientSound playingSound;
 
     private Entity entity;
     private int offRange;
@@ -17,12 +17,27 @@ public class MusicController {
 		Instance = this;
 	}
 
+    public void onUpdate() {
+        if (this.playingSound != null
+            && !Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(this.playingSound)) {
+            Entity playingEntity = this.playingSound.getEntity();
+            String sound = this.playingSound.sound;
+            this.playingSound.stopSound();
+            this.stopMusic();
+            if (playingEntity == Minecraft.getMinecraft().thePlayer) {
+                this.playMusicBackground(sound, this.entity, this.offRange);
+            } else {
+                this.playMusicJukebox(sound, this.entity, this.offRange);
+            }
+        }
+    }
+
 	public void stopMusic(){
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         soundHandler.stopSounds();
         if (this.isPlaying()) {
-            this.sound.stopSound();
-            this.sound = null;
+            this.playingSound.stopSound();
+            this.playingSound = null;
         }
 	}
 
@@ -33,11 +48,11 @@ public class MusicController {
         this.stopMusic();
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
-        clientSound.setPos((float)entity.posX, (float)entity.posY, (float)entity.posZ);
+        clientSound.setEntity(entity);
         clientSound.setVolume(Math.max(1, offRange/16.0F));
         clientSound.setAttenuationType(ISound.AttenuationType.LINEAR);
         clientSound.setRepeat(true);
-        this.sound = clientSound;
+        this.playingSound = clientSound;
         this.entity = entity;
         this.offRange = offRange;
 
@@ -54,7 +69,7 @@ public class MusicController {
         ScriptClientSound clientSound = new ScriptClientSound(music);
         clientSound.setEntity(Minecraft.getMinecraft().thePlayer);
         clientSound.setRepeat(true);
-        this.sound = clientSound;
+        this.playingSound = clientSound;
         this.entity = entity;
         this.offRange = offRange;
 
@@ -63,19 +78,19 @@ public class MusicController {
 	}
 
 	public boolean isPlaying(String music) {
-        if (this.sound != null && this.sound.sound.equals(music)) {
+        if (this.playingSound != null && this.playingSound.sound.equals(music)) {
             ResourceLocation resource = new ResourceLocation(music);
-            if (!this.sound.getPositionedSoundLocation().equals(resource)) {
+            if (!this.playingSound.getPositionedSoundLocation().equals(resource)) {
                 return false;
             }
-            return Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(this.sound);
+            return Minecraft.getMinecraft().getSoundHandler().isSoundPlaying(this.playingSound);
         } else {
             return false;
         }
 	}
 
     public boolean isPlaying() {
-        return this.sound != null;
+        return this.playingSound != null;
     }
 
     public Entity getEntity() {

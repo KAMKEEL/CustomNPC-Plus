@@ -66,6 +66,7 @@ public class ClientTickHandler{
                 MusicController.Instance.stopMusic();
             }
         }
+        MusicController.Instance.onUpdate();
 		ScriptSoundController.Instance.onUpdate();
 		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
 			prevWidth = mc.displayWidth;
