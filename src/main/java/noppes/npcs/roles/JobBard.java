@@ -93,13 +93,15 @@ public class JobBard extends JobInterface{
 			return;
 
         if(!MusicController.Instance.isPlaying()){
-            this.play();
+            if (!this.play()) return;
 		}
         else if(MusicController.Instance.getEntity() != npc){
 			EntityPlayer player = CustomNpcs.proxy.getPlayer();
-			if(npc.getDistanceToEntity(player) < MusicController.Instance.sound.getDistance()){
+            double distanceToPlayer = npc.getDistanceToEntity(player);
+            double distanceToMusic = MusicController.Instance.getDistance();
+			if(distanceToPlayer < distanceToMusic){
                 MusicController.Instance.stopMusic();
-                this.play();
+                if (!this.play()) return;
 			}
 		}
         else if(hasOffRange){
@@ -113,14 +115,16 @@ public class JobBard extends JobInterface{
         }
 	}
 
-    private void play() {
+    private boolean play() {
         List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(minRange, minRange/2, minRange));
         if(!list.contains(CustomNpcs.proxy.getPlayer()))
-            return;
+            return false;
+
         if(isStreamer)
             MusicController.Instance.playMusicJukebox(song, npc, hasOffRange ? maxRange : 0);
         else
             MusicController.Instance.playMusicBackground(song, npc, hasOffRange ? maxRange : 0);
+        return true;
     }
 
 	@Override

@@ -34,7 +34,7 @@ public class MusicController {
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
         clientSound.setPos((float)entity.posX, (float)entity.posY, (float)entity.posZ);
-        clientSound.setVolume(4.0F);
+        clientSound.setVolume(Math.max(1, offRange/16.0F));
         clientSound.setAttenuationType(ISound.AttenuationType.LINEAR);
         clientSound.setRepeat(true);
         this.sound = clientSound;
@@ -84,6 +84,14 @@ public class MusicController {
 
     public int getOffRange() {
         return this.offRange;
+    }
+
+    public double getDistance() {
+        Entity player = Minecraft.getMinecraft().thePlayer;
+        if (this.entity != null && this.entity.dimension == player.dimension) {
+            return player.getDistanceToEntity(this.entity);
+        }
+        return Double.MAX_VALUE;
     }
 
 	public void playSound(String music, float x, float y, float z) {
