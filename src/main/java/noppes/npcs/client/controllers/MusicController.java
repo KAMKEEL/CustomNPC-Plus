@@ -7,8 +7,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 
 public class MusicController {
 	public static MusicController Instance;
@@ -42,14 +40,16 @@ public class MusicController {
 
         if (this.playDelay > 0) {
             this.playDelay--;
-        } else if (Minecraft.getMinecraft().currentScreen != null) {
-            this.playDelay = 20;
         }
     }
 
 	public void stopMusic(){
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-        soundHandler.stopSounds();
+        if (soundHandler != null) {
+            try {
+                soundHandler.stopSounds();
+            } catch (Exception ignored) {}
+        }
         if (this.isPlaying()) {
             this.playingSound.stopSound();
             this.playingSound = null;
@@ -60,7 +60,7 @@ public class MusicController {
         if (this.playDelay > 0) {
             return;
         }
-        this.playDelay = 10;
+        this.playDelay = 20;
 
         if (this.isPlaying(music)) {
 			return;
@@ -89,7 +89,7 @@ public class MusicController {
         if (this.playDelay > 0) {
             return;
         }
-        this.playDelay = 10;
+        this.playDelay = 20;
 
         if (this.isPlaying(music)) {
             return;
@@ -116,7 +116,7 @@ public class MusicController {
         if (this.playDelay > 0) {
             return;
         }
-        this.playDelay = 10;
+        this.playDelay = 20;
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
         clientSound.setPos(x, y, z);
