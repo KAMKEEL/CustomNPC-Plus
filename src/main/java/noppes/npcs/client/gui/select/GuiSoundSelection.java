@@ -114,6 +114,12 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
 	}
 
     @Override
+    public void close() {
+        super.close();
+        MusicController.Instance.stopAllSounds();
+    }
+
+    @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
         if(guiCustomScroll.id == 0){
             selectedDomain = guiCustomScroll.getSelected();

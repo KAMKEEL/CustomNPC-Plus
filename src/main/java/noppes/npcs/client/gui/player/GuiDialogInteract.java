@@ -693,6 +693,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         super.close();
         if(parent != null)
             NoppesUtil.openGUI(player, parent);
+        MusicController.Instance.stopAllSounds();
     }
 
 	@Override

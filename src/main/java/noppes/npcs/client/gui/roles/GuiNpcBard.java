@@ -89,10 +89,15 @@ public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener
     	if(job.minRange > job.maxRange)
     		job.maxRange = job.minRange;
 
-    	MusicController.Instance.stopMusic();
+        MusicController.Instance.stopAllSounds();
 		Client.sendData(EnumPacketServer.JobSave, job.writeToNBT(new NBTTagCompound()));
 	}
 
+    @Override
+    public void close() {
+        super.close();
+        MusicController.Instance.stopAllSounds();
+    }
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
@@ -101,6 +106,7 @@ public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener
             job.song = gss.selectedResource.toString();
             getLabel(0).label = job.song;
             initGui();
+            MusicController.Instance.stopAllSounds();
         }
     }
 }

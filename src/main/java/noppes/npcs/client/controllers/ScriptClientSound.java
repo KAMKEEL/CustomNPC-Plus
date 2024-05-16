@@ -50,6 +50,7 @@ public class ScriptClientSound extends MovingSound implements ITickableSound {
     }
 
     public void stopSound() {
+        this.donePlaying = true;
         this.repeat = false;
         this.volume = 0;
     }

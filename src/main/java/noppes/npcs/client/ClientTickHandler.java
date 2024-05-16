@@ -8,6 +8,8 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.addon.DBCAddon;
 import kamkeel.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.client.audio.SoundManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
@@ -57,7 +59,7 @@ public class ClientTickHandler{
 		RenderNPCInterface.LastTextureTick++;
 		if(prevWorld != mc.theWorld){
 			prevWorld = mc.theWorld;
-			MusicController.Instance.stopMusic();
+			MusicController.Instance.stopAllSounds();
 		} else if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
             Entity entity = MusicController.Instance.getEntity();
             if (MusicController.Instance.getOffRange() > 0 &&

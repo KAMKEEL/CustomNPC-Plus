@@ -92,20 +92,19 @@ public class JobBard extends JobInterface{
 		if(!npc.isRemote() || song.isEmpty())
 			return;
 
-        if(!MusicController.Instance.isPlaying()){
+        if(!MusicController.Instance.isPlaying() && Minecraft.getMinecraft().currentScreen == null){
             if (!this.play()) return;
 		}
         else if(MusicController.Instance.getEntity() != npc){
 			EntityPlayer player = CustomNpcs.proxy.getPlayer();
             double distanceToPlayer = npc.getDistanceToEntity(player);
             double distanceToMusic = MusicController.Instance.getDistance();
-			if(distanceToPlayer < distanceToMusic){
-                MusicController.Instance.stopMusic();
+			if(Math.ceil(distanceToPlayer) < Math.ceil(distanceToMusic)){
                 if (!this.play()) return;
 			}
 		}
         else if(hasOffRange){
-			List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(maxRange, maxRange/2, maxRange));
+			List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(maxRange, maxRange, maxRange));
 			if(!list.contains(CustomNpcs.proxy.getPlayer()))
 				MusicController.Instance.stopMusic();
 		}
@@ -116,7 +115,7 @@ public class JobBard extends JobInterface{
 	}
 
     private boolean play() {
-        List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(minRange, minRange/2, minRange));
+        List<EntityPlayer> list = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(minRange, minRange, minRange));
         if(!list.contains(CustomNpcs.proxy.getPlayer()))
             return false;
 
@@ -136,7 +135,7 @@ public class JobBard extends JobInterface{
 	public void delete() {
 		if(npc.worldObj.isRemote && hasOffRange){
 			if(MusicController.Instance.isPlaying(song)){
-				MusicController.Instance.stopMusic();
+				MusicController.Instance.stopAllSounds();
 			}
 		}
 	}

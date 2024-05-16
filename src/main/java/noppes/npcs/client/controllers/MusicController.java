@@ -6,8 +6,14 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+
 public class MusicController {
 	public static MusicController Instance;
+    private final HashSet<ScriptClientSound> sounds = new HashSet<>();
+    private int playDelay;
     public ScriptClientSound playingSound;
 
     private Entity entity;
@@ -30,6 +36,15 @@ public class MusicController {
                 this.playMusicJukebox(sound, this.entity, this.offRange);
             }
         }
+
+        SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+        this.sounds.removeIf(sound -> !soundHandler.isSoundPlaying(sound) && !sound.canRepeat() && !sound.paused);
+
+        if (this.playDelay > 0) {
+            this.playDelay--;
+        } else if (Minecraft.getMinecraft().currentScreen != null) {
+            this.playDelay = 20;
+        }
     }
 
 	public void stopMusic(){
@@ -42,7 +57,12 @@ public class MusicController {
 	}
 
 	public void playMusicJukebox(String music, Entity entity, int offRange){
-		if (this.isPlaying(music)) {
+        if (this.playDelay > 0) {
+            return;
+        }
+        this.playDelay = 10;
+
+        if (this.isPlaying(music)) {
 			return;
 		}
         this.stopMusic();
@@ -55,12 +75,22 @@ public class MusicController {
         this.playingSound = clientSound;
         this.entity = entity;
         this.offRange = offRange;
+        this.sounds.add(clientSound);
 
-        SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-        soundHandler.playSound(clientSound);
+        try {
+            SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+            soundHandler.playSound(clientSound);
+        } catch (Exception e) {
+            this.stopAllSounds();
+        }
 	}
 
 	public void playMusicBackground(String music, Entity entity, int offRange) {
+        if (this.playDelay > 0) {
+            return;
+        }
+        this.playDelay = 10;
+
         if (this.isPlaying(music)) {
             return;
         }
@@ -72,10 +102,37 @@ public class MusicController {
         this.playingSound = clientSound;
         this.entity = entity;
         this.offRange = offRange;
+        this.sounds.add(clientSound);
 
-        SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-        soundHandler.playSound(clientSound);
+        try {
+            SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+            soundHandler.playSound(clientSound);
+        } catch (Exception e) {
+            this.stopAllSounds();
+        }
 	}
+
+    public void playSound(String music, float x, float y, float z) {
+        if (this.playDelay > 0) {
+            return;
+        }
+        this.playDelay = 10;
+
+        ScriptClientSound clientSound = new ScriptClientSound(music);
+        clientSound.setPos(x, y, z);
+        clientSound.setVolume(1.0F);
+        clientSound.setAttenuationType(ISound.AttenuationType.NONE);
+        clientSound.setRepeat(false);
+
+        try {
+            SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+            soundHandler.playSound(clientSound);
+        } catch (Exception e) {
+            this.stopAllSounds();
+            return;
+        }
+        this.sounds.add(clientSound);
+    }
 
 	public boolean isPlaying(String music) {
         if (this.playingSound != null && this.playingSound.sound.equals(music)) {
@@ -109,7 +166,11 @@ public class MusicController {
         return Double.MAX_VALUE;
     }
 
-	public void playSound(String music, float x, float y, float z) {
-		Minecraft.getMinecraft().theWorld.playSound(x, y, z, music, 1, 1, false);
-	}
+    public void stopAllSounds() {
+        this.stopMusic();
+        for (ScriptClientSound sound : this.sounds) {
+            sound.stopSound();
+        }
+        this.sounds.clear();
+    }
 }
