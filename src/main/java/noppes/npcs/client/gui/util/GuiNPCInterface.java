@@ -29,13 +29,15 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public boolean drawDefaultBackground = true;
 	public EntityNPCInterface npc;
 	protected HashMap<Integer,GuiNpcButton> buttons = new HashMap<Integer,GuiNpcButton>();
-	private HashMap<Integer,GuiMenuTopButton> topbuttons = new HashMap<Integer,GuiMenuTopButton>();
-	private HashMap<Integer,GuiMenuSideButton> sidebuttons = new HashMap<Integer,GuiMenuSideButton>();
-	private HashMap<Integer,GuiNpcTextField> textfields = new HashMap<Integer,GuiNpcTextField>();
-	private HashMap<Integer,GuiNpcLabel> labels = new HashMap<Integer,GuiNpcLabel>();
-	private HashMap<Integer,GuiCustomScroll> scrolls = new HashMap<Integer,GuiCustomScroll>();
-	private HashMap<Integer,GuiNpcSlider> sliders = new HashMap<Integer,GuiNpcSlider>();
-	private HashMap<Integer,GuiScreen> extra = new HashMap<Integer,GuiScreen>();
+    protected HashMap<Integer,GuiMenuTopButton> topbuttons = new HashMap<Integer,GuiMenuTopButton>();
+    protected HashMap<Integer,GuiMenuSideButton> sidebuttons = new HashMap<Integer,GuiMenuSideButton>();
+    protected HashMap<Integer,GuiNpcTextField> textfields = new HashMap<Integer,GuiNpcTextField>();
+    protected HashMap<Integer,GuiNpcLabel> labels = new HashMap<Integer,GuiNpcLabel>();
+    protected HashMap<Integer,GuiCustomScroll> scrolls = new HashMap<Integer,GuiCustomScroll>();
+    protected HashMap<Integer,GuiNpcSlider> sliders = new HashMap<Integer,GuiNpcSlider>();
+	protected HashMap<Integer,GuiScreen> extra = new HashMap<Integer,GuiScreen>();
+    protected HashMap<Integer, GuiScrollable> scrollableGuiInserts = new HashMap<>();
+
 	public String title;
 	private ResourceLocation background = null;
 	public boolean closeOnEsc = false;
@@ -105,6 +107,11 @@ public abstract class GuiNPCInterface extends GuiScreen
 		extra.put(gui.id, gui);
 	}
 
+    public void addScrollableGui(int id, GuiScrollable gui){
+        gui.setWorldAndResolution(mc, width, height);
+        extra.put(id, gui);
+    }
+
     public void mouseClicked(int i, int j, int k)
     {
     	if(subgui != null)
@@ -113,6 +120,12 @@ public abstract class GuiNPCInterface extends GuiScreen
 	    	for(GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))
 	    		if(tf.enabled)
 	    			tf.mouseClicked(i, j, k);
+
+            for(GuiScrollable guiScrollable : scrollableGuiInserts.values()) {
+                if(guiScrollable.isMouseOver(i, j))
+                    guiScrollable.mouseClicked(i, j, k);
+            }
+
 	        if (k == 0){
 		        for(GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())){
 		        	scroll.mouseClicked(i, j, k);
@@ -189,6 +202,11 @@ public abstract class GuiNPCInterface extends GuiScreen
     	return labels.get(i);
     }
 
+    public GuiScrollable getScrollableGui(int i) {
+        return scrollableGuiInserts.get(i);
+    }
+
+
     public void addSlider(GuiNpcSlider slider){
 		sliders.put(slider.id,slider);
     	buttonList.add(slider);
@@ -240,6 +258,9 @@ public abstract class GuiNPCInterface extends GuiScreen
             if(!button.hoverableText.isEmpty()){
                 button.drawHover(i, j, subGui);
             }
+        }
+        for(GuiScrollable guiScrollable : scrollableGuiInserts.values()){
+            guiScrollable.drawScreen(i, j, f, guiScrollable.isMouseOver(i,j)?Mouse.getDWheel():0);
         }
 
         if(subgui != null)
