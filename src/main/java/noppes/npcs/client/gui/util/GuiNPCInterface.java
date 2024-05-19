@@ -109,7 +109,8 @@ public abstract class GuiNPCInterface extends GuiScreen
 
     public void addScrollableGui(int id, GuiScrollable gui){
         gui.setWorldAndResolution(mc, width, height);
-        extra.put(id, gui);
+        gui.initGui();
+        scrollableGuiInserts.put(id, gui);
     }
 
     public void mouseClicked(int i, int j, int k)
