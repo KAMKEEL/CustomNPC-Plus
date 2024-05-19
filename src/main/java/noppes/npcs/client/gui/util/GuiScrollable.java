@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui.util;
 
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.ChatComponentText;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -10,6 +12,9 @@ public class GuiScrollable extends GuiNPCInterface{
     protected ScaledResolution scaledResolution;
     public int clipWidth;
     public int clipHeight;
+
+    protected int xPos = 0;
+    protected int yPos = 0;
 
     protected int maxScrollY = 0;
     protected float scrollY = 0;
@@ -21,8 +26,8 @@ public class GuiScrollable extends GuiNPCInterface{
 
     public GuiScrollable(EntityNPCInterface npc, int posX, int posY, int clipWidth, int clipHeight, int maxScroll){
         super(npc);
-        this.guiLeft = posX;
-        this.guiTop = posY;
+        this.xPos = posX;
+        this.yPos = posY;
         this.clipWidth = clipWidth;
         this.clipHeight = clipHeight;
         this.maxScrollY = maxScroll;
@@ -36,8 +41,9 @@ public class GuiScrollable extends GuiNPCInterface{
     @Override
     public void initGui(){
         super.initGui();
+        scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 
-
+        addButton(new GuiNpcButton(0, 0, 0, "Testtt"));
 
         float scrollPerc = 0;
         if((guiTop+clipHeight) != 0){
@@ -65,8 +71,8 @@ public class GuiScrollable extends GuiNPCInterface{
         if(drawBackground)
             this.drawDefaultBackground();
 
-        GL11.glTranslatef(guiLeft, guiTop+scrollY, 0);
-        super.drawScreen(mouseX-guiLeft, (int) (mouseY-scrollY-guiTop), partialTicks);
+        GL11.glTranslatef(xPos, yPos+scrollY, 0);
+        super.drawScreen(mouseX-xPos, (int) (mouseY-scrollY-yPos), partialTicks);
 
         this.drawDefaultBackground = drawBackground;
 
@@ -78,39 +84,43 @@ public class GuiScrollable extends GuiNPCInterface{
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int mouseScroll){
+        adjustScroll(mouseScroll);
+
+        this.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    public void adjustScroll(int mouseScroll) {
         nextScrollY -= (float) mouseScroll/25;
         if(nextScrollY < 0)
             nextScrollY = 0;
-        if(nextScrollY > clipHeight) {
-            nextScrollY = clipHeight;
+        if(nextScrollY > maxScrollY) {
+            nextScrollY = maxScrollY;
         }
-        this.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    public void buttonEvent(GuiButton button){
+        mc.thePlayer.addChatMessage(new ChatComponentText("LOL"));
     }
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton){
-        super.mouseClicked(mouseX-guiLeft, (int) (mouseY-scrollY-guiTop), mouseButton);
+        super.mouseClicked(mouseX-xPos, (int) (mouseY-yPos-scrollY), mouseButton);
     }
 
     @Override
     public void handleMouseInput(){
         super.handleMouseInput();
 
-        nextScrollY -= (float) Mouse.getEventDWheel()/25;
-        if(nextScrollY < 0)
-            nextScrollY = 0;
-        if(nextScrollY > maxScrollY){
-            nextScrollY = maxScrollY;
-        }
-
+        adjustScroll(Mouse.getEventDWheel());
     }
 
     public boolean isMouseOver(int mouseX, int mouseY){
-        return mouseX >= guiLeft && mouseX <= xSize && mouseY >= guiTop && mouseY <= ySize;
+        return mouseX >= xPos && mouseX <= clipWidth+xPos && mouseY >= yPos && mouseY <= clipHeight+yPos;
     }
 
     protected void setClip(){
-        setClip(guiLeft, guiTop, clipWidth, clipHeight);
+        setClip(xPos, yPos, clipWidth, clipHeight);
     }
 
     protected void setClip(int x, int y, int width, int height){

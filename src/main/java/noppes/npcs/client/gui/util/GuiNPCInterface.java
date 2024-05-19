@@ -86,6 +86,7 @@ public abstract class GuiNPCInterface extends GuiScreen
         topbuttons.clear();
         scrolls.clear();
         sliders.clear();
+        scrollableGuiInserts.clear();
         Keyboard.enableRepeatEvents(true);
     }
     @Override
@@ -236,6 +237,8 @@ public abstract class GuiNPCInterface extends GuiScreen
     		drawBackground();
     	}
 
+        int scrolled = Mouse.getDWheel();
+
         boolean subGui = hasSubGui();
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for(GuiNpcLabel label : labels.values())
@@ -245,7 +248,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     	}
         for(GuiCustomScroll scroll : scrolls.values()){
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j)?Mouse.getDWheel():0);
+            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j)?scrolled:0);
         }
         for(GuiScreen gui : extra.values())
         	gui.drawScreen(i, j, f);
@@ -261,7 +264,7 @@ public abstract class GuiNPCInterface extends GuiScreen
             }
         }
         for(GuiScrollable guiScrollable : scrollableGuiInserts.values()){
-            guiScrollable.drawScreen(i, j, f, guiScrollable.isMouseOver(i,j)?Mouse.getDWheel():0);
+            guiScrollable.drawScreen(i, j, f, guiScrollable.isMouseOver(i,j)?scrolled:0);
         }
 
         if(subgui != null)
