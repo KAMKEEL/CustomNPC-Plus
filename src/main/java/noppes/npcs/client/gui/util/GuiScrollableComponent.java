@@ -58,13 +58,6 @@ public class GuiScrollableComponent extends GuiNPCInterface{
         super.initGui();
         scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 
-        addButton(new GuiNpcButton(0, 0, 0, "Testtt"));
-        GuiCustomScroll scroll = new GuiCustomScroll(this, 0);
-        scroll.setList(Arrays.asList("Test", "Testing2", "testing 3"));
-        scroll.guiTop = 10;
-        scroll.guiLeft = 30;
-        addScroll(scroll);
-
         float scrollPerc = 0;
         if((guiTop+clipHeight) != 0){
             scrollPerc = (nextScrollY) / (clipHeight);
@@ -96,7 +89,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
             setClip(xPos, yPos, clipWidth-13, clipHeight);
 
         GL11.glTranslatef(xPos, yPos-scrollY, 0);
-        super.drawScreen(mouseX-xPos, (int) (mouseY-scrollY-yPos), partialTicks);
+        super.drawScreen(mouseX-xPos, (int) (mouseY+scrollY-yPos), partialTicks);
 
         this.drawDefaultBackground = drawBackground;
 
@@ -116,7 +109,9 @@ public class GuiScrollableComponent extends GuiNPCInterface{
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int mouseScroll){
         adjustScroll(mouseScroll);
 
+        GuiNPCInterface.recordScroll = false;
         this.drawScreen(mouseX, mouseY, partialTicks);
+        GuiNPCInterface.recordScroll = true;
     }
 
     private void drawScrollBar()
@@ -156,7 +151,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton){
-        super.mouseClicked(mouseX-xPos, (int) (mouseY-yPos+scrollY), mouseButton);
+            super.mouseClicked(mouseX-xPos, (int) (mouseY-yPos+scrollY), mouseButton);
     }
 
     @Override
@@ -175,8 +170,6 @@ public class GuiScrollableComponent extends GuiNPCInterface{
             return;
         int scaleFactor = scaledResolution.getScaleFactor();
 
-//        if(drawingScrollbar)
-//            width-=10;
 
         //Correct the positions for Screen Space in OpenGL
         x*=scaleFactor;
