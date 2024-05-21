@@ -4,10 +4,11 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatComponentText;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.CustomNPCsException;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-public class GuiScrollable extends GuiNPCInterface{
+public class GuiScrollableComponent extends GuiNPCInterface{
 
     protected ScaledResolution scaledResolution;
     public int clipWidth;
@@ -24,7 +25,7 @@ public class GuiScrollable extends GuiNPCInterface{
         return a + lambda * (b - a);
     }
 
-    public GuiScrollable(EntityNPCInterface npc, int posX, int posY, int clipWidth, int clipHeight, int maxScroll){
+    public GuiScrollableComponent(EntityNPCInterface npc, int posX, int posY, int clipWidth, int clipHeight, int maxScroll){
         super(npc);
         this.xPos = posX;
         this.yPos = posY;
@@ -96,6 +97,11 @@ public class GuiScrollable extends GuiNPCInterface{
         if(nextScrollY > maxScrollY) {
             nextScrollY = maxScrollY;
         }
+    }
+
+    @Override
+    public void addScrollableGui(int id, GuiScrollableComponent d){
+        throw new CustomNPCsException("You can't put scrollable GUIs into a scrollable GUI");
     }
 
     @Override

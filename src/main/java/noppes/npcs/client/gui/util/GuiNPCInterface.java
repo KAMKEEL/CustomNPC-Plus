@@ -36,7 +36,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     protected HashMap<Integer,GuiCustomScroll> scrolls = new HashMap<Integer,GuiCustomScroll>();
     protected HashMap<Integer,GuiNpcSlider> sliders = new HashMap<Integer,GuiNpcSlider>();
 	protected HashMap<Integer,GuiScreen> extra = new HashMap<Integer,GuiScreen>();
-    protected HashMap<Integer, GuiScrollable> scrollableGuiInserts = new HashMap<>();
+    protected HashMap<Integer, GuiScrollableComponent> scrollableGuiInserts = new HashMap<>();
 
 	public String title;
 	private ResourceLocation background = null;
@@ -108,7 +108,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 		extra.put(gui.id, gui);
 	}
 
-    public void addScrollableGui(int id, GuiScrollable gui){
+    public void addScrollableGui(int id, GuiScrollableComponent gui){
         gui.setWorldAndResolution(mc, width, height);
         gui.initGui();
         scrollableGuiInserts.put(id, gui);
@@ -123,9 +123,9 @@ public abstract class GuiNPCInterface extends GuiScreen
 	    		if(tf.enabled)
 	    			tf.mouseClicked(i, j, k);
 
-            for(GuiScrollable guiScrollable : scrollableGuiInserts.values()) {
-                if(guiScrollable.isMouseOver(i, j))
-                    guiScrollable.mouseClicked(i, j, k);
+            for(GuiScrollableComponent guiScrollableComponent : scrollableGuiInserts.values()) {
+                if(guiScrollableComponent.isMouseOver(i, j))
+                    guiScrollableComponent.mouseClicked(i, j, k);
             }
 
 	        if (k == 0){
@@ -204,7 +204,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     	return labels.get(i);
     }
 
-    public GuiScrollable getScrollableGui(int i) {
+    public GuiScrollableComponent getScrollableGui(int i) {
         return scrollableGuiInserts.get(i);
     }
 
@@ -263,8 +263,8 @@ public abstract class GuiNPCInterface extends GuiScreen
                 button.drawHover(i, j, subGui);
             }
         }
-        for(GuiScrollable guiScrollable : scrollableGuiInserts.values()){
-            guiScrollable.drawScreen(i, j, f, guiScrollable.isMouseOver(i,j)?scrolled:0);
+        for(GuiScrollableComponent guiScrollableComponent : scrollableGuiInserts.values()){
+            guiScrollableComponent.drawScreen(i, j, f, guiScrollableComponent.isMouseOver(i,j)?scrolled:0);
         }
 
         if(subgui != null)
