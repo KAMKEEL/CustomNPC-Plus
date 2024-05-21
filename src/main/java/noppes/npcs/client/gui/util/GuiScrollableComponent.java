@@ -4,10 +4,13 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.CustomNPCsException;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+
+import java.util.Arrays;
 
 public class GuiScrollableComponent extends GuiNPCInterface{
 
@@ -56,6 +59,11 @@ public class GuiScrollableComponent extends GuiNPCInterface{
         scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 
         addButton(new GuiNpcButton(0, 0, 0, "Testtt"));
+        GuiCustomScroll scroll = new GuiCustomScroll(this, 0);
+        scroll.setList(Arrays.asList("Test", "Testing2", "testing 3"));
+        scroll.guiTop = 10;
+        scroll.guiLeft = 30;
+        addScroll(scroll);
 
         float scrollPerc = 0;
         if((guiTop+clipHeight) != 0){
@@ -87,14 +95,14 @@ public class GuiScrollableComponent extends GuiNPCInterface{
         if(maxScrollY > 0)
             setClip(xPos, yPos, clipWidth-13, clipHeight);
 
-        GL11.glTranslatef(xPos, yPos+scrollY, 0);
+        GL11.glTranslatef(xPos, yPos-scrollY, 0);
         super.drawScreen(mouseX-xPos, (int) (mouseY-scrollY-yPos), partialTicks);
 
         this.drawDefaultBackground = drawBackground;
 
         //Disable clipping (VERY IMPORTANT)
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        GL11.glTranslatef(-xPos, -yPos-scrollY, 0);
+        GL11.glTranslatef(-xPos, -yPos+scrollY, 0);
 
 
 
@@ -148,7 +156,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton){
-        super.mouseClicked(mouseX-xPos, (int) (mouseY-yPos-scrollY), mouseButton);
+        super.mouseClicked(mouseX-xPos, (int) (mouseY-yPos+scrollY), mouseButton);
     }
 
     @Override
