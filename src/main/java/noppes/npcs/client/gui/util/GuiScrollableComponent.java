@@ -27,6 +27,15 @@ public class GuiScrollableComponent extends GuiNPCInterface{
         return a + lambda * (b - a);
     }
 
+    /**
+     * Scrollable GUI component :P?
+     * @param npc npc
+     * @param posX the X Position of the gui element on the screen
+     * @param posY the Y Position of the GUI element on the screen
+     * @param clipWidth width of the element
+     * @param clipHeight height of the element
+     * @param maxScroll extra Y area displayed through the scrollbar.
+     */
     public GuiScrollableComponent(EntityNPCInterface npc, int posX, int posY, int clipWidth, int clipHeight, int maxScroll){
         super(npc);
         this.xPos = posX;
@@ -75,7 +84,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
             this.drawDefaultBackground();
 
 
-        if(maxScrollY > clipHeight/2)
+        if(maxScrollY > 0)
             setClip(xPos, yPos, clipWidth-13, clipHeight);
 
         GL11.glTranslatef(xPos, yPos+scrollY, 0);
@@ -89,7 +98,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
 
 
 
-        if(maxScrollY > clipHeight/2){
+        if(maxScrollY > 0){
             drawScrollBar();
         }
 
