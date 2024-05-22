@@ -6,11 +6,11 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNpcManagePlayerData;
 import noppes.npcs.client.gui.global.GuiNpcNaturalSpawns;
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiScrollableComponent;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.Arrays;
 
 public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
     public GuiNPCGlobalMainMenu(EntityNPCInterface npc){
@@ -36,15 +36,27 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
         if(Loader.isModLoaded("npcdbc"))
             this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "global.customforms"));
 
-        GuiScrollableComponent scrollableComponent = new GuiScrollableComponent(null, guiLeft + 210, y+=22, 200, 150, 90);
-        this.addScrollableGui(0, scrollableComponent);
+        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, guiLeft + 210, y+=22, 200, 150, 200);
+        this.addScrollableGui(0, scrollWindow);
         int k = 10;
-        scrollableComponent.addButton(new GuiNpcButton(30, 0, k, 80, 20, "Something"));
-        scrollableComponent.addButton(new GuiNpcButton(31, 0, k += 24, 80, 20, "Something"));
-        scrollableComponent.addButton(new GuiNpcButton(32, 0, k += 24, 80, 20, "Something"));
-        scrollableComponent.addButton(new GuiNpcButton(33, 0, k += 24, 80, 20, "Something"));
-        scrollableComponent.addButton(new GuiNpcButton(34, 0, k += 24, 80, 20, "Something"));
-        scrollableComponent.addButton(new GuiNpcButton(35, 0, k += 24, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(30, 0, k, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(31, 0, k += 24, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(32, 0, k += 24, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(33, 0, k += 24, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(34, 0, k += 24, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(35, 0, k += 24, 80, 20, "Something"));
+        scrollWindow.addButton(new GuiNpcButton(35, 0, k += 24, 80, 20, "Something"));
+
+        scrollWindow.addTextField(new GuiNpcTextField(40, scrollWindow, fontRendererObj, 0, k += 24, 90, 20, ""));
+
+        GuiCustomScroll scroll = new GuiCustomScroll(scrollWindow,0);
+        scroll.setList(Arrays.asList("Something", "Something2","Somethin4g","Somet5hing","Someth6ing","Somet7hing","Somet8hing","Som9ething"));
+        scroll.setSize(143, 50);
+        scroll.guiLeft = 0;
+        scroll.guiTop = k+=22;
+
+        scrollWindow.addScroll(scroll);
+
         System.out.println(k);
     }
 
@@ -89,6 +101,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
         if (id == 200) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageCustomForms);
         }
+        System.out.println("HIT BUTTON");
 	}
 	@Override
 	public void save() {

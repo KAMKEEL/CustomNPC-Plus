@@ -36,7 +36,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     protected HashMap<Integer,GuiCustomScroll> scrolls = new HashMap<Integer,GuiCustomScroll>();
     protected HashMap<Integer,GuiNpcSlider> sliders = new HashMap<Integer,GuiNpcSlider>();
 	protected HashMap<Integer,GuiScreen> extra = new HashMap<Integer,GuiScreen>();
-    protected HashMap<Integer, GuiScrollableComponent> scrollableGuiInserts = new HashMap<>();
+    protected HashMap<Integer, GuiScrollWindow> scrollWindows = new HashMap<>();
 
 	public String title;
 	private ResourceLocation background = null;
@@ -87,7 +87,7 @@ public abstract class GuiNPCInterface extends GuiScreen
         topbuttons.clear();
         scrolls.clear();
         sliders.clear();
-        scrollableGuiInserts.clear();
+        scrollWindows.clear();
         Keyboard.enableRepeatEvents(true);
     }
     @Override
@@ -109,10 +109,10 @@ public abstract class GuiNPCInterface extends GuiScreen
 		extra.put(gui.id, gui);
 	}
 
-    public void addScrollableGui(int id, GuiScrollableComponent gui){
+    public void addScrollableGui(int id, GuiScrollWindow gui){
         gui.setWorldAndResolution(mc, width, height);
         gui.initGui();
-        scrollableGuiInserts.put(id, gui);
+        scrollWindows.put(id, gui);
     }
 
     public void mouseClicked(int i, int j, int k)
@@ -124,7 +124,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	    		if(tf.enabled)
 	    			tf.mouseClicked(i, j, k);
 
-            for(GuiScrollableComponent guiScrollableComponent : scrollableGuiInserts.values()) {
+            for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
                 if(guiScrollableComponent.isMouseOver(i, j))
                     guiScrollableComponent.mouseClicked(i, j, k);
             }
@@ -157,6 +157,10 @@ public abstract class GuiNPCInterface extends GuiScreen
     		subgui.keyTyped(c,i);
     	for(GuiNpcTextField tf : textfields.values())
     			tf.textboxKeyTyped(c, i);
+
+        for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+            guiScrollableComponent.keyTyped(c, i);
+        }
 
         if (closeOnEsc && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))){
         	close();
@@ -205,10 +209,9 @@ public abstract class GuiNPCInterface extends GuiScreen
     	return labels.get(i);
     }
 
-    public GuiScrollableComponent getScrollableGui(int i) {
-        return scrollableGuiInserts.get(i);
+    public GuiScrollWindow getScrollableGui(int i) {
+        return scrollWindows.get(i);
     }
-
 
     public void addSlider(GuiNpcSlider slider){
 		sliders.put(slider.id,slider);
@@ -266,7 +269,7 @@ public abstract class GuiNPCInterface extends GuiScreen
                 button.drawHover(i, j, subGui);
             }
         }
-        for(GuiScrollableComponent guiScrollableComponent : scrollableGuiInserts.values()){
+        for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()){
             guiScrollableComponent.drawScreen(i, j, f, guiScrollableComponent.isMouseOver(i,j)?mouseScroll:0);
         }
 
