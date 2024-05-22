@@ -35,8 +35,6 @@ public class ServerCloneController implements ICloneHandler {
 		try {
 			File dir = new File(getDir(), "..");
 			File file = new File(dir, "clonednpcs.dat");
-			// System.out.println(file.getAbsolutePath());
-			// System.out.println(file.exists());
 			if(file.exists()){
 				Map<Integer, Map<String, NBTTagCompound>> clones = loadOldClones(file);
 				file.delete();

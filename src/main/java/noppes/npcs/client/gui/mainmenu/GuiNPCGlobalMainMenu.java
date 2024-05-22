@@ -35,29 +35,6 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		this.addButton(new GuiNpcButton(17, guiLeft + 210, y += 22, "menu.tags"));
         if(Loader.isModLoaded("npcdbc"))
             this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "global.customforms"));
-
-        GuiScrollWindow scrollWindow = new GuiScrollWindow(this, guiLeft + 210, y+=22, 200, 150, 200);
-        this.addScrollableGui(0, scrollWindow);
-        int k = 10;
-        scrollWindow.addButton(new GuiNpcButton(30, 0, k, 80, 20, "Something"));
-        scrollWindow.addButton(new GuiNpcButton(31, 0, k += 24, 80, 20, "Something"));
-        scrollWindow.addButton(new GuiNpcButton(32, 0, k += 24, 80, 20, "Something"));
-        scrollWindow.addButton(new GuiNpcButton(33, 0, k += 24, 80, 20, "Something"));
-        scrollWindow.addButton(new GuiNpcButton(34, 0, k += 24, 80, 20, "Something"));
-        scrollWindow.addButton(new GuiNpcButton(35, 0, k += 24, 80, 20, "Something"));
-        scrollWindow.addButton(new GuiNpcButton(35, 0, k += 24, 80, 20, "Something"));
-
-        scrollWindow.addTextField(new GuiNpcTextField(40, scrollWindow, fontRendererObj, 0, k += 24, 90, 20, ""));
-
-        GuiCustomScroll scroll = new GuiCustomScroll(scrollWindow,0);
-        scroll.setList(Arrays.asList("Something", "Something2","Somethin4g","Somet5hing","Someth6ing","Somet7hing","Somet8hing","Som9ething"));
-        scroll.setSize(143, 50);
-        scroll.guiLeft = 0;
-        scroll.guiTop = k+=22;
-
-        scrollWindow.addScroll(scroll);
-
-        System.out.println(k);
     }
 
     @Override
@@ -101,7 +78,6 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
         if (id == 200) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageCustomForms);
         }
-        System.out.println("HIT BUTTON");
 	}
 	@Override
 	public void save() {
