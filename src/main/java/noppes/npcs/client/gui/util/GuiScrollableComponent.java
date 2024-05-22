@@ -18,6 +18,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
     protected ScaledResolution scaledResolution;
     public int clipWidth;
     public int clipHeight;
+    boolean isScrolling;
 
     protected int xPos = 0;
     protected int yPos = 0;
@@ -69,9 +70,6 @@ public class GuiScrollableComponent extends GuiNPCInterface{
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks){
         scrollY = (float) lerp(scrollY, nextScrollY, partialTicks);
-        if(Float.isNaN(scrollY))
-            scrollY = 0;
-
         boolean drawBackground = this.drawDefaultBackground;
 
         GL11.glPushMatrix();
@@ -97,8 +95,6 @@ public class GuiScrollableComponent extends GuiNPCInterface{
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GL11.glTranslatef(-xPos, -yPos+scrollY, 0);
 
-
-
         if(maxScrollY > 0){
             drawScrollBar();
         }
@@ -107,7 +103,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int mouseScroll){
-        adjustScroll(mouseScroll);
+        adjustScroll(mouseX, mouseY, mouseScroll);
 
         GuiNPCInterface.recordScroll = false;
         this.drawScreen(mouseX, mouseY, partialTicks);
@@ -119,23 +115,44 @@ public class GuiScrollableComponent extends GuiNPCInterface{
         mc.renderEngine.bindTexture(resource);
         GL11.glColor4f(1, 1, 1, 1);
 
-        int maxSize = (int) ((clipHeight) * ( (double) (clipHeight)/ maxScrollY))/2;
-
+        int maxSize = (int) ((clipHeight) * ( (double) (clipHeight)/ (clipHeight + maxScrollY)));
         int x = xPos + clipWidth - 9;
         int y = (int) (yPos + 4 + (scrollY/maxScrollY * (clipHeight-maxSize-8)));
 
-        for(int k = y; k < y+maxSize && k-clipHeight+maxSize < clipHeight;k++){
+        for(int k = y; k < y+maxSize && k-clipHeight+maxSize < clipHeight + yPos;k++){
             drawTexturedModalRect(x, k, 176, 9, 5, 1);
         }
-
     }
 
-    public void adjustScroll(int mouseScroll) {
-        nextScrollY -= (float) mouseScroll/25;
-        if(nextScrollY < 0)
-            nextScrollY = 0;
-        if(nextScrollY > maxScrollY) {
-            nextScrollY = maxScrollY;
+    public void adjustScroll(int mouseX, int mouseY, int mouseScroll) {
+        mouseX -= xPos;
+        mouseY -= yPos;
+        if(Mouse.isButtonDown(0)){
+            if(mouseX >= clipWidth-9 && mouseX < clipWidth-4 && mouseY >= 4 && mouseY < clipHeight){
+                isScrolling = true;
+            }
+        }
+        else
+            isScrolling = false;
+
+        if(isScrolling){
+            // This Scroll Y is wrong
+            float proportion = (mouseY - 4) / (float) (clipHeight - 8);
+            nextScrollY = (int) (proportion * maxScrollY);
+            if(nextScrollY < 0){
+                nextScrollY = 0;
+            }
+            if(nextScrollY > maxScrollY){
+                nextScrollY = maxScrollY;
+            }
+        }
+
+        if(mouseScroll != 0){
+            nextScrollY -= (float) mouseScroll/15;
+            if(nextScrollY > maxScrollY)
+                nextScrollY = maxScrollY;
+            if(nextScrollY < 0)
+                nextScrollY = 0;
         }
     }
 
@@ -145,9 +162,7 @@ public class GuiScrollableComponent extends GuiNPCInterface{
     }
 
     @Override
-    public void buttonEvent(GuiButton button){
-        mc.thePlayer.addChatMessage(new ChatComponentText("LOL"));
-    }
+    public void buttonEvent(GuiButton button){}
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton){
@@ -157,8 +172,6 @@ public class GuiScrollableComponent extends GuiNPCInterface{
     @Override
     public void handleMouseInput(){
         super.handleMouseInput();
-
-        adjustScroll(Mouse.getEventDWheel());
     }
 
     public boolean isMouseOver(int mouseX, int mouseY){

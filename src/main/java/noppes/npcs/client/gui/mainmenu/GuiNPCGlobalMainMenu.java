@@ -8,6 +8,7 @@ import noppes.npcs.client.gui.global.GuiNpcManagePlayerData;
 import noppes.npcs.client.gui.global.GuiNpcNaturalSpawns;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiScrollableComponent;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -34,6 +35,17 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		this.addButton(new GuiNpcButton(17, guiLeft + 210, y += 22, "menu.tags"));
         if(Loader.isModLoaded("npcdbc"))
             this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "global.customforms"));
+
+        GuiScrollableComponent scrollableComponent = new GuiScrollableComponent(null, guiLeft + 210, y+=22, 200, 150, 90);
+        this.addScrollableGui(0, scrollableComponent);
+        int k = 10;
+        scrollableComponent.addButton(new GuiNpcButton(30, 0, k, 80, 20, "Something"));
+        scrollableComponent.addButton(new GuiNpcButton(31, 0, k += 24, 80, 20, "Something"));
+        scrollableComponent.addButton(new GuiNpcButton(32, 0, k += 24, 80, 20, "Something"));
+        scrollableComponent.addButton(new GuiNpcButton(33, 0, k += 24, 80, 20, "Something"));
+        scrollableComponent.addButton(new GuiNpcButton(34, 0, k += 24, 80, 20, "Something"));
+        scrollableComponent.addButton(new GuiNpcButton(35, 0, k += 24, 80, 20, "Something"));
+        System.out.println(k);
     }
 
     @Override
