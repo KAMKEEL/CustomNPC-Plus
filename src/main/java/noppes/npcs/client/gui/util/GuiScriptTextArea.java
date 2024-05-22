@@ -63,6 +63,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         container.visibleLines = height / container.lineHeight;
 
+        if(listener instanceof GuiNPCInterface){
+            int k2 = ((GuiNPCInterface) listener).mouseScroll;
+            if(k2 != 0) {
+                this.scrolledLine -= k2/40;
+                this.scrolledLine = Math.max(Math.min(this.scrolledLine, this.container.linesCount - this.height / this.container.lineHeight), 0);
+            }
+        }
+
         if(clicked){
             clicked = Mouse.isButtonDown(0);
             int i = getSelectionPos(xMouse, yMouse);
@@ -560,12 +568,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     public void updateCursorCounter() {
         ++this.cursorCounter;
-        int k2 = Mouse.getDWheel();
-        if(k2 != 0) {
-            this.scrolledLine += k2 > 0?-1:1;
-            this.scrolledLine = Math.max(Math.min(this.scrolledLine, this.container.linesCount - this.height / this.container.lineHeight), 0);
-        }
-
     }
 
     public void setText(String text) {
