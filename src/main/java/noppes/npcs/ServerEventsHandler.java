@@ -69,7 +69,7 @@ public class ServerEventsHandler {
 			return;
 		}
 
-		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty && npcInteracted) {
+		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty) {
 			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
 			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
@@ -140,7 +140,7 @@ public class ServerEventsHandler {
 	}
 
 	@SubscribeEvent
-	public void invoke(LivingAttackEvent event) {
+	public void partyDamagedEvent(LivingAttackEvent event) {
 		if(!(event.source != null && event.source.getEntity() instanceof EntityPlayer) || !(event.entityLiving instanceof EntityPlayer) || FMLCommonHandler.instance().getEffectiveSide().isClient())
 			return;
 
@@ -457,7 +457,7 @@ public class ServerEventsHandler {
         PartyController.Instance().pingPartyQuestObjectiveUpdate(party);
         PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Kill);
     }
-    
+
 	@SubscribeEvent
 	public void world(PlayerEvent.SaveToFile event){
 		PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entity);
