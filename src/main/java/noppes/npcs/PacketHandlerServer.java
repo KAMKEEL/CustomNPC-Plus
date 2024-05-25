@@ -518,6 +518,7 @@ public class PacketHandlerServer{
 			wrapper.setMCNbt(compound);
 			wrapper.saveScriptData();
 			wrapper.loaded = false;
+            wrapper.lastInited = -1;
 			player.sendContainerToPlayer(player.inventoryContainer);
 		}
 	}

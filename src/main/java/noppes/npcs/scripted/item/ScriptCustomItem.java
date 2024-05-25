@@ -42,6 +42,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
     public float scaleX = 1.0F, scaleY = 1.0F, scaleZ = 1.0F;
     public float rotationX, rotationY, rotationZ;
     public float rotationXRate, rotationYRate, rotationZRate;
+    public long lastInited = -1;
 
     public ScriptCustomItem(ItemStack item) {
         super(item);
@@ -80,23 +81,28 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         if (!this.loaded) {
             this.loadScriptData();
             this.loaded = true;
+        }
+
+        if(!this.isEnabled())
+            return;
+
+        if(ScriptController.Instance.lastLoaded > lastInited){
+            lastInited = ScriptController.Instance.lastLoaded;
             if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
                 EventHooks.onScriptItemInit(this);
             }
         }
 
-        if (this.isEnabled()) {
-            for (int i = 0; i < this.scripts.size(); i++) {
-                ScriptContainer script = this.scripts.get(i);
-                if (!this.errored.contains(i)) {
-                    if(script == null || script.errored || !script.hasCode())
-                        continue;
+        for (int i = 0; i < this.scripts.size(); i++) {
+            ScriptContainer script = this.scripts.get(i);
+            if (!this.errored.contains(i)) {
+                if(script == null || script.errored || !script.hasCode())
+                    continue;
 
-                    script.run(hookName, event);
+                script.run(hookName, event);
 
-                    if (script.errored) {
-                        this.errored.add(i);
-                    }
+                if (script.errored) {
+                    this.errored.add(i);
                 }
             }
         }
