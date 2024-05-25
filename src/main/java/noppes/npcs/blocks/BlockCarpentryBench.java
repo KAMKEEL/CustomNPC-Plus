@@ -8,9 +8,11 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
@@ -59,10 +61,11 @@ public class BlockCarpentryBench extends BlockContainer
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void registerBlockIcons(IIconRegister par1IconRegister)
+    public IIcon getIcon(int side, int meta)
     {
-
+        return Blocks.planks.getIcon(side, 0);
     }
+
     @Override
     public int damageDropped(int par1)
     {
