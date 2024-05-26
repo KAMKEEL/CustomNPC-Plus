@@ -43,7 +43,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public boolean closeOnEsc = false;
 	public int guiLeft,guiTop,xSize,ySize;
 	private SubGuiInterface subgui;
-	public int mouseX, mouseY;
+	public int mouseX, mouseY, mouseScroll;
 	public float bgScale = 1;
 	public float bgScaleX = 1;
 	public float bgScaleY = 1;

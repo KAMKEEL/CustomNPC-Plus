@@ -64,7 +64,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         container.visibleLines = height / container.lineHeight;
 
         if(listener instanceof GuiNPCInterface){
-            int k2 = ((GuiNPCInterface) listener).mouseScroll;
+            int k2 = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
             if(k2 != 0) {
                 this.scrolledLine -= k2/40;
                 this.scrolledLine = Math.max(Math.min(this.scrolledLine, this.container.linesCount - this.height / this.container.lineHeight), 0);
