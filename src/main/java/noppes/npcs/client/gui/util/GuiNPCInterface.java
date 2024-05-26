@@ -43,9 +43,7 @@ public abstract class GuiNPCInterface extends GuiScreen
 	public boolean closeOnEsc = false;
 	public int guiLeft,guiTop,xSize,ySize;
 	private SubGuiInterface subgui;
-	public int mouseX, mouseY, mouseScroll;
-    public static boolean recordScroll = true;
-
+	public int mouseX, mouseY;
 	public float bgScale = 1;
 	public float bgScaleX = 1;
 	public float bgScaleY = 1;
@@ -241,10 +239,6 @@ public abstract class GuiNPCInterface extends GuiScreen
     		drawBackground();
     	}
 
-        if(recordScroll) {
-            mouseScroll = Mouse.getDWheel();
-        }
-
         boolean subGui = hasSubGui();
         drawCenteredString(fontRendererObj, title, width / 2, guiTop + 4, 0xffffff);
         for(GuiNpcLabel label : labels.values())
@@ -254,7 +248,7 @@ public abstract class GuiNPCInterface extends GuiScreen
     	}
         for(GuiCustomScroll scroll : scrolls.values()){
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j)?mouseScroll:0);
+            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j)? Mouse.getDWheel():0);
         }
         for(GuiScreen gui : extra.values())
         	gui.drawScreen(i, j, f);
@@ -270,13 +264,11 @@ public abstract class GuiNPCInterface extends GuiScreen
             }
         }
         for(GuiScrollWindow guiScrollableComponent : scrollWindows.values()){
-            guiScrollableComponent.drawScreen(i, j, f, guiScrollableComponent.isMouseOver(i,j)?mouseScroll:0);
+            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i,j)?Mouse.getDWheel():0);
         }
 
         if(subgui != null){
-            recordScroll = false;
             subgui.drawScreen(i,j,f);
-            recordScroll = true;
         }
     }
 
