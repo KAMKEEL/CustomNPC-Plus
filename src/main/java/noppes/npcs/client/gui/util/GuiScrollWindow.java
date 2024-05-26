@@ -297,12 +297,14 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
             }
         }
 
-        for(GuiCustomScroll guiCustomScroll : scrolls.values()) {
-            if (guiCustomScroll.isMouseOver(mouseX, (int) (mouseY + scrollY))) {
-                return;
+        if(!parent.hasSubGui()){
+            for(GuiCustomScroll guiCustomScroll : scrolls.values()) {
+                if (guiCustomScroll.isMouseOver(mouseX, (int) (mouseY + scrollY))) {
+                    return;
+                }
             }
         }
-
+        
         if(mouseScroll != 0){
             nextScrollY -= (float) mouseScroll/15;
             if(nextScrollY > maxScrollY)
