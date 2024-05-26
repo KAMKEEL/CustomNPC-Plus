@@ -1,7 +1,5 @@
 package noppes.npcs.util;
 
-import org.lwjgl.Sys;
-
 public class MillisTimer {
     float ticksPerSecond;
     private double lastHRTime;
@@ -81,6 +79,6 @@ public class MillisTimer {
     }
 
     private long getLastSyncSysClock() {
-        return Sys.getTime() * 1000L / Sys.getTimerResolution();
+        return System.nanoTime() / 1_000_000L;
     }
 }
