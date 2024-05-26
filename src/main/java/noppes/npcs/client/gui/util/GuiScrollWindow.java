@@ -304,7 +304,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
                 }
             }
         }
-        
+
         if(mouseScroll != 0){
             nextScrollY -= (float) mouseScroll/15;
             if(nextScrollY > maxScrollY)

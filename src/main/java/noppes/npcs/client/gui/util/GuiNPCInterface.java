@@ -273,8 +273,11 @@ public abstract class GuiNPCInterface extends GuiScreen
             guiScrollableComponent.drawScreen(i, j, f, guiScrollableComponent.isMouseOver(i,j)?mouseScroll:0);
         }
 
-        if(subgui != null)
-    		subgui.drawScreen(i,j,f);
+        if(subgui != null){
+            recordScroll = false;
+            subgui.drawScreen(i,j,f);
+            recordScroll = true;
+        }
     }
 
 	protected void drawBackground() {
