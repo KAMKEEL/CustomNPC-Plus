@@ -7,7 +7,7 @@ import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumScriptType;
 
-public abstract class PartyEvent extends CustomNPCsEvent implements IPartyEvent {
+public class PartyEvent extends CustomNPCsEvent implements IPartyEvent {
     public final IQuest quest;
     public final IParty party;
 

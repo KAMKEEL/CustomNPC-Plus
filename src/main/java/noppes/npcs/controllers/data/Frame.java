@@ -14,14 +14,12 @@ public class Frame implements IFrame {
 	public Animation parent;
 	public HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
 	public int duration = 0;
-    public int tickDuration = 50;
-
 	boolean customized = false;
 	public float speed = 1.0F;
 	public byte smooth = 0;
+	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
 
 	private int colorMarker = 0xFFFFFF;
-    private String comment = "";
 
 	public Frame(){}
 
@@ -77,15 +75,6 @@ public class Frame implements IFrame {
 		return this;
 	}
 
-    public int tickDuration() {
-        return !this.customized && this.parent != null ? this.parent.tickDuration : this.tickDuration;
-    }
-
-    public IFrame setTickDuration(int tickDuration) {
-        this.tickDuration = tickDuration;
-        return this;
-    }
-
 	public boolean isCustomized() {
 		return customized;
 	}
@@ -113,6 +102,15 @@ public class Frame implements IFrame {
 		return this;
 	}
 
+	public IFrame useRenderTicks(boolean renderTicks) {
+		this.renderTicks = renderTicks;
+		return this;
+	}
+
+	public boolean useRenderTicks() {
+		return this.renderTicks;
+	}
+
 	public int getColorMarker() {
 		return this.colorMarker;
 	}
@@ -121,22 +119,11 @@ public class Frame implements IFrame {
 		this.colorMarker = color;
 	}
 
-    public String getComment() {
-        return this.comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
 	public void readFromNBT(NBTTagCompound compound){
 		duration = compound.getInteger("Duration");
 		if (compound.hasKey("ColorMarker")) {
 			this.setColorMarker(compound.getInteger("ColorMarker"));
 		}
-        if (compound.hasKey("Comment")) {
-            this.comment = compound.getString("Comment");
-        }
 
 		// Customized = TRUE if Speed or Smooth Exist
 		if(compound.hasKey("Speed")){
@@ -147,19 +134,15 @@ public class Frame implements IFrame {
 			customized = true;
 			smooth = compound.getByte("Smooth");
 		}
-
-        if (compound.hasKey("TickDuration")) {
-            customized = true;
-            this.tickDuration = compound.getInteger("TickDuration");
-        } else if(compound.hasKey("RenderTicks")){
+		if(compound.hasKey("RenderTicks")){
 			customized = true;
-            this.tickDuration = compound.getBoolean("RenderTicks") ? 20 : 50;
+			renderTicks = compound.getBoolean("RenderTicks");
 		}
 
-		if (!customized && parent != null) {
+		if (!customized) {
 			this.speed = parent.speed;
 			this.smooth = parent.smooth;
-			this.tickDuration = parent.tickDuration;
+			this.renderTicks = parent.renderTicks;
 		}
 
 		HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
@@ -181,12 +164,11 @@ public class Frame implements IFrame {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setInteger("Duration", duration);
 		compound.setInteger("ColorMarker", this.colorMarker);
-        compound.setString("Comment", this.comment);
 
 		if(customized){
 			compound.setFloat("Speed", speed);
 			compound.setByte("Smooth", smooth);
-			compound.setInteger("TickDuration", tickDuration);
+			compound.setBoolean("RenderTicks", renderTicks);
 		}
 
 		NBTTagList list = new NBTTagList();
@@ -209,7 +191,7 @@ public class Frame implements IFrame {
 		frame.customized = this.customized;
 		frame.speed = this.speed;
 		frame.smooth = this.smooth;
-		frame.tickDuration = this.tickDuration;
+		frame.renderTicks = this.renderTicks;
 		frame.colorMarker = this.colorMarker;
 		return frame;
 	}

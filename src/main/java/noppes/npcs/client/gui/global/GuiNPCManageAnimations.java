@@ -63,9 +63,9 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 
 		AnimationData data = npc.display.animationData;
 		if (!playingAnimation) {
-			data.setAnimation(new Animation());
+			data.animation = new Animation();
 			data.animation.smooth = animation.smooth;
-			data.animation.tickDuration = 50;
+			data.animation.renderTicks = animation.renderTicks;
 			data.animation.loop = 0;
 
 			if (this.animation.frames.size() > 0) {
@@ -109,8 +109,12 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 			this.playingAnimation = false;
 			initGui();
 		} else if (data.isActive()) {
+			Frame currentFrame = (Frame) data.animation.currentFrame();
 			long time = mc.theWorld.getTotalWorldTime();
 			if (time != prevTick) {
+				if (currentFrame != null && !currentFrame.renderTicks) {
+					data.animation.increaseTime();
+				}
 				GuiNpcLabel label = this.getLabel(94);
 				if (label != null) {
 					label.label += ".";
@@ -182,7 +186,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 				}
 			}
 			this.playingAnimation = true;
-			data.setAnimation(this.animation);
+			data.animation = animation;
 			data.animation.paused = false;
 		} else if (guibutton.id == 92) {
 			data.animation.paused = true;
@@ -203,7 +207,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 		this.animation = new Animation();
 		animation.readFromNBT(compound);
 		setSelected(animation.name);
-		npc.display.animationData.setAnimation(this.animation);
+		npc.display.animationData.animation = animation;
 		this.playingAnimation = false;
 		npc.display.animationData.animation.paused = false;
 		initGui();

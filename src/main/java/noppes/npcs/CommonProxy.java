@@ -1,11 +1,7 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.network.IGuiHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -18,107 +14,18 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.util.MillisTimer;
-
-import java.util.Collection;
-import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 
 public class CommonProxy implements IGuiHandler {
-    public final static HashSet<AnimationData> clientPlayingAnimations = new HashSet<>();
-    public final static HashSet<AnimationData> serverPlayingAnimations = new HashSet<>();
-    protected MillisTimer animationTimer = new MillisTimer(1000);
-    protected static long totalServerTicks;
-    protected static long totalClientTicks;
+
+	public boolean newVersionAvailable = false;
+	public int revision = 1;
 
 	public void load() {
-        this.createAnimationThread();
-
 		CustomNpcs.Channel.register(new PacketHandlerServer());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 	}
-
-    protected void createAnimationThread() {
-        Thread thread = (new Thread("Animation Thread") { public void run() {
-            while (true) {
-                try {
-                    if (!CustomNpcs.proxy.hasClient() || !Minecraft.getMinecraft().isGamePaused()) {
-                        animationTimer.updateTimer();
-                    }
-
-                    for (int i = 0; i < animationTimer.elapsedTicks; ++i) {
-                        updateData(totalClientTicks, clientPlayingAnimations);
-                        totalClientTicks++;
-
-                        updateData(totalServerTicks, serverPlayingAnimations);
-                        totalServerTicks++;
-                    }
-
-                    totalClientTicks %= Long.MAX_VALUE;
-                    totalServerTicks %= Long.MAX_VALUE;
-
-                    synchronized (clientPlayingAnimations) {
-                        clientPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
-                    }
-                    synchronized (serverPlayingAnimations) {
-                        serverPlayingAnimations.removeIf(CommonProxy.this::removeAnimation);
-                    }
-                } catch (Exception e) {
-                    if (!(e instanceof ConcurrentModificationException)) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }});
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    private void updateData(long ticks, Collection<AnimationData> animationData) {
-        for (AnimationData data : animationData) {
-            Frame frame = data.animation != null && data.animation.currentFrame() != null
-                ? (Frame) data.animation.currentFrame() : null;
-            if (frame != null) {
-                int tickDuration = frame.tickDuration();
-                if (ticks % tickDuration == 0) {
-                    data.increaseTime();
-                }
-            }
-        }
-    }
-
-    private boolean removeAnimation(AnimationData data) {
-        Entity entity = null;
-        if (data.parent instanceof DataDisplay) {
-            entity = ((DataDisplay)data.parent).npc;
-        } else {
-            if (data.parent instanceof PlayerData) {
-                entity = ((PlayerData) data.parent).player;
-            } else if (data.parent instanceof EntityPlayer) {
-                entity = (EntityPlayer) data.parent;
-            }
-        }
-
-        if (entity == null) return true;
-
-        if (entity.worldObj != null && entity.worldObj.isRemote) {
-            return clientRemoveAnimation(entity);
-        } else {
-            return entity.worldObj == null || !entity.worldObj.loadedEntityList.contains(entity)
-                || CustomNpcs.getServer().isServerStopped();
-        }
-    }
-
-    @SideOnly(Side.CLIENT)
-    private boolean clientRemoveAnimation(Entity entity) {
-        Minecraft mc = Minecraft.getMinecraft();
-        return mc.theWorld == null
-            || mc.currentScreen == null && entity != mc.thePlayer  && !mc.theWorld.loadedEntityList.contains(entity);
-    }
 
 	public PlayerData getPlayerData(EntityPlayer player) {
 		return null;

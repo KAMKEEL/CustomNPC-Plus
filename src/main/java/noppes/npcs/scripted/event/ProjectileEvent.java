@@ -4,9 +4,8 @@ import noppes.npcs.api.IBlock;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.api.event.IProjectileEvent;
-import noppes.npcs.constants.EnumScriptType;
 
-public abstract class ProjectileEvent extends CustomNPCsEvent implements IProjectileEvent {
+public class ProjectileEvent extends CustomNPCsEvent implements IProjectileEvent {
     public IProjectile projectile;
     public IEntity source;
 
@@ -29,11 +28,6 @@ public abstract class ProjectileEvent extends CustomNPCsEvent implements IProjec
     public static class UpdateEvent extends ProjectileEvent implements IProjectileEvent.UpdateEvent {
         public UpdateEvent(IProjectile projectile) {
             super(projectile);
-        }
-
-        @Override
-        public String getHookName() {
-            return EnumScriptType.PROJECTILE_TICK.function;
         }
     }
 
@@ -67,11 +61,6 @@ public abstract class ProjectileEvent extends CustomNPCsEvent implements IProjec
             if(type == 1)
                 return (IBlock) target;
             return null;
-        }
-
-        @Override
-        public String getHookName() {
-            return EnumScriptType.PROJECTILE_IMPACT.function;
         }
     }
 }

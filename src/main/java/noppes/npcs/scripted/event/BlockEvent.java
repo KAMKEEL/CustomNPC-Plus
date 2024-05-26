@@ -11,7 +11,7 @@ import noppes.npcs.api.event.IBlockEvent;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
-public abstract class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
+public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     public IBlock block;
     public BlockEvent(IBlock block){
         this.block = block;

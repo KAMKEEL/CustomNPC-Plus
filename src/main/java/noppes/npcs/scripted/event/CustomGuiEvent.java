@@ -10,7 +10,7 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
-public abstract class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
+public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
     public final IPlayer player;
     public final ICustomGui gui;
 
