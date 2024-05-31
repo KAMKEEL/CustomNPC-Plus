@@ -7,6 +7,7 @@ public enum EnumGuiType {
 	ManageFactions,
 	ManageTags,
     ManageCustomForms,
+    ManageCustomAuras,
 	ManageAnimations,
 	MainMenuAdvanced,
 	MainMenuGlobal,

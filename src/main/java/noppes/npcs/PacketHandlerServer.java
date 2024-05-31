@@ -1207,21 +1207,6 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendAnimationDataAll(player);
 			Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
 		}
-        else if(type == EnumPacketServer.CustomFormsGet){
-            DBCAddon.instance.formPacketGets(player, buffer);
-        }
-        else if(type == EnumPacketServer.CustomFormGet){
-            DBCAddon.instance.formPacketGet(player, buffer);
-        }
-        else if(type == EnumPacketServer.CustomFormRemove){
-            DBCAddon.instance.formPacketRemove(player, buffer);
-        }
-        else if(type == EnumPacketServer.CustomFormSave){
-            DBCAddon.instance.formPacketSave(player, buffer);
-        }
-        else if(type == EnumPacketServer.CustomFormSet){
-            DBCAddon.instance.formPacketSet(player, buffer);
-        }
 		else
 			blockPackets(type, buffer, player);
 

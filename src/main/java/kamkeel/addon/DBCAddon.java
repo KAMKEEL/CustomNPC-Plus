@@ -39,13 +39,4 @@ public class DBCAddon {
 
     // Client Sync
     public void syncPlayer(EntityPlayerMP playerMP){}
-
-
-    // Packet Handling
-    public void formPacketGet(EntityPlayer player, ByteBuf buffer){}
-    public void formPacketGets(EntityPlayer player, ByteBuf buffer){}
-    public void formPacketRemove(EntityPlayer player, ByteBuf buffer){}
-    public void formPacketSave(EntityPlayer player, ByteBuf buffer){}
-    public void formPacketSet(EntityPlayer player, ByteBuf buffer){}
-    public void formPacketPlayers(EntityPlayer player){}
 }

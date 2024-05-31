@@ -249,6 +249,9 @@ public class ClientProxy extends CommonProxy {
         else if (gui == EnumGuiType.ManageCustomForms)
             return DBCClient.Instance.manageCustomForms(npc);
 
+        else if (gui == EnumGuiType.ManageCustomAuras)
+            return DBCClient.Instance.manageCustomAuras(npc);
+
 		else if (gui == EnumGuiType.ManageTags)
 			return new GuiNPCManageTags(npc);
 

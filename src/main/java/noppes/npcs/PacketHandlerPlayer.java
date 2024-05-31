@@ -219,9 +219,6 @@ public class PacketHandlerPlayer{
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 			Server.sendData(player, EnumPacketClient.GUI_DATA, data.saveNBTData(new NBTTagCompound()));
 		}
-        else if(type == EnumPlayerPacket.CustomFormsGet){
-            DBCAddon.instance.formPacketPlayers(player);
-        }
 		else if(type == EnumPlayerPacket.MailDelete){
 			long time = buffer.readLong();
 			String username = Server.readString(buffer);

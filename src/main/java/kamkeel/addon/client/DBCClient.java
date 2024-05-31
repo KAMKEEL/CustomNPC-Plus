@@ -37,6 +37,8 @@ public class DBCClient {
 
     // Manage Custom Forms
     public GuiNPCInterface2 manageCustomForms(EntityNPCInterface npcInterface){ return null; }
+    // Manage Custom Forms
+    public GuiNPCInterface2 manageCustomAuras(EntityNPCInterface npcInterface){ return null; }
 
     // Inventory GUI
     public GuiCNPCInventory inventoryGUI(){ return null; }

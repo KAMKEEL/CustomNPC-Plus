@@ -33,8 +33,10 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
 		y = guiTop + 10;
 		this.addButton(new GuiNpcButton(18, guiLeft + 210, y, "menu.animations"));
 		this.addButton(new GuiNpcButton(17, guiLeft + 210, y += 22, "menu.tags"));
-        if(Loader.isModLoaded("npcdbc"))
-            this.addButton(new GuiNpcButton(200, guiLeft + 210, y += 22, "global.customforms"));
+        if(Loader.isModLoaded("npcdbc")){
+            this.addButton(new GuiNpcButton(200, guiLeft + 210, y + 154, 99, 20, "global.customforms"));
+            this.addButton(new GuiNpcButton(201, guiLeft + 210 + 99 + 3, y + 154, 99, 20, "global.customauras"));
+        }
     }
 
     @Override
@@ -77,6 +79,9 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2{
         // DBC Addon
         if (id == 200) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageCustomForms);
+        }
+        if (id == 201) {
+            NoppesUtil.requestOpenGUI(EnumGuiType.ManageCustomAuras);
         }
 	}
 	@Override
