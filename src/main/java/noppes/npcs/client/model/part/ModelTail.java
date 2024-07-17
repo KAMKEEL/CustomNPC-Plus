@@ -19,15 +19,15 @@ public class ModelTail extends ModelScaleRenderer {
 	private EntityCustomNpc entity;
 	private ModelMPM base;
 
-	private ModelRenderer tail;
-	private ModelRenderer dragon;
-	private ModelRenderer squirrel;
-	private ModelRenderer horse;
-	private ModelRenderer fin;
-	private ModelRenderer rodent;
-	private ModelRenderer feather;
-    private ModelCanineTail fox;
-    private ModelMonkeyTail monkey;
+    public ModelRenderer tail;
+    public ModelRenderer dragon;
+    public ModelRenderer squirrel;
+    public ModelRenderer horse;
+    public ModelRenderer fin;
+    public ModelRenderer rodent;
+    public ModelRenderer feather;
+    public ModelCanineTail fox;
+    public ModelMonkeyTail monkey;
 
 	private int color = 0xFFFFFF;
 
