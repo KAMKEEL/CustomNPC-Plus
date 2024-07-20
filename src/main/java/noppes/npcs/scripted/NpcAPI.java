@@ -60,7 +60,10 @@ import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.*;
 
-import java.io.File;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 public class NpcAPI extends AbstractNpcAPI {
@@ -69,6 +72,8 @@ public class NpcAPI extends AbstractNpcAPI {
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
+
+    private final static String API_USER_AGENT = "CNPC+API";
 
     private NpcAPI() {
     }
@@ -683,5 +688,62 @@ public class NpcAPI extends AbstractNpcAPI {
         part.setSpeed(speed);
         part.setSmooth(smooth);
         return part;
+    }
+
+    public String postJsonHTTP(String url, String jsonPayload) {
+        return this.postJsonHTTP(url, jsonPayload, API_USER_AGENT);
+    }
+
+    public String postJsonHTTP(String url, String jsonPayload, String userAgent) {
+        return this.postHTTP(url, jsonPayload, "application/json", userAgent);
+    }
+
+    public String postHTTP(String url, String params, String contentType) {
+        return this.postHTTP(url, params, contentType, API_USER_AGENT);
+    }
+
+    public String postHTTP(String url, String params, String contentType, String userAgent) {
+        try {
+            HttpURLConnection con = this.getConnection("POST", url, userAgent, contentType);
+
+            // For POST only - set doOutput to true
+            con.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            wr.writeBytes(params);
+            wr.flush();
+            wr.close();
+
+            int responseCode = con.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                return response.toString();
+            } else {
+                return "Error sending HTTP post: " + con.getResponseMessage();
+            }
+        } catch (Exception e) {
+            return "Error sending HTTP post: " + e.getMessage();
+        }
+    }
+
+    private HttpURLConnection getConnection(String requestMethod, String url, String userAgent, String contentType) throws IOException {
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod(requestMethod);
+        con.setRequestProperty("User-Agent", userAgent);
+        //con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+        if (!contentType.isEmpty()) {
+            con.setRequestProperty("Content-Type", contentType);
+        }
+
+        return con;
     }
 }
