@@ -65,6 +65,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
@@ -74,6 +76,7 @@ public class NpcAPI extends AbstractNpcAPI {
     private static AbstractNpcAPI instance = null;
 
     private final static String API_USER_AGENT = "CNPC+API";
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     private NpcAPI() {
     }
@@ -690,50 +693,47 @@ public class NpcAPI extends AbstractNpcAPI {
         return part;
     }
 
-    public String postJsonHTTP(String url, String jsonPayload) {
-        return this.postJsonHTTP(url, jsonPayload, API_USER_AGENT);
+    public void postJsonHTTP(String url, String jsonPayload) {
+        this.postJsonHTTP(url, jsonPayload, API_USER_AGENT);
     }
 
-    public String postJsonHTTP(String url, String jsonPayload, String userAgent) {
-        return this.postHTTP(url, jsonPayload, "application/json", userAgent);
+    public void postJsonHTTP(String url, String jsonPayload, String userAgent) {
+        this.postHTTP(url, jsonPayload, "application/json", userAgent);
     }
 
-    public String postHTTP(String url, String params, String contentType) {
-        return this.postHTTP(url, params, contentType, API_USER_AGENT);
+    public void postHTTP(String url, String params, String contentType) {
+        this.postHTTP(url, params, contentType, API_USER_AGENT);
     }
 
-    public String postHTTP(String url, String params, String contentType, String userAgent) {
-        try {
-            HttpURLConnection con = this.getConnection("POST", url, userAgent, contentType);
+    public void postHTTP(String url, String params, String contentType, String userAgent) {
+        executorService.submit(() -> {
+            try {
+                HttpURLConnection con = NpcAPI.getConnection("POST", url, userAgent, contentType);
 
-            // For POST only - set doOutput to true
-            con.setDoOutput(true);
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(params);
-            wr.flush();
-            wr.close();
+                // For POST only - set doOutput to true
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes(params);
+                wr.flush();
+                wr.close();
 
-            int responseCode = con.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) { // success
-                BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
+                int responseCode = con.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
 
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
                 }
-                in.close();
-
-                return response.toString();
-            } else {
-                return "Error sending HTTP post: " + con.getResponseMessage();
+            } catch (Exception ignored) {
             }
-        } catch (Exception e) {
-            return "Error sending HTTP post: " + e.getMessage();
-        }
+        });
     }
 
-    private HttpURLConnection getConnection(String requestMethod, String url, String userAgent, String contentType) throws IOException {
+    private static HttpURLConnection getConnection(String requestMethod, String url, String userAgent, String contentType) throws IOException {
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
