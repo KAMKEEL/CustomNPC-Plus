@@ -730,7 +730,7 @@ public class ModelMPM extends ModelNPCMale{
 		to.rotationPointZ = from.rotationPointZ;
 	}
 
-	private void renderHead(EntityCustomNpc entity, float f) {
+    public void renderHead(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
 		float x = 0;
 		float y = entity.modelData.getBodyY();
@@ -765,7 +765,7 @@ public class ModelMPM extends ModelNPCMale{
 		GL11.glPopMatrix();
 	}
 
-	private void renderBody(EntityCustomNpc entity, float f) {
+	public void renderBody(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
 		float x = 0;
 		float y = entity.modelData.getBodyY();
@@ -872,7 +872,7 @@ public class ModelMPM extends ModelNPCMale{
 
 		GL11.glPopMatrix();
 	}
-	private void renderLegs(EntityCustomNpc entity, float f) {
+    public void renderLegs(EntityCustomNpc entity, float f) {
 		loadPlayerTexture(entity);
 		ModelScalePart legs = entity.modelData.modelScale.legs;
 
