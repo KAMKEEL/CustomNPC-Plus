@@ -52,7 +52,6 @@ public class ModelMPM extends ModelNPCMale{
 	public ModelRenderer bipedRightLegWear;
 	public ModelRenderer bipedLeftLegWear;
 
-	private ModelLegs legs;
 	private ModelScaleRenderer headwear;
 	private ModelScaleRenderer bodywear;
 	private final ModelScaleRenderer solidLeftArmWear;
@@ -60,7 +59,8 @@ public class ModelMPM extends ModelNPCMale{
 	private final ModelScaleRenderer solidLeftLegWear;
 	private final ModelScaleRenderer solidRightLegWear;
 
-	private ModelTail tail;
+    public ModelLegs legs;
+    public ModelTail tail;
 	public ModelBase entityModel;
 	public EntityLivingBase entity;
 
