@@ -60,8 +60,13 @@ import noppes.npcs.scripted.item.*;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 import noppes.npcs.util.*;
 
-import java.io.File;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NpcAPI extends AbstractNpcAPI {
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
@@ -69,6 +74,9 @@ public class NpcAPI extends AbstractNpcAPI {
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
+
+    private final static String API_USER_AGENT = "CNPC+API";
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     private NpcAPI() {
     }
@@ -683,5 +691,59 @@ public class NpcAPI extends AbstractNpcAPI {
         part.setSpeed(speed);
         part.setSmooth(smooth);
         return part;
+    }
+
+    public void postJsonHTTP(String url, String jsonPayload) {
+        this.postJsonHTTP(url, jsonPayload, API_USER_AGENT);
+    }
+
+    public void postJsonHTTP(String url, String jsonPayload, String userAgent) {
+        this.postHTTP(url, jsonPayload, "application/json", userAgent);
+    }
+
+    public void postHTTP(String url, String params, String contentType) {
+        this.postHTTP(url, params, contentType, API_USER_AGENT);
+    }
+
+    public void postHTTP(String url, String params, String contentType, String userAgent) {
+        executorService.submit(() -> {
+            try {
+                HttpURLConnection con = NpcAPI.getConnection("POST", url, userAgent, contentType);
+
+                // For POST only - set doOutput to true
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes(params);
+                wr.flush();
+                wr.close();
+
+                int responseCode = con.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) { // success
+                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+                }
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private static HttpURLConnection getConnection(String requestMethod, String url, String userAgent, String contentType) throws IOException {
+        URL obj = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod(requestMethod);
+        con.setRequestProperty("User-Agent", userAgent);
+        //con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+        if (!contentType.isEmpty()) {
+            con.setRequestProperty("Content-Type", contentType);
+        }
+
+        return con;
     }
 }

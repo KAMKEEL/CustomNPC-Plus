@@ -82,12 +82,12 @@ public class NPCSpawning {
     			SpawnData data = SpawnController.Instance.getRandomSpawnData(name, world.provider.dimensionId);
                 if (data == null || !canCreatureTypeSpawnAtLocation(data, world, x, y, z) || world.getClosestPlayer(x, y, z, 24.0D) != null)
                 	continue;
-                
+
                 spawnData(data, world, x, y, z);
             }
         }
     }
-    
+
     public static int countNPCs(World world){
         int count = 0;
         List<Entity> list = world.loadedEntityList;
@@ -106,16 +106,16 @@ public class NPCSpawning {
         int i1 = world.rand.nextInt(chunk == null ? world.getActualHeight() : chunk.getTopFilledSegment() + 16 - 1);
         return new ChunkPosition(k, i1, l);
     }
-    
+
     public static void performWorldGenSpawning(World world, int x, int z, Random rand){
         BiomeGenBase biome = world.getBiomeGenForCoords(x + 8, z + 8);
     	while (rand.nextFloat() < biome.getSpawningChance()){
     		SpawnData data = SpawnController.Instance.getRandomSpawnData(biome.biomeName, world.provider.dimensionId);
     		if(data == null)
     			continue;
-    		
+
     		int size = 16;
-    		
+
             int j1 = x + rand.nextInt(size);
             int k1 = z + rand.nextInt(size);
             int l1 = j1;
@@ -139,11 +139,11 @@ public class NPCSpawning {
                 }
                 else if(spawnData(data, world, j1, l2, k1))
 	                break;
-                
+
             }
         }
     }
-    
+
     private static boolean spawnData(SpawnData data, World world, int x, int y, int z){
         EntityLiving entityliving;
 
@@ -177,7 +177,7 @@ public class NPCSpawning {
             }
 
 			entityliving = (EntityLiving) spawnEntity;
-			
+
 			if(spawnEntity instanceof EntityCustomNpc){
 				EntityCustomNpc npc = (EntityCustomNpc) spawnEntity;
 				npc.stats.spawnCycle = 3;
@@ -198,14 +198,14 @@ public class NPCSpawning {
         if (canSpawn == Result.DENY || (canSpawn == Result.DEFAULT && !canEntitySpawn(data,entityliving)))
         	return false;
 
-        CustomNPCsEvent.CNPCNaturalSpawnEvent event = new CustomNPCsEvent.CNPCNaturalSpawnEvent(data, NpcAPI.Instance().getIPos(new BlockPos(x,y,z)), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn);
+        CustomNPCsEvent.CNPCNaturalSpawnEvent event = new CustomNPCsEvent.CNPCNaturalSpawnEvent(entityliving, data, NpcAPI.Instance().getIPos(new BlockPos(x,y,z)), NPCSpawning.animalSpawn, NPCSpawning.monsterSpawn, NPCSpawning.liquidSpawn, NPCSpawning.airSpawn);
         if (EventHooks.onCNPCNaturalSpawn(event)) {
             return false;
         }
 
         entityliving.setPosition(event.attemptPosition.getX(),event.attemptPosition.getY(),event.attemptPosition.getZ());
         world.spawnEntityInWorld(entityliving);
-    	
+
     	return true;
     }
 
@@ -216,7 +216,7 @@ public class NPCSpawning {
             return entityLiving.worldObj.checkNoEntityCollision(entityLiving.boundingBox) && entityLiving.worldObj.getCollidingBoundingBoxes(entityLiving, entityLiving.boundingBox).isEmpty();
         }
     }
-    
+
     public static boolean canCreatureTypeSpawnAtLocation(SpawnData data, World world, int x, int y, int z){
         Block block = world.getBlock(x, y - 1, z);
         boolean hasSolidSurface = World.doesBlockHaveSolidTopSurface(world, x, y - 1, z);

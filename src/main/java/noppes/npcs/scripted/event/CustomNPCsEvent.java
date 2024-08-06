@@ -2,12 +2,15 @@ package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraft.entity.EntityLivingBase;
 import noppes.npcs.api.AbstractNpcAPI;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
+import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.event.ICustomNPCsEvent;
 import noppes.npcs.api.handler.data.INaturalSpawn;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.scripted.NpcAPI;
 
 public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();
@@ -27,6 +30,7 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
 
     @Cancelable
     public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent implements ICustomNPCsEvent.CNPCNaturalSpawnEvent {
+        public final IEntityLivingBase<?> entity;
         public final INaturalSpawn naturalSpawn;
         public IPos attemptPosition;
         public final boolean animalSpawnPassed;
@@ -34,7 +38,8 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
         public final boolean liquidSpawnPassed;
         public final boolean airSpawnPassed;
 
-        public CNPCNaturalSpawnEvent(INaturalSpawn naturalSpawn, IPos attemptPosition, boolean animalSpawnPassed, boolean monsterSpawnPassed, boolean liquidSpawnPassed, boolean airSpawnPassed) {
+        public CNPCNaturalSpawnEvent(EntityLivingBase entity, INaturalSpawn naturalSpawn, IPos attemptPosition, boolean animalSpawnPassed, boolean monsterSpawnPassed, boolean liquidSpawnPassed, boolean airSpawnPassed) {
+            this.entity = (IEntityLivingBase<?>) NpcAPI.Instance().getIEntity(entity);
             this.naturalSpawn = naturalSpawn;
             this.attemptPosition = attemptPosition;
 
@@ -46,6 +51,10 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
 
         public String getHookName() {
             return EnumScriptType.CNPC_NATURAL_SPAWN.function;
+        }
+
+        public IEntityLivingBase<?> getEntity() {
+            return entity;
         }
 
         public INaturalSpawn getNaturalSpawn() {

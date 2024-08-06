@@ -169,16 +169,14 @@ public class ConfigScript
     }
 
     public static boolean isScriptDev(EntityPlayer player) {
-        return MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile()) ||
-                Developer.ScriptUser.contains(player.getUniqueID()) ||
-                Developer.Universal.contains(player.getUniqueID());
+        boolean isOp = MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
+        return (!ScriptOpsOnly || isOp) &&
+            (Developer.ScriptUser.contains(player.getUniqueID()) ||
+                Developer.Universal.contains(player.getUniqueID()));
     }
 
     public static boolean canScript(EntityPlayer player, CustomNpcsPermissions.Permission perm) {
-        if(ScriptOpsOnly){
-            return isScriptDev(player);
-        }
-
-        return CustomNpcsPermissions.hasPermission(player, perm);
+        boolean scriptDev = (!ScriptOpsOnly && Developer.ScriptUser.isEmpty()) || isScriptDev(player);
+        return scriptDev && CustomNpcsPermissions.hasPermission(player, perm);
     }
 }

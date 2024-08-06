@@ -1258,6 +1258,12 @@ public class PacketHandlerServer{
 				player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
 				return;
 			}
+
+            if (entity instanceof EntityNPCInterface && !ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
+                EntityNPCInterface npc = (EntityNPCInterface) entity;
+                npc.script.setEnabled(false);
+            }
+
 			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
 			}
@@ -1272,6 +1278,11 @@ public class PacketHandlerServer{
 				compound = ServerCloneController.Instance.getCloneData(player, Server.readString(buffer), buffer.readInt());
 			else
 				compound = Server.readNBT(buffer);
+
+            if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
+                return;
+            }
+
 			if(compound != null)
 				NoppesUtilServer.createMobSpawner(x, y, z, compound, player);
 		}
