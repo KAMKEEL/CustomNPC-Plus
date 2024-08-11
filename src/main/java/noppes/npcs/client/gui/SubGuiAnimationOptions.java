@@ -12,6 +12,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
     public SubGuiAnimationOptions(Animation animation) {
         this.animation = animation;
         setBackground("smallbg.png");
+        closeOnEsc = true;
     }
 
     @Override
@@ -49,6 +50,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
         } else if (guibutton.id == 13) {
             animation.whileMoving = value == 0;
         }
+
 
         initGui();
     }
