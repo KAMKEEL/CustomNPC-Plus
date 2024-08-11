@@ -75,6 +75,8 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     private boolean field_146993_M;
     private ItemStack field_146994_N;
 
+    public boolean closeOnEsc = true;
+
     public GuiCustom(ContainerCustomGui container) {
         this.inventorySlots = container;
         this.field_146995_H = true;
@@ -508,7 +510,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     }
 
     protected void keyTyped(char typedChar, int keyCode) {
-        if (keyCode == 1)
+        if (keyCode == 1 && closeOnEsc)
         {
             this.mc.thePlayer.closeScreen();
         }
@@ -654,6 +656,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         this.gui = gui;
         this.xSize = gui.getWidth();
         this.ySize = gui.getHeight();
+        this.closeOnEsc = gui.doesCloseOnEscape();
         if (!gui.getBackgroundTexture().isEmpty()) {
             this.background = new ResourceLocation(gui.getBackgroundTexture());
         }
