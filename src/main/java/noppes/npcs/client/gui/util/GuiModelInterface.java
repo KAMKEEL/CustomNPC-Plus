@@ -13,77 +13,117 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-public class GuiModelInterface extends GuiNPCInterface{
-	public ModelData playerdata;
+public class GuiModelInterface extends GuiNPCInterface {
+    public ModelData playerdata;
 
-	private static float rotation = 0;
+    private static float rotation = 0;
 
-	private GuiNpcButton left,right,zoom,unzoom;
+    private GuiNpcButton left, right, zoom, unzoom;
 
-	private static float zoomed = 60;
+    private static float zoomed = 60;
+    public float minSize = 10, maxSize = 100;
 
-	public int xOffset = 0;
-    public int yOffset = 0;
-    public boolean followMouse = true;
+    public int xOffset = 0, xOffsetButton = 0;
+    public int yOffset = 0, yOffsetButton = 0;
+    public boolean followMouse = true, drawNPConSub = true;
 
-	public EntityCustomNpc npc;
+    public boolean drawRenderButtons = true, drawXButton = true;
 
-	public GuiModelInterface(EntityCustomNpc npc){
-		this.npc = npc;
-		playerdata = npc.modelData;
-		xSize = 380;
-		drawDefaultBackground = false;
-	}
+    public EntityCustomNpc npc;
+
+    public GuiModelInterface(EntityCustomNpc npc) {
+        this.npc = npc;
+        playerdata = npc.modelData;
+        xSize = 380;
+        drawDefaultBackground = false;
+    }
 
     @Override
     public void initGui() {
-    	super.initGui();
+        super.initGui();
 
-    	addButton(unzoom = new GuiNpcButton(666, guiLeft + 148 + xOffset, guiTop + 200 + yOffset, 20, 20, "-"));
-    	addButton(zoom = new GuiNpcButton(667, guiLeft + 214 + xOffset, guiTop + 200 + yOffset, 20, 20, "+"));
-    	addButton(left = new GuiNpcButton(668, guiLeft + 170 + xOffset, guiTop + 200 + yOffset, 20, 20, "<"));
-    	addButton(right = new GuiNpcButton(669, guiLeft + 192 + xOffset, guiTop + 200 + yOffset, 20, 20, ">"));
 
-    	addButton(new GuiNpcButton(670, width - 22, 2, 20, 20, "X"));
+        if (drawRenderButtons) {
+            addButton(unzoom = new GuiNpcButton(666, guiLeft + 148 + xOffset + xOffsetButton, guiTop + 200 + yOffset + yOffsetButton, 20, 20, "-"));
+            addButton(zoom = new GuiNpcButton(667, guiLeft + 214 + xOffset + xOffsetButton, guiTop + 200 + yOffset + yOffsetButton, 20, 20, "+"));
+            addButton(left = new GuiNpcButton(668, guiLeft + 170 + xOffset + xOffsetButton, guiTop + 200 + yOffset + yOffsetButton, 20, 20, "<"));
+            addButton(right = new GuiNpcButton(669, guiLeft + 192 + xOffset + xOffsetButton, guiTop + 200 + yOffset + yOffsetButton, 20, 20, ">"));
+        }
+
+        if (drawXButton) {
+            addButton(new GuiNpcButton(670, width - 22, 2, 20, 20, "X"));
+        }
     }
 
     @Override
     protected void actionPerformed(GuiButton btn) {
-    	if(btn.id == 670){
-    		close();
-    	}
+        super.actionPerformed(btn);
+        if (btn.id == 670) {
+            close();
+        }
     }
+
     @Override
-    public boolean doesGuiPauseGame()
-    {
+    public boolean doesGuiPauseGame() {
         return false;
     }
-    private long start = -1;
-    @Override
-    public void drawScreen(int par1, int par2, float par3)
-    {
-    	if(Mouse.isButtonDown(0)){
-	    	if(left.mousePressed(mc, par1, par2))
-	    		rotation+=par3 * 2;
-	    	else if(right.mousePressed(mc, par1, par2))
-	    		rotation-=par3 * 2;
-	    	else if(zoom.mousePressed(mc, par1, par2))
-	    		zoomed+=par3 * 2;
-	    	else if(unzoom.mousePressed(mc, par1, par2) && zoomed > 10)
-	    		zoomed-=par3 * 2;
 
-    	}
+    private long start = -1;
+
+    public boolean isMouseOverRenderer(int x, int y) {
+        return x >= guiLeft + xOffset + 40 && x <= guiLeft + xOffset + 330 && y >= guiTop + yOffset - 50 && y <= guiTop + yOffset + 250;
+    }
+
+
+    public void preRender(EntityLivingBase entity) {
+        EntityUtil.Copy(npc, entity);
+
+    }
+
+    public void postRender(EntityLivingBase entity) {
+
+    }
+
+    @Override
+    public void drawScreen(int par1, int par2, float par3) {
+        if (Mouse.isButtonDown(0)) {
+            if (this.left.mousePressed(this.mc, par1, par2)) {
+                rotation += par3 * 1.5F;
+            } else if (this.right.mousePressed(this.mc, par1, par2)) {
+                rotation -= par3 * 1.5F;
+            } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxSize) {
+                zoomed += par3 * 1.0F;
+            } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minSize) {
+                zoomed -= par3 * 1.0F;
+            }
+        }
+
+        if (isMouseOverRenderer(par1, par2)) {
+            zoomed += Mouse.getDWheel() * 0.035f;
+            if (Mouse.isButtonDown(0) || Mouse.isButtonDown(1)) {
+                rotation -= Mouse.getDX() * 0.75f;
+            }
+        }
+
+        if (zoomed > maxSize)
+            zoomed = maxSize;
+        if (zoomed < minSize)
+            zoomed = minSize;
+
+        if (hasSubGui() && !drawNPConSub)
+            return;
+
         this.drawDefaultBackground();
         GL11.glColor4f(1, 1, 1, 1);
 
-    	EntityLivingBase entity = playerdata.getEntity(npc);
-    	if(entity == null)
-    		entity = this.npc;
+        EntityLivingBase entity = playerdata.getEntity(npc);
+        if (entity == null)
+            entity = this.npc;
 
-		EntityUtil.Copy(npc, entity);
+        preRender(entity);
 
-    	int l = guiLeft + 190 + xOffset;
-    	int i1 =  guiTop + 180 + yOffset;
+        int l = guiLeft + 190 + xOffset;
+        int i1 = guiTop + 180 + yOffset;
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glPushMatrix();
         GL11.glTranslatef(l, i1, 60F);
@@ -95,24 +135,23 @@ public class GuiModelInterface extends GuiNPCInterface{
         float f3 = entity.rotationYaw;
         float f4 = entity.rotationPitch;
         float f7 = entity.rotationYawHead;
-        float f5 = (float)(l) - par1;
-        float f6 = (float)(i1 - 50) - par2;
+        float f5 = (float) (l) - par1;
+        float f6 = (float) (i1 - 50) - par2;
         GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
         RenderHelper.enableStandardItemLighting();
         GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(-(float)Math.atan(f6 / 80F) * 20F, 1.0F, 0.0F, 0.0F);
+        GL11.glRotatef(-(float) Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
-        entity.prevRotationYaw = entity.rotationYaw = (float)Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = followMouse ? -(float)Math.atan(f6 / 80F) * 20F : 0;
+        entity.prevRotationYaw = entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
+        entity.rotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
         entity.prevRotationYawHead = entity.rotationYawHead = followMouse ? entity.rotationYaw : rotation;
-        GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
+        GL11.glTranslatef(0.0F, entity.yOffset, 1F);
         RenderManager.instance.playerViewY = 180F;
 
-        try{
+        try {
             RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
-        }
-        catch(Exception e){
-        	playerdata.setEntityClass(null);
+        } catch (Exception e) {
+            playerdata.setEntityClass(null);
         }
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
@@ -126,27 +165,25 @@ public class GuiModelInterface extends GuiNPCInterface{
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0F, 0f, 500.065F);
-    	super.drawScreen(par1, par2, par3);
+        super.drawScreen(par1, par2, par3);
         GL11.glPopMatrix();
+
+        postRender(entity);
     }
 
     @Override
-    public void keyTyped(char par1, int par2)
-    {
-    	super.keyTyped(par1, par2);
-        if (par2 == 1)
-        {
-        	close();
-        }
+    public void keyTyped(char par1, int par2) {
+        super.keyTyped(par1, par2);
     }
-    public void close(){
-        this.mc.displayGuiScreen((GuiScreen)null);
+
+    public void close() {
+        this.mc.displayGuiScreen((GuiScreen) null);
         this.mc.setIngameFocus();
     }
 
-	@Override
-	public void save() {
-		// TODO Auto-generated method stub
+    @Override
+    public void save() {
+        // TODO Auto-generated method stub
 
-	}
+    }
 }
