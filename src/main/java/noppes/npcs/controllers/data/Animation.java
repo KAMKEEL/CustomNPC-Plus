@@ -1,10 +1,15 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.DataDisplay;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
@@ -24,7 +29,7 @@ public class Animation implements IAnimation {
 	public float speed = 1.0F;
 	public byte smooth = 0;
 	public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
-	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
+	public int tickDuration = 50;
 
 	public boolean whileStanding = true;
 	public boolean whileAttacking = true;
@@ -47,6 +52,10 @@ public class Animation implements IAnimation {
 
 		this.id = id;
 	}
+
+    public IAnimationData getParent() {
+        return this.parent;
+    }
 
 	public IFrame currentFrame() {
 		return currentFrame < frames.size() ? frames.get(currentFrame) : null;
@@ -93,6 +102,15 @@ public class Animation implements IAnimation {
 		return this.name;
 	}
 
+    public int tickDuration() {
+        return this.tickDuration;
+    }
+
+    public IAnimation setTickDuration(int tickDuration) {
+        this.tickDuration = tickDuration;
+        return this;
+    }
+
 	public IAnimation setSpeed(float speed) {
 		this.speed = speed;
 		return this;
@@ -109,15 +127,6 @@ public class Animation implements IAnimation {
 
 	public byte isSmooth() {
 		return this.smooth;
-	}
-
-	public IAnimation useRenderTicks(boolean renderTicks) {
-		this.renderTicks = renderTicks;
-		return this;
-	}
-
-	public boolean useRenderTicks() {
-		return this.renderTicks;
 	}
 
 	public IAnimation doWhileStanding(boolean whileStanding) {
@@ -170,6 +179,14 @@ public class Animation implements IAnimation {
 		id = newID;
 	}
 
+    public long getTotalTime() {
+        long time = 0;
+        for (Frame frame : this.frames) {
+            time += (long) frame.duration * (frame.customized ? frame.tickDuration : this.tickDuration);
+        }
+        return time;
+    }
+
 	public void readFromNBT(NBTTagCompound compound){
 		if(compound.hasKey("ID")){
 			id = compound.getInteger("ID");
@@ -183,7 +200,11 @@ public class Animation implements IAnimation {
 		smooth = compound.getByte("Smooth");
 		loop = compound.getInteger("Loop");
 
-		renderTicks = compound.getBoolean("RenderTicks");
+        if (compound.hasKey("TickDuration")) {
+            this.tickDuration = compound.getInteger("TickDuration");
+        } else if(compound.hasKey("RenderTicks")){
+            this.tickDuration = compound.getBoolean("RenderTicks") ? 20 : 50;
+        }
 
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		NBTTagList list = compound.getTagList("Frames", 10);
@@ -199,6 +220,9 @@ public class Animation implements IAnimation {
 		this.whileStanding = compound.getBoolean("WhileStanding");
 		this.whileMoving = compound.getBoolean("WhileWalking");
 		this.whileAttacking = compound.getBoolean("WhileAttacking");
+
+        this.currentFrame = compound.getInteger("CurrentFrame");
+        this.currentFrameTime = compound.getInteger("CurrentFrameTime");
 	}
 
 	public NBTTagCompound writeToNBT(){
@@ -208,8 +232,7 @@ public class Animation implements IAnimation {
 		compound.setFloat("Speed", speed);
 		compound.setByte("Smooth", smooth);
 		compound.setInteger("Loop",loop);
-
-		compound.setBoolean("RenderTicks", renderTicks);
+        compound.setInteger("TickDuration", tickDuration);
 
 		NBTTagList list = new NBTTagList();
 		for(Frame frame : frames){
@@ -221,20 +244,24 @@ public class Animation implements IAnimation {
 		compound.setBoolean("WhileStanding", whileStanding);
 		compound.setBoolean("WhileWalking", whileMoving);
 		compound.setBoolean("WhileAttacking", whileAttacking);
+
+        compound.setInteger("CurrentFrame", currentFrame);
+        compound.setInteger("CurrentFrameTime", currentFrameTime);
 		return compound;
 	}
 
-	@SideOnly(Side.CLIENT)
-	public void increaseTime() {
+	public boolean increaseTime() {
 		if (paused)
-			return;
+			return false;
 
 		if (this.parent != null && this.currentFrame < this.frames.size()) {
 			this.parent.finishedFrame = this.currentFrame;
 		}
 
 		this.currentFrameTime++;
-		if (this.currentFrameTime == this.currentFrame().getDuration()) {
+		if (this.currentFrame() != null && this.currentFrameTime == this.currentFrame().getDuration()) {
+            EventHooks.onAnimationFrameExited(this, this.currentFrame());
+
 			Frame prevFrame = (Frame) this.currentFrame();
 			Frame nextFrame = null;
 			this.currentFrameTime = 0;
@@ -244,6 +271,13 @@ public class Animation implements IAnimation {
 			} else if (this.loop >= 0 && this.loop < this.frames.size()) {
 				this.currentFrame = this.loop;
 			}
+
+            if (this.currentFrame() != null) {
+                EventHooks.onAnimationFrameEntered(this, this.currentFrame());
+            } else {
+                EventHooks.onAnimationEnded(this);
+            }
+
 			if (nextFrame != null) {
 				for (EnumAnimationPart part : EnumAnimationPart.values()) {
 					if (prevFrame.frameParts.containsKey(part) && nextFrame.frameParts.containsKey(part)) {
@@ -252,23 +286,32 @@ public class Animation implements IAnimation {
 					}
 				}
 			} else if (this.parent != null && this.currentFrame > this.loop) {
-				this.parent.finishedTime = this.parent.animationEntity.getAge();
+				this.parent.finishedTime = this.parent.getMCEntity().getAge();
 			}
 		}
+
+        return true;
 	}
 
 	@SideOnly(Side.CLIENT)
 	public void jumpToCurrentFrame() {
-		this.currentFrameTime = 0;
-		Frame frame = (Frame) this.currentFrame();
-		if(frame != null){
-			for (EnumAnimationPart part : EnumAnimationPart.values()) {
-				if(part != null){
-					if (frame.frameParts.containsKey(part)) {
-						frame.frameParts.get(part).jumpToCurrentFrame();
-					}
-				}
-			}
-		}
+        this.jumpToFrameAtTime(this.currentFrame, 0);
 	}
+
+    @SideOnly(Side.CLIENT)
+    public void jumpToFrameAtTime(int frameIndex, int time) {
+        this.currentFrame = frameIndex;
+        this.currentFrameTime = time;
+
+        Frame frame = (Frame) this.currentFrame();
+        if(frame != null){
+            for (EnumAnimationPart part : EnumAnimationPart.values()) {
+                if(part != null){
+                    if (frame.frameParts.containsKey(part)) {
+                        frame.frameParts.get(part).jumpToCurrentFrame();
+                    }
+                }
+            }
+        }
+    }
 }
