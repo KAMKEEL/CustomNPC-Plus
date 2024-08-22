@@ -63,8 +63,9 @@ public class ClientTickHandler{
 		} else if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
             Entity entity = MusicController.Instance.getEntity();
             if (MusicController.Instance.getOffRange() > 0 &&
-                (Minecraft.getMinecraft().thePlayer.getDistanceToEntity(entity) > MusicController.Instance.getOffRange()
-                ||  entity.dimension != Minecraft.getMinecraft().thePlayer.dimension)) {
+                (Minecraft.getMinecraft().thePlayer == null ||
+                    Minecraft.getMinecraft().thePlayer.getDistanceToEntity(entity) > MusicController.Instance.getOffRange() ||
+                    entity.dimension != Minecraft.getMinecraft().thePlayer.dimension)) {
                 MusicController.Instance.stopMusic();
             }
         }

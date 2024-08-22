@@ -6,12 +6,13 @@ import noppes.npcs.controllers.data.Frame;
 
 public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldListener {
     private final Frame editingFrame;
-    
+
     public SubGuiAnimationFrame(Frame editingFrame) {
         this.editingFrame = editingFrame;
         setBackground("smallbg.png");
+        this.closeOnEsc = true;
     }
-    
+
     @Override
     public void initGui() {
         super.initGui();
