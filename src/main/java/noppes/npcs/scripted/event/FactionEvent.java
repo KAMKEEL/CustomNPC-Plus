@@ -6,7 +6,7 @@ import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.constants.EnumScriptType;
 
-public abstract class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
+public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
     public final IFaction faction;
     public final IPlayer player;
 

@@ -7,7 +7,7 @@ import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
 
-public abstract class ItemEvent extends CustomNPCsEvent implements IItemEvent {
+public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     public final IItemCustom item;
 
     public ItemEvent(IItemCustom item) {

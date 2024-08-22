@@ -20,7 +20,7 @@ import noppes.npcs.scripted.NpcAPI;
 
 import java.util.ArrayList;
 
-public abstract class NpcEvent extends CustomNPCsEvent implements INpcEvent {
+public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
     public final ICustomNpc npc;
 
     public NpcEvent(ICustomNpc npc) {

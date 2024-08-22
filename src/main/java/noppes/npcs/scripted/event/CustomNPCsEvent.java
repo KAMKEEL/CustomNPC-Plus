@@ -12,10 +12,12 @@ import noppes.npcs.api.handler.data.INaturalSpawn;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
-public abstract class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
+public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
     public final AbstractNpcAPI API = AbstractNpcAPI.Instance();
 
-    public abstract String getHookName();
+    public String getHookName() {
+        return "CNPCEvent";
+    }
 
     public CustomNPCsEvent() {
     }

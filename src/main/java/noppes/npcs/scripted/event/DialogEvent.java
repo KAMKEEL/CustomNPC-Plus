@@ -6,7 +6,7 @@ import noppes.npcs.api.event.IDialogEvent;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.constants.EnumScriptType;
 
-public abstract class DialogEvent extends CustomNPCsEvent implements IDialogEvent {
+public class DialogEvent extends CustomNPCsEvent implements IDialogEvent {
     public final IDialog dialog;
     public final IPlayer player;
 
