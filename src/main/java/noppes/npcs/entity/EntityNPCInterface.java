@@ -3,6 +3,7 @@ package noppes.npcs.entity;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.addon.DBCAddon;
 import kamkeel.addon.client.DBCClient;
@@ -1873,11 +1874,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
 	public boolean scriptInvisibleToPlayer(EntityPlayer player){
 		if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT){
-            return (player == Minecraft.getMinecraft().thePlayer ? display.isInvisibleToMe : display.getTempScriptInvisible(player.getEntityId()));
+            return isInvisibleToClient(player);
         }else {
             return display.invisibleToList != null && display.invisibleToList.contains(player.getPersistentID());
         }
 	}
+
+    @SideOnly(Side.CLIENT)
+    public boolean isInvisibleToClient(EntityPlayer player){
+        return (player == Minecraft.getMinecraft().thePlayer ? display.isInvisibleToMe : display.getTempScriptInvisible(player.getEntityId()));
+    }
 
 	@Override
 	public boolean isInvisible(){
