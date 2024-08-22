@@ -3,6 +3,13 @@ package noppes.npcs;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.LoaderState;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -18,9 +25,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.ArrayList;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class DataDisplay {
     public EntityNPCInterface npc;
@@ -57,6 +62,11 @@ public class DataDisplay {
     public byte showBossBar = 0;
 
     public ArrayList<UUID> invisibleToList = new ArrayList<>();
+
+    @SideOnly(Side.CLIENT)
+    public boolean isInvisibleToMe;
+    @SideOnly(Side.CLIENT)
+    public HashSet<Integer> tempInvisIds;
 
     public DataDisplay(EntityNPCInterface npc){
         this.npc = npc;
@@ -106,9 +116,22 @@ public class DataDisplay {
         nbttagcompound.setBoolean("NoLivingAnimation", disableLivingAnimation);
         nbttagcompound.setByte("BossBar", showBossBar);
 
+        boolean saveNonPersistendIDs = Loader.instance().isInState(LoaderState.SERVER_STARTED);
+        ArrayList<Integer> nonPersistedIDs = new ArrayList<>();
+
         NBTTagList list = new NBTTagList();
         for(UUID uuid : invisibleToList){
+            if(saveNonPersistendIDs){
+                EntityPlayer p = NoppesUtilServer.getPlayer(uuid);
+                if(p != null)
+                    nonPersistedIDs.add(p.getEntityId());
+            }
             list.appendTag(new NBTTagString(uuid.toString()));
+        }
+
+        if(!nonPersistedIDs.isEmpty()) {
+            int[] tempIDArr = nonPersistedIDs.stream().filter(Objects::nonNull).mapToInt(i -> i).toArray();
+            nbttagcompound.setIntArray("InvisibleToNonPersistentID", tempIDArr);
         }
 
         nbttagcompound.setTag("InvisibleToList", list);
@@ -190,6 +213,24 @@ public class DataDisplay {
             invisibleToList = new ArrayList<>();
         }
 
+        if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT){
+
+            if(tempInvisIds == null){
+                tempInvisIds = new HashSet<>();
+            } else {
+                tempInvisIds.clear();
+            }
+
+            int[] tempEntityIDList = nbttagcompound.getIntArray("InvisibleToNonPersistentID");
+            final int playerID = Minecraft.getMinecraft().thePlayer.getEntityId();
+            for(int i : tempEntityIDList){
+                if(i == playerID){
+                    isInvisibleToMe = true;
+                }
+                tempInvisIds.add(i);
+            }
+        }
+
         if(prevSkinType != skinType || !texture.equals(prevTexture)|| !url.equals(prevUrl))
             npc.textureLocation = null;
         npc.updateHitbox();
@@ -261,5 +302,10 @@ public class DataDisplay {
         if(markovGeneratorId == id)
             return;
         this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public boolean getTempScriptInvisible(int entityId) {
+        return tempInvisIds.contains(entityId);
     }
 }
