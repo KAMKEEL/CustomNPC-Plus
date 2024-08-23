@@ -24,23 +24,29 @@ public class SubGuiNpcResistanceProperties extends SubGuiInterface implements IS
 
         addLabel(new GuiNpcLabel(1,"item.arrow.name", guiLeft + 4, guiTop + 37));
         addSlider(new GuiNpcSlider(this, 1, guiLeft + 94, guiTop + 32, (int)(resistances.arrow * 100 - 100)  + "%", resistances.arrow / 2));
+        getSlider(1).enabled = !resistances.disableDamage;
 
         addLabel(new GuiNpcLabel(2,"stats.melee", guiLeft + 4, guiTop + 59));
         addSlider(new GuiNpcSlider(this, 2, guiLeft + 94, guiTop + 54, (int)(resistances.playermelee * 100 - 100)  + "%", resistances.playermelee / 2));
+        getSlider(2).enabled = !resistances.disableDamage;
 
         addLabel(new GuiNpcLabel(3,"stats.explosion", guiLeft + 4, guiTop + 81));
         addSlider(new GuiNpcSlider(this, 3, guiLeft + 94, guiTop + 76, (int)(resistances.explosion * 100 - 100)  + "%", resistances.explosion / 2));
+        getSlider(3).enabled = !resistances.disableDamage;
 
-        if(resistances.disableDamage){
-			addLabel(new GuiNpcLabel(4,"stats.disabletrue", guiLeft + 4, guiTop + 103));
-		}
+        addLabel(new GuiNpcLabel(21,"stats.disabledamage", guiLeft + 4, guiTop + 104));
+        this.addButton(new GuiNpcButton(21, guiLeft + 94, guiTop + 99, 56, 20, new String[]{"gui.no","gui.yes"}, this.resistances.disableDamage? 1:0));
 
 		addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));
     }
-    
+
 	protected void actionPerformed(GuiButton guibutton)
     {
 		int id = guibutton.id;
+        if(id == 21){
+            resistances.disableDamage = ((GuiNpcButton)guibutton).getValue() == 1;
+            initGui();
+        }
         if(id == 66)
         {
         	close();
@@ -55,7 +61,7 @@ public class SubGuiNpcResistanceProperties extends SubGuiInterface implements IS
 	@Override
 	public void mousePressed(GuiNpcSlider slider) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -72,7 +78,7 @@ public class SubGuiNpcResistanceProperties extends SubGuiInterface implements IS
 		if(slider.id == 3){
 			resistances.explosion = slider.sliderValue * 2;
 		}
-			
+
 	}
 
 }

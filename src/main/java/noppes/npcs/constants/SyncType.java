@@ -7,4 +7,5 @@ public class SyncType {
 	public static final int DIALOG = 4;
 	public static final int DIALOG_CATEGORY = 5;
 	public static final int PLAYER_DATA = 6;
+    public static final int MAGIC = 7;
 }

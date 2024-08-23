@@ -135,6 +135,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 			stats.potionImmune = ((GuiNpcButtonYesNo)guibutton).getBoolean();
 		}
 		else if(button.id == 21){
+            // Magic Button
 			stats.resistances.disableDamage = ((GuiNpcButton)guibutton).getValue() == 1;
 		}
 		else if (button.id == 22) {
