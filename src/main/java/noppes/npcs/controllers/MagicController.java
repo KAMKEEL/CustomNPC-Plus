@@ -6,12 +6,9 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.Server;
-import noppes.npcs.api.handler.IMagicHandler;
-import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.api.handler.data.IMagic;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.SyncType;
-import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.Magic;
 
 import java.io.*;
@@ -69,9 +66,9 @@ public class MagicController {
             magics.put(0,new Magic(0,"Nature", 0x00DD00));
             magics.put(1,new Magic(1,"Arcane", 0xF2DD00));
             magics.put(2,new Magic(2,"Ice", 0xDD0000));
-            magics.put(2,new Magic(3,"Fire", 0xDD0000));
-            magics.put(2,new Magic(4,"Dark", 0xDD0000));
-            magics.put(2,new Magic(5,"Holy", 0xDD0000));
+            magics.put(3,new Magic(3,"Fire", 0xDD0000));
+            magics.put(4,new Magic(4,"Dark", 0xDD0000));
+            magics.put(5,new Magic(5,"Holy", 0xDD0000));
         }
 	}
 
