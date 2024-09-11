@@ -13,7 +13,10 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.*;
+import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.MarkRenderer;
@@ -29,6 +32,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClientEventHandler {
+
+
     public static final RenderCNPCPlayer renderCNPCSelf = new RenderCNPCPlayer();
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
@@ -49,6 +54,16 @@ public class ClientEventHandler {
 
     public static HashMap<ModelRenderer,FramePart> originalValues = new HashMap<>();
     public static ModelBase playerModel;
+
+    private Class<?> renderPlayerJBRA;
+
+    public ClientEventHandler() {
+        try {
+            renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
+        } catch (ClassNotFoundException e) {
+            renderPlayerJBRA = null;
+        }
+    }
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
@@ -174,12 +189,9 @@ public class ClientEventHandler {
         EntityPlayer player = event.entityPlayer;
         ClientEventHandler.renderingPlayer = null;
 
-        if (hasOverlays(player)) {
-            try {
-                Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-                if (renderPlayerJBRA.isInstance(event.renderer))
-                    return;
-            } catch (ClassNotFoundException ignored) {}
+        if (renderPlayerJBRA != null && hasOverlays(player)) {
+            if(renderPlayerJBRA.isInstance(event.renderer))
+                return;
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
                 renderCNPCPlayer.mainModel = event.renderer.mainModel;
@@ -212,17 +224,15 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void tryRenderDBC(RenderPlayerEvent.Specials.Post event) {
-        if (hasOverlays(event.entityPlayer)) {
-            try {
-                Class<?> renderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
-                if (!renderPlayerJBRA.isInstance(event.renderer))
-                    return;
-            } catch (ClassNotFoundException ignored) {
-                return;
-            }
-
-            renderCNPCPlayer.renderDBCModel(event);
+        if (renderPlayerJBRA == null || !hasOverlays(event.entityPlayer)) {
+            return;
         }
+
+        if (!renderPlayerJBRA.isInstance(event.renderer)) {
+            return;
+        }
+
+        renderCNPCPlayer.renderDBCModel(event);
     }
 
     public static boolean hasOverlays(EntityPlayer player) {
