@@ -375,9 +375,9 @@ public class ServerEventsHandler {
 			if (quest.targetType > 0 && !(entityType.isInstance(entity)))
 				continue;
 
-			if (quest.targets.containsKey(entity.getCommandSenderName()))
+			if (entity.getCommandSenderName() != null && quest.targets.containsKey(entity.getCommandSenderName()))
 				name = entity.getCommandSenderName();
-			else if (!quest.targets.containsKey(name))
+			else if (entity.getCommandSenderName() == null || !quest.targets.containsKey(name))
 				continue;
 
 			checkCompletion = true;
