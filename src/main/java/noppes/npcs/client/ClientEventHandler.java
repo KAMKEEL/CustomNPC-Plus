@@ -6,9 +6,11 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,9 +29,7 @@ import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ClientEventHandler {
 
@@ -52,7 +52,8 @@ public class ClientEventHandler {
     public static HashMap<EnumAnimationPart,String[]> partNames = new HashMap<>();
     public static HashMap<Class<?>,Field[]> declaredFieldCache = new HashMap<>();
 
-    public static HashMap<ModelRenderer,FramePart> originalValues = new HashMap<>();
+    private static final HashSet<Render> processedPlayerRenderers = new HashSet<>();
+    public static final HashMap<ModelRenderer,FramePart> originalValues = new HashMap<>();
     public static ModelBase playerModel;
 
     private Class<?> renderPlayerJBRA;
@@ -107,6 +108,22 @@ public class ClientEventHandler {
         }
         ClientEventHandler.renderer = event.renderer;
         ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
+
+        if (event.entity instanceof EntityClientPlayerMP) {
+            Render render = RenderManager.instance.getEntityClassRenderObject(event.entity.getClass());
+            if (!processedPlayerRenderers.contains(render)) {
+                processedPlayerRenderers.add(render);
+                Collection<ModelRenderer> modelRenderers = getAllModelRenderers(render);
+                for (ModelRenderer modelRenderer : modelRenderers) {
+                    if (!ClientEventHandler.originalValues.containsKey(modelRenderer)) {
+                        FramePart part = new FramePart();
+                        part.pivot = new float[]{modelRenderer.rotationPointX, modelRenderer.rotationPointY, modelRenderer.rotationPointZ};
+                        part.rotation = new float[]{modelRenderer.rotateAngleX, modelRenderer.rotateAngleY, modelRenderer.rotateAngleZ};
+                        ClientEventHandler.originalValues.put(modelRenderer, part);
+                    }
+                }
+            }
+        }
     }
 
     @SubscribeEvent
@@ -237,5 +254,130 @@ public class ClientEventHandler {
 
     public static boolean hasOverlays(EntityPlayer player) {
         return ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID()) && !ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values().isEmpty();
+    }
+
+    // Function to recursively get all ModelRenderer objects from a given object
+    public static Collection<ModelRenderer> getAllModelRenderers(Object object) {
+        HashSet<ModelRenderer> modelRenderers = new HashSet<>();
+
+        HashSet<ModelBase> modelBases = getAllModelBases(object);
+        for (ModelBase modelBase : modelBases) {
+            modelRenderers.addAll(getModelRenderersFromModelBase(modelBase));
+        }
+
+        return modelRenderers;
+    }
+
+    // Recursively find all ModelBase objects in a given object
+    private static HashSet<ModelBase> getAllModelBases(Object object) {
+        HashSet<ModelBase> modelBases = new HashSet<>();
+
+        if (object == null) {
+            return modelBases;
+        }
+
+        // Get all fields from the object's class and superclasses
+        Class<?> clazz = object.getClass();
+        while (clazz != null) {
+            Field[] fields = clazz.getDeclaredFields();
+
+            for (Field field : fields) {
+                field.setAccessible(true);
+
+                try {
+                    Object value = field.get(object);
+                    if (value instanceof ModelBase) {
+                        modelBases.add((ModelBase) value);
+                    }
+                } catch (IllegalAccessException ignored) {
+                }
+            }
+
+            clazz = clazz.getSuperclass();
+        }
+
+        return modelBases;
+    }
+
+    // Recursively find all ModelRenderer objects within a ModelBase
+    private static HashSet<ModelRenderer> getModelRenderersFromModelBase(ModelBase modelBase) {
+        HashSet<ModelRenderer> modelRenderers = new HashSet<>();
+
+        Class<?> clazz = modelBase.getClass();
+        while (clazz != null) {
+            Field[] fields = clazz.getDeclaredFields();
+
+            for (Field field : fields) {
+                field.setAccessible(true);
+
+                try {
+                    Object value = field.get(modelBase);
+
+                    if (value instanceof ModelRenderer && getPlayerPartType((ModelRenderer) value) != null) {
+                        modelRenderers.add((ModelRenderer) value);
+                    }
+                } catch (IllegalAccessException ignored) {
+                }
+            }
+
+            clazz = clazz.getSuperclass();
+        }
+
+        return modelRenderers;
+    }
+
+    private static EnumAnimationPart getPlayerPartType(ModelRenderer renderer) {
+        if (renderer.baseModel instanceof ModelBiped) {
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
+                || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
+                return EnumAnimationPart.HEAD;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
+                return EnumAnimationPart.BODY;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
+                return EnumAnimationPart.RIGHT_ARM;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
+                return EnumAnimationPart.LEFT_ARM;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
+                return EnumAnimationPart.RIGHT_LEG;
+            }
+            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
+                return EnumAnimationPart.LEFT_LEG;
+            }
+        }
+
+        try {
+            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
+            Object model = renderer.baseModel;
+            if(!(model instanceof ModelBiped))
+                return null;
+
+            Field[] declared;
+            if (ClientEventHandler.declaredFieldCache.containsKey(ModelBipedBody)) {
+                declared = ClientEventHandler.declaredFieldCache.get(ModelBipedBody);
+            } else {
+                declared = ModelBipedBody.getDeclaredFields();
+                ClientEventHandler.declaredFieldCache.put(ModelBipedBody,declared);
+            }
+            Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
+            for (Field f : declared) {
+                f.setAccessible(true);
+                for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {
+                    String[] names = entry.getValue();
+                    for (String partName : names) {
+                        try {
+                            if (partName.equals(f.getName()) && renderer == f.get(model)) {
+                                return entry.getKey();
+                            }
+                        } catch (IllegalAccessException ignored) {}
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return null;
     }
 }
