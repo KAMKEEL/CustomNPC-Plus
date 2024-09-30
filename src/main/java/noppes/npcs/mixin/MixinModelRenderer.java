@@ -114,7 +114,7 @@ public abstract class MixinModelRenderer {
                     if (partType != null && animData != null && animData.animation != null && animData.isActive()) {
                         FramePart originalPart = ClientEventHandler.originalValues.get((ModelRenderer) (Object) this);
                         Frame frame = (Frame) animData.animation.currentFrame();
-                        if (frame != null && frame.frameParts.containsKey(partType)) {
+                        if (originalPart != null && frame != null && frame.frameParts.containsKey(partType)) {
                             FramePart part = frame.frameParts.get(partType);
                             if (partType == mainPartType) {
                                 part.interpolateAngles();
