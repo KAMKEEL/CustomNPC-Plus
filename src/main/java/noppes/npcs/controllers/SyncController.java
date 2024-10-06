@@ -45,7 +45,7 @@ public class SyncController {
             for(int questID : category.quests.keySet()){
                 Quest quest = category.quests.get(questID);
                 questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
-                if(questList.tagCount() > 40){
+                if(questList.tagCount() > 20){
                     questCompound = new NBTTagCompound();
                     questCompound.setTag("Data", questList);
                     questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
@@ -69,7 +69,7 @@ public class SyncController {
             for(int dialogID : category.dialogs.keySet()){
                 Dialog dialog = category.dialogs.get(dialogID);
                 dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
-                if(dialogList.tagCount() > 40){
+                if(dialogList.tagCount() > 20){
                     dialogCompound = new NBTTagCompound();
                     dialogCompound.setTag("Data", dialogList);
                     dialogCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
@@ -100,7 +100,7 @@ public class SyncController {
             for(int dialogID : category.dialogs.keySet()){
                 Dialog dialog = category.dialogs.get(dialogID);
                 dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
-                if(dialogList.tagCount() > 40){
+                if(dialogList.tagCount() > 20){
                     dialogCompound = new NBTTagCompound();
                     dialogCompound.setTag("Data", dialogList);
                     dialogCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
@@ -123,7 +123,7 @@ public class SyncController {
             for(int questID : category.quests.keySet()){
                 Quest quest = category.quests.get(questID);
                 questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
-                if(questList.tagCount() > 40){
+                if(questList.tagCount() > 20){
                     questCompound = new NBTTagCompound();
                     questCompound.setTag("Data", questList);
                     questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
@@ -145,7 +145,7 @@ public class SyncController {
         for(int questID : questCategory.quests.keySet()){
             Quest quest = questCategory.quests.get(questID);
             questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
-            if(questList.tagCount() > 40){
+            if(questList.tagCount() > 20){
                 questCompound = new NBTTagCompound();
                 questCompound.setTag("Data", questList);
                 questCompound.setTag("CatNBT", questCategory.writeSmallNBT(new NBTTagCompound()));
@@ -165,7 +165,7 @@ public class SyncController {
         for(int questID : dialogCategory.dialogs.keySet()){
             Dialog dialog = dialogCategory.dialogs.get(questID);
             dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
-            if(dialogList.tagCount() > 40){
+            if(dialogList.tagCount() > 20){
                 dialogCompound = new NBTTagCompound();
                 dialogCompound.setTag("Data", dialogList);
                 dialogCompound.setTag("CatNBT", dialogCategory.writeSmallNBT(new NBTTagCompound()));
