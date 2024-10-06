@@ -284,7 +284,7 @@ public class SyncController {
                 dialog.category = category;
                 category.dialogs.put(dialog.id, dialog);
             }
-            DialogController.Instance.categoriesSync.put(category.id, category);
+            DialogController.Instance.categories.put(category.id, category);
 		}
 		else if(synctype == SyncType.QUEST){
 			QuestCategory category = QuestController.Instance.categories.get(buffer.readInt());
