@@ -15,6 +15,7 @@ import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.constants.EnumPacketClient;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class Server {
 			CustomNpcs.Channel.sendToAllAround(new FMLProxyPacket(buffer,"CustomNPCs"), point);
 		} catch (IOException e) {
 			e.printStackTrace();
+            LogWriter.error(enu + " Errored", e);
 		}
 	}
 	public static void sendToAll(EnumPacketClient enu, Object... obs) {
@@ -55,6 +57,7 @@ public class Server {
 			CustomNpcs.Channel.sendToAll(new FMLProxyPacket(buffer,"CustomNPCs"));
 		} catch (IOException e) {
 			e.printStackTrace();
+            LogWriter.error(enu + " Errored", e);
 		}
 	}
 
@@ -106,7 +109,8 @@ public class Server {
 		}
 		if(buffer.array().length >= 32767){
 			LogWriter.error("Packet " + enu + " was too big to be send");
-			return false;
+            LogWriter.script( "Issue occurred with the following Packet - " + enu + ":\n" + Arrays.toString(obs));
+            return false;
 		}
         return true;
 	}
