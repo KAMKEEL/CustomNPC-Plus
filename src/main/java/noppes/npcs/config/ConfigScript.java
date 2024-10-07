@@ -174,11 +174,11 @@ public class ConfigScript
 
     public static boolean canScript(EntityPlayer player, CustomNpcsPermissions.Permission perm) {
         boolean isOp = MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
-        if(ScriptOpsOnly){
-            return isOp;
-        }
-
         boolean scriptDev = isScriptDev(player);
+        if(ScriptOpsOnly){
+            return isOp || scriptDev;
+        }
+        
         return scriptDev || CustomNpcsPermissions.hasPermission(player, perm);
     }
 }
