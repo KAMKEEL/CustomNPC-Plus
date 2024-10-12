@@ -324,8 +324,15 @@ public class ServerEventsHandler {
 
 	private void doQuest(EntityPlayer player, EntityLivingBase entity, boolean all) {
         PlayerData playerData = PlayerData.get(player);
-		PlayerQuestData questData = playerData.questData;
-		boolean checkCompletion = false;
+        if (playerData == null) {
+            return;
+        }
+
+        PlayerQuestData questData = playerData.questData;
+        if (questData == null) {
+            return;
+        }
+        boolean checkCompletion = false;
         String entityName = EntityList.getEntityString(entity);
 
 
@@ -343,6 +350,10 @@ public class ServerEventsHandler {
 
         ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
 		for(QuestData data : activeQuestValues){
+            if (data.quest == null) {
+                continue;
+            }
+
 			if (data.quest.type != EnumQuestType.Kill && data.quest.type != EnumQuestType.AreaKill)
 				continue;
 
@@ -360,9 +371,12 @@ public class ServerEventsHandler {
 
             }
 
-			String name = entityName;
-			QuestKill quest = (QuestKill) data.quest.questInterface;
+            String name = entityName;
+            if (entityName == null) {
+                continue;
+            }
 
+			QuestKill quest = (QuestKill) data.quest.questInterface;
 			Class entityType = EntityNPCInterface.class;
 			if (quest.targetType == 2) {
 				try {
@@ -375,14 +389,19 @@ public class ServerEventsHandler {
 			if (quest.targetType > 0 && !(entityType.isInstance(entity)))
 				continue;
 
-			if (entity.getCommandSenderName() != null && quest.targets.containsKey(entity.getCommandSenderName()))
-				name = entity.getCommandSenderName();
-			else if (entity.getCommandSenderName() == null || !quest.targets.containsKey(name))
-				continue;
+            if (entity.getCommandSenderName() != null && quest.targets != null && quest.targets.containsKey(entity.getCommandSenderName())) {
+                name = entity.getCommandSenderName();
+            } else if (entity.getCommandSenderName() == null || quest.targets == null || !quest.targets.containsKey(name)) {
+                continue;
+            }
 
 			checkCompletion = true;
 
-			HashMap<String, Integer> killed = quest.getKilled(data);
+            HashMap<String, Integer> killed = quest.getKilled(data);
+            if (killed == null) {
+                killed = new HashMap<>();
+            }
+
 			if (!killed.containsKey(name)) {
 				killed.put(name, 1);
 			} else if(killed.get(name) < quest.targets.get(name)) {
