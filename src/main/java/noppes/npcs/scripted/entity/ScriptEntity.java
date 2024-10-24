@@ -33,7 +33,7 @@ import java.util.*;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
 	protected T entity;
-	private Map<String,Object> tempData = new HashMap<String,Object>();
+	private Map<String,Object> tempData = new HashMap<>();
 
 	public ScriptEntity(T entity){
 		this.entity = entity;
@@ -512,6 +512,12 @@ public class ScriptEntity<T extends Entity> implements IEntity {
 	public Object getTempData(String key){
 		return tempData.get(key);
 	}
+
+    public void copyTempData(IEntity<?> scriptEntity) {
+        if (scriptEntity != null) {
+            this.tempData = ((ScriptEntity<?>) scriptEntity).tempData;
+        }
+    }
 
 	/**
 	 * Tempdata gets cleared when the entity gets unloaded or the world restarts
