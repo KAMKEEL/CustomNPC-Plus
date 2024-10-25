@@ -35,13 +35,13 @@ public class ItemNpcScripter extends Item{
 
     @Override
     public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player){
-        if(!world.isRemote)
+        if (!world.isRemote) {
+            if(!ConfigScript.canScript(player, CustomNpcsPermissions.TOOL_SCRIPTER)){
+                player.addChatMessage(new ChatComponentTranslation("availability.permission"));
+            }
             return itemStack;
-        if(!ConfigScript.canScript(player, CustomNpcsPermissions.TOOL_SCRIPTER)){
-            player.addChatMessage(new ChatComponentTranslation("availability.permission"));
-        } else {
-            CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);
         }
+        CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptEvent, player);
         return itemStack;
     }
 
