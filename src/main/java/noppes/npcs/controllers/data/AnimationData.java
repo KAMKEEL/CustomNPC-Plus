@@ -155,28 +155,32 @@ public class AnimationData implements IAnimationData {
 
     public void setAnimation(IAnimation animation) {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
-            this.animation = (Animation) animation;
+            this.animation = animation != null ? (Animation) animation : null;
         } else {
-            Animation newAnim = new Animation();
-            newAnim.readFromNBT(((Animation) animation).writeToNBT());
-            if (this.isActive() && !newAnim.frames.isEmpty()) {
-                Frame frame = (Frame) this.animation.currentFrame();
-                if (frame != null) {
-                    Frame firstFrame = newAnim.frames.get(0);
-                    for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
-                        if (firstFrame.frameParts.containsKey(entry.getKey())) {
-                            FramePart prevFramePart = entry.getValue();
-                            FramePart newFramePart = firstFrame.frameParts.get(entry.getKey());
-                            for (int i = 0; i < 3; i++) {
-                                newFramePart.prevPivots[i] = prevFramePart.prevPivots[i];
-                                newFramePart.prevRotations[i] = prevFramePart.prevRotations[i];
+            if (animation != null) {
+                Animation newAnim = new Animation();
+                newAnim.readFromNBT(((Animation) animation).writeToNBT());
+                if (this.isActive() && !newAnim.frames.isEmpty()) {
+                    Frame frame = (Frame) this.animation.currentFrame();
+                    if (frame != null) {
+                        Frame firstFrame = newAnim.frames.get(0);
+                        for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
+                            if (firstFrame.frameParts.containsKey(entry.getKey())) {
+                                FramePart prevFramePart = entry.getValue();
+                                FramePart newFramePart = firstFrame.frameParts.get(entry.getKey());
+                                for (int i = 0; i < 3; i++) {
+                                    newFramePart.prevPivots[i] = prevFramePart.prevPivots[i];
+                                    newFramePart.prevRotations[i] = prevFramePart.prevRotations[i];
+                                }
                             }
                         }
                     }
                 }
+                this.animation = newAnim;
+                newAnim.parent = this;
+            } else {
+                this.animation = null;
             }
-            this.animation = newAnim;
-            newAnim.parent = this;
         }
     }
 
