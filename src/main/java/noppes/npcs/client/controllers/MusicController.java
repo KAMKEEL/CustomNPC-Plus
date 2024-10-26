@@ -6,11 +6,13 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 public class MusicController {
 	public static MusicController Instance;
-    private final HashSet<ScriptClientSound> sounds = new HashSet<>();
+    private final HashMap<String, ScriptClientSound> sounds = new HashMap<>();
     private int playDelay;
     public ScriptClientSound playingSound;
 
@@ -36,7 +38,16 @@ public class MusicController {
         }
 
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-        this.sounds.removeIf(sound -> !soundHandler.isSoundPlaying(sound) && !sound.canRepeat() && !sound.paused);
+        HashSet<String> keys = new HashSet<>();
+        for (Map.Entry<String, ScriptClientSound> entry : this.sounds.entrySet()) {
+            ScriptClientSound sound = entry.getValue();
+            if (!soundHandler.isSoundPlaying(sound) && !sound.canRepeat() && !sound.paused) {
+                keys.add(entry.getKey());
+            }
+        }
+        for (String key : keys) {
+            this.sounds.remove(key);
+        }
 
         if (this.playDelay > 0) {
             this.playDelay--;
@@ -75,7 +86,7 @@ public class MusicController {
         this.playingSound = clientSound;
         this.entity = entity;
         this.offRange = offRange;
-        this.sounds.add(clientSound);
+        this.sounds.put(clientSound.sound, clientSound);
 
         try {
             SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
@@ -102,7 +113,7 @@ public class MusicController {
         this.playingSound = clientSound;
         this.entity = entity;
         this.offRange = offRange;
-        this.sounds.add(clientSound);
+        this.sounds.put(clientSound.sound, clientSound);
 
         try {
             SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
@@ -131,10 +142,12 @@ public class MusicController {
             this.stopAllSounds();
             return;
         }
-        this.sounds.add(clientSound);
+        this.sounds.put(clientSound.sound, clientSound);
     }
 
 	public boolean isPlaying(String music) {
+        if (this.sounds.containsKey(music)) return true;
+
         if (this.playingSound != null && this.playingSound.sound.equals(music)) {
             ResourceLocation resource = new ResourceLocation(music);
             if (!this.playingSound.getPositionedSoundLocation().equals(resource)) {
@@ -168,7 +181,7 @@ public class MusicController {
 
     public void stopAllSounds() {
         this.stopMusic();
-        for (ScriptClientSound sound : this.sounds) {
+        for (ScriptClientSound sound : this.sounds.values()) {
             sound.stopSound();
         }
         this.sounds.clear();

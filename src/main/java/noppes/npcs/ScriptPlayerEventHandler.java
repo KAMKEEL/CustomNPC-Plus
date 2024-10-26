@@ -442,17 +442,19 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
+            boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.AttackedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
-                event.setCanceled(EventHooks.onPlayerAttacked(handler, pevent));
+                cancel = EventHooks.onPlayerAttacked(handler, pevent);
             }
 
             if(event.source.getEntity() instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
-                event.setCanceled(EventHooks.onPlayerAttack(handler, pevent1));
+                cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
+            event.setCanceled(cancel);
         }
     }
 
@@ -462,19 +464,22 @@ public class ScriptPlayerEventHandler {
             return;
 
         if(event.entityLiving.worldObj instanceof WorldServer) {
+            boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
-                event.setCanceled(EventHooks.onPlayerDamaged(handler, pevent));
+                cancel = EventHooks.onPlayerDamaged(handler, pevent);
                 event.ammount = pevent.damage;
             }
 
             if(source instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent((IPlayer)NpcAPI.Instance().getIEntity(source), event.entityLiving, event.ammount, event.source);
-                event.setCanceled(EventHooks.onPlayerDamagedEntity(handler, pevent1));
+                cancel = cancel || EventHooks.onPlayerDamagedEntity(handler, pevent1);
                 event.ammount = pevent1.damage;
             }
+
+            event.setCanceled(cancel);
         }
     }
 

@@ -195,29 +195,51 @@ public class NpcAPI extends AbstractNpcAPI {
             return ((EntityNPCInterface)entity).wrappedNPC;
         else{
             ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
-            if(data != null)
-                return data.base;
-            if(entity instanceof EntityPlayerMP)
-                data = new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
-            else if(PixelmonHelper.isPixelmon(entity))
-                return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
-            else if(entity instanceof EntityAnimal)
-                data = new ScriptEntityData(new ScriptAnimal<>((EntityAnimal) entity));
-            else if(entity instanceof EntityMob)
-                data = new ScriptEntityData(new ScriptMonster<>((EntityMob) entity));
-            else if(entity instanceof EntityVillager)
-                data = new ScriptEntityData(new ScriptVillager<>((EntityVillager) entity));
-            else if(entity instanceof EntityLiving)
-                data = new ScriptEntityData(new ScriptLiving<>((EntityLiving) entity));
-            else if(entity instanceof EntityLivingBase)
-                data = new ScriptEntityData(new ScriptLivingBase<>((EntityLivingBase)entity));
-            else if(entity instanceof EntityProjectile)
-                data = new ScriptEntityData(new ScriptProjectile<>((EntityProjectile)entity));
-            else if(entity instanceof EntityItem)
-                data = new ScriptEntityData(new ScriptEntityItem<>((EntityItem)entity));
-            else
-                data = new ScriptEntityData(new ScriptEntity<>(entity));
-            entity.registerExtendedProperties("ScriptedObject", data);
+            boolean isDBC = false;
+            if(entity instanceof EntityPlayerMP) {
+                Set<?> keySet = entity.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
+                for (Object o : keySet) {
+                    String s = (String) o;
+                    if (s.contains("jrmc")) {
+                        isDBC = true;
+                        break;
+                    }
+                }
+            }
+
+            if (data == null || data.base instanceof ScriptDBCPlayer != isDBC) {
+                if (entity instanceof EntityPlayerMP) {
+                    ScriptEntityData newData;
+                    if (isDBC) {
+                        newData = new ScriptEntityData(new ScriptDBCPlayer<>((EntityPlayerMP) entity));
+                    } else {
+                        newData = new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
+                    }
+                    if (data != null) {
+                        ((ScriptEntity<?>) newData.base).copyTempData(data.base);
+                    }
+                    data = newData;
+                }
+                else if (PixelmonHelper.isPixelmon(entity))
+                    return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
+                else if (entity instanceof EntityAnimal)
+                    data = new ScriptEntityData(new ScriptAnimal<>((EntityAnimal) entity));
+                else if (entity instanceof EntityMob)
+                    data = new ScriptEntityData(new ScriptMonster<>((EntityMob) entity));
+                else if (entity instanceof EntityVillager)
+                    data = new ScriptEntityData(new ScriptVillager<>((EntityVillager) entity));
+                else if (entity instanceof EntityLiving)
+                    data = new ScriptEntityData(new ScriptLiving<>((EntityLiving) entity));
+                else if (entity instanceof EntityLivingBase)
+                    data = new ScriptEntityData(new ScriptLivingBase<>((EntityLivingBase) entity));
+                else if (entity instanceof EntityProjectile)
+                    data = new ScriptEntityData(new ScriptProjectile<>((EntityProjectile) entity));
+                else if (entity instanceof EntityItem)
+                    data = new ScriptEntityData(new ScriptEntityItem<>((EntityItem) entity));
+                else
+                    data = new ScriptEntityData(new ScriptEntity<>(entity));
+                entity.registerExtendedProperties("ScriptedObject", data);
+            }
             return data.base;
         }
     }

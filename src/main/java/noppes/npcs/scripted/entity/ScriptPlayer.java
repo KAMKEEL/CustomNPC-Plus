@@ -705,17 +705,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 		return data.getGUIOpen();
 	}
 
+    @Deprecated
 	public ScriptDBCPlayer<T> getDBCPlayer() {
-		Set keySet = player.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
-		Iterator iterator = keySet.iterator();
-
-		while (iterator.hasNext())
-		{
-			String s = (String)iterator.next();
-			if(s.contains("jrmc"))
-				return new ScriptDBCPlayer<T>(this.player);
-		}
-		return null;
+		return this instanceof ScriptDBCPlayer ? (ScriptDBCPlayer<T>) this : null;
 	}
 
 	public boolean blocking() {
