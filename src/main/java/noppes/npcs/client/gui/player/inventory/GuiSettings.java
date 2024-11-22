@@ -16,11 +16,9 @@ import noppes.npcs.constants.EnumPacketServer;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.CustomNpcs;
 
 public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener, GuiYesNoCallback {
-CustomNpcs.MODID
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/standardbg.png");
 
 	public GuiSettings() {
 		super();
