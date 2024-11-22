@@ -10,9 +10,10 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.config.ConfigClient;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
+import noppes.npcs.CustomNpcs;
 
 public class GuiCNPCInventory extends GuiNPCInterface {
-    public static final ResourceLocation specialIcons = new ResourceLocation("customnpcs","textures/gui/icons.png");
+    public static final ResourceLocation specialIcons = new ResourceLocation(CustomNpcs.MODID,"textures/gui/icons.png");
 
     public static int activeTab = 0;
     protected Minecraft mc = Minecraft.getMinecraft();

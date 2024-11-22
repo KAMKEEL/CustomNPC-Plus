@@ -8,14 +8,15 @@ import noppes.npcs.client.model.util.Model2DRenderer;
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.controllers.data.MarkData;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class MarkRenderer {
-	public static ResourceLocation markExclamation = new ResourceLocation("customnpcs", "textures/marks/exclamation.png");
-	public static ResourceLocation markQuestion = new ResourceLocation("customnpcs", "textures/marks/question.png");
-	public static ResourceLocation markPointer = new ResourceLocation("customnpcs", "textures/marks/pointer.png");
-	public static ResourceLocation markCross = new ResourceLocation("customnpcs", "textures/marks/cross.png");
-	public static ResourceLocation markSkull = new ResourceLocation("customnpcs", "textures/marks/skull.png");
-	public static ResourceLocation markStar = new ResourceLocation("customnpcs", "textures/marks/star.png");
+	public static ResourceLocation markExclamation = new ResourceLocation(CustomNpcs.MODID, "textures/marks/exclamation.png");
+	public static ResourceLocation markQuestion = new ResourceLocation(CustomNpcs.MODID, "textures/marks/question.png");
+	public static ResourceLocation markPointer = new ResourceLocation(CustomNpcs.MODID, "textures/marks/pointer.png");
+	public static ResourceLocation markCross = new ResourceLocation(CustomNpcs.MODID, "textures/marks/cross.png");
+	public static ResourceLocation markSkull = new ResourceLocation(CustomNpcs.MODID, "textures/marks/skull.png");
+	public static ResourceLocation markStar = new ResourceLocation(CustomNpcs.MODID, "textures/marks/star.png");
 
 	public static int displayList = -1;
 

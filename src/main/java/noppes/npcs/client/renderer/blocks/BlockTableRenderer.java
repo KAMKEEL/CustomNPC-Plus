@@ -10,16 +10,17 @@ import noppes.npcs.blocks.BlockTable;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.model.blocks.ModelTable;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class BlockTableRenderer extends BlockRendererInterface{
 
 	private final ModelTable model = new ModelTable();
-	private static final ResourceLocation resource1 = new ResourceLocation("customnpcs","textures/cache/planks_oak.png");
-	private static final ResourceLocation resource2 = new ResourceLocation("customnpcs","textures/cache/planks_big_oak.png");
-	private static final ResourceLocation resource3 = new ResourceLocation("customnpcs","textures/cache/planks_spruce.png");
-	private static final ResourceLocation resource4 = new ResourceLocation("customnpcs","textures/cache/planks_birch.png");
-	private static final ResourceLocation resource5 = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
-	private static final ResourceLocation resource6 = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
+	private static final ResourceLocation resource1 = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_oak.png");
+	private static final ResourceLocation resource2 = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_big_oak.png");
+	private static final ResourceLocation resource3 = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_spruce.png");
+	private static final ResourceLocation resource4 = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_birch.png");
+	private static final ResourceLocation resource5 = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_acacia.png");
+	private static final ResourceLocation resource6 = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_jungle.png");
     
 	public BlockTableRenderer(){
 		((BlockTable)CustomItems.table).renderId = RenderingRegistry.getNextAvailableRenderId();

@@ -12,10 +12,11 @@ import noppes.npcs.containers.ContainerNPCTraderSetup;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITextfieldListener{
 
-	private final ResourceLocation slot = new ResourceLocation("customnpcs","textures/gui/slot.png");
+	private final ResourceLocation slot = new ResourceLocation(CustomNpcs.MODID,"textures/gui/slot.png");
 	private RoleTrader role;
 
     public GuiNpcTraderSetup(EntityNPCInterface npc, ContainerNPCTraderSetup container){

@@ -15,17 +15,18 @@ import noppes.npcs.client.model.blocks.barrel.BarrelCore;
 import noppes.npcs.client.model.blocks.barrel.BarrelTrim;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class BlockBarrelRenderer extends BlockRendererInterface{
 
 	private final ModelBarrel model = new ModelBarrel();
 	private final ModelBarrelLit modelLit = new ModelBarrelLit();
-	private static final ResourceLocation resource1 = new ResourceLocation("customnpcs","textures/models/Barrel.png");
+	private static final ResourceLocation resource1 = new ResourceLocation(CustomNpcs.MODID,"textures/models/Barrel.png");
 
 
     private final BarrelCore core = new BarrelCore();
     private final BarrelTrim trim = new BarrelTrim();
-    private static final ResourceLocation trimTexture = new ResourceLocation("customnpcs","textures/models/BarrelTrim.png");
+    private static final ResourceLocation trimTexture = new ResourceLocation(CustomNpcs.MODID,"textures/models/BarrelTrim.png");
 
 	public BlockBarrelRenderer(){
 		((BlockBarrel)CustomItems.barrel).renderId = RenderingRegistry.getNextAvailableRenderId();

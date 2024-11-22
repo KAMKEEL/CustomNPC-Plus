@@ -21,6 +21,7 @@ import org.lwjgl.opengl.GL12;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import noppes.npcs.CustomNpcs;
 
 public abstract class GuiContainerNPCInterface extends GuiContainer
 {
@@ -70,7 +71,7 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
         guiTop = (height - ySize) / 2;
     }
     public ResourceLocation getResource(String texture){
-    	return new ResourceLocation("customnpcs","textures/gui/" + texture);
+    	return new ResourceLocation(CustomNpcs.MODID,"textures/gui/" + texture);
     }
     public void updateScreen(){
     	for(GuiNpcTextField tf : new ArrayList<GuiNpcTextField>(textfields.values()))

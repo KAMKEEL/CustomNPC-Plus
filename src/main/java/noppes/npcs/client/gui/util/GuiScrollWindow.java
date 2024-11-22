@@ -12,9 +12,10 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import noppes.npcs.CustomNpcs;
 
 public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, ICustomScrollListener, GuiYesNoCallback {
-    public static final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/misc.png");
+    public static final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID, "textures/gui/misc.png");
 
     protected GuiNPCInterface parent;
     public boolean drawDefaultBackground = true;

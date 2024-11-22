@@ -10,29 +10,30 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
+import noppes.npcs.CustomNpcs;
 
 public abstract class BlockRendererInterface extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
-	protected static final ResourceLocation Stone = new ResourceLocation("customnpcs","textures/cache/stone.png");
-	protected static final ResourceLocation Iron = new ResourceLocation("customnpcs","textures/cache/iron_block.png");
-	protected static final ResourceLocation Gold = new ResourceLocation("customnpcs","textures/cache/gold_block.png");
-	protected static final ResourceLocation Diamond = new ResourceLocation("customnpcs","textures/cache/diamond_block.png");
+	protected static final ResourceLocation Stone = new ResourceLocation(CustomNpcs.MODID,"textures/cache/stone.png");
+	protected static final ResourceLocation Iron = new ResourceLocation(CustomNpcs.MODID,"textures/cache/iron_block.png");
+	protected static final ResourceLocation Gold = new ResourceLocation(CustomNpcs.MODID,"textures/cache/gold_block.png");
+	protected static final ResourceLocation Diamond = new ResourceLocation(CustomNpcs.MODID,"textures/cache/diamond_block.png");
 
-	protected static final ResourceLocation PlanksOak = new ResourceLocation("customnpcs","textures/cache/planks_oak.png");
-	protected static final ResourceLocation PlanksBigOak = new ResourceLocation("customnpcs","textures/cache/planks_big_oak.png");
-	protected static final ResourceLocation PlanksSpruce = new ResourceLocation("customnpcs","textures/cache/planks_spruce.png");
-	protected static final ResourceLocation PlanksBirch = new ResourceLocation("customnpcs","textures/cache/planks_birch.png");
-	protected static final ResourceLocation PlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
-	protected static final ResourceLocation PlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
+	protected static final ResourceLocation PlanksOak = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_oak.png");
+	protected static final ResourceLocation PlanksBigOak = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_big_oak.png");
+	protected static final ResourceLocation PlanksSpruce = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_spruce.png");
+	protected static final ResourceLocation PlanksBirch = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_birch.png");
+	protected static final ResourceLocation PlanksAcacia = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_acacia.png");
+	protected static final ResourceLocation PlanksJungle = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_jungle.png");
 
 
-    protected static final ResourceLocation MCPlanksOak = new ResourceLocation("customnpcs","textures/cache/planks_oak.png");
-    protected static final ResourceLocation MCPlanksBigOak = new ResourceLocation("customnpcs","textures/cache/planks_big_oak.png");
-    protected static final ResourceLocation MCPlanksSpruce = new ResourceLocation("customnpcs","textures/cache/planks_spruce.png");
-    protected static final ResourceLocation MCPlanksBirch = new ResourceLocation("customnpcs","textures/cache/planks_birch.png");
-    protected static final ResourceLocation MCPlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
-    protected static final ResourceLocation MCPlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
+    protected static final ResourceLocation MCPlanksOak = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_oak.png");
+    protected static final ResourceLocation MCPlanksBigOak = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_big_oak.png");
+    protected static final ResourceLocation MCPlanksSpruce = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_spruce.png");
+    protected static final ResourceLocation MCPlanksBirch = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_birch.png");
+    protected static final ResourceLocation MCPlanksAcacia = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_acacia.png");
+    protected static final ResourceLocation MCPlanksJungle = new ResourceLocation(CustomNpcs.MODID,"textures/cache/planks_jungle.png");
 
-	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/Steel.png");
+	protected static final ResourceLocation Steel = new ResourceLocation(CustomNpcs.MODID,"textures/models/Steel.png");
 	protected static final RenderItem renderer = new RenderItem();
 
     public static float colorTable[][] = {

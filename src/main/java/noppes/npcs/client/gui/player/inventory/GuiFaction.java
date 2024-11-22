@@ -16,10 +16,11 @@ import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
 import java.util.ArrayList;
+import noppes.npcs.CustomNpcs;
 
 public class GuiFaction extends GuiCNPCInventory implements IGuiData {
 
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/standardbg.png");
 
     private ArrayList<Faction> playerFactions = new ArrayList<Faction>();
 

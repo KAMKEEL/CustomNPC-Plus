@@ -17,13 +17,14 @@ import noppes.npcs.client.model.blocks.ModelLampCeiling;
 import noppes.npcs.client.model.blocks.ModelLampWall;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class BlockLampRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 
 	private final ModelLamp model = new ModelLamp();
 	private final ModelLampCeiling model2 = new ModelLampCeiling();
 	private final ModelLampWall model3 = new ModelLampWall();
-	private static final ResourceLocation resource1 = new ResourceLocation("customnpcs","textures/models/Lamp.png");
+	private static final ResourceLocation resource1 = new ResourceLocation(CustomNpcs.MODID,"textures/models/Lamp.png");
    
     public BlockLampRenderer(){
 		((BlockLamp)CustomItems.lamp).renderId = RenderingRegistry.getNextAvailableRenderId();

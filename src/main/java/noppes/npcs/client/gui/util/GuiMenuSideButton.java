@@ -8,10 +8,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class GuiMenuSideButton extends GuiNpcButton{
-	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/menusidebutton.png");
-    public static final ResourceLocation resource2 = new ResourceLocation("customnpcs","textures/gui/menusidebutton2.png");
+	public static final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/menusidebutton.png");
+    public static final ResourceLocation resource2 = new ResourceLocation(CustomNpcs.MODID,"textures/gui/menusidebutton2.png");
 
     public boolean active;
     public boolean rightSided;

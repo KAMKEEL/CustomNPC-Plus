@@ -14,10 +14,11 @@ import noppes.npcs.containers.ContainerNPCFollowerHire;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNpcFollowerHire extends GuiContainerNPCInterface
 {
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/followerhire.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/followerhire.png");
 	private EntityNPCInterface npc;
 	private ContainerNPCFollowerHire container;
 	private RoleFollower role;

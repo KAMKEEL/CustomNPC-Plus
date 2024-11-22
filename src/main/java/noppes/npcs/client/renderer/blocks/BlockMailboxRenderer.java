@@ -13,14 +13,15 @@ import noppes.npcs.blocks.BlockMailbox;
 import noppes.npcs.client.model.blocks.ModelMailboxUS;
 import noppes.npcs.client.model.blocks.ModelMailboxWow;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 
 	private final ModelMailboxUS model = new ModelMailboxUS();
 	private final ModelMailboxWow model2 = new ModelMailboxWow();
 
-    private static final ResourceLocation text1 = new ResourceLocation("customnpcs","textures/models/mailbox1.png");
-    private static final ResourceLocation text2 = new ResourceLocation("customnpcs","textures/models/mailbox2.png");
+    private static final ResourceLocation text1 = new ResourceLocation(CustomNpcs.MODID,"textures/models/mailbox1.png");
+    private static final ResourceLocation text2 = new ResourceLocation(CustomNpcs.MODID,"textures/models/mailbox2.png");
 	
     public BlockMailboxRenderer(){
 		((BlockMailbox)CustomItems.mailbox).renderId = RenderingRegistry.getNextAvailableRenderId();

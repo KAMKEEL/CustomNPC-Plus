@@ -73,6 +73,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
+import noppes.npcs.CustomNpcs;
 
 public class ClientProxy extends CommonProxy {
 	public static KeyBinding NPCButton;
@@ -565,7 +566,7 @@ public class ClientProxy extends CommonProxy {
 			useCustomFont = !fontType.equalsIgnoreCase("minecraft");
 			try {
 				if(!useCustomFont || fontType.isEmpty() || fontType.equalsIgnoreCase("default"))
-					textFont.setCustomFont(new ResourceLocation("customnpcs","OpenSans.ttf"), fontSize, true);
+					textFont.setCustomFont(new ResourceLocation(CustomNpcs.MODID,"OpenSans.ttf"), fontSize, true);
 				else
 					textFont.setDefaultFont(fontType, fontSize, true);
 			} catch (Exception e) {

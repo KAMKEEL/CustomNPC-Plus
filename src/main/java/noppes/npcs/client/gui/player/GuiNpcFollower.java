@@ -17,9 +17,10 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiData{
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/follower.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/follower.png");
 	private EntityNPCInterface npc;
 	private RoleFollower role;
 	

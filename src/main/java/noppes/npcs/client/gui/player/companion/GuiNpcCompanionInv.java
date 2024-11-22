@@ -10,10 +10,11 @@ import noppes.npcs.containers.ContainerNPCCompanion;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNpcCompanionInv extends GuiContainerNPCInterface{
-	private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/companioninv.png");
-	private final ResourceLocation slot = new ResourceLocation("customnpcs", "textures/gui/slot.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID, "textures/gui/companioninv.png");
+	private final ResourceLocation slot = new ResourceLocation(CustomNpcs.MODID, "textures/gui/slot.png");
 	private EntityNPCInterface npc;
 	private RoleCompanion role;
 

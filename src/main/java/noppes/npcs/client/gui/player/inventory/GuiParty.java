@@ -22,9 +22,10 @@ import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
 import java.util.*;
+import noppes.npcs.CustomNpcs;
 
 public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
-    private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+    private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/standardbg.png");
     private final EntityPlayer player;
 
     private boolean receivedData;

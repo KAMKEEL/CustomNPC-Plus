@@ -17,11 +17,12 @@ import org.lwjgl.opengl.GL12;
 
 import java.util.ArrayList;
 import java.util.List;
+import noppes.npcs.CustomNpcs;
 
 @SideOnly(Side.CLIENT)
 public class GuiRecipes extends GuiNPCInterface
 {
-	private static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/slot.png");
+	private static final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/slot.png");
     private int page = 0;
     private GuiNpcLabel label;
     private GuiNpcButton left, right;

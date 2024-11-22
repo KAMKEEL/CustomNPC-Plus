@@ -42,14 +42,15 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.Map;
 
+import noppes.npcs.CustomNpcs;
 
 public class RenderNPCInterface extends RenderLiving{
 	public static long LastTextureTick = 0;
 	public static RenderManager staticRenderManager;
 	public ModelBase originalModel;
 
-    public static ResourceLocation steve64 = new ResourceLocation("customnpcs","textures/entity/64-Textures/humanmale/Steve.png");
-    public static ResourceLocation alex = new ResourceLocation("customnpcs","textures/entity/64-Textures/humanfemale/Alex.png");
+    public static ResourceLocation steve64 = new ResourceLocation(CustomNpcs.MODID,"textures/entity/64-Textures/humanmale/Steve.png");
+    public static ResourceLocation alex = new ResourceLocation(CustomNpcs.MODID,"textures/entity/64-Textures/humanfemale/Alex.png");
 
 	public RenderNPCInterface(ModelBase model, float f){
 		super(model, f);

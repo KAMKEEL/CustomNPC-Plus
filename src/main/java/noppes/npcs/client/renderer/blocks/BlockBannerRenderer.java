@@ -18,13 +18,14 @@ import noppes.npcs.client.model.blocks.ModelBanner;
 import noppes.npcs.client.model.blocks.ModelBannerFlag;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class BlockBannerRenderer extends BlockRendererInterface{
 
 	private final ModelBanner model = new ModelBanner();
 	private final ModelBannerFlag flag = new ModelBannerFlag();
 
-    public static final ResourceLocation resourceFlag = new ResourceLocation("customnpcs","textures/models/BannerFlag.png");
+    public static final ResourceLocation resourceFlag = new ResourceLocation(CustomNpcs.MODID,"textures/models/BannerFlag.png");
 
 
 

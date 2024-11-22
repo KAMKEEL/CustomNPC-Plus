@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL12;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import noppes.npcs.CustomNpcs;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -62,11 +63,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
     }
 
     public void setBackground(String texture) {
-        background = new ResourceLocation("customnpcs", "textures/gui/" + texture);
+        background = new ResourceLocation(CustomNpcs.MODID, "textures/gui/" + texture);
     }
 
     public ResourceLocation getResource(String texture) {
-        return new ResourceLocation("customnpcs", "textures/gui/" + texture);
+        return new ResourceLocation(CustomNpcs.MODID, "textures/gui/" + texture);
     }
 
     @Override

@@ -12,9 +12,10 @@ import noppes.npcs.constants.EnumPacketServer;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
+import noppes.npcs.CustomNpcs;
 
 public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
-    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
+    private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID, "textures/gui/smallbg.png");
     private HashMap<Integer,Class<?>> scriptGuiClasses = new HashMap<>();
 
     public GuiScriptGlobal() {

@@ -17,13 +17,14 @@ import noppes.npcs.client.model.blocks.ModelCandleCeiling;
 import noppes.npcs.client.model.blocks.ModelCandleWall;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class BlockCandleRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 
 	private final ModelCandle model = new ModelCandle();
 	private final ModelCandleWall modelWall = new ModelCandleWall();
 	private final ModelCandleCeiling modelCeiling = new ModelCandleCeiling();
-	private static final ResourceLocation resource1 = new ResourceLocation("customnpcs","textures/models/Candle.png");
+	private static final ResourceLocation resource1 = new ResourceLocation(CustomNpcs.MODID,"textures/models/Candle.png");
    
     public BlockCandleRenderer(){
 		((BlockCandle)CustomItems.candle).renderId = RenderingRegistry.getNextAvailableRenderId();

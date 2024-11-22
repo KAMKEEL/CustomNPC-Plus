@@ -12,13 +12,14 @@ import noppes.npcs.client.model.blocks.ModelTallLamp;
 import noppes.npcs.client.model.blocks.ModelTallLampTop;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class BlockTallLampRenderer extends BlockRendererInterface{
 
 	private final ModelTallLamp model = new ModelTallLamp();
 	
 	private final ModelTallLampTop top = new ModelTallLampTop();
-    public static final ResourceLocation resourceTop = new ResourceLocation("customnpcs","textures/cache/wool_colored_white.png");
+    public static final ResourceLocation resourceTop = new ResourceLocation(CustomNpcs.MODID,"textures/cache/wool_colored_white.png");
     
     public BlockTallLampRenderer(){
 		((BlockTallLamp)CustomItems.tallLamp).renderId = RenderingRegistry.getNextAvailableRenderId();

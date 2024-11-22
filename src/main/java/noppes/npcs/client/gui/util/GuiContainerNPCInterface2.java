@@ -5,12 +5,13 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.roles.GuiNpcTraderSetup;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
 {
-	private ResourceLocation background = new ResourceLocation("customnpcs","textures/gui/menubg.png");
-	private final ResourceLocation defaultBackground = new ResourceLocation("customnpcs","textures/gui/menubg.png");
-    private final ResourceLocation defaultBackground2 = new ResourceLocation("customnpcs","textures/gui/menubg2.png");
+	private ResourceLocation background = new ResourceLocation(CustomNpcs.MODID,"textures/gui/menubg.png");
+	private final ResourceLocation defaultBackground = new ResourceLocation(CustomNpcs.MODID,"textures/gui/menubg.png");
+    private final ResourceLocation defaultBackground2 = new ResourceLocation(CustomNpcs.MODID,"textures/gui/menubg2.png");
 
     private GuiNpcMenu menu;
 	public int menuYOffset = 0;
@@ -28,10 +29,10 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
         drawDefaultBackground = true;
     }
     public void setBackground(String texture){
-    	background = new ResourceLocation("customnpcs","textures/gui/" + texture);
+    	background = new ResourceLocation(CustomNpcs.MODID,"textures/gui/" + texture);
     }
     public ResourceLocation getResource(String texture){
-    	return new ResourceLocation("customnpcs","textures/gui/" + texture);
+    	return new ResourceLocation(CustomNpcs.MODID,"textures/gui/" + texture);
     }
 
 	@Override

@@ -11,11 +11,12 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.ITopButtonListener;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiQuestCompletion extends GuiNPCInterface implements ITopButtonListener{
 
     private Quest quest;
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/smallbg.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/smallbg.png");
 
 	public GuiQuestCompletion(Quest quest) {
 		super();

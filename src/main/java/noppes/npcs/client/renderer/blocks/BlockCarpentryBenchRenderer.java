@@ -13,13 +13,14 @@ import noppes.npcs.blocks.BlockCarpentryBench;
 import noppes.npcs.client.model.blocks.ModelAnvil;
 import noppes.npcs.client.model.blocks.ModelCarpentryBench;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 
 	private final ModelCarpentryBench model = new ModelCarpentryBench();
 	private final ModelAnvil anvil = new ModelAnvil();
-	private static final ResourceLocation resource3 = new ResourceLocation("customnpcs","textures/models/Steel.png");
-    private static final ResourceLocation field_110631_g = new ResourceLocation("customnpcs","textures/models/CarpentryBench.png");
+	private static final ResourceLocation resource3 = new ResourceLocation(CustomNpcs.MODID,"textures/models/Steel.png");
+    private static final ResourceLocation field_110631_g = new ResourceLocation(CustomNpcs.MODID,"textures/models/CarpentryBench.png");
 
     public BlockCarpentryBenchRenderer(){
 		((BlockCarpentryBench)CustomItems.carpentyBench).renderId = RenderingRegistry.getNextAvailableRenderId();

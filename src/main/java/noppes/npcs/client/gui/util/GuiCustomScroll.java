@@ -8,10 +8,11 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.*;
+import noppes.npcs.CustomNpcs;
 
 public class GuiCustomScroll extends GuiScreen
 {
-	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/misc.png");
+	public static final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/misc.png");
     protected List<String> list;
     public final HashMap<String,Integer> colors = new HashMap<>();
 

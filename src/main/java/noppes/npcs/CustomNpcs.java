@@ -36,8 +36,14 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9.3")
+import static noppes.npcs.CustomNpcs.*;
+
+@Mod(modid = MODID, name = NAME, version = VERSION)
 public class CustomNpcs {
+
+    public static final String MODID = "customnpcs";
+    public static final String NAME = "CustomNPC+";
+    public static final String VERSION = "1.9.3";
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
     public static CommonProxy proxy;
@@ -92,7 +98,7 @@ public class CustomNpcs {
         } else {
             dir = Minecraft.getMinecraft().mcDataDir.getAbsolutePath();
         }
-        Dir = new File(dir, "customnpcs");
+        Dir = new File(dir, CustomNpcs.MODID);
         Dir.mkdir();
 
         configPath = ev.getModConfigurationDirectory() + File.separator + "CustomNpcPlus";
@@ -271,7 +277,7 @@ public class CustomNpcs {
             saves = new File(Minecraft.getMinecraft().mcDataDir, "saves");
         }
         if (server != null) {
-            File savedir = new File(new File(saves, server.getFolderName()), "customnpcs");
+            File savedir = new File(new File(saves, server.getFolderName()), CustomNpcs.MODID);
             if (!savedir.exists()) {
                 savedir.mkdir();
             }
@@ -288,7 +294,7 @@ public class CustomNpcs {
                     dir = new File(Minecraft.getMinecraft().mcDataDir, "saves");
                 }
 
-                dir = new File(new File(dir, getServer().getFolderName()), "customnpcs");
+                dir = new File(new File(dir, getServer().getFolderName()), CustomNpcs.MODID);
             }
 
             if (s != null) {

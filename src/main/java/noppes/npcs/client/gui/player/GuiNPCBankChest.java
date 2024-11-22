@@ -17,10 +17,11 @@ import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiData
 {
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/bankchest.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/bankchest.png");
     private ContainerNPCBankInterface container;
     private int availableSlots = 0;
     private int maxSlots = 1;

@@ -6,10 +6,11 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiMenuTopButton extends GuiNpcButton
 {
-	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/menutopbutton.png");
+	public static final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/menutopbutton.png");
     protected int height;
     public boolean active;
     public boolean hover = false;

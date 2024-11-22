@@ -11,10 +11,11 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
 import java.util.Vector;
+import noppes.npcs.CustomNpcs;
 
 public class GuiTransportSelection extends GuiNPCInterface implements ITopButtonListener,IScrollData{
 
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/smallbg.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/smallbg.png");
     protected int xSize;
     protected int guiLeft;
     protected int guiTop;

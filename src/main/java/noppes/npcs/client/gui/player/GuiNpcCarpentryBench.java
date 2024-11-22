@@ -9,10 +9,11 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.controllers.RecipeController;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNpcCarpentryBench extends GuiContainerNPCInterface
 {
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/carpentry.png");
+	private final ResourceLocation resource = new ResourceLocation(CustomNpcs.MODID,"textures/gui/carpentry.png");
     private ContainerCarpentryBench container;
     private GuiNpcButton button;
     

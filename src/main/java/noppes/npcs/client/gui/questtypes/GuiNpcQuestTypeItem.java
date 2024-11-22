@@ -10,11 +10,12 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestItem;
 import org.lwjgl.opengl.GL11;
+import noppes.npcs.CustomNpcs;
 
 public class GuiNpcQuestTypeItem extends GuiContainerNPCInterface implements ITextfieldListener
 {
 	private Quest quest;
-	private static final ResourceLocation field_110422_t = new ResourceLocation("customnpcs","textures/gui/followersetup.png");
+	private static final ResourceLocation field_110422_t = new ResourceLocation(CustomNpcs.MODID,"textures/gui/followersetup.png");
     public GuiNpcQuestTypeItem(EntityNPCInterface npc,ContainerNpcQuestTypeItem container){
         super(npc,container);
         this.quest = GuiNPCManageQuest.quest;
