@@ -1,46 +1,41 @@
 package nikedemos.markovnames.generators;
 
+import nikedemos.markovnames.Main;
 import nikedemos.markovnames.MarkovDictionary;
 
 import java.util.Random;
 
 public class MarkovGenerator {
+    public MarkovDictionary surnameDictionary;
+    public Random random;
+    public String name;
+    public String symbol;
 
-	public MarkovDictionary markov;
-	public Random rng;
-	public String name;
-	public String symbol;
-	
-	public MarkovGenerator(int seqlen, Random rng)
-	{
-	this.rng = rng;
-	}
-	
-	public MarkovGenerator(int seqlen)
-	{
-		this(seqlen, new Random());
-	}
-	
-	public MarkovGenerator()
-	{
-		this(3, new Random());
-	}
+    public MarkovGenerator(int sequenceLen, Random random) {
+        this.random = random;
+    }
 
-	public String fetch(int gender) {
-		return stylize(markov.generateWord());
-	}
-	
-	public String fetch()
-	{
-		return fetch(0); //0 = random gender, 1 = male, 2 = female
-	}
+    public MarkovGenerator(int sequenceLen) {
+        this(sequenceLen, new Random());
+    }
 
-	public String stylize(String str)
-	{
-		return str;
-	}
+    public MarkovGenerator() {
+        this(3);
+    }
 
-	public String feminize(String element, boolean flag) {
-		return element;
-	}
+    public String fetch(int gender) {
+        return stylize(surnameDictionary.generateWord());
+    }
+
+    public String fetch() {
+        return fetch(Main.GENDER_RANDOM);
+    }
+
+    public String stylize(String str) {
+        return str;
+    }
+
+    public String feminize(String element, boolean flag) {
+        return element;
+    }
 }

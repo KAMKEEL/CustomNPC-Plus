@@ -6,26 +6,22 @@ import java.util.Random;
 
 public class MarkovAztec extends MarkovGenerator {
 
-	public MarkovAztec(int seqlen, Random rng)
-	{
-		this.rng = rng;
-		this.markov  = new MarkovDictionary("aztec_given.txt",seqlen,rng);
-	}
-	
-	public MarkovAztec(int seqlen)
-	{
-		this(seqlen,new Random());
-		
-	}
-	
-	public MarkovAztec()
-	{
-		this(3, new Random()); //3 seems best-suited for Aztec
-	}
+    public MarkovAztec(int sequenceLen, Random random) {
+        this.random = random;
+        this.surnameDictionary = new MarkovDictionary("aztec_given.txt", sequenceLen, random);
+    }
 
-	@Override
-	public String fetch(int gender) //Aztec names are genderless
-	{
-		return markov.generateWord();
-	}
+    public MarkovAztec(int sequenceLen) {
+        this(sequenceLen, new Random());
+    }
+
+    public MarkovAztec() {
+        this(3); // 3 seems best-suited for Aztec
+    }
+
+    @Override
+    public String fetch(int gender) {
+        // Aztec names are genderless
+        return surnameDictionary.generateWord();
+    }
 }

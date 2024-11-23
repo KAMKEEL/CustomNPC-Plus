@@ -1,51 +1,39 @@
 package nikedemos.markovnames.generators;
 
+import nikedemos.markovnames.Main;
 import nikedemos.markovnames.MarkovDictionary;
 
 import java.util.Random;
 
 public class MarkovJapanese extends MarkovGenerator {
-	public MarkovDictionary markov2;
-	public MarkovDictionary markov3;
+    public MarkovDictionary maleDictionary;
+    public MarkovDictionary femaleDictionary;
 
-	public MarkovJapanese(int seqlen, Random rng) {
-		this.rng = rng;
-		this.markov = new MarkovDictionary("japanese_surnames.txt", seqlen, rng);
-		this.markov2 = new MarkovDictionary("japanese_given_male.txt", seqlen, rng);
-		this.markov3 = new MarkovDictionary("japanese_given_female.txt", seqlen, rng);
-	}
+    public MarkovJapanese(int sequenceLen, Random random) {
+        this.random = random;
+        this.surnameDictionary = new MarkovDictionary("japanese_surnames.txt", sequenceLen, random);
+        this.maleDictionary = new MarkovDictionary("japanese_given_male.txt", sequenceLen, random);
+        this.femaleDictionary = new MarkovDictionary("japanese_given_female.txt", sequenceLen, random);
+    }
 
-	public MarkovJapanese(int seqlen) {
-		this(seqlen, new Random());
+    public MarkovJapanese(int sequenceLen) {
+        this(sequenceLen, new Random());
 
-	}
+    }
 
-	public MarkovJapanese() {
-		this(4, new Random()); // 4 seems best suited for Japanese
-	}
+    public MarkovJapanese() {
+        this(4); // 4 seems best suited for Japanese
+    }
 
-	@Override
-	public String fetch(int gender) {
+    @Override
+    public String fetch(int gender) {
+        StringBuilder name = new StringBuilder(surnameDictionary.generateWord()).append(" ");
 
-		StringBuilder name = new StringBuilder(markov.generateWord());
-		name.append(" ");
+        if (gender == Main.GENDER_RANDOM)
+            gender = random.nextBoolean() ? Main.GENDER_MALE : Main.GENDER_FEMALE;
 
-		// check the gender.
-		// 0 = random gender, 1 = male, 2 = female
-		// if there's no gender specified (0),
-		// now it's time to pick it at random
-		//
-		if (gender == 0) {
-			gender = rng.nextBoolean() == true ? 1 : 2;
-		}
+        name.append(gender == Main.GENDER_FEMALE ? femaleDictionary.generateWord() : maleDictionary.generateWord());
 
-		if (gender == 2) {
-			name.append(markov3.generateWord());
-		} 
-		else {
-			name.append(markov2.generateWord());
-		}
-
-		return name.toString();
-	}
+        return name.toString();
+    }
 }
