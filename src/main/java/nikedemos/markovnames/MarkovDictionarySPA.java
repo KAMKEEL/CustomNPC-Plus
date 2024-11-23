@@ -2,40 +2,73 @@ package nikedemos.markovnames;
 
 import java.util.Random;
 
-//used exclusively by the Spanish surname dictionary - because the capitalization is a little bit different
+/**
+ * This class is used exclusively by the Spanish surname dictionary to handle
+ * Spanish-specific capitalization rules.
+ */
 public class MarkovDictionarySPA extends MarkovDictionary {
 
-	public MarkovDictionarySPA(String dictionary, int seqlen, Random rng) {
-		super(dictionary, seqlen, rng);
-		// TODO Auto-generated constructor stub
-	}
+    // Words that should not be capitalized
+    private static final String[] EXCEPTIONS = {"de", "del", "la", "los"};
 
-	@Override
-	public String getPost(String str) {
-		return getCapitalizedSPA(str);
-	}
+    public MarkovDictionarySPA(String dictionary, int sequenceLen, Random random) {
+        super(dictionary, sequenceLen, random);
+    }
 
-	public String getCapitalizedSPA(String str) {
-		// for spanish capitalization
+    /**
+     * Overrides the base class method to apply Spanish-specific capitalization rules.
+     *
+     * @param str The string to be processed.
+     * @return The string after applying Spanish capitalization rules.
+     */
+    @Override
+    public String getPost(String str) {
+        return getCapitalizedSPA(str);
+    }
 
-		String[] parts = str.split("#");
+    /**
+     * Capitalizes parts of the string according to Spanish capitalization rules.
+     * Specifically, it capitalizes each part except for the predefined exception words.
+     *
+     * @param str The input string where parts are separated by '#'.
+     * @return The capitalized string.
+     */
+    private String getCapitalizedSPA(String str) {
+        // Split the input string into parts based on the '#' delimiter
+        String[] parts = str.split("#");
 
-		StringBuilder build = new StringBuilder("");
+        StringBuilder builder = new StringBuilder();
 
-		for (int p = 0; p < parts.length; p++) {
-			// capitalize this part, but only if it's not "de", "del", "la" or "los"
-			if (!parts[p].equals("de") && !parts[p].equals("del") && !parts[p].equals("la")
-					&& !parts[p].equals("los")) {
-				parts[p] = getCapitalized(parts[p]);
-			}
+        // Iterate over each part and apply capitalization rules
+        for (int i = 0; i < parts.length; i++) {
+            // Capitalize this part, but only if it's not an exception word
+            if (!isException(parts[i])) {
+                parts[i] = getCapitalized(parts[i]);
+            }
 
-			if (p > 0) // don't add spaces before the first part
-				build.append(" ");
+            // Add a space before each part except the first part
+            if (i > 0) {
+                builder.append(" ");
+            }
 
-			build.append(parts[p]);
-		}
+            builder.append(parts[i]);
+        }
 
-		return build.toString();
-	}
+        return builder.toString();
+    }
 
+    /**
+     * Checks if a given part is one of the predefined exception words.
+     *
+     * @param part The part to be checked.
+     * @return true if the part is an exception word, false otherwise.
+     */
+    private boolean isException(String part) {
+        for (String exception : EXCEPTIONS) {
+            if (exception.equals(part)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

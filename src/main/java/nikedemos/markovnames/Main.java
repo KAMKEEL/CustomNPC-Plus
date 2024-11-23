@@ -3,51 +3,67 @@ package nikedemos.markovnames;
 import nikedemos.markovnames.generators.*;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 public class Main {
-	
-	public static final int GENDER_RANDOM=0;
-	public static final int GENDER_MALE=1;
-	public static final int GENDER_FEMALE=2;
-	
-	public static HashMap<String, MarkovGenerator> GENERATORS = new HashMap<String, MarkovGenerator>();
-	
-	public static void main(String[] args){
-		
-		//all the generators neatly in one HashMap, so you can iterate or w/e
-		
-		GENERATORS.put("ROMAN", new MarkovRoman(3));
-		GENERATORS.put("JAPANESE", new MarkovJapanese(4));
-		GENERATORS.put("SLAVIC", new MarkovSlavic(3));
-		GENERATORS.put("WELSH", new MarkovWelsh(3));
-		GENERATORS.put("SAAMI", new MarkovSaami(3));
-		GENERATORS.put("OLDNORSE", new MarkovOldNorse(4));
-		GENERATORS.put("ANCIENTGREEK", new MarkovAncientGreek(3));
-		GENERATORS.put("AZTEC", new MarkovAztec(3));
-		
-		//iterate through generators, generate 5 male and 5 female names, move on to the next
-		Iterator<Entry<String, MarkovGenerator>> g = GENERATORS.entrySet().iterator();
-		
-		while (g.hasNext()) {
-			Entry<String, MarkovGenerator> pair = (Entry<String, MarkovGenerator>) g.next();
-			
-			System.out.println("==="+pair.getKey()+"===");
-			
-			for (int i=0; i<16; i++)
-			{
-			if (i==0)
-					System.out.println("GENTLEMEN-----------");
-			int gender = i<8 ? 1 : 2;
-			String random_name = pair.getValue().fetch(gender);
-			System.out.println(random_name);
-			
-			if (i==15) //extra padding
-				System.out.println("\n");
-			else if (i==7) //separate genders
-				System.out.println("LADIES--------------");
-			}
-		}
-	}
+
+    public static final int GENDER_RANDOM = 0;
+    public static final int GENDER_MALE = 1;
+    public static final int GENDER_FEMALE = 2;
+
+    // HashMap to hold all the generators for iteration and other operations
+    public static HashMap<String, MarkovGenerator> GENERATORS = new HashMap<>();
+
+    public static void main(String[] args) {
+        initializeGenerators();
+
+        // Iterate through generators and generate names
+        for (Entry<String, MarkovGenerator> entry : GENERATORS.entrySet()) {
+            String generatorName = entry.getKey();
+            MarkovGenerator generator = entry.getValue();
+
+            System.out.println("=== " + generatorName + " ===");
+
+            generateNames(generator);
+        }
+    }
+
+    /**
+     * Initializes the Markov generators and stores them in the GENERATORS HashMap.
+     */
+    private static void initializeGenerators() {
+        GENERATORS.put("ROMAN", new MarkovRoman(3));
+        GENERATORS.put("JAPANESE", new MarkovJapanese(4));
+        GENERATORS.put("SLAVIC", new MarkovSlavic(3));
+        GENERATORS.put("WELSH", new MarkovWelsh(3));
+        GENERATORS.put("SAAMI", new MarkovSaami(3));
+        GENERATORS.put("OLDNORSE", new MarkovOldNorse(4));
+        GENERATORS.put("ANCIENTGREEK", new MarkovAncientGreek(3));
+        GENERATORS.put("AZTEC", new MarkovAztec(3));
+        GENERATORS.put("CustomNPCsClassic", new MarkovCustomNPCsClassic(3));
+        GENERATORS.put("Spanish", new MarkovSpanish(3));
+    }
+
+    /**
+     * Generates and prints names using the specified generator.
+     *
+     * @param generator The Markov generator.
+     */
+    private static void generateNames(MarkovGenerator generator) {
+        for (int i = 0; i < 16; i++) {
+            if (i == 0) {
+                System.out.println("-------- GENTLEMEN --------");
+            }
+
+            int gender = i < 8 ? GENDER_MALE : GENDER_FEMALE;
+            String randomName = generator.fetch(gender);
+            System.out.println(randomName);
+
+            if (i == 7) {
+                System.out.println("-------- LADIES --------");
+            } else if (i == 15) {
+                System.out.println("\n");
+            }
+        }
+    }
 }
