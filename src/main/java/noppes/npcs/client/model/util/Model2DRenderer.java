@@ -83,7 +83,7 @@ public class Model2DRenderer extends ModelRenderer {
 		}
 
 		GL11.glTranslated( rotationOffsetX * par1, rotationOffsetY * par1, 0);
-		ItemRenderer.renderItemIn2D(Tessellator.instance, x1, y1, x2, y2, width, height, par1);
+		renderItemIn2D(x1, y1, x2, y2, width, height, par1);
 
 		GL11.glEndList();
 		this.compiledModel = true;
