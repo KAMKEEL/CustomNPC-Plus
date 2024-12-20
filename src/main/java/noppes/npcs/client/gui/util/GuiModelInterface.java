@@ -27,6 +27,7 @@ public class GuiModelInterface extends GuiNPCInterface {
     public int yOffset = 0, yOffsetButton = 0;
     public boolean followMouse = true, drawNPConSub = true;
 
+    public boolean allowRotate = true;
     public boolean drawRenderButtons = true, drawXButton = true;
 
     public EntityCustomNpc npc;
@@ -36,6 +37,7 @@ public class GuiModelInterface extends GuiNPCInterface {
         playerdata = npc.modelData;
         xSize = 380;
         drawDefaultBackground = false;
+        closeOnEsc = true;
     }
 
     @Override
@@ -71,13 +73,24 @@ public class GuiModelInterface extends GuiNPCInterface {
     private long start = -1;
 
     public boolean isMouseOverRenderer(int x, int y) {
-        return x >= guiLeft + xOffset + 40 && x <= guiLeft + xOffset + 330 && y >= guiTop + yOffset - 50 && y <= guiTop + yOffset + 250;
-    }
+        if(!allowRotate){
+            return false;
+        }
+        // Center of the entity rendering
+        int centerX = guiLeft + 190 + xOffset; // Matches l in drawScreen()
+        int centerY = guiTop + 180 + yOffset; // Matches i1 in drawScreen()
 
+        // Define separate buffers for X and Y axes
+        int xBuffer = 100; // Horizontal buffer
+        int yBuffer = 150; // Vertical buffer
+
+        // Check if the mouse is within the buffer area
+        return mouseX >= centerX - xBuffer && mouseX <= centerX + xBuffer &&
+            mouseY >= centerY - yBuffer && mouseY <= centerY + yBuffer;
+    }
 
     public void preRender(EntityLivingBase entity) {
         EntityUtil.Copy(npc, entity);
-
     }
 
     public void postRender(EntityLivingBase entity) {
