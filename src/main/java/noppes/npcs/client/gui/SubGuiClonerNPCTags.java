@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -8,6 +9,8 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.TagController;
+import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -22,16 +25,19 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
     private final ArrayList<String> tagNames = new ArrayList<>();
     private String search = "";
     private final EntityNPCInterface npc;
+    private GuiNpcMobSpawnerAdd mobSpawnerAdd;
 
-    public SubGuiClonerNPCTags(EntityNPCInterface npc)
+    public SubGuiClonerNPCTags(EntityNPCInterface npc, GuiNpcMobSpawnerAdd guiNpcMobSpawnerAdd)
     {
+        this.parent = guiNpcMobSpawnerAdd;
+        this.mobSpawnerAdd = guiNpcMobSpawnerAdd;
         Client.sendData(EnumPacketServer.TagsGet);
         Client.sendData(EnumPacketServer.NpcTagsGet);
         setBackground("menubg.png");
         xSize = 305;
         ySize = 220;
         this.npc = npc;
-        closeOnEsc = false;
+        closeOnEsc = true;
     }
 
     public void initGui()
@@ -86,10 +92,15 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
             tagNames.clear();
         }
         if (guibutton.id == 66) {
-            save();
             close();
         }
         initGui();
+    }
+
+    @Override
+    public void close(){
+        super.close();
+        save();
     }
 
     @Override
@@ -126,9 +137,14 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
     public void save() {
         NBTTagCompound tagCompound = new NBTTagCompound();
         NBTTagList tagList = new NBTTagList();
+        NBTTagList UUIDTagList = new NBTTagList();
         for (String string : this.tagNames) {
             tagList.appendTag(new NBTTagString(string));
+            if(GuiNpcMobSpawnerAdd.tagMap.containsKey(string))
+                UUIDTagList.appendTag(new NBTTagString(GuiNpcMobSpawnerAdd.tagMap.get(string).toString()));
         }
+
+        GuiNpcMobSpawnerAdd.tagsCompound = UUIDTagList;
         tagCompound.setTag("TagNames",tagList);
         Client.sendData(EnumPacketServer.TagSet, tagCompound);
     }

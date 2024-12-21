@@ -1299,6 +1299,10 @@ public class PacketHandlerServer{
 			String name = Server.readString(buffer);
 			int tab = buffer.readInt();
 			NBTTagCompound tagExtra = Server.readNBT(buffer);
+            NBTTagCompound tagCompound = Server.readNBT(buffer);
+
+            NBTTagList tagList = tagCompound.getTagList("TagUUIDs", 8);
+            data.cloned.setTag("TagUUIDs", tagList);
 			ServerCloneController.Instance.addClone(data.cloned, name, tab, tagExtra);
 		}
 		else if(type == EnumPacketServer.CloneRemove){

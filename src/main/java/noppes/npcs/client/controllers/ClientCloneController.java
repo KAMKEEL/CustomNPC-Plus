@@ -4,6 +4,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.data.TagMap;
 
 import java.io.File;
@@ -30,14 +31,17 @@ public class ClientCloneController extends ServerCloneController{
 				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
 			}
 		}
-		if(tagUUIDs.size() > 0){
-			TagMap tagMap = ClientTagMapController.Instance.getTagMap(tab);
-			tagMap.putClone(name, tagUUIDs);
-			ClientTagMapController.Instance.saveTagMap(tagMap);
-			return true;
-		}
-		return false;
-	}
+
+        TagMap tagMap = ClientTagMapController.Instance.getTagMap(tab);
+        if(!tagUUIDs.isEmpty()){
+            tagMap.putClone(name, tagUUIDs);
+        }
+        else {
+            tagMap.removeClone(name);
+        }
+        ClientTagMapController.Instance.saveTagMap(tagMap);
+        return true;
+    }
 
 	@Override
 	public boolean removeFromTagMap(String name, int tab){

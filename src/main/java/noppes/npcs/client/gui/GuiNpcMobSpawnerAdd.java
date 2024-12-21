@@ -13,6 +13,7 @@ import noppes.npcs.client.Client;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -23,24 +24,28 @@ import java.util.UUID;
 
 public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ISubGuiListener {
 
-	private Entity toClone;
-	private NBTTagCompound compound;
+    private Entity toClone;
+    private NBTTagCompound compound;
 	private static boolean serverSide = false;
 	private static int tab = 1;
 	public boolean isNPC = false;
 
 	// Selected Tags to Add
+    public static NBTTagList tagsCompound;
 	public static HashSet<String> addTags;
 	public static ArrayList<String> allTags = new ArrayList<>();
-	public static HashMap<String, UUID> tagMap = new HashMap<>();
+    public static HashSet<UUID> addTagUUIDs;
+    public static HashMap<String, UUID> tagMap = new HashMap<>();
 
 	public GuiNpcMobSpawnerAdd(NBTTagCompound compound){
 		this.toClone = EntityList.createEntityFromNBT(compound, Minecraft.getMinecraft().theWorld);
 		this.compound = compound;
-		if(toClone instanceof EntityNPCInterface){
-			isNPC = true;
-		}
+        tagsCompound = new NBTTagList();
 
+        if(toClone instanceof EntityNPCInterface){
+			isNPC = true;
+            tagsCompound = this.compound.getTagList("TagUUIDs",8);
+		}
 		setBackground("menubg.png");
 		xSize = 256;
 		ySize = 216;
@@ -49,6 +54,9 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		if(addTags == null){
 			addTags  = new HashSet<>();
 		}
+        if(addTagUUIDs == null){
+            addTagUUIDs = new HashSet<>();
+        }
 		if(isNPC){
 			Client.sendData(EnumPacketServer.CloneAllTagsShort);
 		}
@@ -112,7 +120,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		}
 		if (id == 5) {
 			if(isNPC){
-				this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone));
+				this.setSubGui(new SubGuiClonerNPCTags((EntityNPCInterface) toClone, this));
 			}
 		}
 	}
@@ -123,14 +131,21 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 		if(confirm){
 			String name = getTextField(0).getText();
 			NBTTagCompound extraTags = new NBTTagCompound();
-			if(isNPC && addTags.size() > 0){
+			if(isNPC){
 				extraTags = setTempTags();
 			}
 			if(!serverSide){
+                if(isNPC){
+                    compound.setTag("TagUUIDs", tagsCompound);
+                }
 				ClientCloneController.Instance.addClone(compound, name, tab, extraTags);
 			}
-			else{
-				Client.sendData(EnumPacketServer.CloneSave, name, tab, extraTags);
+			else {
+                NBTTagCompound compounder = new NBTTagCompound();
+                if(isNPC){
+                    compounder.setTag("TagUUIDs", tagsCompound);
+                }
+				Client.sendData(EnumPacketServer.CloneSave, name, tab, extraTags, compounder);
 			}
 
 			close();
@@ -141,9 +156,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 
 
 	@Override
-	public void save() {
-
-	}
+	public void save() {}
 
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
@@ -157,6 +170,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 			NBTTagList validTags = compound.getTagList("ShortTags", 10);
 			tagMap.clear();
 			allTags.clear();
+            addTagUUIDs.clear();
 			if(validTags != null){
 				for(int j = 0; j < validTags.tagCount(); j++)
 				{
@@ -164,6 +178,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 					Tag tag = new Tag();
 					tag.readShortNBT(tagStructure);
 					tagMap.put(tag.name, tag.uuid);
+                    addTagUUIDs.add(tag.uuid);
 				}
 				allTags.addAll(tagMap.keySet());
 				allTags.sort(String.CASE_INSENSITIVE_ORDER);
@@ -174,27 +189,20 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
-		if(subgui instanceof SubGuiClonerNPCTags){
-			close();
-			return;
-		}
 		initGui();
 	}
 
 	public NBTTagCompound setTempTags(){
-		NBTTagCompound nbtTagCompound = new NBTTagCompound();
-		NBTTagList nbtTagList = new NBTTagList();
-		for (String name : addTags) {
-			if(tagMap.containsKey(name)){
-				nbtTagList.appendTag(new NBTTagString(tagMap.get(name).toString()));
-			}
-			else {
-				addTags.remove(name);
-			}
-		}
+        NBTTagCompound nbtTagCompound = new NBTTagCompound();
+        NBTTagList nbtTagList = new NBTTagList();
+        for (String name : addTags) {
+            if (tagMap.containsKey(name)) {
+                nbtTagList.appendTag(new NBTTagString(tagMap.get(name).toString()));
+            } else {
+                addTags.remove(name);
+            }
+        }
 		nbtTagCompound.setTag("TempTagUUIDs", nbtTagList);
-
 		return nbtTagCompound;
 	}
-
 }

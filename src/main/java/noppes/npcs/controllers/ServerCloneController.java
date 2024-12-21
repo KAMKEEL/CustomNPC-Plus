@@ -223,13 +223,16 @@ public class ServerCloneController implements ICloneHandler {
 				tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
 			}
 		}
-		if(tagUUIDs.size() > 0){
-			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
+
+        TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
+        if(!tagUUIDs.isEmpty()){
 			tagMap.putClone(name, tagUUIDs);
-			ServerTagMapController.Instance.saveTagMap(tagMap);
-			return true;
 		}
-		return false;
+        else {
+            tagMap.removeClone(name);
+        }
+        ServerTagMapController.Instance.saveTagMap(tagMap);
+        return true;
 	}
 
 	public boolean removeFromTagMap(String name, int tab){
