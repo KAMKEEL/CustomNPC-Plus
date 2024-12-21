@@ -334,7 +334,8 @@ public class ServerEventsHandler {
         }
         boolean checkCompletion = false;
         String entityName = EntityList.getEntityString(entity);
-
+        if(entity instanceof EntityPlayer)
+            entityName = "Player";
 
         Party party = playerData.getPlayerParty();
         Quest partyQuest = null;
@@ -372,10 +373,6 @@ public class ServerEventsHandler {
             }
 
             String name = entityName;
-            if (entityName == null) {
-                continue;
-            }
-
 			QuestKill quest = (QuestKill) data.quest.questInterface;
 			Class entityType = EntityNPCInterface.class;
 			if (quest.targetType == 2) {
@@ -398,10 +395,6 @@ public class ServerEventsHandler {
 			checkCompletion = true;
 
             HashMap<String, Integer> killed = quest.getKilled(data);
-            if (killed == null) {
-                killed = new HashMap<>();
-            }
-
 			if (!killed.containsKey(name)) {
 				killed.put(name, 1);
 			} else if(killed.get(name) < quest.targets.get(name)) {
