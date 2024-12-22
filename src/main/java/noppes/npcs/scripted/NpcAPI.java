@@ -18,7 +18,9 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
@@ -69,6 +71,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class NpcAPI extends AbstractNpcAPI {
+    private static final Map<String,Object> tempData = new HashMap<>();
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
     private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60*1000);
     public static final HashMap<String,Object> engineObjects = new HashMap<>();
@@ -84,6 +87,77 @@ public class NpcAPI extends AbstractNpcAPI {
     public static void clearCache() {
         worldCache.clear();
         scriptItemCache.clear();
+    }
+
+    public Object getTempData(String key){
+        return tempData.get(key);
+    }
+
+    public void setTempData(String key, Object value){
+        tempData.put(key, value);
+    }
+
+    public boolean hasTempData(String key){
+        return tempData.containsKey(key);
+    }
+
+    public void removeTempData(String key){
+        tempData.remove(key);
+    }
+
+    public void clearTempData(){
+        tempData.clear();
+    }
+
+    public String[] getTempDataKeys() {
+        return tempData.keySet().toArray(new String[0]);
+    }
+
+    public Object getStoredData(String key){
+        NBTTagCompound compound = ScriptController.Instance.compound;
+        if(!compound.hasKey(key))
+            return null;
+        NBTBase base = compound.getTag(key);
+        if(base instanceof NBTBase.NBTPrimitive)
+            return ((NBTBase.NBTPrimitive)base).func_150286_g();
+        return ((NBTTagString)base).func_150285_a_();
+    }
+
+    public void setStoredData(String key, Object value){
+        NBTTagCompound compound = ScriptController.Instance.compound;
+        if(value instanceof Number)
+            compound.setDouble(key, ((Number) value).doubleValue());
+        else if(value instanceof String)
+            compound.setString(key, (String)value);
+        ScriptController.Instance.shouldSave = true;
+    }
+
+    public boolean hasStoredData(String key){
+        return ScriptController.Instance.compound.hasKey(key);
+    }
+
+    public void removeStoredData(String key){
+        ScriptController.Instance.compound.removeTag(key);
+        ScriptController.Instance.shouldSave = true;
+    }
+
+    public void clearStoredData(){
+        ScriptController.Instance.compound = new NBTTagCompound();
+        ScriptController.Instance.shouldSave = true;
+    }
+
+    public String[] getStoredDataKeys() {
+        NBTTagCompound compound = ScriptController.Instance.compound;
+        if (compound != null) {
+            Set keySet = compound.func_150296_c();
+            List<String> list = new ArrayList<>();
+            for(Object o : keySet){
+                list.add((String) o);
+            }
+            String[] array = list.toArray(new String[list.size()]);
+            return array;
+        }
+        return new String[0];
     }
 
     public void registerICommand(ICommand command) {

@@ -38,7 +38,6 @@ import noppes.npcs.scripted.scoreboard.ScriptScoreboard;
 import java.util.*;
 
 public class ScriptWorld implements IWorld {
-	private static final Map<String,Object> tempData = new HashMap<>();
 	public WorldServer world;
 	public ScriptWorld(WorldServer world){
 		this.world = world;
@@ -1159,113 +1158,64 @@ public class ScriptWorld implements IWorld {
 		return NpcAPI.Instance().createEntityParticle(directory);
 	}
 
-	/**
-	 * @param key Get temp data for this key
-	 * @return Returns the stored temp data
-	 */
+    @Deprecated
 	public Object getTempData(String key){
-		return tempData.get(key);
+		return NpcAPI.Instance().getTempData(key);
 	}
 
-	/**
-	 * Tempdata gets cleared when the server restarts. All worlds share the same temp data.
-	 * @param key The key for the data stored
-	 * @param value The data stored
-	 */
+    @Deprecated
 	public void setTempData(String key, Object value){
-		tempData.put(key, value);
+        NpcAPI.Instance().setTempData(key, value);
 	}
 
-	/**
-	 * @param key The key thats going to be tested against the temp data
-	 * @return Whether or not temp data containes the key
-	 */
+    @Deprecated
 	public boolean hasTempData(String key){
-		return tempData.containsKey(key);
+		return NpcAPI.Instance().hasTempData(key);
 	}
 
-	/**
-	 * @param key The key for the temp data to be removed
-	 */
+    @Deprecated
 	public void removeTempData(String key){
-		tempData.remove(key);
+        NpcAPI.Instance().removeTempData(key);
 	}
 
-	/**
-	 * Removes all tempdata
-	 */
+    @Deprecated
 	public void clearTempData(){
-		tempData.clear();
+        NpcAPI.Instance().clearTempData();
 	}
 
+    @Deprecated
 	public String[] getTempDataKeys() {
-		return tempData.keySet().toArray(new String[0]);
+		return NpcAPI.Instance().getTempDataKeys();
 	}
 
-	/**
-	 * @param key The key of the data to be returned
-	 * @return Returns the stored data
-	 */
+    @Deprecated
 	public Object getStoredData(String key){
-		NBTTagCompound compound = ScriptController.Instance.compound;
-		if(!compound.hasKey(key))
-			return null;
-		NBTBase base = compound.getTag(key);
-		if(base instanceof NBTPrimitive)
-			return ((NBTPrimitive)base).func_150286_g();
-		return ((NBTTagString)base).func_150285_a_();
+        return NpcAPI.Instance().getStoredData(key);
 	}
 
-	/**
-	 * Stored data persists through world restart. Unlike tempdata only Strings and Numbers can be saved
-	 * @param key The key for the data stored
-	 * @param value The data stored. This data can be either a Number or a String. Other data is not stored
-	 */
+    @Deprecated
 	public void setStoredData(String key, Object value){
-		NBTTagCompound compound = ScriptController.Instance.compound;
-		if(value instanceof Number)
-			compound.setDouble(key, ((Number) value).doubleValue());
-		else if(value instanceof String)
-			compound.setString(key, (String)value);
-		ScriptController.Instance.shouldSave = true;
+        NpcAPI.Instance().setStoredData(key, value);
 	}
 
-	/**
-	 * @param key The key of the data to be checked
-	 * @return Returns whether or not the stored data contains the key
-	 */
+    @Deprecated
 	public boolean hasStoredData(String key){
-		return ScriptController.Instance.compound.hasKey(key);
+        return NpcAPI.Instance().hasStoredData(key);
 	}
 
-	/**
-	 * @param key The key of the data to be removed
-	 */
+    @Deprecated
 	public void removeStoredData(String key){
-		ScriptController.Instance.compound.removeTag(key);
-		ScriptController.Instance.shouldSave = true;
+        NpcAPI.Instance().removeStoredData(key);
 	}
 
-	/**
-	 * Remove all stored data
-	 */
+    @Deprecated
 	public void clearStoredData(){
-		ScriptController.Instance.compound = new NBTTagCompound();
-		ScriptController.Instance.shouldSave = true;
+        NpcAPI.Instance().clearStoredData();
 	}
 
+    @Deprecated
 	public String[] getStoredDataKeys() {
-		NBTTagCompound compound = ScriptController.Instance.compound;
-		if (compound != null) {
-			Set keySet = compound.func_150296_c();
-			List<String> list = new ArrayList<>();
-			for(Object o : keySet){
-				list.add((String) o);
-			}
-			String[] array = list.toArray(new String[list.size()]);
-			return array;
-		}
-		return new String[0];
+        return NpcAPI.Instance().getStoredDataKeys();
 	}
 
 	/**
