@@ -41,11 +41,18 @@ public class SubGuiNpcCommand extends SubGuiInterface implements ITextfieldListe
         }
     }
 
+    @Override
+    public void close(){
+        if(getTextField(4) != null){
+            unFocused(getTextField(4));
+        }
+        super.close();
+    }
+
 	@Override
 	public void unFocused(GuiNpcTextField textfield) {
 		if(textfield.id == 4){
 			command = textfield.getText();
 		}
 	}
-
 }
