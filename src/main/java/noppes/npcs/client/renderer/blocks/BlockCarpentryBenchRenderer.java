@@ -18,8 +18,9 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 
 	private final ModelCarpentryBench model = new ModelCarpentryBench();
 	private final ModelAnvil anvil = new ModelAnvil();
-	private static final ResourceLocation resource3 = new ResourceLocation("customnpcs","textures/models/Steel.png");
-    private static final ResourceLocation field_110631_g = new ResourceLocation("customnpcs","textures/models/CarpentryBench.png");
+	private static final ResourceLocation anvilTexture = new ResourceLocation("customnpcs","textures/models/Steel.png");
+    private static final ResourceLocation carpentryBench = new ResourceLocation("customnpcs","textures/models/CarpentryBench.png");
+
 
     public BlockCarpentryBenchRenderer(){
 		((BlockCarpentryBench)CustomItems.carpentyBench).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -36,11 +37,11 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * (meta % 4), 0, 1, 0);
         if(meta >= 4){
-            this.bindTexture(resource3);
+            this.bindTexture(anvilTexture);
         	anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
         else{
-            this.bindTexture(field_110631_g);
+            this.bindTexture(carpentryBench);
         	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
 		GL11.glPopMatrix();
@@ -57,14 +58,14 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 
         GL11.glColor3f(1, 1, 1);
         if(metadata == 0){
-            this.bindTexture(field_110631_g);
+            this.bindTexture(carpentryBench);
         	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
         else{
-            this.bindTexture(resource3);
+            this.bindTexture(anvilTexture);
             anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
-        
+
 		GL11.glPopMatrix();
 	}
 
