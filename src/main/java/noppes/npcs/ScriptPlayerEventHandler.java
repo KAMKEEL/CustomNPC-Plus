@@ -254,7 +254,7 @@ public class ScriptPlayerEventHandler {
             questData.checkQuestCompletion(playerData, EnumQuestType.Item);
         }
 
-        if(event.player.worldObj instanceof WorldServer) {
+        if(event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerPickUp(handler, scriptPlayer, event.pickedUp);
