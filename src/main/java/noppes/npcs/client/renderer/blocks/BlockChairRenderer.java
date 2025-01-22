@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL12;
 public class BlockChairRenderer extends BlockRendererInterface{
 
 	private final ModelChair model = new ModelChair();
-    
+
 	public BlockChairRenderer(){
 		((BlockChair)CustomItems.chair).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -30,7 +30,7 @@ public class BlockChairRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-        
+
         setWoodTexture(var1.getBlockMetadata());
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
@@ -49,7 +49,7 @@ public class BlockChairRenderer extends BlockRendererInterface{
         setWoodTexture(metadata);
         GL11.glColor3f(1, 1, 1);
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        
+
 		GL11.glPopMatrix();
 	}
 
