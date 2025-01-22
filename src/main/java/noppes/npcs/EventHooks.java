@@ -15,11 +15,12 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
-import noppes.npcs.api.entity.IEntity;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.entity.IProjectile;
+import noppes.npcs.api.entity.*;
+import noppes.npcs.api.event.IAnimationEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
+import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
@@ -802,5 +803,50 @@ public class EventHooks {
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
         handler.callScript(EnumScriptType.PARTY_DISBAND, event);
         NpcAPI.EVENT_BUS.post(event);
+    }
+
+    private static boolean postAnimationEvent(IAnimationEvent event) {
+        IScriptHandler handler;
+        IAnimatable animatable = event.getAnimation().getParent().getEntity();
+        if (animatable instanceof ICustomNpc<?>) {
+            EntityNPCInterface npc = (EntityNPCInterface) ((ICustomNpc<?>) animatable).getMCEntity();
+            handler = npc.script;
+        } else {
+            handler = ScriptController.Instance.playerScripts;
+        }
+
+        if (handler.isClient())
+            return false;
+
+        handler.callScript(event.getHookName(), (Event) event);
+        return NpcAPI.EVENT_BUS.post((Event) event);
+    }
+
+    public static boolean onAnimationStarted(IAnimation animation) {
+        if (animation.getParent() == null || animation.getParent().getEntity() == null) {
+            return false;
+        }
+        return postAnimationEvent(new AnimationEvent.Started(animation));
+    }
+
+    public static void onAnimationEnded(IAnimation animation) {
+        if (animation.getParent() == null || animation.getParent().getEntity() == null) {
+            return;
+        }
+        postAnimationEvent(new AnimationEvent.Ended(animation));
+    }
+
+    public static void onAnimationFrameEntered(IAnimation animation, IFrame frame) {
+        if (frame == null || animation.getParent() == null || animation.getParent().getEntity() == null) {
+            return;
+        }
+        postAnimationEvent(new AnimationEvent.FrameEvent.Entered(animation, frame));
+    }
+
+    public static void onAnimationFrameExited(IAnimation animation, IFrame frame) {
+        if (frame == null || animation.getParent() == null || animation.getParent().getEntity() == null) {
+            return;
+        }
+        postAnimationEvent(new AnimationEvent.FrameEvent.Exited(animation, frame));
     }
 }

@@ -99,7 +99,12 @@ public enum EnumScriptType {
     PARTY_INVITE("partyInvite"),
     PARTY_KICK("partyKick"),
     PARTY_LEAVE("partyLeave"),
-    PARTY_DISBAND("partyDisband");
+    PARTY_DISBAND("partyDisband"),
+
+    ANIMATION_START("animationStart"),
+    ANIMATION_END("animationEnd"),
+    ANIMATION_FRAME_ENTER("frameEnter"),
+    ANIMATION_FRAME_EXIT("frameExit");
 
 	public String function;
 
