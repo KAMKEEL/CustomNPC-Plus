@@ -104,7 +104,7 @@ public class ProfileController {
         });
     }
 
-    public void changeSlot(EntityPlayer player, int slotNumber){
+    public static void changeSlot(EntityPlayer player, int slotNumber){
         if(!activeProfiles.containsKey(player.getUniqueID()))
             return;
 
@@ -122,7 +122,7 @@ public class ProfileController {
         save(player, profile);
     }
 
-    public void saveSlotData(EntityPlayer player){
+    public static void saveSlotData(EntityPlayer player){
         if(!activeProfiles.containsKey(player.getUniqueID()))
             return;
 
@@ -134,8 +134,9 @@ public class ProfileController {
             slot = profile.slots.get(profile.currentID);
             dataCompound = (NBTTagCompound) slot.getCompound().copy();
         } else {
-            slot = new Slot(profile.currentID, "Slot 1");
+            slot = new Slot(profile.currentID, "Slot " + profile.currentID);
             dataCompound = new NBTTagCompound();
+            slot.setCompound(dataCompound);
         }
 
         for(IProfileData profileData : profileTypes.values()){
@@ -146,7 +147,7 @@ public class ProfileController {
         slot.setCompound(dataCompound);
     }
 
-    public void changePlayerSlot(EntityPlayer player, int id){
+    public static void changePlayerSlot(EntityPlayer player, int id){
         if(!activeProfiles.containsKey(player.getUniqueID()))
             return;
 
@@ -158,19 +159,15 @@ public class ProfileController {
             slotCompound = (NBTTagCompound) slot.getCompound().copy();
         } else {
             slot = new Slot(id, "Slot " + id);
-            slot.setCompound(new NBTTagCompound());
             slotCompound = new NBTTagCompound();
+            slot.setCompound(slotCompound);
         }
 
         slot.setLastLoaded(System.currentTimeMillis());
         profile.slots.put(id, slot);
 
         for(IProfileData profileData : profileTypes.values()){
-            if(slotCompound.hasKey(profileData.getTagName())){
-                profileData.setNBT(player, slotCompound.getCompoundTag(profileData.getTagName()));
-            } else {
-                profileData.setNBT(player, new NBTTagCompound());
-            }
+            profileData.setNBT(player, slotCompound.getCompoundTag(profileData.getTagName()));
             profileData.save(player);
         }
 

@@ -22,6 +22,7 @@ public class CommandProfile extends CommandBase {
 
 	public CommandProfile(){
 		registerCommand(help);
+        registerCommand(new CommandProfileChange());
 	}
 
 	public void registerCommand(CommandProfileBase command){

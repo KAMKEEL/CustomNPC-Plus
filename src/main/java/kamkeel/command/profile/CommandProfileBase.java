@@ -123,11 +123,11 @@ public abstract class CommandProfileBase extends CommandBase{
     }
 
 	public String getSubCommandPermission(String subCommand){
-		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "." + subCommand.toLowerCase();
+		return "profile.kamkeel." + getCommandName().toLowerCase() + "." + subCommand.toLowerCase();
 	}
 
 	public String getSubUniversalPermission(){
-		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "*";
+		return "profile.kamkeel." + getCommandName().toLowerCase() + "*";
 	}
 
 	public boolean canSendCommand(ICommandSender sender, SubCommand command, String subCommand){

@@ -34,5 +34,6 @@ public class CNPCData implements IProfileData {
         else {
             customNPCData.setNBT(replace);
         }
+        customNPCData.updateClient = true;
     }
 }
