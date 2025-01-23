@@ -32,8 +32,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class ClientEventHandler {
-
-
     public static final RenderCNPCPlayer renderCNPCSelf = new RenderCNPCPlayer();
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
@@ -128,10 +126,7 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderEntity(RenderLivingEvent.Post event) {
-        AnimationData data = null;
         if (event.entity instanceof EntityNPCInterface) {
-            data = ClientEventHandler.renderingNpc.display.animationData;
-
             MarkData markData = MarkData.get((EntityNPCInterface) event.entity);
             EntityPlayer player = Minecraft.getMinecraft().thePlayer;
             if(PlayerData.get(player) != null){
@@ -143,10 +138,6 @@ public class ClientEventHandler {
                 }
             }
         } else if (event.entity instanceof EntityPlayer) {
-            if (ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
-            }
-
             for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
                 ModelRenderer renderer = entry.getKey();
                 FramePart part = entry.getValue();
@@ -161,33 +152,7 @@ public class ClientEventHandler {
             ClientEventHandler.playerModel = null;
         }
 
-        if (data != null && data.isActive() && !Minecraft.getMinecraft().isGamePaused()) {
-            Animation animation = data.animation;
-            if (data.isActive() && animation.currentFrame().useRenderTicks()) {
-                animation.increaseTime();
-            }
-        }
-
         ClientEventHandler.renderingNpc = null;
-    }
-
-    @SubscribeEvent
-    public void onUpdateEntity(LivingEvent.LivingUpdateEvent event) {
-        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-            AnimationData data = null;
-            if (event.entity instanceof EntityNPCInterface) {
-                data = ((EntityNPCInterface) event.entity).display.animationData;
-            } else if (event.entity instanceof EntityPlayer && ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
-            }
-
-            if (data != null && data.isActive()) {
-                Animation animation = data.animation;
-                if (data.isActive() && !animation.currentFrame().useRenderTicks()) {
-                    animation.increaseTime();
-                }
-            }
-        }
     }
 
     @SubscribeEvent

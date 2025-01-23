@@ -97,7 +97,7 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public boolean isClient() {
-        return this.player.isClientWorld();
+        return this.player != null && this.player.isClientWorld();
     }
     public boolean getEnabled() {
         return ScriptController.Instance.playerScripts.enabled;

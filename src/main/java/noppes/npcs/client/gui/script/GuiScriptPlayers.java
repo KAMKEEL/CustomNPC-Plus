@@ -73,6 +73,10 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         hookList.add("partyKick");
         hookList.add("partyLeave");
         hookList.add("partyDisband");
+        hookList.add("animationStart");
+        hookList.add("animationEnd");
+        hookList.add("frameEnter");
+        hookList.add("frameExit");
 
         this.handler = this.script;
         Client.sendData(EnumPacketServer.ScriptPlayerGet);
