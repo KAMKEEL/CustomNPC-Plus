@@ -2,12 +2,9 @@ package kamkeel.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 
 import java.util.HashMap;
 import java.util.Set;
-import java.util.UUID;
 
 public class Profile {
 
@@ -15,12 +12,8 @@ public class Profile {
     public int currentID;
     public HashMap<Integer, Slot> slots = new HashMap<>();
 
-    private NBTTagCompound profileCompound;
-
     public Profile(EntityPlayer player, NBTTagCompound compound){
         this.player = player;
-        this.profileCompound = compound;
-
         if(compound.hasKey("CurrentID")){
             this.currentID = compound.getInteger("CurrentID");
         } else {
