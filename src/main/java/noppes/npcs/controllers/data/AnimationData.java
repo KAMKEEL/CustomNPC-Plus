@@ -120,12 +120,9 @@ public class AnimationData implements IAnimationData {
 
             entities.removeIf(player -> Arrays.stream(excludedPlayers).anyMatch(exp -> player == exp));
 
-            NBTTagCompound animationNBT = null;
             for (EntityPlayer player : entities) {
                 AnimationData animationData = PlayerDataController.Instance.getPlayerData(player).animationData;
-                if (animationNBT == null && this.animation != null && !animationData.isCached(this.animation.getID())) {
-                    animationNBT = this.animation.writeToNBT();
-                }
+                NBTTagCompound animationNBT = this.animation != null ? this.animation.writeToNBT() : null;
                 animationData.viewAnimation(this.animation, this, animationNBT);
             }
         }
@@ -221,12 +218,8 @@ public class AnimationData implements IAnimationData {
             data.setInteger("Time", time);
         }
 
-        if (animation != null) {
-            if (this.cachedAnimationIDs.contains(animation.getID()) && !data.hasKey("Frame")) {
-                data.setInteger("AnimationID", animation.getID());
-            } else {
-                data.setTag("Animation", animationNBT);
-            }
+        if (animationNBT != null) {
+            data.setTag("Animation", animationNBT);
         }
 
         IAnimatable animatable = animationData.getEntity();

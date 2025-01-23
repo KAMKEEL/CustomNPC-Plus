@@ -368,19 +368,14 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			}
 
 			if (animationData != null) {
-                int animationId;
-                if (compound.hasKey("AnimationID")) {
-                    animationId = compound.getInteger("AnimationID");
-                } else {
+                if (compound.hasKey("Animation")) {
                     Animation animation = new Animation();
                     animation.readFromNBT(compound.getCompoundTag("Animation"));
-                    ClientCacheHandler.animationCache.put(animation.getID(), animation);
-                    animationId = animation.getID();
+                    animationData.setAnimation(animation);
+                } else {
+                    animationData.setAnimation(null);
                 }
-
-                animationData.setAnimation(ClientCacheHandler.animationCache.get(animationId));
 				animationData.readFromNBT(compound);
-                Client.sendData(EnumPacketServer.CacheAnimation, animationId);
 			}
 		}
 		else if(type == EnumPacketClient.DISABLE_MOUSE_INPUT) {
