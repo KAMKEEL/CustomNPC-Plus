@@ -32,7 +32,6 @@ public class CommandProfileChange extends CommandProfileBase {
 
 	@Override
 	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-
         if(!(sender instanceof EntityPlayer)){
             sendError(sender, "This command can only be sent by a player");
             return;
