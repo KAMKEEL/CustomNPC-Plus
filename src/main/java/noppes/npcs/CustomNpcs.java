@@ -11,6 +11,8 @@ import cpw.mods.fml.common.registry.EntityRegistry;
 import foxz.command.CommandNoppes;
 import kamkeel.addon.AddonManager;
 import kamkeel.command.CommandKamkeel;
+import kamkeel.controllers.ProfileController;
+import kamkeel.controllers.data.CNPCData;
 import kamkeel.developer.Developer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
@@ -205,6 +207,11 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
+
+        // Profile Controller
+        new ProfileController();
+        ProfileController.registerProfileType(new CNPCData());
+
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();
         ScriptController.Instance.loadGlobalNPCScripts();

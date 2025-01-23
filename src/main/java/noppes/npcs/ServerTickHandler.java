@@ -4,6 +4,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
+import kamkeel.controllers.ProfileController;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
@@ -52,6 +53,7 @@ public class ServerTickHandler {
 		}
 
         SyncController.syncPlayer(player);
+        ProfileController.login(player);
 	}
 
 	@SubscribeEvent
