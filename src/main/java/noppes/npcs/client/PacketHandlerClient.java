@@ -136,6 +136,10 @@ public class PacketHandlerClient extends PacketHandlerServer{
 
             SyncController.clientSyncRemove(synctype, id);
         }
+        else if(type == EnumPacketClient.SYNC_CONFIG){
+            NBTTagCompound configNBT = Server.readNBT(buffer);
+            SyncController.receiveConfigs(configNBT);
+        }
         else if(type == EnumPacketClient.MARK_DATA){
             Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
             if(!(entity instanceof EntityNPCInterface))

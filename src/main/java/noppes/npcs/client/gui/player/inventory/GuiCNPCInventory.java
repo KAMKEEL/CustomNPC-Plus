@@ -8,6 +8,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMain;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
@@ -65,6 +66,16 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             dbcButton.renderIconPosX = 64;
             dbcButton.renderResource = specialIcons;
             addButton(dbcButton);
+        }
+
+        if(ConfigMain.EnableProfiles){
+            y += 21;
+            GuiMenuSideButton profileButton = new GuiMenuSideButton(105, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
+            profileButton.rightSided = true;
+            profileButton.active = activeTab == 5;
+            profileButton.renderIconPosX = 80;
+            profileButton.renderResource = specialIcons;
+            addButton(profileButton);
         }
 
         y += 21;

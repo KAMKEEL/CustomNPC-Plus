@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.Server;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.*;
@@ -14,6 +15,16 @@ import noppes.npcs.controllers.data.*;
 import java.util.HashMap;
 
 public class SyncController {
+
+    public static void syncConfigs(EntityPlayerMP player){
+        NBTTagCompound nbtTagCompound = new NBTTagCompound();
+        nbtTagCompound.setBoolean("Profiles", true);
+        Server.sendData(player, EnumPacketClient.SYNC_CONFIG, nbtTagCompound);
+    }
+
+    public static void receiveConfigs(NBTTagCompound compound){
+        ConfigMain.EnableProfiles = compound.getBoolean("Profiles");
+    }
 
 	public static void syncPlayer(EntityPlayerMP player){
 		NBTTagList list = new NBTTagList();
