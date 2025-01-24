@@ -110,6 +110,10 @@ public class GuiCNPCInventory extends GuiNPCInterface {
                 activeTab = 4;
                 mc.displayGuiScreen(DBCClient.Instance.inventoryGUI());
             }
+            if (guibutton.id == 105 && activeTab != 5) {
+                activeTab = 5;
+                mc.displayGuiScreen(new GuiProfiles());
+            }
         }
     }
 
