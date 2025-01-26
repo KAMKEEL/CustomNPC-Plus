@@ -1,13 +1,13 @@
-package noppes.npcs.client.model.blocks;
+package noppes.npcs.client.model.blocks.legacy;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelWallBannerFlag extends ModelBase {
+public class ModelLegacyWallBannerFlag extends ModelBase {
 	ModelRenderer Flag;
 
-	public ModelWallBannerFlag() {
+	public ModelLegacyWallBannerFlag() {
 		textureWidth = 32;
 		textureHeight = 32;
 		Flag = new ModelRenderer(this, 0, 0);

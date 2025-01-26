@@ -14,19 +14,31 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockBanner;
 import noppes.npcs.blocks.tiles.TileBanner;
-import noppes.npcs.client.model.blocks.ModelBanner;
-import noppes.npcs.client.model.blocks.ModelBannerFlag;
+import noppes.npcs.client.model.blocks.banner.ModelBannerFloor;
+import noppes.npcs.client.model.blocks.banner.ModelBannerFloorFlag;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyBanner;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyBannerFlag;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class BlockBannerRenderer extends BlockRendererInterface{
 
-	private final ModelBanner model = new ModelBanner();
-	private final ModelBannerFlag flag = new ModelBannerFlag();
+	private final ModelLegacyBanner legacyBanner = new ModelLegacyBanner();
+	private final ModelLegacyBannerFlag legacyFlag = new ModelLegacyBannerFlag();
 
-    public static final ResourceLocation resourceFlag = new ResourceLocation("customnpcs","textures/models/BannerFlag.png");
+    private final ModelBannerFloor banner = new ModelBannerFloor();
+    private final ModelBannerFloorFlag flag = new ModelBannerFloorFlag();
 
 
+    public static final ResourceLocation legacyFlagResource = new ResourceLocation("customnpcs","textures/models/BannerFlag.png");
+    public static final ResourceLocation flagResource = new ResourceLocation("customnpcs","textures/models/banner/flag/BannerFlag1.png");
+
+    protected static final ResourceLocation BannerWood = new ResourceLocation("customnpcs","textures/models/banner/BannerFloorWood.png");
+    protected static final ResourceLocation BannerStone = new ResourceLocation("customnpcs","textures/models/banner/BannerFloorStone.png");
+    protected static final ResourceLocation BannerIron = new ResourceLocation("customnpcs","textures/models/banner/BannerFloorIron.png");
+    protected static final ResourceLocation BannerGold = new ResourceLocation("customnpcs","textures/models/banner/BannerFloorGold.png");
+    protected static final ResourceLocation BannerDiamond = new ResourceLocation("customnpcs","textures/models/banner/BannerFloorDiamond.png");
 
     public BlockBannerRenderer(){
 		((BlockBanner)CustomItems.banner).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -46,13 +58,24 @@ public class BlockBannerRenderer extends BlockRendererInterface{
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
 
-        setMaterialTexture(var1.getBlockMetadata());
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        if(ConfigClient.LegacyBanner){
+            setMaterialTexture(var1.getBlockMetadata());
+            legacyBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
-        this.bindTexture(resourceFlag);
-        float[] color = colorTable[tile.color];
-        GL11.glColor3f(color[0], color[1], color[2]);
-        flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            this.bindTexture(legacyFlagResource);
+            float[] color = colorTable[tile.color];
+            GL11.glColor3f(color[0], color[1], color[2]);
+            legacyFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
+        else {
+            setBannerMaterial(var1.getBlockMetadata());
+            banner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+
+            this.bindTexture(flagResource);
+            float[] color = colorTable[tile.color];
+            GL11.glColor3f(color[0], color[1], color[2]);
+            flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
 
 		GL11.glPopMatrix();
         GL11.glColor3f(1, 1, 1);
@@ -135,12 +158,12 @@ public class BlockBannerRenderer extends BlockRendererInterface{
 
         setMaterialTexture(metadata);
         GL11.glColor3f(1, 1, 1);
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        legacyBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
-        this.bindTexture(resourceFlag);
+        this.bindTexture(legacyFlagResource);
         float[] color = colorTable[15 - metadata];
         GL11.glColor3f(color[0], color[1], color[2]);
-        flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        legacyFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 		GL11.glPopMatrix();
 	}
 
@@ -152,4 +175,18 @@ public class BlockBannerRenderer extends BlockRendererInterface{
 	public int specialRenderDistance(){
 		return 26;
 	}
+
+    public void setBannerMaterial(int meta){
+        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+        if(meta == 1)
+            manager.bindTexture(BannerStone);
+        else if(meta == 2)
+            manager.bindTexture(BannerIron);
+        else if(meta == 3)
+            manager.bindTexture(BannerGold);
+        else if(meta == 4)
+            manager.bindTexture(BannerDiamond);
+        else
+            manager.bindTexture(BannerWood);
+    }
 }

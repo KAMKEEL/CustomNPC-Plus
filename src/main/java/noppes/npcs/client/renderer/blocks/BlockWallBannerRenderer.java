@@ -2,8 +2,6 @@ package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockColored;
-import net.minecraft.block.material.MapColor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -17,15 +15,15 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockWallBanner;
 import noppes.npcs.blocks.tiles.TileWallBanner;
-import noppes.npcs.client.model.blocks.ModelWallBanner;
-import noppes.npcs.client.model.blocks.ModelWallBannerFlag;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyWallBanner;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyWallBannerFlag;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class BlockWallBannerRenderer extends BlockRendererInterface{
 
-	private final ModelWallBanner model = new ModelWallBanner();
-	private final ModelWallBannerFlag flag = new ModelWallBannerFlag();
+	private final ModelLegacyWallBanner model = new ModelLegacyWallBanner();
+	private final ModelLegacyWallBannerFlag flag = new ModelLegacyWallBannerFlag();
 
     public BlockWallBannerRenderer(){
 		((BlockWallBanner)CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -48,7 +46,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         GL11.glColor3f(1, 1, 1);
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
-        this.bindTexture(BlockBannerRenderer.resourceFlag);
+        this.bindTexture(BlockBannerRenderer.legacyFlagResource);
         float[] color = BlockBannerRenderer.colorTable[tile.color];
         GL11.glColor3f(color[0], color[1], color[2]);
         flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -154,7 +152,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         GL11.glColor3f(1, 1, 1);
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
-        this.bindTexture(BlockBannerRenderer.resourceFlag);
+        this.bindTexture(BlockBannerRenderer.legacyFlagResource);
         float[] color = BlockBannerRenderer.colorTable[15 - metadata];
         GL11.glColor3f(color[0], color[1], color[2]);
         flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
