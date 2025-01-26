@@ -8,11 +8,14 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockChair;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.model.blocks.ModelChair;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyChair;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class BlockChairRenderer extends BlockRendererInterface{
 
+    private final ModelLegacyChair legacyModel = new ModelLegacyChair();
 	private final ModelChair model = new ModelChair();
 
 	public BlockChairRenderer(){
@@ -32,7 +35,10 @@ public class BlockChairRenderer extends BlockRendererInterface{
         GL11.glColor3f(1, 1, 1);
 
         setWoodTexture(var1.getBlockMetadata());
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        if(ConfigClient.LegacyChair)
+            legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        else
+            model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
 		GL11.glPopMatrix();
 	}
@@ -48,8 +54,10 @@ public class BlockChairRenderer extends BlockRendererInterface{
 
         setWoodTexture(metadata);
         GL11.glColor3f(1, 1, 1);
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
+        if(ConfigClient.LegacyChair)
+            legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        else
+            model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 		GL11.glPopMatrix();
 	}
 
