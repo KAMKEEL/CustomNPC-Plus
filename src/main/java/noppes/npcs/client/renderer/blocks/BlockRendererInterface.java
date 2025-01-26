@@ -24,16 +24,13 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	protected static final ResourceLocation PlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
 	protected static final ResourceLocation PlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
 
-
-    protected static final ResourceLocation MCPlanksOak = new ResourceLocation("customnpcs","textures/cache/planks_oak.png");
-    protected static final ResourceLocation MCPlanksBigOak = new ResourceLocation("customnpcs","textures/cache/planks_big_oak.png");
-    protected static final ResourceLocation MCPlanksSpruce = new ResourceLocation("customnpcs","textures/cache/planks_spruce.png");
-    protected static final ResourceLocation MCPlanksBirch = new ResourceLocation("customnpcs","textures/cache/planks_birch.png");
-    protected static final ResourceLocation MCPlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
-    protected static final ResourceLocation MCPlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
-
 	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/Steel.png");
-	protected static final RenderItem renderer = new RenderItem();
+
+    protected static final ResourceLocation Logs = new ResourceLocation("textures/blocks/log_oak.png");
+    protected static final ResourceLocation Cobble = new ResourceLocation("textures/blocks/cobblestone.png");
+    protected static final ResourceLocation Flame = new ResourceLocation("customnpcs","textures/models/flame.png");
+
+    protected static final RenderItem renderer = new RenderItem();
 
     public static float colorTable[][] = {
         {

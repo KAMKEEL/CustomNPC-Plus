@@ -14,6 +14,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileCampfire;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
@@ -31,14 +32,14 @@ public class BlockCampfire extends BlockLightable{
 	public TileEntity createNewTileEntity(World var1, int var2) {
 		return new TileCampfire();
 	}
-	
-    @Override    
+
+    @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9){
     	ItemStack item = player.inventory.getCurrentItem();
     	if(item == null)
     		return true;
         int meta = world.getBlockMetadata(x, y, z);
-    	
+
     	if((item.getItem() == Items.flint || item.getItem() == Items.flint_and_steel) && unlitBlock() == this){
     		if(world.rand.nextInt(3) == 0 && !world.isRemote)
             	super.onBlockActivated(world, x, y, z, player, par6, par7, par8, par9);
@@ -49,11 +50,11 @@ public class BlockCampfire extends BlockLightable{
     			item.damageItem(1, player);
     		return true;
     	}
-    	
+
     	if(item.getItem() == Item.getItemFromBlock(Blocks.sand) && litBlock() == this){
         	super.onBlockActivated(world, x, y, z, player, par6, par7, par8, par9);
     	}
-    	
+
     	return true;
     }
 
@@ -68,23 +69,25 @@ public class BlockCampfire extends BlockLightable{
         int meta = world.getBlockMetadata(x, y, z);
         if(meta == 1)
         	return;
-		
+
 		if(random.nextInt(36) == 0){
     		world.playSound(x + 0.5F, y + 0.5F, z + 0.5F, "fire.fire", 1.0F + random.nextFloat(), 0.3F + random.nextFloat() * 0.7f , false);
 		}
-		
+
 		TileCampfire tile = (TileCampfire) world.getTileEntity(x, y, z);
-    	
+
     	float xOffset = 0.5f, yOffset = 0.7f, zOffset = 0.5f;
 
         double d0 = (double)((float)x + xOffset);
         double d1 = (double)((float)y + yOffset);
         double d2 = (double)((float)z + zOffset);
-        
+
         GL11.glPushMatrix();
-        
-        CustomNpcs.proxy.spawnParticle("largesmoke", d0, d1, d2, 0.0D, 0.0D, 0.0D, 2);
-        CustomNpcs.proxy.spawnParticle("flame", d0, d1, d2, 0.0D, 0.0D, 0.0D, 4);
+
+        if(ConfigClient.LegacyCampfire){
+            CustomNpcs.proxy.spawnParticle("largesmoke", d0, d1, d2, 0.0D, 0.0D, 0.0D, 2);
+            CustomNpcs.proxy.spawnParticle("flame", d0, d1, d2, 0.0D, 0.0D, 0.0D, 4);
+        }
 
         GL11.glPopMatrix();
     }

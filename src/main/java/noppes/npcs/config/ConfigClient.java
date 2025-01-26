@@ -16,6 +16,7 @@ public class ConfigClient
     public final static String GENERAL = "General";
     public final static String VISUAL = "Visual";
     public final static String QUESTING = "Questing";
+    public final static String MODEL = "Model";
 
 
     /**
@@ -72,6 +73,14 @@ public class ConfigClient
     public static Property BannerAlertsProperty;
     public static boolean BannerAlerts = true;
 
+    /**
+     *  Model Properties
+     **/
+    public static boolean LegacyCampfire = false;
+    public static boolean LegacyChair = false;
+    public static boolean LegacyBarrel = false;
+    public static boolean LegacyCarpentryBench = false;
+
     public static void init(File configFile)
     {
         config = new Configuration(configFile);
@@ -127,6 +136,11 @@ public class ConfigClient
 
             BannerAlertsProperty = config.get(VISUAL, "All Banner Alerts", true, "Universal enable/disable for Banner Alerts");
             BannerAlerts = BannerAlertsProperty.getBoolean(true);
+
+            LegacyCampfire = config.get(MODEL, "Legacy Campfire Model", false).getBoolean(false);
+            LegacyBarrel = config.get(MODEL, "Legacy Barrel Model", false).getBoolean(false);
+            LegacyChair = config.get(MODEL, "Legacy Chair Model", false).getBoolean(false);
+            LegacyCarpentryBench = config.get(MODEL, "Legacy Carpentry Bench Model", false).getBoolean(false);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){
