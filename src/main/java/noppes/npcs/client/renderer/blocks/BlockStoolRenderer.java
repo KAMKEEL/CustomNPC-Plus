@@ -2,19 +2,27 @@ package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockStool;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.model.blocks.ModelStool;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyStool;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class BlockStoolRenderer extends BlockRendererInterface{
 
-	private final ModelStool model = new ModelStool();
-    
+	private final ModelLegacyStool legacyStool = new ModelLegacyStool();
+    private final ModelStool stool = new ModelStool();
+
+    protected static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/stool/oak.png");
+
 	public BlockStoolRenderer(){
 		((BlockStool)CustomItems.stool).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -29,9 +37,15 @@ public class BlockStoolRenderer extends BlockRendererInterface{
         GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glColor3f(1, 1, 1);
-        setWoodTexture(var1.getBlockMetadata());
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
+        if(ConfigClient.LegacyStool){
+            setWoodTexture(var1.getBlockMetadata());
+            legacyStool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
+        else {
+            setStoolTexture(var1.getBlockMetadata());
+            stool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
 		GL11.glPopMatrix();
 	}
 
@@ -44,12 +58,35 @@ public class BlockStoolRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(180, 0, 1, 0);
 
-        setWoodTexture(metadata);
-        GL11.glColor3f(1, 1, 1);
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        
+        if(ConfigClient.LegacyStool){
+            setWoodTexture(metadata);
+            GL11.glColor3f(1, 1, 1);
+            legacyStool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
+        else {
+            setStoolTexture(metadata);
+            GL11.glColor3f(1, 1, 1);
+            stool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
+
 		GL11.glPopMatrix();
 	}
+
+    public void setStoolTexture(int meta){
+        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+        if(meta == 1)
+            manager.bindTexture(oak);
+        else if(meta == 2)
+            manager.bindTexture(oak);
+        else if(meta == 3)
+            manager.bindTexture(oak);
+        else if(meta == 4)
+            manager.bindTexture(oak);
+        else if(meta == 5)
+            manager.bindTexture(oak);
+        else
+            manager.bindTexture(oak);
+    }
 
 	@Override
 	public int getRenderId() {
