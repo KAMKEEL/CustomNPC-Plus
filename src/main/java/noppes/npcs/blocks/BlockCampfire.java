@@ -19,6 +19,8 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
 
+import static noppes.npcs.client.ClientProxy.RAND;
+
 public class BlockCampfire extends BlockLightable{
 
 	public BlockCampfire(boolean lit) {
@@ -88,7 +90,9 @@ public class BlockCampfire extends BlockLightable{
             CustomNpcs.proxy.spawnParticle("largesmoke", d0, d1, d2, 0.0D, 0.0D, 0.0D, 2);
             CustomNpcs.proxy.spawnParticle("flame", d0, d1, d2, 0.0D, 0.0D, 0.0D, 4);
         }
-
+        else {
+            tile.updateEntity();
+        }
         GL11.glPopMatrix();
     }
 

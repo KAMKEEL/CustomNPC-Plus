@@ -6,6 +6,7 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.addon.client.DBCClient;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -32,6 +33,7 @@ import noppes.npcs.*;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.*;
+import noppes.npcs.client.fx.EntityBigSmokeFX;
 import noppes.npcs.client.fx.EntityElementalStaffFX;
 import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
@@ -76,7 +78,7 @@ import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
 	public static KeyBinding NPCButton;
-
+    public static final Random RAND = new Random();
 	public static FontContainer Font;
 
 	public void load() {
@@ -540,6 +542,17 @@ public class ClientProxy extends CommonProxy {
 			ObfuscationReflectionHelper.setPrivateValue(EntitySmokeFX.class, (EntitySmokeFX)fx, scale, 0);
 		}
 	}
+
+    @Override
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire)
+    {
+        if (RAND.nextFloat() < 0.11F)
+        {
+            float[] colours = new float[0];
+            for (int i = 0; i < RAND.nextInt(2) + 1; ++i)
+                Minecraft.getMinecraft().effectRenderer.addEffect(new EntityBigSmokeFX(world, x, y, z, signalFire, colours));
+        }
+    }
 
 	@Override
 	public String getAchievementDesc(Achievement achievement) {

@@ -5,11 +5,13 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockRotated;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.model.blocks.ModelCampfire;
+import noppes.npcs.client.model.blocks.campfire.ModelCampfireCoals;
 import noppes.npcs.client.model.blocks.campfire.ModelCampfireFlame;
 import noppes.npcs.client.model.blocks.campfire.ModelCampfireLog;
 import noppes.npcs.client.model.blocks.campfire.ModelCampfireStone;
@@ -26,7 +28,9 @@ public class BlockCampfireRenderer extends BlockRendererInterface{
     private final ModelCampfireFlame flameModel = new ModelCampfireFlame();
     private final ModelCampfireLog logsModel = new ModelCampfireLog();
     private final ModelCampfireStone stonesModel = new ModelCampfireStone();
+    private final ModelCampfireCoals coalsModel = new ModelCampfireCoals();
 
+    protected static final ResourceLocation coalsTexture = new ResourceLocation("customnpcs","textures/models/CampfireCoals.png");
 
     public BlockCampfireRenderer(){
 		((BlockRotated)CustomItems.campfire).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -60,9 +64,15 @@ public class BlockCampfireRenderer extends BlockRendererInterface{
             Minecraft.getMinecraft().getTextureManager().bindTexture(Cobble);
             stonesModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             if(block == CustomItems.campfire){
+                GL11.glDisable(GL11.GL_LIGHTING);
+                GL11.glEnable(GL11.GL_ALPHA_TEST);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(Flame);
                 flameModel.render(null, tile.getWorldObj().getWorldTime(), 0, 0, 0, 0.0F, 0.0625F);
+                GL11.glDisable(GL11.GL_ALPHA_TEST);
+                GL11.glEnable(GL11.GL_LIGHTING);
             }
+            Minecraft.getMinecraft().getTextureManager().bindTexture(coalsTexture);
+            coalsModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
 
 		GL11.glPopMatrix();
