@@ -34,11 +34,13 @@ public class BlockChairRenderer extends BlockRendererInterface{
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
 
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
         setWoodTexture(var1.getBlockMetadata());
         if(ConfigClient.LegacyChair)
             legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         else
             model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
 
 		GL11.glPopMatrix();
 	}

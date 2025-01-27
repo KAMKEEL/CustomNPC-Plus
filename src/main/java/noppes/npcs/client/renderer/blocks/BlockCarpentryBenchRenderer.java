@@ -40,9 +40,11 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
             this.bindTexture(anvilTexture);
         	anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
-        else{
+        else {
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
             this.bindTexture(carpentryBench);
         	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
         }
 		GL11.glPopMatrix();
 	}

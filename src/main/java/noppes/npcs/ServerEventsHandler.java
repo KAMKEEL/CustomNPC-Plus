@@ -11,6 +11,7 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -255,11 +256,23 @@ public class ServerEventsHandler {
 			}
 
 			if(!player.worldObj.isRemote){
+                if(block == CustomItems.banner || block == CustomItems.wallBanner){
+                    // If sneaking and using shear
+                    if(player.isSneaking() && item.getItem() == Items.shears){
+                        int currentVariantIndex = tile.variant.ordinal();
+                        int nextVariantIndex = (currentVariantIndex + 1) % EnumBannerVariant.values().length;
+                        tile.variant = EnumBannerVariant.values()[nextVariantIndex];
+
+                        player.worldObj.markBlockForUpdate(event.x, y, event.z);
+                        event.setCanceled(true);
+                        return;
+                    }
+                }
+
 				tile.icon = item.copy();
 				player.worldObj.markBlockForUpdate(event.x, y, event.z);
 				event.setCanceled(true);
 			}
-
 		}
 	}
 

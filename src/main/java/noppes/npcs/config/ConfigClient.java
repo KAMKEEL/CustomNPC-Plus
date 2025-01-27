@@ -17,6 +17,7 @@ public class ConfigClient
     public final static String VISUAL = "Visual";
     public final static String QUESTING = "Questing";
     public final static String MODEL = "Model";
+    public final static String TEXTURE = "Texture";
 
 
     /**
@@ -72,6 +73,11 @@ public class ConfigClient
 
     public static Property BannerAlertsProperty;
     public static boolean BannerAlerts = true;
+
+    /**
+     *  Texture Properties
+     **/
+    public static boolean WoodTextures = false;
 
     /**
      *  Model Properties
@@ -138,6 +144,8 @@ public class ConfigClient
 
             BannerAlertsProperty = config.get(VISUAL, "All Banner Alerts", true, "Universal enable/disable for Banner Alerts");
             BannerAlerts = BannerAlertsProperty.getBoolean(true);
+
+            WoodTextures = config.get(TEXTURE, "Wood Textures", false, "Models like Chairs and Stools will use default MC Wood Textures").getBoolean(false);
 
             LegacyCampfire = config.get(MODEL, "Legacy Campfire Model", false).getBoolean(false);
             LegacyBanner = config.get(MODEL, "Legacy Banner Model", false).getBoolean(false);

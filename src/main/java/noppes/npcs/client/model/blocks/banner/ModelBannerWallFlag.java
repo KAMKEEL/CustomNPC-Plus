@@ -5,16 +5,16 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelBannerFloorFlag extends ModelBase {
+public class ModelBannerWallFlag extends ModelBase {
     public final ModelRenderer BannerFlag;
 
-    public ModelBannerFloorFlag() {
+    public ModelBannerWallFlag() {
         textureWidth = 32;
         textureHeight = 32;
 
         BannerFlag = new ModelRenderer(this);
         BannerFlag.setRotationPoint(0.0F, -8.0F, 5.0F);
-        BannerFlag.cubeList.add(new ModelBox(BannerFlag, 2, 0, -7.0F, 0.4F, -6.05F, 14, 29, 0, 0.0F));
+        BannerFlag.cubeList.add(new ModelBox(BannerFlag, 2, 0, -7.0F, 0.4F, -0.05F, 14, 29, 0, 0.0F));
     }
 
     @Override
