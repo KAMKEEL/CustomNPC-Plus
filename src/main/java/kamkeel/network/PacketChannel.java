@@ -33,7 +33,7 @@ public class PacketChannel {
         this.channelType = channelType;
     }
 
-    public void registerPacket(Enum ord, AbstractPacket packet) {
-        this.packets.put(ord.ordinal(), packet);
+    public void registerPacket(AbstractPacket packet) {
+        this.packets.put(packet.getType().ordinal(), packet);
     }
 }

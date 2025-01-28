@@ -9,6 +9,9 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
 import kamkeel.network.PacketChannel;
 import kamkeel.network.enums.EnumPacketType;
+import kamkeel.network.packets.large.LargeScrollDataPacket;
+import kamkeel.network.packets.large.LargeScrollGroupPacket;
+import kamkeel.network.packets.large.LargeScrollListPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
@@ -36,6 +39,11 @@ public final class PacketHandler {
         packetChannels.add(CLIENT_PACKET);
         packetChannels.add(LARGE_PACKET);
         this.registerChannels();
+
+        // Large Packets
+        LARGE_PACKET.registerPacket(new LargeScrollGroupPacket());
+        LARGE_PACKET.registerPacket(new LargeScrollDataPacket());
+        LARGE_PACKET.registerPacket(new LargeScrollListPacket());
     }
 
     public void registerChannels() {
