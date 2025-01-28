@@ -32,7 +32,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
     private final ModelBannerFloor banner = new ModelBannerFloor();
     private final ModelBannerFloorFlag flag = new ModelBannerFloorFlag();
 
-    public static final ResourceLocation legacyFlagResource = new ResourceLocation("customnpcs","textures/models/BannerFlag.png");
+    public static final ResourceLocation legacyFlagResource = new ResourceLocation("customnpcs","textures/models/legacy/banner.png");
 
     public static final ResourceLocation normalFlag = new ResourceLocation("customnpcs","textures/models/banner/flag/normal.png");
     public static final ResourceLocation pointyFlag = new ResourceLocation("customnpcs","textures/models/banner/flag/pointy.png");
