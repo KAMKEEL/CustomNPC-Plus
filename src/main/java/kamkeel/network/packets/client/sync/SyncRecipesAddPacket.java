@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sync;
 
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;

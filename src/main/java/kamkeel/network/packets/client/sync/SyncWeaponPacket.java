@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sync;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;

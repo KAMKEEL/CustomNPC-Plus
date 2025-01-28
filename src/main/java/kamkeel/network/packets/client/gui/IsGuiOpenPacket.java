@@ -1,23 +1,24 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.gui;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
 import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.NoppesUtil;
 
 import java.io.IOException;
 
-public final class SyncRecipesWorkbenchPacket extends AbstractPacket {
-    public static final String packetName = "Client|SyncRecipesWorkbench";
+public final class IsGuiOpenPacket extends AbstractPacket {
+    public static final String packetName = "Client|IsGuiOpen";
 
-    public SyncRecipesWorkbenchPacket() {}
+    public IsGuiOpenPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SYNCRECIPES_WORKBENCH;
+        return EnumClientPacket.ISGUIOPEN;
     }
 
     @Override
@@ -32,7 +33,7 @@ public final class SyncRecipesWorkbenchPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        RecipeController.reloadGlobalRecipes(RecipeController.syncRecipes);
-        RecipeController.syncRecipes.clear();
+        boolean isGuiOpen = Minecraft.getMinecraft().currentScreen != null;
+        NoppesUtil.isGUIOpen(isGuiOpen);
     }
 }

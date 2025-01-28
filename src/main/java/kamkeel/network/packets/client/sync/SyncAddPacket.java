@@ -1,27 +1,25 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sync;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
 import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.Server;
-import noppes.npcs.client.gui.util.IGuiError;
+import noppes.npcs.controllers.SyncController;
 
 import java.io.IOException;
 
-public final class GuiErrorPacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiError";
+public final class SyncAddPacket extends AbstractPacket {
+    public static final String packetName = "Client|SyncAdd";
 
-    public GuiErrorPacket() {}
+    public SyncAddPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_ERROR;
+        return EnumClientPacket.SYNC_ADD;
     }
 
     @Override
@@ -36,11 +34,8 @@ public final class GuiErrorPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-        if (gui instanceof IGuiError) {
-            int errorCode = in.readInt();
-            NBTTagCompound nbt = Server.readNBT(in);
-            ((IGuiError) gui).setError(errorCode, nbt);
-        }
+        int synctype = in.readInt();
+        NBTTagCompound compound = Server.readNBT(in);
+        SyncController.clientSync(synctype, compound, false);
     }
 }

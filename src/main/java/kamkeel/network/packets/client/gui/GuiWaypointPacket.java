@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.gui;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -8,18 +8,18 @@ import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.Server;
-import noppes.npcs.controllers.SyncController;
+import noppes.npcs.NoppesUtil;
 
 import java.io.IOException;
 
-public final class SyncEndPacket extends AbstractPacket {
-    public static final String packetName = "Client|SyncEnd";
+public final class GuiWaypointPacket extends AbstractPacket {
+    public static final String packetName = "Client|GuiWaypoint";
 
-    public SyncEndPacket() {}
+    public GuiWaypointPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SYNC_END;
+        return EnumClientPacket.GUI_WAYPOINT;
     }
 
     @Override
@@ -34,8 +34,7 @@ public final class SyncEndPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        int synctype = in.readInt();
-        NBTTagCompound compound = Server.readNBT(in);
-        SyncController.clientSync(synctype, compound, true);
+        NBTTagCompound nbt = Server.readNBT(in);
+        NoppesUtil.saveWayPointBlock(player, nbt);
     }
 }

@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sync;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -6,20 +6,18 @@ import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.Server;
-import noppes.npcs.controllers.SyncController;
+import noppes.npcs.client.NoppesUtil;
 
 import java.io.IOException;
 
-public final class SyncUpdatePacket extends AbstractPacket {
-    public static final String packetName = "Client|SyncUpdate";
+public final class SyncPlayerPacket extends AbstractPacket {
+    public static final String packetName = "Client|SyncPlayer";
 
-    public SyncUpdatePacket() {}
+    public SyncPlayerPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SYNC_UPDATE;
+        return EnumClientPacket.SYNC_PLAYER;
     }
 
     @Override
@@ -34,8 +32,7 @@ public final class SyncUpdatePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        int synctype = in.readInt();
-        NBTTagCompound compound = Server.readNBT(in);
-        SyncController.clientSyncUpdate(synctype, compound, in);
+        boolean sync = in.readBoolean();
+        NoppesUtil.handlePlayerDataEnd(sync);
     }
 }

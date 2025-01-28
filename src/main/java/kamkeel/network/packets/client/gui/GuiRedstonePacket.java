@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.gui;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -12,14 +12,14 @@ import noppes.npcs.NoppesUtil;
 
 import java.io.IOException;
 
-public final class GuiWaypointPacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiWaypoint";
+public final class GuiRedstonePacket extends AbstractPacket {
+    public static final String packetName = "Client|GuiRedstone";
 
-    public GuiWaypointPacket() {}
+    public GuiRedstonePacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_WAYPOINT;
+        return EnumClientPacket.GUI_REDSTONE;
     }
 
     @Override
@@ -35,6 +35,6 @@ public final class GuiWaypointPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         NBTTagCompound nbt = Server.readNBT(in);
-        NoppesUtil.saveWayPointBlock(player, nbt);
+        NoppesUtil.saveRedstoneBlock(player, nbt);
     }
 }

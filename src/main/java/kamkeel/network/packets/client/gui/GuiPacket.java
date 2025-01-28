@@ -1,24 +1,24 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.gui;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
 import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.NoppesUtil;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.constants.EnumGuiType;
 
 import java.io.IOException;
 
-public final class IsGuiOpenPacket extends AbstractPacket {
-    public static final String packetName = "Client|IsGuiOpen";
+public final class GuiPacket extends AbstractPacket {
+    public static final String packetName = "Client|Gui";
 
-    public IsGuiOpenPacket() {}
+    public GuiPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.ISGUIOPEN;
+        return EnumClientPacket.GUI;
     }
 
     @Override
@@ -33,7 +33,10 @@ public final class IsGuiOpenPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        boolean isGuiOpen = Minecraft.getMinecraft().currentScreen != null;
-        NoppesUtil.isGUIOpen(isGuiOpen);
+        EnumGuiType gui = EnumGuiType.values()[in.readInt()];
+        int x = in.readInt();
+        int y = in.readInt();
+        int z = in.readInt();
+        CustomNpcs.proxy.openGui(null, gui, x, y, z);
     }
 }

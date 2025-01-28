@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sync;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -6,20 +6,18 @@ import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.Server;
-import noppes.npcs.controllers.SyncController;
+import noppes.npcs.controllers.RecipeController;
 
 import java.io.IOException;
 
-public final class SyncAddPacket extends AbstractPacket {
-    public static final String packetName = "Client|SyncAdd";
+public final class SyncRecipesWorkbenchPacket extends AbstractPacket {
+    public static final String packetName = "Client|SyncRecipesWorkbench";
 
-    public SyncAddPacket() {}
+    public SyncRecipesWorkbenchPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SYNC_ADD;
+        return EnumClientPacket.SYNCRECIPES_WORKBENCH;
     }
 
     @Override
@@ -34,8 +32,7 @@ public final class SyncAddPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        int synctype = in.readInt();
-        NBTTagCompound compound = Server.readNBT(in);
-        SyncController.clientSync(synctype, compound, false);
+        RecipeController.reloadGlobalRecipes(RecipeController.syncRecipes);
+        RecipeController.syncRecipes.clear();
     }
 }

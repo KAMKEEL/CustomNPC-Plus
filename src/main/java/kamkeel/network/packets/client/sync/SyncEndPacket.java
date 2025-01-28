@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sync;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -8,18 +8,18 @@ import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.Server;
-import noppes.npcs.NoppesUtil;
+import noppes.npcs.controllers.SyncController;
 
 import java.io.IOException;
 
-public final class GuiRedstonePacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiRedstone";
+public final class SyncEndPacket extends AbstractPacket {
+    public static final String packetName = "Client|SyncEnd";
 
-    public GuiRedstonePacket() {}
+    public SyncEndPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_REDSTONE;
+        return EnumClientPacket.SYNC_END;
     }
 
     @Override
@@ -34,7 +34,8 @@ public final class GuiRedstonePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NBTTagCompound nbt = Server.readNBT(in);
-        NoppesUtil.saveRedstoneBlock(player, nbt);
+        int synctype = in.readInt();
+        NBTTagCompound compound = Server.readNBT(in);
+        SyncController.clientSync(synctype, compound, true);
     }
 }
