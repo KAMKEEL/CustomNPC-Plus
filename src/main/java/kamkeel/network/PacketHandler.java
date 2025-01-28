@@ -20,8 +20,6 @@ import java.util.*;
 public final class PacketHandler {
     public static PacketHandler Instance;
 
-    public Map<String, AbstractPacket> packet_names = new Hashtable<>();
-
     public Map<EnumPacketType, FMLEventChannel> channels = new Hashtable<>();
 
     public final static PacketChannel INFO_PACKET = new PacketChannel("CNPC+|Info", EnumPacketType.INFO);
