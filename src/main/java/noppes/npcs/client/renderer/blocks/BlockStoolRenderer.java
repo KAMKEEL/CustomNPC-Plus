@@ -21,7 +21,12 @@ public class BlockStoolRenderer extends BlockRendererInterface{
 	private final ModelLegacyStool legacyStool = new ModelLegacyStool();
     private final ModelStool stool = new ModelStool();
 
-    protected static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/stool/oak.png");
+    private static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/stool/oak.png");
+    private static final ResourceLocation spruce = new ResourceLocation("customnpcs","textures/models/stool/spruce.png");
+    private static final ResourceLocation birch = new ResourceLocation("customnpcs","textures/models/stool/birch.png");
+    private static final ResourceLocation jungle = new ResourceLocation("customnpcs","textures/models/stool/jungle.png");
+    private static final ResourceLocation dark_oak = new ResourceLocation("customnpcs","textures/models/stool/dark_oak.png");
+    private static final ResourceLocation acacia = new ResourceLocation("customnpcs","textures/models/stool/acacia.png");
 
 	public BlockStoolRenderer(){
 		((BlockStool)CustomItems.stool).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -33,7 +38,7 @@ public class BlockStoolRenderer extends BlockRendererInterface{
 		TileColorable tile = (TileColorable) var1;
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.68f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.65f, (float)var6 + 0.5f);
         GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glColor3f(1, 1, 1);
@@ -83,15 +88,15 @@ public class BlockStoolRenderer extends BlockRendererInterface{
     public void setStoolTexture(int meta){
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
-            manager.bindTexture(oak);
+            manager.bindTexture(spruce);
         else if(meta == 2)
-            manager.bindTexture(oak);
+            manager.bindTexture(birch);
         else if(meta == 3)
-            manager.bindTexture(oak);
+            manager.bindTexture(jungle);
         else if(meta == 4)
-            manager.bindTexture(oak);
+            manager.bindTexture(acacia);
         else if(meta == 5)
-            manager.bindTexture(oak);
+            manager.bindTexture(dark_oak);
         else
             manager.bindTexture(oak);
     }

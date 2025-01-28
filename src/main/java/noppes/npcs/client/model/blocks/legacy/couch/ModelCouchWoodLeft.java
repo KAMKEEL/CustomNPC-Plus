@@ -1,4 +1,4 @@
-package noppes.npcs.client.model.blocks;
+package noppes.npcs.client.model.blocks.legacy.couch;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
@@ -29,77 +29,77 @@ public class ModelCouchWoodLeft extends ModelBase {
 		Shape1.mirror = true;
 		Shape1.addBox(0F, 0F, 0F, 2, 3, 10);
 		Shape1.setRotationPoint(-8F, 18F, -4F);
-		
+
 		Shape2 = new ModelRenderer(this, 0, 0);
 		Shape2.addBox(0F, 0F, 0F, 1, 3, 2);
 		Shape2.setRotationPoint(7F, 21F, -6F);
-		
+
 		Shape3 = new ModelRenderer(this, 0, 0);
 		Shape3.mirror = true;
 		Shape3.addBox(0F, 0F, 0F, 2, 4, 1);
 		Shape3.setRotationPoint(-8F, 14F, 0.5F);
-		
+
 		Shape4 = new ModelRenderer(this, 0, 0);
 		Shape4.mirror = true;
 		Shape4.addBox(0F, 0F, 0F, 14, 2, 1);
 		Shape4.setRotationPoint(-6F, 7F, 7F);
-		
+
 		Shape5 = new ModelRenderer(this, 0, 0);
 		Shape5.mirror = true;
 		Shape5.addBox(0F, 0F, 0F, 14, 2, 2);
 		Shape5.setRotationPoint(-6F, 19F, 6F);
-		
+
 		Shape6 = new ModelRenderer(this, 0, 0);
 		Shape6.mirror = true;
 		Shape6.addBox(0F, 0F, 0F, 2, 1, 13);
 		Shape6.setRotationPoint(-8F, 13F, -7F);
-		
+
 		Shape7 = new ModelRenderer(this, 0, 0);
 		Shape7.addBox(0F, 0F, 0F, 1, 1, 10);
 		Shape7.setRotationPoint(-6F, 19F, -4F);
-		
+
 		Shape8 = new ModelRenderer(this, 0, 0);
 		Shape8.addBox(0F, 0F, 0F, 1, 3, 2);
 		Shape8.setRotationPoint(7F, 21F, 6F);
-		
+
 		Shape9 = new ModelRenderer(this, 0, 0);
 		Shape9.addBox(0F, 0F, 0F, 2, 1, 10);
 		Shape9.setRotationPoint(5F, 19F, -4F);
-		
+
 		Shape10 = new ModelRenderer(this, 0, 0);
 		Shape10.addBox(0F, 0F, 0F, 1, 10, 1);
 		Shape10.setRotationPoint(-6F, 9F, 7F);
-		
+
 		Shape11 = new ModelRenderer(this, 0, 0);
 		Shape11.mirror = true;
 		Shape11.addBox(0F, 0F, 0F, 14, 2, 2);
 		Shape11.setRotationPoint(-6F, 19F, -6F);
-		
+
 		Shape12 = new ModelRenderer(this, 0, 0);
 		Shape12.addBox(0F, 0F, 0F, 2, 1, 10);
 		Shape12.setRotationPoint(-3F, 19F, -4F);
-		
+
 		Shape13 = new ModelRenderer(this, 0, 0);
 		Shape13.addBox(0F, 0F, 0F, 2, 1, 10);
 		Shape13.setRotationPoint(1F, 19F, -4F);
-		
+
 		Shape14 = new ModelRenderer(this, 0, 0);
 		Shape14.addBox(0F, 0F, 0F, 2, 10, 1);
 		Shape14.setRotationPoint(-3F, 9F, 7F);
-		
+
 		Shape15 = new ModelRenderer(this, 0, 0);
 		Shape15.addBox(0F, 0F, 0F, 2, 10, 1);
 		Shape15.setRotationPoint(1F, 9F, 7F);
-		
+
 		Shape16 = new ModelRenderer(this, 0, 0);
 		Shape16.addBox(0F, 0F, 0F, 2, 10, 1);
 		Shape16.setRotationPoint(5F, 9F, 7F);
-		
+
 		Shape17 = new ModelRenderer(this, 0, 0);
 		Shape17.mirror = true;
 		Shape17.addBox(0F, 0F, 0F, 2, 10, 2);
 		Shape17.setRotationPoint(-8F, 14F, -6F);
-		
+
 		Shape18 = new ModelRenderer(this, 0, 0);
 		Shape18.mirror = true;
 		Shape18.addBox(0F, 0F, 0F, 2, 18, 2);

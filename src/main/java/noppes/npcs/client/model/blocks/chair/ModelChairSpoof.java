@@ -1,4 +1,4 @@
-package noppes.npcs.client.model.blocks;
+package noppes.npcs.client.model.blocks.chair;
 
 
 import net.minecraft.client.model.ModelBase;
@@ -6,11 +6,11 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelChair extends ModelBase {
+public class ModelChairSpoof extends ModelBase {
 
     private final ModelRenderer chairBase;
 
-	public ModelChair() {
+	public ModelChairSpoof() {
 		textureWidth = 64;
 		textureHeight = 32;
 

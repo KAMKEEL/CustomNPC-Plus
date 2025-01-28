@@ -1,10 +1,10 @@
-package noppes.npcs.client.model.blocks;
+package noppes.npcs.client.model.blocks.legacy.couch;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelCouchWoodRight extends ModelBase {
+public class ModelCouchWoodSingle extends ModelBase {
 	// fields
 	ModelRenderer Shape1;
 	ModelRenderer Shape2;
@@ -24,51 +24,59 @@ public class ModelCouchWoodRight extends ModelBase {
 	ModelRenderer Shape16;
 	ModelRenderer Shape17;
 	ModelRenderer Shape18;
+	ModelRenderer Shape19;
+	ModelRenderer Shape20;
+	ModelRenderer Shape21;
 
-	public ModelCouchWoodRight() {
+	public ModelCouchWoodSingle() {
 		Shape1 = new ModelRenderer(this, 0, 0);
+		Shape1.mirror = true;
 		Shape1.addBox(0F, 0F, 0F, 2, 3, 10);
-		Shape1.setRotationPoint(6F, 18F, -4F);
+		Shape1.setRotationPoint(-8F, 18F, -4F);
 
 		Shape2 = new ModelRenderer(this, 0, 0);
-		Shape2.addBox(0F, 0F, 0F, 1, 3, 2);
-		Shape2.setRotationPoint(-8F, 21F, -6F);
+		Shape2.mirror = true;
+		Shape2.addBox(0F, 0F, 0F, 2, 10, 2);
+		Shape2.setRotationPoint(-8F, 14F, -6F);
 
 		Shape3 = new ModelRenderer(this, 0, 0);
+		Shape3.mirror = true;
 		Shape3.addBox(0F, 0F, 0F, 2, 4, 1);
-		Shape3.setRotationPoint(6F, 14F, 0.5F);
+		Shape3.setRotationPoint(-8F, 14F, 0.5F);
 
 		Shape4 = new ModelRenderer(this, 0, 0);
-		Shape4.addBox(0F, 0F, 0F, 14, 2, 1);
-		Shape4.setRotationPoint(-8F, 7F, 7F);
+		Shape4.addBox(0F, 0F, 0F, 12, 2, 1);
+		Shape4.setRotationPoint(-6F, 7F, 7F);
 
 		Shape5 = new ModelRenderer(this, 0, 0);
-		Shape5.addBox(0F, 0F, 0F, 14, 2, 2);
-		Shape5.setRotationPoint(-8F, 19F, 6F);
+		Shape5.addBox(0F, 0F, 0F, 12, 2, 2);
+		Shape5.setRotationPoint(-6F, 19F, 6F);
 
 		Shape6 = new ModelRenderer(this, 0, 0);
+		Shape6.mirror = true;
 		Shape6.addBox(0F, 0F, 0F, 2, 1, 13);
-		Shape6.setRotationPoint(6F, 13F, -7F);
+		Shape6.setRotationPoint(-8F, 13F, -7F);
 
 		Shape7 = new ModelRenderer(this, 0, 0);
-		Shape7.addBox(0F, 0F, 0F, 2, 1, 10);
-		Shape7.setRotationPoint(-7F, 19F, -4F);
+		Shape7.addBox(0F, 0F, 0F, 1, 1, 10);
+		Shape7.setRotationPoint(-6F, 19F, -4F);
 
 		Shape8 = new ModelRenderer(this, 0, 0);
-		Shape8.addBox(0F, 0F, 0F, 1, 3, 2);
-		Shape8.setRotationPoint(-8F, 21F, 6F);
+		Shape8.mirror = true;
+		Shape8.addBox(0F, 0F, 0F, 2, 18, 2);
+		Shape8.setRotationPoint(-8F, 6F, 6F);
 
 		Shape9 = new ModelRenderer(this, 0, 0);
 		Shape9.addBox(0F, 0F, 0F, 1, 1, 10);
 		Shape9.setRotationPoint(5F, 19F, -4F);
 
 		Shape10 = new ModelRenderer(this, 0, 0);
-		Shape10.addBox(0F, 0F, 0F, 2, 10, 1);
-		Shape10.setRotationPoint(-7F, 9F, 7F);
+		Shape10.addBox(0F, 0F, 0F, 1, 10, 1);
+		Shape10.setRotationPoint(-6F, 9F, 7F);
 
 		Shape11 = new ModelRenderer(this, 0, 0);
-		Shape11.addBox(0F, 0F, 0F, 14, 2, 2);
-		Shape11.setRotationPoint(-8F, 19F, -6F);
+		Shape11.addBox(0F, 0F, 0F, 12, 2, 2);
+		Shape11.setRotationPoint(-6F, 19F, -6F);
 
 		Shape12 = new ModelRenderer(this, 0, 0);
 		Shape12.addBox(0F, 0F, 0F, 2, 1, 10);
@@ -91,12 +99,24 @@ public class ModelCouchWoodRight extends ModelBase {
 		Shape16.setRotationPoint(5F, 9F, 7F);
 
 		Shape17 = new ModelRenderer(this, 0, 0);
-		Shape17.addBox(0F, 0F, 0F, 2, 10, 2);
-		Shape17.setRotationPoint(6F, 14F, -6F);
+		Shape17.addBox(0F, 0F, 0F, 2, 18, 2);
+		Shape17.setRotationPoint(6F, 6F, 6F);
 
 		Shape18 = new ModelRenderer(this, 0, 0);
-		Shape18.addBox(0F, 0F, 0F, 2, 18, 2);
-		Shape18.setRotationPoint(6F, 6F, 6F);
+		Shape18.addBox(0F, 0F, 0F, 2, 1, 13);
+		Shape18.setRotationPoint(6F, 13F, -7F);
+
+		Shape19 = new ModelRenderer(this, 0, 0);
+		Shape19.addBox(0F, 0F, 0F, 2, 10, 2);
+		Shape19.setRotationPoint(6F, 14F, -6F);
+
+		Shape20 = new ModelRenderer(this, 0, 0);
+		Shape20.addBox(0F, 0F, 0F, 2, 3, 10);
+		Shape20.setRotationPoint(6F, 18F, -4F);
+
+		Shape21 = new ModelRenderer(this, 0, 0);
+		Shape21.addBox(0F, 0F, 0F, 2, 4, 1);
+		Shape21.setRotationPoint(6F, 14F, 0.5F);
 	}
 
 	public void render(Entity entity, float f, float f1, float f2, float f3,
@@ -120,6 +140,9 @@ public class ModelCouchWoodRight extends ModelBase {
 		Shape16.render(f5);
 		Shape17.render(f5);
 		Shape18.render(f5);
+		Shape19.render(f5);
+		Shape20.render(f5);
+		Shape21.render(f5);
 	}
 
 	private void setRotation(ModelRenderer model, float x, float y, float z) {

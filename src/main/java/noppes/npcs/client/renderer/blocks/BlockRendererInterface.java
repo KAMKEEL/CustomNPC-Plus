@@ -108,22 +108,6 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
         	manager.bindTexture(PlanksOak);
     }
 
-    public void setDefaultWoodTexture(int meta){
-        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
-        if(meta == 1)
-            manager.bindTexture(PlanksSpruce);
-        else if(meta == 2)
-            manager.bindTexture(PlanksBirch);
-        else if(meta == 3)
-            manager.bindTexture(PlanksJungle);
-        else if(meta == 4)
-            manager.bindTexture(PlanksAcacia);
-        else if(meta == 5)
-            manager.bindTexture(PlanksBigOak);
-        else
-            manager.bindTexture(PlanksOak);
-    }
-
     public static void setMaterialTexture(int meta){
     	TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
