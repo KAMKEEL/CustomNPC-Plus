@@ -8,7 +8,7 @@ import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCouchWool;
 import noppes.npcs.blocks.tiles.TileCouchWool;
-import noppes.npcs.client.model.blocks.*;
+import noppes.npcs.client.model.blocks.legacy.couch.*;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -25,7 +25,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
 
 	private final ModelBase modelCorner = new ModelCouchCorner();
 	private final ModelBase modelCorner2 = new ModelCouchCornerWool();
-	
+
     public BlockCouchWoolRenderer(){
 		((BlockCouchWool)CustomItems.couchWool).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -41,7 +41,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-        
+
         setWoodTexture(var1.getBlockMetadata());
         if(tile.hasCornerLeft)
         	modelCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);

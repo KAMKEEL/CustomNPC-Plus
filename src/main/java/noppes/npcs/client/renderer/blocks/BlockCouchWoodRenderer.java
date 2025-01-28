@@ -8,10 +8,10 @@ import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCouchWood;
 import noppes.npcs.blocks.tiles.TileCouchWood;
-import noppes.npcs.client.model.blocks.ModelCouchWoodLeft;
-import noppes.npcs.client.model.blocks.ModelCouchWoodMiddle;
-import noppes.npcs.client.model.blocks.ModelCouchWoodRight;
-import noppes.npcs.client.model.blocks.ModelCouchWoodSingle;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelCouchWoodLeft;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelCouchWoodMiddle;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelCouchWoodRight;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelCouchWoodSingle;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -24,7 +24,7 @@ public class BlockCouchWoodRenderer extends BlockRendererInterface{
 	private final ModelBase modelRight = new ModelCouchWoodRight();
 
 	private final ModelBase modelCorner = new ModelCouchWoodSingle();
-	
+
     public BlockCouchWoodRenderer(){
 		((BlockCouchWood)CustomItems.couchWood).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -40,7 +40,7 @@ public class BlockCouchWoodRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-        
+
         setWoodTexture(var1.getBlockMetadata());
         if(tile.hasLeft && tile.hasRight)
         	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -66,7 +66,7 @@ public class BlockCouchWoodRenderer extends BlockRendererInterface{
         setWoodTexture(metadata);
         GL11.glColor3f(1, 1, 1);
         modelCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        
+
 		GL11.glPopMatrix();
 	}
 
