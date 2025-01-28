@@ -8,6 +8,7 @@ import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
+import cpw.mods.fml.relauncher.Side;
 import foxz.command.CommandNoppes;
 import kamkeel.addon.AddonManager;
 import kamkeel.command.CommandKamkeel;
@@ -317,5 +318,9 @@ public class CustomNpcs {
 
     public static MinecraftServer getServer(){
         return MinecraftServer.getServer();
+    }
+
+    public static Side side() {
+        return FMLCommonHandler.instance().getEffectiveSide();
     }
 }
