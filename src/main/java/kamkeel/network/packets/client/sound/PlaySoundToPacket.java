@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sound;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -6,18 +6,21 @@ import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.Server;
+import noppes.npcs.client.controllers.ScriptClientSound;
 import noppes.npcs.client.controllers.ScriptSoundController;
 
 import java.io.IOException;
 
-public final class ContinueSoundsPacket extends AbstractPacket {
-    public static final String packetName = "Client|ContinueSounds";
+public final class PlaySoundToPacket extends AbstractPacket {
+    public static final String packetName = "Client|PlaySoundTo";
 
-    public ContinueSoundsPacket() {}
+    public PlaySoundToPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.CONTINUE_SOUNDS;
+        return EnumClientPacket.PLAY_SOUND_TO;
     }
 
     @Override
@@ -32,6 +35,9 @@ public final class ContinueSoundsPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        ScriptSoundController.Instance.continueAllSounds();
+        int soundId = in.readInt();
+        NBTTagCompound nbt = Server.readNBT(in);
+        ScriptClientSound sound = ScriptClientSound.fromScriptSound(nbt, player.worldObj);
+        ScriptSoundController.Instance.playSound(soundId, sound);
     }
 }

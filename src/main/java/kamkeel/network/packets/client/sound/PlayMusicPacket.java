@@ -1,4 +1,4 @@
-package kamkeel.network.packets.client;
+package kamkeel.network.packets.client.sound;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.network.AbstractPacket;
@@ -6,18 +6,19 @@ import kamkeel.network.PacketChannel;
 import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.NoppesUtil;
+import noppes.npcs.Server;
+import noppes.npcs.client.controllers.MusicController;
 
 import java.io.IOException;
 
-public final class ScrollDataPartPacket extends AbstractPacket {
-    public static final String packetName = "Client|ScrollDataPart";
+public final class PlayMusicPacket extends AbstractPacket {
+    public static final String packetName = "Client|PlayMusic";
 
-    public ScrollDataPartPacket() {}
+    public PlayMusicPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SCROLL_DATA_PART;
+        return EnumClientPacket.PLAY_MUSIC;
     }
 
     @Override
@@ -32,6 +33,7 @@ public final class ScrollDataPartPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NoppesUtil.addScrollData(in);
+        String musicName = Server.readString(in);
+        MusicController.Instance.playMusicBackground(musicName, player, Integer.MAX_VALUE);
     }
 }

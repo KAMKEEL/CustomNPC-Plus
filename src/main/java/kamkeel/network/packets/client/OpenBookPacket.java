@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.player.GuiBook;
-import noppes.npcs.NoppesUtil;
+import noppes.npcs.client.NoppesUtil;
 
 import java.io.IOException;
 

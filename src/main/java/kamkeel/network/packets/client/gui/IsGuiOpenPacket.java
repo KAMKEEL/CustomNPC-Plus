@@ -7,7 +7,7 @@ import kamkeel.network.PacketHandler;
 import kamkeel.network.enums.EnumClientPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.NoppesUtil;
+import noppes.npcs.client.NoppesUtil;
 
 import java.io.IOException;
 
