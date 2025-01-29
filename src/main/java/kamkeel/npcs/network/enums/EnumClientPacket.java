@@ -2,6 +2,7 @@ package kamkeel.npcs.network.enums;
 
 // Packets to the Client
 public enum EnumClientPacket {
+    SYNC,
     CHAT,
     MESSAGE,
     PARTY_MESSAGE,

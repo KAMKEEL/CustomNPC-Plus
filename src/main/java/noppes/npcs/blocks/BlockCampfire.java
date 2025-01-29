@@ -19,8 +19,6 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
 
-import static noppes.npcs.client.ClientProxy.RAND;
-
 public class BlockCampfire extends BlockLightable{
 
 	public BlockCampfire(boolean lit) {

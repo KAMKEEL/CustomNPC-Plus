@@ -1,7 +1,7 @@
 package kamkeel.npcs.network;
 
-import kamkeel.npcs.network.packets.large.LargeScrollGroupPacket;
-import kamkeel.npcs.network.packets.large.LargeScrollDataPacket;
+import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
+import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.Map;

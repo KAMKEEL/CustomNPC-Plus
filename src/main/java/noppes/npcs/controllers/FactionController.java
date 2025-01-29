@@ -1,15 +1,14 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.IFactionHandler;
 import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Faction;
 
 import java.io.*;
@@ -158,7 +157,7 @@ public class FactionController implements IFactionHandler {
 
         NBTTagCompound facCompound = new NBTTagCompound();
         faction.writeNBT(facCompound);
-        Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.FACTION, facCompound);
+        SyncMaster.syncUpdate(EnumSyncType.FACTION, -1, facCompound);
 		saveFactions();
 	}
 
@@ -193,7 +192,7 @@ public class FactionController implements IFactionHandler {
 			} else {
 				this.saveFactions();
 				faction.id = -1;
-                Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.FACTION, id);
+                SyncMaster.syncRemove(EnumSyncType.FACTION, id);
 				return faction;
 			}
 		} else {

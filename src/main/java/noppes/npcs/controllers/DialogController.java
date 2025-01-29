@@ -1,18 +1,17 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.IDialogHandler;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IDialogCategory;
 import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.controllers.data.DialogOption;
@@ -230,7 +229,7 @@ public class DialogController implements IDialogHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        SyncController.updateDialogCat(category);
+        SyncMaster.syncUpdate(EnumSyncType.DIALOG_CATEGORY, -1, SyncMaster.updateDialogCat(category));
 	}
 
 	public void removeCategory(int category){
@@ -243,8 +242,8 @@ public class DialogController implements IDialogHandler {
 		for(int dia : cat.dialogs.keySet())
 			dialogs.remove(dia);
 		categories.remove(category);
-        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.DIALOG_CATEGORY, category);
-	}
+        SyncMaster.syncRemove(EnumSyncType.DIALOG_CATEGORY, category);
+    }
 
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -291,7 +290,7 @@ public class DialogController implements IDialogHandler {
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG, dialog.writeToNBT(new NBTTagCompound()), category.id);
+            SyncMaster.syncUpdate(EnumSyncType.DIALOG, category.id, dialog.writeToNBT(new NBTTagCompound()));
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -305,7 +304,7 @@ public class DialogController implements IDialogHandler {
 			return;
 		category.dialogs.remove(dialog.id);
 		dialogs.remove(dialog.id);
-        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.DIALOG, dialog.id);
+        SyncMaster.syncRemove(EnumSyncType.DIALOG, dialog.id);
 	}
 
 	private File getDir(){

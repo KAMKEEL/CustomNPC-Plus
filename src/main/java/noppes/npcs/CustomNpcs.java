@@ -90,6 +90,8 @@ public class CustomNpcs {
         Channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCs");
         ChannelPlayer = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCsPlayer");
 
+        PacketHandler.Instance = new PacketHandler();
+
         MinecraftServer server = MinecraftServer.getServer();
         String dir = "";
         if (server != null) {
@@ -248,12 +250,6 @@ public class CustomNpcs {
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
-    }
-
-    //Loading items in the about to start event was corrupting items with a damage value
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        PacketHandler.Instance = new PacketHandler();
     }
 
 

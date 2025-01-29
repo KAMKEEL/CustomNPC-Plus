@@ -5,6 +5,7 @@ import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.ParamCheck;
+import kamkeel.npcs.controllers.SyncMaster;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.Server;
 import noppes.npcs.constants.EnumPacketClient;
@@ -170,7 +171,7 @@ public class CmdQuest extends ChMcLogger{
     )
     public boolean reload(String args[]){
     	new QuestController().load();
-        SyncController.syncAllQuests();
+        SyncMaster.syncAllQuests();
     	return true;
     }
 }

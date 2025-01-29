@@ -1,6 +1,7 @@
 package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.controllers.SyncMaster;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -572,7 +573,7 @@ public class NoppesUtilServer {
             playerdata.save();
         }
         if(pl != null) {
-            SyncController.syncPlayer((EntityPlayerMP) pl);
+            SyncMaster.syncPlayer((EntityPlayerMP) pl);
         }
         sendPlayerData(type, player, name);
 	}
@@ -847,48 +848,6 @@ public class NoppesUtilServer {
 			return entity;
 		}
 	}
-    public static void sendPlayerDataCompound(EntityPlayerMP player, NBTTagCompound compound, boolean sync) {
-        try {
-            byte[] bytes = CompressedStreamTools.compress(compound);
-
-            // Split byte array into chunks and send each chunk
-            int chunkSize = 16000;
-            int totalChunks = (int) Math.ceil((double) bytes.length / chunkSize);
-            for (int i = 0; i < totalChunks; i++) {
-                int start = i * chunkSize;
-                int length = Math.min(bytes.length - start, chunkSize);
-                byte[] chunk = new byte[length];
-                System.arraycopy(bytes, start, chunk, 0, length);
-                Server.sendData(player, EnumPacketClient.LARGE_NBT_PART, (Object) chunk);
-            }
-            // Send end packet
-            Server.sendData(player, EnumPacketClient.SYNC_PLAYER, sync);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void sendDBCCompound(EntityPlayerMP player, NBTTagCompound compound) {
-        try {
-            byte[] bytes = CompressedStreamTools.compress(compound);
-
-            // Split byte array into chunks and send each chunk
-            int chunkSize = 16000;
-            int totalChunks = (int) Math.ceil((double) bytes.length / chunkSize);
-            for (int i = 0; i < totalChunks; i++) {
-                int start = i * chunkSize;
-                int length = Math.min(bytes.length - start, chunkSize);
-                byte[] chunk = new byte[length];
-                System.arraycopy(bytes, start, chunk, 0, length);
-                Server.sendData(player, EnumPacketClient.LARGE_NBT_PART, (Object) chunk);
-            }
-            // Send end packet
-            Server.sendData(player, EnumPacketClient.DBC_FORM);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public static boolean isOp(EntityPlayer player) {
 		return MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());

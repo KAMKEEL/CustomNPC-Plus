@@ -17,7 +17,7 @@ import noppes.npcs.containers.*;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public abstract class CommonProxy implements IGuiHandler {
+public class CommonProxy implements IGuiHandler {
 
 	public boolean newVersionAvailable = false;
 	public int revision = 1;
@@ -159,7 +159,9 @@ public abstract class CommonProxy implements IGuiHandler {
 
 	}
 
-    public abstract void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire);
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire){
+
+    }
 
     public String getAchievementDesc(Achievement achievement) {
 		return "";

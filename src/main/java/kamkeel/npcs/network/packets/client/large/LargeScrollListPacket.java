@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.large;
+package kamkeel.npcs.network.packets.client.large;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

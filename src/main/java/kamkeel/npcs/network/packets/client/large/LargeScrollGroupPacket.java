@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.large;
+package kamkeel.npcs.network.packets.client.large;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -11,23 +11,22 @@ import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.client.NoppesUtil;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
-public final class LargeScrollDataPacket extends LargeAbstractPacket {
-    public static final String packetName = "Large|ScrollData";
+public final class LargeScrollGroupPacket extends LargeAbstractPacket {
+    public static final String packetName = "Large|ScrollGroup";
 
     private Map<String, Integer> data;
 
-    public LargeScrollDataPacket() {}
+    public LargeScrollGroupPacket() {}
 
-    public LargeScrollDataPacket(Map<String, Integer> data) {
+    public LargeScrollGroupPacket(Map<String, Integer> data) {
         this.data = data;
     }
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SCROLL_DATA;
+        return EnumClientPacket.SCROLL_GROUP;
     }
 
     @Override

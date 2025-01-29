@@ -1,5 +1,6 @@
 package kamkeel.npcs.command;
 
+import kamkeel.npcs.controllers.SyncMaster;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -382,7 +383,7 @@ public class QuestCommand extends CommandKamkeelBase {
     )
     public void reload(ICommandSender sender, String args[]){
     	new QuestController().load();
-        SyncController.syncAllQuests();
+        SyncMaster.syncAllQuests();
         sendResult(sender, "Quests Reloaded");
     }
 }

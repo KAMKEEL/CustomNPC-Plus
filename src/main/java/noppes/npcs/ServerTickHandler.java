@@ -5,6 +5,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.SyncMaster;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
@@ -52,7 +53,7 @@ public class ServerTickHandler {
 			playerData.onLogin();
 		}
 
-        SyncController.syncPlayer(player);
+        SyncMaster.syncPlayer(player);
         ProfileController.login(player);
 	}
 

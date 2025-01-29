@@ -6,6 +6,8 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractPacket {
 
@@ -16,9 +18,20 @@ public abstract class AbstractPacket {
             buf.writeInt(packetChannel.getChannelType().ordinal());
             buf.writeInt(getType().ordinal());
             sendData(buf);
-            return new FMLProxyPacket(buf, getChannel().getChannelName());
-        } catch (Exception ignored) {}
+            return new FMLProxyPacket(buf, packetChannel.getChannelName());
+        } catch (Exception e) {
+            // For debugging, you might want to log it
+            e.printStackTrace();
+        }
         return null;
+    }
+
+    public List<FMLProxyPacket> generatePackets() {
+        FMLProxyPacket single = generatePacket();
+        if (single == null) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(single);
     }
 
     public abstract Enum getType();

@@ -111,31 +111,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
             RecipeController.Instance.anvilRecipes = RecipeController.syncRecipes;
             RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
 		}
-        else if(type == EnumPacketClient.LARGE_NBT_PART){
-            byte[] chunk = new byte[buffer.readShort()];
-            buffer.readBytes(chunk);
-            NoppesUtil.handleLargeData(chunk);
-        }
-        else if(type == EnumPacketClient.SYNC_PLAYER){
-            boolean sync = buffer.readBoolean();
-            NoppesUtil.handlePlayerDataEnd(sync);
-        }
-        else if(type == EnumPacketClient.SYNC_ADD || type == EnumPacketClient.SYNC_END){
-            int synctype = buffer.readInt();
-            NBTTagCompound compound = Server.readNBT(buffer);
-            SyncController.clientSync(synctype, compound, type == EnumPacketClient.SYNC_END);
-        }
-        else if(type == EnumPacketClient.SYNC_UPDATE){
-            int synctype = buffer.readInt();
-            NBTTagCompound compound = Server.readNBT(buffer);
-            SyncController.clientSyncUpdate(synctype, compound, buffer);
-        }
-        else if(type == EnumPacketClient.SYNC_REMOVE){
-            int synctype = buffer.readInt();
-            int id = buffer.readInt();
-
-            SyncController.clientSyncRemove(synctype, id);
-        }
         else if(type == EnumPacketClient.SYNC_CONFIG){
             NBTTagCompound configNBT = Server.readNBT(buffer);
             SyncController.receiveConfigs(configNBT);
@@ -449,9 +424,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
             }
             if(gui instanceof IPartyData)
                 ((IPartyData)gui).setPartyData(Server.readNBT(buffer));
-        }
-        else if(type == EnumPacketClient.DBC_FORM){
-            NoppesUtil.handleFormEnd();
         }
 	}
 }

@@ -1,11 +1,14 @@
 package kamkeel.npcs.network;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
 import org.lwjgl.Sys;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,28 +16,47 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class LargeAbstractPacket extends AbstractPacket {
 
     private static final Map<UUID, PacketStorage> packetChunks = new ConcurrentHashMap<>();
-    private static final int CHUNK_SIZE = 5000;
+    private static final int CHUNK_SIZE = 10000;
 
+    /**
+     * Create multiple FMLProxyPacket objects, each containing up to CHUNK_SIZE bytes.
+     */
     @Override
-    public void sendData(ByteBuf out) throws IOException {
-        byte[] data = getData();
-        int totalSize = data.length;
+    public List<FMLProxyPacket> generatePackets() {
+        List<FMLProxyPacket> packets = new ArrayList<>();
+        PacketChannel packetChannel = getChannel();
+
+        byte[] fullData;
+        try {
+            fullData = getData();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return packets;
+        }
+
+        int totalSize = fullData.length;
         UUID packetId = UUID.randomUUID();
 
-        // Break the data into chunks of CHUNK_SIZE bytes each
+        // Break data into CHUNK_SIZE chunks
         for (int offset = 0; offset < totalSize; offset += CHUNK_SIZE) {
             int chunkSize = Math.min(CHUNK_SIZE, totalSize - offset);
+            ByteBuf chunkBuf = Unpooled.buffer();
 
-            // Write a header for each chunk
-            out.writeLong(packetId.getMostSignificantBits());
-            out.writeLong(packetId.getLeastSignificantBits());
-            out.writeInt(totalSize);
-            out.writeInt(offset);
-            out.writeInt((totalSize + CHUNK_SIZE - 1) / CHUNK_SIZE); // totalChunks
+            chunkBuf.writeInt(packetChannel.getChannelType().ordinal());
+            chunkBuf.writeInt(getType().ordinal());
 
-            // Write the chunk bytes
-            out.writeBytes(data, offset, chunkSize);
+            chunkBuf.writeLong(packetId.getMostSignificantBits());
+            chunkBuf.writeLong(packetId.getLeastSignificantBits());
+            chunkBuf.writeInt(totalSize);
+            chunkBuf.writeInt(offset);
+            chunkBuf.writeInt((totalSize + CHUNK_SIZE - 1) / CHUNK_SIZE);
+
+            chunkBuf.writeBytes(fullData, offset, chunkSize);
+
+            FMLProxyPacket proxyPacket = new FMLProxyPacket(chunkBuf, packetChannel.getChannelName());
+            packets.add(proxyPacket);
         }
+        return packets;
     }
 
     @Override
@@ -86,6 +108,12 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
     protected abstract byte[] getData() throws IOException;
 
     protected abstract void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException;
+
+    @Override
+    public final FMLProxyPacket generatePacket() {return null;}
+
+    @Override
+    public void sendData(ByteBuf out) throws IOException {}
 
     /**
      * Simple storage class to keep track of partial data and how many bytes we've received so far.

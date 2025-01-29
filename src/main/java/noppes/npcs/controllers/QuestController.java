@@ -1,17 +1,16 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
@@ -146,7 +145,7 @@ public class QuestController implements IQuestHandler {
 		for(int dia : cat.quests.keySet())
 			quests.remove(dia);
 		categories.remove(category);
-        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.QUEST_CATEGORY, category);
+        SyncMaster.syncRemove(EnumSyncType.QUEST_CATEGORY, category);
 	}
 
 	public void saveCategory(QuestCategory category){
@@ -177,7 +176,7 @@ public class QuestController implements IQuestHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        SyncController.updateQuestCat(category);
+        SyncMaster.syncUpdate(EnumSyncType.QUEST_CATEGORY, -1, SyncMaster.updateQuestCat(category));
     }
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -225,7 +224,7 @@ public class QuestController implements IQuestHandler {
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST, quest.writeToNBT(new NBTTagCompound()), category.id);
+            SyncMaster.syncUpdate(EnumSyncType.QUEST, category.id, quest.writeToNBT(new NBTTagCompound()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

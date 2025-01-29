@@ -5,10 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IMagic;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Magic;
 
 import java.io.*;
@@ -160,7 +157,7 @@ public class MagicController {
 
         NBTTagCompound facCompound = new NBTTagCompound();
         mag.writeNBT(facCompound);
-        Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.MAGIC, facCompound);
+        // Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.MAGIC, facCompound);
 		saveFactions();
 	}
 

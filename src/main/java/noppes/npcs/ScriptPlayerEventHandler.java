@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.controllers.SyncMaster;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -62,7 +63,7 @@ public class ScriptPlayerEventHandler {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
                 if(playerData.updateClient) {
-                    NoppesUtilServer.sendPlayerDataCompound((EntityPlayerMP)player, playerData.getSyncNBT(), true);
+                    SyncMaster.syncPlayerData((EntityPlayerMP)player, true);
                     playerData.updateClient = false;
                 }
 
