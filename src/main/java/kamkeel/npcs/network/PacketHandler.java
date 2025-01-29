@@ -15,7 +15,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import noppes.npcs.CustomNpcs;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -43,6 +42,9 @@ public final class PacketHandler {
         LARGE_PACKET.registerPacket(new LargeScrollGroupPacket());
         LARGE_PACKET.registerPacket(new LargeScrollDataPacket());
         LARGE_PACKET.registerPacket(new LargeScrollListPacket());
+
+        // Log channel registration
+        System.out.println("PacketHandler initialized and channels registered.");
     }
 
     public void registerChannels() {
@@ -51,105 +53,110 @@ public final class PacketHandler {
             eventChannel = NetworkRegistry.INSTANCE.newEventDrivenChannel(channel.getChannelName());
             eventChannel.register(this);
             channels.put(channel.getChannelType(), eventChannel);
+            System.out.println("Registered channel: " + channel.getChannelName());
         }
     }
 
     public PacketChannel getPacketChannel(EnumPacketType type){
-        PacketChannel packetChannel;
-        switch (type){
-            case DATA:
-                packetChannel = DATA_PACKET;
-                break;
-            case INFO:
-                packetChannel = INFO_PACKET;
-                break;
-            case LARGE:
-                packetChannel = LARGE_PACKET;
-                break;
-            default:
-                packetChannel = CLIENT_PACKET;
-                break;
-        }
-        return packetChannel;
+        return packetChannels.stream()
+            .filter(channel -> channel.getChannelType() == type)
+            .findFirst()
+            .orElse(null);
     }
 
     public FMLEventChannel getEventChannel(AbstractPacket abstractPacket){
-        return channels.get(getPacketChannel(abstractPacket.getChannel().getChannelType()));
+        PacketChannel packetChannel = getPacketChannel(abstractPacket.getChannel().getChannelType());
+        if (packetChannel == null) {
+            return null;
+        }
+        return channels.get(packetChannel.getChannelType());
     }
 
     @SubscribeEvent
     public void onServerPacket(FMLNetworkEvent.ServerCustomPacketEvent event) {
-        try {
-            handlePacket(event.packet, ((NetHandlerPlayServer) event.handler).playerEntity);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        handlePacket(event.packet, ((NetHandlerPlayServer) event.handler).playerEntity);
     }
 
     @SubscribeEvent
     public void onClientPacket(FMLNetworkEvent.ClientCustomPacketEvent event) {
-        try {
-            handlePacket(event.packet, CustomNpcs.proxy.getPlayer());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        handlePacket(event.packet, CustomNpcs.proxy.getPlayer());
     }
 
     private void handlePacket(FMLProxyPacket packet, EntityPlayer player) {
         ByteBuf buf = packet.payload();
         try {
-            int channelTypeOrdinal = buf.readInt();
             int packetTypeOrdinal = buf.readInt();
-
-            EnumPacketType channelType = EnumPacketType.values()[channelTypeOrdinal];
-            PacketChannel packetChannel = getPacketChannel(channelType);
-
-            AbstractPacket abstractPacket = packetChannel.packets.get(packetTypeOrdinal);
-            if (abstractPacket != null) {
-                try {
-                    abstractPacket.receiveData(buf, player);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            EnumPacketType packetType = EnumPacketType.values()[packetTypeOrdinal];
+            PacketChannel packetChannel = getPacketChannel(packetType);
+            if (packetChannel == null) {
+                System.err.println("Error: Packet channel is null for packet type: " + packetType);
+                return;
             }
+            int packetId = buf.readInt();
+            AbstractPacket abstractPacket = packetChannel.packets.get(packetId);
+            if (abstractPacket == null) {
+                System.err.println("Error: Abstract packet is null for packet ID: " + packetId);
+                return;
+            }
+            abstractPacket.receiveData(buf, player);
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Error: IndexOutOfBoundsException in handlePacket: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
+            System.err.println("Error: Exception in handlePacket: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public void sendPacket(AbstractPacket packet, Consumer<FMLProxyPacket> sendFunction) {
-        try {
-            if (packet instanceof LargeAbstractPacket) {
-                List<FMLProxyPacket> chunks = ((LargeAbstractPacket) packet).generatePacketChunks();
-                for (FMLProxyPacket chunk : chunks) {
-                    sendFunction.accept(chunk);
-                }
-            } else {
-                FMLProxyPacket proxyPacket = packet.generatePacket();
-                sendFunction.accept(proxyPacket);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        FMLProxyPacket proxyPacket = packet.generatePacket();
+        if (proxyPacket != null) {
+            sendFunction.accept(proxyPacket);
         }
     }
 
     public void sendToPlayer(AbstractPacket packet, EntityPlayerMP player) {
-        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendTo(proxyPacket, player));
+        FMLEventChannel eventChannel = getEventChannel(packet);
+        if (eventChannel == null) {
+            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            return;
+        }
+        sendPacket(packet, proxyPacket -> eventChannel.sendTo(proxyPacket, player));
     }
 
     public void sendToServer(AbstractPacket packet) {
-        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToServer(proxyPacket));
+        FMLEventChannel eventChannel = getEventChannel(packet);
+        if (eventChannel == null) {
+            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            return;
+        }
+        sendPacket(packet, eventChannel::sendToServer);
     }
 
     public void sendToAll(AbstractPacket packet) {
-        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToAll(proxyPacket));
+        FMLEventChannel eventChannel = getEventChannel(packet);
+        if (eventChannel == null) {
+            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            return;
+        }
+        sendPacket(packet, eventChannel::sendToAll);
     }
 
     public void sendToAllAround(AbstractPacket packet, NetworkRegistry.TargetPoint point) {
-        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToAllAround(proxyPacket, point));
+        FMLEventChannel eventChannel = getEventChannel(packet);
+        if (eventChannel == null) {
+            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            return;
+        }
+        sendPacket(packet, proxyPacket -> eventChannel.sendToAllAround(proxyPacket, point));
     }
 
     public void sendToDimension(AbstractPacket packet, int dimensionId) {
-        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToDimension(proxyPacket, dimensionId));
+        FMLEventChannel eventChannel = getEventChannel(packet);
+        if (eventChannel == null) {
+            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            return;
+        }
+        sendPacket(packet, proxyPacket -> eventChannel.sendToDimension(proxyPacket, dimensionId));
     }
 }

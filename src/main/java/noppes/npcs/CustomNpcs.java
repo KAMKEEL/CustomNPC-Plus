@@ -16,6 +16,7 @@ import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.CNPCData;
 import kamkeel.npcs.developer.Developer;
+import kamkeel.npcs.network.PacketHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -248,6 +249,13 @@ public class CustomNpcs {
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
     }
+
+    //Loading items in the about to start event was corrupting items with a damage value
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        PacketHandler.Instance = new PacketHandler();
+    }
+
 
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){

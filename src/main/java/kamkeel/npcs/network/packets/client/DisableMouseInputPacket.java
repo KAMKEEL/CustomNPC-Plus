@@ -6,6 +6,7 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.Server;
 import noppes.npcs.client.ClientEventHandler;
 
 import java.io.IOException;

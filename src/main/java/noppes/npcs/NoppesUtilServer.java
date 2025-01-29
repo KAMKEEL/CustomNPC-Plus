@@ -49,6 +49,8 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
+import static kamkeel.npcs.network.KamUtilServer.sendScrollData;
+
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
 
@@ -505,7 +507,7 @@ public class NoppesUtilServer {
 			}
 		}
 
-		NoppesUtilServer.sendScrollData(player, map);
+		sendScrollData(player, map);
 	}
 
 	public static void removePlayerData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -593,17 +595,17 @@ public class NoppesUtilServer {
 		}
 		sendScrollData(player, map);
 	}
-	public static void sendScrollData(EntityPlayerMP player, Map<String,Integer> map){
-		Map<String, Integer> send = new HashMap<String, Integer>();
-		for(String key : map.keySet()){
-			send.put(key, map.get(key));
-			if(send.size() == 100){
-				Server.sendData(player, EnumPacketClient.SCROLL_DATA_PART, send);
-				send = new HashMap<String, Integer>();
-			}
-		}
-		Server.sendData(player, EnumPacketClient.SCROLL_DATA, send);
-	}
+//	public static void sendScrollData(EntityPlayerMP player, Map<String,Integer> map){
+//		Map<String, Integer> send = new HashMap<String, Integer>();
+//		for(String key : map.keySet()){
+//			send.put(key, map.get(key));
+//			if(send.size() == 100){
+//				Server.sendData(player, EnumPacketClient.SCROLL_DATA_PART, send);
+//				send = new HashMap<String, Integer>();
+//			}
+//		}
+//		Server.sendData(player, EnumPacketClient.SCROLL_DATA, send);
+//	}
 
 	public static void sendScrollGroup(EntityPlayerMP player, Map<String,Integer> map){
 		Map<String, Integer> send = new HashMap<String, Integer>();

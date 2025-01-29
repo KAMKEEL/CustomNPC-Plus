@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.large;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.client.NoppesUtil;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class LargeScrollDataPacket extends LargeAbstractPacket {
@@ -34,16 +36,27 @@ public final class LargeScrollDataPacket extends LargeAbstractPacket {
     }
 
     @Override
-    public void writeData(ByteBuf out) throws IOException {
-        out.writeInt(data.size());
+    protected byte[] getData() throws IOException {
+        ByteBuf buffer = Unpooled.buffer();
+        buffer.writeInt(data.size());
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
-            ByteBufUtils.writeString(out, entry.getKey());
-            out.writeInt(entry.getValue());
+            buffer.writeInt(entry.getValue());
+            ByteBufUtils.writeString(buffer, entry.getKey());
         }
+        byte[] bytes = new byte[buffer.readableBytes()];
+        buffer.readBytes(bytes);
+        System.out.println("getData: Written data to buffer: " + buffer.toString());
+        return bytes;
     }
 
     @Override
-    public void handleData(ByteBuf data, EntityPlayer player) throws IOException {
+    protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
+        if (data == null || data.readableBytes() <= 0) {
+            System.err.println("LargeScrollDataPacket: ByteBuf is empty or already read.");
+            return;
+        }
+        data.readerIndex(0);
+        System.out.println("handleCompleteData: Reading data from buffer: " + data.toString());
         NoppesUtil.setScrollData(data);
     }
 }

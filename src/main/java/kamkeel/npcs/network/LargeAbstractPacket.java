@@ -1,38 +1,43 @@
 package kamkeel.npcs.network;
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
+import org.lwjgl.Sys;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class LargeAbstractPacket extends AbstractPacket {
-    private static final int CHUNK_SIZE = 10000;
-    private static final Map<UUID, ByteBuf> packetChunks = new HashMap<>();
-    private static final Map<UUID, Integer> receivedChunks = new HashMap<>();
+
+    private static final Map<UUID, PacketStorage> packetChunks = new ConcurrentHashMap<>();
+    private static final int CHUNK_SIZE = 5000;
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBuf data = Unpooled.buffer();
-        writeData(data);
-        int totalSize = data.readableBytes();
-        UUID packetId = UUID.randomUUID(); // Unique ID for this packet
-        int totalChunks = (int) Math.ceil((double) totalSize / CHUNK_SIZE);
+        byte[] data = getData();
+        int totalSize = data.length;
+        UUID packetId = UUID.randomUUID();
 
-        for (int i = 0; i < totalSize; i += CHUNK_SIZE) {
-            int chunkSize = Math.min(CHUNK_SIZE, totalSize - i);
-            ByteBuf chunk = data.readBytes(chunkSize);
+        System.out.println("Sending data with packetId: " + packetId + ", totalSize: " + totalSize);
+
+        // Break the data into chunks of CHUNK_SIZE bytes each
+        for (int offset = 0; offset < totalSize; offset += CHUNK_SIZE) {
+            int chunkSize = Math.min(CHUNK_SIZE, totalSize - offset);
+
+            // Write a header for each chunk
             out.writeLong(packetId.getMostSignificantBits());
             out.writeLong(packetId.getLeastSignificantBits());
             out.writeInt(totalSize);
-            out.writeInt(i);
-            out.writeInt(totalChunks);
-            out.writeBytes(chunk);
+            out.writeInt(offset);
+            out.writeInt((totalSize + CHUNK_SIZE - 1) / CHUNK_SIZE); // totalChunks
+
+            // Write the chunk bytes
+            out.writeBytes(data, offset, chunkSize);
+
+            System.out.println("Sent chunk with offset: " + offset + ", size: " + chunkSize);
         }
     }
 
@@ -41,51 +46,70 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
         long mostSigBits = in.readLong();
         long leastSigBits = in.readLong();
         UUID packetId = new UUID(mostSigBits, leastSigBits);
+
         int totalSize = in.readInt();
         int offset = in.readInt();
-        int totalChunks = in.readInt();
-        ByteBuf chunk = in.readBytes(in.readableBytes());
+        int totalChunks = in.readInt(); // Currently unused aside from potential debugging/verification
+        int chunkSize = Math.min(CHUNK_SIZE, totalSize - offset);
 
-        ByteBuf data = packetChunks.computeIfAbsent(packetId, k -> Unpooled.buffer(totalSize));
-        data.setBytes(offset, chunk);
+        // Basic validation to ensure the chunk won't overwrite out of bounds
+        if (chunkSize <= 0 || offset < 0 || (offset + chunkSize) > totalSize) {
+            throw new IndexOutOfBoundsException("Invalid chunk size/offset: chunkSize="
+                + chunkSize + ", offset=" + offset + ", totalSize=" + totalSize);
+        }
 
-        int receivedChunkCount = receivedChunks.compute(packetId, (k, v) -> (v == null) ? 1 : v + 1);
+        // Read the exact chunk data
+        ByteBuf chunk = in.readBytes(chunkSize);
 
-        if (receivedChunkCount == totalChunks) {
+        System.out.println("Receiving data: packetId=" + packetId
+            + ", totalSize=" + totalSize
+            + ", offset=" + offset
+            + ", chunkSize=" + chunkSize);
+
+        // Store the received chunk in a PacketStorage
+        PacketStorage storage = packetChunks.computeIfAbsent(packetId,
+            k -> new PacketStorage(Unpooled.buffer(totalSize), 0, totalSize));
+
+        // Write this chunk into the buffer at the correct offset
+        storage.data.setBytes(offset, chunk);
+        storage.receivedSoFar += chunkSize;
+
+        // If we've received all bytes, finalize
+        if (storage.receivedSoFar >= totalSize) {
+            // Remove from the map to clean up
             packetChunks.remove(packetId);
-            receivedChunks.remove(packetId);
-            handleData(data, player);
+
+            // We now have the complete data in storage.data
+            // Copy (or slice) the exact bytes, then handle them
+            ByteBuf completeData = storage.data.copy(0, totalSize);
+
+            System.out.println("Received complete data for packetId: " + packetId);
+
+            // Clean up and handle
+            storage.data.release();
+            handleCompleteData(completeData, player);
+            completeData.release();
         }
+
+        chunk.release();
     }
 
-    public final List<FMLProxyPacket> generatePacketChunks() {
-        List<FMLProxyPacket> chunks = new ArrayList<>();
-        ByteBuf data = Unpooled.buffer();
-        try {
-            writeData(data);
-            int totalSize = data.readableBytes();
-            UUID packetId = UUID.randomUUID();
-            int totalChunks = (int) Math.ceil((double) totalSize / CHUNK_SIZE);
+    protected abstract byte[] getData() throws IOException;
 
-            for (int i = 0; i < totalSize; i += CHUNK_SIZE) {
-                int chunkSize = Math.min(CHUNK_SIZE, totalSize - i);
-                ByteBuf chunk = data.readBytes(chunkSize);
-                ByteBuf out = Unpooled.buffer();
-                out.writeLong(packetId.getMostSignificantBits());
-                out.writeLong(packetId.getLeastSignificantBits());
-                out.writeInt(totalSize);
-                out.writeInt(i);
-                out.writeInt(totalChunks);
-                out.writeBytes(chunk);
-                chunks.add(new FMLProxyPacket(out, getChannel().getChannelName()));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    protected abstract void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException;
+
+    /**
+     * Simple storage class to keep track of partial data and how many bytes we've received so far.
+     */
+    private static class PacketStorage {
+        final ByteBuf data;
+        int receivedSoFar;
+        final int totalSize;
+
+        PacketStorage(ByteBuf data, int receivedSoFar, int totalSize) {
+            this.data = data;
+            this.receivedSoFar = receivedSoFar;
+            this.totalSize = totalSize;
         }
-        return chunks;
     }
-
-    public abstract void writeData(ByteBuf out) throws IOException;
-
-    public abstract void handleData(ByteBuf data, EntityPlayer player) throws IOException;
 }

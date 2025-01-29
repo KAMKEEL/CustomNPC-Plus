@@ -42,11 +42,12 @@ public final class MessagePacket extends AbstractPacket {
         if(CustomNpcs.side() != Side.CLIENT)
             return;
 
-        String description = StatCollector.translateToLocal(Server.readString(in));
-        String message = Server.readString(in);
-        Achievement achievement = new Achievement(message, description);
-        GuiAchievement guiAchievement = Minecraft.getMinecraft().guiAchievement;
-        guiAchievement.func_146256_a(achievement);
-        ObfuscationReflectionHelper.setPrivateValue(GuiAchievement.class, guiAchievement, achievement.getDescription(), 4);
+        // TODO: Fix Message Packet
+//        String description = StatCollector.translateToLocal(Server.readString(in));
+//        String message = Server.readString(in);
+//        Achievement achievement = new Achievement(message, description);
+//        GuiAchievement guiAchievement = Minecraft.getMinecraft().guiAchievement;
+//        guiAchievement.func_146256_a(achievement);
+//        ObfuscationReflectionHelper.setPrivateValue(GuiAchievement.class, guiAchievement, achievement.getDescription(), 4);
     }
 }

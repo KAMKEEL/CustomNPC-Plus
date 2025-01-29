@@ -1,7 +1,7 @@
-// src/main/java/kamkeel/network/packets/large/LargeScrollListPacket.java
 package kamkeel.npcs.network.packets.large;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -35,15 +35,19 @@ public final class LargeScrollListPacket extends LargeAbstractPacket {
     }
 
     @Override
-    public void writeData(ByteBuf out) throws IOException {
-        out.writeInt(data.size());
+    protected byte[] getData() throws IOException {
+        ByteBuf buffer = Unpooled.buffer();
+        buffer.writeInt(data.size());
         for (String entry : data) {
-            ByteBufUtils.writeString(out, entry);
+            ByteBufUtils.writeString(buffer, entry);
         }
+        byte[] bytes = new byte[buffer.readableBytes()];
+        buffer.readBytes(bytes);
+        return bytes;
     }
 
     @Override
-    public void handleData(ByteBuf data, EntityPlayer player) throws IOException {
+    protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
         NoppesUtil.setScrollList(data);
     }
 }

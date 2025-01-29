@@ -8,6 +8,7 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
@@ -33,6 +34,6 @@ public final class TeleporterPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        CustomNpcs.proxy.openGui(null, EnumGuiType.NpcDimensions);
+        CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);
     }
 }
