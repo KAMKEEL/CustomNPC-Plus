@@ -17,6 +17,7 @@ import noppes.npcs.CustomNpcs;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class PacketHandler {
     public static PacketHandler Instance;
@@ -116,48 +117,39 @@ public final class PacketHandler {
         }
     }
 
-    public void sendToPlayer(AbstractPacket packet, EntityPlayerMP player) {
+    public void sendPacket(AbstractPacket packet, Consumer<FMLProxyPacket> sendFunction) {
         try {
-            FMLProxyPacket proxyPacket = packet.generatePacket();
-            getEventChannel(packet).sendTo(proxyPacket, player);
+            if (packet instanceof LargeAbstractPacket) {
+                List<FMLProxyPacket> chunks = ((LargeAbstractPacket) packet).generatePacketChunks();
+                for (FMLProxyPacket chunk : chunks) {
+                    sendFunction.accept(chunk);
+                }
+            } else {
+                FMLProxyPacket proxyPacket = packet.generatePacket();
+                sendFunction.accept(proxyPacket);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendToPlayer(AbstractPacket packet, EntityPlayerMP player) {
+        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendTo(proxyPacket, player));
     }
 
     public void sendToServer(AbstractPacket packet) {
-        try {
-            FMLProxyPacket proxyPacket = packet.generatePacket();
-            getEventChannel(packet).sendToServer(proxyPacket);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToServer(proxyPacket));
     }
 
     public void sendToAll(AbstractPacket packet) {
-        try {
-            FMLProxyPacket proxyPacket = packet.generatePacket();
-            getEventChannel(packet).sendToAll(proxyPacket);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToAll(proxyPacket));
     }
 
     public void sendToAllAround(AbstractPacket packet, NetworkRegistry.TargetPoint point) {
-        try {
-            FMLProxyPacket proxyPacket = packet.generatePacket();
-            getEventChannel(packet).sendToAllAround(proxyPacket, point);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToAllAround(proxyPacket, point));
     }
 
     public void sendToDimension(AbstractPacket packet, int dimensionId) {
-        try {
-            FMLProxyPacket proxyPacket = packet.generatePacket();
-            getEventChannel(packet).sendToDimension(proxyPacket, dimensionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sendPacket(packet, proxyPacket -> getEventChannel(packet).sendToDimension(proxyPacket, dimensionId));
     }
 }
