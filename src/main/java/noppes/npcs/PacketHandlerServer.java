@@ -6,7 +6,6 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
-import kamkeel.addon.DBCAddon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;

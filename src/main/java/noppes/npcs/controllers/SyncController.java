@@ -1,7 +1,7 @@
 package noppes.npcs.controllers;
 
 import io.netty.buffer.ByteBuf;
-import kamkeel.addon.DBCAddon;
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;

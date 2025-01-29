@@ -1,6 +1,6 @@
 package noppes.npcs.client.gui.model;
 
-import kamkeel.addon.client.GeckoAddonClient;
+import kamkeel.npcs.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;

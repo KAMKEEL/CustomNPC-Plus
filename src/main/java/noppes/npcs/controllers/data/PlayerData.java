@@ -1,6 +1,6 @@
 package noppes.npcs.controllers.data;
 
-import kamkeel.addon.DBCAddon;
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;

@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.mainmenu;
 
-import kamkeel.addon.DBCAddon;
-import kamkeel.addon.client.DBCClient;
+import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.nbt.NBTTagCompound;

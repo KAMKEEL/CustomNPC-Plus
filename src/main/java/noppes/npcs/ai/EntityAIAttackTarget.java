@@ -1,6 +1,6 @@
 package noppes.npcs.ai;
 
-import kamkeel.addon.DBCAddon;
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIBase;

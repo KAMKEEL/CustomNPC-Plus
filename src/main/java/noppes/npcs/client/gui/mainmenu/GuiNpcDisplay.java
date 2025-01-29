@@ -1,7 +1,7 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import com.mojang.authlib.GameProfile;
-import kamkeel.addon.client.GeckoAddonClient;
+import kamkeel.npcs.addon.client.GeckoAddonClient;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataDisplay;

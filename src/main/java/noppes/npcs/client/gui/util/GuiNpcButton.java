@@ -1,6 +1,6 @@
 package noppes.npcs.client.gui.util;
 
-import kamkeel.util.TextSplitter;
+import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;

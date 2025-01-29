@@ -1,7 +1,7 @@
 package noppes.npcs.client.gui.player.inventory;
 
 import cpw.mods.fml.common.Loader;
-import kamkeel.addon.client.DBCClient;
+import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;

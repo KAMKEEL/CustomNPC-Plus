@@ -2,7 +2,7 @@ package noppes.npcs.client.renderer;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
-import kamkeel.addon.client.GeckoAddonClient;
+import kamkeel.npcs.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.FontRenderer;
