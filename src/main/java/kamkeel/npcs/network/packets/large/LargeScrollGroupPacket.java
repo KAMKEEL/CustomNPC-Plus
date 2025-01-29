@@ -39,8 +39,8 @@ public final class LargeScrollGroupPacket extends LargeAbstractPacket {
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeInt(data.size());
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
-            ByteBufUtils.writeString(buffer, entry.getKey());
             buffer.writeInt(entry.getValue());
+            ByteBufUtils.writeString(buffer, entry.getKey());
         }
         byte[] bytes = new byte[buffer.readableBytes()];
         buffer.readBytes(bytes);

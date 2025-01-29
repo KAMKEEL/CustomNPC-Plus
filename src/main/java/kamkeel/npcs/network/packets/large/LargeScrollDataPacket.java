@@ -45,18 +45,11 @@ public final class LargeScrollDataPacket extends LargeAbstractPacket {
         }
         byte[] bytes = new byte[buffer.readableBytes()];
         buffer.readBytes(bytes);
-        System.out.println("getData: Written data to buffer: " + buffer.toString());
         return bytes;
     }
 
     @Override
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
-        if (data == null || data.readableBytes() <= 0) {
-            System.err.println("LargeScrollDataPacket: ByteBuf is empty or already read.");
-            return;
-        }
-        data.readerIndex(0);
-        System.out.println("handleCompleteData: Reading data from buffer: " + data.toString());
         NoppesUtil.setScrollData(data);
     }
 }

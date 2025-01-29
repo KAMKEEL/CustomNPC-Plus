@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -28,7 +29,7 @@ public final class PacketHandler {
     public final static PacketChannel CLIENT_PACKET = new PacketChannel("CNPC+|Client", EnumPacketType.CLIENT);
     public final static PacketChannel LARGE_PACKET = new PacketChannel("CNPC+|Large", EnumPacketType.LARGE);
 
-    public final static List<PacketChannel> packetChannels = new ArrayList<>();
+    private final static List<PacketChannel> packetChannels = new ArrayList<>();
 
     public PacketHandler() {
         // Register Channels
@@ -89,22 +90,20 @@ public final class PacketHandler {
             EnumPacketType packetType = EnumPacketType.values()[packetTypeOrdinal];
             PacketChannel packetChannel = getPacketChannel(packetType);
             if (packetChannel == null) {
-                System.err.println("Error: Packet channel is null for packet type: " + packetType);
+                LogWriter.error("Error: Packet channel is null for packet type: " + packetType);
                 return;
             }
             int packetId = buf.readInt();
             AbstractPacket abstractPacket = packetChannel.packets.get(packetId);
             if (abstractPacket == null) {
-                System.err.println("Error: Abstract packet is null for packet ID: " + packetId);
+                LogWriter.error("Error: Abstract packet is null for packet ID: " + packetId);
                 return;
             }
             abstractPacket.receiveData(buf, player);
         } catch (IndexOutOfBoundsException e) {
-            System.err.println("Error: IndexOutOfBoundsException in handlePacket: " + e.getMessage());
-            e.printStackTrace();
+            LogWriter.error("Error: IndexOutOfBoundsException in handlePacket: " + e.getMessage());
         } catch (Exception e) {
-            System.err.println("Error: Exception in handlePacket: " + e.getMessage());
-            e.printStackTrace();
+            LogWriter.error("Error: Exception in handlePacket: " + e.getMessage());
         }
     }
 
@@ -118,7 +117,7 @@ public final class PacketHandler {
     public void sendToPlayer(AbstractPacket packet, EntityPlayerMP player) {
         FMLEventChannel eventChannel = getEventChannel(packet);
         if (eventChannel == null) {
-            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
             return;
         }
         sendPacket(packet, proxyPacket -> eventChannel.sendTo(proxyPacket, player));
@@ -127,7 +126,7 @@ public final class PacketHandler {
     public void sendToServer(AbstractPacket packet) {
         FMLEventChannel eventChannel = getEventChannel(packet);
         if (eventChannel == null) {
-            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
             return;
         }
         sendPacket(packet, eventChannel::sendToServer);
@@ -136,7 +135,7 @@ public final class PacketHandler {
     public void sendToAll(AbstractPacket packet) {
         FMLEventChannel eventChannel = getEventChannel(packet);
         if (eventChannel == null) {
-            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
             return;
         }
         sendPacket(packet, eventChannel::sendToAll);
@@ -145,7 +144,7 @@ public final class PacketHandler {
     public void sendToAllAround(AbstractPacket packet, NetworkRegistry.TargetPoint point) {
         FMLEventChannel eventChannel = getEventChannel(packet);
         if (eventChannel == null) {
-            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
             return;
         }
         sendPacket(packet, proxyPacket -> eventChannel.sendToAllAround(proxyPacket, point));
@@ -154,7 +153,7 @@ public final class PacketHandler {
     public void sendToDimension(AbstractPacket packet, int dimensionId) {
         FMLEventChannel eventChannel = getEventChannel(packet);
         if (eventChannel == null) {
-            System.err.println("Error: Event channel is null for packet: " + packet.getClass().getName());
+            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
             return;
         }
         sendPacket(packet, proxyPacket -> eventChannel.sendToDimension(proxyPacket, dimensionId));

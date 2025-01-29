@@ -21,8 +21,6 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
         int totalSize = data.length;
         UUID packetId = UUID.randomUUID();
 
-        System.out.println("Sending data with packetId: " + packetId + ", totalSize: " + totalSize);
-
         // Break the data into chunks of CHUNK_SIZE bytes each
         for (int offset = 0; offset < totalSize; offset += CHUNK_SIZE) {
             int chunkSize = Math.min(CHUNK_SIZE, totalSize - offset);
@@ -36,8 +34,6 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
 
             // Write the chunk bytes
             out.writeBytes(data, offset, chunkSize);
-
-            System.out.println("Sent chunk with offset: " + offset + ", size: " + chunkSize);
         }
     }
 
@@ -61,11 +57,6 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
         // Read the exact chunk data
         ByteBuf chunk = in.readBytes(chunkSize);
 
-        System.out.println("Receiving data: packetId=" + packetId
-            + ", totalSize=" + totalSize
-            + ", offset=" + offset
-            + ", chunkSize=" + chunkSize);
-
         // Store the received chunk in a PacketStorage
         PacketStorage storage = packetChunks.computeIfAbsent(packetId,
             k -> new PacketStorage(Unpooled.buffer(totalSize), 0, totalSize));
@@ -82,8 +73,6 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
             // We now have the complete data in storage.data
             // Copy (or slice) the exact bytes, then handle them
             ByteBuf completeData = storage.data.copy(0, totalSize);
-
-            System.out.println("Received complete data for packetId: " + packetId);
 
             // Clean up and handle
             storage.data.release();
