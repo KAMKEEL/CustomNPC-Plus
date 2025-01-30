@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,7 +20,13 @@ import java.io.IOException;
 public final class ScrollSelectedPacket extends AbstractPacket {
     public static final String packetName = "Client|ScrollSelected";
 
+    private String selected;
+
     public ScrollSelectedPacket() {}
+
+    public ScrollSelectedPacket(String selected) {
+        this.selected = selected;
+    }
 
     @Override
     public Enum getType() {
@@ -33,7 +40,7 @@ public final class ScrollSelectedPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.writeString(out, this.selected);
     }
 
     @SideOnly(Side.CLIENT)

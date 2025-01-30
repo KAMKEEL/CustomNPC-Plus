@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,7 +21,13 @@ import java.io.IOException;
 public final class OverlayQuestTrackingPacket extends AbstractPacket {
     public static final String packetName = "Client|OverlayQuestTracking";
 
+    private NBTTagCompound compound;
+
     public OverlayQuestTrackingPacket() {}
+
+    public OverlayQuestTrackingPacket(NBTTagCompound compound) {
+        this.compound = compound;
+    }
 
     @Override
     public Enum getType() {
@@ -34,7 +41,7 @@ public final class OverlayQuestTrackingPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.writeNBT(out, compound);
     }
 
     @SideOnly(Side.CLIENT)

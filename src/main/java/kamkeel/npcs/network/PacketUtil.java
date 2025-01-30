@@ -2,6 +2,8 @@ package kamkeel.npcs.network;
 
 import kamkeel.npcs.network.packets.client.ChatAlertPacket;
 import kamkeel.npcs.network.packets.client.AchievementPacket;
+import kamkeel.npcs.network.packets.client.QuestCompletionPacket;
+import kamkeel.npcs.network.packets.client.ScrollSelectedPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiClosePacket;
 import kamkeel.npcs.network.packets.client.large.LargeGuiDataPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiErrorPacket;
@@ -60,6 +62,16 @@ public class PacketUtil {
 
     public static void sendGuiData(EntityPlayerMP playerMP, NBTTagCompound compound){
         LargeGuiDataPacket packet = new LargeGuiDataPacket(compound);
+        PacketHandler.Instance.sendToPlayer(packet, playerMP);
+    }
+
+    public static void sendQuestComplete(EntityPlayerMP playerMP, NBTTagCompound compound){
+        QuestCompletionPacket packet = new QuestCompletionPacket(compound);
+        PacketHandler.Instance.sendToPlayer(packet, playerMP);
+    }
+
+    public static void setSelectedList(EntityPlayerMP playerMP, String item){
+        ScrollSelectedPacket packet = new ScrollSelectedPacket(item);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }
 }

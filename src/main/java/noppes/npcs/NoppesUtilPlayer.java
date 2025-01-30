@@ -630,7 +630,7 @@ public class NoppesUtilPlayer {
             }
 
             playerData.save();
-            Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+            PacketUtil.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
         }
 
         if(quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared){

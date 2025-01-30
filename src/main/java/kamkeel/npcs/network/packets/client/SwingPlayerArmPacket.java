@@ -29,9 +29,7 @@ public final class SwingPlayerArmPacket extends AbstractPacket {
     }
 
     @Override
-    public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
-    }
+    public void sendData(ByteBuf out) throws IOException {}
 
     @SideOnly(Side.CLIENT)
     @Override

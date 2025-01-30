@@ -48,37 +48,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
             MarkData data = MarkData.get((EntityNPCInterface) entity);
             data.setNBT(Server.readNBT(buffer));
         }
-		else if(type == EnumPacketClient.QUEST_COMPLETION){
-			NoppesUtil.guiQuestCompletion(player, Server.readNBT(buffer));
-		}
-		else if(type == EnumPacketClient.UPDATE_NPC){
-			NBTTagCompound compound = Server.readNBT(buffer);
-			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
-			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return;
-			((EntityNPCInterface)entity).readSpawnData(compound);
-		}
-		else if(type == EnumPacketClient.ROLE){
-			NBTTagCompound compound = Server.readNBT(buffer);
-			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
-			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return;
-			((EntityNPCInterface)entity).advanced.setRole(compound.getInteger("Role"));
-			((EntityNPCInterface)entity).roleInterface.readFromNBT(compound);
-			NoppesUtil.setLastNpc((EntityNPCInterface) entity);
-		}
-		else if(type == EnumPacketClient.GUI){
-			EnumGuiType gui = EnumGuiType.values()[buffer.readInt()];
-			CustomNpcs.proxy.openGui(NoppesUtil.getLastNpc(), gui, buffer.readInt(), buffer.readInt(), buffer.readInt());
-		}
-		else if(type == EnumPacketClient.SCROLL_SELECTED){
-			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-			if(gui == null || !(gui instanceof IScrollData))
-				return;
-			String selected = Server.readString(buffer);
-
-			((IScrollData)gui).setSelected(selected);
-		}
 		else if(type == EnumPacketClient.GUI_REDSTONE){
 			NoppesUtil.saveRedstoneBlock(player, Server.readNBT(buffer));
 		}

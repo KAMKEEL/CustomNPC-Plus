@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -139,7 +140,7 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public boolean instantComplete(EntityPlayer player, QuestData data) {
 		if(completion == EnumQuestCompletion.Instant && NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id)){
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+            PacketUtil.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
 			return true;
 		}
 		return false;

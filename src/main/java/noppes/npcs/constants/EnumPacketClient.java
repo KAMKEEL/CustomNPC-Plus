@@ -2,11 +2,6 @@ package
 noppes.npcs.constants;
 
 public enum EnumPacketClient {
-	QUEST_COMPLETION,
-	UPDATE_NPC,
-	ROLE,
-	GUI,
-	SCROLL_SELECTED,
 	GUI_REDSTONE,
 	GUI_WAYPOINT,
 	GUI_DATA,

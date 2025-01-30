@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.PacketBuffer;
 import noppes.npcs.CustomNpcs;
@@ -18,7 +19,13 @@ import java.io.IOException;
 public final class VillagerListPacket extends AbstractPacket {
     public static final String packetName = "Client|VillagerList";
 
+    private MerchantRecipeList merchantrecipelist;
+
     public VillagerListPacket() {}
+
+    public VillagerListPacket(MerchantRecipeList merchantrecipelist) {
+        this.merchantrecipelist = merchantrecipelist;
+    }
 
     @Override
     public Enum getType() {
@@ -32,7 +39,7 @@ public final class VillagerListPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.fillBuffer(out, merchantrecipelist);
     }
 
     @SideOnly(Side.CLIENT)

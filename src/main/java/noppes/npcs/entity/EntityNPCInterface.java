@@ -8,9 +8,11 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.addon.client.DBCClient;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.packets.client.ChatBubblePacket;
 import kamkeel.npcs.network.packets.client.SoundManagementPacket;
+import kamkeel.npcs.network.packets.client.npc.UpdateNpcPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -411,8 +413,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public void updateClient() {
 		NBTTagCompound compound = writeSpawnData();
 		compound.setInteger("EntityId", getEntityId());
-		Server.sendAssociatedData(this, EnumPacketClient.UPDATE_NPC, compound);
-		updateClient = false;
+        PacketHandler.Instance.sendTracking(new UpdateNpcPacket(compound), this);
+        updateClient = false;
 	}
 
 	@Override
@@ -452,7 +454,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 		else if (data != null){
 			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+            PacketUtil.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
 		}
 		else if (dialog != null){
 			NoppesUtilServer.openDialog(player, this, dialog, 0);

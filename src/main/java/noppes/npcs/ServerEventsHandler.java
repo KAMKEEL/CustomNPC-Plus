@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
@@ -110,8 +111,8 @@ public class ServerEventsHandler {
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
-			Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.GUI, EnumGuiType.Script.ordinal());
-			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+            PacketUtil.openGUI((EntityPlayerMP)event.entityPlayer, EnumGuiType.Script, 0, 0, 0);
+            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
 		}

@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -20,7 +21,15 @@ import java.io.IOException;
 public final class MarkDataPacket extends AbstractPacket {
     public static final String packetName = "Client|MarkData";
 
+    private int entityID;
+    private NBTTagCompound compound;
+
     public MarkDataPacket() {}
+
+    public MarkDataPacket(int entityID, NBTTagCompound compound) {
+        this.entityID = entityID;
+        this.compound = compound;
+    }
 
     @Override
     public Enum getType() {
@@ -34,7 +43,8 @@ public final class MarkDataPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(this.entityID);
+        ByteBufUtils.writeNBT(out, this.compound);
     }
 
     @SideOnly(Side.CLIENT)
@@ -44,7 +54,7 @@ public final class MarkDataPacket extends AbstractPacket {
         if (!(entity instanceof EntityNPCInterface)) return;
 
         EntityNPCInterface npc = (EntityNPCInterface) entity;
-        NBTTagCompound nbt = Server.readNBT(in);
+        NBTTagCompound nbt = ByteBufUtils.readNBT(in);
         MarkData data = MarkData.get(npc);
         data.setNBT(nbt);
     }
