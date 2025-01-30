@@ -4,13 +4,12 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
-import kamkeel.npcs.network.packets.client.DisableMouseInputPacket;
-import kamkeel.npcs.network.packets.client.OverlayQuestTrackingPacket;
-import kamkeel.npcs.network.packets.client.SoundManagementPacket;
-import kamkeel.npcs.network.packets.client.SwingPlayerArmPacket;
-import kamkeel.npcs.network.packets.client.gui.IsGuiOpenPacket;
+import kamkeel.npcs.network.packets.data.*;
+import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -295,17 +294,17 @@ public class NoppesUtilPlayer {
     		if(npc.roleInterface != null)
     			npc.roleInterface.interact(player);
     		else
-                PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
+                GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
     	}
     	else if(option.optionType == EnumOptionType.DialogOption){
     		NoppesUtilServer.openDialog(player, npc, option.getDialog(), optionId+1);
     	}
     	else if(option.optionType == EnumOptionType.CommandBlock){
-            PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
+            GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
     		NoppesUtilServer.runCommand(player, npc.getCommandSenderName(), option.command);
     	}
     	else
-            PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
+            GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -426,14 +425,14 @@ public class NoppesUtilPlayer {
         }
         QuestLogData data = new QuestLogData();
         data.setData(player);
-        PacketUtil.sendGuiData(player, data.writeNBT());
+        GuiDataPacket.sendGuiData(player, data.writeNBT());
 	}
 
     public static void sendTrackedQuest(EntityPlayerMP player) {
         QuestLogData data = new QuestLogData();
         data.setTrackedQuestKey(player);
 
-        PacketUtil.sendPartyData(player, data.writeTrackedQuest());
+        PartyDataPacket.sendPartyData(player, data.writeTrackedQuest());
     }
 
 	public static boolean questCompletion(EntityPlayerMP player, int questId) {
@@ -635,7 +634,7 @@ public class NoppesUtilPlayer {
             }
 
             playerData.save();
-            PacketUtil.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
+            QuestCompletionPacket.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
         }
 
         if(quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared){

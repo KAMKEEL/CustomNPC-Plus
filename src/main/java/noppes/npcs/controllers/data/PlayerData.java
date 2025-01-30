@@ -1,7 +1,8 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.addon.DBCAddon;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -265,8 +266,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		if (party != null && this.partyUUID == null && !this.partyInvites.contains(party.getPartyUUID())) {
 			this.partyInvites.add(party.getPartyUUID());
 
-            PacketUtil.sendAchievement((EntityPlayerMP) player, true, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
-            PacketUtil.sendChatAlert((EntityPlayerMP) player, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
+            AchievementPacket.sendAchievement((EntityPlayerMP) player, true, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
 		}
 	}
 

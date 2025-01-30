@@ -1,7 +1,7 @@
 package noppes.npcs.blocks;
 
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.gui.GuiOpenBookPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiOpenBookPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;

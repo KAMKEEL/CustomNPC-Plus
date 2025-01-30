@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
+import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,7 +23,7 @@ public class SyncController {
 
     public static void syncPlayer(EntityPlayerMP player){
         // 1) Factions
-        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
             EnumSyncType.FACTION,
             EnumSyncAction.RELOAD,
             -1,
@@ -31,7 +31,7 @@ public class SyncController {
         ), player);
 
         // 2) Dialog Categories
-        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
             EnumSyncType.DIALOG_CATEGORY,
             EnumSyncAction.RELOAD,
             -1,
@@ -39,7 +39,7 @@ public class SyncController {
         ), player);
 
         // 3) Quest Categories
-        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
             EnumSyncType.QUEST_CATEGORY,
             EnumSyncAction.RELOAD,
             -1,
@@ -47,7 +47,7 @@ public class SyncController {
         ), player);
 
         // 4) Workbench Recipes
-        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
             EnumSyncType.WORKBENCH_RECIPES,
             EnumSyncAction.RELOAD,
             -1,
@@ -55,7 +55,7 @@ public class SyncController {
         ), player);
 
         // 5) Carpentry Recipes
-        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
             EnumSyncType.CARPENTRY_RECIPES,
             EnumSyncAction.RELOAD,
             -1,
@@ -140,14 +140,14 @@ public class SyncController {
         PlayerData data = PlayerData.get(player);
         if(data != null){
             if(update){
-                PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+                PacketHandler.Instance.sendToPlayer(new SyncPacket(
                         EnumSyncType.PLAYERDATA,
                         EnumSyncAction.UPDATE,
                         -1,
                         data.getSyncNBT())
                     , player);
             } else {
-                PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+                PacketHandler.Instance.sendToPlayer(new SyncPacket(
                     EnumSyncType.PLAYERDATA,
                     EnumSyncAction.RELOAD,
                     -1,
@@ -157,7 +157,7 @@ public class SyncController {
     }
 
     public static void syncRemove(EnumSyncType enumSyncType, int id){
-        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+        PacketHandler.Instance.sendToAll(new SyncPacket(
             enumSyncType,
             EnumSyncAction.REMOVE,
             id,
@@ -166,7 +166,7 @@ public class SyncController {
     }
 
     public static void syncAllDialogs() {
-        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+        PacketHandler.Instance.sendToAll(new SyncPacket(
             EnumSyncType.DIALOG_CATEGORY,
             EnumSyncAction.RELOAD,
             -1,
@@ -175,7 +175,7 @@ public class SyncController {
     }
 
     public static void syncAllQuests() {
-        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+        PacketHandler.Instance.sendToAll(new SyncPacket(
             EnumSyncType.QUEST_CATEGORY,
             EnumSyncAction.RELOAD,
             -1,
@@ -184,7 +184,7 @@ public class SyncController {
     }
 
     public static void syncAllWorkbenchRecipes() {
-        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+        PacketHandler.Instance.sendToAll(new SyncPacket(
             EnumSyncType.WORKBENCH_RECIPES,
             EnumSyncAction.RELOAD,
             -1,
@@ -193,7 +193,7 @@ public class SyncController {
     }
 
     public static void syncAllCarpentryRecipes() {
-        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+        PacketHandler.Instance.sendToAll(new SyncPacket(
             EnumSyncType.CARPENTRY_RECIPES,
             EnumSyncAction.RELOAD,
             -1,
@@ -402,7 +402,7 @@ public class SyncController {
     }
 
     public static void syncUpdate(EnumSyncType type, int cat, NBTTagCompound compound) {
-        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+        PacketHandler.Instance.sendToAll(new SyncPacket(
             type,
             EnumSyncAction.UPDATE,
             cat,

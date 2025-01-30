@@ -7,7 +7,7 @@ import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.PlayerOnly;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumConfigOperation;
-import kamkeel.npcs.network.packets.client.ConfigCommandPacket;
+import kamkeel.npcs.network.packets.data.ConfigCommandPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;

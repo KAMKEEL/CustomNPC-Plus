@@ -8,12 +8,12 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.addon.client.DBCClient;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
-import kamkeel.npcs.network.packets.client.ChatBubblePacket;
-import kamkeel.npcs.network.packets.client.SoundManagementPacket;
-import kamkeel.npcs.network.packets.client.npc.UpdateNpcPacket;
-import kamkeel.npcs.network.packets.client.npc.WeaponNpcPacket;
+import kamkeel.npcs.network.packets.data.ChatBubblePacket;
+import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
+import kamkeel.npcs.network.packets.data.SoundManagementPacket;
+import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
+import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -454,7 +454,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 		else if (data != null){
 			NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id);
-            PacketUtil.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
+            QuestCompletionPacket.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
 		}
 		else if (dialog != null){
 			NoppesUtilServer.openDialog(player, this, dialog, 0);

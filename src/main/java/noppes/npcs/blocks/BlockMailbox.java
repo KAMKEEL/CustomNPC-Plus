@@ -2,7 +2,7 @@ package noppes.npcs.blocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -41,7 +41,7 @@ public class BlockMailbox extends BlockContainer{
     @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	if(!par1World.isRemote){
-            PacketUtil.openGUI((EntityPlayerMP)player, EnumGuiType.PlayerMailbox, i, j, k);
+            GuiOpenPacket.openGUI((EntityPlayerMP)player, EnumGuiType.PlayerMailbox, i, j, k);
     	}
 		return true;
     }

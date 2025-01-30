@@ -1,8 +1,10 @@
 package noppes.npcs.scripted.entity;
 
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
-import kamkeel.npcs.network.packets.client.script.ScriptOverlayClosePacket;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -265,8 +267,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
 
-        PacketUtil.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", quest.title);
-        PacketUtil.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", quest.title);
+        AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", quest.title);
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", quest.title);
         data.updateClient = true;
 	}
 
@@ -758,7 +760,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void closeGui() {
 		((EntityPlayerMP)this.entity).closeContainer();
-        PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
+        GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public void showCustomOverlay(ICustomOverlay overlay) {

@@ -1,6 +1,7 @@
 package kamkeel.npcs.command;
 
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -92,8 +93,8 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     playerdata.questData.finishedQuests.put(quest.id, sender.getEntityWorld().getTotalWorldTime());
 
                 if(playerdata.player != null){
-                    PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
-                    PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
+                    AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
+                    ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
                 }
                 count++;
             }
@@ -184,8 +185,8 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     count++;
 
                     if(playerdata.player != null && questData.sendAlerts){
-                        PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
-                        PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
+                        AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
+                        ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
                     }
                 }
             }

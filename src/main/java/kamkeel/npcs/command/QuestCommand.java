@@ -1,7 +1,8 @@
 package kamkeel.npcs.command;
 
 import kamkeel.npcs.controllers.SyncController;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -64,8 +65,8 @@ public class QuestCommand extends CommandKamkeelBase {
 	        playerdata.questData.activeQuests.put(questid, questdata);
             playerdata.save();
             if(playerdata.player != null && questdata.sendAlerts){
-                PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
-                PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
             }
             playerdata.updateClient = true;
             sendResult(sender, String.format("Started Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
@@ -110,8 +111,8 @@ public class QuestCommand extends CommandKamkeelBase {
 
             playerdata.save();
             if(playerdata.player != null){
-                PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
-                PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
             }
             playerdata.updateClient = true;
             sendResult(sender, String.format("Finished Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));

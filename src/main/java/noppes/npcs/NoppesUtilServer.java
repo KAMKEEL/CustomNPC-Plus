@@ -3,14 +3,18 @@ package noppes.npcs;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
-import kamkeel.npcs.network.packets.client.npc.DialogPacket;
-import kamkeel.npcs.network.packets.client.ParticlePacket;
-import kamkeel.npcs.network.packets.client.script.ScriptedParticlePacket;
-import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
-import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
-import kamkeel.npcs.network.packets.client.npc.RolePacket;
-import kamkeel.npcs.network.packets.client.gui.GuiTeleporterPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.data.gui.GuiErrorPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
+import kamkeel.npcs.network.packets.data.npc.DialogPacket;
+import kamkeel.npcs.network.packets.data.ParticlePacket;
+import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
+import kamkeel.npcs.network.packets.data.npc.DeleteNpcPacket;
+import kamkeel.npcs.network.packets.data.npc.EditNpcPacket;
+import kamkeel.npcs.network.packets.data.npc.RolePacket;
+import kamkeel.npcs.network.packets.data.gui.GuiTeleporterPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
@@ -55,8 +59,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import static kamkeel.npcs.network.PacketUtil.sendScrollData;
-import static kamkeel.npcs.network.PacketUtil.sendScrollGroup;
+import static kamkeel.npcs.network.packets.data.large.ScrollDataPacket.sendScrollData;
+import static kamkeel.npcs.network.packets.data.large.ScrollGroupPacket.sendScrollGroup;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -298,13 +302,13 @@ public class NoppesUtilServer {
 			return;
 		}
 		else{
-            PacketUtil.openGUI((EntityPlayerMP)player, gui, i, j, k);
+            GuiOpenPacket.openGUI((EntityPlayerMP)player, gui, i, j, k);
 		}
 		ArrayList<String> list = getScrollData(player, gui, npc);
 		if(list == null || list.isEmpty())
 			return;
 
-        PacketUtil.sendList((EntityPlayerMP)player, list);
+        ScrollListPacket.sendList((EntityPlayerMP)player, list);
     }
 
 	public static void sendOpenGuiNoDelay(final EntityPlayer player,
@@ -320,13 +324,13 @@ public class NoppesUtilServer {
 			return;
 		}
 		else{
-            PacketUtil.openGUI((EntityPlayerMP)player, gui, i, j, k);
+            GuiOpenPacket.openGUI((EntityPlayerMP)player, gui, i, j, k);
 		}
 		ArrayList<String> list = getScrollData(player, gui, npc);
 		if(list == null || list.isEmpty())
 			return;
 
-        PacketUtil.sendList((EntityPlayerMP)player, list);
+        ScrollListPacket.sendList((EntityPlayerMP)player, list);
 	}
 
 
@@ -671,7 +675,7 @@ public class NoppesUtilServer {
 
 			NBTTagCompound compound = option.writeNBT();
 			compound.setInteger("Position", pos);
-            PacketUtil.sendGuiData((EntityPlayerMP)player, compound);
+            GuiDataPacket.sendGuiData((EntityPlayerMP)player, compound);
 		}
 	}
 
@@ -707,7 +711,7 @@ public class NoppesUtilServer {
     public static void setClonerGui(EntityPlayerMP player, int x, int y, int z){
         if(player == null)
             return;
-        PacketUtil.openGUI(player, EnumGuiType.Cloner, x, y, z);
+        GuiOpenPacket.openGUI(player, EnumGuiType.Cloner, x, y, z);
     }
 
     public static void setTeleporterGUI(EntityPlayerMP player){
@@ -724,13 +728,13 @@ public class NoppesUtilServer {
 
 		ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
 		container.setRecipe(recipe);
-        PacketUtil.sendGuiData((EntityPlayerMP)player, recipe.writeNBT());
+        GuiDataPacket.sendGuiData((EntityPlayerMP)player, recipe.writeNBT());
 	}
 
 	public static void sendBank(EntityPlayerMP player,Bank bank) {
 		NBTTagCompound compound = new NBTTagCompound();
 		bank.writeEntityToNBT(compound);
-        PacketUtil.sendGuiData((EntityPlayerMP)player, compound);
+        GuiDataPacket.sendGuiData((EntityPlayerMP)player, compound);
 
 		if(player.openContainer instanceof ContainerManageBanks){
 			((ContainerManageBanks)player.openContainer).setBank(bank);
@@ -756,14 +760,14 @@ public class NoppesUtilServer {
 	}
 
 	public static void sendGuiError(EntityPlayer player, int i) {
-        PacketUtil.errorGUI((EntityPlayerMP)player, i, new NBTTagCompound());
+        GuiErrorPacket.errorGUI((EntityPlayerMP)player, i, new NBTTagCompound());
 	}
 
 	public static void sendGuiClose(EntityPlayerMP player, int i, NBTTagCompound comp) {
 		if(player.openContainer != player.inventoryContainer){
 			player.openContainer = player.inventoryContainer;
 		}
-        PacketUtil.closeGUI(player, i, comp);
+        GuiClosePacket.closeGUI(player, i, comp);
 	}
 
 	public static Entity spawnCloneWithProtection(NBTTagCompound compound, int x, int y,

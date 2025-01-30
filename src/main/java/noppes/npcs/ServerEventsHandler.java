@@ -5,15 +5,15 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
-import kamkeel.npcs.network.packets.client.MarkDataPacket;
-import kamkeel.npcs.network.packets.client.SoundManagementPacket;
-import kamkeel.npcs.network.packets.client.VillagerListPacket;
-import kamkeel.npcs.network.packets.client.large.LargeClonerPacket;
-import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
+import kamkeel.npcs.network.packets.data.MarkDataPacket;
+import kamkeel.npcs.network.packets.data.SoundManagementPacket;
+import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
+import kamkeel.npcs.network.packets.data.ClonerPacket;
+import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -26,7 +26,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
@@ -101,7 +100,7 @@ public class ServerEventsHandler {
 				return;
 			PlayerData data = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
 			ServerCloneController.Instance.cleanTags(compound);
-            PacketHandler.Instance.sendToPlayer(new LargeClonerPacket(compound), (EntityPlayerMP)event.entityPlayer);
+            PacketHandler.Instance.sendToPlayer(new ClonerPacket(compound), (EntityPlayerMP)event.entityPlayer);
 			data.cloned = compound;
 			if (event.target instanceof EntityNPCInterface) {
 				NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface) event.target);
@@ -113,7 +112,7 @@ public class ServerEventsHandler {
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
-            PacketUtil.openGUI((EntityPlayerMP)event.entityPlayer, EnumGuiType.Script, 0, 0, 0);
+            GuiOpenPacket.openGUI((EntityPlayerMP)event.entityPlayer, EnumGuiType.Script, 0, 0, 0);
             if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
@@ -199,7 +198,7 @@ public class ServerEventsHandler {
 		}
 
 		if(block == Blocks.crafting_table && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
-            PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+            PacketHandler.Instance.sendToPlayer(new SyncPacket(
                 EnumSyncType.WORKBENCH_RECIPES,
                 EnumSyncAction.RELOAD,
                 -1,
@@ -207,7 +206,7 @@ public class ServerEventsHandler {
             ), (EntityPlayerMP) player);
 		}
 		if(block == CustomItems.carpentyBench && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
-            PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+            PacketHandler.Instance.sendToPlayer(new SyncPacket(
                 EnumSyncType.CARPENTRY_RECIPES,
                 EnumSyncAction.RELOAD,
                 -1,

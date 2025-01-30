@@ -7,11 +7,11 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumPacketType;
-import kamkeel.npcs.network.packets.client.*;
-import kamkeel.npcs.network.packets.client.gui.*;
-import kamkeel.npcs.network.packets.client.large.*;
-import kamkeel.npcs.network.packets.client.npc.*;
-import kamkeel.npcs.network.packets.client.script.*;
+import kamkeel.npcs.network.packets.data.*;
+import kamkeel.npcs.network.packets.data.gui.*;
+import kamkeel.npcs.network.packets.data.large.*;
+import kamkeel.npcs.network.packets.data.npc.*;
+import kamkeel.npcs.network.packets.data.script.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -27,17 +27,17 @@ public final class PacketHandler {
     // Channels
     public Map<EnumPacketType, FMLEventChannel> channels = new Hashtable<>();
 
-    public static final PacketChannel INFO_PACKET   = new PacketChannel("CNPC+|Info",   EnumPacketType.INFO);
-    public static final PacketChannel DATA_PACKET   = new PacketChannel("CNPC+|Data",   EnumPacketType.DATA);
-    public static final PacketChannel CLIENT_PACKET = new PacketChannel("CNPC+|Client", EnumPacketType.CLIENT);
+    public static final PacketChannel PERMISSION_PACKET = new PacketChannel("CNPC+|Perm",   EnumPacketType.PERMISSION);
+    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player",   EnumPacketType.PLAYER);
+    public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumPacketType.DATA);
 
     private static final List<PacketChannel> packetChannels = new ArrayList<>();
 
     public PacketHandler() {
         // Register Channels
-        packetChannels.add(INFO_PACKET);
+        packetChannels.add(PERMISSION_PACKET);
+        packetChannels.add(PLAYER_PACKET);
         packetChannels.add(DATA_PACKET);
-        packetChannels.add(CLIENT_PACKET);
 
         this.registerChannels();
         this.registerClientPackets();
@@ -45,53 +45,53 @@ public final class PacketHandler {
 
     public void registerClientPackets(){
         // Client Packets
-        CLIENT_PACKET.registerPacket(new AchievementPacket());
-        CLIENT_PACKET.registerPacket(new ChatAlertPacket());
-        CLIENT_PACKET.registerPacket(new ChatBubblePacket());
-        CLIENT_PACKET.registerPacket(new ConfigCommandPacket());
-        CLIENT_PACKET.registerPacket(new DisableMouseInputPacket());
-        CLIENT_PACKET.registerPacket(new MarkDataPacket());
-        CLIENT_PACKET.registerPacket(new OverlayQuestTrackingPacket());
-        CLIENT_PACKET.registerPacket(new ParticlePacket());
-        CLIENT_PACKET.registerPacket(new PlayerUpdateSkinOverlaysPacket());
-        CLIENT_PACKET.registerPacket(new QuestCompletionPacket());
-        CLIENT_PACKET.registerPacket(new ScrollSelectedPacket());
-        CLIENT_PACKET.registerPacket(new SoundManagementPacket());
-        CLIENT_PACKET.registerPacket(new SwingPlayerArmPacket());
-        CLIENT_PACKET.registerPacket(new UpdateAnimationsPacket());
-        CLIENT_PACKET.registerPacket(new VillagerListPacket());
+        DATA_PACKET.registerPacket(new AchievementPacket());
+        DATA_PACKET.registerPacket(new ChatAlertPacket());
+        DATA_PACKET.registerPacket(new ChatBubblePacket());
+        DATA_PACKET.registerPacket(new ConfigCommandPacket());
+        DATA_PACKET.registerPacket(new DisableMouseInputPacket());
+        DATA_PACKET.registerPacket(new MarkDataPacket());
+        DATA_PACKET.registerPacket(new OverlayQuestTrackingPacket());
+        DATA_PACKET.registerPacket(new ParticlePacket());
+        DATA_PACKET.registerPacket(new PlayerUpdateSkinOverlaysPacket());
+        DATA_PACKET.registerPacket(new QuestCompletionPacket());
+        DATA_PACKET.registerPacket(new ScrollSelectedPacket());
+        DATA_PACKET.registerPacket(new SoundManagementPacket());
+        DATA_PACKET.registerPacket(new SwingPlayerArmPacket());
+        DATA_PACKET.registerPacket(new UpdateAnimationsPacket());
+        DATA_PACKET.registerPacket(new VillagerListPacket());
 
         // Client | GUI Packets
-        CLIENT_PACKET.registerPacket(new GuiClosePacket());
-        CLIENT_PACKET.registerPacket(new GuiOpenPacket());
-        CLIENT_PACKET.registerPacket(new GuiErrorPacket());
-        CLIENT_PACKET.registerPacket(new GuiRedstonePacket());
-        CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
-        CLIENT_PACKET.registerPacket(new GuiWaypointPacket());
-        CLIENT_PACKET.registerPacket(new IsGuiOpenPacket());
-        CLIENT_PACKET.registerPacket(new GuiOpenBookPacket());
+        DATA_PACKET.registerPacket(new GuiClosePacket());
+        DATA_PACKET.registerPacket(new GuiOpenPacket());
+        DATA_PACKET.registerPacket(new GuiErrorPacket());
+        DATA_PACKET.registerPacket(new GuiRedstonePacket());
+        DATA_PACKET.registerPacket(new GuiTeleporterPacket());
+        DATA_PACKET.registerPacket(new GuiWaypointPacket());
+        DATA_PACKET.registerPacket(new IsGuiOpenPacket());
+        DATA_PACKET.registerPacket(new GuiOpenBookPacket());
 
         // Client | NPC Packets
-        CLIENT_PACKET.registerPacket(new DeleteNpcPacket());
-        CLIENT_PACKET.registerPacket(new EditNpcPacket());
-        CLIENT_PACKET.registerPacket(new UpdateNpcPacket());
-        CLIENT_PACKET.registerPacket(new DialogPacket());
-        CLIENT_PACKET.registerPacket(new RolePacket());
-        CLIENT_PACKET.registerPacket(new WeaponNpcPacket());
+        DATA_PACKET.registerPacket(new DeleteNpcPacket());
+        DATA_PACKET.registerPacket(new EditNpcPacket());
+        DATA_PACKET.registerPacket(new UpdateNpcPacket());
+        DATA_PACKET.registerPacket(new DialogPacket());
+        DATA_PACKET.registerPacket(new RolePacket());
+        DATA_PACKET.registerPacket(new WeaponNpcPacket());
 
         // Client | Script Packets
-        CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
-        CLIENT_PACKET.registerPacket(new ScriptOverlayClosePacket());
-        CLIENT_PACKET.registerPacket(new ScriptOverlayDataPacket());
+        DATA_PACKET.registerPacket(new ScriptedParticlePacket());
+        DATA_PACKET.registerPacket(new ScriptOverlayClosePacket());
+        DATA_PACKET.registerPacket(new ScriptOverlayDataPacket());
 
         // Client | Large Packets
-        CLIENT_PACKET.registerPacket(new LargeClonerPacket());
-        CLIENT_PACKET.registerPacket(new LargeScrollGroupPacket());
-        CLIENT_PACKET.registerPacket(new LargeScrollDataPacket());
-        CLIENT_PACKET.registerPacket(new LargeScrollListPacket());
-        CLIENT_PACKET.registerPacket(new LargeSyncPacket());
-        CLIENT_PACKET.registerPacket(new LargeGuiDataPacket());
-        CLIENT_PACKET.registerPacket(new LargePartyDataPacket());
+        DATA_PACKET.registerPacket(new ClonerPacket());
+        DATA_PACKET.registerPacket(new ScrollGroupPacket());
+        DATA_PACKET.registerPacket(new ScrollDataPacket());
+        DATA_PACKET.registerPacket(new ScrollListPacket());
+        DATA_PACKET.registerPacket(new SyncPacket());
+        DATA_PACKET.registerPacket(new GuiDataPacket());
+        DATA_PACKET.registerPacket(new PartyDataPacket());
     }
 
     private void registerChannels() {

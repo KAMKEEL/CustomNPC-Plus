@@ -2,8 +2,8 @@ package noppes.npcs.controllers;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
-import kamkeel.npcs.network.packets.client.script.ScriptOverlayDataPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -29,13 +29,13 @@ public class CustomGuiController {
         EntityPlayerMP entityPlayerMP = (EntityPlayerMP) player.getMCEntity();
         entityPlayerMP.openGui(CustomNpcs.instance, EnumGuiType.CustomGui.ordinal(), player.getWorld().getMCWorld(), gui.getSlots().size(), 0, 0);
         ((ContainerCustomGui)((EntityPlayerMP)player.getMCEntity()).openContainer).setGui(gui, (EntityPlayer)player.getMCEntity());
-        PacketUtil.sendGuiData((EntityPlayerMP)player.getMCEntity(), gui.toNBT());
+        GuiDataPacket.sendGuiData((EntityPlayerMP)player.getMCEntity(), gui.toNBT());
     }
 
     public static boolean updateGui(IPlayer player, ScriptGui gui) {
         if (((EntityPlayerMP)player.getMCEntity()).openContainer instanceof ContainerCustomGui) {
             ((ContainerCustomGui)((EntityPlayerMP)player.getMCEntity()).openContainer).setGui(gui, (EntityPlayer)player.getMCEntity());
-            PacketUtil.sendGuiData((EntityPlayerMP)player.getMCEntity(), gui.toNBT());
+            GuiDataPacket.sendGuiData((EntityPlayerMP)player.getMCEntity(), gui.toNBT());
             return true;
         } else {
             return false;

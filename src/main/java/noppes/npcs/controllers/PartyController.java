@@ -1,6 +1,8 @@
 package noppes.npcs.controllers;
 
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -67,8 +69,8 @@ public class PartyController {
                     playerData.partyUUID = null;
                     if(player != null){
                         sendInviteData((EntityPlayerMP) player);
-                        PacketUtil.sendAchievement((EntityPlayerMP) player, true,  "party.disbandAlert", "");
-                        PacketUtil.sendChatAlert((EntityPlayerMP) player, "\u00A7c", "party.disbandMessage", "!");
+                        AchievementPacket.sendAchievement((EntityPlayerMP) player, true,  "party.disbandAlert", "");
+                        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "\u00A7c", "party.disbandMessage", "!");
                     }
                 }
             }
@@ -83,14 +85,14 @@ public class PartyController {
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                PacketUtil.sendAchievement((EntityPlayerMP) playerMP, true,  "party.kickOtherAlert", kickPlayerName);
-                PacketUtil.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true,  "party.kickOtherAlert", kickPlayerName);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
             }
         }
 
         if(kickPlayer != null){
-            PacketUtil.sendAchievement((EntityPlayerMP) kickPlayer, true,  "party.kickYouAlert", "");
-            PacketUtil.sendChatAlert((EntityPlayerMP) kickPlayer, "\u00A74", "party.kickYouChat", "!");
+            AchievementPacket.sendAchievement((EntityPlayerMP) kickPlayer, true,  "party.kickYouAlert", "");
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) kickPlayer, "\u00A74", "party.kickYouChat", "!");
         }
     }
 
@@ -101,12 +103,12 @@ public class PartyController {
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                PacketUtil.sendAchievement((EntityPlayerMP) playerMP, true,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
-                PacketUtil.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
             }
         }
-        PacketUtil.sendAchievement((EntityPlayerMP) leavingPlayer, true,  "party.leaveYouAlert", "");
-        PacketUtil.sendChatAlert((EntityPlayerMP) leavingPlayer, "\u00A7c", "party.leaveYouChat", "!");
+        AchievementPacket.sendAchievement((EntityPlayerMP) leavingPlayer, true,  "party.leaveYouAlert", "");
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) leavingPlayer, "\u00A7c", "party.leaveYouChat", "!");
     }
 
     public void pingPartyUpdate(Party party){
@@ -133,7 +135,7 @@ public class PartyController {
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    PacketUtil.sendPartyData((EntityPlayerMP) playerMP, compound);
+                    PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }
@@ -164,7 +166,7 @@ public class PartyController {
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    PacketUtil.sendPartyData((EntityPlayerMP) playerMP, compound);
+                    PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }
@@ -182,7 +184,7 @@ public class PartyController {
 
                 System.arraycopy(chatAlerts, 0, args, 1, chatAlerts.length);
                 args[args.length - 1] = "!"; // Add "!" at the end
-                PacketUtil.sendChatAlert((EntityPlayerMP) playerMP, args);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, args);
             }
         }
     }
