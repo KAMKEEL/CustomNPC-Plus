@@ -5,7 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
-import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -63,7 +63,7 @@ public class ScriptPlayerEventHandler {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
                 if(playerData.updateClient) {
-                    SyncMaster.syncPlayerData((EntityPlayerMP)player, true);
+                    SyncController.syncPlayerData((EntityPlayerMP)player, true);
                     playerData.updateClient = false;
                 }
 

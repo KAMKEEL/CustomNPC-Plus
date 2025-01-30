@@ -1,6 +1,6 @@
 package noppes.npcs.controllers;
 
-import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
@@ -206,11 +206,11 @@ public class RecipeController implements IRecipeHandler {
             return null;
 		RecipeCarpentry globalRecipe = globalRecipes.remove(recipe.id);
         if(globalRecipe != null)
-            SyncMaster.syncAllWorkbenchRecipes();
+            SyncController.syncAllWorkbenchRecipes();
 
         RecipeCarpentry carpentry = carpentryRecipes.remove(recipe.id);
         if(carpentry != null)
-            SyncMaster.syncAllWorkbenchRecipes();
+            SyncController.syncAllWorkbenchRecipes();
 
 		saveCategories();
 		reloadGlobalRecipes(globalRecipes);

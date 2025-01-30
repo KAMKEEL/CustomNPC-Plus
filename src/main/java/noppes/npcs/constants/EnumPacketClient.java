@@ -11,8 +11,6 @@ public enum EnumPacketClient {
 	GUI_REDSTONE,
 	GUI_WAYPOINT,
 	GUI_DATA,
-	GUI_ERROR,
-	GUI_CLOSE,
 	VILLAGER_LIST,
 	CLONE,
     TELEPORTER,

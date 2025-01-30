@@ -757,7 +757,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void closeGui() {
 		((EntityPlayerMP)this.entity).closeContainer();
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, -1, new NBTTagCompound());
+        PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public void showCustomOverlay(ICustomOverlay overlay) {

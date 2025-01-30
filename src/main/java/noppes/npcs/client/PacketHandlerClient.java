@@ -112,31 +112,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			if(gui instanceof IGuiData)
 				((IGuiData)gui).setGuiData(Server.readNBT(buffer));
 		}
-		else if(type == EnumPacketClient.GUI_ERROR){
-			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-			if(gui == null || !(gui instanceof IGuiError))
-				return;
-
-			int i = buffer.readInt();
-			NBTTagCompound compound = Server.readNBT(buffer);
-
-			((IGuiError)gui).setError(i, compound);
-		}
-		else if(type == EnumPacketClient.GUI_CLOSE){
-			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-			if(gui == null)
-				return;
-
-			if(gui instanceof IGuiClose){
-				int i = buffer.readInt();
-				NBTTagCompound compound = Server.readNBT(buffer);
-					((IGuiClose)gui).setClose(i, compound);
-			}
-
-			Minecraft mc = Minecraft.getMinecraft();
-	        mc.displayGuiScreen(null);
-	        mc.setIngameFocus();
-		}
 		else if(type == EnumPacketClient.VILLAGER_LIST){
             MerchantRecipeList merchantrecipelist = MerchantRecipeList.func_151390_b(new PacketBuffer(buffer));
             ServerEventsHandler.Merchant.setRecipes(merchantrecipelist);

@@ -3,7 +3,7 @@ package noppes.npcs;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
-import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
@@ -21,7 +21,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -43,7 +42,6 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -202,7 +200,7 @@ public class ServerEventsHandler {
                 EnumSyncType.WORKBENCH_RECIPES,
                 EnumSyncAction.RELOAD,
                 -1,
-                SyncMaster.workbenchNBT()
+                SyncController.workbenchNBT()
             ), (EntityPlayerMP) player);
 		}
 		if(block == CustomItems.carpentyBench && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
@@ -210,7 +208,7 @@ public class ServerEventsHandler {
                 EnumSyncType.CARPENTRY_RECIPES,
                 EnumSyncAction.RELOAD,
                 -1,
-                SyncMaster.carpentryNBT()
+                SyncController.carpentryNBT()
             ), (EntityPlayerMP) player);
 		}
 		if((block == CustomItems.banner || block == CustomItems.wallBanner || block == CustomItems.sign)  && event.action == Action.RIGHT_CLICK_BLOCK){

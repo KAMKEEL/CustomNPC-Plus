@@ -3,7 +3,7 @@ package kamkeel.npcs.network.packets.client.large;
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -89,13 +89,13 @@ public final class LargeSyncPacket extends LargeAbstractPacket {
     private void handleSyncPacketClient(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int id, NBTTagCompound data) {
         switch (enumSyncAction) {
             case RELOAD:
-                SyncMaster.clientSync(enumSyncType, data);
+                SyncController.clientSync(enumSyncType, data);
                 break;
             case UPDATE:
-                SyncMaster.clientUpdate(enumSyncType, id, data);
+                SyncController.clientUpdate(enumSyncType, id, data);
                 break;
             case REMOVE:
-                SyncMaster.clientSyncRemove(enumSyncType, id);
+                SyncController.clientSyncRemove(enumSyncType, id);
                 break;
         }
     }

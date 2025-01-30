@@ -1,7 +1,7 @@
 package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.packets.client.DialogPacket;
@@ -574,7 +574,7 @@ public class NoppesUtilServer {
             playerdata.save();
         }
         if(pl != null) {
-            SyncMaster.syncPlayer((EntityPlayerMP) pl);
+            SyncController.syncPlayer((EntityPlayerMP) pl);
         }
         sendPlayerData(type, player, name);
 	}
