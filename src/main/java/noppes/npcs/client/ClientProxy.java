@@ -83,7 +83,6 @@ public class ClientProxy extends CommonProxy {
 	public void load() {
 		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
-		CustomNpcs.Channel.register(new PacketHandlerClient());
 		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 		new MusicController();
 		new ScriptSoundController();
