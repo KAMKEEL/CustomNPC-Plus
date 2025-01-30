@@ -4,12 +4,16 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractPacket {
+
+    public EntityNPCInterface npc;
 
     public FMLProxyPacket generatePacket() {
         PacketChannel packetChannel = getChannel();
@@ -36,6 +40,19 @@ public abstract class AbstractPacket {
 
     public abstract Enum getType();
     public abstract PacketChannel getChannel();
+
+    public CustomNpcsPermissions.Permission getPermission(){
+        return null;
+    }
+
+    public boolean needsNPC(){
+        return false;
+    }
+
+    public void setNPC(EntityNPCInterface npc){
+        this.npc = npc;
+    }
+
     public abstract void sendData(ByteBuf out) throws IOException;
 
     //"player" on the server side is the client who sent this packet

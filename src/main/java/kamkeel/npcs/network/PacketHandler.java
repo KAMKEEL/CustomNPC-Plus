@@ -18,7 +18,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
 
@@ -154,9 +157,18 @@ public final class PacketHandler {
                 return;
             }
 
-            if(packetType == EnumChannelType.REQUEST){
-                EnumRequestPacket requestPacket = EnumRequestPacket.values()[packetId];
-                if()
+            // Check if permission is allowed
+            if(abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())){
+                return;
+            }
+
+            // Check for required NPC
+            if(abstractPacket.needsNPC()){
+                EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+                if(npc == null)
+                    return;
+
+                abstractPacket.setNPC(npc);
             }
 
             // Let the packet parse the rest
