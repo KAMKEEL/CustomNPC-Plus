@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumGuiType;
@@ -21,7 +21,7 @@ public final class GuiTeleporterPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_TELEPORTER;
+        return EnumDataPacket.GUI_TELEPORTER;
     }
 
     @Override

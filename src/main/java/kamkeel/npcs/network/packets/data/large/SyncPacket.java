@@ -7,7 +7,7 @@ import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -42,7 +42,7 @@ public final class SyncPacket extends LargeAbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SYNC;
+        return EnumDataPacket.SYNC;
     }
 
     @Override

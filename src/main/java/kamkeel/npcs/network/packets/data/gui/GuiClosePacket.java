@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -37,7 +37,7 @@ public final class GuiClosePacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_CLOSE;
+        return EnumDataPacket.GUI_CLOSE;
     }
 
     @Override

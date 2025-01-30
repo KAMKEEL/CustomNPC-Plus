@@ -1,6 +1,6 @@
 package kamkeel.npcs.network;
 
-import kamkeel.npcs.network.enums.EnumPacketType;
+import kamkeel.npcs.network.enums.EnumChannelType;
 
 import java.util.Hashtable;
 import java.util.Map;
@@ -8,11 +8,11 @@ import java.util.Map;
 public class PacketChannel {
 
     private String channelName;
-    private EnumPacketType channelType;
+    private EnumChannelType channelType;
 
     public Map<Integer, AbstractPacket> packets = new Hashtable<>();
 
-    public PacketChannel(String channelName, EnumPacketType channelType) {
+    public PacketChannel(String channelName, EnumChannelType channelType) {
         this.channelName = channelName;
         this.channelType = channelType;
     }
@@ -25,11 +25,11 @@ public class PacketChannel {
         this.channelName = channelName;
     }
 
-    public EnumPacketType getChannelType() {
+    public EnumChannelType getChannelType() {
         return channelType;
     }
 
-    public void setChannelType(EnumPacketType channelType) {
+    public void setChannelType(EnumChannelType channelType) {
         this.channelType = channelType;
     }
 

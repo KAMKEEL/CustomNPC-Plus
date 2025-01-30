@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumInfoPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -18,7 +18,7 @@ public final class LoginPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumInfoPacket.LOGIN;
+        return EnumDataPacket.LOGIN;
     }
 
     @Override

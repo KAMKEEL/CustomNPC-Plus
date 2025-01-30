@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -27,7 +27,7 @@ public final class DeleteNpcPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.DELETE_NPC;
+        return EnumDataPacket.DELETE_NPC;
     }
 
     @Override

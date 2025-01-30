@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -32,7 +32,7 @@ public final class ScriptedParticlePacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SCRIPTED_PARTICLE;
+        return EnumDataPacket.SCRIPTED_PARTICLE;
     }
 
     @Override

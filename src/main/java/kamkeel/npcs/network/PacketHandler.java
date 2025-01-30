@@ -6,7 +6,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.enums.EnumPacketType;
+import kamkeel.npcs.network.enums.EnumChannelType;
 import kamkeel.npcs.network.packets.data.*;
 import kamkeel.npcs.network.packets.data.gui.*;
 import kamkeel.npcs.network.packets.data.large.*;
@@ -25,11 +25,11 @@ public final class PacketHandler {
     public static PacketHandler Instance;
 
     // Channels
-    public Map<EnumPacketType, FMLEventChannel> channels = new Hashtable<>();
+    public Map<EnumChannelType, FMLEventChannel> channels = new Hashtable<>();
 
-    public static final PacketChannel PERMISSION_PACKET = new PacketChannel("CNPC+|Perm",   EnumPacketType.PERMISSION);
-    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player",   EnumPacketType.PLAYER);
-    public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumPacketType.DATA);
+    public static final PacketChannel PERMISSION_PACKET = new PacketChannel("CNPC+|Perm",   EnumChannelType.PERMISSION);
+    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player",   EnumChannelType.PLAYER);
+    public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumChannelType.DATA);
 
     private static final List<PacketChannel> packetChannels = new ArrayList<>();
 
@@ -40,10 +40,10 @@ public final class PacketHandler {
         packetChannels.add(DATA_PACKET);
 
         this.registerChannels();
-        this.registerClientPackets();
+        this.registerDataPackets();
     }
 
-    public void registerClientPackets(){
+    public void registerDataPackets(){
         // Client Packets
         DATA_PACKET.registerPacket(new AchievementPacket());
         DATA_PACKET.registerPacket(new ChatAlertPacket());
@@ -104,7 +104,7 @@ public final class PacketHandler {
         }
     }
 
-    public PacketChannel getPacketChannel(EnumPacketType type) {
+    public PacketChannel getPacketChannel(EnumChannelType type) {
         return packetChannels.stream()
             .filter(channel -> channel.getChannelType() == type)
             .findFirst()
@@ -134,7 +134,7 @@ public final class PacketHandler {
         try {
             // First two ints are channelTypeOrdinal and packetTypeOrdinal
             int packetTypeOrdinal = buf.readInt();
-            EnumPacketType packetType = EnumPacketType.values()[packetTypeOrdinal];
+            EnumChannelType packetType = EnumChannelType.values()[packetTypeOrdinal];
 
             PacketChannel packetChannel = getPacketChannel(packetType);
             if (packetChannel == null) {

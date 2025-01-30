@@ -1,5 +1,5 @@
 package kamkeel.npcs.network.enums;
 
-public enum EnumInfoPacket {
+public enum EnumPlayerPacket {
     LOGIN,
 }

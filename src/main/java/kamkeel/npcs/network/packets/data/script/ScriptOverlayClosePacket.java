@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.client.ClientCacheHandler;
 
@@ -25,7 +25,7 @@ public final class ScriptOverlayClosePacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SCRIPT_OVERLAY_CLOSE;
+        return EnumDataPacket.SCRIPT_OVERLAY_CLOSE;
     }
 
     @Override

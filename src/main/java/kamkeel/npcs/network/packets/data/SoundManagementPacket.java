@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
@@ -61,7 +61,7 @@ public final class SoundManagementPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.SOUND;
+        return EnumDataPacket.SOUND;
     }
 
     @Override

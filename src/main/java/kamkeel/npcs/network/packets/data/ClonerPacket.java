@@ -7,7 +7,7 @@ import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -29,7 +29,7 @@ public final class ClonerPacket extends LargeAbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.CLONE_NPC;
+        return EnumDataPacket.CLONE_NPC;
     }
 
     @Override

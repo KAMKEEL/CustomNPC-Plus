@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,7 +27,7 @@ public final class GuiRedstonePacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_REDSTONE;
+        return EnumDataPacket.GUI_REDSTONE;
     }
 
     @Override
