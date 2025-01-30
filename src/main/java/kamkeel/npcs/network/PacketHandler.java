@@ -40,33 +40,50 @@ public final class PacketHandler {
         packetChannels.add(DATA_PACKET);
         packetChannels.add(CLIENT_PACKET);
         packetChannels.add(LARGE_PACKET);
-        this.registerChannels();
 
+        this.registerChannels();
+        this.registerLargePackets();
+        this.registerClientPackets();
+    }
+
+    public void registerLargePackets(){
         // Large Packets
         LARGE_PACKET.registerPacket(new LargeScrollGroupPacket());
         LARGE_PACKET.registerPacket(new LargeScrollDataPacket());
         LARGE_PACKET.registerPacket(new LargeScrollListPacket());
         LARGE_PACKET.registerPacket(new LargeSyncPacket());
         LARGE_PACKET.registerPacket(new LargeGuiDataPacket());
+        LARGE_PACKET.registerPacket(new LargePartyDataPacket());
+    }
 
+    public void registerClientPackets(){
         // Client Packets
-        CLIENT_PACKET.registerPacket(new ChatBubblePacket());
-        CLIENT_PACKET.registerPacket(new ChatAlertPacket());
         CLIENT_PACKET.registerPacket(new AchievementPacket());
-        CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
-        CLIENT_PACKET.registerPacket(new SoundManagementPacket());
-        CLIENT_PACKET.registerPacket(new ParticlePacket());
-        CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
-        CLIENT_PACKET.registerPacket(new ScriptOverlayClosePacket());
-        CLIENT_PACKET.registerPacket(new ScriptOverlayDataPacket());
+        CLIENT_PACKET.registerPacket(new ChatAlertPacket());
+        CLIENT_PACKET.registerPacket(new ChatBubblePacket());
         CLIENT_PACKET.registerPacket(new ConfigCommandPacket());
+        CLIENT_PACKET.registerPacket(new DisableMouseInputPacket());
+        CLIENT_PACKET.registerPacket(new MarkDataPacket());
+        CLIENT_PACKET.registerPacket(new OverlayQuestTrackingPacket());
+        CLIENT_PACKET.registerPacket(new ParticlePacket());
+        CLIENT_PACKET.registerPacket(new PlayerUpdateSkinOverlaysPacket());
+        CLIENT_PACKET.registerPacket(new QuestCompletionPacket());
+        CLIENT_PACKET.registerPacket(new ScrollSelectedPacket());
+        CLIENT_PACKET.registerPacket(new SoundManagementPacket());
+        CLIENT_PACKET.registerPacket(new SwingPlayerArmPacket());
+        CLIENT_PACKET.registerPacket(new UpdateAnimationsPacket());
+        CLIENT_PACKET.registerPacket(new VillagerListPacket());
 
         // Client | GUI Packets
+        CLIENT_PACKET.registerPacket(new GuiClonerPacket());
         CLIENT_PACKET.registerPacket(new GuiClosePacket());
         CLIENT_PACKET.registerPacket(new GuiOpenPacket());
         CLIENT_PACKET.registerPacket(new GuiErrorPacket());
-        CLIENT_PACKET.registerPacket(new LargeGuiDataPacket());
-        CLIENT_PACKET.registerPacket(new GuiClonerPacket());
+        CLIENT_PACKET.registerPacket(new GuiRedstonePacket());
+        CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
+        CLIENT_PACKET.registerPacket(new GuiWaypointPacket());
+        CLIENT_PACKET.registerPacket(new IsGuiOpenPacket());
+        CLIENT_PACKET.registerPacket(new OpenBookPacket());
 
         // Client | NPC Packets
         CLIENT_PACKET.registerPacket(new DeleteNpcPacket());
@@ -74,6 +91,11 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new UpdateNpcPacket());
         CLIENT_PACKET.registerPacket(new DialogPacket());
         CLIENT_PACKET.registerPacket(new RolePacket());
+
+        // Client | Script Packets
+        CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
+        CLIENT_PACKET.registerPacket(new ScriptOverlayClosePacket());
+        CLIENT_PACKET.registerPacket(new ScriptOverlayDataPacket());
     }
 
     private void registerChannels() {

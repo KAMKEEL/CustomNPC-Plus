@@ -688,7 +688,7 @@ public class PacketHandlerServer{
 				list.add(data.name);
             PacketUtil.sendList((EntityPlayerMP)player, list);
 			if(npc != null)
-				Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, npc.linkedName);
+                PacketUtil.setSelectedList(player, npc.linkedName);
 		}
 		else if(type == EnumPacketServer.LinkedSet){
 			npc.linkedName = Server.readString(buffer);
@@ -754,10 +754,10 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.RemoteFreeze){
 			CustomNpcs.FreezeNPCs = !CustomNpcs.FreezeNPCs;
-			Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze NPCs":"Freeze NPCs");
+            PacketUtil.setSelectedList(player, CustomNpcs.FreezeNPCs?"Unfreeze NPCs":"Freeze NPCs");
 		}
         else if(type == EnumPacketServer.RemoteFreezeGet){
-            Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, CustomNpcs.FreezeNPCs?"Unfreeze NPCs":"Freeze NPCs");
+            PacketUtil.setSelectedList(player, CustomNpcs.FreezeNPCs?"Unfreeze NPCs":"Freeze NPCs");
         }
 		else if(type == EnumPacketServer.RemoteReset){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
@@ -981,7 +981,7 @@ public class PacketHandlerServer{
 			RoleTransporter role = (RoleTransporter) npc.roleInterface;
 			if(role.hasTransport()){
 				Server.sendData(player,EnumPacketClient.GUI_DATA,role.getLocation().writeNBT());
-				Server.sendData(player, EnumPacketClient.SCROLL_SELECTED,role.getLocation().category.title);
+                PacketUtil.setSelectedList(player, role.getLocation().category.title);
 			}
 		}
 		else if(type == EnumPacketServer.FactionSet){

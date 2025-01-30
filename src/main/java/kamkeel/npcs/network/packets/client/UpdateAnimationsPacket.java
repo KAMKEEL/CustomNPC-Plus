@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,7 +24,15 @@ import java.io.IOException;
 public final class UpdateAnimationsPacket extends AbstractPacket {
     public static final String packetName = "Client|UpdateAnimations";
 
+    private NBTTagCompound animationCompound;
+    private String playername;
+
     public UpdateAnimationsPacket() {}
+
+    public UpdateAnimationsPacket(NBTTagCompound animationCompound, String playername) {
+        this.animationCompound = animationCompound;
+        this.playername = playername;
+    }
 
     @Override
     public Enum getType() {
@@ -37,13 +46,14 @@ public final class UpdateAnimationsPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.writeNBT(out, this.animationCompound);
+        ByteBufUtils.writeString(out, this.playername);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NBTTagCompound nbt = Server.readNBT(in);
+        NBTTagCompound nbt = ByteBufUtils.readNBT(in);
         AnimationData animationData = null;
 
         if (nbt.hasKey("EntityId")) {
@@ -52,7 +62,7 @@ public final class UpdateAnimationsPacket extends AbstractPacket {
                 animationData = ((EntityNPCInterface) entity).display.animationData;
             }
         } else {
-            String playerName = Server.readString(in);
+            String playerName = ByteBufUtils.readString(in);
             EntityPlayer sendingPlayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByName(playerName);
             if (sendingPlayer != null) {
                 if (!ClientCacheHandler.playerAnimations.containsKey(sendingPlayer.getUniqueID())) {

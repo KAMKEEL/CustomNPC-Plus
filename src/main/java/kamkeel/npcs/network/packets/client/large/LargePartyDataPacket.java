@@ -1,28 +1,36 @@
-package kamkeel.npcs.network.packets.client;
+package kamkeel.npcs.network.packets.client.large;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.AbstractPacket;
+import io.netty.buffer.Unpooled;
+import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IPartyData;
 
 import java.io.IOException;
 
-public final class PartyDataPacket extends AbstractPacket {
+public final class LargePartyDataPacket extends LargeAbstractPacket {
     public static final String packetName = "Client|PartyData";
 
-    public PartyDataPacket() {}
+    private NBTTagCompound compound;
+
+    public LargePartyDataPacket(){}
+
+    public LargePartyDataPacket(NBTTagCompound comp){
+        this.compound = comp;
+    }
 
     @Override
     public Enum getType() {
@@ -31,17 +39,21 @@ public final class PartyDataPacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.CLIENT_PACKET;
+        return PacketHandler.LARGE_PACKET;
     }
 
     @Override
-    public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+    protected byte[] getData() throws IOException {
+        ByteBuf buffer = Unpooled.buffer();
+        ByteBufUtils.writeBigNBT(buffer, compound);
+        byte[] bytes = new byte[buffer.readableBytes()];
+        buffer.readBytes(bytes);
+        return bytes;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+    protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
         if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
             gui = (GuiScreen) ((GuiNPCInterface) gui).getSubGui();
@@ -49,7 +61,7 @@ public final class PartyDataPacket extends AbstractPacket {
             gui = (GuiScreen) ((GuiContainerNPCInterface) gui).getSubGui();
         }
         if (gui instanceof IPartyData) {
-            NBTTagCompound nbt = Server.readNBT(in);
+            NBTTagCompound nbt = ByteBufUtils.readBigNBT(data);
             ((IPartyData) gui).setPartyData(nbt);
         }
     }

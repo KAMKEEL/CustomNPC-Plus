@@ -7,8 +7,8 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.ClientEventHandler;
 
@@ -17,7 +17,15 @@ import java.io.IOException;
 public final class DisableMouseInputPacket extends AbstractPacket {
     public static final String packetName = "Client|DisableMouseInput";
 
+    private long duration;
+    private String keys;
+
     public DisableMouseInputPacket() {}
+
+    public DisableMouseInputPacket(long duration, String keys) {
+        this.duration = duration;
+        this.keys = keys;
+    }
 
     @Override
     public Enum getType() {
@@ -31,7 +39,8 @@ public final class DisableMouseInputPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeLong(this.duration);
+        ByteBufUtils.writeString(out, this.keys);
     }
 
     @SideOnly(Side.CLIENT)
