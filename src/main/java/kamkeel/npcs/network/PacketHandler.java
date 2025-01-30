@@ -9,10 +9,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumPacketType;
 import kamkeel.npcs.network.packets.client.*;
 import kamkeel.npcs.network.packets.client.gui.*;
-import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
-import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
-import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
-import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
+import kamkeel.npcs.network.packets.client.large.*;
 import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
 import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
 import kamkeel.npcs.network.packets.client.script.ScriptedParticlePacket;
@@ -68,7 +65,7 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new GuiClosePacket());
         CLIENT_PACKET.registerPacket(new GuiOpenPacket());
         CLIENT_PACKET.registerPacket(new GuiErrorPacket());
-        CLIENT_PACKET.registerPacket(new GuiDataPacket());
+        CLIENT_PACKET.registerPacket(new LargeGuiDataPacket());
         CLIENT_PACKET.registerPacket(new GuiClonerPacket());
 
         // Client | NPC Packets

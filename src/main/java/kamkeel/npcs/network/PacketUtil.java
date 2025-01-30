@@ -3,7 +3,7 @@ package kamkeel.npcs.network;
 import kamkeel.npcs.network.packets.client.ChatAlertPacket;
 import kamkeel.npcs.network.packets.client.AchievementPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiClosePacket;
-import kamkeel.npcs.network.packets.client.gui.GuiDataPacket;
+import kamkeel.npcs.network.packets.client.large.LargeGuiDataPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiErrorPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiOpenPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
@@ -59,7 +59,7 @@ public class PacketUtil {
     }
 
     public static void sendGuiData(EntityPlayerMP playerMP, NBTTagCompound compound){
-        GuiDataPacket packet = new GuiDataPacket(compound);
+        LargeGuiDataPacket packet = new LargeGuiDataPacket(compound);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }
 }
