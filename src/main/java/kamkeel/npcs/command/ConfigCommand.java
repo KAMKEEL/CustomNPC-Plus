@@ -13,9 +13,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.PlayerDataController;
 

@@ -14,9 +14,7 @@ import net.minecraft.block.BlockLeavesBase;
 import net.minecraft.block.BlockVine;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
 
 import java.util.Arrays;

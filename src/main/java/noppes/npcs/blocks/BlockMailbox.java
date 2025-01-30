@@ -2,7 +2,6 @@ package noppes.npcs.blocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -18,10 +17,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import noppes.npcs.Server;
 import noppes.npcs.blocks.tiles.TileMailbox;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
 
 import java.util.ArrayList;
 import java.util.List;

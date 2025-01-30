@@ -4,15 +4,12 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.client.MarkDataPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
-import noppes.npcs.Server;
 import noppes.npcs.api.entity.data.IMark;
 import noppes.npcs.api.handler.data.IAvailability;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.entity.EntityNPCInterface;
 
