@@ -10,6 +10,7 @@ import kamkeel.npcs.network.enums.EnumDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.constants.EnumGuiType;
 
 import java.io.IOException;
@@ -61,6 +62,6 @@ public final class GuiOpenPacket extends AbstractPacket {
         int x = in.readInt();
         int y = in.readInt();
         int z = in.readInt();
-        CustomNpcs.proxy.openGui(null, gui, x, y, z);
+        CustomNpcs.proxy.openGui(NoppesUtil.getLastNpc(), gui, x, y, z);
     }
 }

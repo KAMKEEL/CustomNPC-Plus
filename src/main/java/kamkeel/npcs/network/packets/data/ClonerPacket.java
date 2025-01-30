@@ -37,12 +37,6 @@ public final class ClonerPacket extends LargeAbstractPacket {
         return PacketHandler.DATA_PACKET;
     }
 
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NBTTagCompound nbt = ByteBufUtils.readNBT(in);
-        NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(nbt));
-    }
 
     @Override
     protected byte[] getData() throws IOException {
