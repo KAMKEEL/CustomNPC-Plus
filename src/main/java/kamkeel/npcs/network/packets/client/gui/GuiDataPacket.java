@@ -5,6 +5,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,7 +20,13 @@ import java.io.IOException;
 public final class GuiDataPacket extends AbstractPacket {
     public static final String packetName = "Client|GuiData";
 
-    public GuiDataPacket() {}
+    private NBTTagCompound compound;
+
+    public GuiDataPacket(){}
+
+    public GuiDataPacket(NBTTagCompound comp){
+        this.compound = comp;
+    }
 
     @Override
     public Enum getType() {
@@ -33,7 +40,7 @@ public final class GuiDataPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.writeNBT(out, compound);
     }
 
     @Override
@@ -45,7 +52,7 @@ public final class GuiDataPacket extends AbstractPacket {
             gui = (GuiScreen) ((GuiContainerNPCInterface) gui).getSubGui();
         }
         if (gui instanceof IGuiData) {
-            NBTTagCompound nbt = Server.readNBT(in);
+            NBTTagCompound nbt = ByteBufUtils.readNBT(in);
             ((IGuiData) gui).setGuiData(nbt);
         }
     }

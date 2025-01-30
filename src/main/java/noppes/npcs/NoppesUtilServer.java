@@ -295,7 +295,7 @@ public class NoppesUtilServer {
 			return;
 		}
 		else{
-			BOB.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+            PacketUtil.openGUI((EntityPlayerMP)player, gui, i, j, k);
 		}
 		ArrayList<String> list = getScrollData(player, gui, npc);
 		if(list == null || list.isEmpty())
@@ -317,7 +317,7 @@ public class NoppesUtilServer {
 			return;
 		}
 		else{
-			BOB.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+            PacketUtil.openGUI((EntityPlayerMP)player, gui, i, j, k);
 		}
 		ArrayList<String> list = getScrollData(player, gui, npc);
 		if(list == null || list.isEmpty())
@@ -358,7 +358,7 @@ public class NoppesUtilServer {
 		}
 		return null;
 	}
-	public static void spawnParticle(Entity entity,String particle,int dimension){
+	public static void spawnParticle(Entity entity,String particle, int dimension){
 		BOB.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
@@ -673,7 +673,7 @@ public class NoppesUtilServer {
 
 			NBTTagCompound compound = option.writeNBT();
 			compound.setInteger("Position", pos);
-			BOB.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_DATA, compound);
+            PacketUtil.sendGuiData((EntityPlayerMP)player, compound);
 		}
 	}
 
@@ -709,7 +709,7 @@ public class NoppesUtilServer {
     public static void setClonerGui(EntityPlayerMP player, int x, int y, int z){
         if(player == null)
             return;
-        BOB.sendData(player, EnumPacketClient.CLONER, x, y, z);
+        PacketUtil.openGUI(player, EnumGuiType.Cloner, x, y, z);
     }
 
     public static void setTeleporterGUI(EntityPlayerMP player){
@@ -726,14 +726,13 @@ public class NoppesUtilServer {
 
 		ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
 		container.setRecipe(recipe);
-
-		BOB.sendData(player, EnumPacketClient.GUI_DATA, recipe.writeNBT());
+        PacketUtil.sendGuiData((EntityPlayerMP)player, recipe.writeNBT());
 	}
 
 	public static void sendBank(EntityPlayerMP player,Bank bank) {
 		NBTTagCompound compound = new NBTTagCompound();
 		bank.writeEntityToNBT(compound);
-		BOB.sendData(player, EnumPacketClient.GUI_DATA, compound);
+        PacketUtil.sendGuiData((EntityPlayerMP)player, compound);
 
 		if(player.openContainer instanceof ContainerManageBanks){
 			((ContainerManageBanks)player.openContainer).setBank(bank);
@@ -759,14 +758,14 @@ public class NoppesUtilServer {
 	}
 
 	public static void sendGuiError(EntityPlayer player, int i) {
-		BOB.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_ERROR, i, new NBTTagCompound());
+        PacketUtil.errorGUI((EntityPlayerMP)player, i, new NBTTagCompound());
 	}
 
 	public static void sendGuiClose(EntityPlayerMP player, int i, NBTTagCompound comp) {
 		if(player.openContainer != player.inventoryContainer){
 			player.openContainer = player.inventoryContainer;
 		}
-		BOB.sendData(player, EnumPacketClient.GUI_CLOSE, i, comp);
+        PacketUtil.closeGUI(player, i, comp);
 	}
 
 	public static Entity spawnCloneWithProtection(NBTTagCompound compound, int x, int y,

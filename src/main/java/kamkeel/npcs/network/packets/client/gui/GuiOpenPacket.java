@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.client.gui;
 
+import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -11,10 +12,22 @@ import noppes.npcs.constants.EnumGuiType;
 
 import java.io.IOException;
 
-public final class GuiPacket extends AbstractPacket {
-    public static final String packetName = "Client|Gui";
+public final class GuiOpenPacket extends AbstractPacket {
+    public static final String packetName = "Client|OpenGui";
 
-    public GuiPacket() {}
+    private EnumGuiType type;
+    private int x;
+    private int y;
+    private int z;
+
+    public GuiOpenPacket() {}
+
+    public GuiOpenPacket(EnumGuiType type, int x, int y, int z) {
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
 
     @Override
     public Enum getType() {
@@ -28,11 +41,17 @@ public final class GuiPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(type.ordinal());
+        out.writeInt(x);
+        out.writeInt(y);
+        out.writeInt(z);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
         EnumGuiType gui = EnumGuiType.values()[in.readInt()];
         int x = in.readInt();
         int y = in.readInt();

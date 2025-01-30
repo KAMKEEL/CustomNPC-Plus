@@ -1,22 +1,17 @@
 package noppes.npcs.client;
 
-import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.*;
 import noppes.npcs.client.ClientProxy.FontContainer;
@@ -169,7 +164,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
             int x = buffer.readInt();
             int y = buffer.readInt();
             int z = buffer.readInt();
-            CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.MobSpawner, player);
+            CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Cloner, player);
         }
         else if(type == EnumPacketClient.TELEPORTER){
             CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);

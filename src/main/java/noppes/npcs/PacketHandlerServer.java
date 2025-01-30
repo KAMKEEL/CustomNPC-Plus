@@ -672,7 +672,7 @@ public class PacketHandlerServer{
 			List<String> list = new ArrayList<String>();
 			for(LinkedData data : LinkedNpcController.Instance.list)
 				list.add(data.name);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
+            PacketUtil.sendList((EntityPlayerMP)player, list);
 		}
 		else if(type == EnumPacketServer.LinkedRemove){
 			LinkedNpcController.Instance.removeData(Server.readString(buffer));
@@ -680,13 +680,13 @@ public class PacketHandlerServer{
 			List<String> list = new ArrayList<String>();
 			for(LinkedData data : LinkedNpcController.Instance.list)
 				list.add(data.name);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
+            PacketUtil.sendList((EntityPlayerMP)player, list);
 		}
 		else if(type == EnumPacketServer.LinkedGetAll){
 			List<String> list = new ArrayList<String>();
 			for(LinkedData data : LinkedNpcController.Instance.list)
 				list.add(data.name);
-			Server.sendData(player, EnumPacketClient.SCROLL_LIST, list);
+            PacketUtil.sendList((EntityPlayerMP)player, list);
 			if(npc != null)
 				Server.sendData(player, EnumPacketClient.SCROLL_SELECTED, npc.linkedName);
 		}

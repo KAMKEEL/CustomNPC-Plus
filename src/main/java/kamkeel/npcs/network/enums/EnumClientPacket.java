@@ -32,7 +32,6 @@ public enum EnumClientPacket {
     CHATBUBBLE,
     SYNCRECIPES_CARPENTRYBENCH,
     CLONE,
-    CLONER,
     TELEPORTER,
     OPEN_BOOK,
     CONFIG,

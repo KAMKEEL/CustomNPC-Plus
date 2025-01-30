@@ -365,7 +365,7 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.RedstoneBlock)
 			return new GuiNpcRedstoneBlock(x, y, z);
 
-		else if(gui == EnumGuiType.MobSpawner)
+		else if(gui == EnumGuiType.Cloner)
 			return new GuiNpcMobSpawner(x, y, z);
 
 		else if(gui == EnumGuiType.MobSpawnerMounter)

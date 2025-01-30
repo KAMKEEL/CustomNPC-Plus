@@ -11,6 +11,11 @@ import kamkeel.npcs.network.enums.EnumPacketType;
 import kamkeel.npcs.network.packets.client.AchievementPacket;
 import kamkeel.npcs.network.packets.client.ChatAlertPacket;
 import kamkeel.npcs.network.packets.client.ChatBubblePacket;
+import kamkeel.npcs.network.packets.client.EditNpcPacket;
+import kamkeel.npcs.network.packets.client.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.client.gui.GuiDataPacket;
+import kamkeel.npcs.network.packets.client.gui.GuiErrorPacket;
+import kamkeel.npcs.network.packets.client.gui.GuiOpenPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
@@ -57,6 +62,13 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new ChatBubblePacket());
         CLIENT_PACKET.registerPacket(new ChatAlertPacket());
         CLIENT_PACKET.registerPacket(new AchievementPacket());
+        CLIENT_PACKET.registerPacket(new EditNpcPacket());
+
+        // Client | GUI Packets
+        CLIENT_PACKET.registerPacket(new GuiClosePacket());
+        CLIENT_PACKET.registerPacket(new GuiOpenPacket());
+        CLIENT_PACKET.registerPacket(new GuiErrorPacket());
+        CLIENT_PACKET.registerPacket(new GuiDataPacket());
     }
 
     private void registerChannels() {

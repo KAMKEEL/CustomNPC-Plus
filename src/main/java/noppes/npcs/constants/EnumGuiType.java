@@ -23,7 +23,7 @@ public enum EnumGuiType {
 	SetupTransporter,
 	ManageTransport,
 	ManageBanks,
-	MobSpawner,
+    Cloner,
 	SetupBank,
 	ManageDialogs,
 	ManageQuests,
