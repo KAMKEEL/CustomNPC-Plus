@@ -1,15 +1,21 @@
 package kamkeel.npcs.network.packets.client;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.util.ByteBufUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.client.NoppesUtil;
+import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.Server;
 
 import java.io.IOException;
+import java.util.Random;
 
 public final class ParticlePacket extends AbstractPacket {
     public static final String packetName = "Client|Particle";
@@ -61,6 +67,31 @@ public final class ParticlePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NoppesUtil.spawnParticle(in);
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
+        spawnParticle(in);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void spawnParticle(ByteBuf buffer) throws IOException{
+        double posX = buffer.readDouble();
+        double posY = buffer.readDouble();
+        double posZ = buffer.readDouble();
+        float height = buffer.readFloat();
+        float width = buffer.readFloat();
+        float yOffset = buffer.readFloat();
+
+        String particle = Server.readString(buffer);
+        World worldObj = Minecraft.getMinecraft().theWorld;
+
+        Random rand = worldObj.rand;
+        if(particle.equals("heal")){
+            for (int k = 0; k < 6; k++)
+            {
+                worldObj.spawnParticle("instantSpell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
+                worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
+            }
+        }
     }
 }

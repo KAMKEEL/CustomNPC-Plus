@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.client;
 
+import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -7,6 +8,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.ClientCacheHandler;
@@ -35,6 +37,9 @@ public final class ScriptOverlayDataPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
         OverlayCustom overlayCustom = new OverlayCustom(Minecraft.getMinecraft());
         overlayCustom.setOverlayData(Server.readNBT(in));
         ClientCacheHandler.customOverlays.put(overlayCustom.overlay.getID(), overlayCustom);

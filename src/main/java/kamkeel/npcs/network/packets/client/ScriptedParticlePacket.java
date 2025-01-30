@@ -1,14 +1,22 @@
 package kamkeel.npcs.network.packets.client;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.util.ByteBufUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.NoppesUtil;
+import net.minecraft.world.World;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.Server;
+import noppes.npcs.client.fx.CustomFX;
+import noppes.npcs.scripted.ScriptParticle;
 
 import java.io.IOException;
 
@@ -40,6 +48,42 @@ public final class ScriptedParticlePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NoppesUtil.spawnScriptedParticle(player, in);
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
+        spawnScriptedParticle(player, in);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){
+        Minecraft minecraft =  Minecraft.getMinecraft();
+
+        NBTTagCompound compound;
+        ScriptParticle particle;
+        try {
+            compound = Server.readNBT(buffer);
+            particle = ScriptParticle.fromNBT(compound);
+        } catch (IOException ignored) {
+            return;
+        }
+
+        World worldObj = player.worldObj;
+        if (worldObj == null) {
+            return;
+        }
+
+        Entity entity = null;
+        if (compound.hasKey("EntityID")) {
+            entity = worldObj.getEntityByID(compound.getInteger("EntityID"));
+            if (entity != null)
+                worldObj = entity.worldObj;
+            else return;
+        }
+
+        CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
+
+        for(int i = 0; i < particle.amount; i++){
+            minecraft.effectRenderer.addEffect(fx);
+        }
     }
 }

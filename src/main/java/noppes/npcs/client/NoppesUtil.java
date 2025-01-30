@@ -4,19 +4,14 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
-import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
-import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -29,15 +24,12 @@ import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Vector;
 
 public class NoppesUtil {
@@ -50,28 +42,7 @@ public class NoppesUtil {
 		Client.sendData(EnumPacketServer.Gui, gui.ordinal(), i, j, k);
 	}
 
-	public static void spawnParticle(ByteBuf buffer) throws IOException{
-		double posX = buffer.readDouble();
-		double posY = buffer.readDouble();
-		double posZ = buffer.readDouble();
-		float height = buffer.readFloat();
-		float width = buffer.readFloat();
-		float yOffset = buffer.readFloat();
-
-		String particle = Server.readString(buffer);
-		World worldObj = Minecraft.getMinecraft().theWorld;
-
-		Random rand = worldObj.rand;
-		if(particle.equals("heal")){
-	        for (int k = 0; k < 6; k++)
-	        {
-	        	worldObj.spawnParticle("instantSpell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
-	        	worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
-	        }
-		}
-	}
-
-	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
+    public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
 		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
 		HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
 		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
@@ -90,39 +61,7 @@ public class NoppesUtil {
 		ClientCacheHandler.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}
 
-	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){
-		Minecraft minecraft =  Minecraft.getMinecraft();
-
-		NBTTagCompound compound;
-		ScriptParticle particle;
-		try {
-			compound = Server.readNBT(buffer);
-			particle = ScriptParticle.fromNBT(compound);
-		} catch (IOException ignored) {
-			return;
-		}
-
-		World worldObj = player.worldObj;
-		if (worldObj == null) {
-			return;
-		}
-
-		Entity entity = null;
-		if (compound.hasKey("EntityID")) {
-			entity = worldObj.getEntityByID(compound.getInteger("EntityID"));
-			if (entity != null)
-				worldObj = entity.worldObj;
-			else return;
-		}
-
-		CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
-
-		for(int i = 0; i < particle.amount; i++){
-			minecraft.effectRenderer.addEffect(fx);
-		}
-	}
-
-	public static void clickSound() {
+    public static void clickSound() {
         Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
 	}
 

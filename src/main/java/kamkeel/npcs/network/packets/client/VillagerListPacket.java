@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.client;
 
+import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -7,6 +8,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.PacketBuffer;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.ServerEventsHandler;
 import net.minecraft.village.MerchantRecipeList;
 
@@ -34,6 +36,9 @@ public final class VillagerListPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
         MerchantRecipeList recipes = MerchantRecipeList.func_151390_b(new PacketBuffer(in));
         ServerEventsHandler.Merchant.setRecipes(recipes);
     }

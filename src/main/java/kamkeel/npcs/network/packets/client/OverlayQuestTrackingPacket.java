@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.client;
 
+import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -8,6 +9,7 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.ClientCacheHandler;
@@ -36,6 +38,9 @@ public final class OverlayQuestTrackingPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
         try {
             NBTTagCompound nbt = Server.readNBT(in);
             ClientCacheHandler.questTrackingOverlay = new OverlayQuestTracking(Minecraft.getMinecraft());

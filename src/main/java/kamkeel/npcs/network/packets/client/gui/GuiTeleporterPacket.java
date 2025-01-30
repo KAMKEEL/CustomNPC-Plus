@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.client.gui;
 
+import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -32,6 +33,9 @@ public final class GuiTeleporterPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if(CustomNpcs.side() != Side.CLIENT)
+            return;
+
         CustomNpcs.proxy.openGui((EntityNPCInterface)null, EnumGuiType.NpcDimensions);
     }
 }
