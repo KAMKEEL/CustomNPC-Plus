@@ -7,6 +7,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
+import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.*;
 import kamkeel.npcs.network.packets.data.gui.*;
 import kamkeel.npcs.network.packets.data.large.*;
@@ -27,15 +28,20 @@ public final class PacketHandler {
     // Channels
     public Map<EnumChannelType, FMLEventChannel> channels = new Hashtable<>();
 
-    public static final PacketChannel PERMISSION_PACKET = new PacketChannel("CNPC+|Perm",   EnumChannelType.PERMISSION);
+    // Client to Server
+    public static final PacketChannel REQUEST_PACKET = new PacketChannel("CNPC+|Req",   EnumChannelType.REQUEST);
+
+    // Client to Server - Typically information
     public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player",   EnumChannelType.PLAYER);
+
+    // Server to Client
     public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumChannelType.DATA);
 
     private static final List<PacketChannel> packetChannels = new ArrayList<>();
 
     public PacketHandler() {
         // Register Channels
-        packetChannels.add(PERMISSION_PACKET);
+        packetChannels.add(REQUEST_PACKET);
         packetChannels.add(PLAYER_PACKET);
         packetChannels.add(DATA_PACKET);
 
@@ -132,7 +138,6 @@ public final class PacketHandler {
     private void handlePacket(FMLProxyPacket packet, EntityPlayer player) {
         ByteBuf buf = packet.payload();
         try {
-            // First two ints are channelTypeOrdinal and packetTypeOrdinal
             int packetTypeOrdinal = buf.readInt();
             EnumChannelType packetType = EnumChannelType.values()[packetTypeOrdinal];
 
@@ -147,6 +152,11 @@ public final class PacketHandler {
             if (abstractPacket == null) {
                 LogWriter.error("Error: Abstract packet is null for packet ID: " + packetId);
                 return;
+            }
+
+            if(packetType == EnumChannelType.REQUEST){
+                EnumRequestPacket requestPacket = EnumRequestPacket.values()[packetId];
+                if()
             }
 
             // Let the packet parse the rest

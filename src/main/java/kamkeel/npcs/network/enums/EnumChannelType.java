@@ -1,7 +1,7 @@
 package kamkeel.npcs.network.enums;
 
 public enum EnumChannelType {
-    PERMISSION,
+    REQUEST,
     PLAYER,
     DATA,
     INFO
