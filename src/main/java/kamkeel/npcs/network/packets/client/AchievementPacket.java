@@ -2,6 +2,7 @@ package kamkeel.npcs.network.packets.client;
 
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -53,12 +54,10 @@ public final class AchievementPacket extends AbstractPacket {
         ByteBufUtils.writeString(out, this.message);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if(!ConfigClient.BannerAlerts)
-            return;
-
-        if(CustomNpcs.side() != Side.CLIENT)
             return;
 
         boolean isNotParty = !in.readBoolean();

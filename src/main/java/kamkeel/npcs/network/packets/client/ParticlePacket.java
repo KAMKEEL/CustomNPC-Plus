@@ -65,11 +65,9 @@ public final class ParticlePacket extends AbstractPacket {
         ByteBufUtils.writeString(out, particle);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
-            return;
-
         spawnParticle(in);
     }
 

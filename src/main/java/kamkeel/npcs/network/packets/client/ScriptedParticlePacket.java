@@ -46,6 +46,7 @@ public final class ScriptedParticlePacket extends AbstractPacket {
         ByteBufUtils.writeNBT(out, compound);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if(CustomNpcs.side() != Side.CLIENT)

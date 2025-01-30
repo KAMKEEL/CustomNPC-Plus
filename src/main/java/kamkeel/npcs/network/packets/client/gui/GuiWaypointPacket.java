@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client.gui;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -34,11 +35,9 @@ public final class GuiWaypointPacket extends AbstractPacket {
         // TODO: Send Packet
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
-            return;
-
         NBTTagCompound nbt = Server.readNBT(in);
         NoppesUtil.saveWayPointBlock(player, nbt);
     }

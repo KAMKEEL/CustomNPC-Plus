@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client.gui;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -45,11 +46,9 @@ public final class GuiDataPacket extends AbstractPacket {
         ByteBufUtils.writeNBT(out, compound);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
-            return;
-
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
         if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
             gui = (GuiScreen) ((GuiNPCInterface) gui).getSubGui();

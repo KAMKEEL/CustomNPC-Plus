@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client.gui;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -36,11 +37,9 @@ public final class OpenBookPacket extends AbstractPacket {
         // TODO: Send Packet
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
-            return;
-
         int x = in.readInt();
         int y = in.readInt();
         int z = in.readInt();

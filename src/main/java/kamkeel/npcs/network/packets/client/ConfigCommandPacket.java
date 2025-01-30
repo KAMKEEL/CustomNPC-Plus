@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -36,11 +37,9 @@ public final class ConfigCommandPacket extends AbstractPacket {
         // TODO: Send Packet
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
-            return;
-
         int configType = in.readInt();
         if (configType == 0) { // Font Configuration
             String font = Server.readString(in);

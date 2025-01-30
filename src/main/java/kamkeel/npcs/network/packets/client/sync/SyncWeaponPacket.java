@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client.sync;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -36,11 +37,9 @@ public final class SyncWeaponPacket extends AbstractPacket {
         // TODO: Send Packet
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
-            return;
-
         Entity entity = player.worldObj.getEntityByID(in.readInt());
         if (!(entity instanceof EntityNPCInterface)) return;
 

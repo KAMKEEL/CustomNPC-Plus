@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -41,12 +42,10 @@ public final class ChatAlertPacket extends AbstractPacket {
         ByteBufUtils.fillBuffer(out, this.objects);
     }
 
+    @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if(!ConfigClient.ChatAlerts)
-            return;
-
-        if(CustomNpcs.side() != Side.CLIENT)
             return;
 
         StringBuilder message = new StringBuilder();
