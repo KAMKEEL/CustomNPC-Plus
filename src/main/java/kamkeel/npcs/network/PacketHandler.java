@@ -107,8 +107,10 @@ public final class PacketHandler {
 
         } catch (IndexOutOfBoundsException e) {
             LogWriter.error("Error: IndexOutOfBoundsException in handlePacket: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
             LogWriter.error("Error: Exception in handlePacket: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

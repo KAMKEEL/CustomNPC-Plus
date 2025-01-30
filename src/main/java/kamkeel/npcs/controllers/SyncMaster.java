@@ -65,7 +65,7 @@ public class SyncMaster {
         NBTTagCompound compound = new NBTTagCompound();
         NBTTagList categoryList = new NBTTagList();
         for(DialogCategory category : DialogController.Instance.categories.values()){
-            NBTTagCompound questCompound = new NBTTagCompound();;
+            NBTTagCompound questCompound = new NBTTagCompound();
             NBTTagList dialogList = new NBTTagList();
             for(int dialogID : category.dialogs.keySet()){
                 Dialog quest = category.dialogs.get(dialogID);
@@ -73,8 +73,27 @@ public class SyncMaster {
             }
             questCompound.setTag("Data", dialogList);
             questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+            categoryList.appendTag(questCompound);
         }
         compound.setTag("DialogCategories", categoryList);
+        return compound;
+    }
+
+    public static NBTTagCompound questCategoriesNBT(){
+        NBTTagCompound compound = new NBTTagCompound();
+        NBTTagList categoryList = new NBTTagList();
+        for(QuestCategory category : QuestController.Instance.categories.values()){
+            NBTTagCompound questCompound = new NBTTagCompound();;
+            NBTTagList questList = new NBTTagList();
+            for(int questID : category.quests.keySet()){
+                Quest quest = category.quests.get(questID);
+                questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
+            }
+            questCompound.setTag("Data", questList);
+            questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
+            categoryList.appendTag(questCompound);
+        }
+        compound.setTag("QuestCategories", categoryList);
         return compound;
     }
 
@@ -123,23 +142,6 @@ public class SyncMaster {
             -1,
             questCategoriesNBT()
         ));
-    }
-
-    public static NBTTagCompound questCategoriesNBT(){
-        NBTTagCompound compound = new NBTTagCompound();
-        NBTTagList categoryList = new NBTTagList();
-        for(QuestCategory category : QuestController.Instance.categories.values()){
-            NBTTagCompound questCompound = new NBTTagCompound();;
-            NBTTagList questList = new NBTTagList();
-            for(int questID : category.quests.keySet()){
-                Quest quest = category.quests.get(questID);
-                questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
-            }
-            questCompound.setTag("Data", questList);
-            questCompound.setTag("CatNBT", category.writeSmallNBT(new NBTTagCompound()));
-        }
-        compound.setTag("QuestCategories", categoryList);
-        return compound;
     }
 
     @SideOnly(Side.CLIENT)

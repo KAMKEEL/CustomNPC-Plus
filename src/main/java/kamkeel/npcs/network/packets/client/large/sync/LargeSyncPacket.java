@@ -12,9 +12,12 @@ import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -60,7 +63,7 @@ public final class LargeSyncPacket extends LargeAbstractPacket {
         // 3) Optional Category ID
         buffer.writeInt(operationID);
         // 4) Write the NBTTagCompound
-        ByteBufUtils.writeNBT(buffer, syncData);
+        ByteBufUtils.writeBigNBT(buffer, syncData);
 
         // Copy the buffer’s readable bytes into a byte[]
         byte[] bytes = new byte[buffer.readableBytes()];
@@ -80,7 +83,7 @@ public final class LargeSyncPacket extends LargeAbstractPacket {
 
         EnumSyncType type = EnumSyncType.values()[syncTypeOrdinal];
         EnumSyncAction action = EnumSyncAction.values()[syncActionOrdinal];
-        NBTTagCompound tag = ByteBufUtils.readNBT(data);
+        NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
 
         // Now do your client-side logic (similar to your old clientSync() or clientSyncUpdate() approach)
         handleSyncPacketClient(type, action, categoryID, tag);

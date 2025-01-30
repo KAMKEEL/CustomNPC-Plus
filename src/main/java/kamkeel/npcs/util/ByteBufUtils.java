@@ -9,6 +9,8 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.LogWriter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -98,6 +100,19 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
         byte[] bytes = new byte[buffer.readShort()];
         buffer.readBytes(bytes);
         return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
+    }
+
+    public static void writeBigNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
+        byte[] bytes = CompressedStreamTools.compress(compound);
+        buffer.writeInt(bytes.length);
+        buffer.writeBytes(bytes);
+    }
+
+    public static NBTTagCompound readBigNBT(ByteBuf buffer) throws IOException {
+        int length = buffer.readInt();
+        byte[] bytes = new byte[length];
+        buffer.readBytes(bytes);
+        return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(10485760L));
     }
 
     public static void writeString(ByteBuf buffer, String s){
