@@ -6,17 +6,24 @@ import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.enums.EnumPacketType;
+import kamkeel.npcs.network.packets.client.AchievementPacket;
+import kamkeel.npcs.network.packets.client.ChatAlertPacket;
+import kamkeel.npcs.network.packets.client.ChatBubblePacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
 import kamkeel.npcs.network.packets.client.large.sync.LargeSyncPacket;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.constants.EnumPacketClient;
 
+import java.io.IOException;
 import java.util.*;
 
 public final class PacketHandler {
@@ -45,6 +52,11 @@ public final class PacketHandler {
         LARGE_PACKET.registerPacket(new LargeScrollDataPacket());
         LARGE_PACKET.registerPacket(new LargeScrollListPacket());
         LARGE_PACKET.registerPacket(new LargeSyncPacket());
+
+        // Client Packets
+        CLIENT_PACKET.registerPacket(new ChatBubblePacket());
+        CLIENT_PACKET.registerPacket(new ChatAlertPacket());
+        CLIENT_PACKET.registerPacket(new AchievementPacket());
     }
 
     private void registerChannels() {
@@ -159,22 +171,23 @@ public final class PacketHandler {
         sendAllPackets(packet, eventChannel::sendToAll);
     }
 
-    public void sendToAllAround(AbstractPacket packet, NetworkRegistry.TargetPoint point) {
-        FMLEventChannel eventChannel = getEventChannel(packet);
-        if (eventChannel == null) {
-            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
-            return;
-        }
-        sendAllPackets(packet, p -> eventChannel.sendToAllAround(p, point));
-    }
-
-    public void sendToDimension(AbstractPacket packet, int dimensionId) {
+    public void sendToDimension(AbstractPacket packet, final int dimensionId) {
         FMLEventChannel eventChannel = getEventChannel(packet);
         if (eventChannel == null) {
             LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
             return;
         }
         sendAllPackets(packet, p -> eventChannel.sendToDimension(p, dimensionId));
+    }
+
+    public void sendTracking(AbstractPacket packet, final Entity entity) {
+        FMLEventChannel eventChannel = getEventChannel(packet);
+        if (eventChannel == null) {
+            LogWriter.error("Error: Event channel is null for packet: " + packet.getClass().getName());
+            return;
+        }
+        final NetworkRegistry.TargetPoint point = new NetworkRegistry.TargetPoint(entity.dimension, entity.posX, entity.posY, entity.posZ, 60);
+        sendAllPackets(packet, p -> eventChannel.sendToAllAround(p, point));
     }
 
     // Simple functional interface to unify the "send" action

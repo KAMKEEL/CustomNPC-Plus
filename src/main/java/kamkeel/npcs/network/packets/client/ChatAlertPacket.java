@@ -6,21 +6,29 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
+import noppes.npcs.config.ConfigClient;
 
 import java.io.IOException;
 
-public final class ChatPacket extends AbstractPacket {
-    public static final String packetName = "Client|Chat";
+public final class ChatAlertPacket extends AbstractPacket {
+    public static final String packetName = "Client|ChatAlert";
 
-    public ChatPacket() {}
+    private Object[] objects;
+
+    public ChatAlertPacket() {}
+
+    public ChatAlertPacket(final Object... obs) {
+        this.objects = obs;
+    }
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.CHAT;
+        return EnumClientPacket.CHAT_ALERT;
     }
 
     @Override
@@ -30,11 +38,14 @@ public final class ChatPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.fillBuffer(out, this.objects);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if(!ConfigClient.ChatAlerts)
+            return;
+
         if(CustomNpcs.side() != Side.CLIENT)
             return;
 

@@ -1,18 +1,16 @@
 package kamkeel.npcs.command;
 
 import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.data.IQuestObjective;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
-import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
@@ -66,8 +64,8 @@ public class QuestCommand extends CommandKamkeelBase {
 	        playerdata.questData.activeQuests.put(questid, questdata);
             playerdata.save();
             if(playerdata.player != null && questdata.sendAlerts){
-                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+                PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
+                PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
             }
             playerdata.updateClient = true;
             sendResult(sender, String.format("Started Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));
@@ -112,8 +110,8 @@ public class QuestCommand extends CommandKamkeelBase {
 
             playerdata.save();
             if(playerdata.player != null){
-                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
-                Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
+                PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
+                PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
             }
             playerdata.updateClient = true;
             sendResult(sender, String.format("Finished Quest \u00A7e%d\u00A77 for Player '\u00A7b%s\u00A77'", questid, playerdata.playername));

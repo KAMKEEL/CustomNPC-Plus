@@ -9,8 +9,6 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.LogWriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -18,10 +16,7 @@ import java.util.Map;
 
 public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
 
-    // TODO: Modify this to check if it a large packet so we don't need the condition at the bottom or make two
-    // differnt methods one for fillBuffer normal and one fillLargeBuffer
-    public static boolean fillBuffer(ByteBuf buffer, Enum enu, Object... obs) throws IOException{
-        buffer.writeInt(enu.ordinal());
+    public static void fillBuffer(ByteBuf buffer, Object... obs) throws IOException{
         for(Object ob : obs){
             if(ob == null)
                 continue;
@@ -66,12 +61,7 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
             else if(ob instanceof NBTTagCompound)
                 writeNBT(buffer, (NBTTagCompound) ob);
         }
-        if(buffer.array().length >= 32767){
-            LogWriter.error("Packet " + enu + " was too big to be send");
-            LogWriter.script( "Issue occurred with the following Packet - " + enu + ":\n" + Arrays.toString(obs));
-            return false;
-        }
-        return true;
+        return;
     }
 
     public static void writeIntArray(ByteBuf buffer, int[] arr) {

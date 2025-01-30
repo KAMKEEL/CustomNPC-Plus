@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -45,7 +46,6 @@ import noppes.npcs.util.ValueUtil;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -263,8 +263,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         	return;
         QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+
+        PacketUtil.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", quest.title);
+        PacketUtil.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", quest.title);
         data.updateClient = true;
 	}
 

@@ -7,6 +7,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.client.ChatBubblePacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -1022,7 +1024,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 		if(!line.getSound().isEmpty()){
 			Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_SOUND, line.getSound(), (float)posX, (float)posY, (float)posZ);
 		}
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHATBUBBLE, this.getEntityId(), line.getText(), !line.hideText());
+
+        PacketHandler.Instance.sendToPlayer(new ChatBubblePacket(this.getEntityId(), line.getText(), !line.hideText()), (EntityPlayerMP)player);
 	}
 	public boolean getAlwaysRenderNameTagForRender(){
 		return true;

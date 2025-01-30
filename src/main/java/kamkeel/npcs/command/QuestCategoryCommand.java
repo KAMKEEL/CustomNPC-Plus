@@ -1,10 +1,9 @@
 package kamkeel.npcs.command;
 
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
@@ -93,8 +92,8 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     playerdata.questData.finishedQuests.put(quest.id, sender.getEntityWorld().getTotalWorldTime());
 
                 if(playerdata.player != null){
-                    Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.completed", quest.title);
-                    Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.completed", ": ", quest.title);
+                    PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
+                    PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
                 }
                 count++;
             }
@@ -185,8 +184,8 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     count++;
 
                     if(playerdata.player != null && questData.sendAlerts){
-                        Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-                        Server.sendData((EntityPlayerMP)playerdata.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+                        PacketUtil.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
+                        PacketUtil.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
                     }
                 }
             }

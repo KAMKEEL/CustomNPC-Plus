@@ -16,7 +16,12 @@ import java.io.IOException;
 public final class EditNpcPacket extends AbstractPacket {
     public static final String packetName = "Client|EditNpc";
 
+    int entityId;
     public EditNpcPacket() {}
+
+    public EditNpcPacket(int entityId) {
+        this.entityId = entityId;
+    }
 
     @Override
     public Enum getType() {
@@ -30,7 +35,7 @@ public final class EditNpcPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(this.entityId);
     }
 
     @Override

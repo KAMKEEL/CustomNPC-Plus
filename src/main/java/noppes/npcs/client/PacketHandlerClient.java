@@ -58,41 +58,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 	}
 
 	private void client(ByteBuf buffer, final EntityPlayer player, EnumPacketClient type) throws IOException{
-		if(type == EnumPacketClient.CHATBUBBLE){
-			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return;
-			EntityNPCInterface npc = (EntityNPCInterface) entity;
-			if(npc.messages == null)
-				npc.messages = new RenderChatMessages();
-			String text = NoppesStringUtils.formatText(Server.readString(buffer), player, npc);
-			npc.messages.addMessage(text, npc);
-
-			if(buffer.readBoolean())
-				player.addChatMessage(new ChatComponentTranslation(npc.getCommandSenderName() + ": " + text));
-		}
-		else if(type == EnumPacketClient.CHAT){
-            if(!ConfigClient.ChatAlerts)
-                return;
-
-			String message = "";
-			String str;
-			while((str = Server.readString(buffer)) != null && !str.isEmpty())
-				message += StatCollector.translateToLocal(str);
-
-			player.addChatMessage(new ChatComponentTranslation(message));
-		}
-		else if(type == EnumPacketClient.MESSAGE || type == EnumPacketClient.PARTY_MESSAGE){
-            if(!ConfigClient.BannerAlerts)
-                return;
-
-			String description = StatCollector.translateToLocal(Server.readString(buffer));
-			String message = Server.readString(buffer);
-			Achievement ach = type == EnumPacketClient.MESSAGE ? new MessageAchievement(message, description) : new MessageAchievement(CustomItems.bag == null ? Items.paper : CustomItems.bag, message, description);
-			Minecraft.getMinecraft().guiAchievement.func_146256_a(ach);
-			ObfuscationReflectionHelper.setPrivateValue(GuiAchievement.class, Minecraft.getMinecraft().guiAchievement, ach.getDescription(), 4);
-		}
-		else if(type == EnumPacketClient.SYNCRECIPES_ADD){
+		if(type == EnumPacketClient.SYNCRECIPES_ADD){
 			NBTTagList list = Server.readNBT(buffer).getTagList("recipes", 10);
 	        if(list == null)
 	        	return;
@@ -180,21 +146,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			if(entity == null || !(entity instanceof EntityNPCInterface))
 				return;
 			((EntityNPCInterface)entity).delete();
-		}
-		else if(type == EnumPacketClient.SCROLL_LIST){
-			NoppesUtil.setScrollList(buffer);
-		}
-		else if(type == EnumPacketClient.SCROLL_DATA){
-			NoppesUtil.setScrollData(buffer);
-		}
-		else if(type == EnumPacketClient.SCROLL_DATA_PART){
-			NoppesUtil.addScrollData(buffer);
-		}
-		else if(type == EnumPacketClient.SCROLL_GROUP){
-			NoppesUtil.setScrollGroup(buffer);
-		}
-		else if(type == EnumPacketClient.SCROLL_GROUP_PART){
-			NoppesUtil.addScrollGroup(buffer);
 		}
 		else if(type == EnumPacketClient.SCROLL_SELECTED){
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;

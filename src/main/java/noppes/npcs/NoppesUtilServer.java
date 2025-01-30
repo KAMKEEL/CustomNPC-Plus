@@ -2,6 +2,12 @@ package noppes.npcs;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.client.DialogPacket;
+import kamkeel.npcs.network.packets.client.EditNpcPacket;
+import kamkeel.npcs.network.packets.client.RolePacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -14,7 +20,6 @@ import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.MobSpawnerBaseLogic;
@@ -42,45 +47,45 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
 import noppes.npcs.scripted.event.DialogEvent;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
-import static kamkeel.npcs.network.KamUtilServer.sendScrollData;
+import static kamkeel.npcs.network.PacketUtil.sendScrollData;
+import static kamkeel.npcs.network.PacketUtil.sendScrollGroup;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
 
     public static void setEditingNpc(EntityPlayer player, EntityNPCInterface npc){
-    	PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-    	data.editingNpc = npc;
-    	if(npc != null)
-    		Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.EDIT_NPC, npc.getEntityId());
-    }
-    public static EntityNPCInterface getEditingNpc(EntityPlayer player){
-    	PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-    	return data.editingNpc;
+        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        data.editingNpc = npc;
+        if(npc != null)
+            PacketHandler.Instance.sendToPlayer(new EditNpcPacket(npc.getEntityId()), (EntityPlayerMP)player);
     }
 
-	public static void setEditingQuest(EntityPlayer player, Quest quest) {
-		editingQuests.put(player.getCommandSenderName(), quest);
-	}
+    public static EntityNPCInterface getEditingNpc(EntityPlayer player){
+        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        return data.editingNpc;
+    }
+
+    public static void setEditingQuest(EntityPlayer player, Quest quest) {
+        editingQuests.put(player.getCommandSenderName(), quest);
+    }
+
     public static Quest getEditingQuest(EntityPlayer player){
-    	return editingQuests.get(player.getCommandSenderName());
+        return editingQuests.get(player.getCommandSenderName());
     }
 
     public static void sendRoleData(EntityPlayer player, EntityNPCInterface npc){
-    	if(npc.advanced.role == EnumRoleType.None)
-    		return;
-    	NBTTagCompound comp = new NBTTagCompound();
-    	npc.roleInterface.writeToNBT(comp);
-    	comp.setInteger("EntityId", npc.getEntityId());
-    	comp.setInteger("Role", npc.advanced.role.ordinal());
-        Server.sendData((EntityPlayerMP)player, EnumPacketClient.ROLE, comp);
+        if(npc.advanced.role == EnumRoleType.None)
+            return;
+        NBTTagCompound comp = new NBTTagCompound();
+        npc.roleInterface.writeToNBT(comp);
+        comp.setInteger("EntityId", npc.getEntityId());
+        comp.setInteger("Role", npc.advanced.role.ordinal());
+        PacketHandler.Instance.sendToPlayer(new RolePacket(comp), (EntityPlayerMP)player);
     }
 
 	public static void sendFactionDataAll(EntityPlayerMP player) {
@@ -187,11 +192,12 @@ public class NoppesUtilServer {
 
 		if(npc instanceof EntityDialogNpc || dia.id < 0){
 			dialog.hideNPC = true;
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG_DUMMY, npc.getCommandSenderName(), dialog.writeToNBT(new NBTTagCompound()));
+            PacketHandler.Instance.sendToPlayer(new DialogPacket(npc.getCommandSenderName(), -1, dialog.writeToNBT(new NBTTagCompound())), (EntityPlayerMP)player);
 		}
 		else
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.DIALOG, npc.getEntityId(), dialog.writeToNBT(new NBTTagCompound()));
-		dia.factionOptions.addPoints(player);
+            PacketHandler.Instance.sendToPlayer(new DialogPacket("Real", npc.getEntityId(), dialog.writeToNBT(new NBTTagCompound())), (EntityPlayerMP)player);
+
+        dia.factionOptions.addPoints(player);
         if(dialog.hasQuest())
         	PlayerQuestController.addActiveQuest(new QuestData(dialog.getQuest()),player);
         if(!dialog.command.isEmpty()){
@@ -266,9 +272,6 @@ public class NoppesUtilServer {
         	player.destroyCurrentEquippedItem();
 	}
 
-	public static DataOutputStream getDataOutputStream(ByteArrayOutputStream stream) throws IOException{
-        return new DataOutputStream(new GZIPOutputStream(stream));
-	}
 	public static void sendOpenGui(EntityPlayer player,
 			EnumGuiType gui, EntityNPCInterface npc) {
 		sendOpenGui(player, gui, npc, 0, 0, 0);
@@ -292,14 +295,14 @@ public class NoppesUtilServer {
 			return;
 		}
 		else{
-			Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+			BOB.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
 		}
 		ArrayList<String> list = getScrollData(player, gui, npc);
 		if(list == null || list.isEmpty())
 			return;
 
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
-	}
+        PacketUtil.sendList((EntityPlayerMP)player, list);
+    }
 
 	public static void sendOpenGuiNoDelay(final EntityPlayer player,
 								   final EnumGuiType gui, final EntityNPCInterface npc, final int i, final int j, final int k) {
@@ -314,13 +317,13 @@ public class NoppesUtilServer {
 			return;
 		}
 		else{
-			Server.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
+			BOB.sendDataChecked((EntityPlayerMP)player, EnumPacketClient.GUI, gui.ordinal(), i, j, k);
 		}
 		ArrayList<String> list = getScrollData(player, gui, npc);
 		if(list == null || list.isEmpty())
 			return;
 
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.SCROLL_LIST, list);
+        PacketUtil.sendList((EntityPlayerMP)player, list);
 	}
 
 
@@ -356,14 +359,14 @@ public class NoppesUtilServer {
 		return null;
 	}
 	public static void spawnParticle(Entity entity,String particle,int dimension){
-		Server.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
+		BOB.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
     }
 
 	public static void spawnScriptedParticle(NBTTagCompound compound, int dimensionId){
 		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
 		for (EntityPlayer player : list) {
 			if (player.worldObj.provider.dimensionId == dimensionId) {
-				Server.sendData((EntityPlayerMP) player, EnumPacketClient.SCRIPTED_PARTICLE, compound);
+				BOB.sendData((EntityPlayerMP) player, EnumPacketClient.SCRIPTED_PARTICLE, compound);
 			}
 		}
 	}
@@ -411,7 +414,7 @@ public class NoppesUtilServer {
 	}
 
 	public static void deleteNpc(EntityNPCInterface npc,EntityPlayer player) {
-		Server.sendAssociatedData(npc, EnumPacketClient.DELETE_NPC, npc.getEntityId());
+		BOB.sendAssociatedData(npc, EnumPacketClient.DELETE_NPC, npc.getEntityId());
 	}
 
 	public static void createMobSpawner(int x, int y, int z, NBTTagCompound comp, EntityPlayer player) {
@@ -515,7 +518,7 @@ public class NoppesUtilServer {
 		int id = buffer.readInt();
 		if(EnumPlayerData.values().length <= id)
 			return;
-		String name = Server.readString(buffer);
+		String name = ByteBufUtils.readString(buffer);
 		EnumPlayerData type = EnumPlayerData.values()[id];
         EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(name);
 		PlayerData playerdata = null;
@@ -596,29 +599,6 @@ public class NoppesUtilServer {
 		}
 		sendScrollData(player, map);
 	}
-//	public static void sendScrollData(EntityPlayerMP player, Map<String,Integer> map){
-//		Map<String, Integer> send = new HashMap<String, Integer>();
-//		for(String key : map.keySet()){
-//			send.put(key, map.get(key));
-//			if(send.size() == 100){
-//				Server.sendData(player, EnumPacketClient.SCROLL_DATA_PART, send);
-//				send = new HashMap<String, Integer>();
-//			}
-//		}
-//		Server.sendData(player, EnumPacketClient.SCROLL_DATA, send);
-//	}
-
-	public static void sendScrollGroup(EntityPlayerMP player, Map<String,Integer> map){
-		Map<String, Integer> send = new HashMap<String, Integer>();
-		for(String key : map.keySet()){
-			send.put(key, map.get(key));
-			if(send.size() == 100){
-				Server.sendData(player, EnumPacketClient.SCROLL_GROUP_PART, send);
-				send = new HashMap<String, Integer>();
-			}
-		}
-		Server.sendData(player, EnumPacketClient.SCROLL_GROUP, send);
-	}
 
 	public static void sendDialogData(EntityPlayerMP player, DialogCategory category) {
 		if(category == null)
@@ -693,8 +673,7 @@ public class NoppesUtilServer {
 
 			NBTTagCompound compound = option.writeNBT();
 			compound.setInteger("Position", pos);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_DATA, compound);
-
+			BOB.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_DATA, compound);
 		}
 	}
 
@@ -730,13 +709,13 @@ public class NoppesUtilServer {
     public static void setClonerGui(EntityPlayerMP player, int x, int y, int z){
         if(player == null)
             return;
-        Server.sendData(player, EnumPacketClient.CLONER, x, y, z);
+        BOB.sendData(player, EnumPacketClient.CLONER, x, y, z);
     }
 
     public static void setTeleporterGUI(EntityPlayerMP player){
         if(player == null)
             return;
-        Server.sendData(player, EnumPacketClient.TELEPORTER);
+        BOB.sendData(player, EnumPacketClient.TELEPORTER);
     }
 
 	public static void setRecipeGui(EntityPlayerMP player, RecipeCarpentry recipe){
@@ -748,13 +727,13 @@ public class NoppesUtilServer {
 		ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
 		container.setRecipe(recipe);
 
-		Server.sendData(player, EnumPacketClient.GUI_DATA, recipe.writeNBT());
+		BOB.sendData(player, EnumPacketClient.GUI_DATA, recipe.writeNBT());
 	}
 
 	public static void sendBank(EntityPlayerMP player,Bank bank) {
 		NBTTagCompound compound = new NBTTagCompound();
 		bank.writeEntityToNBT(compound);
-		Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		BOB.sendData(player, EnumPacketClient.GUI_DATA, compound);
 
 		if(player.openContainer instanceof ContainerManageBanks){
 			((ContainerManageBanks)player.openContainer).setBank(bank);
@@ -780,14 +759,14 @@ public class NoppesUtilServer {
 	}
 
 	public static void sendGuiError(EntityPlayer player, int i) {
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_ERROR, i, new NBTTagCompound());
+		BOB.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_ERROR, i, new NBTTagCompound());
 	}
 
 	public static void sendGuiClose(EntityPlayerMP player, int i, NBTTagCompound comp) {
 		if(player.openContainer != player.inventoryContainer){
 			player.openContainer = player.inventoryContainer;
 		}
-		Server.sendData(player, EnumPacketClient.GUI_CLOSE, i, comp);
+		BOB.sendData(player, EnumPacketClient.GUI_CLOSE, i, comp);
 	}
 
 	public static Entity spawnCloneWithProtection(NBTTagCompound compound, int x, int y,
@@ -829,7 +808,7 @@ public class NoppesUtilServer {
 
 	public static Entity spawnClone(NBTTagCompound compound, int x, int y,
 									int z, World worldObj) {
-		Entity entity = NoppesUtilServer.getEntityFromNBT(compound,x,y,z,worldObj);
+		Entity entity = getEntityFromNBT(compound,x,y,z,worldObj);
 		if(entity == null){
 			return null;
 		}

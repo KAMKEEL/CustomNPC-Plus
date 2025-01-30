@@ -5,11 +5,14 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.Server;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
@@ -17,7 +20,17 @@ import java.io.IOException;
 public final class DialogPacket extends AbstractPacket {
     public static final String packetName = "Client|Dialog";
 
+    private String dummyName;
+    private int entityID;
+    private NBTTagCompound compound;
+
     public DialogPacket() {}
+
+    public DialogPacket(String dummyName, int entityID, NBTTagCompound compound) {
+        this.dummyName = dummyName;
+        this.entityID = entityID;
+        this.compound = compound;
+    }
 
     @Override
     public Enum getType() {
@@ -31,15 +44,29 @@ public final class DialogPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(this.entityID);
+        ByteBufUtils.writeString(out, this.dummyName);
+        ByteBufUtils.writeNBT(out, this.compound);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(in.readInt());
-        if (!(entity instanceof EntityNPCInterface)) {
-            return;
+        int entityID = in.readInt();
+        String name = ByteBufUtils.readString(in);
+        NBTTagCompound tagCompound = ByteBufUtils.readNBT(in);
+
+        // Dummy NPC
+        if(entityID == -1){
+            EntityDialogNpc npc = new EntityDialogNpc(player.worldObj);
+            npc.display.name = name;
+            NoppesUtil.openDialog(tagCompound, npc, player);
         }
-        NoppesUtil.openDialog(Server.readNBT(in), (EntityNPCInterface) entity, player);
+        else {
+            Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(entityID);
+            if (!(entity instanceof EntityNPCInterface)) {
+                return;
+            }
+            NoppesUtil.openDialog(tagCompound, (EntityNPCInterface) entity, player);
+        }
     }
 }

@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -11,11 +12,9 @@ import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.PacketHandlerServer;
-import noppes.npcs.Server;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
@@ -265,8 +264,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public void inviteToParty(Party party) {
 		if (party != null && this.partyUUID == null && !this.partyInvites.contains(party.getPartyUUID())) {
 			this.partyInvites.add(party.getPartyUUID());
-			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.PARTY_MESSAGE, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
-			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.CHAT, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
+
+            PacketUtil.sendAchievement((EntityPlayerMP) player, true, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
+            PacketUtil.sendChatAlert((EntityPlayerMP) player, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
 		}
 	}
 

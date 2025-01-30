@@ -1,5 +1,6 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -68,8 +69,8 @@ public class PartyController {
                     playerData.partyUUID = null;
                     if(player != null){
                         sendInviteData((EntityPlayerMP) player);
-                        Server.sendData((EntityPlayerMP) player, EnumPacketClient.PARTY_MESSAGE,  "party.disbandAlert");
-                        Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "\u00A7c", "party.disbandMessage", "!");
+                        PacketUtil.sendAchievement((EntityPlayerMP) player, true,  "party.disbandAlert", "");
+                        PacketUtil.sendChatAlert((EntityPlayerMP) player, "\u00A7c", "party.disbandMessage", "!");
                     }
                 }
             }
@@ -84,14 +85,14 @@ public class PartyController {
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayerName);
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
+                PacketUtil.sendAchievement((EntityPlayerMP) playerMP, true,  "party.kickOtherAlert", kickPlayerName);
+                PacketUtil.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
             }
         }
 
         if(kickPlayer != null){
-            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
-            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
+            PacketUtil.sendAchievement((EntityPlayerMP) kickPlayer, true,  "party.kickYouAlert", "");
+            PacketUtil.sendChatAlert((EntityPlayerMP) kickPlayer, "\u00A74", "party.kickYouChat", "!");
         }
     }
 
@@ -102,12 +103,12 @@ public class PartyController {
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
+                PacketUtil.sendAchievement((EntityPlayerMP) playerMP, true,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
+                PacketUtil.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
             }
         }
-        Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.PARTY_MESSAGE, "party.leaveYouAlert", "");
-        Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.CHAT, "\u00A7c", "party.leaveYouChat", "!");
+        PacketUtil.sendAchievement((EntityPlayerMP) leavingPlayer, true,  "party.leaveYouAlert", "");
+        PacketUtil.sendChatAlert((EntityPlayerMP) leavingPlayer, "\u00A7c", "party.leaveYouChat", "!");
     }
 
     public void pingPartyUpdate(Party party){
@@ -183,9 +184,7 @@ public class PartyController {
 
                 System.arraycopy(chatAlerts, 0, args, 1, chatAlerts.length);
                 args[args.length - 1] = "!"; // Add "!" at the end
-
-                // Pass args to Server.sendData using spread operator
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, args);
+                PacketUtil.sendChatAlert((EntityPlayerMP) playerMP, args);
             }
         }
     }

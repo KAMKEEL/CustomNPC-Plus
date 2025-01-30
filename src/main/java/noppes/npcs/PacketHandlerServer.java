@@ -6,7 +6,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.KamUtilServer;
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -103,7 +103,7 @@ public class PacketHandlerServer{
 					WorldProvider provider = DimensionManager.createProviderFor(id);
 					map.put(provider.getDimensionName(), id);
 				}
-				KamUtilServer.sendScrollData(player, map);
+				PacketUtil.sendScrollData(player, map);
 			} else if(type == EnumPacketServer.TagsGet){
 				NoppesUtilServer.sendTagDataAll(player);
 			} else if (type == EnumPacketServer.NpcTagsGet) {
@@ -585,7 +585,7 @@ public class PacketHandlerServer{
 			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
 		}
 		else if(type == EnumPacketServer.DialogCategoriesGet){
-			KamUtilServer.sendScrollData(player, DialogController.Instance.getScroll());
+			PacketUtil.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogsGetFromDialog){
 			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
@@ -798,7 +798,7 @@ public class PacketHandlerServer{
 			NoppesUtilServer.setRecipeGui(player,recipe);
 		}
 		else if(type == EnumPacketServer.NaturalSpawnGetAll){
-			KamUtilServer.sendScrollData(player, SpawnController.Instance.getScroll());
+			PacketUtil.sendScrollData(player, SpawnController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.NaturalSpawnGet){
 			SpawnData spawn = SpawnController.Instance.getSpawnData(buffer.readInt());
@@ -811,21 +811,21 @@ public class PacketHandlerServer{
 			data.readNBT(Server.readNBT(buffer));
 			SpawnController.Instance.saveSpawnData(data);
 
-			KamUtilServer.sendScrollData(player, SpawnController.Instance.getScroll());
+			PacketUtil.sendScrollData(player, SpawnController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.NaturalSpawnRemove){
 			SpawnController.Instance.removeSpawnData(buffer.readInt());
-			KamUtilServer.sendScrollData(player, SpawnController.Instance.getScroll());
+			PacketUtil.sendScrollData(player, SpawnController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogCategorySave){
 			DialogCategory category = new DialogCategory();
 			category.readNBT(Server.readNBT(buffer));
 			DialogController.Instance.saveCategory(category);
-			KamUtilServer.sendScrollData(player, DialogController.Instance.getScroll());
+			PacketUtil.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogCategoryRemove){
 			DialogController.Instance.removeCategory(buffer.readInt());
-			KamUtilServer.sendScrollData(player, DialogController.Instance.getScroll());
+			PacketUtil.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogCategoryGet){
 			DialogCategory category = DialogController.Instance.categories.get(buffer.readInt());

@@ -3,8 +3,8 @@ package kamkeel.npcs.network.enums;
 // Packets to the Client
 public enum EnumClientPacket {
     SYNC,
-    CHAT,
-    MESSAGE,
+    CHAT_ALERT,
+    ACHIEVEMENT,
     PARTY_MESSAGE,
     SYNCRECIPES_ADD,
     SYNCRECIPES_WORKBENCH,
@@ -35,7 +35,6 @@ public enum EnumClientPacket {
     CLONER,
     TELEPORTER,
     OPEN_BOOK,
-    DIALOG_DUMMY,
     CONFIG,
     ISGUIOPEN,
     SCRIPT_OVERLAY_DATA,

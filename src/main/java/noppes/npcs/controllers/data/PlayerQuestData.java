@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -217,9 +218,9 @@ public class PlayerQuestData implements IPlayerQuestData {
 			return;
 		QuestData questdata = new QuestData(quest);
 		activeQuests.put(id, questdata);
-		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
 
+        PacketUtil.sendAchievement((EntityPlayerMP) parent.player, false, "quest.newquest", quest.title);
+        PacketUtil.sendChatAlert((EntityPlayerMP) parent.player, "quest.newquest", ": ", quest.title);
         parent.updateClient = true;
 	}
 
