@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.client;
+package kamkeel.npcs.network.packets.client.npc;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
@@ -8,18 +8,24 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
-public final class DeleteNpcPacket extends AbstractPacket {
-    public static final String packetName = "Client|DeleteNpc";
+public final class EditNpcPacket extends AbstractPacket {
+    public static final String packetName = "Client|EditNpc";
 
-    public DeleteNpcPacket() {}
+    int entityId;
+    public EditNpcPacket() {}
+
+    public EditNpcPacket(int entityId) {
+        this.entityId = entityId;
+    }
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.DELETE_NPC;
+        return EnumClientPacket.EDIT_NPC;
     }
 
     @Override
@@ -29,14 +35,15 @@ public final class DeleteNpcPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(this.entityId);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(in.readInt());
-        if (entity instanceof EntityNPCInterface) {
-            ((EntityNPCInterface) entity).delete();
+        if (!(entity instanceof EntityNPCInterface)) {
+            return;
         }
+        NoppesUtil.setLastNpc((EntityNPCInterface) entity);
     }
 }

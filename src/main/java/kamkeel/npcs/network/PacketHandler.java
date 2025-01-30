@@ -6,29 +6,22 @@ import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.enums.EnumPacketType;
-import kamkeel.npcs.network.packets.client.AchievementPacket;
-import kamkeel.npcs.network.packets.client.ChatAlertPacket;
-import kamkeel.npcs.network.packets.client.ChatBubblePacket;
-import kamkeel.npcs.network.packets.client.EditNpcPacket;
-import kamkeel.npcs.network.packets.client.gui.GuiClosePacket;
-import kamkeel.npcs.network.packets.client.gui.GuiDataPacket;
-import kamkeel.npcs.network.packets.client.gui.GuiErrorPacket;
-import kamkeel.npcs.network.packets.client.gui.GuiOpenPacket;
+import kamkeel.npcs.network.packets.client.*;
+import kamkeel.npcs.network.packets.client.gui.*;
 import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
 import kamkeel.npcs.network.packets.client.large.sync.LargeSyncPacket;
+import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
+import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.constants.EnumPacketClient;
 
-import java.io.IOException;
 import java.util.*;
 
 public final class PacketHandler {
@@ -63,12 +56,22 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new ChatAlertPacket());
         CLIENT_PACKET.registerPacket(new AchievementPacket());
         CLIENT_PACKET.registerPacket(new EditNpcPacket());
+        CLIENT_PACKET.registerPacket(new RolePacket());
+        CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
 
         // Client | GUI Packets
         CLIENT_PACKET.registerPacket(new GuiClosePacket());
         CLIENT_PACKET.registerPacket(new GuiOpenPacket());
         CLIENT_PACKET.registerPacket(new GuiErrorPacket());
         CLIENT_PACKET.registerPacket(new GuiDataPacket());
+        CLIENT_PACKET.registerPacket(new GuiClonerPacket());
+
+        // Client | NPC Packets
+        CLIENT_PACKET.registerPacket(new DeleteNpcPacket());
+
+        // Client | Other
+        CLIENT_PACKET.registerPacket(new ParticlePacket());
+        CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
     }
 
     private void registerChannels() {

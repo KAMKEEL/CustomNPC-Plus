@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.client;
+package kamkeel.npcs.network.packets.client.gui;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;

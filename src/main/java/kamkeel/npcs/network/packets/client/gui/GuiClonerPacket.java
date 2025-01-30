@@ -6,21 +6,25 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 
 import java.io.IOException;
 
-public final class GUIClonerPacket extends AbstractPacket {
+public final class GuiClonerPacket extends AbstractPacket {
     public static final String packetName = "Client|Clone";
 
-    public GUIClonerPacket() {}
+    private NBTTagCompound compound;
 
-    public GUIClonerPacket(boolean ok) {}
+    public GuiClonerPacket() {}
+
+    public GuiClonerPacket(NBTTagCompound comp){
+        this.compound = comp;
+    }
 
     @Override
     public Enum getType() {
@@ -34,14 +38,14 @@ public final class GUIClonerPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        ByteBufUtils.writeNBT(out, compound);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if(CustomNpcs.side() != Side.CLIENT)
             return;
-        NBTTagCompound nbt = Server.readNBT(in);
+        NBTTagCompound nbt = ByteBufUtils.readNBT(in);
         NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(nbt));
     }
 }

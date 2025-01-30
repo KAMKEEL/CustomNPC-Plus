@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.client;
+package kamkeel.npcs.network.packets.client.npc;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
@@ -8,20 +8,24 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.Server;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
-public final class UpdateNpcPacket extends AbstractPacket {
-    public static final String packetName = "Client|UpdateNpc";
+public final class DeleteNpcPacket extends AbstractPacket {
+    public static final String packetName = "Client|DeleteNpc";
 
-    public UpdateNpcPacket() {}
+    private int entityId;
+
+    public DeleteNpcPacket() {}
+
+    public DeleteNpcPacket(int id){
+        this.entityId = id;
+    }
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.UPDATE_NPC;
+        return EnumClientPacket.DELETE_NPC;
     }
 
     @Override
@@ -31,15 +35,14 @@ public final class UpdateNpcPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(this.entityId);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NBTTagCompound compound = Server.readNBT(in);
-        Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
+        Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(in.readInt());
         if (entity instanceof EntityNPCInterface) {
-            ((EntityNPCInterface) entity).readSpawnData(compound);
+            ((EntityNPCInterface) entity).delete();
         }
     }
 }

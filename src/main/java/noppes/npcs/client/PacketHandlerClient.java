@@ -89,12 +89,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				return;
 			NoppesUtil.openDialog(Server.readNBT(buffer), (EntityNPCInterface) entity, player);
 		}
-		else if(type == EnumPacketClient.DIALOG_DUMMY){
-			EntityDialogNpc npc = new EntityDialogNpc(player.worldObj);
-			npc.display.name = Server.readString(buffer);
-			EntityUtil.Copy(player, npc);
-			NoppesUtil.openDialog(Server.readNBT(buffer), npc, player);
-		}
 		else if(type == EnumPacketClient.QUEST_COMPLETION){
 			NoppesUtil.guiQuestCompletion(player, Server.readNBT(buffer));
 		}
@@ -160,12 +154,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			NBTTagCompound compound = Server.readNBT(buffer);
 			NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(compound));
 		}
-        else if(type == EnumPacketClient.CLONER){
-            int x = buffer.readInt();
-            int y = buffer.readInt();
-            int z = buffer.readInt();
-            CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Cloner, player);
-        }
         else if(type == EnumPacketClient.TELEPORTER){
             CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);
         }

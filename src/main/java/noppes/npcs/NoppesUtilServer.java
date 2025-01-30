@@ -5,8 +5,12 @@ import kamkeel.npcs.controllers.SyncMaster;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.packets.client.DialogPacket;
-import kamkeel.npcs.network.packets.client.EditNpcPacket;
+import kamkeel.npcs.network.packets.client.ParticlePacket;
+import kamkeel.npcs.network.packets.client.ScriptedParticlePacket;
+import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
+import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
 import kamkeel.npcs.network.packets.client.RolePacket;
+import kamkeel.npcs.network.packets.client.gui.GuiTeleporterPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.Entity;
@@ -359,16 +363,11 @@ public class NoppesUtilServer {
 		return null;
 	}
 	public static void spawnParticle(Entity entity,String particle, int dimension){
-		BOB.sendAssociatedData(entity, EnumPacketClient.PARTICLE, entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle);
+        PacketHandler.Instance.sendTracking(new ParticlePacket(entity.posX, entity.posY, entity.posZ, entity.height, entity.width, entity.yOffset, particle), entity);
     }
 
 	public static void spawnScriptedParticle(NBTTagCompound compound, int dimensionId){
-		List<EntityPlayer> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
-		for (EntityPlayer player : list) {
-			if (player.worldObj.provider.dimensionId == dimensionId) {
-				BOB.sendData((EntityPlayerMP) player, EnumPacketClient.SCRIPTED_PARTICLE, compound);
-			}
-		}
+        PacketHandler.Instance.sendToDimension(new ScriptedParticlePacket(compound), dimensionId);
 	}
 
 	public static void playSound(int id, ScriptSound sound) {
@@ -414,7 +413,7 @@ public class NoppesUtilServer {
 	}
 
 	public static void deleteNpc(EntityNPCInterface npc,EntityPlayer player) {
-		BOB.sendAssociatedData(npc, EnumPacketClient.DELETE_NPC, npc.getEntityId());
+        PacketHandler.Instance.sendTracking(new DeleteNpcPacket(npc.getEntityId()), npc);
 	}
 
 	public static void createMobSpawner(int x, int y, int z, NBTTagCompound comp, EntityPlayer player) {
@@ -715,7 +714,7 @@ public class NoppesUtilServer {
     public static void setTeleporterGUI(EntityPlayerMP player){
         if(player == null)
             return;
-        BOB.sendData(player, EnumPacketClient.TELEPORTER);
+        PacketHandler.Instance.sendToPlayer(new GuiTeleporterPacket(), player);
     }
 
 	public static void setRecipeGui(EntityPlayerMP player, RecipeCarpentry recipe){
