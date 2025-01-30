@@ -3,9 +3,13 @@ package noppes.npcs;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.controllers.SyncMaster;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
+import kamkeel.npcs.network.enums.EnumSyncAction;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.client.SoundManagementPacket;
+import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -24,13 +28,11 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
-import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
@@ -48,7 +50,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
-import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.roles.RoleFollower;
 
@@ -197,48 +198,20 @@ public class ServerEventsHandler {
 		}
 
 		if(block == Blocks.crafting_table && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
-			RecipeController controller = RecipeController.Instance;
-			NBTTagList list = new NBTTagList();
-			int i = 0;
-			for(RecipeCarpentry recipe : controller.globalRecipes.values()){
-				list.appendTag(recipe.writeNBT());
-				i++;
-				if(i % 10 == 0){
-					NBTTagCompound compound = new NBTTagCompound();
-					compound.setTag("recipes", list);
-					Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-					list = new NBTTagList();
-				}
-			}
-
-			if(i % 10 != 0){
-				NBTTagCompound compound = new NBTTagCompound();
-				compound.setTag("recipes", list);
-				Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-			}
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_WORKBENCH);
+            PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+                EnumSyncType.WORKBENCH_RECIPES,
+                EnumSyncAction.RELOAD,
+                -1,
+                SyncMaster.workbenchNBT()
+            ), (EntityPlayerMP) player);
 		}
 		if(block == CustomItems.carpentyBench && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
-			RecipeController controller = RecipeController.Instance;
-			NBTTagList list = new NBTTagList();
-			int i = 0;
-			for(RecipeCarpentry recipe : controller.anvilRecipes.values()){
-				list.appendTag(recipe.writeNBT());
-				i++;
-				if(i % 10 == 0){
-					NBTTagCompound compound = new NBTTagCompound();
-					compound.setTag("recipes", list);
-					Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-					list = new NBTTagList();
-				}
-			}
-
-			if(i % 10 != 0){
-				NBTTagCompound compound = new NBTTagCompound();
-				compound.setTag("recipes", list);
-				Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-			}
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_CARPENTRYBENCH);
+            PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+                EnumSyncType.CARPENTRY_RECIPES,
+                EnumSyncAction.RELOAD,
+                -1,
+                SyncMaster.carpentryNBT()
+            ), (EntityPlayerMP) player);
 		}
 		if((block == CustomItems.banner || block == CustomItems.wallBanner || block == CustomItems.sign)  && event.action == Action.RIGHT_CLICK_BLOCK){
 			ItemStack item = player.inventory.getCurrentItem();

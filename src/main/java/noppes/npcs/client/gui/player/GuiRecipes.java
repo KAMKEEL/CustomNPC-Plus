@@ -33,7 +33,7 @@ public class GuiRecipes extends GuiNPCInterface
         this.xSize = 256;
         setBackground("recipes.png");
         this.closeOnEsc = true;
-		recipes.addAll(RecipeController.Instance.anvilRecipes.values());
+		recipes.addAll(RecipeController.Instance.carpentryRecipes.values());
     }
     @Override
     public void initGui(){
@@ -47,7 +47,7 @@ public class GuiRecipes extends GuiNPCInterface
 
         addButton(this.left = new GuiButtonNextPage(1, guiLeft + 150, guiTop + 164, true));
         addButton(this.right = new GuiButtonNextPage(2, guiLeft + 80, guiTop + 164, false));
-        
+
         updateButton();
     }
     private void updateButton(){
@@ -67,10 +67,10 @@ public class GuiRecipes extends GuiNPCInterface
 
 	private List<IRecipe> getSearchList(){
 		if(search.isEmpty()){
-			return new ArrayList<IRecipe>(RecipeController.Instance.anvilRecipes.values());
+			return new ArrayList<IRecipe>(RecipeController.Instance.carpentryRecipes.values());
 		}
 		List<IRecipe> list = new ArrayList<IRecipe>();
-		for(IRecipe recipe : RecipeController.Instance.anvilRecipes.values()){
+		for(IRecipe recipe : RecipeController.Instance.carpentryRecipes.values()){
 			if(recipe.getRecipeOutput() == null)
 				continue;
 
@@ -96,12 +96,12 @@ public class GuiRecipes extends GuiNPCInterface
     		page++;
         updateButton();
     }
-    
+
     @Override
     public void drawScreen(int xMouse, int yMouse, float f){
     	super.drawScreen(xMouse, yMouse, f);
     	mc.renderEngine.bindTexture(resource);
-		
+
 		label.label = page + 1 + "/" + MathHelper.ceiling_float_int(recipes.size() / 4f);
 		label.x = guiLeft + (256 - Minecraft.getMinecraft().fontRenderer.getStringWidth(label.label)) / 2;
 		for(int i = 0; i < 4; i++){
@@ -165,11 +165,11 @@ public class GuiRecipes extends GuiNPCInterface
         itemRender.renderItemAndEffectIntoGUI(fontRendererObj, mc.renderEngine, item, x, y);
         itemRender.renderItemOverlayIntoGUI(fontRendererObj, mc.renderEngine, item, x, y);
         itemRender.zLevel = 0.0F;
-        RenderHelper.disableStandardItemLighting(); 
+        RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
     	GL11.glPopMatrix();
     }
-    
+
     private void drawOverlay(ItemStack item, int x, int y, int xMouse, int yMouse){
         if (this.func_146978_c(x - guiLeft, y - guiTop, 16, 16, xMouse, yMouse)){
             this.renderToolTip(item, xMouse, yMouse);

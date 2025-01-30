@@ -9,9 +9,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
-import noppes.npcs.controllers.SyncController;
 
 import java.io.IOException;
 

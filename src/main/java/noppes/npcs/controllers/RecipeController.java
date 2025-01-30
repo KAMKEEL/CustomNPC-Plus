@@ -1,5 +1,6 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncMaster;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
@@ -21,7 +22,7 @@ import java.util.*;
 public class RecipeController implements IRecipeHandler {
 	private static Collection<RecipeCarpentry> prevRecipes;
 	public HashMap<Integer,RecipeCarpentry> globalRecipes = new HashMap<Integer, RecipeCarpentry>();
-	public HashMap<Integer,RecipeCarpentry> anvilRecipes = new HashMap<Integer, RecipeCarpentry>();
+	public HashMap<Integer,RecipeCarpentry> carpentryRecipes = new HashMap<Integer, RecipeCarpentry>();
 	public static RecipeController Instance;
 
 	public static final int version = 1;
@@ -59,7 +60,7 @@ public class RecipeController implements IRecipeHandler {
 	        }
 	        else{
 	    		globalRecipes.clear();
-	    		anvilRecipes.clear();
+	    		carpentryRecipes.clear();
 	    		loadDefaultRecipes(-1);
 	        }
 		} catch (Exception e) {
@@ -99,7 +100,7 @@ public class RecipeController implements IRecipeHandler {
             		nextId = recipe.id;
             }
         }
-        this.anvilRecipes = anvilRecipes;
+        this.carpentryRecipes = anvilRecipes;
         this.globalRecipes = globalRecipes;
 		loadDefaultRecipes(nbttagcompound1.getInteger("Version"));
 	}
@@ -110,7 +111,7 @@ public class RecipeController implements IRecipeHandler {
 	        for(RecipeCarpentry recipe : globalRecipes.values()){
 	        	list.appendTag(recipe.writeNBT());
 	        }
-	        for(RecipeCarpentry recipe : anvilRecipes.values()){
+	        for(RecipeCarpentry recipe : carpentryRecipes.values()){
 	        	list.appendTag(recipe.writeNBT());
 	        }
 	        NBTTagCompound nbttagcompound = new NBTTagCompound();
@@ -141,7 +142,7 @@ public class RecipeController implements IRecipeHandler {
 	}
 
     public RecipeCarpentry findMatchingRecipe(InventoryCrafting par1InventoryCrafting){
-    	for(RecipeCarpentry recipe : anvilRecipes.values()){
+    	for(RecipeCarpentry recipe : carpentryRecipes.values()){
     		if(recipe.isValid() && recipe.matches(par1InventoryCrafting,null))
     			return recipe;
     	}
@@ -151,8 +152,8 @@ public class RecipeController implements IRecipeHandler {
 	public RecipeCarpentry getRecipe(int id) {
 		if(globalRecipes.containsKey(id))
 			return globalRecipes.get(id);
-		if(anvilRecipes.containsKey(id))
-			return anvilRecipes.get(id);
+		if(carpentryRecipes.containsKey(id))
+			return carpentryRecipes.get(id);
 		return null;
 	}
 
@@ -171,12 +172,12 @@ public class RecipeController implements IRecipeHandler {
 				recipe.name += "_";
 		}
 		if(recipe.isGlobal){
-			anvilRecipes.remove(recipe.id);
+			carpentryRecipes.remove(recipe.id);
 			globalRecipes.put(recipe.id, recipe);
 		}
 		else{
 			globalRecipes.remove(recipe.id);
-			anvilRecipes.put(recipe.id, recipe);
+			carpentryRecipes.put(recipe.id, recipe);
 		}
 		saveCategories();
 		reloadGlobalRecipes(globalRecipes);
@@ -192,7 +193,7 @@ public class RecipeController implements IRecipeHandler {
 			if(recipe.name.toLowerCase().equals(name))
 				return true;
 		}
-		for(RecipeCarpentry recipe : anvilRecipes.values()){
+		for(RecipeCarpentry recipe : carpentryRecipes.values()){
 			if(recipe.name.toLowerCase().equals(name))
 				return true;
 		}
@@ -203,8 +204,14 @@ public class RecipeController implements IRecipeHandler {
 		RecipeCarpentry recipe = getRecipe(id);
         if(recipe == null)
             return null;
-		globalRecipes.remove(recipe.id);
-		anvilRecipes.remove(recipe.id);
+		RecipeCarpentry globalRecipe = globalRecipes.remove(recipe.id);
+        if(globalRecipe != null)
+            SyncMaster.syncAllWorkbenchRecipes();
+
+        RecipeCarpentry carpentry = carpentryRecipes.remove(recipe.id);
+        if(carpentry != null)
+            SyncMaster.syncAllWorkbenchRecipes();
+
 		saveCategories();
 		reloadGlobalRecipes(globalRecipes);
 		return recipe;
@@ -212,7 +219,7 @@ public class RecipeController implements IRecipeHandler {
 	public void addRecipe(RecipeCarpentry recipeAnvil) {
 		recipeAnvil.id = getUniqueId();
 		if(!recipeAnvil.isGlobal)
-			RecipeController.Instance.anvilRecipes.put(recipeAnvil.id, recipeAnvil);
+			RecipeController.Instance.carpentryRecipes.put(recipeAnvil.id, recipeAnvil);
 		else{
 			RecipeController.Instance.globalRecipes.put(recipeAnvil.id, recipeAnvil);
 		}
@@ -223,7 +230,7 @@ public class RecipeController implements IRecipeHandler {
 	}
 
 	public List<IRecipe> getCarpentryList() {
-		return new ArrayList(this.anvilRecipes.values());
+		return new ArrayList(this.carpentryRecipes.values());
 	}
 
 	public void addRecipe(String name, boolean global, ItemStack result, Object... objects) {

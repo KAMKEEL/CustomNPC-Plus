@@ -10,10 +10,13 @@ import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.Server;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.*;
 
 import java.util.HashMap;
@@ -45,8 +48,46 @@ public class SyncMaster {
             questCategoriesNBT()
         ), player);
 
+        // 4) Workbench Recipes
+        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+            EnumSyncType.WORKBENCH_RECIPES,
+            EnumSyncAction.RELOAD,
+            -1,
+            workbenchNBT()
+        ), player);
+
+        // 5) Carpentry Recipes
+        PacketHandler.Instance.sendToPlayer(new LargeSyncPacket(
+            EnumSyncType.CARPENTRY_RECIPES,
+            EnumSyncAction.RELOAD,
+            -1,
+            carpentryNBT()
+        ), player);
+
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
+    }
+
+    public static NBTTagCompound workbenchNBT(){
+        RecipeController controller = RecipeController.Instance;
+        NBTTagList list = new NBTTagList();
+        NBTTagCompound compound = new NBTTagCompound();
+        for(RecipeCarpentry recipe : controller.globalRecipes.values()){
+            list.appendTag(recipe.writeNBT());
+        }
+        compound.setTag("recipes", list);
+        return compound;
+    }
+
+    public static NBTTagCompound carpentryNBT(){
+        RecipeController controller = RecipeController.Instance;
+        NBTTagList list = new NBTTagList();
+        NBTTagCompound compound = new NBTTagCompound();
+        for(RecipeCarpentry recipe : controller.carpentryRecipes.values()){
+            list.appendTag(recipe.writeNBT());
+        }
+        compound.setTag("recipes", list);
+        return compound;
     }
 
     public static NBTTagCompound factionsNBT(){
@@ -144,6 +185,24 @@ public class SyncMaster {
         ));
     }
 
+    public static void syncAllWorkbenchRecipes() {
+        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+            EnumSyncType.WORKBENCH_RECIPES,
+            EnumSyncAction.RELOAD,
+            -1,
+            workbenchNBT()
+        ));
+    }
+
+    public static void syncAllCarpentryRecipes() {
+        PacketHandler.Instance.sendToAll(new LargeSyncPacket(
+            EnumSyncType.CARPENTRY_RECIPES,
+            EnumSyncAction.RELOAD,
+            -1,
+            carpentryNBT()
+        ));
+    }
+
     @SideOnly(Side.CLIENT)
     public static void clientSync(EnumSyncType enumSyncType, NBTTagCompound fullCompound) {
         switch (enumSyncType){
@@ -236,6 +295,36 @@ public class SyncMaster {
             }
             case PLAYERDATA: {
                 ClientCacheHandler.playerData.setSyncNBTFull(fullCompound);
+                break;
+            }
+            case WORKBENCH_RECIPES: {
+                NBTTagList list = fullCompound.getTagList("recipes", 10);
+                if(list == null)
+                    return;
+
+                for(int i = 0; i < list.tagCount(); i++)
+                {
+                    RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
+                    RecipeController.syncRecipes.put(recipe.id,recipe);
+                }
+
+                RecipeController.reloadGlobalRecipes(RecipeController.syncRecipes);
+                RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
+                break;
+            }
+            case CARPENTRY_RECIPES: {
+                NBTTagList list = fullCompound.getTagList("recipes", 10);
+                if(list == null)
+                    return;
+
+                for(int i = 0; i < list.tagCount(); i++)
+                {
+                    RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
+                    RecipeController.syncRecipes.put(recipe.id,recipe);
+                }
+
+                RecipeController.Instance.carpentryRecipes = RecipeController.syncRecipes;
+                RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
                 break;
             }
         }

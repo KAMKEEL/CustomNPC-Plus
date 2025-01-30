@@ -11,7 +11,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.net.InetAddress;

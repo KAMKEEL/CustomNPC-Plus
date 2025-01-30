@@ -591,7 +591,7 @@ public class NoppesUtilServer {
 			}
 		}
 		else{
-			for(RecipeCarpentry recipe : RecipeController.Instance.anvilRecipes.values()){
+			for(RecipeCarpentry recipe : RecipeController.Instance.carpentryRecipes.values()){
 				map.put(recipe.name, recipe.id);
 			}
 		}

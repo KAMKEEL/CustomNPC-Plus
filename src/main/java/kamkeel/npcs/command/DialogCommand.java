@@ -11,7 +11,6 @@ import noppes.npcs.constants.EnumAvailabilityDialog;
 import noppes.npcs.constants.EnumAvailabilityQuest;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;

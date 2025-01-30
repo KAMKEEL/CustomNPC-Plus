@@ -60,6 +60,9 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new RolePacket());
         CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
         CLIENT_PACKET.registerPacket(new SoundManagementPacket());
+        CLIENT_PACKET.registerPacket(new ParticlePacket());
+        CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
+        CLIENT_PACKET.registerPacket(new ConfigCommandPacket());
 
         // Client | GUI Packets
         CLIENT_PACKET.registerPacket(new GuiClosePacket());
@@ -70,10 +73,6 @@ public final class PacketHandler {
 
         // Client | NPC Packets
         CLIENT_PACKET.registerPacket(new DeleteNpcPacket());
-
-        // Client | Other
-        CLIENT_PACKET.registerPacket(new ParticlePacket());
-        CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
     }
 
     private void registerChannels() {

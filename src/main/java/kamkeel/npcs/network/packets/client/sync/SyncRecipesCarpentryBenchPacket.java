@@ -8,7 +8,6 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.controllers.RecipeController;
 
 import java.io.IOException;
@@ -36,7 +35,7 @@ public final class SyncRecipesCarpentryBenchPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        RecipeController.Instance.anvilRecipes = RecipeController.syncRecipes;
+        RecipeController.Instance.carpentryRecipes = RecipeController.syncRecipes;
         RecipeController.syncRecipes.clear();
     }
 }

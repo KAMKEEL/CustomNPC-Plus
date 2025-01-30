@@ -1,6 +1,9 @@
 package kamkeel.npcs.command;
 
 import foxz.utils.Market;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumConfigOperation;
+import kamkeel.npcs.network.packets.client.ConfigCommandPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -291,8 +294,7 @@ public class ConfigCommand extends CommandKamkeelBase {
 		for(int i = 0; i < args.length; i++){
 			font += " " + args[i];
 		}
-    	Server.sendData((EntityPlayerMP)sender, EnumPacketClient.CONFIG, 0, font.trim(), size);
+        PacketHandler.Instance.sendToPlayer(new ConfigCommandPacket(EnumConfigOperation.FONT, font.trim(), size), (EntityPlayerMP)sender);
     }
-
 }
 

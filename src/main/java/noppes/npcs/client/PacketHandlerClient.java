@@ -9,35 +9,23 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.*;
-import noppes.npcs.client.ClientProxy.FontContainer;
-import noppes.npcs.client.controllers.MusicController;
-import noppes.npcs.client.controllers.ScriptClientSound;
-import noppes.npcs.client.controllers.ScriptSoundController;
 import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.MarkData;
-import noppes.npcs.controllers.data.RecipeCarpentry;
-import noppes.npcs.entity.EntityDialogNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 public class PacketHandlerClient extends PacketHandlerServer{
 
@@ -53,30 +41,7 @@ public class PacketHandlerClient extends PacketHandlerServer{
 	}
 
 	private void client(ByteBuf buffer, final EntityPlayer player, EnumPacketClient type) throws IOException{
-		if(type == EnumPacketClient.SYNCRECIPES_ADD){
-			NBTTagList list = Server.readNBT(buffer).getTagList("recipes", 10);
-	        if(list == null)
-	        	return;
-            for(int i = 0; i < list.tagCount(); i++)
-            {
-        		RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
-            	RecipeController.syncRecipes.put(recipe.id,recipe);
-            }
-
-		}
-		else if(type == EnumPacketClient.SYNCRECIPES_WORKBENCH){
-            RecipeController.reloadGlobalRecipes(RecipeController.syncRecipes);
-            RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
-		}
-		else if(type == EnumPacketClient.SYNCRECIPES_CARPENTRYBENCH){
-            RecipeController.Instance.anvilRecipes = RecipeController.syncRecipes;
-            RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
-		}
-        else if(type == EnumPacketClient.SYNC_CONFIG){
-            NBTTagCompound configNBT = Server.readNBT(buffer);
-            SyncController.receiveConfigs(configNBT);
-        }
-        else if(type == EnumPacketClient.MARK_DATA){
+        if(type == EnumPacketClient.MARK_DATA){
             Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
             if(!(entity instanceof EntityNPCInterface))
                 return;
@@ -91,12 +56,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		}
 		else if(type == EnumPacketClient.QUEST_COMPLETION){
 			NoppesUtil.guiQuestCompletion(player, Server.readNBT(buffer));
-		}
-		else if(type == EnumPacketClient.EDIT_NPC){
-			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return;
-			NoppesUtil.setLastNpc((EntityNPCInterface) entity);
 		}
 		else if(type == EnumPacketClient.UPDATE_NPC){
 			NBTTagCompound compound = Server.readNBT(buffer);
@@ -117,12 +76,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 		else if(type == EnumPacketClient.GUI){
 			EnumGuiType gui = EnumGuiType.values()[buffer.readInt()];
 			CustomNpcs.proxy.openGui(NoppesUtil.getLastNpc(), gui, buffer.readInt(), buffer.readInt(), buffer.readInt());
-		}
-		else if(type == EnumPacketClient.DELETE_NPC){
-			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return;
-			((EntityNPCInterface)entity).delete();
 		}
 		else if(type == EnumPacketClient.SCROLL_SELECTED){
 			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
@@ -192,28 +145,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
 
 			NoppesUtil.openGUI(player, new GuiBook(player, ItemStack.loadItemStackFromNBT(Server.readNBT(buffer)), x, y, z));
-		}
-		else if(type == EnumPacketClient.CONFIG){
-			int config = buffer.readInt();
-			if(config == 0){//Font
-				String font = Server.readString(buffer);
-				int size = buffer.readInt();
-				if(!font.isEmpty()){
-					ConfigClient.FontType = font;
-					ConfigClient.FontSize = size;
-					ClientProxy.Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
-
-					ConfigClient.FontTypeProperty.set(ConfigClient.FontType);
-					ConfigClient.FontSizeProperty.set(ConfigClient.FontSize);
-					if(ConfigClient.config.hasChanged()){
-						ConfigClient.config.save();
-					}
-
-					player.addChatMessage(new ChatComponentTranslation("Font set to %s", ClientProxy.Font.getName()));
-				}
-				else
-					player.addChatMessage(new ChatComponentTranslation("Current font is %s", ClientProxy.Font.getName()));
-			}
 		}
 		else if(type == EnumPacketClient.ISGUIOPEN){
 			boolean isGUIOpen = Minecraft.getMinecraft().currentScreen != null;

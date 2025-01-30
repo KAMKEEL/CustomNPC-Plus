@@ -7,5 +7,7 @@ public enum EnumSyncType {
     QUEST,
     QUEST_CATEGORY,
     PLAYERDATA,
-    MAGIC
+    MAGIC,
+    WORKBENCH_RECIPES,
+    CARPENTRY_RECIPES
 }

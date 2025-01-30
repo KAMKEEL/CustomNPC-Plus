@@ -5,6 +5,9 @@ import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.PlayerOnly;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumConfigOperation;
+import kamkeel.npcs.network.packets.client.ConfigCommandPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -207,6 +210,6 @@ public class CmdConfig extends ChMcLogger {
 		for(int i = 0; i < args.length; i++){
 			font += " " + args[i];
 		}
-    	Server.sendData((EntityPlayerMP)this.pcParam, EnumPacketClient.CONFIG, 0, font.trim(), size);
+        PacketHandler.Instance.sendToPlayer(new ConfigCommandPacket(EnumConfigOperation.FONT, font.trim(), size), (EntityPlayerMP)this.pcParam);
     }
 }
