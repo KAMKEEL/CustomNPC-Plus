@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.large.sync.LargeSyncPacket;
+import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.entity.player.EntityPlayerMP;

@@ -12,7 +12,7 @@ import kamkeel.npcs.network.packets.client.gui.*;
 import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
 import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
-import kamkeel.npcs.network.packets.client.large.sync.LargeSyncPacket;
+import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
 import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
 import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
 import kamkeel.npcs.network.packets.client.script.ScriptedParticlePacket;
@@ -59,6 +59,7 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new EditNpcPacket());
         CLIENT_PACKET.registerPacket(new RolePacket());
         CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
+        CLIENT_PACKET.registerPacket(new SoundManagementPacket());
 
         // Client | GUI Packets
         CLIENT_PACKET.registerPacket(new GuiClosePacket());
