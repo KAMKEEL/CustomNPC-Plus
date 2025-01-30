@@ -21,7 +21,7 @@ public final class GuiTeleporterPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.TELEPORTER;
+        return EnumClientPacket.GUI_TELEPORTER;
     }
 
     @Override

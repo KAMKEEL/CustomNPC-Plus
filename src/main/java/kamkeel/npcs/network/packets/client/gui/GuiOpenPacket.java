@@ -32,7 +32,7 @@ public final class GuiOpenPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI;
+        return EnumClientPacket.GUI_OPEN;
     }
 
     @Override

@@ -18,13 +18,13 @@ public class DataTransform {
 	public NBTTagCompound stats;
 	public NBTTagCompound role;
 	public NBTTagCompound job;
-	
+
 	public boolean hasDisplay, hasAi, hasAdvanced, hasInv, hasStats, hasRole, hasJob, isActive;
-	
+
 	private EntityNPCInterface npc;
-	
+
 	public boolean editingModus = false;
-	
+
 	public DataTransform(EntityNPCInterface npc){
 		this.npc = npc;
 	}
@@ -47,11 +47,11 @@ public class DataTransform {
     		compound.setTag("TransformRole", role);
     	if(hasJob)
     		compound.setTag("TransformJob", job);
-    	
+
     	return compound;
     }
-    
-	public Object writeOptions(NBTTagCompound compound) {
+
+	public NBTTagCompound writeOptions(NBTTagCompound compound) {
     	compound.setBoolean("TransformHasDisplay", hasDisplay);
     	compound.setBoolean("TransformHasAI", hasAi);
     	compound.setBoolean("TransformHasAdvanced", hasAdvanced);
@@ -62,7 +62,7 @@ public class DataTransform {
     	compound.setBoolean("TransformEditingModus", editingModus);
 		return compound;
 	}
-    
+
 
     public void readToNBT(NBTTagCompound compound) {
     	isActive = compound.getBoolean("TransformIsActive");
@@ -75,7 +75,7 @@ public class DataTransform {
     	job = hasJob?compound.getCompoundTag("TransformJob"): getJob();
     	role = hasRole?compound.getCompoundTag("TransformRole"): getRole();
     }
-    
+
     public NBTTagCompound getJob() {
     	NBTTagCompound compound = new NBTTagCompound();
 
@@ -83,17 +83,17 @@ public class DataTransform {
         if (npc.advanced.job != EnumJobType.None && npc.jobInterface != null) {
             npc.jobInterface.writeToNBT(compound);
         }
-    	
+
     	return compound;
 	}
     public NBTTagCompound getRole() {
     	NBTTagCompound compound = new NBTTagCompound();
 
-        compound.setInteger("Role", npc.advanced.role.ordinal());        
+        compound.setInteger("Role", npc.advanced.role.ordinal());
         if (npc.advanced.role != EnumRoleType.None && npc.roleInterface != null) {
             npc.roleInterface.writeToNBT(compound);
         }
-    	
+
     	return compound;
 	}
 
@@ -102,7 +102,7 @@ public class DataTransform {
     	if(npc instanceof EntityCustomNpc){
     		compound.setTag("ModelData", ((EntityCustomNpc)npc).modelData.writeToNBT());
     	}
-    	
+
     	return compound;
     }
 
@@ -119,7 +119,7 @@ public class DataTransform {
 
     	npc.advanced.job = jopType;
     	npc.advanced.role = roleType;
-    	
+
     	return compound;
 	}
 
@@ -132,7 +132,7 @@ public class DataTransform {
 		boolean hadStats = hasStats;
 		boolean hadRole = hasRole;
 		boolean hadJob = hasJob;
-		
+
     	hasDisplay = compound.getBoolean("TransformHasDisplay");
     	hasAi = compound.getBoolean("TransformHasAI");
     	hasAdvanced = compound.getBoolean("TransformHasAdvanced");
@@ -158,7 +158,7 @@ public class DataTransform {
     	if(hasRole && !hadRole)
     		role = getRole();
     }
-    
+
     public boolean isValid(){
     	return hasAdvanced || hasAi || hasDisplay || hasInv || hasStats || hasJob || hasRole;
     }
@@ -166,14 +166,14 @@ public class DataTransform {
 
 	public NBTTagCompound processAdvanced(NBTTagCompound compoundAdv,
 			NBTTagCompound compoundRole, NBTTagCompound compoundJob) {
-		
+
 		if(hasAdvanced)
 			compoundAdv = advanced;
 		if(hasRole)
 			compoundRole = role;
 		if(hasJob)
 			compoundJob = job;
-		
+
 		Set<String> names = compoundRole.func_150296_c();
 		for(String name : names)
 			compoundAdv.setTag(name, compoundRole.getTag(name));
@@ -181,10 +181,10 @@ public class DataTransform {
 		names = compoundJob.func_150296_c();
 		for(String name : names)
 			compoundAdv.setTag(name, compoundJob.getTag(name));
-		
+
 		return compoundAdv;
 	}
-	
+
 	public void transform(boolean isActive){
 		if(this.isActive == isActive)
 			return;
@@ -205,14 +205,14 @@ public class DataTransform {
 			NBTTagCompound compoundAdv = getAdvanced();
 			NBTTagCompound compoundRole = getRole();
 			NBTTagCompound compoundJob = getJob();
-			
+
 			NBTTagCompound compound = processAdvanced(compoundAdv, compoundRole, compoundJob);
 			npc.advanced.readToNBT(compound);
-	        if (npc.advanced.role != EnumRoleType.None && npc.roleInterface != null) 
+	        if (npc.advanced.role != EnumRoleType.None && npc.roleInterface != null)
 	        	npc.roleInterface.readFromNBT(NBTTags.NBTMerge(compoundRole, compound));
 	        if (npc.advanced.job != EnumJobType.None && npc.jobInterface != null)
-	        	npc.jobInterface.readFromNBT(NBTTags.NBTMerge(compoundJob, compound));   
-	        
+	        	npc.jobInterface.readFromNBT(NBTTags.NBTMerge(compoundJob, compound));
+
 			if(hasAdvanced)
 				advanced = compoundAdv;
 			if(hasRole)

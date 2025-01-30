@@ -10,6 +10,8 @@ import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.client.SoundManagementPacket;
+import kamkeel.npcs.network.packets.client.VillagerListPacket;
+import kamkeel.npcs.network.packets.client.large.LargeClonerPacket;
 import kamkeel.npcs.network.packets.client.large.LargeSyncPacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -98,8 +100,7 @@ public class ServerEventsHandler {
 				return;
 			PlayerData data = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
 			ServerCloneController.Instance.cleanTags(compound);
-			if(!Server.sendDataChecked((EntityPlayerMP)event.entityPlayer, EnumPacketClient.CLONE, compound))
-				event.entityPlayer.addChatMessage(new ChatComponentText("Entity too big to clone"));
+            PacketHandler.Instance.sendToPlayer(new LargeClonerPacket(compound), (EntityPlayerMP)event.entityPlayer);
 			data.cloned = compound;
 			if (event.target instanceof EntityNPCInterface) {
 				NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface) event.target);
@@ -137,7 +138,7 @@ public class ServerEventsHandler {
 
 				if (merchantrecipelist != null)
 				{
-					Server.sendData(player, EnumPacketClient.VILLAGER_LIST, merchantrecipelist);
+                    PacketHandler.Instance.sendToPlayer(new VillagerListPacket(merchantrecipelist), player);
 				}
 			}
 		}

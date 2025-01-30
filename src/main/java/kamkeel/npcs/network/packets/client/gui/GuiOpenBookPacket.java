@@ -9,27 +9,33 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
+import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 
 import java.io.IOException;
 
-public final class GuiClonerPacket extends AbstractPacket {
-    public static final String packetName = "Client|Clone";
+public final class GuiOpenBookPacket extends AbstractPacket {
+    public static final String packetName = "Client|GuiOpenBook";
 
-    private NBTTagCompound compound;
+    private int i;
+    private int j;
+    private int k;
+    private NBTTagCompound nbtTagCompound;
 
-    public GuiClonerPacket() {}
+    public GuiOpenBookPacket() {}
 
-    public GuiClonerPacket(NBTTagCompound comp){
-        this.compound = comp;
+    public GuiOpenBookPacket(int i, int j, int k, NBTTagCompound nbtTagCompound) {
+        this.i = i;
+        this.j = j;
+        this.k = k;
+        this.nbtTagCompound = nbtTagCompound;
     }
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.CLONE;
+        return EnumClientPacket.GUI_BOOK;
     }
 
     @Override
@@ -39,13 +45,21 @@ public final class GuiClonerPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeNBT(out, compound);
+        out.writeInt(this.i);
+        out.writeInt(this.j);
+        out.writeInt(this.k);
+
+        ByteBufUtils.writeNBT(out, this.nbtTagCompound);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        int x = in.readInt();
+        int y = in.readInt();
+        int z = in.readInt();
         NBTTagCompound nbt = ByteBufUtils.readNBT(in);
-        NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(nbt));
+        ItemStack book = ItemStack.loadItemStackFromNBT(nbt);
+        NoppesUtil.openGUI(player, new GuiBook(player, book, x, y, z));
     }
 }

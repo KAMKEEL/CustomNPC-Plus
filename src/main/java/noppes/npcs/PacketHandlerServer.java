@@ -116,7 +116,7 @@ public class PacketHandlerServer{
 					}
 				}
 				compound.setTag("TagNames",tagList);
-				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+				PacketUtil.sendGuiData(player, compound);
 			} else if (type == EnumPacketServer.CacheAnimation) {
 				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
 				return;
@@ -372,7 +372,7 @@ public class PacketHandlerServer{
 			compound.setBoolean("PlayerScriptsEnabled", ConfigScript.GlobalPlayerScripts);
 			compound.setBoolean("GlobalNPCScriptsEnabled", ConfigScript.GlobalNPCScripts);
 			compound.setBoolean("ForgeScriptsEnabled", ConfigScript.GlobalForgeScripts);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if (type == EnumPacketServer.ScriptGlobalGuiDataSave) {
 			NBTTagCompound compound = Server.readNBT(buffer);
@@ -395,7 +395,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.ScriptDataGet){
 			NBTTagCompound compound = npc.script.writeToNBT(new NBTTagCompound());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 	}
 
@@ -405,7 +405,7 @@ public class PacketHandlerServer{
 		compound.setString("ScriptLanguage", data.getLanguage());
 		compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
 		compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(data.getConsoleText()));
-		Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+		PacketUtil.sendGuiData(player, compound);
 		List<ScriptContainer> containers = data.getScripts();
 		for (int i = 0; i < containers.size(); i++) {
 			ScriptContainer container = containers.get(i);
@@ -413,7 +413,7 @@ public class PacketHandlerServer{
 			tabCompound.setInteger("Tab",i);
 			tabCompound.setTag("Script",container.writeToNBT(new NBTTagCompound()));
 			tabCompound.setInteger("TotalScripts",containers.size());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, tabCompound);
+			PacketUtil.sendGuiData(player, tabCompound);
 		}
 	}
 
@@ -507,7 +507,7 @@ public class PacketHandlerServer{
 			iw.loadScriptData();
 			NBTTagCompound compound = iw.getMCNbt();
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, new Object[]{compound});
+			PacketUtil.sendGuiData(player, compound);
 		} else if (type == EnumPacketServer.ScriptItemDataSave) {
 			if (!player.capabilities.isCreativeMode) {
 				return;
@@ -530,7 +530,7 @@ public class PacketHandlerServer{
 				return;
 			NBTTagCompound compound = ((TileScripted) tile).getNBT(new NBTTagCompound());
 			compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		} else if (type == EnumPacketServer.ScriptBlockDataSave) {
 			if (!player.capabilities.isCreativeMode) {
 				return;
@@ -567,7 +567,7 @@ public class PacketHandlerServer{
 
 	private void movingPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException {
 		if(type == EnumPacketServer.MovingPathGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.ai.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.ai.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MovingPathSave){
 			npc.ai.setMovingPath(NBTTags.getIntegerArraySet(Server.readNBT(buffer).getTagList("MovingPathNew",10)));
@@ -582,7 +582,7 @@ public class PacketHandlerServer{
 			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
 			NBTTagCompound compound = new NBTTagCompound();
 			tile.writeToNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.DialogCategoriesGet){
 			PacketUtil.sendScrollData(player, DialogController.Instance.getScroll());
@@ -632,7 +632,7 @@ public class PacketHandlerServer{
 				Quest quest = QuestController.Instance.quests.get(dialog.quest);
 				if(quest != null)
 					compound.setString("DialogQuestName", quest.title);
-				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+				PacketUtil.sendGuiData(player, compound);
 			}
 		}
 		else if(type == EnumPacketServer.QuestGet){
@@ -641,20 +641,20 @@ public class PacketHandlerServer{
 				NBTTagCompound compound = new NBTTagCompound();
 				if(quest.hasNewQuest())
 					compound.setString("NextQuestTitle", quest.getNextQuest().title);
-				Server.sendData(player, EnumPacketClient.GUI_DATA, quest.writeToNBT(compound));
+				PacketUtil.sendGuiData(player, quest.writeToNBT(compound));
 			}
 		}
 		else if(type == EnumPacketServer.FactionGet){
 			NBTTagCompound compound = new NBTTagCompound();
 			Faction faction = FactionController.getInstance().get(buffer.readInt());
 			faction.writeNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.TagGet){
 			NBTTagCompound compound = new NBTTagCompound();
 			Tag tag = TagController.getInstance().get(buffer.readInt());
 			tag.writeNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 	}
 
@@ -803,7 +803,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.NaturalSpawnGet){
 			SpawnData spawn = SpawnController.Instance.getSpawnData(buffer.readInt());
 			if(spawn != null){
-				Server.sendData(player, EnumPacketClient.GUI_DATA, spawn.writeNBT(new NBTTagCompound()));
+				PacketUtil.sendGuiData(player, spawn.writeNBT(new NBTTagCompound()));
 			}
 		}
 		else if(type == EnumPacketServer.NaturalSpawnSave){
@@ -832,7 +832,7 @@ public class PacketHandlerServer{
 			if(category != null){
 				NBTTagCompound comp = category.writeNBT(new NBTTagCompound());
 				comp.removeTag("Dialogs");
-				Server.sendData(player, EnumPacketClient.GUI_DATA, comp);
+				PacketUtil.sendGuiData(player, comp);
 			}
 		}
 		else if(type == EnumPacketServer.DialogSave){
@@ -881,7 +881,7 @@ public class PacketHandlerServer{
 			if(option != null && option.hasDialog()){
 				NBTTagCompound compound = option.writeNBT();
 				compound.setInteger("Position", slot);
-				Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+				PacketUtil.sendGuiData(player, compound);
 			}
 		}
 		else if(type == EnumPacketServer.DialogNpcRemove){
@@ -892,7 +892,7 @@ public class PacketHandlerServer{
 			if(category != null){
 				NBTTagCompound comp = category.writeNBT(new NBTTagCompound());
 				comp.removeTag("Dialogs");
-				Server.sendData(player, EnumPacketClient.GUI_DATA, comp);
+				PacketUtil.sendGuiData(player, comp);
 			}
 		}
 		else if(type == EnumPacketServer.QuestCategorySave){
@@ -931,7 +931,7 @@ public class PacketHandlerServer{
 				compound.setString("2", quest2.title);
 			if(quest3 != null)
 				compound.setString("3", quest3.title);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.QuestRemove){
 			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
@@ -980,7 +980,7 @@ public class PacketHandlerServer{
 				return;
 			RoleTransporter role = (RoleTransporter) npc.roleInterface;
 			if(role.hasTransport()){
-				Server.sendData(player,EnumPacketClient.GUI_DATA,role.getLocation().writeNBT());
+                PacketUtil.sendGuiData(player, role.getLocation().writeNBT());
                 PacketUtil.setSelectedList(player, role.getLocation().category.title);
 			}
 		}
@@ -994,14 +994,14 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.FactionRemove){
 			FactionController.getInstance().delete(buffer.readInt());
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			(new Faction()).writeNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.TagSet){
 			this.setTags(npc,buffer);
@@ -1013,14 +1013,14 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendTagDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.TagRemove){
 			TagController.getInstance().delete(buffer.readInt());
 			NoppesUtilServer.sendTagDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
 			(new Tag()).writeNBT(compound);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.PlayerDataGet){
 			int id = buffer.readInt();
@@ -1039,21 +1039,21 @@ public class PacketHandlerServer{
 			NoppesUtilServer.regenPlayerData(player);
 		}
 		else if(type == EnumPacketServer.MainmenuDisplayGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.display.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.display.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuDisplaySave){
 			npc.display.readToNBT(Server.readNBT(buffer));
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.MainmenuStatsGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.stats.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.stats.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuStatsSave){
 			npc.stats.readToNBT(Server.readNBT(buffer));
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.MainmenuInvGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuInvSave){
 			npc.inventory.readEntityFromNBT(Server.readNBT(buffer));
@@ -1061,7 +1061,7 @@ public class PacketHandlerServer{
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.MainmenuAIGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.ai.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.ai.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuAISave){
 			npc.ai.readToNBT(Server.readNBT(buffer));
@@ -1070,7 +1070,7 @@ public class PacketHandlerServer{
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.MainmenuAdvancedGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.advanced.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.advanced.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuAdvancedSave){
 			npc.advanced.readToNBT(Server.readNBT(buffer));
@@ -1101,10 +1101,10 @@ public class PacketHandlerServer{
 			if(npc.advanced.job == EnumJobType.Spawner)
 				((JobSpawner)npc.jobInterface).cleanCompound(compound);
 
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 
 			if(npc.advanced.job == EnumJobType.Spawner)
-				Server.sendData(player, EnumPacketClient.GUI_DATA, ((JobSpawner)npc.jobInterface).getTitles());
+				PacketUtil.sendGuiData(player, ((JobSpawner)npc.jobInterface).getTitles());
 		}
 		else if(type == EnumPacketServer.JobSpawnerAdd){
 			if(npc.advanced.job != EnumJobType.Spawner)
@@ -1118,7 +1118,7 @@ public class PacketHandlerServer{
 			else{
 				job.setJobCompound(buffer.readInt(), Server.readNBT(buffer));
 			}
-			Server.sendData(player, EnumPacketClient.GUI_DATA, job.getTitles());
+			PacketUtil.sendGuiData(player, job.getTitles());
 		}
 		else if(type == EnumPacketServer.RoleCompanionUpdate){
 			if(npc.advanced.role != EnumRoleType.Companion)
@@ -1131,7 +1131,7 @@ public class PacketHandlerServer{
 				return;
 			JobSpawner job = (JobSpawner) npc.jobInterface;
 			job.setJobCompound(buffer.readInt(), null);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, job.getTitles());
+			PacketUtil.sendGuiData(player, job.getTitles());
 		}
 		else if(type == EnumPacketServer.RoleSave){
 			npc.roleInterface.readFromNBT(Server.readNBT(buffer));
@@ -1142,7 +1142,7 @@ public class PacketHandlerServer{
 				return;
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setBoolean("RoleData", true);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.roleInterface.writeToNBT(compound));
+			PacketUtil.sendGuiData(player, npc.roleInterface.writeToNBT(compound));
 		}
 		else if(type == EnumPacketServer.MerchantUpdate){
 			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
@@ -1168,7 +1168,7 @@ public class PacketHandlerServer{
 				npc.updateAI = true;
 		}
 		else if(type == EnumPacketServer.TransformGet){
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.transform.writeOptions(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.transform.writeOptions(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.TransformLoad){
 			if(npc.transform.isValid())
@@ -1192,20 +1192,20 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.AnimationGet){
 			Animation animation = (Animation) AnimationController.getInstance().get(buffer.readInt());
 			NBTTagCompound compound = animation.writeToNBT();
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.AnimationRemove){
 			AnimationController.getInstance().delete(buffer.readInt());
 			NoppesUtilServer.sendAnimationDataAll(player);
 			NBTTagCompound compound = (new Animation()).writeToNBT();
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.AnimationSave){
 			Animation animation = new Animation();
 			animation.readFromNBT(Server.readNBT(buffer));
 			AnimationController.getInstance().saveAnimation(animation);
 			NoppesUtilServer.sendAnimationDataAll(player);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, animation.writeToNBT());
+			PacketUtil.sendGuiData(player, animation.writeToNBT());
 		}
 		else
 			blockPackets(type, buffer, player);
@@ -1234,7 +1234,7 @@ public class PacketHandlerServer{
 			compound.setTag("List", list);
 			compound.setTag("ListDate", listDate);
 
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else
 			warn(player,"WE 1 tried todo something with the wrong tool, probably a hacker");
@@ -1290,7 +1290,7 @@ public class PacketHandlerServer{
 			boolean bo = ServerCloneController.Instance.getCloneData(null, Server.readString(buffer), buffer.readInt()) != null;
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setBoolean("NameExists", bo);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.CloneSave){
 			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
@@ -1322,7 +1322,7 @@ public class PacketHandlerServer{
 			compound.setTag("List", list);
 			compound.setTag("ListDate", listDate);
 
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if(type == EnumPacketServer.CloneList){
 			NBTTagList list = new NBTTagList();
@@ -1338,14 +1338,14 @@ public class PacketHandlerServer{
 			compound.setTag("List", list);
 			compound.setTag("ListDate", listDate);
 
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if (type == EnumPacketServer.CloneTagList) {
 			int tab = buffer.readInt();
 			TagMap tagMap = ServerTagMapController.Instance.getTagMap(tab);
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setTag("CloneTags", tagMap.writeNBT());
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if (type == EnumPacketServer.CloneAllTags) {
 			NBTTagCompound compound = new NBTTagCompound();
@@ -1357,7 +1357,7 @@ public class PacketHandlerServer{
 				validTagList.appendTag(tagCompound);
 			}
 			compound.setTag("AllTags", validTagList);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if (type == EnumPacketServer.CloneAllTagsShort) {
 			NBTTagCompound compound = new NBTTagCompound();
@@ -1369,7 +1369,7 @@ public class PacketHandlerServer{
 				validTagList.appendTag(tagCompound);
 			}
 			compound.setTag("ShortTags", validTagList);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, compound);
+			PacketUtil.sendGuiData(player, compound);
 		}
 		else if (type == EnumPacketServer.TagSet) {
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);

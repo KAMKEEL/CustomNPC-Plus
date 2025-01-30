@@ -1,5 +1,7 @@
 package noppes.npcs.blocks;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.client.gui.GuiRedstonePacket;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
@@ -32,8 +34,8 @@ public class BlockNpcRedstone extends BlockContainer{
 			TileEntity tile = par1World.getTileEntity(i, j, k);
 			NBTTagCompound compound = new NBTTagCompound();
 			tile.writeToNBT(compound);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_REDSTONE, compound);
-        	return true;
+            PacketHandler.Instance.sendToPlayer(new GuiRedstonePacket(compound), (EntityPlayerMP)player);
+            return true;
 		}
 		return false;
     }

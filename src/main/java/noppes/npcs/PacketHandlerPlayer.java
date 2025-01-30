@@ -3,6 +3,7 @@ package noppes.npcs;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
@@ -147,20 +148,20 @@ public class PacketHandlerPlayer{
 			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
 				return;
 			NoppesUtilPlayer.extendFollower(player, npc);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.FollowerState){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
 				return;
 			NoppesUtilPlayer.changeFollowerState(player,npc);
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.RoleGet){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role == EnumRoleType.None)
 				return;
-			Server.sendData(player, EnumPacketClient.GUI_DATA, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.Transport){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
@@ -212,11 +213,11 @@ public class PacketHandlerPlayer{
         }
 		else if(type == EnumPlayerPacket.FactionsGet){
 			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
-			Server.sendData(player, EnumPacketClient.GUI_DATA, data.getPlayerGuiData());
+			PacketUtil.sendGuiData(player, data.getPlayerGuiData());
 		}
 		else if(type == EnumPlayerPacket.MailGet){
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			Server.sendData(player, EnumPacketClient.GUI_DATA, data.saveNBTData(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.MailDelete){
 			long time = buffer.readLong();
@@ -230,7 +231,7 @@ public class PacketHandlerPlayer{
 					it.remove();
 				}
 			}
-			Server.sendData(player, EnumPacketClient.GUI_DATA, data.saveNBTData(new NBTTagCompound()));
+			PacketUtil.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));
 		}
 		else if(type == EnumPlayerPacket.MailSend){
 			if(!(player.openContainer instanceof ContainerMail))

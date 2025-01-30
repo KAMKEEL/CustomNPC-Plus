@@ -48,42 +48,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
             MarkData data = MarkData.get((EntityNPCInterface) entity);
             data.setNBT(Server.readNBT(buffer));
         }
-		else if(type == EnumPacketClient.GUI_REDSTONE){
-			NoppesUtil.saveRedstoneBlock(player, Server.readNBT(buffer));
-		}
-		else if(type == EnumPacketClient.GUI_WAYPOINT){
-			NoppesUtil.saveWayPointBlock(player, Server.readNBT(buffer));
-		}
-		else if(type == EnumPacketClient.CLONE){
-			NBTTagCompound compound = Server.readNBT(buffer);
-			NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(compound));
-		}
-        else if(type == EnumPacketClient.TELEPORTER){
-            CustomNpcs.proxy.openGui((EntityNPCInterface)null,EnumGuiType.NpcDimensions);
-        }
-		else if(type == EnumPacketClient.GUI_DATA){
-			GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-			if(gui == null)
-				return;
-
-			if(gui instanceof GuiNPCInterface && ((GuiNPCInterface)gui).hasSubGui()){
-				gui = (GuiScreen) ((GuiNPCInterface)gui).getSubGui();
-			}
-			else if(gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface)gui).hasSubGui()){
-				gui = (GuiScreen) ((GuiContainerNPCInterface)gui).getSubGui();
-			}
-			if(gui instanceof IGuiData)
-				((IGuiData)gui).setGuiData(Server.readNBT(buffer));
-		}
-		else if(type == EnumPacketClient.VILLAGER_LIST){
-            MerchantRecipeList merchantrecipelist = MerchantRecipeList.func_151390_b(new PacketBuffer(buffer));
-            ServerEventsHandler.Merchant.setRecipes(merchantrecipelist);
-		}
-		else if(type == EnumPacketClient.OPEN_BOOK){
-			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
-
-			NoppesUtil.openGUI(player, new GuiBook(player, ItemStack.loadItemStackFromNBT(Server.readNBT(buffer)), x, y, z));
-		}
 		else if(type == EnumPacketClient.ISGUIOPEN){
 			boolean isGUIOpen = Minecraft.getMinecraft().currentScreen != null;
 

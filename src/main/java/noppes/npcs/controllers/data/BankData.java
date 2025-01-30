@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.PacketUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -108,7 +109,8 @@ public class BankData {
 			if (container != null)
 				container.setCurrency(item);
 		}
-		Server.sendDataChecked((EntityPlayerMP) player, EnumPacketClient.GUI_DATA, compound);
+
+        PacketUtil.sendGuiData((EntityPlayerMP) player, compound);
 	}
 	private ContainerNPCBankInterface getContainer(EntityPlayer player){
 		Container con = player.openContainer;

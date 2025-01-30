@@ -2,13 +2,6 @@ package
 noppes.npcs.constants;
 
 public enum EnumPacketClient {
-	GUI_REDSTONE,
-	GUI_WAYPOINT,
-	GUI_DATA,
-	VILLAGER_LIST,
-	CLONE,
-    TELEPORTER,
-	OPEN_BOOK,
 	ISGUIOPEN,
     SCRIPT_OVERLAY_DATA,
 	SCRIPT_OVERLAY_CLOSE,

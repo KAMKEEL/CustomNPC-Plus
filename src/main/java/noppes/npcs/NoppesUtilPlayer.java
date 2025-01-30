@@ -422,7 +422,7 @@ public class NoppesUtilPlayer {
         }
         QuestLogData data = new QuestLogData();
         data.setData(player);
-        Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
+        PacketUtil.sendGuiData(player, data.writeNBT());
 	}
 
     public static void sendTrackedQuest(EntityPlayerMP player) {

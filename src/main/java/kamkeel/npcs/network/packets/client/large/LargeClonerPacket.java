@@ -4,42 +4,44 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.util.ByteBufUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 
 import java.io.IOException;
-import java.util.Map;
 
-public final class LargeGuiDataPacket extends LargeAbstractPacket {
-    public static final String packetName = "Client|GuiData";
+public final class LargeClonerPacket extends LargeAbstractPacket {
+    public static final String packetName = "Client|Clone";
 
     private NBTTagCompound compound;
 
-    public LargeGuiDataPacket(){}
+    public LargeClonerPacket() {}
 
-    public LargeGuiDataPacket(NBTTagCompound comp){
+    public LargeClonerPacket(NBTTagCompound comp){
         this.compound = comp;
     }
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.GUI_DATA;
+        return EnumClientPacket.CLONE_NPC;
     }
 
     @Override
     public PacketChannel getChannel() {
         return PacketHandler.CLIENT_PACKET;
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        NBTTagCompound nbt = ByteBufUtils.readNBT(in);
+        NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(nbt));
     }
 
     @Override
@@ -54,15 +56,7 @@ public final class LargeGuiDataPacket extends LargeAbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
-        GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-        if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
-            gui = (GuiScreen) ((GuiNPCInterface) gui).getSubGui();
-        } else if (gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface) gui).hasSubGui()) {
-            gui = (GuiScreen) ((GuiContainerNPCInterface) gui).getSubGui();
-        }
-        if (gui instanceof IGuiData) {
-            NBTTagCompound nbt = ByteBufUtils.readBigNBT(data);
-            ((IGuiData) gui).setGuiData(nbt);
-        }
+        NBTTagCompound nbt = ByteBufUtils.readBigNBT(data);
+        NoppesUtil.openGUI(player, new GuiNpcMobSpawnerAdd(nbt));
     }
 }
