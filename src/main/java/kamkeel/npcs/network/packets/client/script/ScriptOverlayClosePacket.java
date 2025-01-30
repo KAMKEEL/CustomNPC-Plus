@@ -15,7 +15,13 @@ import java.io.IOException;
 public final class ScriptOverlayClosePacket extends AbstractPacket {
     public static final String packetName = "Client|ScriptOverlayClose";
 
+    private int particleId;
+
     public ScriptOverlayClosePacket() {}
+
+    public ScriptOverlayClosePacket(int particleId) {
+        this.particleId = particleId;
+    }
 
     @Override
     public Enum getType() {
@@ -29,7 +35,7 @@ public final class ScriptOverlayClosePacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Send Packet
+        out.writeInt(this.particleId);
     }
 
     @SideOnly(Side.CLIENT)

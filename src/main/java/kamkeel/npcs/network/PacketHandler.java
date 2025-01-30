@@ -10,9 +10,8 @@ import kamkeel.npcs.network.enums.EnumPacketType;
 import kamkeel.npcs.network.packets.client.*;
 import kamkeel.npcs.network.packets.client.gui.*;
 import kamkeel.npcs.network.packets.client.large.*;
-import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
-import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
-import kamkeel.npcs.network.packets.client.script.ScriptedParticlePacket;
+import kamkeel.npcs.network.packets.client.npc.*;
+import kamkeel.npcs.network.packets.client.script.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -48,17 +47,18 @@ public final class PacketHandler {
         LARGE_PACKET.registerPacket(new LargeScrollDataPacket());
         LARGE_PACKET.registerPacket(new LargeScrollListPacket());
         LARGE_PACKET.registerPacket(new LargeSyncPacket());
+        LARGE_PACKET.registerPacket(new LargeGuiDataPacket());
 
         // Client Packets
         CLIENT_PACKET.registerPacket(new ChatBubblePacket());
         CLIENT_PACKET.registerPacket(new ChatAlertPacket());
         CLIENT_PACKET.registerPacket(new AchievementPacket());
-        CLIENT_PACKET.registerPacket(new EditNpcPacket());
-        CLIENT_PACKET.registerPacket(new RolePacket());
         CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
         CLIENT_PACKET.registerPacket(new SoundManagementPacket());
         CLIENT_PACKET.registerPacket(new ParticlePacket());
         CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
+        CLIENT_PACKET.registerPacket(new ScriptOverlayClosePacket());
+        CLIENT_PACKET.registerPacket(new ScriptOverlayDataPacket());
         CLIENT_PACKET.registerPacket(new ConfigCommandPacket());
 
         // Client | GUI Packets
@@ -70,6 +70,10 @@ public final class PacketHandler {
 
         // Client | NPC Packets
         CLIENT_PACKET.registerPacket(new DeleteNpcPacket());
+        CLIENT_PACKET.registerPacket(new EditNpcPacket());
+        CLIENT_PACKET.registerPacket(new UpdateNpcPacket());
+        CLIENT_PACKET.registerPacket(new DialogPacket());
+        CLIENT_PACKET.registerPacket(new RolePacket());
     }
 
     private void registerChannels() {

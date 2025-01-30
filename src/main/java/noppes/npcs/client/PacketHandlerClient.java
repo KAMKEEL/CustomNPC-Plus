@@ -48,12 +48,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
             MarkData data = MarkData.get((EntityNPCInterface) entity);
             data.setNBT(Server.readNBT(buffer));
         }
-		else if(type == EnumPacketClient.DIALOG){
-			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityNPCInterface))
-				return;
-			NoppesUtil.openDialog(Server.readNBT(buffer), (EntityNPCInterface) entity, player);
-		}
 		else if(type == EnumPacketClient.QUEST_COMPLETION){
 			NoppesUtil.guiQuestCompletion(player, Server.readNBT(buffer));
 		}
