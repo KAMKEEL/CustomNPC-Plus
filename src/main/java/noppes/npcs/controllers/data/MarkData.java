@@ -1,7 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.MarkDataPacket;
+import kamkeel.npcs.network.packets.data.MarkDataPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;

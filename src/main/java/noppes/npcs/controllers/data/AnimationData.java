@@ -4,7 +4,7 @@ package noppes.npcs.controllers.data;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.UpdateAnimationsPacket;
+import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;

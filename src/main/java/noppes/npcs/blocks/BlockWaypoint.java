@@ -1,7 +1,7 @@
 package noppes.npcs.blocks;
 
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.gui.GuiWaypointPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiWaypointPacket;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;

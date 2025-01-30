@@ -1,7 +1,7 @@
 package noppes.npcs.entity.data;
 
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.client.PlayerUpdateSkinOverlaysPacket;
+import kamkeel.npcs.network.packets.data.PlayerUpdateSkinOverlaysPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.ISkinOverlay;
