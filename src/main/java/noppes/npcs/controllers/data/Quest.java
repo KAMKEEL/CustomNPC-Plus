@@ -8,7 +8,6 @@ import noppes.npcs.*;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.*;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;

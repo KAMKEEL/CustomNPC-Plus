@@ -14,10 +14,8 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.Server;
 import noppes.npcs.blocks.tiles.TileWaypoint;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
 
 public class BlockWaypoint extends BlockContainer{
 
