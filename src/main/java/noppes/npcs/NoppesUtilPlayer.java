@@ -290,17 +290,17 @@ public class NoppesUtilPlayer {
     		if(npc.roleInterface != null)
     			npc.roleInterface.interact(player);
     		else
-    			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
+                PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
     	}
     	else if(option.optionType == EnumOptionType.DialogOption){
     		NoppesUtilServer.openDialog(player, npc, option.getDialog(), optionId+1);
     	}
     	else if(option.optionType == EnumOptionType.CommandBlock){
-			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
+            PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
     		NoppesUtilServer.runCommand(player, npc.getCommandSenderName(), option.command);
     	}
     	else
-			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
+            PacketUtil.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {

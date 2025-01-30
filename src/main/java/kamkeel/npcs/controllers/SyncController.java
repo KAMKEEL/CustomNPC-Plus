@@ -10,9 +10,7 @@ import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.Server;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.QuestController;
@@ -21,7 +19,7 @@ import noppes.npcs.controllers.data.*;
 
 import java.util.HashMap;
 
-public class SyncMaster {
+public class SyncController {
 
     public static void syncPlayer(EntityPlayerMP player){
         // 1) Factions

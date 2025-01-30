@@ -1,6 +1,6 @@
 package noppes.npcs.controllers;
 
-import kamkeel.npcs.controllers.SyncMaster;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -145,7 +145,7 @@ public class QuestController implements IQuestHandler {
 		for(int dia : cat.quests.keySet())
 			quests.remove(dia);
 		categories.remove(category);
-        SyncMaster.syncRemove(EnumSyncType.QUEST_CATEGORY, category);
+        SyncController.syncRemove(EnumSyncType.QUEST_CATEGORY, category);
 	}
 
 	public void saveCategory(QuestCategory category){
@@ -176,7 +176,7 @@ public class QuestController implements IQuestHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        SyncMaster.syncUpdate(EnumSyncType.QUEST_CATEGORY, -1, SyncMaster.updateQuestCat(category));
+        SyncController.syncUpdate(EnumSyncType.QUEST_CATEGORY, -1, SyncController.updateQuestCat(category));
     }
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -224,7 +224,7 @@ public class QuestController implements IQuestHandler {
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            SyncMaster.syncUpdate(EnumSyncType.QUEST, category.id, quest.writeToNBT(new NBTTagCompound()));
+            SyncController.syncUpdate(EnumSyncType.QUEST, category.id, quest.writeToNBT(new NBTTagCompound()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
