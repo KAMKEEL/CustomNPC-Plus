@@ -30,7 +30,6 @@ public final class PacketHandler {
     public static final PacketChannel INFO_PACKET   = new PacketChannel("CNPC+|Info",   EnumPacketType.INFO);
     public static final PacketChannel DATA_PACKET   = new PacketChannel("CNPC+|Data",   EnumPacketType.DATA);
     public static final PacketChannel CLIENT_PACKET = new PacketChannel("CNPC+|Client", EnumPacketType.CLIENT);
-    public static final PacketChannel LARGE_PACKET  = new PacketChannel("CNPC+|Large",  EnumPacketType.LARGE);
 
     private static final List<PacketChannel> packetChannels = new ArrayList<>();
 
@@ -39,21 +38,10 @@ public final class PacketHandler {
         packetChannels.add(INFO_PACKET);
         packetChannels.add(DATA_PACKET);
         packetChannels.add(CLIENT_PACKET);
-        packetChannels.add(LARGE_PACKET);
 
         this.registerChannels();
         this.registerLargePackets();
         this.registerClientPackets();
-    }
-
-    public void registerLargePackets(){
-        // Large Packets
-        LARGE_PACKET.registerPacket(new LargeScrollGroupPacket());
-        LARGE_PACKET.registerPacket(new LargeScrollDataPacket());
-        LARGE_PACKET.registerPacket(new LargeScrollListPacket());
-        LARGE_PACKET.registerPacket(new LargeSyncPacket());
-        LARGE_PACKET.registerPacket(new LargeGuiDataPacket());
-        LARGE_PACKET.registerPacket(new LargePartyDataPacket());
     }
 
     public void registerClientPackets(){
@@ -75,7 +63,6 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new VillagerListPacket());
 
         // Client | GUI Packets
-        CLIENT_PACKET.registerPacket(new GuiClonerPacket());
         CLIENT_PACKET.registerPacket(new GuiClosePacket());
         CLIENT_PACKET.registerPacket(new GuiOpenPacket());
         CLIENT_PACKET.registerPacket(new GuiErrorPacket());
@@ -83,7 +70,7 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new GuiTeleporterPacket());
         CLIENT_PACKET.registerPacket(new GuiWaypointPacket());
         CLIENT_PACKET.registerPacket(new IsGuiOpenPacket());
-        CLIENT_PACKET.registerPacket(new OpenBookPacket());
+        CLIENT_PACKET.registerPacket(new GuiOpenBookPacket());
 
         // Client | NPC Packets
         CLIENT_PACKET.registerPacket(new DeleteNpcPacket());
@@ -96,6 +83,15 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());
         CLIENT_PACKET.registerPacket(new ScriptOverlayClosePacket());
         CLIENT_PACKET.registerPacket(new ScriptOverlayDataPacket());
+
+        // Client | Large Packets
+        CLIENT_PACKET.registerPacket(new LargeClonerPacket());
+        CLIENT_PACKET.registerPacket(new LargeScrollGroupPacket());
+        CLIENT_PACKET.registerPacket(new LargeScrollDataPacket());
+        CLIENT_PACKET.registerPacket(new LargeScrollListPacket());
+        CLIENT_PACKET.registerPacket(new LargeSyncPacket());
+        CLIENT_PACKET.registerPacket(new LargeGuiDataPacket());
+        CLIENT_PACKET.registerPacket(new LargePartyDataPacket());
     }
 
     private void registerChannels() {

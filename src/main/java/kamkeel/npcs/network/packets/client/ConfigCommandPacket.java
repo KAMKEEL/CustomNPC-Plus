@@ -10,8 +10,6 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.network.enums.EnumConfigOperation;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.client.ClientProxy.FontContainer;
@@ -34,7 +32,7 @@ public final class ConfigCommandPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.CONFIG;
+        return EnumClientPacket.CONFIG_COMMAND;
     }
 
     @Override

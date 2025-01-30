@@ -32,7 +32,7 @@ public final class LargeScrollDataPacket extends LargeAbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.LARGE_PACKET;
+        return PacketHandler.CLIENT_PACKET;
     }
 
     @Override

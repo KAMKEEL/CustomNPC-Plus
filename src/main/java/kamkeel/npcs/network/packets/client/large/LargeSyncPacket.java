@@ -47,7 +47,7 @@ public final class LargeSyncPacket extends LargeAbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.LARGE_PACKET; // Or whichever channel you want.
+        return PacketHandler.CLIENT_PACKET;
     }
 
     @Override

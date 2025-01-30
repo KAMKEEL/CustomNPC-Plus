@@ -1,5 +1,7 @@
 package noppes.npcs.blocks;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.client.gui.GuiOpenBookPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
@@ -10,9 +12,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.Server;
 import noppes.npcs.blocks.tiles.TileBook;
-import noppes.npcs.constants.EnumPacketClient;
 
 public class BlockBook extends BlockRotated{
 
@@ -32,8 +32,8 @@ public class BlockBook extends BlockRotated{
 		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BOOK)) {
 			((TileBook)tile).book.func_150996_a(Items.writable_book);
 		}
-    	Server.sendData((EntityPlayerMP)player, EnumPacketClient.OPEN_BOOK, i, j, k, ((TileBook)tile).book.writeToNBT(new NBTTagCompound()));
-    	return true;
+        PacketHandler.Instance.sendToPlayer(new GuiOpenBookPacket(i, j, k, ((TileBook)tile).book.writeToNBT(new NBTTagCompound())), (EntityPlayerMP) player);
+        return true;
     }
 
     @Override

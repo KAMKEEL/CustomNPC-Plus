@@ -39,7 +39,7 @@ public final class LargePartyDataPacket extends LargeAbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.LARGE_PACKET;
+        return PacketHandler.CLIENT_PACKET;
     }
 
     @Override

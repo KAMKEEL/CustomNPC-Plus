@@ -30,7 +30,7 @@ public final class RolePacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumClientPacket.ROLE;
+        return EnumClientPacket.ROLE_NPC;
     }
 
     @Override
