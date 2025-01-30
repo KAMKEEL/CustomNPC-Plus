@@ -11,8 +11,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.client.gui.util.IScrollData;
 
 import java.io.IOException;
@@ -48,7 +46,7 @@ public final class ScrollSelectedPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
         if (gui instanceof IScrollData) {
-            String selected = Server.readString(in);
+            String selected = ByteBufUtils.readString(in);
             ((IScrollData) gui).setSelected(selected);
         }
     }

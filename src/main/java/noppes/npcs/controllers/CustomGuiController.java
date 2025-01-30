@@ -1,16 +1,17 @@
 package noppes.npcs.controllers;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.client.script.ScriptOverlayDataPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.NpcAPI;
@@ -42,11 +43,11 @@ public class CustomGuiController {
     }
 
     public static void openOverlay(IPlayer player, ScriptOverlay gui) {
-        Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
+        PacketHandler.Instance.sendToPlayer(new ScriptOverlayDataPacket(gui.toNBT()), (EntityPlayerMP)player.getMCEntity());
     }
 
     public static boolean updateOverlay(IPlayer player, ScriptOverlay gui) {
-        Server.sendDataChecked((EntityPlayerMP)player.getMCEntity(), EnumPacketClient.SCRIPT_OVERLAY_DATA, new Object[]{gui.toNBT()});
+        PacketHandler.Instance.sendToPlayer(new ScriptOverlayDataPacket(gui.toNBT()), (EntityPlayerMP)player.getMCEntity());
         return true;
     }
 
@@ -131,7 +132,7 @@ public class CustomGuiController {
 
     public static String[] readScrollSelection(ByteBuf buffer) {
         try {
-            NBTTagList list = Server.readNBT(buffer).getTagList("selection", 8);
+            NBTTagList list = ByteBufUtils.readNBT(buffer).getTagList("selection", 8);
             String[] selection = new String[list.tagCount()];
 
             for(int i = 0; i < list.tagCount(); ++i) {

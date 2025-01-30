@@ -1,6 +1,7 @@
 package kamkeel.npcs.network.packets.client.large;
 
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import kamkeel.npcs.controllers.SyncController;
@@ -11,9 +12,14 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.util.ByteBufUtils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.Server;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 

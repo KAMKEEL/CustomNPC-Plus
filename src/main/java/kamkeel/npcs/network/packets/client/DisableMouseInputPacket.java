@@ -9,7 +9,6 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.Server;
 import noppes.npcs.client.ClientEventHandler;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ public final class DisableMouseInputPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         long duration = in.readLong();
-        String parsedButtons = Server.readString(in);
+        String parsedButtons = ByteBufUtils.readString(in);
 
         if (parsedButtons == null || parsedButtons.isEmpty()) {
             ClientEventHandler.disabledButtonTimes.put(-1, duration);

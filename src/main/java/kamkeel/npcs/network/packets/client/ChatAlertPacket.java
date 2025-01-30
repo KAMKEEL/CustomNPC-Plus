@@ -10,8 +10,6 @@ import kamkeel.npcs.network.enums.EnumClientPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.config.ConfigClient;
 
 import java.io.IOException;
@@ -50,7 +48,7 @@ public final class ChatAlertPacket extends AbstractPacket {
 
         StringBuilder message = new StringBuilder();
         String str;
-        while ((str = Server.readString(in)) != null && !str.isEmpty()) {
+        while ((str = ByteBufUtils.readString(in)) != null && !str.isEmpty()) {
             message.append(str);
         }
         player.addChatMessage(new ChatComponentTranslation(message.toString()));

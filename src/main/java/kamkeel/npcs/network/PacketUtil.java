@@ -5,12 +5,9 @@ import kamkeel.npcs.network.packets.client.AchievementPacket;
 import kamkeel.npcs.network.packets.client.QuestCompletionPacket;
 import kamkeel.npcs.network.packets.client.ScrollSelectedPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiClosePacket;
-import kamkeel.npcs.network.packets.client.large.LargeGuiDataPacket;
+import kamkeel.npcs.network.packets.client.large.*;
 import kamkeel.npcs.network.packets.client.gui.GuiErrorPacket;
 import kamkeel.npcs.network.packets.client.gui.GuiOpenPacket;
-import kamkeel.npcs.network.packets.client.large.LargeScrollGroupPacket;
-import kamkeel.npcs.network.packets.client.large.LargeScrollDataPacket;
-import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.constants.EnumGuiType;
@@ -64,6 +61,12 @@ public class PacketUtil {
         LargeGuiDataPacket packet = new LargeGuiDataPacket(compound);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }
+
+    public static void sendPartyData(EntityPlayerMP playerMP, NBTTagCompound compound){
+        LargePartyDataPacket packet = new LargePartyDataPacket(compound);
+        PacketHandler.Instance.sendToPlayer(packet, playerMP);
+    }
+
 
     public static void sendQuestComplete(EntityPlayerMP playerMP, NBTTagCompound compound){
         QuestCompletionPacket packet = new QuestCompletionPacket(compound);

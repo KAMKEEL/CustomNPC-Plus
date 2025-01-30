@@ -1,6 +1,9 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.client.script.ScriptOverlayClosePacket;
+import kamkeel.npcs.network.packets.client.script.ScriptOverlayDataPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -765,8 +768,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void closeOverlay(int id) {
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.SCRIPT_OVERLAY_CLOSE, id, new NBTTagCompound());
-	}
+        PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(id), (EntityPlayerMP)this.entity);
+    }
 
 	public IOverlayHandler getOverlays() {
 		return this.getData().skinOverlays;

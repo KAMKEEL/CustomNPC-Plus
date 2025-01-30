@@ -21,6 +21,7 @@ public enum EnumClientPacket {
     ROLE_NPC,
     DELETE_NPC,
     CLONE_NPC,
+    WEAPON_NPC,
 
     // Data
     SCROLL_LIST,
@@ -49,7 +50,7 @@ public enum EnumClientPacket {
     SCRIPT_OVERLAY_CLOSE,
     OVERLAY_QUEST_TRACKING,
     MARK_DATA,
-    
+
     // Other
     VILLAGER_LIST,
     SWING_PLAYER_ARM,

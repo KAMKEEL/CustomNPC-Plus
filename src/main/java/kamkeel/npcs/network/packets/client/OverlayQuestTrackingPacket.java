@@ -11,8 +11,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.ClientCacheHandler;
 
@@ -48,7 +46,7 @@ public final class OverlayQuestTrackingPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         try {
-            NBTTagCompound nbt = Server.readNBT(in);
+            NBTTagCompound nbt = ByteBufUtils.readNBT(in);
             ClientCacheHandler.questTrackingOverlay = new OverlayQuestTracking(Minecraft.getMinecraft());
             ClientCacheHandler.questTrackingOverlay.setOverlayData(nbt);
         } catch (IOException e) {

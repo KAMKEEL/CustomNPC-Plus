@@ -135,7 +135,7 @@ public class PartyController {
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
+                    PacketUtil.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }
@@ -166,7 +166,7 @@ public class PartyController {
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
+                    PacketUtil.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }

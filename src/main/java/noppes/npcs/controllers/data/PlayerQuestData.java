@@ -1,6 +1,8 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.packets.client.OverlayQuestTrackingPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -202,8 +204,8 @@ public class PlayerQuestData implements IPlayerQuestData {
 	public void untrackQuest() {
 		if (this.trackedQuest != null) {
 			this.trackedQuest = null;
-			Server.sendData((EntityPlayerMP) this.parent.player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
-		}
+            PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(new NBTTagCompound()), (EntityPlayerMP) this.parent.player);
+        }
 	}
 
 	public IQuest getTrackedQuest() {

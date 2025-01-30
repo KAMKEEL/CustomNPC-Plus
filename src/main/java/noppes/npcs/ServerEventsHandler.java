@@ -9,6 +9,7 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
+import kamkeel.npcs.network.packets.client.MarkDataPacket;
 import kamkeel.npcs.network.packets.client.SoundManagementPacket;
 import kamkeel.npcs.network.packets.client.VillagerListPacket;
 import kamkeel.npcs.network.packets.client.large.LargeClonerPacket;
@@ -486,6 +487,7 @@ public class ServerEventsHandler {
         MarkData data = MarkData.get((EntityNPCInterface) event.target);
         if(data.marks.isEmpty())
             return;
-        Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.MARK_DATA, event.target.getEntityId(), data.getNBT());
+
+        PacketHandler.Instance.sendToPlayer(new MarkDataPacket(event.target.getEntityId(), data.getNBT()), (EntityPlayerMP)event.entityPlayer);
     }
 }

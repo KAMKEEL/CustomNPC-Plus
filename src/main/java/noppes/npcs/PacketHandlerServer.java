@@ -7,6 +7,7 @@ import cpw.mods.fml.relauncher.Side;
 import foxz.utils.Market;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.passive.EntityVillager;
@@ -74,19 +75,19 @@ public class PacketHandlerServer{
 				isGuiOpenPacket(buffer, player);
 				return;
 			} else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(ByteBufUtils.readNBT(buffer));
 				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(ByteBufUtils.readNBT(buffer));
 				EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiScrollClick && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(Server.readNBT(buffer));
+				((ContainerCustomGui) player.openContainer).customGui.fromNBT(ByteBufUtils.readNBT(buffer));
 				EventHooks.onCustomGuiScrollClick((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
 				return;
 			} else if (type == EnumPacketServer.CustomGuiClose) {
-				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(Server.readNBT(buffer)));
+				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(ByteBufUtils.readNBT(buffer)));
 				return;
 			} else if (type == EnumPacketServer.QuestLogToServer) {
 				NoppesUtilPlayer.updateQuestLogData(buffer, player);
@@ -137,9 +138,9 @@ public class PacketHandlerServer{
 				}
 				NBTTagCompound compound = new NBTTagCompound();
 				compound.setBoolean("Disband", true);
-				Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
+                PacketUtil.sendPartyData(player, compound);
 			} else if (type == EnumPacketServer.KickPlayer) {
-                String kickPlayerName = Server.readString(buffer);
+                String kickPlayerName = ByteBufUtils.readString(buffer);
 				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(kickPlayerName);
                 PlayerData playerData = null;
                 UUID playerUUID = null;
@@ -176,7 +177,7 @@ public class PacketHandlerServer{
                     }
                 }
 			} else if (type == EnumPacketServer.LeavePlayer) {
-                EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+                EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(buffer));
                 if (leavingPlayer != null) {
                     PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
                     if (playerData.partyUUID != null) {
@@ -195,19 +196,19 @@ public class PacketHandlerServer{
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-					party.readClientNBT(Server.readNBT(buffer));
+					party.readClientNBT(ByteBufUtils.readNBT(buffer));
 				}
 			} else if (type == EnumPacketServer.SetPartyLeader) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
                     if (!party.getIsLocked()) {
-                        party.setLeader(NoppesUtilServer.getPlayerByName(Server.readString(buffer)));
+                        party.setLeader(NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(buffer)));
                         PartyController.Instance().pingPartyUpdate(party);
                     }
 				}
 			} else if (type == EnumPacketServer.PartyInvite) {
-				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(Server.readString(buffer));
+				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(buffer));
 				if (invitedPlayer != null) {
 					PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
 					PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
@@ -227,14 +228,14 @@ public class PacketHandlerServer{
 				sendInviteData(player);
 			} else if (type == EnumPacketServer.AcceptInvite) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				String uuidString = Server.readString(buffer);
+				String uuidString = ByteBufUtils.readString(buffer);
 				if (uuidString != null) {
 					UUID uuid = UUID.fromString(uuidString);
 					playerData.acceptInvite(uuid);
 				}
 			} else if (type == EnumPacketServer.IgnoreInvite) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				String uuidString = Server.readString(buffer);
+				String uuidString = ByteBufUtils.readString(buffer);
 				if (uuidString != null) {
 					UUID uuid = UUID.fromString(uuidString);
 					playerData.ignoreInvite(uuid);
@@ -337,8 +338,8 @@ public class PacketHandlerServer{
                     compound.setString("QuestCompleteWith", quest.completerNpc);
                 }
             }
-			Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
-		} else {
+            PacketUtil.sendPartyData(player, compound);
+        } else {
 			sendInviteData(player);
 		}
 	}
@@ -357,8 +358,8 @@ public class PacketHandlerServer{
 				list.appendTag(partyCompound);
 			}
 			compound.setTag("PartyInvites", list);
-			Server.sendData(player, EnumPacketClient.PARTY_DATA, compound);
-		}
+            PacketUtil.sendPartyData(player, compound);
+        }
 	}
 
 	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -375,7 +376,7 @@ public class PacketHandlerServer{
 			PacketUtil.sendGuiData(player, compound);
 		}
 		else if (type == EnumPacketServer.ScriptGlobalGuiDataSave) {
-			NBTTagCompound compound = Server.readNBT(buffer);
+			NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 			ConfigScript.ScriptingEnabled = compound.getBoolean("ScriptsEnabled");
 			ConfigScript.GlobalPlayerScripts = compound.getBoolean("PlayerScriptsEnabled");
 			ConfigScript.GlobalNPCScripts = compound.getBoolean("GlobalNPCScriptsEnabled");
@@ -385,7 +386,7 @@ public class PacketHandlerServer{
 
 	private void scriptPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws Exception {
 		if(type == EnumPacketServer.ScriptDataSave){
-			npc.script.readFromNBT(Server.readNBT(buffer));
+			npc.script.readFromNBT(ByteBufUtils.readNBT(buffer));
 			npc.updateAI = true;
 			npc.script.hasInited = false;
 			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
@@ -430,12 +431,12 @@ public class PacketHandlerServer{
 			} else while (data.getScripts().size() < totalScripts) {
 				data.getScripts().add(new ScriptContainer(data));
 			}
-			NBTTagCompound tabCompound = Server.readNBT(buffer);
+			NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
 			ScriptContainer script = new ScriptContainer(data);
 			script.readFromNBT(tabCompound);
 			data.getScripts().set(tab,script);
 		} else {
-			NBTTagCompound compound = Server.readNBT(buffer);
+			NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 			data.setLanguage(compound.getString("ScriptLanguage"));
 			if (!ScriptController.Instance.languages.containsKey(data.getLanguage())) {
 				if (!ScriptController.Instance.languages.isEmpty()) {
@@ -513,7 +514,7 @@ public class PacketHandlerServer{
 				return;
 			}
 
-			NBTTagCompound compound = Server.readNBT(buffer);
+			NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 			ScriptCustomItem wrapper = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
 			wrapper.setMCNbt(compound);
 			wrapper.saveScriptData();
@@ -539,7 +540,7 @@ public class PacketHandlerServer{
 			if(!(tile instanceof TileScripted))
 				return;
 			TileScripted script = (TileScripted) tile;
-			script.setNBT(Server.readNBT(buffer));
+			script.setNBT(ByteBufUtils.readNBT(buffer));
 			script.lastInited = -1;
 		}
 	}
@@ -570,13 +571,13 @@ public class PacketHandlerServer{
 			PacketUtil.sendGuiData(player, npc.ai.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MovingPathSave){
-			npc.ai.setMovingPath(NBTTags.getIntegerArraySet(Server.readNBT(buffer).getTagList("MovingPathNew",10)));
+			npc.ai.setMovingPath(NBTTags.getIntegerArraySet(ByteBufUtils.readNBT(buffer).getTagList("MovingPathNew",10)));
 		}
 	}
 
 	private void blockPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		if (type == EnumPacketServer.SaveTileEntity) {
-			NoppesUtilServer.saveTileEntity(player, Server.readNBT(buffer));
+			NoppesUtilServer.saveTileEntity(player, ByteBufUtils.readNBT(buffer));
 		}
 		else if(type == EnumPacketServer.GetTileEntity){
 			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
@@ -667,7 +668,7 @@ public class PacketHandlerServer{
 			NoppesUtilServer.deleteNpc(npc,player);
 		}
 		else if(type == EnumPacketServer.LinkedAdd){
-			LinkedNpcController.Instance.addData(Server.readString(buffer));
+			LinkedNpcController.Instance.addData(ByteBufUtils.readString(buffer));
 
 			List<String> list = new ArrayList<String>();
 			for(LinkedData data : LinkedNpcController.Instance.list)
@@ -675,7 +676,7 @@ public class PacketHandlerServer{
             PacketUtil.sendList((EntityPlayerMP)player, list);
 		}
 		else if(type == EnumPacketServer.LinkedRemove){
-			LinkedNpcController.Instance.removeData(Server.readString(buffer));
+			LinkedNpcController.Instance.removeData(ByteBufUtils.readString(buffer));
 
 			List<String> list = new ArrayList<String>();
 			for(LinkedData data : LinkedNpcController.Instance.list)
@@ -691,7 +692,7 @@ public class PacketHandlerServer{
                 PacketUtil.setSelectedList(player, npc.linkedName);
 		}
 		else if(type == EnumPacketServer.LinkedSet){
-			npc.linkedName = Server.readString(buffer);
+			npc.linkedName = ByteBufUtils.readString(buffer);
 			LinkedNpcController.Instance.loadNpcData(npc);
 		}
 		else if(type == EnumPacketServer.NpcMenuClose){
@@ -712,7 +713,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.BankSave){
 			Bank bank = new Bank();
-			bank.readEntityFromNBT(Server.readNBT(buffer));
+			bank.readEntityFromNBT(ByteBufUtils.readNBT(buffer));
 			BankController.getInstance().saveBank(bank);
 			NoppesUtilServer.sendBankDataAll(player);
 			NoppesUtilServer.sendBank(player,bank);
@@ -793,7 +794,7 @@ public class PacketHandlerServer{
 			NoppesUtilServer.setRecipeGui(player,new RecipeCarpentry(""));
 		}
 		else if(type == EnumPacketServer.RecipeSave){
-			RecipeCarpentry recipe = RecipeController.Instance.saveRecipe(Server.readNBT(buffer));
+			RecipeCarpentry recipe = RecipeController.Instance.saveRecipe(ByteBufUtils.readNBT(buffer));
 			NoppesUtilServer.sendRecipeData(player, recipe.isGlobal?3:4);
 			NoppesUtilServer.setRecipeGui(player,recipe);
 		}
@@ -808,7 +809,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.NaturalSpawnSave){
 			SpawnData data = new SpawnData();
-			data.readNBT(Server.readNBT(buffer));
+			data.readNBT(ByteBufUtils.readNBT(buffer));
 			SpawnController.Instance.saveSpawnData(data);
 
 			PacketUtil.sendScrollData(player, SpawnController.Instance.getScroll());
@@ -819,7 +820,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.DialogCategorySave){
 			DialogCategory category = new DialogCategory();
-			category.readNBT(Server.readNBT(buffer));
+			category.readNBT(ByteBufUtils.readNBT(buffer));
 			DialogController.Instance.saveCategory(category);
 			PacketUtil.sendScrollData(player, DialogController.Instance.getScroll());
 		}
@@ -838,7 +839,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.DialogSave){
 			int category = buffer.readInt();
 			Dialog dialog = new Dialog();
-			dialog.readNBT(Server.readNBT(buffer));
+			dialog.readNBT(ByteBufUtils.readNBT(buffer));
 			boolean sendGroup = buffer.readBoolean();
 			DialogController.Instance.saveDialog(category,dialog);
 			if(dialog.category != null){
@@ -853,7 +854,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.QuestOpenGui){
 			Quest quest = new Quest();
 			int gui = buffer.readInt();
-			quest.readNBT(Server.readNBT(buffer));
+			quest.readNBT(ByteBufUtils.readNBT(buffer));
 			NoppesUtilServer.setEditingQuest(player,quest);
 			player.openGui(CustomNpcs.instance, gui , player.worldObj, 0, 0, 0);
 		}
@@ -897,7 +898,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.QuestCategorySave){
 			QuestCategory category = new QuestCategory();
-			category.readNBT(Server.readNBT(buffer));
+			category.readNBT(ByteBufUtils.readNBT(buffer));
 			QuestController.Instance.saveCategory(category);
 			NoppesUtilServer.sendQuestCategoryData(player);
 		}
@@ -908,7 +909,7 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.QuestSave){
 			int category = buffer.readInt();
 			Quest quest = new Quest();
-			quest.readNBT(Server.readNBT(buffer));
+			quest.readNBT(ByteBufUtils.readNBT(buffer));
 			boolean sendGroup = buffer.readBoolean();
 			QuestController.Instance.saveQuest(category, quest);
 			if(quest.category != null){
@@ -950,7 +951,7 @@ public class PacketHandlerServer{
 			NoppesUtilServer.sendTransportCategoryData(player);
 		}
 		else if(type == EnumPacketServer.TransportCategorySave){
-			TransportController.getInstance().saveCategory(Server.readString(buffer), buffer.readInt());
+			TransportController.getInstance().saveCategory(ByteBufUtils.readString(buffer), buffer.readInt());
 		}
 		else if(type == EnumPacketServer.TransportCategoryRemove){
 			TransportController.getInstance().removeCategory(buffer.readInt());
@@ -967,7 +968,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TransportSave){
 			int cat = buffer.readInt();
-			TransportLocation location = TransportController.getInstance().saveLocation(cat,Server.readNBT(buffer), npc);
+			TransportLocation location = TransportController.getInstance().saveLocation(cat, ByteBufUtils.readNBT(buffer), npc);
 			if(location != null){
 				if(npc.advanced.role != EnumRoleType.Transporter)
 					return;
@@ -989,7 +990,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.FactionSave){
 			Faction faction = new Faction();
-			faction.readNBT(Server.readNBT(buffer));
+			faction.readNBT(ByteBufUtils.readNBT(buffer));
 			FactionController.getInstance().saveFaction(faction);
 			NoppesUtilServer.sendFactionDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
@@ -1008,7 +1009,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.TagSave){
 			Tag tag = new Tag();
-			tag.readNBT(Server.readNBT(buffer));
+			tag.readNBT(ByteBufUtils.readNBT(buffer));
 			TagController.getInstance().saveTag(tag);
 			NoppesUtilServer.sendTagDataAll(player);
 			NBTTagCompound compound = new NBTTagCompound();
@@ -1029,7 +1030,7 @@ public class PacketHandlerServer{
 			String name = null;
 			EnumPlayerData datatype = EnumPlayerData.values()[id];
 			if(datatype != EnumPlayerData.Players)
-				name = Server.readString(buffer);
+				name = ByteBufUtils.readString(buffer);
 			NoppesUtilServer.sendPlayerData(datatype,player,name);
 		}
 		else if(type == EnumPacketServer.PlayerDataRemove){
@@ -1042,21 +1043,21 @@ public class PacketHandlerServer{
 			PacketUtil.sendGuiData(player, npc.display.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuDisplaySave){
-			npc.display.readToNBT(Server.readNBT(buffer));
+			npc.display.readToNBT(ByteBufUtils.readNBT(buffer));
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.MainmenuStatsGet){
 			PacketUtil.sendGuiData(player, npc.stats.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuStatsSave){
-			npc.stats.readToNBT(Server.readNBT(buffer));
+			npc.stats.readToNBT(ByteBufUtils.readNBT(buffer));
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.MainmenuInvGet){
 			PacketUtil.sendGuiData(player, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuInvSave){
-			npc.inventory.readEntityFromNBT(Server.readNBT(buffer));
+			npc.inventory.readEntityFromNBT(ByteBufUtils.readNBT(buffer));
 			npc.updateAI = true;
 			npc.updateClient = true;
 		}
@@ -1064,7 +1065,7 @@ public class PacketHandlerServer{
 			PacketUtil.sendGuiData(player, npc.ai.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuAISave){
-			npc.ai.readToNBT(Server.readNBT(buffer));
+			npc.ai.readToNBT(ByteBufUtils.readNBT(buffer));
 			npc.setHealth(npc.getMaxHealth());
 			npc.updateAI = true;
 			npc.updateClient = true;
@@ -1073,18 +1074,18 @@ public class PacketHandlerServer{
 			PacketUtil.sendGuiData(player, npc.advanced.writeToNBT(new NBTTagCompound()));
 		}
 		else if(type == EnumPacketServer.MainmenuAdvancedSave){
-			npc.advanced.readToNBT(Server.readNBT(buffer));
+			npc.advanced.readToNBT(ByteBufUtils.readNBT(buffer));
 			npc.updateAI = true;
 			npc.updateClient = true;
 		}
         else if(type == EnumPacketServer.MainmenuAdvancedMarkData){
             MarkData data = MarkData.get(npc);
-            data.setNBT(Server.readNBT(buffer));
+            data.setNBT(ByteBufUtils.readNBT(buffer));
             data.syncClients();
         }
 		else if(type == EnumPacketServer.JobSave){
 			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
-			NBTTagCompound compound = Server.readNBT(buffer);
+			NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 			Set<String> names = compound.func_150296_c();
 			for(String name : names)
 				original.setTag(name, compound.getTag(name));
@@ -1111,12 +1112,12 @@ public class PacketHandlerServer{
 				return;
 			JobSpawner job = (JobSpawner) npc.jobInterface;
 			if(buffer.readBoolean()){
-				NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, Server.readString(buffer), buffer.readInt());
+				NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(buffer), buffer.readInt());
 
 				job.setJobCompound(buffer.readInt(), compound);
 			}
 			else{
-				job.setJobCompound(buffer.readInt(), Server.readNBT(buffer));
+				job.setJobCompound(buffer.readInt(), ByteBufUtils.readNBT(buffer));
 			}
 			PacketUtil.sendGuiData(player, job.getTitles());
 		}
@@ -1134,7 +1135,7 @@ public class PacketHandlerServer{
 			PacketUtil.sendGuiData(player, job.getTitles());
 		}
 		else if(type == EnumPacketServer.RoleSave){
-			npc.roleInterface.readFromNBT(Server.readNBT(buffer));
+			npc.roleInterface.readFromNBT(ByteBufUtils.readNBT(buffer));
 			npc.updateClient = true;
 		}
 		else if(type == EnumPacketServer.RoleGet){
@@ -1153,17 +1154,17 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.ModelDataSave){
 			if(npc instanceof EntityCustomNpc)
-				((EntityCustomNpc)npc).modelData.readFromNBT(Server.readNBT(buffer));
+				((EntityCustomNpc)npc).modelData.readFromNBT(ByteBufUtils.readNBT(buffer));
 		}
 		else if(type == EnumPacketServer.MailOpenSetup){
 			PlayerMail mail = new PlayerMail();
-			mail.readNBT(Server.readNBT(buffer));
+			mail.readNBT(ByteBufUtils.readNBT(buffer));
 			ContainerMail.staticmail = mail;
 			player.openGui(CustomNpcs.instance, EnumGuiType.PlayerMailman.ordinal(), player.worldObj, 1, 0, 0);
 		}
 		else if(type == EnumPacketServer.TransformSave){
 			boolean isValid = npc.transform.isValid();
-			npc.transform.readOptions(Server.readNBT(buffer));
+			npc.transform.readOptions(ByteBufUtils.readNBT(buffer));
 			if(isValid != npc.transform.isValid())
 				npc.updateAI = true;
 		}
@@ -1175,7 +1176,7 @@ public class PacketHandlerServer{
 				npc.transform.transform(buffer.readBoolean());
 		}
 		else if(type == EnumPacketServer.TraderMarketSave){
-			String market = Server.readString(buffer);
+			String market = ByteBufUtils.readString(buffer);
             if(market == null)
                 return;
 			boolean bo = buffer.readBoolean();
@@ -1202,7 +1203,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.AnimationSave){
 			Animation animation = new Animation();
-			animation.readFromNBT(Server.readNBT(buffer));
+			animation.readFromNBT(ByteBufUtils.readNBT(buffer));
 			AnimationController.getInstance().saveAnimation(animation);
 			NoppesUtilServer.sendAnimationDataAll(player);
 			PacketUtil.sendGuiData(player, animation.writeToNBT());
@@ -1213,7 +1214,7 @@ public class PacketHandlerServer{
 	}
 	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
 		if(type == EnumPacketServer.SpawnRider){
-			Entity entity = EntityList.createEntityFromNBT(Server.readNBT(buffer), player.worldObj);
+			Entity entity = EntityList.createEntityFromNBT(ByteBufUtils.readNBT(buffer), player.worldObj);
 			player.worldObj.spawnEntityInWorld(entity);
 			entity.mountEntity(ServerEventsHandler.mounted);
 		}
@@ -1248,9 +1249,9 @@ public class PacketHandlerServer{
 			int z = buffer.readInt();
 			NBTTagCompound compound;
 			if(server)
-				compound = ServerCloneController.Instance.getCloneData(player, Server.readString(buffer), buffer.readInt());
+				compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(buffer), buffer.readInt());
 			else
-				compound = Server.readNBT(buffer);
+				compound = ByteBufUtils.readNBT(buffer);
 			if(compound == null)
 				return;
 			Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, player.worldObj);
@@ -1275,9 +1276,9 @@ public class PacketHandlerServer{
 			int z = buffer.readInt();
 			NBTTagCompound compound;
 			if(server)
-				compound = ServerCloneController.Instance.getCloneData(player, Server.readString(buffer), buffer.readInt());
+				compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(buffer), buffer.readInt());
 			else
-				compound = Server.readNBT(buffer);
+				compound = ByteBufUtils.readNBT(buffer);
 
             if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
                 return;
@@ -1287,7 +1288,7 @@ public class PacketHandlerServer{
 				NoppesUtilServer.createMobSpawner(x, y, z, compound, player);
 		}
 		else if(type == EnumPacketServer.ClonePreSave){
-			boolean bo = ServerCloneController.Instance.getCloneData(null, Server.readString(buffer), buffer.readInt()) != null;
+			boolean bo = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(buffer), buffer.readInt()) != null;
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setBoolean("NameExists", bo);
 			PacketUtil.sendGuiData(player, compound);
@@ -1296,10 +1297,10 @@ public class PacketHandlerServer{
 			PlayerData data = PlayerDataController.Instance.getPlayerData(player);
 			if(data.cloned == null)
 				return;
-			String name = Server.readString(buffer);
+			String name = ByteBufUtils.readString(buffer);
 			int tab = buffer.readInt();
-			NBTTagCompound tagExtra = Server.readNBT(buffer);
-            NBTTagCompound tagCompound = Server.readNBT(buffer);
+			NBTTagCompound tagExtra = ByteBufUtils.readNBT(buffer);
+            NBTTagCompound tagCompound = ByteBufUtils.readNBT(buffer);
 
             NBTTagList tagList = tagCompound.getTagList("TagUUIDs", 8);
             data.cloned.setTag("TagUUIDs", tagList);
@@ -1307,7 +1308,7 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.CloneRemove){
 			int tab = buffer.readInt();
-			ServerCloneController.Instance.removeClone(Server.readString(buffer), tab);
+			ServerCloneController.Instance.removeClone(ByteBufUtils.readString(buffer), tab);
 
 			NBTTagList list = new NBTTagList();
 
@@ -1382,7 +1383,7 @@ public class PacketHandlerServer{
 
 	private void setTags(EntityNPCInterface npc, ByteBuf buffer) throws IOException {
 		npc.advanced.tagUUIDs.removeIf(uuid -> TagController.getInstance().getTagFromUUID(uuid) != null);
-		NBTTagCompound compound = Server.readNBT(buffer);
+		NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 		NBTTagList list = compound.getTagList("TagNames",8);
 		for (int i = 0; i < list.tagCount(); i++) {
 			String tagName = list.getStringTagAt(i);

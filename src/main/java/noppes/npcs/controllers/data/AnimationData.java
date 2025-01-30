@@ -3,6 +3,8 @@ package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.client.UpdateAnimationsPacket;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -128,7 +130,8 @@ public class AnimationData implements IAnimationData {
         if (!(entity instanceof EntityPlayer)) {
             data.setInteger("EntityId", entity.getEntityId());
         }
-        Server.sendData((EntityPlayerMP) ((PlayerData) parent).player, EnumPacketClient.UPDATE_ANIMATIONS, data, entity.getCommandSenderName());
+
+        PacketHandler.Instance.sendToPlayer(new UpdateAnimationsPacket(data, entity.getCommandSenderName()), (EntityPlayerMP) ((PlayerData) parent).player);
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {

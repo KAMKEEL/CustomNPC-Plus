@@ -1,16 +1,4 @@
 package
 noppes.npcs.constants;
 
-public enum EnumPacketClient {
-	ISGUIOPEN,
-    SCRIPT_OVERLAY_DATA,
-	SCRIPT_OVERLAY_CLOSE,
-	SWING_PLAYER_ARM,
-	PLAYER_UPDATE_SKIN_OVERLAYS,
-	UPDATE_ANIMATIONS,
-	OVERLAY_QUEST_TRACKING,
-	DISABLE_MOUSE_INPUT,
-	SYNC_WEAPON,
-    MARK_DATA,
-    PARTY_DATA
-}
+public enum EnumPacketClient {}

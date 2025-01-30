@@ -14,7 +14,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.scripted.ScriptParticle;
 
@@ -62,7 +61,7 @@ public final class ScriptedParticlePacket extends AbstractPacket {
         NBTTagCompound compound;
         ScriptParticle particle;
         try {
-            compound = Server.readNBT(buffer);
+            compound = ByteBufUtils.readNBT(buffer);
             particle = ScriptParticle.fromNBT(compound);
         } catch (IOException ignored) {
             return;

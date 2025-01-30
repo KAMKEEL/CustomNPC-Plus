@@ -4,6 +4,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
@@ -45,7 +46,7 @@ public class PacketHandlerPlayer{
 
 	private void player(ByteBuf buffer, EntityPlayerMP player, EnumPlayerPacket type) throws IOException {
         if(type == EnumPlayerPacket.MarkData){
-            String uuid = Server.readString(buffer);
+            String uuid = ByteBufUtils.readString(buffer);
             if(uuid == null)
                 return;
 
@@ -85,7 +86,7 @@ public class PacketHandlerPlayer{
 			boolean isMetaPressed = buffer.readBoolean();
 			boolean buttonDown = buffer.readBoolean();
 
-			String ints = Server.readString(buffer);
+			String ints = ByteBufUtils.readString(buffer);
 			String[] split = ints.split(",");
 			int[] keysDown;
 
@@ -118,7 +119,7 @@ public class PacketHandlerPlayer{
 			boolean isAltPressed = buffer.readBoolean();
 			boolean isMetaPressed = buffer.readBoolean();
 
-			String ints = Server.readString(buffer);
+			String ints = ByteBufUtils.readString(buffer);
 			String[] split = ints.split(",");
 			int[] keysDown;
 
@@ -167,7 +168,7 @@ public class PacketHandlerPlayer{
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role != EnumRoleType.Transporter)
 				return;
-			NoppesUtilPlayer.transport(player, npc, Server.readString(buffer));
+			NoppesUtilPlayer.transport(player, npc, ByteBufUtils.readString(buffer));
 		}
 		else if(type == EnumPlayerPacket.BankUpgrade){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
@@ -221,7 +222,7 @@ public class PacketHandlerPlayer{
 		}
 		else if(type == EnumPlayerPacket.MailDelete){
 			long time = buffer.readLong();
-			String username = Server.readString(buffer);
+			String username = ByteBufUtils.readString(buffer);
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 
 			Iterator<PlayerMail> it = data.playermail.iterator();
@@ -236,7 +237,7 @@ public class PacketHandlerPlayer{
 		else if(type == EnumPlayerPacket.MailSend){
 			if(!(player.openContainer instanceof ContainerMail))
 				return;
-			String username = PlayerDataController.Instance.hasPlayer(Server.readString(buffer));
+			String username = PlayerDataController.Instance.hasPlayer(ByteBufUtils.readString(buffer));
 			if(username.isEmpty()){
 				NoppesUtilServer.sendGuiError(player, 0);
 				return;
@@ -247,7 +248,7 @@ public class PacketHandlerPlayer{
             String s = player.getDisplayName();
             if(!s.equals(player.getCommandSenderName()))
             	s += "(" + player.getCommandSenderName() + ")";
-			mail.readNBT(Server.readNBT(buffer));
+			mail.readNBT(ByteBufUtils.readNBT(buffer));
 			mail.sender = s;
 			mail.items = ((ContainerMail)player.openContainer).mail.items;
 
@@ -263,7 +264,7 @@ public class PacketHandlerPlayer{
 		}
 		else if(type == EnumPlayerPacket.MailboxOpenMail){
 			long time = buffer.readLong();
-			String username = Server.readString(buffer);
+			String username = ByteBufUtils.readString(buffer);
 			player.closeContainer();
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 
@@ -279,7 +280,7 @@ public class PacketHandlerPlayer{
 		}
 		else if(type == EnumPlayerPacket.MailRead){
 			long time = buffer.readLong();
-			String username = Server.readString(buffer);
+			String username = ByteBufUtils.readString(buffer);
 			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 
 			Iterator<PlayerMail> it = data.playermail.iterator();
@@ -300,7 +301,7 @@ public class PacketHandlerPlayer{
 					return;
 				TileBigSign sign = (TileBigSign) tile;
 				if (sign.canEdit) {
-					sign.setText(Server.readString(buffer));
+					sign.setText(ByteBufUtils.readString(buffer));
 					sign.canEdit = false;
 					player.worldObj.markBlockForUpdate(x, y, z);
 				}
@@ -316,7 +317,7 @@ public class PacketHandlerPlayer{
 				if (tile.book.getItem() == Items.written_book)
 					return;
 				boolean sign = buffer.readBoolean();
-				ItemStack book = ItemStack.loadItemStackFromNBT(Server.readNBT(buffer));
+				ItemStack book = ItemStack.loadItemStackFromNBT(ByteBufUtils.readNBT(buffer));
 				if (book == null)
 					return;
 				if (book.getItem() == Items.writable_book && !sign && ItemWritableBook.func_150930_a(book.getTagCompound())) {

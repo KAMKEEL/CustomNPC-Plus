@@ -11,8 +11,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 
 import java.io.IOException;
 import java.util.Random;
@@ -80,7 +78,7 @@ public final class ParticlePacket extends AbstractPacket {
         float width = buffer.readFloat();
         float yOffset = buffer.readFloat();
 
-        String particle = Server.readString(buffer);
+        String particle = ByteBufUtils.readString(buffer);
         World worldObj = Minecraft.getMinecraft().theWorld;
 
         Random rand = worldObj.rand;

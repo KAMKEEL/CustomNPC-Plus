@@ -1,6 +1,7 @@
 package noppes.npcs.client;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
@@ -11,7 +12,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -141,7 +141,7 @@ public class NoppesUtil {
 		try {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
-				data.add(Server.readString(buffer));
+				data.add(ByteBufUtils.readString(buffer));
 			}
 		} catch (Exception e) {
 
@@ -158,7 +158,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				group.put(name, id);
 			}
 		} catch (Exception ignored) {
@@ -173,7 +173,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				group.put(name, id);
 			}
 		} catch (Exception ignored) {
@@ -194,7 +194,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				data.put(name, id);
 			}
 		} catch (Exception e) {
@@ -209,7 +209,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				data.put(name, id);
 			}
 		} catch (Exception e) {

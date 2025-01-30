@@ -6,7 +6,12 @@ import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
+import kamkeel.npcs.network.packets.client.DisableMouseInputPacket;
+import kamkeel.npcs.network.packets.client.OverlayQuestTrackingPacket;
 import kamkeel.npcs.network.packets.client.SoundManagementPacket;
+import kamkeel.npcs.network.packets.client.SwingPlayerArmPacket;
+import kamkeel.npcs.network.packets.client.gui.IsGuiOpenPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -137,11 +142,11 @@ public class NoppesUtilPlayer {
 			}
 		}
 
-		Server.sendData(player, EnumPacketClient.DISABLE_MOUSE_INPUT, time, stringedIds.toString());
+        PacketHandler.Instance.sendToPlayer(new DisableMouseInputPacket(time, stringedIds.toString()), player);
 	}
 
 	public static void swingPlayerArm(EntityPlayerMP player){
-		Server.sendData(player, EnumPacketClient.SWING_PLAYER_ARM);
+        PacketHandler.Instance.sendToPlayer(new SwingPlayerArmPacket(), player);
 	}
 
 	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
@@ -306,7 +311,7 @@ public class NoppesUtilPlayer {
 	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
-		NBTTagCompound compound = Server.readNBT(buffer);
+		NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
 		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
 			Quest quest = getQuestFromStringKey(entry.getKey());
@@ -315,7 +320,7 @@ public class NoppesUtilPlayer {
 			}
 		}
 
-		String trackedQuestString = Server.readString(buffer);
+		String trackedQuestString = ByteBufUtils.readString(buffer);
 		Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
 		if (trackedQuest != null) {
 			playerData.questData.trackQuest(trackedQuest);
@@ -332,7 +337,7 @@ public class NoppesUtilPlayer {
 
     public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
         PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-        String trackedQuestString = Server.readString(buffer);
+        String trackedQuestString = ByteBufUtils.readString(buffer);
         Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
         if (trackedQuest != null) {
             playerData.questData.trackParty(playerData.getPlayerParty());
@@ -388,7 +393,7 @@ public class NoppesUtilPlayer {
 			}
 			compound.setTag("ObjectiveList",nbtTagList);
 
-			Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+            PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(compound), player);
 		}
 	}
 
@@ -411,8 +416,7 @@ public class NoppesUtilPlayer {
                     nbtTagList.appendTag(new NBTTagString(objective.getAdditionalText()));
             }
             compound.setTag("ObjectiveList",nbtTagList);
-
-            Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+            PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(compound), player);
         }
     }
 
@@ -428,7 +432,8 @@ public class NoppesUtilPlayer {
     public static void sendTrackedQuest(EntityPlayerMP player) {
         QuestLogData data = new QuestLogData();
         data.setTrackedQuestKey(player);
-        Server.sendData(player, EnumPacketClient.PARTY_DATA, data.writeTrackedQuest());
+
+        PacketUtil.sendPartyData(player, data.writeTrackedQuest());
     }
 
 	public static boolean questCompletion(EntityPlayerMP player, int questId) {
@@ -744,7 +749,7 @@ public class NoppesUtilPlayer {
 		}
 	}
 	public static void isGUIOpen(EntityPlayerMP player){
-		Server.sendData(player, EnumPacketClient.ISGUIOPEN);
+        PacketHandler.Instance.sendToPlayer(new IsGuiOpenPacket(), player);
 	}
 
 	public static List<ItemStack> countStacks(IInventory inv, boolean ignoreDamage, boolean ignoreNBT) {

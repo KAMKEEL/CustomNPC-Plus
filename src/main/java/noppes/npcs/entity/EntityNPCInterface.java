@@ -13,6 +13,8 @@ import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.packets.client.ChatBubblePacket;
 import kamkeel.npcs.network.packets.client.SoundManagementPacket;
 import kamkeel.npcs.network.packets.client.npc.UpdateNpcPacket;
+import kamkeel.npcs.network.packets.client.npc.WeaponNpcPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -39,7 +41,6 @@ import net.minecraft.network.play.server.S0BPacketAnimation;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -223,10 +224,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 					if(itemstack1!=null){
 						itemstack1.writeToNBT(itemNBT);
 					}
-					for(Object obj: MinecraftServer.getServer().getConfigurationManager().playerEntityList){
-						Server.sendData((EntityPlayerMP) obj, EnumPacketClient.SYNC_WEAPON, getEntityId(), i, itemNBT);
-					}
-					inventory.prevWeapons.put(i,itemstack1 == null ? null : itemstack1.copy());
+
+                    PacketHandler.Instance.sendTracking(new WeaponNpcPacket(getEntityId(), i, itemNBT), this);
+                    inventory.prevWeapons.put(i,itemstack1 == null ? null : itemstack1.copy());
 				}
 			}
 			this.timers.update();
@@ -1624,7 +1624,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	@Override
 	public void writeSpawnData(ByteBuf buffer) {
 		try {
-			Server.writeNBT(buffer, writeSpawnData());
+			ByteBufUtils.writeNBT(buffer, writeSpawnData());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1663,7 +1663,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	@Override
 	public void readSpawnData(ByteBuf buf) {
 		try {
-			readSpawnData(Server.readNBT(buf));
+			readSpawnData(ByteBufUtils.readNBT(buf));
 		} catch (IOException e) {
 		}
 	}

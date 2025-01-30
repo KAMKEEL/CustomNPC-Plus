@@ -40,7 +40,6 @@ public final class PacketHandler {
         packetChannels.add(CLIENT_PACKET);
 
         this.registerChannels();
-        this.registerLargePackets();
         this.registerClientPackets();
     }
 
@@ -78,6 +77,7 @@ public final class PacketHandler {
         CLIENT_PACKET.registerPacket(new UpdateNpcPacket());
         CLIENT_PACKET.registerPacket(new DialogPacket());
         CLIENT_PACKET.registerPacket(new RolePacket());
+        CLIENT_PACKET.registerPacket(new WeaponNpcPacket());
 
         // Client | Script Packets
         CLIENT_PACKET.registerPacket(new ScriptedParticlePacket());

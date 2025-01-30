@@ -34,6 +34,10 @@ public class PacketChannel {
     }
 
     public void registerPacket(AbstractPacket packet) {
+        if(packets.containsKey(packet.getType().ordinal())){
+            System.out.println("Packet ID: " + packet.getType().ordinal() + " is already registered in " + this.channelName);
+            return;
+        }
         this.packets.put(packet.getType().ordinal(), packet);
     }
 }
