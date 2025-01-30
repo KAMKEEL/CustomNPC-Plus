@@ -3,6 +3,9 @@ package noppes.npcs;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumSoundOperation;
+import kamkeel.npcs.network.packets.client.SoundManagementPacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -327,7 +330,7 @@ public class ServerEventsHandler {
 		ItemStack item = player.getCurrentEquippedItem();
 		if(item == null || item.getItem() != CustomItems.excalibur)
 			return;
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_MUSIC, "customnpcs:songs.excalibur");
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_MUSIC, "customnpcs:songs.excalibur"), (EntityPlayerMP)player);
 		player.addChatMessage(new ChatComponentTranslation("<" + StatCollector.translateToLocal(item.getItem().getUnlocalizedName() + ".name") + "> " + ItemExcalibur.quotes[player.getRNG().nextInt(ItemExcalibur.quotes.length)]));
 	}
 

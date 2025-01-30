@@ -15,6 +15,7 @@ import kamkeel.npcs.network.packets.client.large.LargeScrollListPacket;
 import kamkeel.npcs.network.packets.client.large.sync.LargeSyncPacket;
 import kamkeel.npcs.network.packets.client.npc.DeleteNpcPacket;
 import kamkeel.npcs.network.packets.client.npc.EditNpcPacket;
+import kamkeel.npcs.network.packets.client.script.ScriptedParticlePacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;

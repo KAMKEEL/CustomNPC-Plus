@@ -98,12 +98,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 				return;
 			NoppesUtil.setLastNpc((EntityNPCInterface) entity);
 		}
-		else if(type == EnumPacketClient.PLAY_MUSIC){
-			MusicController.Instance.playMusicBackground(Server.readString(buffer), player, Integer.MAX_VALUE);
-		}
-		else if(type == EnumPacketClient.PLAY_SOUND){
-			MusicController.Instance.playSound(Server.readString(buffer),buffer.readFloat(),buffer.readFloat(),buffer.readFloat());
-		}
 		else if(type == EnumPacketClient.UPDATE_NPC){
 			NBTTagCompound compound = Server.readNBT(buffer);
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
@@ -304,31 +298,6 @@ public class PacketHandlerClient extends PacketHandlerServer{
 					ClientEventHandler.disabledButtonTimes.put(Integer.parseInt(s), length);
 				}
 			} catch (Exception ignored) {}
-		}
-		else if(type == EnumPacketClient.PLAY_SOUND_TO) {
-			int id = buffer.readInt();
-			NBTTagCompound compound = Server.readNBT(buffer);
-			ScriptClientSound sound = ScriptClientSound.fromScriptSound(compound, player.worldObj);
-
-			ScriptSoundController.Instance.playSound(id,sound);
-		}
-		else if(type == EnumPacketClient.PLAY_SOUND_TO_NO_ID) {
-			NBTTagCompound compound = Server.readNBT(buffer);
-			ScriptClientSound sound = ScriptClientSound.fromScriptSound(compound, player.worldObj);
-			ScriptSoundController.Instance.playSound(sound);
-		}
-		else if(type == EnumPacketClient.STOP_SOUND_FOR) {
-			int id = buffer.readInt();
-			ScriptSoundController.Instance.stopSound(id);
-		}
-		else if(type == EnumPacketClient.PAUSE_SOUNDS) {
-			ScriptSoundController.Instance.pauseAllSounds();
-		}
-		else if(type == EnumPacketClient.CONTINUE_SOUNDS) {
-			ScriptSoundController.Instance.continueAllSounds();
-		}
-		else if(type == EnumPacketClient.STOP_SOUNDS) {
-			ScriptSoundController.Instance.stopAllSounds();
 		}
 		else if(type == EnumPacketClient.SYNC_WEAPON) {
 			Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(buffer.readInt());

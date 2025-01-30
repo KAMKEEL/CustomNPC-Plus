@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.client;
+package kamkeel.npcs.network.packets.client.script;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -8,7 +8,6 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumClientPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.ClientCacheHandler;
 
 import java.io.IOException;

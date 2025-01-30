@@ -3,6 +3,10 @@ package noppes.npcs;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.enums.EnumSoundOperation;
+import kamkeel.npcs.network.packets.client.SoundManagementPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -773,30 +777,30 @@ public class NoppesUtilPlayer {
 	public static void playSoundTo(EntityPlayerMP player, int id, ScriptSound sound) {
 		NBTTagCompound compound = sound.writeToNBT();
 		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
-			Server.sendData(player, EnumPacketClient.PLAY_SOUND_TO, id, compound);
+            PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_SOUND_TO, id, compound), player);
 		}
 	}
 
 	public static void playSoundTo(EntityPlayerMP player, ScriptSound sound) {
 		NBTTagCompound compound = sound.writeToNBT();
 		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
-			Server.sendData(player, EnumPacketClient.PLAY_SOUND_TO_NO_ID, compound);
+            PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_SOUND_TO_NO_ID, compound), player);
 		}
 	}
 
 	public static void stopSoundFor(EntityPlayerMP player, int id) {
-		Server.sendData(player, EnumPacketClient.STOP_SOUND_FOR, id);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.STOP_SOUND_FOR, id), player);
 	}
 
 	public static void pauseSoundsFor(EntityPlayerMP player) {
-		Server.sendData(player, EnumPacketClient.PAUSE_SOUNDS);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PAUSE_SOUNDS), player);
 	}
 
 	public static void continueSoundsFor(EntityPlayerMP player) {
-		Server.sendData(player, EnumPacketClient.CONTINUE_SOUNDS);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.CONTINUE_SOUNDS), player);
 	}
 
 	public static void stopSoundsFor(EntityPlayerMP player) {
-		Server.sendData(player, EnumPacketClient.STOP_SOUNDS);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.STOP_SOUNDS), player);
 	}
 }

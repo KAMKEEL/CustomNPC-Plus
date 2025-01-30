@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.client;
+package kamkeel.npcs.network.packets.client.script;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
