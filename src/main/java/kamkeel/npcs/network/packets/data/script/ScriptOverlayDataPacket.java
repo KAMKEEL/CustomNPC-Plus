@@ -17,7 +17,7 @@ import noppes.npcs.client.ClientCacheHandler;
 import java.io.IOException;
 
 public final class ScriptOverlayDataPacket extends AbstractPacket {
-    public static final String packetName = "Client|ScriptOverlayData";
+    public static final String packetName = "Data|ScriptOverlayData";
 
     private NBTTagCompound overlayCompound;
 

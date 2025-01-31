@@ -17,7 +17,7 @@ import noppes.npcs.client.gui.util.IScrollData;
 import java.io.IOException;
 
 public final class ScrollSelectedPacket extends AbstractPacket {
-    public static final String packetName = "Client|ScrollSelected";
+    public static final String packetName = "Data|ScrollSelected";
 
     private String selected;
 

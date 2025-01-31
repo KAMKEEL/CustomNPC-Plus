@@ -16,7 +16,7 @@ import noppes.npcs.config.ConfigClient;
 import java.io.IOException;
 
 public final class ChatAlertPacket extends AbstractPacket {
-    public static final String packetName = "Client|ChatAlert";
+    public static final String packetName = "Data|ChatAlert";
 
     private Object[] objects;
 

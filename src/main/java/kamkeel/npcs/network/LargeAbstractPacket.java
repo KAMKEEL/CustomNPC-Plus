@@ -4,6 +4,7 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.LogWriter;
 import org.lwjgl.Sys;
 
 import java.io.IOException;
@@ -61,48 +62,77 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        long mostSigBits = in.readLong();
-        long leastSigBits = in.readLong();
-        UUID packetId = new UUID(mostSigBits, leastSigBits);
+        UUID packetId = null;
+        PacketStorage storage = null;
+        ByteBuf chunk = null;
+        ByteBuf completeData = null;
 
-        int totalSize = in.readInt();
-        int offset = in.readInt();
-        int totalChunks = in.readInt(); // Currently unused aside from potential debugging/verification
-        int chunkSize = Math.min(CHUNK_SIZE, totalSize - offset);
+        try {
+            // Read UUID from the buffer
+            long mostSigBits = in.readLong();
+            long leastSigBits = in.readLong();
+            packetId = new UUID(mostSigBits, leastSigBits);
 
-        // Basic validation to ensure the chunk won't overwrite out of bounds
-        if (chunkSize <= 0 || offset < 0 || (offset + chunkSize) > totalSize) {
-            throw new IndexOutOfBoundsException("Invalid chunk size/offset: chunkSize="
-                + chunkSize + ", offset=" + offset + ", totalSize=" + totalSize);
+            // Read packet metadata
+            int totalSize = in.readInt();
+            int offset = in.readInt();
+            int totalChunks = in.readInt(); // Debugging info
+            int chunkSize = Math.min(CHUNK_SIZE, totalSize - offset);
+
+            // Basic validation to ensure the chunk won't overwrite out of bounds
+            if (chunkSize <= 0 || offset < 0 || (offset + chunkSize) > totalSize) {
+                throw new IndexOutOfBoundsException("Invalid chunk size/offset: chunkSize="
+                    + chunkSize + ", offset=" + offset + ", totalSize=" + totalSize);
+            }
+
+            // Read the exact chunk data
+            chunk = in.readBytes(chunkSize);
+
+            // Store the received chunk in a PacketStorage
+            storage = packetChunks.computeIfAbsent(packetId, k -> new PacketStorage(Unpooled.buffer(totalSize), 0, totalSize));
+
+            // Write this chunk into the buffer at the correct offset
+            storage.data.setBytes(offset, chunk);
+            storage.receivedSoFar += chunkSize;
+
+            // If we've received all bytes, finalize
+            if (storage.receivedSoFar >= totalSize) {
+                packetChunks.remove(packetId);
+                completeData = storage.data.copy(0, totalSize);
+
+                try {
+                    handleCompleteData(completeData, player);
+                } finally {
+                    completeData.release();
+                }
+
+                storage.data.release();
+            }
+        } catch (Exception e) {
+            // Log the exception with contextual information
+            LogWriter.error("Error in receiveData for packetId " + (packetId != null ? packetId.toString() : "null") + ": " + e.getMessage());
+            e.printStackTrace();
+
+            // If storage was created but the packet is incomplete, release storage.data
+            if (storage != null && storage.receivedSoFar < storage.totalSize) {
+                storage.data.release();
+                if (packetId != null) {
+                    packetChunks.remove(packetId);
+                }
+            }
+
+            throw e; // Rethrow the exception after logging
+        } finally {
+            // Ensure that 'chunk' is released if it was allocated
+            if (chunk != null && chunk.refCnt() > 0) {
+                chunk.release();
+            }
+
+            // Ensure that 'completeData' is released if it was created and not yet released
+            if (completeData != null && completeData.refCnt() > 0) {
+                completeData.release();
+            }
         }
-
-        // Read the exact chunk data
-        ByteBuf chunk = in.readBytes(chunkSize);
-
-        // Store the received chunk in a PacketStorage
-        PacketStorage storage = packetChunks.computeIfAbsent(packetId,
-            k -> new PacketStorage(Unpooled.buffer(totalSize), 0, totalSize));
-
-        // Write this chunk into the buffer at the correct offset
-        storage.data.setBytes(offset, chunk);
-        storage.receivedSoFar += chunkSize;
-
-        // If we've received all bytes, finalize
-        if (storage.receivedSoFar >= totalSize) {
-            // Remove from the map to clean up
-            packetChunks.remove(packetId);
-
-            // We now have the complete data in storage.data
-            // Copy (or slice) the exact bytes, then handle them
-            ByteBuf completeData = storage.data.copy(0, totalSize);
-
-            // Clean up and handle
-            storage.data.release();
-            handleCompleteData(completeData, player);
-            completeData.release();
-        }
-
-        chunk.release();
     }
 
     protected abstract byte[] getData() throws IOException;

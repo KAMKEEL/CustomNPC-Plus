@@ -18,7 +18,7 @@ import noppes.npcs.client.gui.util.IGuiClose;
 import java.io.IOException;
 
 public final class GuiClosePacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiClose";
+    public static final String packetName = "Data|GuiClose";
 
     private int code;
     private NBTTagCompound compound;

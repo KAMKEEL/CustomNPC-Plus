@@ -20,7 +20,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class UpdateAnimationsPacket extends AbstractPacket {
-    public static final String packetName = "Client|UpdateAnimations";
+    public static final String packetName = "Data|UpdateAnimations";
 
     private NBTTagCompound animationCompound;
     private String playername;

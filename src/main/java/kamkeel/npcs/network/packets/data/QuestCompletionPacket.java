@@ -16,7 +16,7 @@ import noppes.npcs.client.NoppesUtil;
 import java.io.IOException;
 
 public final class QuestCompletionPacket extends AbstractPacket {
-    public static final String packetName = "Client|QuestCompletion";
+    public static final String packetName = "Data|QuestCompletion";
 
     private NBTTagCompound compound;
 

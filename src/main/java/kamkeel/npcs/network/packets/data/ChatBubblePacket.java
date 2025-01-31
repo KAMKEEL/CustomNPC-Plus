@@ -19,7 +19,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class ChatBubblePacket extends AbstractPacket {
-    public static final String packetName = "Client|ChatBubble";
+    public static final String packetName = "Data|ChatBubble";
 
     private int entityId;
     private String text;

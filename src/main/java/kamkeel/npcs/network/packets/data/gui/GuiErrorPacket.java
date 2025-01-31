@@ -18,7 +18,7 @@ import noppes.npcs.client.gui.util.IGuiError;
 import java.io.IOException;
 
 public final class GuiErrorPacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiError";
+    public static final String packetName = "Data|GuiError";
 
     private int code;
     private NBTTagCompound compound;

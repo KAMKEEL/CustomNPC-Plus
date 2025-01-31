@@ -17,7 +17,7 @@ import noppes.npcs.client.NoppesUtil;
 import java.io.IOException;
 
 public final class GuiOpenBookPacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiOpenBook";
+    public static final String packetName = "Data|GuiOpenBook";
 
     private int i;
     private int j;

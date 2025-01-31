@@ -20,7 +20,7 @@ import noppes.npcs.scripted.ScriptParticle;
 import java.io.IOException;
 
 public final class ScriptedParticlePacket extends AbstractPacket {
-    public static final String packetName = "Client|ScriptedParticle";
+    public static final String packetName = "Data|ScriptedParticle";
 
     private NBTTagCompound compound;
 

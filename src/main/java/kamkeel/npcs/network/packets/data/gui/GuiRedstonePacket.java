@@ -15,7 +15,7 @@ import noppes.npcs.client.NoppesUtil;
 import java.io.IOException;
 
 public final class GuiRedstonePacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiRedstone";
+    public static final String packetName = "Data|GuiRedstone";
 
     private NBTTagCompound compound;
 

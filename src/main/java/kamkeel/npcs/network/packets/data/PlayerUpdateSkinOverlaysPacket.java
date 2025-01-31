@@ -16,7 +16,7 @@ import noppes.npcs.client.NoppesUtil;
 import java.io.IOException;
 
 public final class PlayerUpdateSkinOverlaysPacket extends AbstractPacket {
-    public static final String packetName = "Client|PlayerUpdateSkinOverlays";
+    public static final String packetName = "Data|PlayerUpdateSkinOverlays";
 
     private String playerName;
     private NBTTagCompound compound;

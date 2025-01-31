@@ -17,7 +17,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class MarkDataPacket extends AbstractPacket {
-    public static final String packetName = "Client|MarkData";
+    public static final String packetName = "Data|MarkData";
 
     private int entityID;
     private NBTTagCompound compound;

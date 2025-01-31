@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Random;
 
 public final class ParticlePacket extends AbstractPacket {
-    public static final String packetName = "Client|Particle";
+    public static final String packetName = "Data|Particle";
 
     private double x;
     private double y;

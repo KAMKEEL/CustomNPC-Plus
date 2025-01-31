@@ -13,7 +13,7 @@ import noppes.npcs.client.ClientCacheHandler;
 import java.io.IOException;
 
 public final class ScriptOverlayClosePacket extends AbstractPacket {
-    public static final String packetName = "Client|ScriptOverlayClose";
+    public static final String packetName = "Data|ScriptOverlayClose";
 
     private int particleId;
 

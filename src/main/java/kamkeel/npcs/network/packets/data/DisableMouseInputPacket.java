@@ -14,7 +14,7 @@ import noppes.npcs.client.ClientEventHandler;
 import java.io.IOException;
 
 public final class DisableMouseInputPacket extends AbstractPacket {
-    public static final String packetName = "Client|DisableMouseInput";
+    public static final String packetName = "Data|DisableMouseInput";
 
     private long duration;
     private String keys;

@@ -19,7 +19,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class DialogPacket extends AbstractPacket {
-    public static final String packetName = "Client|Dialog";
+    public static final String packetName = "Data|Dialog";
 
     private String dummyName;
     private int entityID;

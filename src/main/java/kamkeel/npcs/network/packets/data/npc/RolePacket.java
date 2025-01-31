@@ -18,7 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class RolePacket extends AbstractPacket {
-    public static final String packetName = "Client|Role";
+    public static final String packetName = "Data|Role";
 
     private NBTTagCompound compound;
 

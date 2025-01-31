@@ -18,7 +18,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class WeaponNpcPacket extends AbstractPacket {
-    public static final String packetName = "Client|WeaponNpc";
+    public static final String packetName = "Data|WeaponNpc";
 
     private int entityId;
     private int weaponIndex;

@@ -17,7 +17,7 @@ import noppes.npcs.client.gui.GuiNpcMobSpawnerAdd;
 import java.io.IOException;
 
 public final class ClonerPacket extends LargeAbstractPacket {
-    public static final String packetName = "Client|Clone";
+    public static final String packetName = "Data|Clone";
 
     private NBTTagCompound compound;
 

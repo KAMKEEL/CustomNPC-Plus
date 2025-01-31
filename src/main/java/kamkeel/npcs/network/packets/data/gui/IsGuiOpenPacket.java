@@ -14,7 +14,7 @@ import noppes.npcs.client.NoppesUtil;
 import java.io.IOException;
 
 public final class IsGuiOpenPacket extends AbstractPacket {
-    public static final String packetName = "Client|IsGuiOpen";
+    public static final String packetName = "Data|IsGuiOpen";
 
     public IsGuiOpenPacket() {}
 

@@ -15,7 +15,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class DeleteNpcPacket extends AbstractPacket {
-    public static final String packetName = "Client|DeleteNpc";
+    public static final String packetName = "Data|DeleteNpc";
 
     private int entityId;
 

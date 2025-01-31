@@ -16,7 +16,7 @@ import net.minecraft.village.MerchantRecipeList;
 import java.io.IOException;
 
 public final class VillagerListPacket extends AbstractPacket {
-    public static final String packetName = "Client|VillagerList";
+    public static final String packetName = "Data|VillagerList";
 
     private MerchantRecipeList merchantrecipelist;
 

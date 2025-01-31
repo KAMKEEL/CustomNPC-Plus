@@ -16,7 +16,7 @@ import noppes.npcs.constants.EnumGuiType;
 import java.io.IOException;
 
 public final class GuiOpenPacket extends AbstractPacket {
-    public static final String packetName = "Client|OpenGui";
+    public static final String packetName = "Data|OpenGui";
 
     private EnumGuiType type;
     private int x;

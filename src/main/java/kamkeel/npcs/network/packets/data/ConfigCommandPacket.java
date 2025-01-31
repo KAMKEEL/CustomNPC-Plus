@@ -18,7 +18,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import java.io.IOException;
 
 public final class ConfigCommandPacket extends AbstractPacket {
-    public static final String packetName = "Client|ConfigCommand";
+    public static final String packetName = "Data|ConfigCommand";
 
     private EnumConfigOperation configOperation;
     private Object[] objects;

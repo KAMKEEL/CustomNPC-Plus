@@ -13,7 +13,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import java.io.IOException;
 
 public final class SwingPlayerArmPacket extends AbstractPacket {
-    public static final String packetName = "Client|SwingPlayerArm";
+    public static final String packetName = "Data|SwingPlayerArm";
 
     public SwingPlayerArmPacket() {}
 

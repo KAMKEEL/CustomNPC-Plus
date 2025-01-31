@@ -17,7 +17,7 @@ import noppes.npcs.client.ClientCacheHandler;
 import java.io.IOException;
 
 public final class OverlayQuestTrackingPacket extends AbstractPacket {
-    public static final String packetName = "Client|OverlayQuestTracking";
+    public static final String packetName = "Data|OverlayQuestTracking";
 
     private NBTTagCompound compound;
 

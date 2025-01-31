@@ -21,7 +21,7 @@ import noppes.npcs.client.gui.util.IPartyData;
 import java.io.IOException;
 
 public final class PartyDataPacket extends LargeAbstractPacket {
-    public static final String packetName = "Client|PartyData";
+    public static final String packetName = "Data|PartyData";
 
     private NBTTagCompound compound;
 

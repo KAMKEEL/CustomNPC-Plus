@@ -15,7 +15,7 @@ import noppes.npcs.client.NoppesUtil;
 import java.io.IOException;
 
 public final class GuiWaypointPacket extends AbstractPacket {
-    public static final String packetName = "Client|GuiWaypoint";
+    public static final String packetName = "Data|GuiWaypoint";
 
     private NBTTagCompound compound;
 

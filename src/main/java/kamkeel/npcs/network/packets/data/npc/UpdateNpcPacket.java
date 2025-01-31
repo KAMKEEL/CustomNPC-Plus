@@ -17,7 +17,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class UpdateNpcPacket extends AbstractPacket {
-    public static final String packetName = "Client|UpdateNpc";
+    public static final String packetName = "Data|UpdateNpc";
 
     private NBTTagCompound npcCompound;
 

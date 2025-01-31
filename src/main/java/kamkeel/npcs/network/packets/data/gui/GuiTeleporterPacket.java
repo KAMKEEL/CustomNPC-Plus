@@ -15,7 +15,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class GuiTeleporterPacket extends AbstractPacket {
-    public static final String packetName = "Client|Teleporter";
+    public static final String packetName = "Data|Teleporter";
 
     public GuiTeleporterPacket(){}
 

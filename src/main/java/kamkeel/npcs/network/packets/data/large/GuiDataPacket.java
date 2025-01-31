@@ -21,7 +21,7 @@ import noppes.npcs.client.gui.util.IGuiData;
 import java.io.IOException;
 
 public final class GuiDataPacket extends LargeAbstractPacket {
-    public static final String packetName = "Client|GuiData";
+    public static final String packetName = "Data|GuiData";
 
     private NBTTagCompound compound;
 

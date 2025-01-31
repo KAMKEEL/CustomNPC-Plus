@@ -1,26 +1,121 @@
 package kamkeel.npcs.network.enums;
-
-import noppes.npcs.CustomNpcsPermissions;
-
 public enum EnumRequestPacket {
+    Delete,
+    RemoteMainMenu,
+    RemoteGlobalMenu,
+    NpcMenuClose,
+    RemoteDelete,
+    RemoteFreeze,
+    RemoteFreezeGet,
+    RemoteReset,
+    SpawnMob,
+    MobSpawner,
 
-    ok;
+    MainmenuAISave,
+    MainmenuAIGet,
+    MainmenuInvSave,
+    MainmenuInvGet,
+    MainmenuStatsSave,
+    MainmenuStatsGet,
+    MainmenuDisplaySave,
+    MainmenuDisplayGet,
+    ModelDataSave,
+    MainmenuAdvancedSave,
+    MainmenuAdvancedGet,
+    MainmenuAdvancedMarkData,
 
-    public CustomNpcsPermissions.Permission permission = null;
-    public boolean needsNpc = false;
+    DialogNpcSet,
+    DialogNpcRemove,
+    DialogNpcGet,
+    DialogCategorySave,
+    DialogCategoriesGet,
+    DialogsGetFromDialog,
+    DialogCategoryRemove,
+    DialogCategoryGet,
+    DialogSave,
+    DialogsGet,
+    DialogGet,
+    DialogRemove,
 
-    EnumRequestPacket() {}
-    EnumRequestPacket(noppes.npcs.CustomNpcsPermissions.Permission permission, boolean npc) {
-        this(permission);
-    }
-    EnumRequestPacket(boolean npc) {
-        needsNpc = npc;
-    }
-    EnumRequestPacket(CustomNpcsPermissions.Permission permission) {
-        this.permission = permission;
-    }
-    public boolean hasPermission() {
-        return permission != null;
-    }
+    TransportSave,
+    TransportCategoriesGet,
+    TransportCategorySave,
+    TransportCategoryRemove,
+    TransportRemove,
+    TransportGetLocation,
+    TransportsGet,
 
+    FactionSet,
+    FactionSave,
+    FactionsGet,
+    FactionGet,
+    FactionRemove,
+
+    TagSet,
+    TagSave,
+    TagsGet,
+    TagGet,
+    NpcTagsGet,
+    TagRemove,
+
+    QuestCategorySave,
+    QuestCategoriesGet,
+    QuestRemove,
+    QuestCategoryRemove,
+    QuestRewardSave,
+    QuestSave,
+    QuestsGetFromQuest,
+    QuestsGet,
+    QuestDialogGetTitle,
+    QuestOpenGui,
+    QuestGet,
+
+    RecipeSave,
+    RecipeRemove,
+    RecipesGet,
+    RecipeGet,
+
+    NaturalSpawnSave,
+    NaturalSpawnGet,
+    NaturalSpawnRemove,
+    NaturalSpawnGetAll,
+
+    MerchantUpdate,
+    PlayerRider,
+    SpawnRider,
+    MovingPathSave,
+    MovingPathGet,
+
+    AnimationsGet,
+    AnimationGet,
+    AnimationRemove,
+    AnimationSave,
+
+    RemoteNpcsGet,
+    RemoteTpToNpc,
+    SaveTileEntity,
+    GetTileEntity,
+    Gui,
+    IsGuiOpen,
+    CacheAnimation,
+
+    CustomGuiButton,
+    CustomGuiScrollClick,
+    CustomGuiClose,
+    CustomGuiUnfocused,
+
+    SavePartyData,
+    CreateParty,
+    GetPartyData,
+    DisbandParty,
+    KickPlayer,
+    LeavePlayer,
+    PartyInvite,
+    GetPartyInviteList,
+    AcceptInvite,
+    IgnoreInvite,
+    SetPartyLeader,
+    SetPartyQuest,
+
+    ServerUpdateSkinOverlays
 }

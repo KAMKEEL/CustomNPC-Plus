@@ -16,7 +16,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public final class EditNpcPacket extends AbstractPacket {
-    public static final String packetName = "Client|EditNpc";
+    public static final String packetName = "Data|EditNpc";
 
     int entityId;
     public EditNpcPacket() {}

@@ -23,7 +23,7 @@ import noppes.npcs.config.ConfigClient;
 import java.io.IOException;
 
 public final class AchievementPacket extends AbstractPacket {
-    public static final String packetName = "Client|Achievement";
+    public static final String packetName = "Data|Achievement";
 
     private boolean isParty;
     private String description;
