@@ -11,6 +11,8 @@ public enum EnumRequestPacket {
     SpawnMob,
     MobSpawner,
 
+    DimensionsGet,
+
     MainmenuAISave,
     MainmenuAIGet,
     MainmenuInvSave,
@@ -58,6 +60,8 @@ public enum EnumRequestPacket {
     NpcTagsGet,
     TagRemove,
 
+    QuestUntrack,
+    QuestLogToServer,
     QuestCategorySave,
     QuestCategoriesGet,
     QuestRemove,
@@ -104,6 +108,7 @@ public enum EnumRequestPacket {
     CustomGuiClose,
     CustomGuiUnfocused,
 
+    PartyLogToServer,
     SavePartyData,
     CreateParty,
     GetPartyData,

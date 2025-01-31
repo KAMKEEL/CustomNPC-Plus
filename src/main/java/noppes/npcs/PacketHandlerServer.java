@@ -66,64 +66,17 @@ public class PacketHandlerServer{
 			warn(player, "tried to use custom npcs without being an op");
 			return;
 		}
-		ByteBuf buffer = event.packet.payload();
+		ByteBuf in = event.packet.payload();
 		EnumPacketServer type = null;
 		try {
-			type = EnumPacketServer.values()[buffer.readInt()];
+			type = EnumPacketServer.values()[in.readInt()];
 
 			ItemStack item = player.inventory.getCurrentItem();
 
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 
-			if (type == EnumPacketServer.IsGuiOpen) {
-				isGuiOpenPacket(buffer, player);
-				return;
-			} else if (type == EnumPacketServer.CustomGuiButton && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(ByteBufUtils.readNBT(buffer));
-				EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
-				return;
-			} else if (type == EnumPacketServer.CustomGuiUnfocused && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(ByteBufUtils.readNBT(buffer));
-				EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt());
-				return;
-			} else if (type == EnumPacketServer.CustomGuiScrollClick && player.openContainer instanceof ContainerCustomGui) {
-				((ContainerCustomGui) player.openContainer).customGui.fromNBT(ByteBufUtils.readNBT(buffer));
-				EventHooks.onCustomGuiScrollClick((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, buffer.readInt(), buffer.readInt(), CustomGuiController.readScrollSelection(buffer), buffer.readBoolean());
-				return;
-			} else if (type == EnumPacketServer.CustomGuiClose) {
-				EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(ByteBufUtils.readNBT(buffer)));
-				return;
-			} else if (type == EnumPacketServer.QuestLogToServer) {
-				NoppesUtilPlayer.updateQuestLogData(buffer, player);
-				return;
-			} else if (type == EnumPacketServer.PartyLogToServer) {
-                NoppesUtilPlayer.updatePartyQuestLogData(buffer, player);
-                return;
-            } else if (type == EnumPacketServer.UntrackQuest) {
-                NoppesUtilPlayer.clearTrackQuest(player);
-                return;
-            } else if(type == EnumPacketServer.DimensionsGet){
-				HashMap<String,Integer> map = new HashMap<String,Integer>();
-				for(int id : DimensionManager.getStaticDimensionIDs()){
-					WorldProvider provider = DimensionManager.createProviderFor(id);
-					map.put(provider.getDimensionName(), id);
-				}
-				ScrollDataPacket.sendScrollData(player, map);
-			} else if(type == EnumPacketServer.TagsGet){
-				NoppesUtilServer.sendTagDataAll(player);
-			} else if (type == EnumPacketServer.NpcTagsGet) {
-				NBTTagCompound compound = new NBTTagCompound();
-				NBTTagList tagList = new NBTTagList();
-				for (UUID uuid : npc.advanced.tagUUIDs) {
-					Tag tag = TagController.getInstance().getTagFromUUID(uuid);
-					if (tag != null) {
-						tagList.appendTag(new NBTTagString(tag.name));
-					}
-				}
-				compound.setTag("TagNames",tagList);
-				GuiDataPacket.sendGuiData(player, compound);
-			} else if (type == EnumPacketServer.CacheAnimation) {
-				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(buffer.readInt());
+			if (type == EnumPacketServer.CacheAnimation) {
+				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(in.readInt());
 				return;
 			} else if (type == EnumPacketServer.GetPartyData || type == EnumPacketServer.CreateParty) {
                 if(!ConfigMain.PartiesEnabled)
@@ -144,7 +97,7 @@ public class PacketHandlerServer{
 				compound.setBoolean("Disband", true);
                 PartyDataPacket.sendPartyData(player, compound);
 			} else if (type == EnumPacketServer.KickPlayer) {
-                String kickPlayerName = ByteBufUtils.readString(buffer);
+                String kickPlayerName = ByteBufUtils.readString(in);
 				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(kickPlayerName);
                 PlayerData playerData = null;
                 UUID playerUUID = null;
@@ -181,7 +134,7 @@ public class PacketHandlerServer{
                     }
                 }
 			} else if (type == EnumPacketServer.LeavePlayer) {
-                EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(buffer));
+                EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
                 if (leavingPlayer != null) {
                     PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
                     if (playerData.partyUUID != null) {
@@ -200,19 +153,19 @@ public class PacketHandlerServer{
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-					party.readClientNBT(ByteBufUtils.readNBT(buffer));
+					party.readClientNBT(ByteBufUtils.readNBT(in));
 				}
 			} else if (type == EnumPacketServer.SetPartyLeader) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 				if (playerData.partyUUID != null) {
 					Party party = PartyController.Instance().getParty(playerData.partyUUID);
                     if (!party.getIsLocked()) {
-                        party.setLeader(NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(buffer)));
+                        party.setLeader(NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in)));
                         PartyController.Instance().pingPartyUpdate(party);
                     }
 				}
 			} else if (type == EnumPacketServer.PartyInvite) {
-				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(buffer));
+				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
 				if (invitedPlayer != null) {
 					PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
 					PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
@@ -232,14 +185,14 @@ public class PacketHandlerServer{
 				sendInviteData(player);
 			} else if (type == EnumPacketServer.AcceptInvite) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				String uuidString = ByteBufUtils.readString(buffer);
+				String uuidString = ByteBufUtils.readString(in);
 				if (uuidString != null) {
 					UUID uuid = UUID.fromString(uuidString);
 					playerData.acceptInvite(uuid);
 				}
 			} else if (type == EnumPacketServer.IgnoreInvite) {
 				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				String uuidString = ByteBufUtils.readString(buffer);
+				String uuidString = ByteBufUtils.readString(in);
 				if (uuidString != null) {
 					UUID uuid = UUID.fromString(uuidString);
 					playerData.ignoreInvite(uuid);
@@ -250,7 +203,7 @@ public class PacketHandlerServer{
                     Party party = PartyController.Instance().getParty(playerData.partyUUID);
                     if (party != null) {
                         if (party.getLeaderUUID().equals(player.getUniqueID())) {
-                            int questID = buffer.readInt();
+                            int questID = in.readInt();
                             party.setQuest(null);
                             if(questID != -1){
                                 Quest foundQuest = QuestController.Instance.quests.get(questID);
@@ -288,34 +241,34 @@ public class PacketHandlerServer{
 			else {
 				if (item != null) {
 					if (item.getItem() == CustomItems.wand)
-						wandPackets(type, buffer, player, npc);
+						wandPackets(type, in, player, npc);
 					else if (item.getItem() == CustomItems.moving)
-						movingPackets(type, buffer, player, npc);
+						movingPackets(type, in, player, npc);
 					else if (item.getItem() == CustomItems.mount)
-						mountPackets(type, buffer, player);
+						mountPackets(type, in, player);
 					else if (item.getItem() == CustomItems.cloner)
-						clonePackets(type, buffer, player);
+						clonePackets(type, in, player);
 					else if (item.getItem() == CustomItems.teleporter)
-						featherPackets(type, buffer, player);
+						featherPackets(type, in, player);
 					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
-						blockPackets(type, buffer, player);
+						blockPackets(type, in, player);
 					else if (ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
 						if (type == EnumPacketServer.EventScriptDataGet || type == EnumPacketServer.EventScriptDataSave)
-							npcEventScriptPackets(type, buffer, player, npc);
+							npcEventScriptPackets(type, in, player, npc);
 						else if (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave)
-							playerScriptPackets(type, buffer, player);
+							playerScriptPackets(type, in, player);
 						else if (type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave)
-							npcGlobalScriptPackets(type, buffer, player);
+							npcGlobalScriptPackets(type, in, player);
 						else if (type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave)
-							forgeScriptPackets(type, buffer, player);
+							forgeScriptPackets(type, in, player);
 						else if (type == EnumPacketServer.ScriptItemDataGet || type == EnumPacketServer.ScriptItemDataSave)
-							itemScriptPackets(type, buffer, player);
+							itemScriptPackets(type, in, player);
 						else if (type == EnumPacketServer.ScriptBlockDataGet || type == EnumPacketServer.ScriptBlockDataSave)
-							blockScriptPackets(type, buffer, player);
+							blockScriptPackets(type, in, player);
 						else if (type == EnumPacketServer.ScriptGlobalGuiDataGet || type == EnumPacketServer.ScriptGlobalGuiDataSave)
-							getScriptsEnabled(type, buffer, player);
+							getScriptsEnabled(type, in, player);
 						else if (item.getItem() == CustomItems.scripter)
-							scriptPackets(type, buffer, player, npc);
+							scriptPackets(type, in, player, npc);
 					}
 				}
 			}
