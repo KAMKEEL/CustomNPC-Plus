@@ -1,15 +1,15 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagsNpcGetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -28,8 +28,8 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
     public GuiNPCTagSetup(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.TagsGet);
-		Client.sendData(EnumPacketServer.NpcTagsGet);
+        PacketClient.sendClient(new TagsGetPacket());
+        PacketClient.sendClient(new TagsNpcGetPacket());
     }
 
     public void initGui()

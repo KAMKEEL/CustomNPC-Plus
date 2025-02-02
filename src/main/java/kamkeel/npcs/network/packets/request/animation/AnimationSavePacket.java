@@ -29,7 +29,7 @@ public final class AnimationSavePacket extends AbstractPacket {
     public AnimationSavePacket(NBTTagCompound animationNBT) {
         this.animationNBT = animationNBT;
     }
-    public AnimationSavePacket() { }
+    public AnimationSavePacket(){}
 
     @Override
     public Enum getType() {
@@ -54,8 +54,12 @@ public final class AnimationSavePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
         Animation animation = new Animation();
         animation.readFromNBT(compound);

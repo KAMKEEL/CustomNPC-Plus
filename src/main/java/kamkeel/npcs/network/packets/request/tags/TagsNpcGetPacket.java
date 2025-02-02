@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request;
+package kamkeel.npcs.network.packets.request.tags;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -6,6 +6,8 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,8 +24,7 @@ import java.util.UUID;
 public final class TagsNpcGetPacket extends AbstractPacket {
     public static final String packetName = "Request|NpcTagsGet";
 
-    public TagsNpcGetPacket() {
-    }
+    public TagsNpcGetPacket() {}
 
     @Override
     public Enum getType() {
@@ -47,6 +48,9 @@ public final class TagsNpcGetPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.CLONER))
+            return;
+
         NBTTagCompound compound = new NBTTagCompound();
         NBTTagList tagList = new NBTTagList();
         for (UUID uuid : npc.advanced.tagUUIDs) {

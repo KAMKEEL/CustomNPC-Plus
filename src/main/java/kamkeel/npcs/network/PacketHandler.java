@@ -17,6 +17,7 @@ import kamkeel.npcs.network.packets.data.script.*;
 import kamkeel.npcs.network.packets.player.BankPacket;
 import kamkeel.npcs.network.packets.player.FollowerPacket;
 import kamkeel.npcs.network.packets.request.*;
+import kamkeel.npcs.network.packets.request.animation.*;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
@@ -54,9 +55,7 @@ import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
 import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
-import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
-import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
-import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
+import kamkeel.npcs.network.packets.request.tags.*;
 import kamkeel.npcs.network.packets.request.transform.TransformGetPacket;
 import kamkeel.npcs.network.packets.request.transform.TransformLoadPacket;
 import kamkeel.npcs.network.packets.request.transform.TransformSavePacket;
@@ -108,7 +107,6 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new NpcClosePacket());
         REQUEST_PACKET.registerPacket(new NpcDeletePacket());
 
-
         // Linked Packets
         REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());
         REQUEST_PACKET.registerPacket(new LinkedRemovePacket());
@@ -152,6 +150,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new QuestCategoryGetPacket());
 
         // Quest Packets
+        REQUEST_PACKET.registerPacket(new QuestOpenGuiPacket());
         REQUEST_PACKET.registerPacket(new QuestSavePacket());
         REQUEST_PACKET.registerPacket(new QuestRemovePacket());
         REQUEST_PACKET.registerPacket(new QuestDialogGetTitlePacket());
@@ -162,6 +161,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new FactionSetPacket());
 
         // Tag Packets
+        REQUEST_PACKET.registerPacket(new TagsGetPacket());
+        REQUEST_PACKET.registerPacket(new TagsNpcGetPacket());
         REQUEST_PACKET.registerPacket(new TagSetPacket());
         REQUEST_PACKET.registerPacket(new TagSavePacket());
         REQUEST_PACKET.registerPacket(new TagRemovePacket());
@@ -230,6 +231,15 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TransformGetPacket());
         REQUEST_PACKET.registerPacket(new TransformLoadPacket());
 
+        // Trader Packets
+        REQUEST_PACKET.registerPacket(new TraderMarketSavePacket());
+
+        // Animation Packets
+        REQUEST_PACKET.registerPacket(new AnimationsGetPacket());
+        REQUEST_PACKET.registerPacket(new AnimationGetPacket());
+        REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
+        REQUEST_PACKET.registerPacket(new AnimationSavePacket());
+
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
@@ -238,6 +248,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new MerchantUpdatePacket());
         REQUEST_PACKET.registerPacket(new ModelDataSavePacket());
         REQUEST_PACKET.registerPacket(new MailOpenSetupPacket());
+        REQUEST_PACKET.registerPacket(new TileEntityGetPacket());
+        REQUEST_PACKET.registerPacket(new TileEntitySavePacket());
     }
 
     public void registerDataPackets(){

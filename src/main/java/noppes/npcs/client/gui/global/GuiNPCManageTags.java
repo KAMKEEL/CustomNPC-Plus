@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
 import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
 import net.minecraft.client.gui.GuiButton;
@@ -28,7 +29,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     public GuiNPCManageTags(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.TagsGet);
+        PacketClient.sendClient(new TagsGetPacket());
     }
 
     public void initGui()

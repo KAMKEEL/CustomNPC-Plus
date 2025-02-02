@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request.animation;
+package kamkeel.npcs.network.packets.request;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -10,29 +10,38 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.data.Animation;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.WorldProvider;
+import net.minecraftforge.common.DimensionManager;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-public final class AnimationGetPacket extends AbstractPacket {
-    public static String packetName = "Request|AnimationGet";
+public final class TileEntityGetPacket extends AbstractPacket {
+    public static final String packetName = "Request|TileEntityGet";
 
-    private int animationID;
+    private int x;
+    private int y;
+    private int z;
 
-    public AnimationGetPacket() { }
 
-    public AnimationGetPacket(int animationID) {
-        this.animationID = animationID;
+    public TileEntityGetPacket() {}
+
+    public TileEntityGetPacket(int x, int y, int z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.AnimationGet;
+        return EnumRequestPacket.TileEntityGet;
     }
+
     @Override
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;
@@ -41,7 +50,9 @@ public final class AnimationGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(animationID);
+        out.writeInt(this.x);
+        out.writeInt(this.y);
+        out.writeInt(this.z);
     }
 
     @Override
@@ -49,12 +60,12 @@ public final class AnimationGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
-        int id = in.readInt();
-        Animation animation = (Animation) AnimationController.getInstance().get(id);
-        NBTTagCompound compound = animation.writeToNBT();
+        TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
+        NBTTagCompound compound = new NBTTagCompound();
+        tile.writeToNBT(compound);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

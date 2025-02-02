@@ -44,9 +44,7 @@ public enum EnumPacketServer {
 
 	FactionsGet,
     FactionGet,
-	TagsGet,
     TagGet,
-    NpcTagsGet,
 	QuestCategoriesGet,
 	QuestRemove(CustomNpcsPermissions.GLOBAL_QUEST),
 	QuestRewardSave(CustomNpcsPermissions.GLOBAL_QUEST),
@@ -56,14 +54,14 @@ public enum EnumPacketServer {
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),
 
-	AnimationsGet, AnimationGet,
-    AnimationRemove(CustomNpcsPermissions.GLOBAL_ANIMATION), AnimationSave(CustomNpcsPermissions.GLOBAL_ANIMATION),
-
-    QuestOpenGui, QuestLogToServer, PartyLogToServer, UntrackQuest,
+    QuestLogToServer,
+    PartyLogToServer,
+    UntrackQuest,
 
     QuestGet,
-	SaveTileEntity,
-	DimensionTeleport, GetTileEntity, IsGuiOpen,
+	DimensionTeleport,
+    GetTileEntity,
+    IsGuiOpen,
 
 	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
 	IgnoreInvite, SetPartyLeader, SetPartyQuest,

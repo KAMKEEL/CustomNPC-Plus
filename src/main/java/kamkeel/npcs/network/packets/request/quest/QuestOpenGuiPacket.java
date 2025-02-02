@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.controllers.data.Quest;
 
 import java.io.IOException;
@@ -22,16 +23,15 @@ import java.io.IOException;
 public final class QuestOpenGuiPacket extends AbstractPacket {
     public static String packetName = "Request|QuestOpenGui";
 
-    private int guiId;
+    private EnumGuiType guiType;
     private NBTTagCompound questNBT;
 
-    public QuestOpenGuiPacket(int guiId, NBTTagCompound questNBT) {
-        this.guiId = guiId;
+    public QuestOpenGuiPacket(EnumGuiType guiType, NBTTagCompound questNBT) {
+        this.guiType = guiType;
         this.questNBT = questNBT;
     }
 
-    public QuestOpenGuiPacket() {
-    }
+    public QuestOpenGuiPacket() {}
 
     @Override
     public Enum getType() {
@@ -46,7 +46,7 @@ public final class QuestOpenGuiPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(guiId);
+        out.writeInt(guiType.ordinal());
         ByteBufUtils.writeNBT(out, questNBT);
     }
 
@@ -54,6 +54,7 @@ public final class QuestOpenGuiPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
+
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 

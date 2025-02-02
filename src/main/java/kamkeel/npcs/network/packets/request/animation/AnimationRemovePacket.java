@@ -23,7 +23,13 @@ import java.io.IOException;
 public final class AnimationRemovePacket extends AbstractPacket {
     public static String packetName = "Request|AnimationRemove";
 
+    private int animationID;
+
     public AnimationRemovePacket() { }
+
+    public AnimationRemovePacket(int animationID) {
+        this.animationID = animationID;
+    }
 
     @Override
     public Enum getType() {
@@ -43,13 +49,17 @@ public final class AnimationRemovePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(0);
+        out.writeInt(this.animationID );
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int id = in.readInt();
         AnimationController.getInstance().delete(id);
         NoppesUtilServer.sendAnimationDataAll((EntityPlayerMP) player);
