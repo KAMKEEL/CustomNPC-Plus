@@ -152,12 +152,12 @@ public class PacketHandlerPlayer{
 				return;
 			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 		}
-		else if(type == EnumPlayerPacket.Transport){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Transporter)
-				return;
-			NoppesUtilPlayer.transport(player, npc, ByteBufUtils.readString(buffer));
-		}
+//		else if(type == EnumPlayerPacket.Transport){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Transporter)
+//				return;
+//			NoppesUtilPlayer.transport(player, npc, ByteBufUtils.readString(buffer));
+//		}
 //		else if(type == EnumPlayerPacket.BankUpgrade){
 //			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 //			if(npc == null || npc.advanced.role != EnumRoleType.Bank)

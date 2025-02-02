@@ -12,9 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 

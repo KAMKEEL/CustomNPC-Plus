@@ -10,16 +10,14 @@ import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.BankData;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
 public class BankPacket extends AbstractPacket {
-    public static final String packetName = "Player|Follower";
+    public static final String packetName = "Player|Bank";
 
     private Action type;
     private int slotID;
@@ -63,8 +61,6 @@ public class BankPacket extends AbstractPacket {
     @Override
     @SideOnly(Side.CLIENT)
     public void sendData(ByteBuf out) throws IOException {
-        if (type == null)
-            return;
         out.writeInt(type.ordinal());
 
         if (type == Action.OpenSlot) {

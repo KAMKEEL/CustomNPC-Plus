@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.TransportPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -18,9 +20,9 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
     protected int xSize;
     protected int guiLeft;
     protected int guiTop;
-    
+
     private GuiCustomScroll scroll;
-    
+
 	public GuiTransportSelection(EntityNPCInterface npc) {
 		super(npc);
         xSize = 176;
@@ -43,7 +45,7 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
         scroll.guiTop = guiTop + 20;
         addScroll(scroll);
     }
-    
+
     @Override
     public void drawScreen(int i, int j, float f)
     {
@@ -61,7 +63,7 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
     	String sel = scroll.getSelected();
     	if(button.id == 0 && sel != null){
             close();
-        	NoppesUtilPlayer.sendData(EnumPlayerPacket.Transport,sel);
+            PacketClient.sendClient(new TransportPacket(sel));
     	}
     }
 //    @Override
@@ -82,7 +84,7 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
             close();
         }
     }
-    
+
 	@Override
 	public void save() {
 	}
@@ -93,7 +95,7 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
 	@Override
 	public void setSelected(String selected) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
