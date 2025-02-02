@@ -45,8 +45,6 @@ public final class GuiRequestPacket extends AbstractPacket {
         return true;
     }
 
-    // No permission override
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {

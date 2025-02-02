@@ -9,6 +9,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,7 +23,15 @@ import java.io.IOException;
 public final class MerchantUpdatePacket extends AbstractPacket {
     public static String packetName = "Request|MerchantUpdate";
 
+    private int entityID;
+    private MerchantRecipeList list;
+
     public MerchantUpdatePacket() { }
+
+    public MerchantUpdatePacket(int entityID, MerchantRecipeList list) {
+        this.entityID = entityID;
+        this.list = list;
+    }
 
     @Override
     public Enum getType() {
@@ -41,7 +50,9 @@ public final class MerchantUpdatePacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        ByteBufUtils.fillBuffer(out, this.entityID, this.list);
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

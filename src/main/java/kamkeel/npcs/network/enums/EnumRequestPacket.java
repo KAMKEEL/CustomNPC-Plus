@@ -121,5 +121,38 @@ public enum EnumRequestPacket {
     PartySetLeader,
     PartySetQuest,
 
-    LinkedRemove, LinkedAdd, LinkedGetAll, LinkedSet, BankGet, BanksGet, BankSave, BankRemove, QuestCategoryGet, PlayerDataGet, PlayerDataRemove, PlayerDataMapRegen, JobSave, JobGet, JobSpawnerAdd, RoleCompanionUpdate, JobSpawnerRemove, RoleSave, RoleGet, MailOpenSetup, TransformSave, TransformGet, TransformLoad, TraderMarketSave, ServerUpdateSkinOverlays
+    LinkedRemove,
+    LinkedAdd,
+    LinkedGetAll,
+    LinkedSet,
+
+    BankGet,
+    BanksGet,
+    BankSave,
+    BankRemove,
+
+    QuestCategoryGet,
+
+    PlayerDataGet,
+    PlayerDataRemove,
+    PlayerDataMapRegen,
+
+    JobSave,
+    JobGet,
+    JobSpawnerAdd,
+    JobSpawnerRemove,
+
+    RoleCompanionUpdate,
+    RoleSave,
+    RoleGet,
+
+    MailOpenSetup,
+
+    TransformSave,
+    TransformGet,
+    TransformLoad,
+
+    TraderMarketSave,
+
+    ServerUpdateSkinOverlays
 }

@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.MailOpenSetupPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
@@ -63,7 +65,7 @@ public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfiel
 			GuiMailmanWrite.parent = getParent();
 			GuiMailmanWrite.mail = mail;
 
-    		Client.sendData(EnumPacketServer.MailOpenSetup, mail.writeNBT());
+            PacketClient.sendClient(new MailOpenSetupPacket(mail.writeNBT()));
 		}
     	if(id == 3){
             setSubGui(new GuiQuestSelection(mail.questId));

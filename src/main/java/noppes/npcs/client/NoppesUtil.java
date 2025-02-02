@@ -3,6 +3,7 @@ package noppes.npcs.client;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.GuiRequestPacket;
+import kamkeel.npcs.network.packets.request.IsGuiOpenPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -268,6 +269,7 @@ public class NoppesUtil {
 	}
 
 	public static void isGUIOpen(boolean isGUIOpen) {
+        PacketClient.sendClient(new IsGuiOpenPacket(isGUIOpen));
 		Client.sendData(EnumPacketServer.IsGuiOpen, isGUIOpen);
 	}
 }

@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.constants.EnumCompanionStage;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.roles.RoleCompanion;
 
 import java.io.IOException;
@@ -20,7 +21,13 @@ import java.io.IOException;
 public final class RoleCompanionUpdatePacket extends AbstractPacket {
     public static String packetName = "Request|RoleCompanionUpdate";
 
+    private EnumCompanionStage companionStage;
+
     public RoleCompanionUpdatePacket() { }
+
+    public RoleCompanionUpdatePacket(EnumCompanionStage companionStage) {
+        this.companionStage = companionStage;
+    }
 
     @Override
     public Enum getType() {
@@ -44,12 +51,21 @@ public final class RoleCompanionUpdatePacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.companionStage.ordinal());
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
+        if(npc.advanced.role != EnumRoleType.Companion)
+            return;
+
         ((RoleCompanion)npc.roleInterface).matureTo(EnumCompanionStage.values()[in.readInt()]);
         npc.updateClient = true;
     }

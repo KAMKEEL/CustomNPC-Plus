@@ -10,12 +10,11 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
 import kamkeel.npcs.network.packets.data.*;
 import kamkeel.npcs.network.packets.data.gui.*;
+import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
-import kamkeel.npcs.network.packets.request.AnimationCachePacket;
-import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
-import kamkeel.npcs.network.packets.request.GuiRequestPacket;
+import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
@@ -50,9 +49,15 @@ import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeSavePacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
+import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
+import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
+import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
 import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
 import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
+import kamkeel.npcs.network.packets.request.transform.TransformGetPacket;
+import kamkeel.npcs.network.packets.request.transform.TransformLoadPacket;
+import kamkeel.npcs.network.packets.request.transform.TransformSavePacket;
 import kamkeel.npcs.network.packets.request.transport.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -96,6 +101,11 @@ public class PacketHandler {
     }
 
     public void registerRequestPackets(){
+        // NPC Packets
+        REQUEST_PACKET.registerPacket(new NpcClosePacket());
+        REQUEST_PACKET.registerPacket(new NpcDeletePacket());
+
+
         // Linked Packets
         REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());
         REQUEST_PACKET.registerPacket(new LinkedRemovePacket());
@@ -185,7 +195,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TransportSavePacket());
         REQUEST_PACKET.registerPacket(new TransportGetLocationPacket());
 
-        // Remote Packets
+        // Remote Packets Packets
         REQUEST_PACKET.registerPacket(new RemoteMainMenuPacket());
         REQUEST_PACKET.registerPacket(new RemoteGlobalMenuPacket());
         REQUEST_PACKET.registerPacket(new RemoteDeletePacket());
@@ -195,22 +205,35 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new RemoteResetPacket());
         REQUEST_PACKET.registerPacket(new RemoteTpToNpcPacket());
 
-        // CustomGUI
+        // CustomGUI Packets
         REQUEST_PACKET.registerPacket(new CustomGuiButtonPacket());
         REQUEST_PACKET.registerPacket(new CustomGuiClosePacket());
         REQUEST_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
         REQUEST_PACKET.registerPacket(new CustomScrollClickPacket());
 
-        // Job
+        // Job Packets
         REQUEST_PACKET.registerPacket(new JobGetPacket());
         REQUEST_PACKET.registerPacket(new JobSavePacket());
         REQUEST_PACKET.registerPacket(new JobSpawnerAddPacket());
         REQUEST_PACKET.registerPacket(new JobSpawnerRemovePacket());
 
-        // Other
+        // Role Packets
+        REQUEST_PACKET.registerPacket(new RoleCompanionUpdatePacket());
+        REQUEST_PACKET.registerPacket(new RoleSavePacket());
+        REQUEST_PACKET.registerPacket(new RoleGetPacket());
+
+        // Transform Packets
+        REQUEST_PACKET.registerPacket(new TransformSavePacket());
+        REQUEST_PACKET.registerPacket(new TransformGetPacket());
+        REQUEST_PACKET.registerPacket(new TransformLoadPacket());
+
+        // Other Packets
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
         REQUEST_PACKET.registerPacket(new DimensionsGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationCachePacket());
+        REQUEST_PACKET.registerPacket(new MerchantUpdatePacket());
+        REQUEST_PACKET.registerPacket(new ModelDataSavePacket());
+        REQUEST_PACKET.registerPacket(new MailOpenSetupPacket());
     }
 
     public void registerDataPackets(){

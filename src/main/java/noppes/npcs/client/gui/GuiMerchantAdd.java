@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.MerchantUpdatePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -109,7 +111,7 @@ public class GuiMerchantAdd extends GuiContainer
             	merchantrecipelist.remove(currentRecipeIndex);
             	if(currentRecipeIndex > 0)
             		currentRecipeIndex--;
-            	Client.sendData(EnumPacketServer.MerchantUpdate, ServerEventsHandler.Merchant.getEntityId(), merchantrecipelist);
+                PacketClient.sendClient(new MerchantUpdatePacket(ServerEventsHandler.Merchant.getEntityId(), merchantrecipelist));
             }
         }
 
@@ -132,7 +134,7 @@ public class GuiMerchantAdd extends GuiContainer
 
                 MerchantRecipeList merchantrecipelist = this.theIMerchant.getRecipes(mc.thePlayer);
                 merchantrecipelist.add(recipe);
-            	Client.sendData(EnumPacketServer.MerchantUpdate, ServerEventsHandler.Merchant.getEntityId(), merchantrecipelist);
+                PacketClient.sendClient(new MerchantUpdatePacket(ServerEventsHandler.Merchant.getEntityId(), merchantrecipelist));
         	}
 
         }

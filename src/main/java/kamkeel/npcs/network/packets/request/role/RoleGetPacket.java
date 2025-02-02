@@ -33,11 +33,6 @@ public final class RoleGetPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
-    }
-
-    @Override
     public boolean needsNPC() {
         return true;
     }
@@ -48,9 +43,15 @@ public final class RoleGetPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
-        if(npc.roleInterface == null) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
+        if(npc.roleInterface == null)
+            return;
+
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("RoleData", true);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.roleInterface.writeToNBT(compound));

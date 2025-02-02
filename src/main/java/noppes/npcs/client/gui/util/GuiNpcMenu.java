@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.util;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.npc.NpcClosePacket;
+import kamkeel.npcs.network.packets.request.npc.NpcDeletePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -104,7 +107,7 @@ public class GuiNpcMenu implements GuiYesNoCallback {
         if (npc != null) {
             npc.reset();
             if (saveNPC)
-                Client.sendData(EnumPacketServer.NpcMenuClose);
+                PacketClient.sendClient(new NpcClosePacket());
         }
     }
 
@@ -132,7 +135,7 @@ public class GuiNpcMenu implements GuiYesNoCallback {
     public void confirmClicked(boolean flag, int i) {
         Minecraft mc = Minecraft.getMinecraft();
         if (flag) {
-            Client.sendData(EnumPacketServer.NPCDelete);
+            PacketClient.sendClient(new NpcDeletePacket());
             mc.displayGuiScreen(null);
             mc.setIngameFocus();
         } else {
