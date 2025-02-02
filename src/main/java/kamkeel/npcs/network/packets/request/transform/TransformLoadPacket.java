@@ -48,7 +48,9 @@ public final class TransformLoadPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        out.writeBoolean(this.transform);
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

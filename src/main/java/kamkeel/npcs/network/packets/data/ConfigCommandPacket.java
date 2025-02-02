@@ -53,6 +53,9 @@ public final class ConfigCommandPacket extends AbstractPacket {
         EnumConfigOperation configType = EnumConfigOperation.values()[in.readInt()];
         if (configType == EnumConfigOperation.FONT) { // Font Configuration
             String font = ByteBufUtils.readString(in);
+            if(font == null)
+                return;
+
             int size = in.readInt();
             if (!font.isEmpty()) {
                 ConfigClient.FontType = font;
