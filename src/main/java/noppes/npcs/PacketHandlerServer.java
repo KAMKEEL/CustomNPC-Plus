@@ -385,15 +385,6 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
 		}
-		else if(type == EnumPacketServer.QuestGet){
-			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
-			if(quest != null){
-				NBTTagCompound compound = new NBTTagCompound();
-				if(quest.hasNewQuest())
-					compound.setString("NextQuestTitle", quest.getNextQuest().title);
-				GuiDataPacket.sendGuiData(player, quest.writeToNBT(compound));
-			}
-		}
 		else if(type == EnumPacketServer.FactionGet){
 			NBTTagCompound compound = new NBTTagCompound();
 			Faction faction = FactionController.getInstance().get(buffer.readInt());

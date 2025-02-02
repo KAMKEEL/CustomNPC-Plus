@@ -359,7 +359,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 			String selected = questScroll.getSelected();
 			if(!selected.equals(prevQuestName) || override){
 				quest = new Quest();
-				Client.sendData(EnumPacketServer.QuestGet, questData.get(selected));
+                QuestGetPacket.getQuest(questData.get(selected));
 				setPrevQuestName(selected);
 			}
 		}

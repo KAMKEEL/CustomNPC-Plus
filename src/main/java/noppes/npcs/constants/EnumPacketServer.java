@@ -37,20 +37,16 @@ public enum EnumPacketServer {
 	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
     EventScriptDataGet(true),
 
-    DialogGet,
-	DialogRemove(CustomNpcsPermissions.GLOBAL_DIALOG),
-
 	FactionsGet,
     FactionGet,
 	QuestCategoriesGet,
-	QuestsGetFromQuest, QuestsGet,
-	MerchantUpdate(CustomNpcsPermissions.EDIT_VILLAGER),
+	QuestsGetFromQuest,
+    QuestsGet,
 	PlayerRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true),
     MovingPathGet(true),
 
-    QuestGet,
 	DimensionTeleport;
 
 	public CustomNpcsPermissions.Permission permission = null;

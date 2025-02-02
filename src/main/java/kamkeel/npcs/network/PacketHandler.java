@@ -161,6 +161,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new QuestDialogGetTitlePacket());
         REQUEST_PACKET.registerPacket(new QuestLogToServerPacket());
         REQUEST_PACKET.registerPacket(new QuestUntrackPacket());
+        REQUEST_PACKET.registerPacket(new QuestGetPacket());
 
         // Faction Packets
         REQUEST_PACKET.registerPacket(new FactionSavePacket());
