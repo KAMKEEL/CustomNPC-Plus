@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request.animation;
+package kamkeel.npcs.network.packets.request.tags;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -13,48 +13,53 @@ import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.AnimationController;
-import noppes.npcs.controllers.data.Animation;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
+import noppes.npcs.controllers.TagController;
+import noppes.npcs.controllers.data.Tag;
 
 import java.io.IOException;
+import java.util.UUID;
 
-public final class AnimationGetPacket extends AbstractPacket {
-    public static String packetName = "Request|AnimationGet";
+public final class TagsNpcGetPacket extends AbstractPacket {
+    public static final String packetName = "Request|NpcTagsGet";
 
-    private int animationID;
-
-    public AnimationGetPacket() { }
-
-    public AnimationGetPacket(int animationID) {
-        this.animationID = animationID;
-    }
+    public TagsNpcGetPacket() {}
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.AnimationGet;
+        return EnumRequestPacket.NpcTagsGet;
     }
+
     @Override
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;
     }
 
+    @Override
+    public boolean needsNPC() {
+        return true;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(animationID);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP))
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.CLONER))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
-            return;
-
-        int id = in.readInt();
-        Animation animation = (Animation) AnimationController.getInstance().get(id);
-        NBTTagCompound compound = animation.writeToNBT();
+        NBTTagCompound compound = new NBTTagCompound();
+        NBTTagList tagList = new NBTTagList();
+        for (UUID uuid : npc.advanced.tagUUIDs) {
+            Tag tag = TagController.getInstance().getTagFromUUID(uuid);
+            if (tag != null) {
+                tagList.appendTag(new NBTTagString(tag.name));
+            }
+        }
+        compound.setTag("TagNames", tagList);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

@@ -6,28 +6,31 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.controllers.TagController;
-import noppes.npcs.controllers.data.Tag;
+import net.minecraft.tileentity.TileEntity;
 
 import java.io.IOException;
-import java.util.UUID;
 
-public final class TagsNpcGetPacket extends AbstractPacket {
-    public static final String packetName = "Request|NpcTagsGet";
+public final class TileEntitySavePacket extends AbstractPacket {
+    public static final String packetName = "Request|TileEntityGet";
 
-    public TagsNpcGetPacket() {
+    private NBTTagCompound compound;
+
+    public TileEntitySavePacket() {}
+
+    public TileEntitySavePacket(NBTTagCompound compound) {
+        this.compound = compound;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.NpcTagsGet;
+        return EnumRequestPacket.TileEntityGet;
     }
 
     @Override
@@ -35,27 +38,25 @@ public final class TagsNpcGetPacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return true;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.x);
+        out.writeInt(this.y);
+        out.writeInt(this.z);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
+            return;
+
+        TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
         NBTTagCompound compound = new NBTTagCompound();
-        NBTTagList tagList = new NBTTagList();
-        for (UUID uuid : npc.advanced.tagUUIDs) {
-            Tag tag = TagController.getInstance().getTagFromUUID(uuid);
-            if (tag != null) {
-                tagList.appendTag(new NBTTagString(tag.name));
-            }
-        }
-        compound.setTag("TagNames", tagList);
+        tile.writeToNBT(compound);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

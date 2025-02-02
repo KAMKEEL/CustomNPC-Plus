@@ -21,7 +21,15 @@ import java.io.IOException;
 public final class TraderMarketSavePacket extends AbstractPacket {
     public static String packetName = "Request|TraderMarketSave";
 
+    private String marketName;
+    private boolean setMarket;
+
     public TraderMarketSavePacket() { }
+
+    public TraderMarketSavePacket(String marketName, boolean setMarket) {
+        this.marketName = marketName;
+        this.setMarket = setMarket;
+    }
 
     @Override
     public Enum getType() {
@@ -45,14 +53,23 @@ public final class TraderMarketSavePacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        ByteBufUtils.writeString(out, this.marketName);
+        out.writeBoolean(this.setMarket);
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         String market = ByteBufUtils.readString(in);
-        if (market == null) return;
+        if (market == null)
+            return;
+
         boolean bo = in.readBoolean();
         if(npc.roleInterface instanceof RoleTrader){
             if(bo)

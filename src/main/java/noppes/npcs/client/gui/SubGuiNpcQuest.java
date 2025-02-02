@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.quest.QuestOpenGuiPacket;
 import kamkeel.npcs.network.packets.request.quest.QuestSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -103,7 +104,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 			setSubGui(new SubGuiNpcTextArea(quest.logText));
 		}
 		if(button.id == 5 && quest.id >= 0){
-			Client.sendData(EnumPacketServer.QuestOpenGui, EnumGuiType.QuestReward, quest.writeToNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new QuestOpenGuiPacket(EnumGuiType.QuestReward, quest.writeToNBT(new NBTTagCompound())));
 		}
 		if(button.id == 6 && quest.id >= 0){
 			quest.setType(EnumQuestType.values()[button.getValue()]);
@@ -111,7 +112,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		if(button.id == 7)
 		{
 			if(quest.type == EnumQuestType.Item)
-				Client.sendData(EnumPacketServer.QuestOpenGui, EnumGuiType.QuestItem, quest.writeToNBT(new NBTTagCompound()));
+                PacketClient.sendClient(new QuestOpenGuiPacket(EnumGuiType.QuestItem, quest.writeToNBT(new NBTTagCompound())));
 
 			if(quest.type == EnumQuestType.Dialog)
 				setSubGui(new GuiNpcQuestTypeDialog(npc, quest, this));

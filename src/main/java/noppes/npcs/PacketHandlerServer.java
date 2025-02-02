@@ -368,12 +368,6 @@ public class PacketHandlerServer{
 		if (type == EnumPacketServer.SaveTileEntity) {
 			NoppesUtilServer.saveTileEntity(player, ByteBufUtils.readNBT(buffer));
 		}
-		else if(type == EnumPacketServer.GetTileEntity){
-			TileEntity tile = player.worldObj.getTileEntity(buffer.readInt(), buffer.readInt(), buffer.readInt());
-			NBTTagCompound compound = new NBTTagCompound();
-			tile.writeToNBT(compound);
-			GuiDataPacket.sendGuiData(player, compound);
-		}
 		else if(type == EnumPacketServer.DialogCategoriesGet){
 			ScrollDataPacket.sendScrollData(player, DialogController.Instance.getScroll());
 		}
@@ -449,48 +443,7 @@ public class PacketHandlerServer{
 	}
 
 	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
-       if(type == EnumPacketServer.QuestOpenGui){
-			Quest quest = new Quest();
-			int gui = buffer.readInt();
-			quest.readNBT(ByteBufUtils.readNBT(buffer));
-			NoppesUtilServer.setEditingQuest(player,quest);
-			player.openGui(CustomNpcs.instance, gui , player.worldObj, 0, 0, 0);
-		}
-		else if(type == EnumPacketServer.TraderMarketSave){
-			String market = ByteBufUtils.readString(buffer);
-            if(market == null)
-                return;
-			boolean bo = buffer.readBoolean();
-			if(npc.roleInterface instanceof RoleTrader){
-				if(bo)
-					Market.setMarket(npc, market);
-				else
-					Market.save((RoleTrader)npc.roleInterface, market);
-			}
-		}
-		else if(type == EnumPacketServer.AnimationsGet){
-			NoppesUtilServer.sendAnimationDataAll(player);
-		}
-		else if(type == EnumPacketServer.AnimationGet){
-			Animation animation = (Animation) AnimationController.getInstance().get(buffer.readInt());
-			NBTTagCompound compound = animation.writeToNBT();
-			GuiDataPacket.sendGuiData(player, compound);
-		}
-		else if(type == EnumPacketServer.AnimationRemove){
-			AnimationController.getInstance().delete(buffer.readInt());
-			NoppesUtilServer.sendAnimationDataAll(player);
-			NBTTagCompound compound = (new Animation()).writeToNBT();
-			GuiDataPacket.sendGuiData(player, compound);
-		}
-		else if(type == EnumPacketServer.AnimationSave){
-			Animation animation = new Animation();
-			animation.readFromNBT(ByteBufUtils.readNBT(buffer));
-			AnimationController.getInstance().saveAnimation(animation);
-			NoppesUtilServer.sendAnimationDataAll(player);
-			GuiDataPacket.sendGuiData(player, animation.writeToNBT());
-		}
-		else
-			blockPackets(type, buffer, player);
+        blockPackets(type, buffer, player);
 	}
 	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
 		if(type == EnumPacketServer.SpawnRider){
@@ -651,19 +604,6 @@ public class PacketHandlerServer{
 			}
 			compound.setTag("ShortTags", validTagList);
 			GuiDataPacket.sendGuiData(player, compound);
-		}
-		else if (type != EnumPacketServer.NpcTagsGet && type != EnumPacketServer.TagsGet) {
-			warn(player, "WE 2 tried todo something with the wrong tool, probably a hacker");
-		}
-	}
-
-	private void setTags(EntityNPCInterface npc, ByteBuf buffer) throws IOException {
-		npc.advanced.tagUUIDs.removeIf(uuid -> TagController.getInstance().getTagFromUUID(uuid) != null);
-		NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-		NBTTagList list = compound.getTagList("TagNames",8);
-		for (int i = 0; i < list.tagCount(); i++) {
-			String tagName = list.getStringTagAt(i);
-			npc.advanced.tagUUIDs.add(((Tag)TagController.getInstance().getTagFromName(tagName)).uuid);
 		}
 	}
 

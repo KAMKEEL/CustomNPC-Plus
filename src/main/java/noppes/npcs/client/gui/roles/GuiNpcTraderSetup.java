@@ -2,6 +2,7 @@
 package noppes.npcs.client.gui.roles;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.TraderMarketSavePacket;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -87,7 +88,7 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
 
 	@Override
 	public void save() {
-		Client.sendData(EnumPacketServer.TraderMarketSave, role.marketName, false);
+        PacketClient.sendClient(new TraderMarketSavePacket(role.marketName, false));
         PacketClient.sendClient(new RoleSavePacket(role.writeToNBT(new NBTTagCompound())));
 	}
 
@@ -96,8 +97,7 @@ public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITex
 		String name = guiNpcTextField.getText();
 		if(!name.equalsIgnoreCase(role.marketName)){
 			role.marketName = name;
-			Client.sendData(EnumPacketServer.TraderMarketSave, role.marketName, true);
-		}
-
+            PacketClient.sendClient(new TraderMarketSavePacket(role.marketName, true));
+        }
 	}
 }

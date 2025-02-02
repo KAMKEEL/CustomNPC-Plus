@@ -98,7 +98,7 @@ public enum EnumRequestPacket {
     RemoteNpcsGet,
     RemoteTpToNpc,
     SaveTileEntity,
-    GetTileEntity,
+    TileEntityGet,
     Gui,
     IsGuiOpen,
     CacheAnimation,
