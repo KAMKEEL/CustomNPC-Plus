@@ -18,6 +18,10 @@ import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomGuiButtonPacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.faction.FactionRemovePacket;
 import kamkeel.npcs.network.packets.request.faction.FactionSavePacket;
@@ -185,16 +189,18 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new RemoteResetPacket());
         REQUEST_PACKET.registerPacket(new RemoteTpToNpcPacket());
 
-
-
-        //
+        // CustomGUI
+        REQUEST_PACKET.registerPacket(new CustomGuiButtonPacket());
+        REQUEST_PACKET.registerPacket(new CustomGuiClosePacket());
+        REQUEST_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
+        REQUEST_PACKET.registerPacket(new CustomScrollClickPacket());
 
         // Other
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
     }
 
     public void registerDataPackets(){
-        // Client Packets
+        // Data Packets
         DATA_PACKET.registerPacket(new AchievementPacket());
         DATA_PACKET.registerPacket(new ChatAlertPacket());
         DATA_PACKET.registerPacket(new ChatBubblePacket());
@@ -211,7 +217,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new UpdateAnimationsPacket());
         DATA_PACKET.registerPacket(new VillagerListPacket());
 
-        // Client | GUI Packets
+        // Data | GUI Packets
         DATA_PACKET.registerPacket(new GuiClosePacket());
         DATA_PACKET.registerPacket(new GuiOpenPacket());
         DATA_PACKET.registerPacket(new GuiErrorPacket());
@@ -221,7 +227,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new IsGuiOpenPacket());
         DATA_PACKET.registerPacket(new GuiOpenBookPacket());
 
-        // Client | NPC Packets
+        // Data | NPC Packets
         DATA_PACKET.registerPacket(new DeleteNpcPacket());
         DATA_PACKET.registerPacket(new EditNpcPacket());
         DATA_PACKET.registerPacket(new UpdateNpcPacket());
@@ -229,12 +235,12 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new RolePacket());
         DATA_PACKET.registerPacket(new WeaponNpcPacket());
 
-        // Client | Script Packets
+        // Data | Script Packets
         DATA_PACKET.registerPacket(new ScriptedParticlePacket());
         DATA_PACKET.registerPacket(new ScriptOverlayClosePacket());
         DATA_PACKET.registerPacket(new ScriptOverlayDataPacket());
 
-        // Client | Large Packets
+        // Data | Large Packets
         DATA_PACKET.registerPacket(new ClonerPacket());
         DATA_PACKET.registerPacket(new ScrollGroupPacket());
         DATA_PACKET.registerPacket(new ScrollDataPacket());

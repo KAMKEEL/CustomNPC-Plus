@@ -26,7 +26,7 @@ public final class CustomGuiClosePacket extends AbstractPacket {
     public CustomGuiClosePacket() {
     }
 
-    public CustomGuiClosePacket(int id, NBTTagCompound comp) {
+    public CustomGuiClosePacket(NBTTagCompound comp) {
         this.compound = comp;
     }
 

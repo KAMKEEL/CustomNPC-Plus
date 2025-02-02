@@ -13,8 +13,6 @@ public enum EnumPacketServer {
 
 	ModelDataSave(CustomNpcsPermissions.NPC_DISPLAY, true),
 
-    MainmenuAdvancedMarkData(CustomNpcsPermissions.NPC_ADVANCED,true),
-
     TransformSave(CustomNpcsPermissions.NPC_ADVANCED, true), TransformGet(true),
 	TransformLoad(CustomNpcsPermissions.NPC_ADVANCED, true),
 	TraderMarketSave(CustomNpcsPermissions.NPC_ADVANCED, true),
@@ -72,8 +70,6 @@ public enum EnumPacketServer {
     QuestGet, QuestCategoryGet,
 	SaveTileEntity, MailOpenSetup,
 	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen, CacheAnimation,
-
-	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,
 
 	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
 	IgnoreInvite, SetPartyLeader, SetPartyQuest,

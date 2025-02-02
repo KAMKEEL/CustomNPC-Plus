@@ -27,8 +27,7 @@ public final class CustomScrollClickPacket extends AbstractPacket {
     private boolean doubleClick;
     private NBTTagCompound compound;
 
-    public CustomScrollClickPacket() {
-    }
+    public CustomScrollClickPacket() {}
 
     public CustomScrollClickPacket(NBTTagCompound compound, int scrollId, int scrollIndex, NBTTagCompound selection, boolean doubleClick) {
         this.compound = compound;

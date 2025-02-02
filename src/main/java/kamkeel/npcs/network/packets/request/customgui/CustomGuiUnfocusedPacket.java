@@ -23,8 +23,7 @@ public final class CustomGuiUnfocusedPacket extends AbstractPacket {
     private NBTTagCompound compound;
     private int id;
 
-    public CustomGuiUnfocusedPacket() {
-    }
+    public CustomGuiUnfocusedPacket() {}
 
     public CustomGuiUnfocusedPacket(int id, NBTTagCompound comp) {
         this.compound = comp;
