@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.packets.request.dialog.DialogGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -44,7 +45,7 @@ public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, 
     	if(option.optionType == EnumOptionType.DialogOption){
     		this.addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 84, "availability.selectdialog"));
     		if(option.dialogId >= 0)
-    			Client.sendData(EnumPacketServer.DialogGet, option.dialogId);
+                DialogGetPacket.getDialog(option.dialogId);
     	}
     	if(option.optionType == EnumOptionType.CommandBlock){
 	    	this.addTextField(new GuiNpcTextField(4, this, this.fontRendererObj, guiLeft + 4,  guiTop + 84, 248, 20, option.command));

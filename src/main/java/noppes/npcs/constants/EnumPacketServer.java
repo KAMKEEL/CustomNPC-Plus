@@ -37,15 +37,11 @@ public enum EnumPacketServer {
 	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
     EventScriptDataGet(true),
 
-    DialogCategoriesGet,
-    DialogsGetFromDialog,
-	DialogsGet,
     DialogGet,
 	DialogRemove(CustomNpcsPermissions.GLOBAL_DIALOG),
 
 	FactionsGet,
     FactionGet,
-    TagGet,
 	QuestCategoriesGet,
 	QuestsGetFromQuest, QuestsGet,
 	MerchantUpdate(CustomNpcsPermissions.EDIT_VILLAGER),

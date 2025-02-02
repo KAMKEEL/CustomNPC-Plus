@@ -72,9 +72,7 @@ public class PacketHandlerServer{
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
-					if (item.getItem() == CustomItems.wand)
-						wandPackets(type, in, player, npc);
-					else if (item.getItem() == CustomItems.moving)
+					if (item.getItem() == CustomItems.moving)
 						movingPackets(type, in, player, npc);
 					else if (item.getItem() == CustomItems.mount)
 						mountPackets(type, in, player);
@@ -365,26 +363,7 @@ public class PacketHandlerServer{
 	}
 
 	private void blockPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		if(type == EnumPacketServer.DialogCategoriesGet){
-			ScrollDataPacket.sendScrollData(player, DialogController.Instance.getScroll());
-		}
-		else if(type == EnumPacketServer.DialogsGetFromDialog){
-			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
-			if(dialog == null)
-				return;
-			NoppesUtilServer.sendDialogData(player,dialog.category);
-		}
-		else if(type == EnumPacketServer.DialogsGet){
-			int catID = buffer.readInt();
-			boolean sendGroup = buffer.readBoolean();
-			if(sendGroup){
-				NoppesUtilServer.sendDialogGroup(player,DialogController.Instance.categories.get(catID));
-			}
-			else {
-				NoppesUtilServer.sendDialogData(player,DialogController.Instance.categories.get(catID));
-			}
-		}
-		else if(type == EnumPacketServer.QuestsGetFromQuest){
+		if(type == EnumPacketServer.QuestsGetFromQuest){
 			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
 			if(quest == null)
 				return;
@@ -406,16 +385,6 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.FactionsGet){
 			NoppesUtilServer.sendFactionDataAll(player);
 		}
-		else if(type == EnumPacketServer.DialogGet){
-			Dialog dialog = DialogController.Instance.dialogs.get(buffer.readInt());
-			if(dialog != null){
-				NBTTagCompound compound = dialog.writeToNBT(new NBTTagCompound());
-				Quest quest = QuestController.Instance.quests.get(dialog.quest);
-				if(quest != null)
-					compound.setString("DialogQuestName", quest.title);
-				GuiDataPacket.sendGuiData(player, compound);
-			}
-		}
 		else if(type == EnumPacketServer.QuestGet){
 			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
 			if(quest != null){
@@ -431,17 +400,8 @@ public class PacketHandlerServer{
 			faction.writeNBT(compound);
 			GuiDataPacket.sendGuiData(player, compound);
 		}
-		else if(type == EnumPacketServer.TagGet){
-			NBTTagCompound compound = new NBTTagCompound();
-			Tag tag = TagController.getInstance().get(buffer.readInt());
-			tag.writeNBT(compound);
-			GuiDataPacket.sendGuiData(player, compound);
-		}
 	}
 
-	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
-        blockPackets(type, buffer, player);
-	}
 	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
 		if(type == EnumPacketServer.SpawnRider){
 			Entity entity = EntityList.createEntityFromNBT(ByteBufUtils.readNBT(buffer), player.worldObj);

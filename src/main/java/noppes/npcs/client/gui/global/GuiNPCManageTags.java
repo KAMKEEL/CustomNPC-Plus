@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagGetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
 import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
@@ -158,7 +159,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 		{
 			save();
 			selected = scrollTags.getSelected();
-			Client.sendData(EnumPacketServer.TagGet, data.get(selected));
+            PacketClient.sendClient(new TagGetPacket(data.get(selected)));
 		}
 	}
 

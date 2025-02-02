@@ -31,7 +31,6 @@ public enum EnumRequestPacket {
     DialogNpcGet,
     DialogCategorySave,
     DialogCategoriesGet,
-    DialogsGetFromDialog,
     DialogCategoryRemove,
     DialogCategoryGet,
     DialogSave,

@@ -43,7 +43,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
     public GuiNPCManageDialogs(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.DialogCategoriesGet);
+        PacketClient.sendClient(new DialogCategoriesGetPacket());
     }
 
     public void initGui()
@@ -278,7 +278,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		else {
 			category.readNBT(compound);
 			setPrevCatName(category.title);
-			Client.sendData(EnumPacketServer.DialogsGet, category.id, true);
+            PacketClient.sendClient(new DialogsGetPacket(category.id, true));
 			resetDiagList();
 		}
 		initGui();
@@ -354,7 +354,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 			String selected = dialogScroll.getSelected();
 			if(!selected.equals(prevDialogName) || override){
 				dialog = new Dialog();
-				Client.sendData(EnumPacketServer.DialogGet, dialogData.get(selected));
+                DialogGetPacket.getDialog(dialogData.get(selected));
 				setPrevDialogName(selected);
 			}
 		}

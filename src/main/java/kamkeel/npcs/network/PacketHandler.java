@@ -137,10 +137,13 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new DialogCategorySavePacket());
         REQUEST_PACKET.registerPacket(new DialogCategoryRemovePacket());
         REQUEST_PACKET.registerPacket(new DialogCategoryGetPacket());
+        REQUEST_PACKET.registerPacket(new DialogCategoriesGetPacket());
 
         // Dialog Packets
         REQUEST_PACKET.registerPacket(new DialogSavePacket());
         REQUEST_PACKET.registerPacket(new DialogRemovePacket());
+        REQUEST_PACKET.registerPacket(new DialogsGetPacket());
+        REQUEST_PACKET.registerPacket(new DialogGetPacket());
 
         REQUEST_PACKET.registerPacket(new DialogNpcGetPacket());
         REQUEST_PACKET.registerPacket(new DialogNpcSetPacket());
@@ -166,6 +169,7 @@ public class PacketHandler {
 
         // Tag Packets
         REQUEST_PACKET.registerPacket(new TagsGetPacket());
+        REQUEST_PACKET.registerPacket(new TagGetPacket());
         REQUEST_PACKET.registerPacket(new TagsNpcGetPacket());
         REQUEST_PACKET.registerPacket(new TagSetPacket());
         REQUEST_PACKET.registerPacket(new TagSavePacket());

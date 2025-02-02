@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.packets.request.dialog.DialogGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -66,16 +67,16 @@ public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiS
 		getButton(13).setDisplayText("availability.selectdialog");
 
 		if(availabitily.dialogId >= 0){
-			Client.sendData(EnumPacketServer.DialogGet, availabitily.dialogId);
+            DialogGetPacket.getDialog(availabitily.dialogId);
 		}
 		if(availabitily.dialog2Id >= 0){
-			Client.sendData(EnumPacketServer.DialogGet, availabitily.dialog2Id);
+            DialogGetPacket.getDialog(availabitily.dialog2Id);
 		}
 		if(availabitily.dialog3Id >= 0){
-			Client.sendData(EnumPacketServer.DialogGet, availabitily.dialog3Id);
+            DialogGetPacket.getDialog(availabitily.dialog3Id);
 		}
 		if(availabitily.dialog4Id >= 0){
-			Client.sendData(EnumPacketServer.DialogGet, availabitily.dialog4Id);
+            DialogGetPacket.getDialog(availabitily.dialog4Id);
 		}
 	}
 
