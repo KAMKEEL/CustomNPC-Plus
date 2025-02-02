@@ -228,6 +228,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TransformLoadPacket());
 
         // Other Packets
+        REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
         REQUEST_PACKET.registerPacket(new DimensionsGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationCachePacket());

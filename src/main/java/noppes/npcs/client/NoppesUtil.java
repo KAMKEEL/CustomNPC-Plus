@@ -3,7 +3,7 @@ package noppes.npcs.client;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.GuiRequestPacket;
-import kamkeel.npcs.network.packets.request.IsGuiOpenPacket;
+import kamkeel.npcs.network.packets.request.IsGuiOpenInform;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -22,7 +22,6 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.IScrollGroup;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -269,7 +268,6 @@ public class NoppesUtil {
 	}
 
 	public static void isGUIOpen(boolean isGUIOpen) {
-        PacketClient.sendClient(new IsGuiOpenPacket(isGUIOpen));
-		Client.sendData(EnumPacketServer.IsGuiOpen, isGUIOpen);
+        PacketClient.sendClient(new IsGuiOpenInform(isGUIOpen));
 	}
 }
