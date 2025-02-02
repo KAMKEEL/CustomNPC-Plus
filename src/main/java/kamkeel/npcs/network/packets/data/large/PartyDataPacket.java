@@ -25,13 +25,14 @@ public final class PartyDataPacket extends LargeAbstractPacket {
 
     private NBTTagCompound compound;
 
-    public PartyDataPacket(){}
+    public PartyDataPacket() {
+    }
 
-    public PartyDataPacket(NBTTagCompound comp){
+    public PartyDataPacket(NBTTagCompound comp) {
         this.compound = comp;
     }
 
-    public static void sendPartyData(EntityPlayerMP playerMP, NBTTagCompound compound){
+    public static void sendPartyData(EntityPlayerMP playerMP, NBTTagCompound compound) {
         PartyDataPacket packet = new PartyDataPacket(compound);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }
@@ -60,9 +61,9 @@ public final class PartyDataPacket extends LargeAbstractPacket {
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
         if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
-            gui = (GuiScreen) ((GuiNPCInterface) gui).getSubGui();
+            gui = ((GuiNPCInterface) gui).getSubGui();
         } else if (gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface) gui).hasSubGui()) {
-            gui = (GuiScreen) ((GuiContainerNPCInterface) gui).getSubGui();
+            gui = ((GuiContainerNPCInterface) gui).getSubGui();
         }
         if (gui instanceof IPartyData) {
             NBTTagCompound nbt = ByteBufUtils.readBigNBT(data);

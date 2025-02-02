@@ -17,7 +17,8 @@ public final class ScriptOverlayClosePacket extends AbstractPacket {
 
     private int particleId;
 
-    public ScriptOverlayClosePacket() {}
+    public ScriptOverlayClosePacket() {
+    }
 
     public ScriptOverlayClosePacket(int particleId) {
         this.particleId = particleId;

@@ -16,7 +16,8 @@ import java.io.IOException;
 public final class IsGuiOpenPacket extends AbstractPacket {
     public static final String packetName = "Data|IsGuiOpen";
 
-    public IsGuiOpenPacket() {}
+    public IsGuiOpenPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -29,7 +30,8 @@ public final class IsGuiOpenPacket extends AbstractPacket {
     }
 
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

@@ -13,7 +13,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
 
@@ -23,7 +22,8 @@ import java.util.UUID;
 public final class TagsNpcGetPacket extends AbstractPacket {
     public static final String packetName = "Request|NpcTagsGet";
 
-    public TagsNpcGetPacket() {}
+    public TagsNpcGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -36,13 +36,14 @@ public final class TagsNpcGetPacket extends AbstractPacket {
     }
 
     @Override
-    public boolean needsNPC(){
+    public boolean needsNPC() {
         return true;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
@@ -54,7 +55,7 @@ public final class TagsNpcGetPacket extends AbstractPacket {
                 tagList.appendTag(new NBTTagString(tag.name));
             }
         }
-        compound.setTag("TagNames",tagList);
+        compound.setTag("TagNames", tagList);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 }

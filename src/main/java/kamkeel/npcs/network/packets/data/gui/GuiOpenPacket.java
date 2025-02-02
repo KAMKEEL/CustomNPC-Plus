@@ -23,7 +23,8 @@ public final class GuiOpenPacket extends AbstractPacket {
     private int y;
     private int z;
 
-    public GuiOpenPacket() {}
+    public GuiOpenPacket() {
+    }
 
     public GuiOpenPacket(EnumGuiType type, int x, int y, int z) {
         this.type = type;
@@ -32,7 +33,7 @@ public final class GuiOpenPacket extends AbstractPacket {
         this.z = z;
     }
 
-    public static void openGUI(EntityPlayerMP playerMP, EnumGuiType type, int x, int y, int z){
+    public static void openGUI(EntityPlayerMP playerMP, EnumGuiType type, int x, int y, int z) {
         GuiOpenPacket packet = new GuiOpenPacket(type, x, y, z);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }

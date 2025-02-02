@@ -28,7 +28,8 @@ public final class ParticlePacket extends AbstractPacket {
 
     private String particle;
 
-    public ParticlePacket() {}
+    public ParticlePacket() {
+    }
 
     public ParticlePacket(double x, double y, double z, float height, float width, float yOffset, String particle) {
         this.x = x;
@@ -70,7 +71,7 @@ public final class ParticlePacket extends AbstractPacket {
     }
 
     @SideOnly(Side.CLIENT)
-    public static void spawnParticle(ByteBuf buffer) throws IOException{
+    public static void spawnParticle(ByteBuf buffer) throws IOException {
         double posX = buffer.readDouble();
         double posY = buffer.readDouble();
         double posZ = buffer.readDouble();
@@ -82,11 +83,10 @@ public final class ParticlePacket extends AbstractPacket {
         World worldObj = Minecraft.getMinecraft().theWorld;
 
         Random rand = worldObj.rand;
-        if(particle.equals("heal")){
-            for (int k = 0; k < 6; k++)
-            {
-                worldObj.spawnParticle("instantSpell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
-                worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
+        if (particle.equals("heal")) {
+            for (int k = 0; k < 6; k++) {
+                worldObj.spawnParticle("instantSpell", posX + (rand.nextDouble() - 0.5D) * (double) width, (posY + rand.nextDouble() * (double) height) - (double) yOffset, posZ + (rand.nextDouble() - 0.5D) * (double) width, 0, 0, 0);
+                worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double) width, (posY + rand.nextDouble() * (double) height) - (double) yOffset, posZ + (rand.nextDouble() - 0.5D) * (double) width, 0, 0, 0);
             }
         }
     }

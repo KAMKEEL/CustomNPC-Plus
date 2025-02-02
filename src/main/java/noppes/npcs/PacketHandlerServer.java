@@ -29,16 +29,12 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.village.MerchantRecipeList;
-import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.DimensionManager;
-import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.*;
-import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
@@ -50,8 +46,6 @@ import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.PartyEvent;
-import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.io.IOException;
@@ -74,162 +68,6 @@ public class PacketHandlerServer{
 			ItemStack item = player.inventory.getCurrentItem();
 
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-
-			if (type == EnumPacketServer.CacheAnimation) {
-				PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(in.readInt());
-				return;
-			} else if (type == EnumPacketServer.GetPartyData || type == EnumPacketServer.CreateParty) {
-                if(!ConfigMain.PartiesEnabled)
-                    return;
-
-				if (type == EnumPacketServer.CreateParty) {
-					Party party = PartyController.Instance().createParty();
-					party.addPlayer(player);
-					party.setLeader(player);
-				}
-				sendPartyData(player);
-			} else if (type == EnumPacketServer.DisbandParty) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				if (playerData.partyUUID != null) {
-					PartyController.Instance().disbandParty(playerData.partyUUID);
-				}
-				NBTTagCompound compound = new NBTTagCompound();
-				compound.setBoolean("Disband", true);
-                PartyDataPacket.sendPartyData(player, compound);
-			} else if (type == EnumPacketServer.KickPlayer) {
-                String kickPlayerName = ByteBufUtils.readString(in);
-				EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(kickPlayerName);
-                PlayerData playerData = null;
-                UUID playerUUID = null;
-				if (kickPlayer != null) {
-                    playerData = PlayerDataController.Instance.getPlayerData(player);
-				} else {
-                    String uuid = PlayerDataController.Instance.getPlayerUUIDFromName(kickPlayerName);
-                    if(!uuid.isEmpty()){
-                        playerData = PlayerDataController.Instance.getPlayerDataCache(uuid);
-                        playerUUID = UUID.fromString(uuid);
-                    }
-                }
-
-                if(playerData != null){
-                    if (playerData.partyUUID != null) {
-                        Party party = PartyController.Instance().getParty(playerData.partyUUID);
-                        if (!party.getIsLocked()) {
-                            PartyEvent.PartyKickEvent partyEvent = new PartyEvent.PartyKickEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(kickPlayer));
-                            EventHooks.onPartyKick(partyEvent);
-                            if (!partyEvent.isCancelled()){
-                                boolean successful = party.removePlayer(kickPlayer);
-                                if(!successful)
-                                    successful = party.removePlayer(playerUUID);
-
-                                if(successful){
-                                    if(kickPlayer != null){
-                                        sendInviteData((EntityPlayerMP) kickPlayer);
-                                    }
-                                    PartyController.Instance().pingPartyUpdate(party);
-                                    PartyController.Instance().sendKickMessages(party, kickPlayer, kickPlayerName);
-                                }
-                            }
-                        }
-                    }
-                }
-			} else if (type == EnumPacketServer.LeavePlayer) {
-                EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
-                if (leavingPlayer != null) {
-                    PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-                    if (playerData.partyUUID != null) {
-                        Party party = PartyController.Instance().getParty(playerData.partyUUID);
-                        boolean successful = party.removePlayer(leavingPlayer);
-                        if(successful){
-                            PartyEvent.PartyLeaveEvent partyEvent = new PartyEvent.PartyLeaveEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(leavingPlayer));
-                            EventHooks.onPartyLeave(partyEvent);
-                            sendInviteData((EntityPlayerMP) leavingPlayer);
-                            PartyController.Instance().pingPartyUpdate(party);
-                            PartyController.Instance().sendLeavingMessages(party, leavingPlayer);
-                        }
-                    }
-                }
-            } else if (type == EnumPacketServer.SavePartyData) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				if (playerData.partyUUID != null) {
-					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-					party.readClientNBT(ByteBufUtils.readNBT(in));
-				}
-			} else if (type == EnumPacketServer.SetPartyLeader) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				if (playerData.partyUUID != null) {
-					Party party = PartyController.Instance().getParty(playerData.partyUUID);
-                    if (!party.getIsLocked()) {
-                        party.setLeader(NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in)));
-                        PartyController.Instance().pingPartyUpdate(party);
-                    }
-				}
-			} else if (type == EnumPacketServer.PartyInvite) {
-				EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
-				if (invitedPlayer != null) {
-					PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
-					PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
-					if (senderData.partyUUID != null && invitedData.partyUUID == null) {//only send invite if player is not in a party
-                        Party party = PartyController.Instance().getParty(senderData.partyUUID);
-                        if (!party.getIsLocked()) {
-                            PartyEvent.PartyInviteEvent partyEvent = new PartyEvent.PartyInviteEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(invitedPlayer));
-                            EventHooks.onPartyInvite(partyEvent);
-                            if (!partyEvent.isCancelled()){
-                                invitedData.inviteToParty(party);
-                                sendInviteData((EntityPlayerMP) invitedPlayer);
-                            }
-                        }
-					}
-				}
-			} else if (type == EnumPacketServer.GetPartyInviteList) {
-				sendInviteData(player);
-			} else if (type == EnumPacketServer.AcceptInvite) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				String uuidString = ByteBufUtils.readString(in);
-				if (uuidString != null) {
-					UUID uuid = UUID.fromString(uuidString);
-					playerData.acceptInvite(uuid);
-				}
-			} else if (type == EnumPacketServer.IgnoreInvite) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-				String uuidString = ByteBufUtils.readString(in);
-				if (uuidString != null) {
-					UUID uuid = UUID.fromString(uuidString);
-					playerData.ignoreInvite(uuid);
-				}
-			} else if (type == EnumPacketServer.SetPartyQuest) {
-				PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-                if(playerData.partyUUID != null){
-                    Party party = PartyController.Instance().getParty(playerData.partyUUID);
-                    if (party != null) {
-                        if (party.getLeaderUUID().equals(player.getUniqueID())) {
-                            int questID = in.readInt();
-                            party.setQuest(null);
-                            if(questID != -1){
-                                Quest foundQuest = QuestController.Instance.quests.get(questID);
-                                if(foundQuest != null){
-                                    if (foundQuest.partyOptions.allowParty) {
-                                        if(party.validateQuest(questID, true)){
-                                            PartyEvent.PartyQuestSetEvent partyEvent = new PartyEvent.PartyQuestSetEvent(party, foundQuest);
-                                            EventHooks.onPartyQuestSet(partyEvent);
-                                            if (!partyEvent.isCancelled()){
-                                                if(playerData.questData.hasActiveQuest(questID)){
-                                                    QuestData questdata = new QuestData(foundQuest);
-                                                    playerData.questData.activeQuests.put(questID, questdata);
-                                                }
-                                                party.setQuest(foundQuest);
-                                                PartyController.Instance().sendQuestChat(party, "party.setChat", " ", foundQuest.title);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            PartyController.Instance().pingPartyUpdate(party);
-                        }
-                    }
-                }
-			}
-
 			if(type.needsNpc && npc == null){
 
 			}
@@ -617,22 +455,7 @@ public class PacketHandlerServer{
 	}
 
 	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
-		if(type == EnumPacketServer.Delete){
-			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] (Player) %s DELETE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
-			}
-			npc.delete();
-			NoppesUtilServer.deleteNpc(npc,player);
-		}
-		else if(type == EnumPacketServer.LinkedAdd){
-			LinkedNpcController.Instance.addData(ByteBufUtils.readString(buffer));
-
-			List<String> list = new ArrayList<String>();
-			for(LinkedData data : LinkedNpcController.Instance.list)
-				list.add(data.name);
-            ScrollListPacket.sendList((EntityPlayerMP)player, list);
-		}
-		else if(type == EnumPacketServer.LinkedRemove){
+		if(type == EnumPacketServer.LinkedRemove){
 			LinkedNpcController.Instance.removeData(ByteBufUtils.readString(buffer));
 
 			List<String> list = new ArrayList<String>();
@@ -651,15 +474,6 @@ public class PacketHandlerServer{
 		else if(type == EnumPacketServer.LinkedSet){
 			npc.linkedName = ByteBufUtils.readString(buffer);
 			LinkedNpcController.Instance.loadNpcData(npc);
-		}
-		else if(type == EnumPacketServer.NpcMenuClose){
-			npc.reset();
-			if(npc.linkedData != null)
-				LinkedNpcController.Instance.saveNpcData(npc);
-			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] (Player) %s CLOSE NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)npc.posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
-			}
-			NoppesUtilServer.setEditingNpc(player, null);
 		}
 		else if(type == EnumPacketServer.BanksGet){
 			NoppesUtilServer.sendBankDataAll(player);
@@ -1167,7 +981,6 @@ public class PacketHandlerServer{
 		}
 		else
 			blockPackets(type, buffer, player);
-
 	}
 	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
 		if(type == EnumPacketServer.SpawnRider){

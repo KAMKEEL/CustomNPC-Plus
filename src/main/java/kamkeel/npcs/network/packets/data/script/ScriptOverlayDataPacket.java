@@ -11,8 +11,8 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 
 import java.io.IOException;
 
@@ -21,7 +21,8 @@ public final class ScriptOverlayDataPacket extends AbstractPacket {
 
     private NBTTagCompound overlayCompound;
 
-    public ScriptOverlayDataPacket() {}
+    public ScriptOverlayDataPacket() {
+    }
 
     public ScriptOverlayDataPacket(NBTTagCompound overlayCompound) {
         this.overlayCompound = overlayCompound;

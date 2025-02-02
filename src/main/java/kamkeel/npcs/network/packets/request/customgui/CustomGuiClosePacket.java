@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request;
+package kamkeel.npcs.network.packets.request.customgui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -14,25 +14,25 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.gui.ScriptGui;
 
 import java.io.IOException;
 
-public final class CustomGuiButtonPacket extends AbstractPacket {
-    public static final String packetName = "Request|CustomGuiButton";
+public final class CustomGuiClosePacket extends AbstractPacket {
+    public static final String packetName = "Request|CustomGuiClose";
 
     private NBTTagCompound compound;
-    private int id;
 
-    public CustomGuiButtonPacket() {}
+    public CustomGuiClosePacket() {
+    }
 
-    public CustomGuiButtonPacket(int id, NBTTagCompound comp){
+    public CustomGuiClosePacket(int id, NBTTagCompound comp) {
         this.compound = comp;
-        this.id = id;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.CustomGuiButton;
+        return EnumRequestPacket.CustomGuiClose;
     }
 
     @Override
@@ -44,19 +44,15 @@ public final class CustomGuiButtonPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(id);
         ByteBufUtils.writeNBT(out, compound);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(!(player.openContainer instanceof ContainerCustomGui))
+        if (!(player.openContainer instanceof ContainerCustomGui))
             return;
 
-        int id = in.readInt();
         NBTTagCompound comp = ByteBufUtils.readNBT(in);
-
-        ((ContainerCustomGui) player.openContainer).customGui.fromNBT(comp);
-        EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, id);
+        EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(comp));
     }
 }

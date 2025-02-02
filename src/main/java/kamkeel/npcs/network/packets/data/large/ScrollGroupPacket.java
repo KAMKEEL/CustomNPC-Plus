@@ -19,13 +19,14 @@ public final class ScrollGroupPacket extends LargeAbstractPacket {
 
     private Map<String, Integer> data;
 
-    public ScrollGroupPacket() {}
+    public ScrollGroupPacket() {
+    }
 
     public ScrollGroupPacket(Map<String, Integer> data) {
         this.data = data;
     }
 
-    public static void sendScrollGroup(EntityPlayerMP player, Map<String,Integer> map){
+    public static void sendScrollGroup(EntityPlayerMP player, Map<String, Integer> map) {
         ScrollGroupPacket packet = new ScrollGroupPacket(map);
         PacketHandler.Instance.sendToPlayer(packet, player);
     }

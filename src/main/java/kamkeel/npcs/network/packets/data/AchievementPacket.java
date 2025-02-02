@@ -29,7 +29,8 @@ public final class AchievementPacket extends AbstractPacket {
     private String description;
     private String message;
 
-    public AchievementPacket() {}
+    public AchievementPacket() {
+    }
 
     public AchievementPacket(boolean isParty, String description, String message) {
         this.isParty = isParty;
@@ -37,7 +38,7 @@ public final class AchievementPacket extends AbstractPacket {
         this.message = message;
     }
 
-    public static void sendAchievement(EntityPlayerMP playerMP, boolean isParty, String description, String message){
+    public static void sendAchievement(EntityPlayerMP playerMP, boolean isParty, String description, String message) {
         AchievementPacket packet = new AchievementPacket(isParty, description, message);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }
@@ -62,7 +63,7 @@ public final class AchievementPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(!ConfigClient.BannerAlerts)
+        if (!ConfigClient.BannerAlerts)
             return;
 
         boolean isNotParty = !in.readBoolean();

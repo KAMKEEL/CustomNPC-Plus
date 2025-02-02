@@ -11,7 +11,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilPlayer;
 
 import java.io.IOException;
@@ -22,7 +21,8 @@ public final class QuestLogToServerPacket extends AbstractPacket {
     private NBTTagCompound compound;
     private String key;
 
-    public QuestLogToServerPacket() {}
+    public QuestLogToServerPacket() {
+    }
 
     public QuestLogToServerPacket(NBTTagCompound compound, String key) {
         this.compound = compound;

@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request;
+package kamkeel.npcs.network.packets.request.customgui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -27,7 +27,8 @@ public final class CustomScrollClickPacket extends AbstractPacket {
     private boolean doubleClick;
     private NBTTagCompound compound;
 
-    public CustomScrollClickPacket() {}
+    public CustomScrollClickPacket() {
+    }
 
     public CustomScrollClickPacket(NBTTagCompound compound, int scrollId, int scrollIndex, NBTTagCompound selection, boolean doubleClick) {
         this.compound = compound;
@@ -60,7 +61,7 @@ public final class CustomScrollClickPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(!(player.openContainer instanceof ContainerCustomGui))
+        if (!(player.openContainer instanceof ContainerCustomGui))
             return;
 
         NBTTagCompound comp = ByteBufUtils.readNBT(in);

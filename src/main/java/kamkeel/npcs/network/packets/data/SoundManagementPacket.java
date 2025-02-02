@@ -24,7 +24,8 @@ public final class SoundManagementPacket extends AbstractPacket {
     private NBTTagCompound nbt;
     private int soundId;
 
-    public SoundManagementPacket() {}
+    public SoundManagementPacket() {
+    }
 
     public SoundManagementPacket(EnumSoundOperation operation) {
         this.operation = operation;

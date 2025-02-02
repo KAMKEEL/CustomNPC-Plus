@@ -25,7 +25,8 @@ public final class DialogPacket extends AbstractPacket {
     private int entityID;
     private NBTTagCompound compound;
 
-    public DialogPacket() {}
+    public DialogPacket() {
+    }
 
     public DialogPacket(String dummyName, int entityID, NBTTagCompound compound) {
         this.dummyName = dummyName;
@@ -58,12 +59,11 @@ public final class DialogPacket extends AbstractPacket {
         NBTTagCompound tagCompound = ByteBufUtils.readNBT(in);
 
         // Dummy NPC
-        if(entityID == -1){
+        if (entityID == -1) {
             EntityDialogNpc npc = new EntityDialogNpc(player.worldObj);
             npc.display.name = name;
             NoppesUtil.openDialog(tagCompound, npc, player);
-        }
-        else {
+        } else {
             Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(entityID);
             if (!(entity instanceof EntityNPCInterface)) {
                 return;

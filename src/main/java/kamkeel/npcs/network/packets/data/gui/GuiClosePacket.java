@@ -23,14 +23,15 @@ public final class GuiClosePacket extends AbstractPacket {
     private int code;
     private NBTTagCompound compound;
 
-    public GuiClosePacket() {}
+    public GuiClosePacket() {
+    }
 
     public GuiClosePacket(int code, NBTTagCompound compound) {
         this.code = code;
         this.compound = compound;
     }
 
-    public static void closeGUI(EntityPlayerMP playerMP, int closeCode, NBTTagCompound compound){
+    public static void closeGUI(EntityPlayerMP playerMP, int closeCode, NBTTagCompound compound) {
         GuiClosePacket packet = new GuiClosePacket(closeCode, compound);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }

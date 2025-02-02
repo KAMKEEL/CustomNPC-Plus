@@ -132,7 +132,7 @@ public class GuiNpcMenu implements GuiYesNoCallback {
     public void confirmClicked(boolean flag, int i) {
         Minecraft mc = Minecraft.getMinecraft();
         if (flag) {
-            Client.sendData(EnumPacketServer.Delete);
+            Client.sendData(EnumPacketServer.NPCDelete);
             mc.displayGuiScreen(null);
             mc.setIngameFocus();
         } else {

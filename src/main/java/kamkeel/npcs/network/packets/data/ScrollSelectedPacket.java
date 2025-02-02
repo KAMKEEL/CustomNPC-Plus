@@ -21,13 +21,14 @@ public final class ScrollSelectedPacket extends AbstractPacket {
 
     private String selected;
 
-    public ScrollSelectedPacket() {}
+    public ScrollSelectedPacket() {
+    }
 
     public ScrollSelectedPacket(String selected) {
         this.selected = selected;
     }
 
-    public static void setSelectedList(EntityPlayerMP playerMP, String item){
+    public static void setSelectedList(EntityPlayerMP playerMP, String item) {
         ScrollSelectedPacket packet = new ScrollSelectedPacket(item);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }

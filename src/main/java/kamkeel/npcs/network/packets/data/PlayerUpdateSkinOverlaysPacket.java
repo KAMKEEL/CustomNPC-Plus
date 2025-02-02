@@ -21,7 +21,8 @@ public final class PlayerUpdateSkinOverlaysPacket extends AbstractPacket {
     private String playerName;
     private NBTTagCompound compound;
 
-    public PlayerUpdateSkinOverlaysPacket() {}
+    public PlayerUpdateSkinOverlaysPacket() {
+    }
 
     public PlayerUpdateSkinOverlaysPacket(String playerName, NBTTagCompound compound) {
         this.playerName = playerName;

@@ -12,7 +12,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
-import noppes.npcs.NoppesUtilPlayer;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -20,7 +19,8 @@ import java.util.HashMap;
 public final class DimensionsGetPacket extends AbstractPacket {
     public static final String packetName = "Request|DimensionsGet";
 
-    public DimensionsGetPacket() {}
+    public DimensionsGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -34,12 +34,13 @@ public final class DimensionsGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        HashMap<String,Integer> map = new HashMap<String,Integer>();
-        for(int id : DimensionManager.getStaticDimensionIDs()){
+        HashMap<String, Integer> map = new HashMap<String, Integer>();
+        for (int id : DimensionManager.getStaticDimensionIDs()) {
             WorldProvider provider = DimensionManager.createProviderFor(id);
             map.put(provider.getDimensionName(), id);
         }

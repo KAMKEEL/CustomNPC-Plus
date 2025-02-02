@@ -15,7 +15,8 @@ import java.io.IOException;
 public final class SwingPlayerArmPacket extends AbstractPacket {
     public static final String packetName = "Data|SwingPlayerArm";
 
-    public SwingPlayerArmPacket() {}
+    public SwingPlayerArmPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -28,7 +29,8 @@ public final class SwingPlayerArmPacket extends AbstractPacket {
     }
 
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @SideOnly(Side.CLIENT)
     @Override

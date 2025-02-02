@@ -28,7 +28,8 @@ public final class SyncPacket extends LargeAbstractPacket {
     private NBTTagCompound syncData;
     private int operationID;
 
-    public SyncPacket() {}
+    public SyncPacket() {
+    }
 
     /**
      * Constructs a new LargeSyncPacket.
@@ -70,7 +71,7 @@ public final class SyncPacket extends LargeAbstractPacket {
 
     @Override
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
+        if (CustomNpcs.side() != Side.CLIENT)
             return;
 
         // Reconstruct everything from the ByteBuf

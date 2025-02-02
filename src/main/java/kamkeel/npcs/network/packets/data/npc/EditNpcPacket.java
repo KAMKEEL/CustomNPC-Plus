@@ -19,7 +19,9 @@ public final class EditNpcPacket extends AbstractPacket {
     public static final String packetName = "Data|EditNpc";
 
     int entityId;
-    public EditNpcPacket() {}
+
+    public EditNpcPacket() {
+    }
 
     public EditNpcPacket(int entityId) {
         this.entityId = entityId;

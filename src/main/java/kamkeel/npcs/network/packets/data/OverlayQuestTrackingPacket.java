@@ -11,8 +11,8 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.gui.OverlayQuestTracking;
 
 import java.io.IOException;
 
@@ -21,7 +21,8 @@ public final class OverlayQuestTrackingPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public OverlayQuestTrackingPacket() {}
+    public OverlayQuestTrackingPacket() {
+    }
 
     public OverlayQuestTrackingPacket(NBTTagCompound compound) {
         this.compound = compound;

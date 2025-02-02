@@ -21,9 +21,10 @@ public final class ClonerPacket extends LargeAbstractPacket {
 
     private NBTTagCompound compound;
 
-    public ClonerPacket() {}
+    public ClonerPacket() {
+    }
 
-    public ClonerPacket(NBTTagCompound comp){
+    public ClonerPacket(NBTTagCompound comp) {
         this.compound = comp;
     }
 

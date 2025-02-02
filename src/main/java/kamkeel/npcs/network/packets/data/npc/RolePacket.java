@@ -22,7 +22,8 @@ public final class RolePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public RolePacket() {}
+    public RolePacket() {
+    }
 
     public RolePacket(NBTTagCompound compound) {
         this.compound = compound;

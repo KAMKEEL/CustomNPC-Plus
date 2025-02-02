@@ -11,8 +11,8 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.gui.player.GuiBook;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.player.GuiBook;
 
 import java.io.IOException;
 
@@ -24,7 +24,8 @@ public final class GuiOpenBookPacket extends AbstractPacket {
     private int k;
     private NBTTagCompound nbtTagCompound;
 
-    public GuiOpenBookPacket() {}
+    public GuiOpenBookPacket() {
+    }
 
     public GuiOpenBookPacket(int i, int j, int k, NBTTagCompound nbtTagCompound) {
         this.i = i;

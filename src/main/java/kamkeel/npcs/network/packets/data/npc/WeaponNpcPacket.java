@@ -24,7 +24,8 @@ public final class WeaponNpcPacket extends AbstractPacket {
     private int weaponIndex;
     private NBTTagCompound compound;
 
-    public WeaponNpcPacket() {}
+    public WeaponNpcPacket() {
+    }
 
     public WeaponNpcPacket(int entityId, int weaponIndex, NBTTagCompound compound) {
         this.entityId = entityId;
@@ -54,11 +55,11 @@ public final class WeaponNpcPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(in.readInt());
-        if(!(entity instanceof EntityNPCInterface))
+        if (!(entity instanceof EntityNPCInterface))
             return;
         EntityNPCInterface npc = (EntityNPCInterface) entity;
         int weaponSlotIndex = in.readInt();
         ItemStack stack = ItemStack.loadItemStackFromNBT(ByteBufUtils.readNBT(in));
-        npc.inventory.weapons.put(weaponSlotIndex,stack);
+        npc.inventory.weapons.put(weaponSlotIndex, stack);
     }
 }

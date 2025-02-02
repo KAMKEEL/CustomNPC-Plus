@@ -19,7 +19,8 @@ public final class DisableMouseInputPacket extends AbstractPacket {
     private long duration;
     private String keys;
 
-    public DisableMouseInputPacket() {}
+    public DisableMouseInputPacket() {
+    }
 
     public DisableMouseInputPacket(long duration, String keys) {
         this.duration = duration;

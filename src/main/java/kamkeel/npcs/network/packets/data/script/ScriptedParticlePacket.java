@@ -24,7 +24,8 @@ public final class ScriptedParticlePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public ScriptedParticlePacket() {}
+    public ScriptedParticlePacket() {
+    }
 
     public ScriptedParticlePacket(NBTTagCompound compound) {
         this.compound = compound;
@@ -48,15 +49,15 @@ public final class ScriptedParticlePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(CustomNpcs.side() != Side.CLIENT)
+        if (CustomNpcs.side() != Side.CLIENT)
             return;
 
         spawnScriptedParticle(player, in);
     }
 
     @SideOnly(Side.CLIENT)
-    public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){
-        Minecraft minecraft =  Minecraft.getMinecraft();
+    public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer) {
+        Minecraft minecraft = Minecraft.getMinecraft();
 
         NBTTagCompound compound;
         ScriptParticle particle;
@@ -82,7 +83,7 @@ public final class ScriptedParticlePacket extends AbstractPacket {
 
         CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
 
-        for(int i = 0; i < particle.amount; i++){
+        for (int i = 0; i < particle.amount; i++) {
             minecraft.effectRenderer.addEffect(fx);
         }
     }

@@ -8,8 +8,6 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 
@@ -20,9 +18,10 @@ public final class IsGuiOpenPacket extends AbstractPacket {
 
     private boolean isOpen;
 
-    public IsGuiOpenPacket() {}
+    public IsGuiOpenPacket() {
+    }
 
-    public IsGuiOpenPacket(boolean isOpen){
+    public IsGuiOpenPacket(boolean isOpen) {
         this.isOpen = isOpen;
     }
 

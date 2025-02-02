@@ -22,7 +22,8 @@ public final class MarkDataPacket extends AbstractPacket {
     private int entityID;
     private NBTTagCompound compound;
 
-    public MarkDataPacket() {}
+    public MarkDataPacket() {
+    }
 
     public MarkDataPacket(int entityID, NBTTagCompound compound) {
         this.entityID = entityID;

@@ -25,7 +25,8 @@ public final class UpdateAnimationsPacket extends AbstractPacket {
     private NBTTagCompound animationCompound;
     private String playername;
 
-    public UpdateAnimationsPacket() {}
+    public UpdateAnimationsPacket() {
+    }
 
     public UpdateAnimationsPacket(NBTTagCompound animationCompound, String playername) {
         this.animationCompound = animationCompound;

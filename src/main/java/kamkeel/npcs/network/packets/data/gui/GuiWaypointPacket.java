@@ -19,7 +19,8 @@ public final class GuiWaypointPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public GuiWaypointPacket() {}
+    public GuiWaypointPacket() {
+    }
 
     public GuiWaypointPacket(NBTTagCompound compound) {
         this.compound = compound;

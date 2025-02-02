@@ -20,13 +20,14 @@ public final class QuestCompletionPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public QuestCompletionPacket() {}
+    public QuestCompletionPacket() {
+    }
 
     public QuestCompletionPacket(NBTTagCompound compound) {
         this.compound = compound;
     }
 
-    public static void sendQuestComplete(EntityPlayerMP playerMP, NBTTagCompound compound){
+    public static void sendQuestComplete(EntityPlayerMP playerMP, NBTTagCompound compound) {
         QuestCompletionPacket packet = new QuestCompletionPacket(compound);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }

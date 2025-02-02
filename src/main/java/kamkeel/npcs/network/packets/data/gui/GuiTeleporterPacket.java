@@ -17,7 +17,8 @@ import java.io.IOException;
 public final class GuiTeleporterPacket extends AbstractPacket {
     public static final String packetName = "Data|Teleporter";
 
-    public GuiTeleporterPacket(){}
+    public GuiTeleporterPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -30,11 +31,12 @@ public final class GuiTeleporterPacket extends AbstractPacket {
     }
 
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        CustomNpcs.proxy.openGui((EntityNPCInterface)null, EnumGuiType.NpcDimensions);
+        CustomNpcs.proxy.openGui((EntityNPCInterface) null, EnumGuiType.NpcDimensions);
     }
 }

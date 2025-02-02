@@ -23,14 +23,15 @@ public final class GuiErrorPacket extends AbstractPacket {
     private int code;
     private NBTTagCompound compound;
 
-    public GuiErrorPacket() {}
+    public GuiErrorPacket() {
+    }
 
     public GuiErrorPacket(int code, NBTTagCompound compound) {
         this.code = code;
         this.compound = compound;
     }
 
-    public static void errorGUI(EntityPlayerMP playerMP, int closeCode, NBTTagCompound compound){
+    public static void errorGUI(EntityPlayerMP playerMP, int closeCode, NBTTagCompound compound) {
         GuiErrorPacket packet = new GuiErrorPacket(closeCode, compound);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }

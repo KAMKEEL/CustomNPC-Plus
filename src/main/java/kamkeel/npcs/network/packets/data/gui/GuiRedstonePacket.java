@@ -19,7 +19,8 @@ public final class GuiRedstonePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public GuiRedstonePacket() {}
+    public GuiRedstonePacket() {
+    }
 
     public GuiRedstonePacket(NBTTagCompound compound) {
         this.compound = compound;

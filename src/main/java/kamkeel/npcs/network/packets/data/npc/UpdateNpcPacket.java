@@ -21,7 +21,8 @@ public final class UpdateNpcPacket extends AbstractPacket {
 
     private NBTTagCompound npcCompound;
 
-    public UpdateNpcPacket() {}
+    public UpdateNpcPacket() {
+    }
 
     public UpdateNpcPacket(NBTTagCompound npcCompound) {
         this.npcCompound = npcCompound;

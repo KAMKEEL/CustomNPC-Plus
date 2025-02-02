@@ -19,13 +19,14 @@ public final class ScrollListPacket extends LargeAbstractPacket {
 
     private List<String> data;
 
-    public ScrollListPacket() {}
+    public ScrollListPacket() {
+    }
 
     public ScrollListPacket(List<String> data) {
         this.data = data;
     }
 
-    public static void sendList(EntityPlayerMP player, List<String> list){
+    public static void sendList(EntityPlayerMP player, List<String> list) {
         ScrollListPacket packet = new ScrollListPacket(list);
         PacketHandler.Instance.sendToPlayer(packet, player);
     }

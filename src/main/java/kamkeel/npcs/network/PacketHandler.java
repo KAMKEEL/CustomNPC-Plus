@@ -5,6 +5,7 @@ import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.internal.FMLProxyPacket;
+import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
@@ -130,15 +131,15 @@ public final class PacketHandler {
 
     @SubscribeEvent
     public void onServerPacket(FMLNetworkEvent.ServerCustomPacketEvent event) {
-        handlePacket(event.packet, ((NetHandlerPlayServer) event.handler).playerEntity);
+        handlePacket(event.packet, ((NetHandlerPlayServer) event.handler).playerEntity, Side.SERVER);
     }
 
     @SubscribeEvent
     public void onClientPacket(FMLNetworkEvent.ClientCustomPacketEvent event) {
-        handlePacket(event.packet, CustomNpcs.proxy.getPlayer());
+        handlePacket(event.packet, CustomNpcs.proxy.getPlayer(), Side.CLIENT);
     }
 
-    private void handlePacket(FMLProxyPacket packet, EntityPlayer player) {
+    private void handlePacket(FMLProxyPacket packet, EntityPlayer player, Side side) {
         ByteBuf buf = packet.payload();
         try {
             int packetTypeOrdinal = buf.readInt();
@@ -157,16 +158,17 @@ public final class PacketHandler {
                 return;
             }
 
-            // Check if permission is allowed
-            if(abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())){
-                return;
-            }
-
-            // Check for required NPC
-            if(abstractPacket.needsNPC()){
-                EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-                if(npc == null)
+            if(side == Side.SERVER){
+                // Check if permission is allowed
+                if(abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())){
                     return;
+                }
+
+                // Check for required NPC
+                EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+                if(abstractPacket.needsNPC() && npc == null){
+                    return;
+                }
 
                 abstractPacket.setNPC(npc);
             }

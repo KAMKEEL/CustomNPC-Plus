@@ -19,9 +19,10 @@ public final class DeleteNpcPacket extends AbstractPacket {
 
     private int entityId;
 
-    public DeleteNpcPacket() {}
+    public DeleteNpcPacket() {
+    }
 
-    public DeleteNpcPacket(int id){
+    public DeleteNpcPacket(int id) {
         this.entityId = id;
     }
 

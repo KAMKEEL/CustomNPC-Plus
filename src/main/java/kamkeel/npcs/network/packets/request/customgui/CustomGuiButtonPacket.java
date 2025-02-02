@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request;
+package kamkeel.npcs.network.packets.request.customgui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -17,22 +17,23 @@ import noppes.npcs.scripted.NpcAPI;
 
 import java.io.IOException;
 
-public final class CustomGuiUnfocusedPacket extends AbstractPacket {
-    public static final String packetName = "Request|CustomGuiUnfocused";
+public final class CustomGuiButtonPacket extends AbstractPacket {
+    public static final String packetName = "Request|CustomGuiButton";
 
     private NBTTagCompound compound;
     private int id;
 
-    public CustomGuiUnfocusedPacket() {}
+    public CustomGuiButtonPacket() {
+    }
 
-    public CustomGuiUnfocusedPacket(int id, NBTTagCompound comp){
+    public CustomGuiButtonPacket(int id, NBTTagCompound comp) {
         this.compound = comp;
         this.id = id;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.CustomGuiUnfocused;
+        return EnumRequestPacket.CustomGuiButton;
     }
 
     @Override
@@ -50,13 +51,13 @@ public final class CustomGuiUnfocusedPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(!(player.openContainer instanceof ContainerCustomGui))
+        if (!(player.openContainer instanceof ContainerCustomGui))
             return;
 
         int id = in.readInt();
         NBTTagCompound comp = ByteBufUtils.readNBT(in);
 
         ((ContainerCustomGui) player.openContainer).customGui.fromNBT(comp);
-        EventHooks.onCustomGuiUnfocused((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, id);
+        EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, id);
     }
 }

@@ -19,7 +19,8 @@ public final class ScrollDataPacket extends LargeAbstractPacket {
 
     private Map<String, Integer> data;
 
-    public ScrollDataPacket() {}
+    public ScrollDataPacket() {
+    }
 
     public ScrollDataPacket(Map<String, Integer> data) {
         this.data = data;

@@ -20,13 +20,14 @@ public final class ChatAlertPacket extends AbstractPacket {
 
     private Object[] objects;
 
-    public ChatAlertPacket() {}
+    public ChatAlertPacket() {
+    }
 
     public ChatAlertPacket(final Object... obs) {
         this.objects = obs;
     }
 
-    public static void sendChatAlert(EntityPlayerMP playerMP, final Object... obs){
+    public static void sendChatAlert(EntityPlayerMP playerMP, final Object... obs) {
         ChatAlertPacket packet = new ChatAlertPacket(obs);
         PacketHandler.Instance.sendToPlayer(packet, playerMP);
     }
@@ -49,7 +50,7 @@ public final class ChatAlertPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(!ConfigClient.ChatAlerts)
+        if (!ConfigClient.ChatAlerts)
             return;
 
         StringBuilder message = new StringBuilder();

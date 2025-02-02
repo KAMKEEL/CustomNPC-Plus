@@ -6,27 +6,22 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.util.ByteBufUtils;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.controllers.data.MarkData;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
 public final class REQUESTPacket extends AbstractPacket {
     public static final String packetName = "Request|Name";
 
-    public REQUESTPacket() {}
+    public REQUESTPacket() {
+    }
 
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.Delete;
+        return EnumRequestPacket.NPCDelete;
     }
 
     @Override
@@ -35,12 +30,12 @@ public final class REQUESTPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return null;
     }
 
     @Override
-    public boolean needsNPC(){
+    public boolean needsNPC() {
         return false;
     }
 

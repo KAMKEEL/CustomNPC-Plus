@@ -6,14 +6,14 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.network.enums.EnumConfigOperation;
+import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.client.ClientProxy;
-import noppes.npcs.config.ConfigClient;
-import noppes.npcs.client.ClientProxy.FontContainer;
 import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.ClientProxy.FontContainer;
+import noppes.npcs.config.ConfigClient;
 
 import java.io.IOException;
 
@@ -23,7 +23,8 @@ public final class ConfigCommandPacket extends AbstractPacket {
     private EnumConfigOperation configOperation;
     private Object[] objects;
 
-    public ConfigCommandPacket() {}
+    public ConfigCommandPacket() {
+    }
 
     public ConfigCommandPacket(EnumConfigOperation operation, Object... obs) {
         this.configOperation = operation;

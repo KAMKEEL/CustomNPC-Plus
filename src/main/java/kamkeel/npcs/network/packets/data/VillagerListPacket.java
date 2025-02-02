@@ -10,8 +10,8 @@ import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.PacketBuffer;
-import noppes.npcs.ServerEventsHandler;
 import net.minecraft.village.MerchantRecipeList;
+import noppes.npcs.ServerEventsHandler;
 
 import java.io.IOException;
 
@@ -20,7 +20,8 @@ public final class VillagerListPacket extends AbstractPacket {
 
     private MerchantRecipeList merchantrecipelist;
 
-    public VillagerListPacket() {}
+    public VillagerListPacket() {
+    }
 
     public VillagerListPacket(MerchantRecipeList merchantrecipelist) {
         this.merchantrecipelist = merchantrecipelist;

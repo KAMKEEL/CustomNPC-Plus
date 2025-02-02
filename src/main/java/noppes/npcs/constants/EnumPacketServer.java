@@ -3,7 +3,7 @@ package noppes.npcs.constants;
 import noppes.npcs.CustomNpcsPermissions;
 
 public enum EnumPacketServer {
-	Delete(CustomNpcsPermissions.NPC_DELETE, true),
+	NPCDelete(CustomNpcsPermissions.NPC_DELETE, true),
 	RemoteMainMenu(CustomNpcsPermissions.NPC_GUI),
     RemoteGlobalMenu(CustomNpcsPermissions.GLOBAL_REMOTE),
 	NpcMenuClose(CustomNpcsPermissions.NPC_GUI, true),

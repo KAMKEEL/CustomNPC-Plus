@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request;
+package kamkeel.npcs.network.packets.request.party;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -7,28 +7,23 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NoppesUtilPlayer;
 
 import java.io.IOException;
 
-public final class PartyLogToServerPacket extends AbstractPacket {
-    public static final String packetName = "Request|PartyLogToServer";
+import static noppes.npcs.PacketHandlerServer.sendInviteData;
 
-    private String key;
+public final class PartyInviteListPacket extends AbstractPacket {
+    public static final String packetName = "Request|PartyInviteList";
 
-    public PartyLogToServerPacket() {}
 
-    public PartyLogToServerPacket(String key) {
-        this.key = key;
+    public PartyInviteListPacket() {
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PartyLogToServer;
+        return EnumRequestPacket.PartyInviteList;
     }
 
     @Override
@@ -36,16 +31,14 @@ public final class PartyLogToServerPacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
+
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, this.key);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NoppesUtilPlayer.updatePartyQuestLogData(in, (EntityPlayerMP) player);
+        sendInviteData((EntityPlayerMP) player);
     }
-
-
 }

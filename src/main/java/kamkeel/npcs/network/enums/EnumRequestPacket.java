@@ -1,9 +1,9 @@
 package kamkeel.npcs.network.enums;
 public enum EnumRequestPacket {
-    Delete,
+    NPCDelete,
     RemoteMainMenu,
     RemoteGlobalMenu,
-    NpcMenuClose,
+    NpcClose,
     RemoteDelete,
     RemoteFreeze,
     RemoteFreezeGet,
@@ -109,18 +109,17 @@ public enum EnumRequestPacket {
     CustomGuiUnfocused,
 
     PartyLogToServer,
-    SavePartyData,
-    CreateParty,
-    GetPartyData,
-    DisbandParty,
-    KickPlayer,
-    LeavePlayer,
+    PartySave,
+    PartyInfo,
+    PartyDisband,
+    PartyKick,
+    PartyLeave,
     PartyInvite,
-    GetPartyInviteList,
-    AcceptInvite,
-    IgnoreInvite,
-    SetPartyLeader,
-    SetPartyQuest,
+    PartyInviteList,
+    PartyAcceptInvite,
+    PartyIgnoreInvite,
+    PartySetLeader,
+    PartySetQuest,
 
-    ServerUpdateSkinOverlays
+    LinkedRemove, LinkedAdd, LinkedGetAll, LinkedSet, BankGet, BanksGet, BankSave, BankRemove, QuestCategoryGet, PlayerDataGet, PlayerDataRemove, PlayerDataMapRegen, JobSave, JobGet, JobSpawnerAdd, RoleCompanionUpdate, JobSpawnerRemove, RoleSave, RoleGet, MailOpenSetup, TransformSave, TransformGet, TransformLoad, TraderMarketSave, ServerUpdateSkinOverlays
 }
