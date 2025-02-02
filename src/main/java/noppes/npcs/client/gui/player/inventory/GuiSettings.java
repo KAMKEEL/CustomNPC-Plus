@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.request.quest.QuestUntrackPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -102,7 +105,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
             switch (i) {
                 case 0:
                     // Untrack Quest
-                    Client.sendData(EnumPacketServer.UntrackQuest);
+                    PacketClient.sendClient(new QuestUntrackPacket());
                     break;
                 case 1:
                     // Clear Skin Cache

@@ -1,5 +1,9 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.party.PartyLogToServerPacket;
+import kamkeel.npcs.network.packets.request.party.PartySetQuestPacket;
+import kamkeel.npcs.network.packets.request.quest.QuestLogToServerPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -153,7 +157,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
                 String key = data.selectedCategory + ":" + data.selectedQuest;
                 if(data.partyQuests.containsKey(key)){
                     int questID = data.partyQuests.get(key);
-                    Client.sendData(EnumPacketServer.SetPartyQuest, questID);
+                    PacketClient.sendClient(new PartySetQuestPacket(questID));
                 }
             }
             initGui();
@@ -192,7 +196,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         if (guibutton.id == 3)
         {
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
-                Client.sendData(EnumPacketServer.SetPartyQuest, -1);
+                PacketClient.sendClient(new PartySetQuestPacket(-1));
             } else {
                 GuiYesNo yesnoDisband = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("party.setQuestConfirm"), 0);
                 displayGuiScreen(yesnoDisband);
@@ -405,7 +409,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
                 !Objects.equals(this.trackedQuestKeyOnOpen, data.trackedQuestKey))) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Alerts", NBTTags.nbtStringStringMap(data.questAlerts));
-            Client.sendData(EnumPacketServer.QuestLogToServer, compound, this.data.trackedQuestKey);
+            PacketClient.sendClient(new QuestLogToServerPacket(compound, this.data.trackedQuestKey));
         }
 	}
 

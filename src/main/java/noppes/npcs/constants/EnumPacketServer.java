@@ -6,9 +6,6 @@ public enum EnumPacketServer {
 	SpawnMob(CustomNpcsPermissions.SPAWNER_MOB),
 	MobSpawner(CustomNpcsPermissions.SPAWNER_CREATE),
 
-
-	TraderMarketSave(CustomNpcsPermissions.NPC_ADVANCED, true),
-
 	ClonePreSave(CustomNpcsPermissions.NPC_CLONE),
     CloneSave(CustomNpcsPermissions.NPC_CLONE),
     CloneRemove(CustomNpcsPermissions.NPC_CLONE),
@@ -35,38 +32,30 @@ public enum EnumPacketServer {
     ScriptBlockDataSave(CustomNpcsPermissions.SCRIPT_BLOCK, false),
 	ScriptBlockDataGet(false),
 
-    ScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true), ScriptDataGet(true),
-	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true), EventScriptDataGet(true),
+    ScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
+    ScriptDataGet(true),
+	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
+    EventScriptDataGet(true),
 
-    DialogCategoriesGet, DialogsGetFromDialog,
-	DialogsGet, DialogGet,
+    DialogCategoriesGet,
+    DialogsGetFromDialog,
+	DialogsGet,
+    DialogGet,
 	DialogRemove(CustomNpcsPermissions.GLOBAL_DIALOG),
 
 	FactionsGet,
     FactionGet,
     TagGet,
 	QuestCategoriesGet,
-	QuestRemove(CustomNpcsPermissions.GLOBAL_QUEST),
-	QuestRewardSave(CustomNpcsPermissions.GLOBAL_QUEST),
-	QuestSave(CustomNpcsPermissions.GLOBAL_QUEST), QuestsGetFromQuest, QuestsGet,
+	QuestsGetFromQuest, QuestsGet,
 	MerchantUpdate(CustomNpcsPermissions.EDIT_VILLAGER),
 	PlayerRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
-	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),
-
-    QuestLogToServer,
-    PartyLogToServer,
-    UntrackQuest,
+	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true),
+    MovingPathGet(true),
 
     QuestGet,
-	DimensionTeleport,
-    GetTileEntity,
-    IsGuiOpen,
-
-	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
-	IgnoreInvite, SetPartyLeader, SetPartyQuest,
-
-    ServerUpdateSkinOverlays;
+	DimensionTeleport;
 
 	public CustomNpcsPermissions.Permission permission = null;
 	public boolean needsNpc = false;

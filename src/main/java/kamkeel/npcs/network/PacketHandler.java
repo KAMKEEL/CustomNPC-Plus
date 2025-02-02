@@ -44,6 +44,7 @@ import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnRemovePacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket;
 import kamkeel.npcs.network.packets.request.npc.*;
+import kamkeel.npcs.network.packets.request.party.*;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
@@ -154,6 +155,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new QuestSavePacket());
         REQUEST_PACKET.registerPacket(new QuestRemovePacket());
         REQUEST_PACKET.registerPacket(new QuestDialogGetTitlePacket());
+        REQUEST_PACKET.registerPacket(new QuestLogToServerPacket());
+        REQUEST_PACKET.registerPacket(new QuestUntrackPacket());
 
         // Faction Packets
         REQUEST_PACKET.registerPacket(new FactionSavePacket());
@@ -233,6 +236,20 @@ public class PacketHandler {
 
         // Trader Packets
         REQUEST_PACKET.registerPacket(new TraderMarketSavePacket());
+
+        // Party Packets
+        REQUEST_PACKET.registerPacket(new PartySavePacket());
+        REQUEST_PACKET.registerPacket(new PartyInfoPacket());
+        REQUEST_PACKET.registerPacket(new PartyDisbandPacket());
+        REQUEST_PACKET.registerPacket(new PartySetLeaderPacket());
+        REQUEST_PACKET.registerPacket(new PartyKickPacket());
+        REQUEST_PACKET.registerPacket(new PartyDisbandPacket());
+        REQUEST_PACKET.registerPacket(new PartyLeavePacket());
+        REQUEST_PACKET.registerPacket(new PartySetQuestPacket());
+        REQUEST_PACKET.registerPacket(new PartyInvitePacket());
+        REQUEST_PACKET.registerPacket(new PartyAcceptInvitePacket());
+        REQUEST_PACKET.registerPacket(new PartyIgnoreInvitePacket());
+        REQUEST_PACKET.registerPacket(new PartyLogToServerPacket());
 
         // Animation Packets
         REQUEST_PACKET.registerPacket(new AnimationsGetPacket());

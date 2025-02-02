@@ -115,7 +115,6 @@ public enum EnumRequestPacket {
     PartyKick,
     PartyLeave,
     PartyInvite,
-    PartyInviteList,
     PartyAcceptInvite,
     PartyIgnoreInvite,
     PartySetLeader,
