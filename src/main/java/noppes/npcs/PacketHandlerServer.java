@@ -456,56 +456,11 @@ public class PacketHandlerServer{
 			NoppesUtilServer.setEditingQuest(player,quest);
 			player.openGui(CustomNpcs.instance, gui , player.worldObj, 0, 0, 0);
 		}
-		else if(type == EnumPacketServer.JobSave){
-			NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
-			NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-			Set<String> names = compound.func_150296_c();
-			for(String name : names)
-				original.setTag(name, compound.getTag(name));
-			npc.jobInterface.readFromNBT(original);
-			npc.updateClient = true;
-		}
-		else if(type == EnumPacketServer.JobGet){
-			if(npc.jobInterface == null)
-				return;
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setBoolean("JobData", true);
-			npc.jobInterface.writeToNBT(compound);
-
-			if(npc.advanced.job == EnumJobType.Spawner)
-				((JobSpawner)npc.jobInterface).cleanCompound(compound);
-
-			GuiDataPacket.sendGuiData(player, compound);
-
-			if(npc.advanced.job == EnumJobType.Spawner)
-				GuiDataPacket.sendGuiData(player, ((JobSpawner)npc.jobInterface).getTitles());
-		}
-		else if(type == EnumPacketServer.JobSpawnerAdd){
-			if(npc.advanced.job != EnumJobType.Spawner)
-				return;
-			JobSpawner job = (JobSpawner) npc.jobInterface;
-			if(buffer.readBoolean()){
-				NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(buffer), buffer.readInt());
-
-				job.setJobCompound(buffer.readInt(), compound);
-			}
-			else{
-				job.setJobCompound(buffer.readInt(), ByteBufUtils.readNBT(buffer));
-			}
-			GuiDataPacket.sendGuiData(player, job.getTitles());
-		}
 		else if(type == EnumPacketServer.RoleCompanionUpdate){
 			if(npc.advanced.role != EnumRoleType.Companion)
 				return;
 			((RoleCompanion)npc.roleInterface).matureTo(EnumCompanionStage.values()[buffer.readInt()]);
 			npc.updateClient = true;
-		}
-		else if(type == EnumPacketServer.JobSpawnerRemove){
-			if(npc.advanced.job != EnumJobType.Spawner)
-				return;
-			JobSpawner job = (JobSpawner) npc.jobInterface;
-			job.setJobCompound(buffer.readInt(), null);
-			GuiDataPacket.sendGuiData(player, job.getTitles());
 		}
 		else if(type == EnumPacketServer.RoleSave){
 			npc.roleInterface.readFromNBT(ByteBufUtils.readNBT(buffer));

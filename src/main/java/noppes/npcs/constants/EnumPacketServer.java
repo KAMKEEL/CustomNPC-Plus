@@ -14,9 +14,9 @@ public enum EnumPacketServer {
     TransformSave(CustomNpcsPermissions.NPC_ADVANCED, true), TransformGet(true),
 	TransformLoad(CustomNpcsPermissions.NPC_ADVANCED, true),
 	TraderMarketSave(CustomNpcsPermissions.NPC_ADVANCED, true),
-	JobSave(CustomNpcsPermissions.NPC_ADVANCED, true), JobGet(true),
-	RoleSave(CustomNpcsPermissions.NPC_ADVANCED, true), RoleGet(true),
-	JobSpawnerAdd(CustomNpcsPermissions.NPC_ADVANCED, true), JobSpawnerRemove(CustomNpcsPermissions.NPC_ADVANCED, true),
+
+    RoleSave(CustomNpcsPermissions.NPC_ADVANCED, true),
+    RoleGet(true),
 	RoleCompanionUpdate(CustomNpcsPermissions.NPC_ADVANCED, true),
 
 	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList, CloneTagList, CloneAllTags, CloneAllTagsShort,

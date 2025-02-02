@@ -24,7 +24,28 @@ import java.io.IOException;
 public final class JobSpawnerAddPacket extends AbstractPacket {
     public static String packetName = "Request|JobSpawnerAdd";
 
+    private boolean isServer;
+
+    private String selected;
+    private int activeTab;
+    private int slot;
+
+    private NBTTagCompound compound;
+
     public JobSpawnerAddPacket() { }
+
+    public JobSpawnerAddPacket(boolean isServer, String selected, int activeTab, int slot) {
+        this.isServer = isServer;
+        this.selected = selected;
+        this.activeTab = activeTab;
+        this.slot = slot;
+    }
+
+    public JobSpawnerAddPacket(boolean isServer, int slot, NBTTagCompound compound) {
+        this.isServer = isServer;
+        this.slot = slot;
+        this.compound = compound;
+    }
 
     @Override
     public Enum getType() {
@@ -48,13 +69,29 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        out.writeBoolean(this.isServer);
+        if(this.isServer){
+          ByteBufUtils.writeString(out, selected);
+          out.writeInt(this.activeTab);
+          out.writeInt(this.slot);
+        } else {
+            out.writeInt(this.slot);
+            ByteBufUtils.writeNBT(out, this.compound);
+        }
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
-        if(npc.advanced.job != EnumJobType.Spawner) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
+        if(npc.advanced.job != EnumJobType.Spawner)
+            return;
+
         JobSpawner job = (JobSpawner) npc.jobInterface;
         boolean useServerClone = in.readBoolean();
         if(useServerClone){
@@ -63,6 +100,7 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
         } else {
             job.setJobCompound(in.readInt(), ByteBufUtils.readNBT(in));
         }
+
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, job.getTitles());
     }
 }

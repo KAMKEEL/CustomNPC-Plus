@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
@@ -11,12 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcFollowerJob extends GuiNPCInterface2 implements ICustomScrollListener
-{	
+{
 	private JobFollower job;
 	private GuiCustomScroll scroll;
     public GuiNpcFollowerJob(EntityNPCInterface npc)
     {
-    	super(npc);    	
+    	super(npc);
     	job = (JobFollower) npc.jobInterface;
     }
 
@@ -32,7 +33,7 @@ public class GuiNpcFollowerJob extends GuiNPCInterface2 implements ICustomScroll
         scroll.guiLeft = guiLeft + 268;
         scroll.guiTop = guiTop + 4;
         this.addScroll(scroll);
-        
+
         List<String> names = new ArrayList<String>();
         List<EntityNPCInterface> list = npc.worldObj.getEntitiesWithinAABB(EntityNPCInterface.class, npc.boundingBox.expand(40, 40, 40));
         for(EntityNPCInterface npc : list){
@@ -46,7 +47,7 @@ public class GuiNpcFollowerJob extends GuiNPCInterface2 implements ICustomScroll
     @Override
 	public void save() {
     	job.name = getTextField(1).getText();
-		Client.sendData(EnumPacketServer.JobSave, job.writeToNBT(new NBTTagCompound()));
+        JobSavePacket.saveJob(job);
 	}
 
 	@Override

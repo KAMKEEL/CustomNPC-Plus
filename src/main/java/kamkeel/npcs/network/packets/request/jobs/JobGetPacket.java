@@ -50,9 +50,15 @@ public final class JobGetPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
-        if(npc.jobInterface == null) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
+        if(npc.jobInterface == null)
+            return;
+
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("JobData", true);
         npc.jobInterface.writeToNBT(compound);

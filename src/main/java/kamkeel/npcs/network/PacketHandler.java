@@ -28,6 +28,10 @@ import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.faction.FactionRemovePacket;
 import kamkeel.npcs.network.packets.request.faction.FactionSavePacket;
 import kamkeel.npcs.network.packets.request.faction.FactionSetPacket;
+import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
+import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
+import kamkeel.npcs.network.packets.request.jobs.JobSpawnerRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedRemovePacket;
@@ -196,6 +200,12 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new CustomGuiClosePacket());
         REQUEST_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
         REQUEST_PACKET.registerPacket(new CustomScrollClickPacket());
+
+        // Job
+        REQUEST_PACKET.registerPacket(new JobGetPacket());
+        REQUEST_PACKET.registerPacket(new JobSavePacket());
+        REQUEST_PACKET.registerPacket(new JobSpawnerAddPacket());
+        REQUEST_PACKET.registerPacket(new JobSpawnerRemovePacket());
 
         // Other
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());

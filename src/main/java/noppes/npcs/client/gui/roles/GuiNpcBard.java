@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -90,7 +92,7 @@ public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener
     		job.maxRange = job.minRange;
 
         MusicController.Instance.stopAllSounds();
-		Client.sendData(EnumPacketServer.JobSave, job.writeToNBT(new NBTTagCompound()));
+        JobSavePacket.saveJob(job);
 	}
 
     @Override

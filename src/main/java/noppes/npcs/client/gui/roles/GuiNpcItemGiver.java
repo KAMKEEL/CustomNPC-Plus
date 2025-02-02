@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -17,11 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcItemGiver extends GuiContainerNPCInterface2
-{	
+{
 	private JobItemGiver role;
     public GuiNpcItemGiver(EntityNPCInterface npc, ContainerNpcItemGiver container)
     {
-    	super(npc,container);    	
+    	super(npc,container);
     	ySize = 200;
     	role = (JobItemGiver) npc.jobInterface;
     	setBackground("npcitemgiver.png");
@@ -37,7 +38,7 @@ public class GuiNpcItemGiver extends GuiContainerNPCInterface2
     	getTextField(0).integersOnly = true;
         addLabel(new GuiNpcLabel(0,"Cooldown:", guiLeft + 6, guiTop + 59));
         addLabel(new GuiNpcLabel(1,"Items to give", guiLeft + 46, guiTop + 79));
-        
+
         getTextField(0).integersOnly = true;
 
         int i = 0;
@@ -71,7 +72,7 @@ public class GuiNpcItemGiver extends GuiContainerNPCInterface2
         if(button.id == 4){
         	setSubGui(new SubGuiNpcAvailability(role.availability));
         }
-    	        
+
     }
 
 	public void save() {
@@ -89,7 +90,7 @@ public class GuiNpcItemGiver extends GuiContainerNPCInterface2
 
 		role.cooldown = cc;
 
-		Client.sendData(EnumPacketServer.JobSave, role.writeToNBT(new NBTTagCompound()));
+        JobSavePacket.saveJob(role);
 	}
 
 }

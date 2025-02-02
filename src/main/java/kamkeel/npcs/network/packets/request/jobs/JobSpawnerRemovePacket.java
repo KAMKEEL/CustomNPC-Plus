@@ -21,7 +21,13 @@ import java.io.IOException;
 public final class JobSpawnerRemovePacket extends AbstractPacket {
     public static String packetName = "Request|JobSpawnerRemove";
 
-    public JobSpawnerRemovePacket() { }
+    private int slot;
+
+    public JobSpawnerRemovePacket(){}
+
+    public JobSpawnerRemovePacket(int slot) {
+        this.slot = slot;
+    }
 
     @Override
     public Enum getType() {
@@ -45,13 +51,21 @@ public final class JobSpawnerRemovePacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.slot);
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
-        if(npc.advanced.job != EnumJobType.Spawner) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
+        if(npc.advanced.job != EnumJobType.Spawner)
+            return;
+
         JobSpawner job = (JobSpawner) npc.jobInterface;
         job.setJobCompound(in.readInt(), null);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, job.getTitles());

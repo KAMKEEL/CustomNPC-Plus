@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
@@ -69,7 +70,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
         }
         if(button.id == 4){
         	save();
-			Client.sendData(EnumPacketServer.JobGet);
+            PacketClient.sendClient(new JobGetPacket());
         }
         if(button.id == 5){
 			hasChanges = true;
