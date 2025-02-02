@@ -21,14 +21,23 @@ import java.io.IOException;
 public class BankPacket extends AbstractPacket {
     public static final String packetName = "Player|Follower";
 
-    private final Action type;
-    private final int slotID;
-    private final int bankID;
+    private Action type;
+    private int slotID;
+    private int bankID;
+
+    public BankPacket() {
+
+    }
 
     private BankPacket(Action action, int bankID, int slotID) {
         this.type = action;
         this.bankID = bankID;
         this.slotID = slotID;
+    }
+
+    @Override
+    public boolean needsNPC() {
+        return true;
     }
 
     public static BankPacket Open(int bankID, int slotID) {
@@ -54,6 +63,8 @@ public class BankPacket extends AbstractPacket {
     @Override
     @SideOnly(Side.CLIENT)
     public void sendData(ByteBuf out) throws IOException {
+        if (type == null)
+            return;
         out.writeInt(type.ordinal());
 
         if (type == Action.OpenSlot) {
@@ -71,9 +82,7 @@ public class BankPacket extends AbstractPacket {
 
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
 
-        EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(playerMP);
-
-        if(npc == null || npc.advanced.role != EnumRoleType.Bank)
+        if(npc.advanced.role != EnumRoleType.Bank)
             return;
 
         switch (requestedAction) {

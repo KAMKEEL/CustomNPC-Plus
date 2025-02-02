@@ -21,10 +21,18 @@ import java.io.IOException;
 public class FollowerPacket extends AbstractPacket {
     public static final String packetName = "Player|Follower";
 
-    private final Action type;
+    private Action type;
+
+    public FollowerPacket() {
+    }
 
     public FollowerPacket(Action action) {
         this.type = action;
+    }
+
+    @Override
+    public boolean needsNPC() {
+        return true;
     }
 
     @Override
@@ -51,11 +59,8 @@ public class FollowerPacket extends AbstractPacket {
 
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
 
-        EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(playerMP);
-
-        if (npc == null || npc.advanced.job != EnumJobType.Follower)
+        if (npc.advanced.job != EnumJobType.Follower)
             return;
-
 
         switch (requestedAction) {
             case Hire:

@@ -14,6 +14,8 @@ import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
+import kamkeel.npcs.network.packets.player.BankPacket;
+import kamkeel.npcs.network.packets.player.FollowerPacket;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
@@ -98,6 +100,7 @@ public class PacketHandler {
         this.registerChannels();
         this.registerDataPackets();
         this.registerRequestPackets();
+        this.registerPlayerPackets();
     }
 
     public void registerRequestPackets(){
@@ -286,6 +289,12 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new SyncPacket());
         DATA_PACKET.registerPacket(new GuiDataPacket());
         DATA_PACKET.registerPacket(new PartyDataPacket());
+    }
+
+    public void registerPlayerPackets() {
+        PLAYER_PACKET.registerPacket(new FollowerPacket());
+
+        PLAYER_PACKET.registerPacket(new BankPacket());
     }
 
     private void registerChannels() {
