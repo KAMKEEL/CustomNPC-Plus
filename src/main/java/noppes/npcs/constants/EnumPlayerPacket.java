@@ -1,9 +1,6 @@
 package noppes.npcs.constants;
 
 public enum EnumPlayerPacket {
-	FollowerHire,
-    FollowerExtend,
-    FollowerState,
     Transport,
     BankUnlock,
     BankUpgrade,

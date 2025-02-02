@@ -126,26 +126,26 @@ public class PacketHandlerPlayer{
 
 			EventHooks.onPlayerMouseClicked(player, button, mouseWheel, buttonDown, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDown);
 		}
-		else if(type == EnumPlayerPacket.FollowerHire){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
-				return;
-			NoppesUtilPlayer.hireFollower(player, npc);
-		}
-		else if(type == EnumPlayerPacket.FollowerExtend){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
-				return;
-			NoppesUtilPlayer.extendFollower(player, npc);
-			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
-		}
-		else if(type == EnumPlayerPacket.FollowerState){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
-				return;
-			NoppesUtilPlayer.changeFollowerState(player,npc);
-			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
-		}
+//		else if(type == EnumPlayerPacket.FollowerHire){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
+//				return;
+//			NoppesUtilPlayer.hireFollower(player, npc);
+//		}
+//		else if(type == EnumPlayerPacket.FollowerExtend){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
+//				return;
+//			NoppesUtilPlayer.extendFollower(player, npc);
+//			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+//		}
+//		else if(type == EnumPlayerPacket.FollowerState){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Follower)
+//				return;
+//			NoppesUtilPlayer.changeFollowerState(player,npc);
+//			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+//		}
 		else if(type == EnumPlayerPacket.RoleGet){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role == EnumRoleType.None)
