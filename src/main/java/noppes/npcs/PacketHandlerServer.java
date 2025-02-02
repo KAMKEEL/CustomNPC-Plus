@@ -365,10 +365,7 @@ public class PacketHandlerServer{
 	}
 
 	private void blockPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		if (type == EnumPacketServer.SaveTileEntity) {
-			NoppesUtilServer.saveTileEntity(player, ByteBufUtils.readNBT(buffer));
-		}
-		else if(type == EnumPacketServer.DialogCategoriesGet){
+		if(type == EnumPacketServer.DialogCategoriesGet){
 			ScrollDataPacket.sendScrollData(player, DialogController.Instance.getScroll());
 		}
 		else if(type == EnumPacketServer.DialogsGetFromDialog){

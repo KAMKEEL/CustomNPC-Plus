@@ -9,16 +9,16 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
+import noppes.npcs.NoppesUtilServer;
 
 import java.io.IOException;
 
 public final class TileEntitySavePacket extends AbstractPacket {
-    public static final String packetName = "Request|TileEntityGet";
+    public static final String packetName = "Request|TileEntitySave";
 
     private NBTTagCompound compound;
 
@@ -30,7 +30,7 @@ public final class TileEntitySavePacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.TileEntityGet;
+        return EnumRequestPacket.TileEntitySave;
     }
 
     @Override
@@ -41,9 +41,7 @@ public final class TileEntitySavePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(this.x);
-        out.writeInt(this.y);
-        out.writeInt(this.z);
+        ByteBufUtils.writeNBT(out, this.compound);
     }
 
     @Override
@@ -54,9 +52,6 @@ public final class TileEntitySavePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
-        TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
-        NBTTagCompound compound = new NBTTagCompound();
-        tile.writeToNBT(compound);
-        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+        NoppesUtilServer.saveTileEntity((EntityPlayerMP) player, ByteBufUtils.readNBT(in));
     }
 }

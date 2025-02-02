@@ -2,6 +2,7 @@ package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.TileEntityGetPacket;
+import kamkeel.npcs.network.packets.request.TileEntitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileBorder;
@@ -53,7 +54,7 @@ public class GuiBorderBlock extends GuiNPCInterface implements IGuiData{
 
 		NBTTagCompound compound = new NBTTagCompound();
 		tile.writeToNBT(compound);
-		Client.sendData(EnumPacketServer.SaveTileEntity, compound);
+        PacketClient.sendClient(new TileEntitySavePacket(compound));
 	}
 	@Override
 	public void setGuiData(NBTTagCompound compound) {

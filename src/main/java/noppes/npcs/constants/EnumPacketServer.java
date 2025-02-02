@@ -54,11 +54,14 @@ public enum EnumPacketServer {
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),
 
-    QuestLogToServer, PartyLogToServer, UntrackQuest,
+    QuestLogToServer,
+    PartyLogToServer,
+    UntrackQuest,
 
     QuestGet,
-	SaveTileEntity,
-	DimensionTeleport, GetTileEntity, IsGuiOpen,
+	DimensionTeleport,
+    GetTileEntity,
+    IsGuiOpen,
 
 	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
 	IgnoreInvite, SetPartyLeader, SetPartyQuest,

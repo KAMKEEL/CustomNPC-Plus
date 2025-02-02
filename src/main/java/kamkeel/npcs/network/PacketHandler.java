@@ -246,6 +246,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ModelDataSavePacket());
         REQUEST_PACKET.registerPacket(new MailOpenSetupPacket());
         REQUEST_PACKET.registerPacket(new TileEntityGetPacket());
+        REQUEST_PACKET.registerPacket(new TileEntitySavePacket());
     }
 
     public void registerDataPackets(){
