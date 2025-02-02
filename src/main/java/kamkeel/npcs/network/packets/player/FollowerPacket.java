@@ -1,5 +1,7 @@
 package kamkeel.npcs.network.packets.player;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
@@ -36,6 +38,7 @@ public class FollowerPacket extends AbstractPacket {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
     }
@@ -43,24 +46,28 @@ public class FollowerPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         Action requestedAction = Action.values()[in.readInt()];
-        EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        EntityPlayerMP playerMP = (EntityPlayerMP) player;
+
+        EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(playerMP);
 
         if (npc == null || npc.advanced.job != EnumJobType.Follower)
             return;
 
-        EntityPlayerMP entityPlayerMP = (EntityPlayerMP) player;
 
         switch (requestedAction) {
             case Hire:
-                NoppesUtilPlayer.hireFollower(entityPlayerMP, npc);
+                NoppesUtilPlayer.hireFollower(playerMP, npc);
                 break;
             case Extend:
-                NoppesUtilPlayer.extendFollower(entityPlayerMP, npc);
-                GuiDataPacket.sendGuiData(entityPlayerMP, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+                NoppesUtilPlayer.extendFollower(playerMP, npc);
+                GuiDataPacket.sendGuiData(playerMP, npc.roleInterface.writeToNBT(new NBTTagCompound()));
                 break;
             case State:
-                NoppesUtilPlayer.changeFollowerState(entityPlayerMP, npc);
-                GuiDataPacket.sendGuiData(entityPlayerMP, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+                NoppesUtilPlayer.changeFollowerState(playerMP, npc);
+                GuiDataPacket.sendGuiData(playerMP, npc.roleInterface.writeToNBT(new NBTTagCompound()));
                 break;
         }
 
