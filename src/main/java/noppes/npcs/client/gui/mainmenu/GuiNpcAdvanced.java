@@ -4,6 +4,7 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
+import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
@@ -60,7 +61,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
     	GuiNpcButton button = (GuiNpcButton) guibutton;
 		if (button.id == 3) {
 			save();
-			Client.sendData(EnumPacketServer.RoleGet);
+            PacketClient.sendClient(new RoleGetPacket());
 		}
         if(button.id == 8){
 			hasChanges = true;

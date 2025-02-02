@@ -3,23 +3,19 @@ package noppes.npcs.constants;
 import noppes.npcs.CustomNpcsPermissions;
 
 public enum EnumPacketServer {
-	NPCDelete(CustomNpcsPermissions.NPC_DELETE, true),
-	NpcMenuClose(CustomNpcsPermissions.NPC_GUI, true),
-	RemoteReset(CustomNpcsPermissions.NPC_RESET),
 	SpawnMob(CustomNpcsPermissions.SPAWNER_MOB),
 	MobSpawner(CustomNpcsPermissions.SPAWNER_CREATE),
 
-	ModelDataSave(CustomNpcsPermissions.NPC_DISPLAY, true),
 
-    TransformSave(CustomNpcsPermissions.NPC_ADVANCED, true), TransformGet(true),
-	TransformLoad(CustomNpcsPermissions.NPC_ADVANCED, true),
 	TraderMarketSave(CustomNpcsPermissions.NPC_ADVANCED, true),
 
-    RoleSave(CustomNpcsPermissions.NPC_ADVANCED, true),
-    RoleGet(true),
-	RoleCompanionUpdate(CustomNpcsPermissions.NPC_ADVANCED, true),
-
-	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList, CloneTagList, CloneAllTags, CloneAllTagsShort,
+	ClonePreSave(CustomNpcsPermissions.NPC_CLONE),
+    CloneSave(CustomNpcsPermissions.NPC_CLONE),
+    CloneRemove(CustomNpcsPermissions.NPC_CLONE),
+    CloneList,
+    CloneTagList,
+    CloneAllTags,
+    CloneAllTagsShort,
 
 	ScriptGlobalGuiDataSave(CustomNpcsPermissions.SCRIPT_GLOBAL, false),
 	ScriptGlobalGuiDataGet(false),
@@ -65,8 +61,8 @@ public enum EnumPacketServer {
 
     QuestOpenGui, QuestLogToServer, PartyLogToServer, UntrackQuest,
 
-    QuestGet, QuestCategoryGet,
-	SaveTileEntity, MailOpenSetup,
+    QuestGet,
+	SaveTileEntity,
 	DimensionTeleport, GetTileEntity, IsGuiOpen,
 
 	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,

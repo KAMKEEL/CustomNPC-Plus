@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui.model;
 
 import kamkeel.npcs.addon.client.GeckoAddonClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.npc.ModelDataSavePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -380,7 +382,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
 	@Override
 	public void close(){
-		Client.sendData(EnumPacketServer.ModelDataSave, playerdata.writeToNBT());
+        PacketClient.sendClient(new ModelDataSavePacket(playerdata.writeToNBT()));
 		displayGuiScreen(parent);
 	}
 

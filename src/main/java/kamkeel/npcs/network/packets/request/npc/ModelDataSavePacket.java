@@ -12,6 +12,7 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.entity.EntityCustomNpc;
 
@@ -20,7 +21,13 @@ import java.io.IOException;
 public final class ModelDataSavePacket extends AbstractPacket {
     public static String packetName = "Request|ModelDataSave";
 
+    private NBTTagCompound save;
+
     public ModelDataSavePacket() { }
+
+    public ModelDataSavePacket(NBTTagCompound save) {
+        this.save = save;
+    }
 
     @Override
     public Enum getType() {
@@ -45,13 +52,17 @@ public final class ModelDataSavePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-
+        ByteBufUtils.writeNBT(out, this.save);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         if(npc instanceof EntityCustomNpc)
             ((EntityCustomNpc)npc).modelData.readFromNBT(ByteBufUtils.readNBT(in));
     }

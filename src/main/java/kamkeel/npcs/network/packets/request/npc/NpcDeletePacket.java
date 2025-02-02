@@ -21,8 +21,7 @@ import java.io.IOException;
 public final class NpcDeletePacket extends AbstractPacket {
     public static final String packetName = "Request|NPCDelete";
 
-    public NpcDeletePacket() {
-    }
+    public NpcDeletePacket() {}
 
 
     @Override

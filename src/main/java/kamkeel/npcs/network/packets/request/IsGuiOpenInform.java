@@ -13,15 +13,15 @@ import noppes.npcs.controllers.data.PlayerData;
 
 import java.io.IOException;
 
-public final class IsGuiOpenPacket extends AbstractPacket {
+public final class IsGuiOpenInform extends AbstractPacket {
     public static final String packetName = "Request|IsGuiOpen";
 
     private boolean isOpen;
 
-    public IsGuiOpenPacket() {
+    public IsGuiOpenInform() {
     }
 
-    public IsGuiOpenPacket(boolean isOpen) {
+    public IsGuiOpenInform(boolean isOpen) {
         this.isOpen = isOpen;
     }
 

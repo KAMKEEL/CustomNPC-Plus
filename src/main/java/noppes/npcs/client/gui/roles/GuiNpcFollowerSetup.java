@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -47,13 +49,13 @@ public class GuiNpcFollowerSetup extends GuiContainerNPCInterface2
 
         addLabel(new GuiNpcLabel(7, "follower.infiniteDays", guiLeft + 180, guiTop + 80));
         addButton(new GuiNpcButtonYesNo(7, guiLeft + 260, guiTop + 75, role.infiniteDays));
-        
+
         addLabel(new GuiNpcLabel(8, "follower.guiDisabled", guiLeft + 180, guiTop + 104));
         addButton(new GuiNpcButtonYesNo(8, guiLeft + 260, guiTop + 99, role.disableGui));
-        
+
         addLabel(new GuiNpcLabel(9, "follower.allowSoulstone", guiLeft + 180, guiTop + 128));
         addButton(new GuiNpcButtonYesNo(9, guiLeft + 260, guiTop + 123, !role.refuseSoulStone));
-        
+
 
         addButton(new GuiNpcButton(10, guiLeft + 195, guiTop + 147, 100, 20, "remote.reset"));
     }
@@ -77,7 +79,7 @@ public class GuiNpcFollowerSetup extends GuiContainerNPCInterface2
     @Override
     protected void drawGuiContainerForegroundLayer(int par1, int par2)
     {
-    	
+
     }
 	@Override
 	public void save() {
@@ -91,13 +93,13 @@ public class GuiNpcFollowerSetup extends GuiContainerNPCInterface2
     				days = getTextField(i).getInteger();
     			if(days <= 0)
     				days = 1;
-    			
+
     			map.put(i,days);
     		}
         }
     	role.rates = map;
     	role.dialogHire = getTextField(3).getText();
     	role.dialogFarewell = getTextField(4).getText();
-		Client.sendData(EnumPacketServer.RoleSave, role.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new RoleSavePacket(role.writeToNBT(new NBTTagCompound())));
 	}
 }

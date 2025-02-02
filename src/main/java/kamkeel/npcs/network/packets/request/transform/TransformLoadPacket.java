@@ -18,7 +18,13 @@ import java.io.IOException;
 public final class TransformLoadPacket extends AbstractPacket {
     public static String packetName = "Request|TransformLoad";
 
+    private boolean transform;
+
     public TransformLoadPacket() { }
+
+    public TransformLoadPacket(boolean transform) {
+        this.transform = transform;
+    }
 
     @Override
     public Enum getType() {
@@ -46,8 +52,12 @@ public final class TransformLoadPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         if(npc.transform.isValid())
             npc.transform.transform(in.readBoolean());
     }

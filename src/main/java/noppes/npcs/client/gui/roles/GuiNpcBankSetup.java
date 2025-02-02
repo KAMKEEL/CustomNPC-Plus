@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.roles;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
+import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -83,6 +84,6 @@ public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICu
 	}
 
 	public void save() {
-		Client.sendData(EnumPacketServer.RoleSave, role.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new RoleSavePacket(role.writeToNBT(new NBTTagCompound())));
 	}
 }

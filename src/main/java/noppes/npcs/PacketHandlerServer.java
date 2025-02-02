@@ -456,53 +456,6 @@ public class PacketHandlerServer{
 			NoppesUtilServer.setEditingQuest(player,quest);
 			player.openGui(CustomNpcs.instance, gui , player.worldObj, 0, 0, 0);
 		}
-		else if(type == EnumPacketServer.RoleCompanionUpdate){
-			if(npc.advanced.role != EnumRoleType.Companion)
-				return;
-			((RoleCompanion)npc.roleInterface).matureTo(EnumCompanionStage.values()[buffer.readInt()]);
-			npc.updateClient = true;
-		}
-		else if(type == EnumPacketServer.RoleSave){
-			npc.roleInterface.readFromNBT(ByteBufUtils.readNBT(buffer));
-			npc.updateClient = true;
-		}
-		else if(type == EnumPacketServer.RoleGet){
-			if(npc.roleInterface == null)
-				return;
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setBoolean("RoleData", true);
-			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(compound));
-		}
-		else if(type == EnumPacketServer.MerchantUpdate){
-			Entity entity = player.worldObj.getEntityByID(buffer.readInt());
-			if(entity == null || !(entity instanceof EntityVillager))
-				return;
-			MerchantRecipeList list = MerchantRecipeList.func_151390_b(new PacketBuffer(buffer));
-			((EntityVillager)entity).setRecipes(list);
-		}
-		else if(type == EnumPacketServer.ModelDataSave){
-			if(npc instanceof EntityCustomNpc)
-				((EntityCustomNpc)npc).modelData.readFromNBT(ByteBufUtils.readNBT(buffer));
-		}
-		else if(type == EnumPacketServer.MailOpenSetup){
-			PlayerMail mail = new PlayerMail();
-			mail.readNBT(ByteBufUtils.readNBT(buffer));
-			ContainerMail.staticmail = mail;
-			player.openGui(CustomNpcs.instance, EnumGuiType.PlayerMailman.ordinal(), player.worldObj, 1, 0, 0);
-		}
-		else if(type == EnumPacketServer.TransformSave){
-			boolean isValid = npc.transform.isValid();
-			npc.transform.readOptions(ByteBufUtils.readNBT(buffer));
-			if(isValid != npc.transform.isValid())
-				npc.updateAI = true;
-		}
-		else if(type == EnumPacketServer.TransformGet){
-			GuiDataPacket.sendGuiData(player, npc.transform.writeOptions(new NBTTagCompound()));
-		}
-		else if(type == EnumPacketServer.TransformLoad){
-			if(npc.transform.isValid())
-				npc.transform.transform(buffer.readBoolean());
-		}
 		else if(type == EnumPacketServer.TraderMarketSave){
 			String market = ByteBufUtils.readString(buffer);
             if(market == null)
