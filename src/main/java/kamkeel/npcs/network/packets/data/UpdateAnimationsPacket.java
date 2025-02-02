@@ -5,8 +5,10 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
+import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumDataPacket;
+import kamkeel.npcs.network.packets.request.AnimationCachePacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -85,6 +87,7 @@ public final class UpdateAnimationsPacket extends AbstractPacket {
 
             animationData.setAnimation(ClientCacheHandler.animationCache.get(animationId));
             animationData.readFromNBT(nbt);
+            PacketClient.sendClient(new AnimationCachePacket(animationId));
         }
     }
 }

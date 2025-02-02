@@ -485,7 +485,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         PacketClient.sendClient(new CustomGuiUnfocusedPacket(textField.getID(), this.updateGui().toNBT()));
     }
 
-    ScriptGui updateGui() {
+    public ScriptGui updateGui() {
         Iterator var1 = this.dataHolders.iterator();
 
         while(var1.hasNext()) {
@@ -496,7 +496,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         return this.gui;
     }
 
-    NBTTagCompound getScrollSelection(CustomGuiScrollComponent scroll) {
+    public NBTTagCompound getScrollSelection(CustomGuiScrollComponent scroll) {
         NBTTagList list = new NBTTagList();
         if (scroll.multiSelect) {
             Iterator var3 = scroll.getSelectedList().iterator();

@@ -67,7 +67,7 @@ public enum EnumPacketServer {
 
     QuestGet, QuestCategoryGet,
 	SaveTileEntity, MailOpenSetup,
-	DimensionTeleport, GetTileEntity, IsGuiOpen, CacheAnimation,
+	DimensionTeleport, GetTileEntity, IsGuiOpen,
 
 	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
 	IgnoreInvite, SetPartyLeader, SetPartyQuest,
