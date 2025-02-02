@@ -4,7 +4,7 @@ public enum EnumPlayerPacket {
 //	FollowerHire, // Finished
 //    FollowerExtend,
 //    FollowerState,
-    Transport,
+//    Transport,
 //    BankUnlock,
 //    BankUpgrade,
     Dialog,
