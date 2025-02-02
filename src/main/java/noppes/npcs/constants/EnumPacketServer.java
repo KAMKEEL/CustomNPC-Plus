@@ -1,6 +1,8 @@
 package noppes.npcs.constants;
 
+import net.minecraft.client.gui.Gui;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.client.gui.custom.components.CustomGuiButton;
 
 public enum EnumPacketServer {
 	NPCDelete(CustomNpcsPermissions.NPC_DELETE, true),
@@ -33,7 +35,6 @@ public enum EnumPacketServer {
 	RoleSave(CustomNpcsPermissions.NPC_ADVANCED, true), RoleGet(true),
 	JobSpawnerAdd(CustomNpcsPermissions.NPC_ADVANCED, true), JobSpawnerRemove(CustomNpcsPermissions.NPC_ADVANCED, true),
 	RoleCompanionUpdate(CustomNpcsPermissions.NPC_ADVANCED, true),
-	LinkedSet(CustomNpcsPermissions.NPC_ADVANCED, true),
 
 	ClonePreSave(CustomNpcsPermissions.NPC_CLONE), CloneSave(CustomNpcsPermissions.NPC_CLONE), CloneRemove(CustomNpcsPermissions.NPC_CLONE), CloneList, CloneTagList, CloneAllTags, CloneAllTagsShort,
 
@@ -54,9 +55,6 @@ public enum EnumPacketServer {
 
     ScriptBlockDataSave(CustomNpcsPermissions.SCRIPT_BLOCK, false),
 	ScriptBlockDataGet(false),
-
-	LinkedGetAll,
-    LinkedRemove(CustomNpcsPermissions.GLOBAL_LINKED), LinkedAdd(CustomNpcsPermissions.GLOBAL_LINKED),
 
     ScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true), ScriptDataGet(true),
 	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true), EventScriptDataGet(true),

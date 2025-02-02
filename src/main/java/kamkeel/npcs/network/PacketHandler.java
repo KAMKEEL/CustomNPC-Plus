@@ -14,6 +14,10 @@ import kamkeel.npcs.network.packets.data.gui.*;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
+import kamkeel.npcs.network.packets.request.linked.LinkedAddPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedRemovePacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,11 +26,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
 
-public final class PacketHandler {
+public class PacketHandler {
     public static PacketHandler Instance;
 
     // Channels
@@ -51,6 +56,14 @@ public final class PacketHandler {
 
         this.registerChannels();
         this.registerDataPackets();
+    }
+
+    public void registerRequestPackets(){
+        // Linked Packets
+        REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());
+        REQUEST_PACKET.registerPacket(new LinkedRemovePacket());
+        REQUEST_PACKET.registerPacket(new LinkedSetPacket());
+        REQUEST_PACKET.registerPacket(new LinkedAddPacket());
     }
 
     public void registerDataPackets(){
@@ -159,6 +172,11 @@ public final class PacketHandler {
             }
 
             if(side == Side.SERVER){
+                if(abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)){
+                    LogWriter.error(String.format("%s tried to use CNPC+ without being an op", player.getCommandSenderName()));
+                    return;
+                }
+
                 // Check if permission is allowed
                 if(abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())){
                     return;

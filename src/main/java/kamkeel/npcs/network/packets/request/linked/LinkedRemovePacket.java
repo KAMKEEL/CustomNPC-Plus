@@ -29,8 +29,7 @@ public final class LinkedRemovePacket extends AbstractPacket {
         this.data = data;
     }
 
-    public LinkedRemovePacket() {
-    }
+    public LinkedRemovePacket() {}
 
     @Override
     public Enum getType() {

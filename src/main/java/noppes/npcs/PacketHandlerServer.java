@@ -68,13 +68,7 @@ public class PacketHandlerServer{
 			ItemStack item = player.inventory.getCurrentItem();
 
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(type.needsNpc && npc == null){
-
-			}
-			else if(type.hasPermission() && !CustomNpcsPermissions.hasPermission(player, type.permission)){
-				//player doesnt have permission to do this
-			}
-			else if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
+			if(item == null && (type == EnumPacketServer.ScriptPlayerGet || type == EnumPacketServer.ScriptPlayerSave || type == EnumPacketServer.ScriptGlobalNPCGet || type == EnumPacketServer.ScriptGlobalNPCSave || type == EnumPacketServer.ScriptForgeGet || type == EnumPacketServer.ScriptForgeSave))
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
@@ -455,27 +449,7 @@ public class PacketHandlerServer{
 	}
 
 	private void wandPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException{
-		if(type == EnumPacketServer.LinkedRemove){
-			LinkedNpcController.Instance.removeData(ByteBufUtils.readString(buffer));
-
-			List<String> list = new ArrayList<String>();
-			for(LinkedData data : LinkedNpcController.Instance.list)
-				list.add(data.name);
-            ScrollListPacket.sendList((EntityPlayerMP)player, list);
-		}
-		else if(type == EnumPacketServer.LinkedGetAll){
-			List<String> list = new ArrayList<String>();
-			for(LinkedData data : LinkedNpcController.Instance.list)
-				list.add(data.name);
-            ScrollListPacket.sendList((EntityPlayerMP)player, list);
-			if(npc != null)
-                ScrollSelectedPacket.setSelectedList(player, npc.linkedName);
-		}
-		else if(type == EnumPacketServer.LinkedSet){
-			npc.linkedName = ByteBufUtils.readString(buffer);
-			LinkedNpcController.Instance.loadNpcData(npc);
-		}
-		else if(type == EnumPacketServer.BanksGet){
+		if(type == EnumPacketServer.BanksGet){
 			NoppesUtilServer.sendBankDataAll(player);
 		}
 		else if(type == EnumPacketServer.BankGet){

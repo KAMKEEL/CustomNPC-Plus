@@ -22,8 +22,7 @@ import java.util.List;
 public final class LinkedGetAllPacket extends AbstractPacket {
     public static String packetName = "Request|LinkedGetAll";
 
-    public LinkedGetAllPacket() {
-    }
+    public LinkedGetAllPacket() {}
 
     @Override
     public Enum getType() {

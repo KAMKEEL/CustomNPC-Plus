@@ -1,5 +1,9 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.linked.LinkedAddPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedRemovePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.Client;
@@ -23,7 +27,7 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
     public GuiNPCManageLinkedNpc(EntityNPCInterface npc){
     	super(npc);
     	Instance = this;
-		Client.sendData(EnumPacketServer.LinkedGetAll);
+        PacketClient.sendClient(new LinkedGetAllPacket());
     }
 
     @Override
@@ -79,7 +83,7 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
         }
         if(button.id == 2){
         	if(scroll.hasSelected())
-        		Client.sendData(EnumPacketServer.LinkedRemove, scroll.getSelected());
+                PacketClient.sendClient(new LinkedRemovePacket(scroll.getSelected()));
         }
 
     }
@@ -87,7 +91,7 @@ public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollDa
 	@Override
 	public void subGuiClosed(SubGuiInterface subgui) {
 		if(!((SubGuiEditText)subgui).cancelled){
-			Client.sendData(EnumPacketServer.LinkedAdd, ((SubGuiEditText)subgui).text);
+            PacketClient.sendClient(new LinkedAddPacket(((SubGuiEditText)subgui).text));
 		}
 	}
 
